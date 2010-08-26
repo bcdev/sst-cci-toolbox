@@ -1,6 +1,5 @@
 
-
-ESA CCI-SST Toolbox 
+ESA SST_cci Toolbox 
 ===================
 
 Toolbox overview
