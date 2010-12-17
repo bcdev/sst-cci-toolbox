@@ -3,6 +3,9 @@ package org.esa.cci.sst;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * TODO add API doc
@@ -10,6 +13,7 @@ import javax.persistence.Id;
  * @author Martin Boettcher
  */
 @Entity
+@Table(name="mm_obsvariable")
 public class ObsVariable {
     int id;
     DataSchema dataSchema;
@@ -28,6 +32,7 @@ public class ObsVariable {
         this.id = id;
     }
 
+    @ManyToOne
     public DataSchema getDataSchema() {
         return dataSchema;
     }

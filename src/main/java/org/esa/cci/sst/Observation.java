@@ -10,7 +10,11 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.util.Date;
@@ -21,7 +25,7 @@ import java.util.Date;
  * @author Martin Boettcher
  */
 @Entity
-//@NamedQuery()
+@Table(name="mm_observation")
 public class Observation {
     int id;
     String name;
@@ -58,7 +62,6 @@ public class Observation {
     }
 
     @Column(columnDefinition = "GEOGRAPHY(POINT,4326)")
-    //@Type(PGgeometry.class)
     @Strategy("org.esa.cci.sst.GeographyValueHandler")
     public PGgeometry getLocation() {
         return location;
@@ -68,6 +71,7 @@ public class Observation {
         this.location = location;
     }
 
+    @ManyToOne
     public DataFile getDatafile() {
         return datafile;
     }

@@ -3,6 +3,9 @@ package org.esa.cci.sst;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * TODO add API doc
@@ -10,6 +13,7 @@ import javax.persistence.Id;
  * @author Martin Boettcher
  */
 @Entity
+@Table(name="mm_datafile")
 public class DataFile {
     int id;
     String path;
@@ -33,6 +37,7 @@ public class DataFile {
         this.path = path;
     }
 
+    @ManyToOne
     public DataSchema getDataSchema() {
         return dataSchema;
     }

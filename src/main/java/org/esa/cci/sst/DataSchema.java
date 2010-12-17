@@ -3,6 +3,7 @@ package org.esa.cci.sst;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * TODO add API doc
@@ -10,6 +11,7 @@ import javax.persistence.Id;
  * @author Martin Boettcher
  */
 @Entity
+@Table(name="mm_dataschema")
 public class DataSchema {
     int id;
     String name;
