@@ -16,7 +16,8 @@ public class IngestionTool {
         List<Variable> variableList = netcdfFile.getVariables();
         for (Variable variable : variableList) {
             Dimension recDim = variable.getDimension(0);
+            System.out.println(recDim);
         }
-
+        netcdfFile.close();
     }
 }
