@@ -39,7 +39,8 @@ public class IngestionTool {
         try {
             // open match-up file
             matchupFile = NetcdfFile.open(matchupFilePath);
-            final int numberOfRecords = matchupFile.findDimension("match_up").getLength();
+            String noOfRecordsDimensionName = (String) System.getProperty(schemaName + ".noofrecordsdimensionname");
+            final int numberOfRecords = matchupFile.findDimension(noOfRecordsDimensionName).getLength();
 
             // open database
             persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME);
@@ -62,16 +63,20 @@ public class IngestionTool {
             // (maybe create observation variable)
 
             // read in-situ variables
-            final NetcdfMatchupReader insituReader = new NetcdfMatchupReader(matchupFile, schemaName, "insitu");
-            final NetcdfMatchupReader satelliteReader = new NetcdfMatchupReader(matchupFile, schemaName, "satellite");
-            final NetcdfMatchupReader matchupReader = new NetcdfMatchupReader(matchupFile, schemaName, "matchup");
-
+            final NetcdfMatchupReader insituReader = createNetcdfMatchupReader(schemaName);
+            insituReader.init(matchupFile, schemaName, "insitu");
             insituReader.read();
+
+            final NetcdfMatchupReader satelliteReader = createNetcdfMatchupReader(schemaName);
+            satelliteReader.init(matchupFile, schemaName, "satellite");
             satelliteReader.read();
+
+            final NetcdfMatchupReader matchupReader = createNetcdfMatchupReader(schemaName);
+            matchupReader.init(matchupFile, schemaName, "matchup");
             matchupReader.read();
 
             // loop over records
-            for (int recordNo = 0; recordNo < Math.min(3, numberOfRecords); ++recordNo) {
+            for (int recordNo = 0; recordNo < numberOfRecords; ++recordNo) {
 
                 Observation insituObservation = createObservation(insituReader, dataFile, recordNo);
                 persistenceManager.persist(insituObservation);
@@ -107,14 +112,22 @@ public class IngestionTool {
 
     }
 
+    private NetcdfMatchupReader createNetcdfMatchupReader(String schemaName)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException
+    {
+        String readerNameProperty = schemaName + ".readerclass";
+        String readerClassName = System.getProperty(readerNameProperty);
+        return (NetcdfMatchupReader) Class.forName(readerClassName).newInstance();
+    }
+
     private Observation createObservation(NetcdfMatchupReader reader, DataFile dataFile, int recordNo) {
 
         final Observation observation = new Observation();
         observation.setName(reader.getString("name", recordNo));
         observation.setSensor(reader.getString("sensor", recordNo));
-        observation.setLocation(new PGgeometry(new Point(reader.getFloat("longitude", recordNo),
-                                                         reader.getFloat("latitude", recordNo))));
-        observation.setTime(TimeUtil.dateOfJulianDate(reader.getDouble("time", recordNo)));
+        observation.setLocation(new PGgeometry(new Point(reader.getCoordinate("longitude", recordNo),
+                                                         reader.getCoordinate("latitude", recordNo))));
+        observation.setTime(reader.getDate("time", recordNo));
         observation.setDatafile(dataFile);
         observation.setRecordNo(recordNo);
         return observation;

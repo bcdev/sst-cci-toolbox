@@ -17,7 +17,7 @@
             <property name="openjpa.ConnectionURL" value="jdbc:postgresql://localhost:5432/mygisdb"/>
             <property name="openjpa.ConnectionUserName" value="boe"/>
             <property name="openjpa.ConnectionPassword" value="boe"/>
-            <property name="openjpa.Log" value="DefaultLevel=TRACE,SQL=TRACE"/>
+            <property name="openjpa.Log" value="DefaultLevel=INFO,SQL=INFO"/>
             <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/>
         </properties>
     </persistence-unit>

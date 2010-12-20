@@ -93,7 +93,7 @@ public class Observation {
     }
 
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%s,%d", id, name, TimeUtil.formatCcsdsUtcFormat(time), location, datafile, recordNo);
+        return String.format("Observation(%d,%s,%s,%s,%s,%d", getId(), getName(), TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo());
     }
 }
 

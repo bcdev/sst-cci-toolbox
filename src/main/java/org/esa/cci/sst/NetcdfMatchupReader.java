@@ -8,10 +8,12 @@ import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.ArrayFloat;
 import ucar.ma2.ArrayInt;
+import ucar.ma2.ArrayShort;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +23,7 @@ import java.util.Set;
  *
  * @author Martin Boettcher
  */
-public class NetcdfMatchupReader {
+abstract public class NetcdfMatchupReader {
 
     static final String DEFAULT_POSTFIX = ".default";
 
@@ -30,7 +32,10 @@ public class NetcdfMatchupReader {
     private String observationType;
     private Map<String,Object> data = new HashMap<String,Object>();
 
-    public NetcdfMatchupReader(NetcdfFile matchupFile, String schemaName, String observationType) {
+    abstract public Date getDate(String role, int recordNo);
+    abstract public float getCoordinate(String role, int recordNo);
+
+    public NetcdfMatchupReader init(NetcdfFile matchupFile, String schemaName, String observationType) {
 
         this.matchupFile = matchupFile;
         this.schemaName = schemaName;
@@ -47,15 +52,18 @@ public class NetcdfMatchupReader {
                 }
             }
         }
+
+        return this;
     }
 
-    public void read() throws IOException {
+    public NetcdfMatchupReader read() throws IOException {
         for (String role : data.keySet()) {
             if (data.get(role) == null) {
                 final String variableName = String.format("%s.%s.%s", schemaName, observationType, role);
                 data.put(role, matchupFile.findVariable(System.getProperty(variableName)).read());
             }
         }
+        return this;
     }
 
     public String getString(String role, int recordNo) {
@@ -89,6 +97,15 @@ public class NetcdfMatchupReader {
         Object variableData = data.get(role);
         if (variableData instanceof ArrayInt.D1) {
             return ((ArrayInt.D1) variableData).get(recordNo);
+        } else {
+            return Integer.parseInt((String) variableData);
+        }
+    }
+
+    public int getShort(String role, int recordNo) {
+        Object variableData = data.get(role);
+        if (variableData instanceof ArrayShort.D1) {
+            return ((ArrayShort.D1) variableData).get(recordNo);
         } else {
             return Integer.parseInt((String) variableData);
         }
