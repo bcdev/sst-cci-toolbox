@@ -24,6 +24,7 @@ import java.util.Date;
 public class Observation {
     int id;
     String name;
+    String sensor;
     Date time;
     PGgeometry location;  // TODO maybe use non-postgres type for external representation
     DataFile datafile;
@@ -45,6 +46,14 @@ public class Observation {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSensor() {
+        return sensor;
+    }
+
+    public void setSensor(String sensor) {
+        this.sensor = sensor;
     }
 
     @Temporal(TemporalType.TIMESTAMP)

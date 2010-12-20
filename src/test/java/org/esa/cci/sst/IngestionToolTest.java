@@ -20,11 +20,13 @@ import java.util.List;
  */
 public class IngestionToolTest {
 
+    static final String DATASCHEMA_FILENAME = "dataschema.properties";
     static final String AATSR_MATCHUP_FILE_PATH = "/home/boe/samples/aatsr_l2p_mdb_rad_all_data.nc";
 
     @Test
     public void testIngestAatsrFile() throws Exception {
-        new IngestionTool().ingest(AATSR_MATCHUP_FILE_PATH, "aatsr");
+        System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
+        new IngestionTool().ingest(AATSR_MATCHUP_FILE_PATH, "aatsr", "aatsr_format");
     }
 
 }

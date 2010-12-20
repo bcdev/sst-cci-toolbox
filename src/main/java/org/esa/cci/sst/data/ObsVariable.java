@@ -16,6 +16,7 @@ import javax.persistence.Table;
 public class ObsVariable {
     int id;
     DataSchema dataSchema;
+    String role;
     String name;
     String type;
     String units;

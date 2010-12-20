@@ -52,4 +52,8 @@ public final class TimeUtil {
         }
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString).getTime();
     }
+
+    public static Date dateOfJulianDate(double julianDate) {
+        return new Date((long) ((julianDate - 2440587.5) * 86400000l));
+    }
 }
