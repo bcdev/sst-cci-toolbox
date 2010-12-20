@@ -1,19 +1,14 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.data;
 
-import org.apache.openjpa.persistence.Type;
 import org.apache.openjpa.persistence.jdbc.Strategy;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
-import org.postgis.PGgeometryLW;
-import org.postgresql.jdbc2.TimestampUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -62,7 +57,7 @@ public class Observation {
     }
 
     @Column(columnDefinition = "GEOGRAPHY(POINT,4326)")
-    @Strategy("org.esa.cci.sst.GeographyValueHandler")
+    @Strategy("org.esa.cci.sst.orm.GeographyValueHandler")
     public PGgeometry getLocation() {
         return location;
     }

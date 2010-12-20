@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.data;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

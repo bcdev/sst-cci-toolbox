@@ -3,6 +3,7 @@ package org.esa.cci.sst;
 import org.apache.openjpa.persistence.Extent;
 import org.apache.openjpa.persistence.OpenJPAEntityManager;
 import org.apache.openjpa.persistence.OpenJPAPersistence;
+import org.esa.cci.sst.data.Observation;
 import org.junit.Test;
 import org.postgis.PGgeometry;
 

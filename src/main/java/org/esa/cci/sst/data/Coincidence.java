@@ -1,9 +1,8 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.data;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -18,6 +17,8 @@ public class Coincidence {
     int id;
     Observation refObs;
     Observation observation;
+    float distance;
+    double timeDifference;
 
     @Id
     @GeneratedValue
@@ -45,5 +46,21 @@ public class Coincidence {
 
     public void setObservation(Observation observation) {
         this.observation = observation;
+    }
+
+    public float getDistance() {
+        return distance;
+    }
+
+    public void setDistance(float distance) {
+        this.distance = distance;
+    }
+
+    public double getTimeDifference() {
+        return timeDifference;
+    }
+
+    public void setTimeDifference(double timeDifference) {
+        this.timeDifference = timeDifference;
     }
 }

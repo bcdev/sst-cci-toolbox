@@ -6,11 +6,11 @@
         <provider>
             org.apache.openjpa.persistence.PersistenceProviderImpl
         </provider>
-        <class>org.esa.cci.sst.Observation</class>
-        <class>org.esa.cci.sst.DataSchema</class>
-        <class>org.esa.cci.sst.DataFile</class>
-        <class>org.esa.cci.sst.ObsVariable</class>
-        <class>org.esa.cci.sst.Coincidence</class>
+        <class>org.esa.cci.sst.data.Observation</class>
+        <class>org.esa.cci.sst.data.DataSchema</class>
+        <class>org.esa.cci.sst.data.DataFile</class>
+        <class>org.esa.cci.sst.data.ObsVariable</class>
+        <class>org.esa.cci.sst.data.Coincidence</class>
 
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>

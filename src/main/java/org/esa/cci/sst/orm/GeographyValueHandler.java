@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.orm;
 
 import org.apache.openjpa.jdbc.identifier.DBIdentifier;
 import org.apache.openjpa.jdbc.kernel.JDBCStore;

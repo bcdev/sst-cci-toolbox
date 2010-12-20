@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
