@@ -54,9 +54,34 @@ public class PersistenceManager {
         return entityManager.createQuery(queryString);
     }
 
+    public Query createNativeQuery(String queryString) {
+        return entityManager.createNativeQuery(queryString);
+    }
+
+    public Query createNativeQuery(String queryString, Class resultClass) {
+        return entityManager.createNativeQuery(queryString, resultClass);
+    }
+
     public Object pick(String queryString, String... parameter) {
 
         final Query query = createQuery(queryString);
+        for (int i=0; i<parameter.length; ++i) {
+            query.setParameter(i+1, parameter[i]);
+        }
+        List result = query.getResultList();
+
+        if (result.isEmpty()) {
+            return null;
+        } else if (result.size() == 1) {
+            return result.get(0);
+        } else {
+            throw new NonUniqueResultException("single result instead of " + result.size() + " expected for query " + query.toString());
+        }
+    }
+
+    public Object pickNative(String queryString, Object... parameter) {
+
+        final Query query = createNativeQuery(queryString);
         for (int i=0; i<parameter.length; ++i) {
             query.setParameter(i+1, parameter[i]);
         }

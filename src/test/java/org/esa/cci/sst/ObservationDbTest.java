@@ -20,7 +20,18 @@ import java.util.List;
  */
 public class ObservationDbTest {
 
-    @Test
+    public static void main(String[] args) {
+        try {
+            ObservationDbTest t = new ObservationDbTest();
+            t.testCreateDbEntry();
+            t.testReadDbEntry();
+            t.testSearchDbEntry();
+            t.testGeoSearchDbEntry();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void testCreateDbEntry() throws Exception {
         final EntityManagerFactory f = Persistence.createEntityManagerFactory("matchupdb");
         final EntityManager m = f.createEntityManager();
@@ -35,9 +46,10 @@ public class ObservationDbTest {
         i2.setLocation(new PGgeometry("SRID=4326;POINT(10 50)"));
         m.persist(i2);
         m.getTransaction().commit();
+        //
+        m.close();
     }
 
-    @Test
     public void testReadDbEntry() throws Exception {
         final EntityManagerFactory f = Persistence.createEntityManagerFactory("matchupdb");
         final EntityManager m = f.createEntityManager();
@@ -49,9 +61,10 @@ public class ObservationDbTest {
             System.out.println(o);
         }
         m.getTransaction().commit();
+        //
+        m.close();
     }
 
-    @Test
     public void testSearchDbEntry() throws Exception {
         final EntityManagerFactory f = Persistence.createEntityManagerFactory("matchupdb");
         final EntityManager m = f.createEntityManager();
@@ -68,7 +81,6 @@ public class ObservationDbTest {
         m.close();
     }
 
-    @Test
     public void testGeoSearchDbEntry() throws Exception {
         final EntityManagerFactory f = Persistence.createEntityManagerFactory("matchupdb");
         final EntityManager m = f.createEntityManager();

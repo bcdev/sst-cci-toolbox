@@ -1,18 +1,5 @@
 package org.esa.cci.sst;
 
-import org.apache.openjpa.persistence.Extent;
-import org.apache.openjpa.persistence.OpenJPAEntityManager;
-import org.apache.openjpa.persistence.OpenJPAPersistence;
-import org.esa.cci.sst.data.Observation;
-import org.junit.Test;
-import org.postgis.PGgeometry;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
-import java.util.List;
-
 /**
  * TODO add API doc
  *
@@ -23,18 +10,33 @@ import java.util.List;
 public class IngestionToolTest {
 
     static final String DATASCHEMA_FILENAME = "dataschema.properties";
-    static final String AATSR_MATCHUP_FILE_PATH = "/home/boe/samples/aatsr_l2p_mdb_rad_all_data.nc";
+    static final String AATSR_MATCHUP_FILE_PATH = "/home/boe/samples/aatsr_l2p_mdb_all_data.nc";
+    static final String METOP_MATCHUP_FILE_PATH = "/home/boe/samples/mdb1_metop02_20100101.nc";
     static final String SEVIRI_MATCHUP_FILE_PATH = "/home/boe/samples/sstmdb1_meteosat09_20100101.nc";
 
-    @Test
-    public void testIngestAatsrFile() throws Exception {
-        System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
-        new IngestionTool().ingest(AATSR_MATCHUP_FILE_PATH, "aatsr", "aatsr");
+    public static void main(String[] args) {
+        try {
+            IngestionToolTest t = new IngestionToolTest();
+            t.testIngestAatsrFile();
+            t.testIngestMetopFile();
+            t.testIngestSeviriFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    @Test
+    public void testIngestAatsrFile() throws Exception {
+        System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
+        new IngestionTool2().ingest(AATSR_MATCHUP_FILE_PATH, "aatsr", "aatsr");
+    }
+
+    public void testIngestMetopFile() throws Exception {
+        System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
+        new IngestionTool2().ingest(METOP_MATCHUP_FILE_PATH, "metop", "metop");
+    }
+
     public void testIngestSeviriFile() throws Exception {
         System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
-        new IngestionTool().ingest(SEVIRI_MATCHUP_FILE_PATH, "seviri", "seviri");
+        new IngestionTool2().ingest(SEVIRI_MATCHUP_FILE_PATH, "seviri", "seviri");
     }
 }

@@ -5,31 +5,18 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.util.TimeUtil;
-import org.postgis.Geometry;
+import org.esa.cci.sst.reader.NetcdfMatchupReader;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
-import ucar.ma2.Array;
-import ucar.ma2.ArrayChar;
-import ucar.ma2.ArrayDouble;
-import ucar.ma2.ArrayFloat;
-import ucar.nc2.Dimension;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
 import java.io.IOException;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
 
 /**
  * Tool to ingest new MD files into the MMS database.
  */
-public class IngestionTool {
+public class IngestionTool1 {
 
     static final String PERSISTENCE_UNIT_NAME = "matchupdb";
 
@@ -65,15 +52,15 @@ public class IngestionTool {
             // read in-situ variables
             final NetcdfMatchupReader insituReader = createNetcdfMatchupReader(schemaName);
             insituReader.init(matchupFile, schemaName, "insitu");
-            insituReader.read();
+            //insituReader.read();
 
             final NetcdfMatchupReader satelliteReader = createNetcdfMatchupReader(schemaName);
             satelliteReader.init(matchupFile, schemaName, "satellite");
-            satelliteReader.read();
+            //satelliteReader.read();
 
             final NetcdfMatchupReader matchupReader = createNetcdfMatchupReader(schemaName);
             matchupReader.init(matchupFile, schemaName, "matchup");
-            matchupReader.read();
+            //matchupReader.read();
 
             // loop over records
             for (int recordNo = 0; recordNo < numberOfRecords; ++recordNo) {
@@ -120,7 +107,7 @@ public class IngestionTool {
         return (NetcdfMatchupReader) Class.forName(readerClassName).newInstance();
     }
 
-    private Observation createObservation(NetcdfMatchupReader reader, DataFile dataFile, int recordNo) {
+    private Observation createObservation(NetcdfMatchupReader reader, DataFile dataFile, int recordNo) throws IOException, InvalidRangeException {
 
         final Observation observation = new Observation();
         observation.setName(reader.getString("name", recordNo));
@@ -141,7 +128,7 @@ public class IngestionTool {
         return coincidence;
     }
 
-    private Coincidence createCoincidence(NetcdfMatchupReader reader, Observation insituObservation, Observation satelliteObservation, int recordNo) {
+    private Coincidence createCoincidence(NetcdfMatchupReader reader, Observation insituObservation, Observation satelliteObservation, int recordNo) throws IOException, InvalidRangeException {
 
         final Coincidence coincidence = new Coincidence();
         coincidence.setRefObs(insituObservation);

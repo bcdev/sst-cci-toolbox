@@ -1,8 +1,9 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.util.TimeUtil;
-import ucar.nc2.NetcdfFile;
+import ucar.ma2.InvalidRangeException;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -23,12 +24,12 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         }
     }
 
-    public Date getDate(String role, int recordNo) {
+    public Date getDate(String role, int recordNo) throws IOException, InvalidRangeException {
         final double seviriTime = getDouble(role, recordNo);
         return new Date(MILLISECONDS_1981 + (long) seviriTime * 1000);
     }
 
-    public float getCoordinate(String role, int recordNo) {
+    public float getCoordinate(String role, int recordNo) throws IOException, InvalidRangeException {
         int seviriCoordinate = getShort(role, recordNo);
         return seviriCoordinate * 0.01f;
     }
