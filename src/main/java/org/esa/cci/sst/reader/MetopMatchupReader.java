@@ -19,7 +19,7 @@ import java.util.Date;
  *
  * @author Martin Boettcher
  */
-public class SeviriMatchupReader extends NetcdfMatchupReader {
+public class MetopMatchupReader extends NetcdfMatchupReader {
 
     static final long MILLISECONDS_1981;
 
@@ -47,7 +47,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
                 "lon",
                 "box_center_y_coord",
                 "box_center_x_coord",
-                "time",
+                "msr_time",
                 "dtime"
         };
     }
@@ -61,11 +61,9 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
 
     @Override
     public long getTime(int recordNo) throws IOException, InvalidRangeException {
-        //int    line   = getShort("box_center_y_coord", recordNo);
-        //int    column = getShort("box_center_x_coord", recordNo);
+        //int line = getShort("box_center_y_coord", recordNo);
         int line = noOfLines / 2;
-        int column = noOfColumns / 2;
-        return MILLISECONDS_1981 + (long) ((getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)) * 1000);
+        return MILLISECONDS_1981 + (long) ((getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, line)) * 1000);
     }
 
     @Override
@@ -78,20 +76,20 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
 
         final Observation observation = new Observation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor("seviri");
+        observation.setSensor("metop");
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[] { new LinearRing(new Point[] {
-                new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
-                          coordinateOf(getInt("lat", recordNo, 0, 0))),
-                new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, 0)),
-                          coordinateOf(getInt("lat", recordNo, noOfLines - 1, 0))),
-                new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, noOfColumns - 1)),
-                          coordinateOf(getInt("lat", recordNo, noOfLines - 1, noOfColumns - 1))),
-                new Point(coordinateOf(getInt("lon", recordNo, 0, noOfColumns - 1)),
-                          coordinateOf(getInt("lat", recordNo, 0, noOfColumns - 1))),
-                new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
-                          coordinateOf(getInt("lat", recordNo, 0, 0)))
+                new Point(coordinateOf(getShort("lon", recordNo, 0, 0)),
+                          coordinateOf(getShort("lat", recordNo, 0, 0))),
+                new Point(coordinateOf(getShort("lon", recordNo, 0, noOfColumns - 1)),
+                          coordinateOf(getShort("lat", recordNo, 0, noOfColumns - 1))),
+                new Point(coordinateOf(getShort("lon", recordNo, noOfLines - 1, noOfColumns - 1)),
+                          coordinateOf(getShort("lat", recordNo, noOfLines - 1, noOfColumns - 1))),
+                new Point(coordinateOf(getShort("lon", recordNo, noOfLines - 1, 0)),
+                          coordinateOf(getShort("lat", recordNo, noOfLines - 1, 0))),
+                new Point(coordinateOf(getShort("lon", recordNo, 0, 0)),
+                          coordinateOf(getShort("lat", recordNo, 0, 0)))
         })})));
-        observation.setTime(dateOf(getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
+        observation.setTime(dateOf(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, line)));
         observation.setDatafile(dataFileEntry);
         observation.setRecordNo(recordNo);
         return observation;
@@ -99,15 +97,32 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
 
     @Override
     public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
-        //throw new UnsupportedOperationException("seviri only available as common observation");
-        return null;
+
+        //int    line   = getShort("box_center_y_coord", recordNo);
+        //int    column = getShort("box_center_x_coord", recordNo);
+        int line = noOfLines / 2;
+        int column = noOfColumns / 2;
+
+        final Observation observation = new Observation();
+        observation.setName(getString("msr_id", recordNo));
+        observation.setSensor("metop.ref");
+        observation.setLocation(new PGgeometry(new Point(coordinateOf(getShort("lon", recordNo, line, column)),
+                                                         coordinateOf(getShort("lat", recordNo, line, column)))));
+        observation.setTime(dateOf(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, line)));
+        observation.setDatafile(dataFileEntry);
+        observation.setRecordNo(recordNo);
+        return observation;
     }
 
-     public Date dateOf(double secondsSince1981) {
+    public Date dateOf(double secondsSince1981) {
         return new Date(MILLISECONDS_1981 + (long) secondsSince1981 * 1000);
     }
 
-    public float coordinateOf(int intCoordinate) {
-        return intCoordinate * 0.0001f;
+    // TODO handle fill value
+    public float coordinateOf(int shortCoordinate) {
+        if (shortCoordinate == -32768) {
+            throw new IllegalArgumentException("TODO handle fill value");
+        }
+        return shortCoordinate * 0.01f;
     }
 }

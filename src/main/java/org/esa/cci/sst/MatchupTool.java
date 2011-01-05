@@ -10,11 +10,12 @@ import java.util.List;
 /**
  * Tool to ingest new MD files into the MMS database.
  */
-public class MatchupTool2 {
+public class MatchupTool {
 
     static final String PERSISTENCE_UNIT_NAME = "matchupdb";
 
-    static final String AATSR_SENSOR = "aatsr";
+    static final String AATSR_AS_REFERENCE = "aatsr.ref";
+    static final String METOP_AS_REFERENCE = "metop.ref";
     static final String METOP_SENSOR = "metop";
     static final String SEVIRI_SENSOR = "seviri";
 
@@ -26,14 +27,13 @@ public class MatchupTool2 {
             "select o from Observation o"
             + " where o.sensor = ?1"
             + " and not exists (select c from Coincidence c where c.observation = o)";
-    // TODO adjust spatial criterion to pixel sizes
     static final String CORRESPONDING_OBSERVATION_QUERY =
             "select o.id"
             + " from mm_observation o, mm_observation oref"
             + " where oref.id = ?"
             + " and o.sensor = ?"
             + " and o.time >= oref.time - '12:00:00' and o.time < oref.time + '12:00:00'"
-            + " and st_distance(o.location,oref.location) < 1000"
+            + " and st_intersects(o.location,oref.location)"
             + " order by abs(extract(epoch from o.time) - extract(epoch from oref.time))";
     static final String DISTANCE_QUERY =
             "select abs(extract(epoch from o1.time) - extract(epoch from o2.time)), st_distance(o1.location,o2.location)"
@@ -53,7 +53,7 @@ public class MatchupTool2 {
             delete.executeUpdate();
 
             // loop over aatsr observations
-            final List<Observation> aatsrObservations = inquireObservations(SENSOR_OBSERVATION_QUERY, AATSR_SENSOR);
+            final List<Observation> aatsrObservations = inquireObservations(SENSOR_OBSERVATION_QUERY, AATSR_AS_REFERENCE);
             for (Observation aatsrObservation : aatsrObservations) {
                 //System.out.println(aatsrObservation);
                 Coincidence aatsrCoincidence = null;
@@ -82,7 +82,7 @@ public class MatchupTool2 {
             System.out.println();
 
             // loop over metop observations not yet included in aatsr coincidences
-            final List<Observation> metopObservations = inquireObservations(SECONDARY_OBSERVATION_QUERY, METOP_SENSOR);
+            final List<Observation> metopObservations = inquireObservations(SECONDARY_OBSERVATION_QUERY, METOP_AS_REFERENCE);
             for (Observation metopObservation : metopObservations) {
                 //System.out.println(metopObservation);
 

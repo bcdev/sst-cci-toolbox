@@ -1,5 +1,13 @@
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.reader.AatsrMatchupReader;
+import org.esa.cci.sst.reader.MetopMatchupReader;
+import org.esa.cci.sst.reader.ObservationReader;
+import org.esa.cci.sst.reader.SeviriMatchupReader;
+
+import java.io.File;
+import java.io.FileFilter;
+
 /**
  * TODO add API doc
  *
@@ -9,34 +17,40 @@ package org.esa.cci.sst;
  */
 public class IngestionToolTest {
 
-    static final String DATASCHEMA_FILENAME = "dataschema.properties";
-    static final String AATSR_MATCHUP_FILE_PATH = "/home/boe/samples/aatsr_l2p_mdb_all_data.nc";
-    static final String METOP_MATCHUP_FILE_PATH = "/home/boe/samples/mdb1_metop02_20100101.nc";
-    static final String SEVIRI_MATCHUP_FILE_PATH = "/home/boe/samples/sstmdb1_meteosat09_20100101.nc";
+    static final String AATSR_MATCHUP_DIR_PATH  = "/mnt/hgfs/c/sst-mmd-data/mmd_test_month/ATSR_MD";
+    static final String METOP_MATCHUP_DIR_PATH  = "/mnt/hgfs/c/sst-mmd-data/mmd_test_month/METOP_MD";
+    static final String SEVIRI_MATCHUP_DIR_PATH = "/mnt/hgfs/c/sst-mmd-data/mmd_test_month/SEVIRI_MD";
+
+    static final String AATSR_MATCHUP_FILENAME_PATTERN = ".*";
+    static final String METOP_MATCHUP_FILENAME_PATTERN = ".*0[123]\\.nc\\.gz";
+    static final String SEVIRI_MATCHUP_FILENAME_PATTERN = ".*0[123]\\.nc\\.gz";
+
+    private IngestionTool tool = new IngestionTool();
 
     public static void main(String[] args) {
         try {
             IngestionToolTest t = new IngestionToolTest();
-            t.testIngestAatsrFile();
-            t.testIngestMetopFile();
-            t.testIngestSeviriFile();
+            t.tool.clearObservations();
+            t.ingestDirectoryContent(AATSR_MATCHUP_DIR_PATH, AATSR_MATCHUP_FILENAME_PATTERN, "aatsr", new AatsrMatchupReader());
+            t.ingestDirectoryContent(METOP_MATCHUP_DIR_PATH, METOP_MATCHUP_FILENAME_PATTERN, "metop", new MetopMatchupReader());
+            t.ingestDirectoryContent(SEVIRI_MATCHUP_DIR_PATH, SEVIRI_MATCHUP_FILENAME_PATTERN, "seviri", new SeviriMatchupReader());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void testIngestAatsrFile() throws Exception {
-        System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
-        new IngestionTool2().ingest(AATSR_MATCHUP_FILE_PATH, "aatsr", "aatsr");
-    }
+    public void ingestDirectoryContent(String dirPath, String filenamePattern, String schemaName, ObservationReader reader) throws Exception {
 
-    public void testIngestMetopFile() throws Exception {
-        System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
-        new IngestionTool2().ingest(METOP_MATCHUP_FILE_PATH, "metop", "metop");
-    }
-
-    public void testIngestSeviriFile() throws Exception {
-        System.getProperties().load(ClassLoader.getSystemResourceAsStream(DATASCHEMA_FILENAME));
-        new IngestionTool2().ingest(SEVIRI_MATCHUP_FILE_PATH, "seviri", "seviri");
+        final File dir = new File(dirPath);
+        final String pattern = filenamePattern;
+        FileFilter fileFilter = new FileFilter() {
+            public boolean accept(File pathname) {
+                return pathname.getName().matches(pattern);
+            }
+        };
+        for (File file : dir.listFiles(fileFilter)) {
+            System.out.printf("reading %s\n", file.getName());
+            tool.ingest(file, schemaName, reader);
+        }
     }
 }

@@ -65,7 +65,7 @@ public class Observation {
         this.time = time;
     }
 
-    @Column(columnDefinition = "GEOGRAPHY(POINT,4326)")
+    @Column(columnDefinition = "GEOGRAPHY(GEOMETRY,4326)")
     @Strategy("org.esa.cci.sst.orm.GeographyValueHandler")
     public PGgeometry getLocation() {
         return location;

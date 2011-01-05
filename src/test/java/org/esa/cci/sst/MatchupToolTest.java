@@ -19,6 +19,6 @@ public class MatchupToolTest {
     }
 
     public void testFindCoincidences() throws Exception {
-        new MatchupTool2().findCoincidences();
+        new MatchupTool().findCoincidences();
     }
 }
