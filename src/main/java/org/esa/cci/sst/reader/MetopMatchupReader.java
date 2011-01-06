@@ -40,6 +40,11 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
     }
 
     @Override
+    public String getSstVariableName() {
+        return "sst";
+    }
+
+    @Override
     public String[] getVariableNames() {
         return new String[] {
                 "msr_id",
@@ -48,7 +53,8 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
                 "box_center_y_coord",
                 "box_center_x_coord",
                 "msr_time",
-                "dtime"
+                "dtime",
+                "sst"
         };
     }
 
@@ -92,6 +98,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         observation.setTime(dateOf(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, line)));
         observation.setDatafile(dataFileEntry);
         observation.setRecordNo(recordNo);
+        observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != sstFillValue);
         return observation;
     }
 
@@ -111,6 +118,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         observation.setTime(dateOf(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, line)));
         observation.setDatafile(dataFileEntry);
         observation.setRecordNo(recordNo);
+        observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != sstFillValue);
         return observation;
     }
 

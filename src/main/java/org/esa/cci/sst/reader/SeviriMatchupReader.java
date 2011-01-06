@@ -40,6 +40,11 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
     }
 
     @Override
+    public String getSstVariableName() {
+        return "sst";
+    }
+
+    @Override
     public String[] getVariableNames() {
         return new String[] {
                 "msr_id",
@@ -48,7 +53,8 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
                 "box_center_y_coord",
                 "box_center_x_coord",
                 "time",
-                "dtime"
+                "dtime",
+                "sst"
         };
     }
 
@@ -94,6 +100,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         observation.setTime(dateOf(getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
         observation.setDatafile(dataFileEntry);
         observation.setRecordNo(recordNo);
+        observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != sstFillValue);
         return observation;
     }
 

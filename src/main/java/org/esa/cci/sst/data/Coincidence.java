@@ -15,7 +15,7 @@ import javax.persistence.Table;
 @Table(name="mm_coincidence")
 public class Coincidence {
     int id;
-    Observation refObs;
+    Matchup matchup;
     Observation observation;
     float distance;
     double timeDifference;
@@ -31,12 +31,12 @@ public class Coincidence {
     }
 
     @ManyToOne
-    public Observation getRefObs() {
-        return refObs;
+    public Matchup getMatchup() {
+        return matchup;
     }
 
-    public void setRefObs(Observation refObs) {
-        this.refObs = refObs;
+    public void setMatchup(Matchup matchup) {
+        this.matchup = matchup;
     }
 
     @ManyToOne

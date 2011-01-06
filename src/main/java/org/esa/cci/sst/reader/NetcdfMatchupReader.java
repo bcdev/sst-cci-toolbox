@@ -28,6 +28,7 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     protected NetcdfFile netcdf;
     protected int length;
     protected DataFile dataFileEntry;
+    protected int sstFillValue;
 
     private Map<String, Object> data = new HashMap<String, Object>();
     private int bufferStart = 0;
@@ -47,6 +48,13 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     abstract protected String getDimensionName();
 
     /**
+     * Constant name of variable to read the sst value from
+     *
+     * @return variable name
+     */
+    abstract protected String getSstVariableName();
+
+    /**
      * Constant list of variables to be cached from observation file needed to fill observations
      *
      * @return list of variable names
@@ -63,6 +71,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
         netcdf = NetcdfFile.open(observationFile.getPath());
         // read number of records value
         length = netcdf.findDimension(getDimensionName()).getLength();
+        // read SST fill value
+        final Variable variable = netcdf.findVariable(getSstVariableName().replaceAll("\\.", "%2e"));
+        sstFillValue = variable.findAttributeIgnoreCase("_fillvalue").getNumericValue().intValue();
 
         // initialise buffer with variable names
         for (String variableName : getVariableNames()) {

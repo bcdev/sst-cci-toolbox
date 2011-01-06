@@ -29,6 +29,7 @@ public class Observation {
     PGgeometry location;  // TODO maybe use non-postgres type for external representation
     DataFile datafile;
     int recordNo;
+    boolean clearSky;
 
     @Id
     @GeneratedValue
@@ -92,8 +93,16 @@ public class Observation {
         this.recordNo = recordNo;
     }
 
+    public boolean isClearSky() {
+        return clearSky;
+    }
+
+    public void setClearSky(boolean clearSky) {
+        this.clearSky = clearSky;
+    }
+
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%s,%d", getId(), getName(), TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo());
+        return String.format("Observation(%d,%s,%s,%s,%s,%d,%b", getId(), getName(), TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo(), isClearSky());
     }
 }
 

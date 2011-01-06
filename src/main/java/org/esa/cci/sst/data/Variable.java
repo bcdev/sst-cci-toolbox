@@ -12,8 +12,8 @@ import javax.persistence.Table;
  * @author Martin Boettcher
  */
 @Entity
-@Table(name="mm_obsvariable")
-public class ObsVariable {
+@Table(name="mm_variable")
+public class Variable {
     int id;
     DataSchema dataSchema;
     String role;

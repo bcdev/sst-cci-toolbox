@@ -6,13 +6,9 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.ObservationReader;
 import org.esa.cci.sst.util.TimeUtil;
-import org.postgis.PGgeometry;
-import org.postgis.Point;
-import org.postgresql.core.Query;
-import ucar.ma2.InvalidRangeException;
 
+import javax.persistence.Query;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Tool to ingest new MD files into the MMS database.
@@ -29,7 +25,11 @@ public class IngestionTool {
             persistenceManager.transaction();
 
             // clear observations as they are read from scratch
-            javax.persistence.Query delete = persistenceManager.createQuery("delete from Observation o");
+            Query delete = persistenceManager.createQuery("delete from Observation o");
+            delete.executeUpdate();
+            delete = persistenceManager.createQuery("delete from DataFile f");
+            delete.executeUpdate();
+            delete = persistenceManager.createQuery("delete from DataSchema s");
             delete.executeUpdate();
 
             persistenceManager.commit();

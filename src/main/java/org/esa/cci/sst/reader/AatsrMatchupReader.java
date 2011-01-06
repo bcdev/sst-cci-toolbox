@@ -1,13 +1,11 @@
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.InvalidRangeException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
@@ -24,8 +22,13 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
     }
 
     @Override
+    public String getSstVariableName() {
+        return "atsr.sea_surface_temperature.dual";
+    }
+
+    @Override
     public String[] getVariableNames() {
-        return new String[] {
+        return new String[]{
                 "insitu.unique_identifier",
                 "atsr.latitude",
                 "atsr.longitude",
@@ -56,6 +59,7 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
         observation.setDatafile(dataFileEntry);
         observation.setRecordNo(recordNo);
+        observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != sstFillValue);
         return observation;
     }
 

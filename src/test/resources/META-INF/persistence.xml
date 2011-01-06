@@ -9,8 +9,9 @@
         <class>org.esa.cci.sst.data.Observation</class>
         <class>org.esa.cci.sst.data.DataSchema</class>
         <class>org.esa.cci.sst.data.DataFile</class>
-        <class>org.esa.cci.sst.data.ObsVariable</class>
+        <class>org.esa.cci.sst.data.Variable</class>
         <class>org.esa.cci.sst.data.Coincidence</class>
+        <class>org.esa.cci.sst.data.Matchup</class>
 
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>

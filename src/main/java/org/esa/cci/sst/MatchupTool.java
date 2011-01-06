@@ -1,6 +1,7 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.PersistenceManager;
 
@@ -51,30 +52,32 @@ public class MatchupTool {
             // clear coincidences as they are computed from scratch
             Query delete = persistenceManager.createQuery("delete from Coincidence c");
             delete.executeUpdate();
+            delete = persistenceManager.createQuery("delete from Matchup m");
+            delete.executeUpdate();
 
             // loop over aatsr observations
             final List<Observation> aatsrObservations = inquireObservations(SENSOR_OBSERVATION_QUERY, AATSR_AS_REFERENCE);
             for (Observation aatsrObservation : aatsrObservations) {
                 //System.out.println(aatsrObservation);
-                Coincidence aatsrCoincidence = null;
+                Matchup matchup = null;
 
                 // determine corresponding metop observation if any
                 final Observation metopObservation = findCorrespondingObservation(aatsrObservation, METOP_SENSOR);
                 if (metopObservation != null) {
-                    aatsrCoincidence = createSelfCoincidence(aatsrObservation);
-                    persistenceManager.persist(aatsrCoincidence);
-                    Coincidence metopCoincidence = createCoincidence(aatsrObservation, metopObservation);
+                    matchup = createMatchup(aatsrObservation);
+                    persistenceManager.persist(matchup);
+                    Coincidence metopCoincidence = createCoincidence(matchup, metopObservation);
                     persistenceManager.persist(metopCoincidence);
                 }
 
                 // determine corresponding seviri observation if any
                 final Observation seviriObservation = findCorrespondingObservation(aatsrObservation, SEVIRI_SENSOR);
                 if (seviriObservation != null) {
-                    if (aatsrCoincidence == null) {
-                        aatsrCoincidence = createSelfCoincidence(aatsrObservation);
-                        persistenceManager.persist(aatsrCoincidence);
+                    if (matchup == null) {
+                        matchup = createMatchup(aatsrObservation);
+                        persistenceManager.persist(matchup);
                     }
-                    Coincidence seviriCoincidence = createCoincidence(aatsrObservation, seviriObservation);
+                    Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
                     persistenceManager.persist(seviriCoincidence);
                 }
             }
@@ -89,9 +92,9 @@ public class MatchupTool {
                 // determine corresponding seviri observation if any
                 final Observation seviriObservation = findCorrespondingObservation(metopObservation, SEVIRI_SENSOR);
                 if (seviriObservation != null) {
-                    Coincidence metopCoincidence = createSelfCoincidence(metopObservation);
-                    persistenceManager.persist(metopCoincidence);
-                    Coincidence seviriCoincidence = createCoincidence(metopObservation, seviriObservation);
+                    Matchup matchup = createMatchup(metopObservation);
+                    persistenceManager.persist(matchup);
+                    Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
                     persistenceManager.persist(seviriCoincidence);
                 }
             }
@@ -130,29 +133,28 @@ public class MatchupTool {
         }
     }
 
-    private Coincidence createSelfCoincidence(Observation referenceObservation) {
+    private Matchup createMatchup(Observation referenceObservation) {
 
-        final Coincidence coincidence = new Coincidence();
-        coincidence.setRefObs(referenceObservation);
-        coincidence.setObservation(referenceObservation);
-        return coincidence;
+        final Matchup matchup = new Matchup();
+        matchup.setRefObs(referenceObservation);
+        return matchup;
     }
 
-    private Coincidence createCoincidence(Observation referenceObservation, Observation observation) {
+    private Coincidence createCoincidence(Matchup matchup, Observation observation) {
 
-        final Object[] diffs = (Object[]) persistenceManager.pickNative(DISTANCE_QUERY, referenceObservation.getId(), observation.getId());
+        final Object[] diffs = (Object[]) persistenceManager.pickNative(DISTANCE_QUERY, matchup.getRefObs().getId(), observation.getId());
         final int timeDifference = ((Double) diffs[0]).intValue();
         final float distance = ((Double) diffs[1]).floatValue();
 
         final Coincidence coincidence = new Coincidence();
-        coincidence.setRefObs(referenceObservation);
+        coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);
         coincidence.setDistance(distance);
         coincidence.setTimeDifference(timeDifference);
 
         System.out.println(String.format("  %d sec, %.3f m: %s-%d %s-%d",
                                          timeDifference, distance,
-                                         referenceObservation.getSensor(), referenceObservation.getId(),
+                                         matchup.getRefObs().getSensor(), matchup.getId(),
                                          observation.getSensor(), observation.getId()));
         return coincidence;
     }
