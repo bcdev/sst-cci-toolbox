@@ -6,6 +6,8 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Wrapper around JPA EntityManager to abstract from the persistence
@@ -18,15 +20,13 @@ public class PersistenceManager {
     private EntityManagerFactory emFactory = null;
     private EntityManager entityManager = null;
 
-    public EntityManager getEntityManager() {
-        return entityManager;
-    }
-
-    public PersistenceManager() {
-    }
-
     public PersistenceManager(String persistenceUnitName) {
-        init(persistenceUnitName);
+        this(persistenceUnitName, new Properties());
+    }
+
+    public PersistenceManager(String persistenceUnitName, Map conf) {
+        emFactory = Persistence.createEntityManagerFactory(persistenceUnitName, conf);
+        entityManager = emFactory.createEntityManager();
     }
 
     public void init(String persistenceUnitName) {

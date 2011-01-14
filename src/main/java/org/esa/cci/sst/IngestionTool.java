@@ -1,17 +1,37 @@
 package org.esa.cci.sst;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.reader.AatsrMatchupReader;
+import org.esa.cci.sst.reader.MetopMatchupReader;
 import org.esa.cci.sst.reader.ObservationReader;
+import org.esa.cci.sst.reader.SeviriMatchupReader;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Tool to ingest new input files containing records of observations into the MMS database.
+ *
+ * @author Martin Boettcher
+ * @author Norman Fomferra
  */
 public class IngestionTool {
 
@@ -23,18 +43,102 @@ public class IngestionTool {
     /**
      * JPA persistence entity manager
      */
-    private PersistenceManager persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME);
+    private PersistenceManager persistenceManager;
+
+    /**
+     * Debug mode?
+     */
+    private boolean debug;
+
+    /**
+     * Verbose mode?
+     */
+    private boolean verbose;
+
+    /**
+     * The list of input files to be ingested.
+     */
+    private File[] inputFiles;
+    private File configurationFile;
+    private Properties optionProperties;
+
+    /**
+     * Data schema name.
+     */
+    private String schemaName;
+
+    private Properties configuration;
+
+    public static void main(String[] args) {
+        IngestionTool ingestionTool = new IngestionTool();
+        try {
+            if (ingestionTool.setCommandLineArgs(args)) {
+                ingestionTool.ingestInputFiles();
+            }
+        } catch (ToolException e) {
+            System.err.println("Error: " + e.getMessage());
+            if (ingestionTool.isDebug()) {
+                e.printStackTrace(System.err);
+            }
+            System.exit(e.getExitCode());
+        }
+    }
+
+    public IngestionTool() {
+        configuration = new Properties();
+        inputFiles = new File[0];
+    }
+
+    public File[] getInputFiles() {
+        return inputFiles;
+    }
+
+    public void setInputFiles(File[] inputFiles) {
+        this.inputFiles = inputFiles.clone();
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+    public File getConfigurationFile() {
+        return configurationFile;
+    }
+
+    public void setConfigurationFile(File configurationFile) {
+        this.configurationFile = configurationFile;
+    }
+
+    public String getSchemaName() {
+        return schemaName;
+    }
+
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
+    }
 
     /**
      * Deletes observations, data files and data schemata from database
      *
-     * @throws Exception if deletion fails
+     * @throws ToolException if deletion fails
      */
-    public void clearObservations() throws Exception {
+    public void clearObservations() throws ToolException {
+        setPersistenceManager();
         try {
             // open database
             persistenceManager.transaction();
-
             // clear observations as they are read from scratch
             Query delete = persistenceManager.createQuery("delete from Observation o");
             delete.executeUpdate();
@@ -42,16 +146,11 @@ public class IngestionTool {
             delete.executeUpdate();
             delete = persistenceManager.createQuery("delete from DataSchema s");
             delete.executeUpdate();
-
             persistenceManager.commit();
-
         } catch (Exception e) {
-
             // do not make any change in case of errors
-            if (persistenceManager != null) {
-                persistenceManager.rollback();
-            }
-            throw e;
+            persistenceManager.rollback();
+            throw new ToolException("Failed to clear observations: " + e.getMessage(), 6, e);
         }
     }
 
@@ -75,7 +174,7 @@ public class IngestionTool {
      * @param reader      The reader to be used to read this file type
      * @throws Exception if ingestion fails
      */
-    public void ingest(File matchupFile, String schemaName, ObservationReader reader) throws Exception {
+    public void ingest(File matchupFile, String schemaName, ObservationReader reader) throws ToolException {
 
         try {
             // open database
@@ -144,17 +243,195 @@ public class IngestionTool {
 
             // do not make any change in case of errors
             try {
-                if (persistenceManager != null) {
-                    persistenceManager.rollback();
-                }
-            } catch (Exception _) {
+                persistenceManager.rollback();
+            } catch (Exception e2) {
+                // ignored, because surrounding exception is propagated
             }
-            throw e;
+            throw new ToolException("Failed to ingest file " + matchupFile, 7, e);
 
         } finally {
-
-            // close match-up file
-            reader.close();
+            try {
+                // close match-up file
+                reader.close();
+            } catch (IOException e) {
+                // ignore
+            }
         }
     }
+
+    private void ingestInputFiles() throws ToolException {
+        if (inputFiles.length == 0) {
+            throw new ToolException("No input file(s) specified. Use option -help to print usage.", 1);
+        }
+        for (File inputFile1 : inputFiles) {
+            printInfo(MessageFormat.format("Checking input file {0}", inputFile1));
+            if (!inputFile1.exists()) {
+                throw new ToolException(MessageFormat.format("File not found {0}", inputFile1), 2);
+            }
+        }
+        if (configurationFile != null) {
+            addConfiguration(configurationFile);
+        }
+        setConfigurationProperties(optionProperties);
+
+        for (File inputFile : inputFiles) {
+            ObservationReader reader = createReader();
+            ingest(inputFile, schemaName, reader);
+        }
+    }
+
+    private ObservationReader createReader() throws ToolException {
+        // todo - get reader plugin from from registration
+        ObservationReader reader;
+        if (schemaName.equalsIgnoreCase("aatsr")) {
+            reader = new AatsrMatchupReader();
+        } else if (schemaName.equalsIgnoreCase("metop")) {
+            reader = new MetopMatchupReader();
+        } else if (schemaName.equalsIgnoreCase("seviri")) {
+            reader = new SeviriMatchupReader();
+        } else {
+            throw new ToolException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName), 8);
+        }
+        return reader;
+    }
+
+    boolean setCommandLineArgs(String[] args) throws ToolException {
+
+        final Option helpOpt = new Option("help", "print this message");
+        final Option versionOpt = new Option("version", "print the version information and exit");
+        final Option verboseOpt = new Option("verbose", "be extra verbose");
+        final Option debugOpt = new Option("debug", "print debugging information");
+
+        final Option confFileOpt = new Option("conf", "alternate configuration file");
+        confFileOpt.setArgs(1);
+        confFileOpt.setArgName("file");
+        confFileOpt.setType(File.class);
+
+        // todo - append list of possible schema names to description text
+        final Option schemaOpt = new Option("schema", "the data schema name of the input files");
+        schemaOpt.setArgs(1);
+        schemaOpt.setArgName("name");
+        schemaOpt.setType(String.class);
+
+        final Option propertyOpt = new Option("D", "use value for given property");
+        propertyOpt.setValueSeparator('=');
+        propertyOpt.setArgName("property=value");
+        propertyOpt.setArgs(2);
+
+        Options options = new Options();
+        options.addOption(helpOpt);
+        options.addOption(versionOpt);
+        options.addOption(verboseOpt);
+        options.addOption(debugOpt);
+        options.addOption(schemaOpt);
+        options.addOption(confFileOpt);
+        options.addOption(propertyOpt);
+
+        CommandLineParser parser = new PosixParser();
+        try {
+            CommandLine cmd = parser.parse(options, args);
+
+            setDebug(cmd.hasOption("debug"));
+            setVerbose(cmd.hasOption("verbose"));
+
+            if (cmd.hasOption("version")) {
+                printVersion();
+                return false;
+            }
+
+            if (cmd.hasOption("help")) {
+                printHelp(options);
+                return false;
+            }
+
+            configurationFile = (File) cmd.getParsedOptionValue("conf");
+            optionProperties = cmd.getOptionProperties("D");
+
+            schemaName = cmd.getOptionValue("schema", "[auto-detect]");
+            // todo - validate schema name against known ones
+
+            List inputFileList = cmd.getArgList();
+            File[] inputFiles = new File[inputFileList.size()];
+            for (int i = 0; i < inputFileList.size(); i++) {
+                inputFiles[i] = new File(inputFileList.get(i).toString());
+            }
+            setInputFiles(inputFiles);
+
+        } catch (ParseException e) {
+            throw new ToolException(e.getMessage(), 4, e);
+        }
+
+        return true;
+    }
+
+    void setConfigurationProperties(Properties properties) {
+        for (Map.Entry entry : properties.entrySet()) {
+            configuration.setProperty(entry.getKey().toString(),
+                                      entry.getValue().toString());
+        }
+    }
+
+    private void setPersistenceManager() {
+        if (persistenceManager == null) {
+            persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME, configuration);
+        }
+    }
+
+
+    private void addConfiguration(File configurationFile) throws ToolException {
+        try {
+            FileReader reader = new FileReader(configurationFile);
+            try {
+                Properties configuration = new Properties();
+                configuration.load(reader);
+                setConfigurationProperties(configuration);
+            } finally {
+                reader.close();
+            }
+        } catch (FileNotFoundException e) {
+            throw new ToolException(MessageFormat.format("File not found {0}", configurationFile), 2, e);
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Failed to read from {0}", configurationFile), 3, e);
+        }
+        printInfo(MessageFormat.format("Using configuration read from {0}", configurationFile));
+    }
+
+    private void printVersion() {
+        System.out.println("Version 1.0");
+    }
+
+    private void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("mms-ingest <input-files>",
+                            "Valid options are",
+                            options,
+                            "",
+                            true);
+    }
+
+    private void printInfo(String msg) {
+        if (isVerbose()) {
+            System.out.println(msg);
+        }
+    }
+
+
+    public static class ToolException extends Exception {
+        int exitCode;
+
+        private ToolException(String message, int exitCode) {
+            super(message);
+            this.exitCode = exitCode;
+        }
+
+        private ToolException(String message, int exitCode, Throwable cause) {
+            super(message, cause);
+            this.exitCode = exitCode;
+        }
+
+        public int getExitCode() {
+            return exitCode;
+        }
+    }
+
 }
