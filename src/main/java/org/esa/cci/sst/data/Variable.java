@@ -7,7 +7,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * TODO add API doc
+ * Data item that represents a variable of the record structure of a source
+ * file type. Variables are aggregated to DataSchema.
  *
  * @author Martin Boettcher
  */

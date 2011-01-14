@@ -10,7 +10,12 @@ import java.io.IOException;
 import java.util.Date;
 
 /**
- * TODO add API doc
+ * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.
+ * Defines the variables to access in the NetCDF files and implements the conversion
+ * to a "reference observation" with a single point as coordinate. (A)ATSR MDs only
+ * serve as reference observation. They never provide a coverage to serve as "common
+ * observation" that matches a reference observation. Therefore, the readObservation()
+ * method is not implemented.
  *
  * @author Martin Boettcher
  */
@@ -42,12 +47,28 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
         return dateOf(getDouble("atsr.time.julian", recordNo)).getTime();
     }
 
+    /**
+     * Constantly returns null as (A)ATSR MD never serves as common observation
+     * @param recordNo index in observation file, must be between 0 and less than length
+     * @return  null
+     * @throws IOException  if file io fails
+     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     */
     @Override
     public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
         //throw new UnsupportedOperationException("aatsr only available as reference");
         return null;
     }
 
+    /**
+     * Reads record and creates Observation for (A)ATSR pixel contained in MD. This observation
+     * may serve as reference observation in some matchup.
+     *
+     * @param recordNo index in observation file, must be between 0 and less than length
+     * @return Observation for (A)ATSR pixel
+     * @throws IOException  if file io fails
+     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     */
     @Override
     public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
 
@@ -63,7 +84,7 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
         return observation;
     }
 
-    public Date dateOf(double julianDate) throws IOException, InvalidRangeException {
+    private Date dateOf(double julianDate) throws IOException, InvalidRangeException {
         return TimeUtil.dateOfJulianDate(julianDate);
     }
 }

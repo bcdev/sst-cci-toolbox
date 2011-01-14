@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * TODO add API doc
+ * Reads records from an input file and creates Observations.
  *
  * @author Martin Boettcher
  */

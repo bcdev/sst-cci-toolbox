@@ -9,7 +9,8 @@ import javax.persistence.Table;
 import java.util.List;
 
 /**
- * TODO add API doc
+ * Data item that represents a multi-sensor matchup with a reference
+ * observation and coincidences with other observations.
  *
  * @author Martin Boettcher
  */

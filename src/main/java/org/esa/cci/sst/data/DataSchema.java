@@ -6,7 +6,9 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * TODO add API doc
+ * Data item that represents the file type of a source file. The source
+ * files have a record structure where each record describes an observation.
+ * Each data file refers to one data schema.
  *
  * @author Martin Boettcher
  */

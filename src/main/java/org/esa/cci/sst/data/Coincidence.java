@@ -7,7 +7,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * TODO add API doc
+ * Data item that represents the coincidence between a matchup's reference
+ * observation and other observations.
  *
  * @author Martin Boettcher
  */

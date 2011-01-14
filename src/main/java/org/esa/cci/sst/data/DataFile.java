@@ -7,7 +7,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * TODO add API doc
+ * Data item that represents a source file with a record structure where each
+ * record describes an observation. The objects are referred to in Observations
+ * to identify the file.
  *
  * @author Martin Boettcher
  */

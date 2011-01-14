@@ -15,7 +15,10 @@ import java.text.ParseException;
 import java.util.Date;
 
 /**
- * TODO add API doc
+ * Reads records from an METOP MD NetCDF input file and creates Observations.
+ * Defines the variables to access in the NetCDF files and implements the conversion
+ * to a "reference observation" with a single point as coordinate and to a common
+ * observation with a sub-scene polygon as coordinate.
  *
  * @author Martin Boettcher
  */
@@ -72,6 +75,16 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         return MILLISECONDS_1981 + (long) ((getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, line)) * 1000);
     }
 
+    /**
+     * Reads record and creates Observation for METOP sub-scene contained in MD. This observation
+     * may serve as common observation in some matchup. METOP sub-scenes contain scan lines scanned
+     * from  left to right looking in flight direction.
+     *
+     * @param recordNo index in observation file, must be between 0 and less than length
+     * @return Observation for METOP sub-scene
+     * @throws IOException  if file io fails
+     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     */
     @Override
     public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
 
@@ -102,6 +115,15 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         return observation;
     }
 
+    /**
+     * Reads record and creates Observation for METOP pixel contained in MD. This observation
+     * may serve as reference observation in some matchup.
+     *
+     * @param recordNo index in observation file, must be between 0 and less than length
+     * @return Observation for METOP pixel
+     * @throws IOException  if file io fails
+     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     */
     @Override
     public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
 
@@ -122,12 +144,12 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         return observation;
     }
 
-    public Date dateOf(double secondsSince1981) {
+    private Date dateOf(double secondsSince1981) {
         return new Date(MILLISECONDS_1981 + (long) secondsSince1981 * 1000);
     }
 
     // TODO handle fill value
-    public float coordinateOf(int shortCoordinate) {
+    private float coordinateOf(int shortCoordinate) {
         if (shortCoordinate == -32768) {
             throw new IllegalArgumentException("TODO handle fill value");
         }

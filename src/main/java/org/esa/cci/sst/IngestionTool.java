@@ -11,14 +11,20 @@ import javax.persistence.Query;
 import java.io.File;
 
 /**
- * Tool to ingest new MD files into the MMS database.
+ * Tool to ingest new input files containing records of observations into the MMS database.
  */
 public class IngestionTool {
 
-    static final String PERSISTENCE_UNIT_NAME = "matchupdb";
+    /** Name of persistence unit in META-INF/persistence.xml */
+    private static final String PERSISTENCE_UNIT_NAME = "matchupdb";
 
-    PersistenceManager persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME);
+    /** JPA persistence entity manager */
+    private PersistenceManager persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME);
 
+    /**
+     * Deletes observations, data files and data schemata from database
+     * @throws Exception  if deletion fails
+     */
     public void clearObservations() throws Exception {
         try {
             // open database
@@ -44,6 +50,26 @@ public class IngestionTool {
         }
     }
 
+    /**
+     * Ingests one input file and creates observation entries in the database
+     * for all records contained in input file. Further creates the data file
+     * entry, and the schema entry unless it exists, <p>
+     *
+     * For METOP MD files two observations are created, one reference observation
+     * with a single pixel coordinate and one common observation with a sub-scene.
+     * This is achieved by using both factory methods of the reader, readRefObs
+     * and readObservation. For other readers only one of them returns an
+     * observation. <p>
+     *
+     * In order to avoid large transactions a database checkpoint is inserted
+     * every 65536 records. If ingestion fails rollback is only performed to
+     * the respective checkpoint.
+     *
+     * @param matchupFile input file with records to be read and made persistent as observations
+     * @param schemaName  name of the file type
+     * @param reader  The reader to be used to read this file type
+     * @throws Exception  if ingestion fails
+     */
     public void ingest(File matchupFile, String schemaName, ObservationReader reader) throws Exception {
 
         try {
@@ -67,6 +93,7 @@ public class IngestionTool {
             reader.init(matchupFile, dataFile);
             System.out.printf("numberOfRecords=%d\n", reader.length());
 
+            // TODO remove restriction regarding time interval, used only during initial tests
             final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
             final long stop = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
             // loop over records

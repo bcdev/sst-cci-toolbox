@@ -15,12 +15,14 @@ import javax.persistence.TemporalType;
 import java.util.Date;
 
 /**
- * TODO add API doc
+ * Data item that represents a single observation, either with an SST value
+ * or a sub-scene or a related value for aerosol, sea ice, etc. The object
+ * refers to a record in an MD file or a record in a related file.
  *
  * @author Martin Boettcher
  */
 @Entity
-@Table(name="mm_observation")
+@Table(name = "mm_observation")
 public class Observation {
     int id;
     String name;

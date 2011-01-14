@@ -8,7 +8,8 @@ import javax.persistence.Query;
 import java.util.List;
 
 /**
- * TODO add API doc
+ * Wrapper around JPA EntityManager to abstract from the persistence
+ * implementation (JPA in this case).
  *
  * @author Martin Boettcher
  */

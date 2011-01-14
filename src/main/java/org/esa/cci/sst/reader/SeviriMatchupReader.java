@@ -15,7 +15,9 @@ import java.text.ParseException;
 import java.util.Date;
 
 /**
- * TODO add API doc
+ * Reads records from an SEVIRI MD NetCDF input file and creates Observations.
+ * Defines the variables to access in the NetCDF files and implements the conversion
+ * to a common observation with a sub-scene polygon as coordinate.
  *
  * @author Martin Boettcher
  */
@@ -74,6 +76,16 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         return MILLISECONDS_1981 + (long) ((getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)) * 1000);
     }
 
+    /**
+     * Reads record and creates Observation for SEVIRI sub-scene contained in MD. This observation
+     * may serve as common observation in some matchup. SEVIRI sub-scenes contain scan lines scanned
+     * from right to left looking from first to last scan line.
+     *
+     * @param recordNo index in observation file, must be between 0 and less than length
+     * @return Observation for SEVIRI sub-scene
+     * @throws IOException  if file io fails
+     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     */
     @Override
     public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
 
@@ -104,6 +116,13 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         return observation;
     }
 
+    /**
+     * Constantly returns null as SEVIRI MD never serves as reference observation
+     * @param recordNo index in observation file, must be between 0 and less than length
+     * @return  null
+     * @throws IOException  if file io fails
+     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     */
     @Override
     public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
         //throw new UnsupportedOperationException("seviri only available as common observation");

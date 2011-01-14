@@ -15,7 +15,10 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 /**
- * TODO add API doc
+ * Mapping between PGGeometry Java objects and GEOGRAPHY database entries.
+ * This mapping is used in the Observation class in the annotation of the
+ * corresponding field's getter. Note that there are in fact two "conversions"
+ *  involved: JPA and JDBC. This handler only performs the JPA mapping.
  *
  * @author Martin Boettcher
  */
