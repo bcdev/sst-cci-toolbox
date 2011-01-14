@@ -15,15 +15,20 @@ import java.io.File;
  */
 public class IngestionTool {
 
-    /** Name of persistence unit in META-INF/persistence.xml */
+    /**
+     * Name of persistence unit in META-INF/persistence.xml
+     */
     private static final String PERSISTENCE_UNIT_NAME = "matchupdb";
 
-    /** JPA persistence entity manager */
+    /**
+     * JPA persistence entity manager
+     */
     private PersistenceManager persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME);
 
     /**
      * Deletes observations, data files and data schemata from database
-     * @throws Exception  if deletion fails
+     *
+     * @throws Exception if deletion fails
      */
     public void clearObservations() throws Exception {
         try {
@@ -54,21 +59,21 @@ public class IngestionTool {
      * Ingests one input file and creates observation entries in the database
      * for all records contained in input file. Further creates the data file
      * entry, and the schema entry unless it exists, <p>
-     *
+     * <p/>
      * For METOP MD files two observations are created, one reference observation
      * with a single pixel coordinate and one common observation with a sub-scene.
      * This is achieved by using both factory methods of the reader, readRefObs
      * and readObservation. For other readers only one of them returns an
      * observation. <p>
-     *
+     * <p/>
      * In order to avoid large transactions a database checkpoint is inserted
      * every 65536 records. If ingestion fails rollback is only performed to
      * the respective checkpoint.
      *
      * @param matchupFile input file with records to be read and made persistent as observations
      * @param schemaName  name of the file type
-     * @param reader  The reader to be used to read this file type
-     * @throws Exception  if ingestion fails
+     * @param reader      The reader to be used to read this file type
+     * @throws Exception if ingestion fails
      */
     public void ingest(File matchupFile, String schemaName, ObservationReader reader) throws Exception {
 
@@ -96,25 +101,32 @@ public class IngestionTool {
             // TODO remove restriction regarding time interval, used only during initial tests
             final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
             final long stop = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
+            int recordsInTimeInterval = 0;
+
             // loop over records
             for (int recordNo = 0; recordNo < reader.length(); ++recordNo) {
                 if (recordNo % 65536 == 0 && recordNo > 0) {
-                    System.out.println(String.format("reading record %d", recordNo));
+                    System.out.printf("reading record %s %d\n", schemaName, recordNo);
                 }
 
                 final long time = reader.getTime(recordNo);
                 if (time >= start && time < stop) {
+                    ++recordsInTimeInterval;
                     try {
                         final Observation refObs = reader.readRefObs(recordNo);
                         if (refObs != null) {
                             persistenceManager.persist(refObs);
                         }
+                    } catch (IllegalArgumentException e) {
+                        System.out.printf("%s %d reference pixel coordinate missing\n", schemaName, recordNo);
+                    }
+                    try {
                         final Observation observation = reader.readObservation(recordNo);
                         if (observation != null) {
                             persistenceManager.persist(observation);
                         }
                     } catch (IllegalArgumentException e) {
-                        System.out.printf("record %d contains fill value coordinate. skipped\n", recordNo);
+                        System.out.printf("%s %d polygon coordinates incomplete\n", schemaName, recordNo);
                     }
                 }
                 if (recordNo % 65536 == 65535) {
@@ -126,6 +138,8 @@ public class IngestionTool {
             // make changes in database
             persistenceManager.commit();
 
+            System.out.printf("%d %s records in time interval\n", recordsInTimeInterval, schemaName);
+
         } catch (Exception e) {
 
             // do not make any change in case of errors
@@ -133,7 +147,8 @@ public class IngestionTool {
                 if (persistenceManager != null) {
                     persistenceManager.rollback();
                 }
-            } catch (Exception _) {}
+            } catch (Exception _) {
+            }
             throw e;
 
         } finally {
