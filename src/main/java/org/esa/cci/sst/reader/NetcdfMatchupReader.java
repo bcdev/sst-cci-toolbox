@@ -8,11 +8,13 @@ import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Range;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -87,8 +89,15 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
 
         // open match-up file
         netcdf = NetcdfFile.open(observationFile.getPath());
+        if (netcdf == null)  {
+            throw new IOException(MessageFormat.format("Can''t find NetCDF IOServiceProvider for file {0}", observationFile));
+        }
         // read number of records value
-        length = netcdf.findDimension(getDimensionName()).getLength();
+        final Dimension dimension = netcdf.findDimension(getDimensionName());
+        if (dimension == null)  {
+            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", getDimensionName(), observationFile));
+        }
+        length = dimension.getLength();
         // read SST fill value
         final Variable variable = netcdf.findVariable(getSstVariableName().replaceAll("\\.", "%2e"));
         sstFillValue = variable.findAttributeIgnoreCase("_fillvalue").getNumericValue().intValue();

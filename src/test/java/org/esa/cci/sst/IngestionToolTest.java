@@ -1,25 +1,15 @@
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.reader.AatsrMatchupReader;
-import org.esa.cci.sst.reader.MetopMatchupReader;
-import org.esa.cci.sst.reader.ObservationReader;
-import org.esa.cci.sst.reader.SeviriMatchupReader;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Properties;
 
 import static junit.framework.Assert.*;
 
-/**
- * TODO add API doc
- * <p/>
- * matchup query pattern to be used with psql (very draft):
- * select o1.id, o2.id, o1.time, o2.time from mm_observation o1, mm_observation o2 where o1.id > 656636 and o1.datafile_id = 417051 and o2.datafile_id = 657751 and (o1.time,o1.time+'12:00:00') overlaps (o2.time-'1 month', o2.time+'12:00:00'-'1 month') and st_distance(o1.location,o2.location) < 10400000;
- *
- * @author Martin Boettcher
- * @author Norman Fomferra
- */
 public class IngestionToolTest {
     @Test
     public void testCommandLineArgs() throws IngestionTool.ToolException {
@@ -47,53 +37,58 @@ public class IngestionToolTest {
 
         IngestionTool someOptions = new IngestionTool();
         assertTrue(someOptions.setCommandLineArgs(new String[]{
-                "-conf", "test.properties",
+                "-D", "mms.p1=true",
+                "-D", "mms.p2=6",
                 "-schema", "aatsr",
                 "-debug",
                 "mmfile"}));
         assertEquals(true, someOptions.isDebug());
         assertEquals(false, someOptions.isVerbose());
         assertEquals("aatsr", someOptions.getSchemaName());
-        assertEquals(new File("test.properties"), someOptions.getConfigurationFile());
         assertNotNull(someOptions.getInputFiles());
         assertEquals(1, someOptions.getInputFiles().length);
         assertEquals(new File("mmfile"), someOptions.getInputFiles()[0]);
+        assertEquals("true", someOptions.getConfiguration().getProperty("mms.p1"));
+        assertEquals("6", someOptions.getConfiguration().getProperty("mms.p2"));
+
+        URL resource = getClass().getResource("test.properties");
+        assertTrue(someOptions.setCommandLineArgs(new String[]{
+                "-conf", new File(resource.getPath()).getPath(),
+                "mmfile"}));
+        assertNotNull(someOptions.getInputFiles());
+        assertEquals(1, someOptions.getInputFiles().length);
+        assertEquals(new File("mmfile"), someOptions.getInputFiles()[0]);
+        assertEquals("value1", someOptions.getConfiguration().getProperty("mms.name1"));
+        assertEquals("value2", someOptions.getConfiguration().getProperty("mms.name2"));
     }
 
-    static final String AATSR_MATCHUP_DIR_PATH = "/mnt/hgfs/c/sst-mmd-data/mmd_test_month/ATSR_MD";
-    static final String METOP_MATCHUP_DIR_PATH = "/mnt/hgfs/c/sst-mmd-data/mmd_test_month/METOP_MD";
-    static final String SEVIRI_MATCHUP_DIR_PATH = "/mnt/hgfs/c/sst-mmd-data/mmd_test_month/SEVIRI_MD";
+    @Test
+    public void testConfiguration() {
+        IngestionTool ingestionTool = new IngestionTool();
+        assertNotNull(ingestionTool.getConfiguration());
+        assertEquals(null, ingestionTool.getConfiguration().getProperty("mms.someParam1"));
 
-    static final String AATSR_MATCHUP_FILENAME_PATTERN = ".*";
-    static final String METOP_MATCHUP_FILENAME_PATTERN = ".*0[123]\\.nc\\.gz";
-    static final String SEVIRI_MATCHUP_FILENAME_PATTERN = ".*0[123]\\.nc\\.gz";
+        // test that "mms" parameters are copied from system properties
+        System.setProperty("mms.someParam", "someValue");
+        ingestionTool = new IngestionTool();
+        assertEquals("someValue", ingestionTool.getConfiguration().getProperty("mms.someParam"));
 
-    private IngestionTool tool = new IngestionTool();
+        // test that returned configuration is immutable
+        ingestionTool.getConfiguration().setProperty("xyz", "2");
+        assertEquals(null, ingestionTool.getConfiguration().getProperty("xyz"));
+    }
 
-    public static void main(String[] args) {
+    @Test
+    public void testCreateReader() throws IngestionTool.ToolException, IOException {
+        assertNotNull(IngestionTool.createReader("aatsr"));
+        assertNotNull(IngestionTool.createReader("metop"));
+        assertNotNull(IngestionTool.createReader("seviri"));
+
         try {
-            IngestionToolTest t = new IngestionToolTest();
-            t.tool.clearObservations();
-            t.ingestDirectoryContent(AATSR_MATCHUP_DIR_PATH, AATSR_MATCHUP_FILENAME_PATTERN, "aatsr", new AatsrMatchupReader());
-            t.ingestDirectoryContent(METOP_MATCHUP_DIR_PATH, METOP_MATCHUP_FILENAME_PATTERN, "metop", new MetopMatchupReader());
-            t.ingestDirectoryContent(SEVIRI_MATCHUP_DIR_PATH, SEVIRI_MATCHUP_FILENAME_PATTERN, "seviri", new SeviriMatchupReader());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void ingestDirectoryContent(String dirPath, String filenamePattern, String schemaName, ObservationReader reader) throws Exception {
-
-        final File dir = new File(dirPath);
-        final String pattern = filenamePattern;
-        FileFilter fileFilter = new FileFilter() {
-            public boolean accept(File pathname) {
-                return pathname.getName().matches(pattern);
-            }
-        };
-        for (File file : dir.listFiles(fileFilter)) {
-            System.out.printf("reading %s\n", file.getName());
-            tool.ingest(file, schemaName, reader);
+            IngestionTool.createReader("bogus-reader");
+            fail("ToolException expected");
+        } catch (IngestionTool.ToolException e) {
+            // ok
         }
     }
 }

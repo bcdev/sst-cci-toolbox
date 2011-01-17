@@ -59,8 +59,6 @@ public class IngestionTool {
      * The list of input files to be ingested.
      */
     private File[] inputFiles;
-    private File configurationFile;
-    private Properties optionProperties;
 
     /**
      * Data schema name.
@@ -68,12 +66,14 @@ public class IngestionTool {
     private String schemaName;
 
     private Properties configuration;
+    private Options options;
+    private boolean initialised;
 
     public static void main(String[] args) {
         IngestionTool ingestionTool = new IngestionTool();
         try {
             if (ingestionTool.setCommandLineArgs(args)) {
-                ingestionTool.ingestInputFiles();
+                ingestionTool.ingest();
             }
         } catch (ToolException e) {
             System.err.println("Error: " + e.getMessage());
@@ -85,7 +85,15 @@ public class IngestionTool {
     }
 
     public IngestionTool() {
+        options = createCommandLineOptions();
+
         configuration = new Properties();
+        for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+            if (entry.getKey().toString().startsWith("mms.")) {
+                configuration.put(entry.getKey(), entry.getValue());
+            }
+        }
+
         inputFiles = new File[0];
     }
 
@@ -113,13 +121,6 @@ public class IngestionTool {
         this.verbose = verbose;
     }
 
-    public File getConfigurationFile() {
-        return configurationFile;
-    }
-
-    public void setConfigurationFile(File configurationFile) {
-        this.configurationFile = configurationFile;
-    }
 
     public String getSchemaName() {
         return schemaName;
@@ -129,13 +130,17 @@ public class IngestionTool {
         this.schemaName = schemaName;
     }
 
+    public Properties getConfiguration() {
+        return new Properties(configuration);
+    }
+
     /**
      * Deletes observations, data files and data schemata from database
      *
      * @throws ToolException if deletion fails
      */
     public void clearObservations() throws ToolException {
-        setPersistenceManager();
+        initialize();
         try {
             // open database
             persistenceManager.transaction();
@@ -151,6 +156,22 @@ public class IngestionTool {
             // do not make any change in case of errors
             persistenceManager.rollback();
             throw new ToolException("Failed to clear observations: " + e.getMessage(), 6, e);
+        }
+    }
+
+    /**
+     * Ingests all input files and creates observation entries in the database
+     * for all records contained in input file.
+     *
+     * @throws ToolException if an error occurs.
+     * @see #ingest(java.io.File, String, org.esa.cci.sst.reader.ObservationReader)
+     */
+    public void ingest() throws ToolException {
+        initialize();
+        checkInputFilesAreAvailable();
+        ObservationReader reader = createReader(schemaName);
+        for (File inputFile : inputFiles) {
+            ingest(inputFile, schemaName, reader);
         }
     }
 
@@ -175,7 +196,8 @@ public class IngestionTool {
      * @throws Exception if ingestion fails
      */
     public void ingest(File matchupFile, String schemaName, ObservationReader reader) throws ToolException {
-
+        initialize();
+        checkInputFilesAreAvailable();
         try {
             // open database
             persistenceManager.transaction();
@@ -259,7 +281,17 @@ public class IngestionTool {
         }
     }
 
-    private void ingestInputFiles() throws ToolException {
+    private void initialize() throws ToolException {
+        if (initialised) {
+            return;
+        }
+
+        initialised = true;
+
+        persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME, configuration);
+    }
+
+    private void checkInputFilesAreAvailable() throws ToolException {
         if (inputFiles.length == 0) {
             throw new ToolException("No input file(s) specified. Use option -help to print usage.", 1);
         }
@@ -269,18 +301,9 @@ public class IngestionTool {
                 throw new ToolException(MessageFormat.format("File not found {0}", inputFile1), 2);
             }
         }
-        if (configurationFile != null) {
-            addConfiguration(configurationFile);
-        }
-        setConfigurationProperties(optionProperties);
-
-        for (File inputFile : inputFiles) {
-            ObservationReader reader = createReader();
-            ingest(inputFile, schemaName, reader);
-        }
     }
 
-    private ObservationReader createReader() throws ToolException {
+    static ObservationReader createReader(String schemaName) throws ToolException {
         // todo - get reader plugin from from registration
         ObservationReader reader;
         if (schemaName.equalsIgnoreCase("aatsr")) {
@@ -297,6 +320,49 @@ public class IngestionTool {
 
     boolean setCommandLineArgs(String[] args) throws ToolException {
 
+        CommandLineParser parser = new PosixParser();
+        try {
+            CommandLine cmd = parser.parse(options, args);
+
+            setDebug(cmd.hasOption("debug"));
+            setVerbose(cmd.hasOption("verbose"));
+
+            if (cmd.hasOption("version")) {
+                printVersion();
+                return false;
+            }
+
+            if (cmd.hasOption("help")) {
+                printHelp("");
+                return false;
+            }
+
+            File configurationFile = (File) cmd.getParsedOptionValue("conf");
+            if (configurationFile != null) {
+                addConfigurationProperties(configurationFile);
+            }
+            Properties optionProperties = cmd.getOptionProperties("D");
+            if (optionProperties.size() > 0) {
+                addConfigurationProperties(optionProperties);
+            }
+
+            schemaName = cmd.getOptionValue("schema", "[auto-detect]");
+
+            List inputFileList = cmd.getArgList();
+            File[] inputFiles = new File[inputFileList.size()];
+            for (int i = 0; i < inputFileList.size(); i++) {
+                inputFiles[i] = new File(inputFileList.get(i).toString());
+            }
+            setInputFiles(inputFiles);
+
+        } catch (ParseException e) {
+            throw new ToolException(e.getMessage(), 4, e);
+        }
+
+        return true;
+    }
+
+    private static Options createCommandLineOptions() {
         final Option helpOpt = new Option("help", "print this message");
         final Option versionOpt = new Option("version", "print the version information and exit");
         final Option verboseOpt = new Option("verbose", "be extra verbose");
@@ -327,64 +393,22 @@ public class IngestionTool {
         options.addOption(confFileOpt);
         options.addOption(propertyOpt);
 
-        CommandLineParser parser = new PosixParser();
-        try {
-            CommandLine cmd = parser.parse(options, args);
-
-            setDebug(cmd.hasOption("debug"));
-            setVerbose(cmd.hasOption("verbose"));
-
-            if (cmd.hasOption("version")) {
-                printVersion();
-                return false;
-            }
-
-            if (cmd.hasOption("help")) {
-                printHelp(options);
-                return false;
-            }
-
-            configurationFile = (File) cmd.getParsedOptionValue("conf");
-            optionProperties = cmd.getOptionProperties("D");
-
-            schemaName = cmd.getOptionValue("schema", "[auto-detect]");
-            // todo - validate schema name against known ones
-
-            List inputFileList = cmd.getArgList();
-            File[] inputFiles = new File[inputFileList.size()];
-            for (int i = 0; i < inputFileList.size(); i++) {
-                inputFiles[i] = new File(inputFileList.get(i).toString());
-            }
-            setInputFiles(inputFiles);
-
-        } catch (ParseException e) {
-            throw new ToolException(e.getMessage(), 4, e);
-        }
-
-        return true;
+        return options;
     }
 
-    void setConfigurationProperties(Properties properties) {
+    public void addConfigurationProperties(Properties properties) {
         for (Map.Entry entry : properties.entrySet()) {
-            configuration.setProperty(entry.getKey().toString(),
-                                      entry.getValue().toString());
+            configuration.put(entry.getKey(), entry.getValue());
         }
     }
 
-    private void setPersistenceManager() {
-        if (persistenceManager == null) {
-            persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME, configuration);
-        }
-    }
-
-
-    private void addConfiguration(File configurationFile) throws ToolException {
+    public void addConfigurationProperties(File configurationFile) throws ToolException {
         try {
             FileReader reader = new FileReader(configurationFile);
             try {
                 Properties configuration = new Properties();
                 configuration.load(reader);
-                setConfigurationProperties(configuration);
+                addConfigurationProperties(configuration);
             } finally {
                 reader.close();
             }
@@ -400,12 +424,12 @@ public class IngestionTool {
         System.out.println("Version 1.0");
     }
 
-    private void printHelp(Options options) {
+    void printHelp(String footer) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("mms-ingest <input-files>",
                             "Valid options are",
                             options,
-                            "",
+                            footer,
                             true);
     }
 

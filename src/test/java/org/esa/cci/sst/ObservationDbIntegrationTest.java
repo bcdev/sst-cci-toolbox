@@ -19,11 +19,11 @@ import java.util.List;
  * @author Martin Boettcher
  */
 @Ignore
-public class ObservationDbTest {
+public class ObservationDbIntegrationTest {
 
     public static void main(String[] args) {
         try {
-            ObservationDbTest t = new ObservationDbTest();
+            ObservationDbIntegrationTest t = new ObservationDbIntegrationTest();
             t.testCreateDbEntry();
             t.testReadDbEntry();
             t.testSearchDbEntry();
