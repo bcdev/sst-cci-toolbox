@@ -8,14 +8,21 @@ import java.util.TimeZone;
 
 public final class TimeUtil {
 
+    public static final long MILLISECONDS_1981;
     public static final long TIME_NULL = Long.MIN_VALUE;
     private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
     private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         CCSDS_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            MILLISECONDS_1981 = TimeUtil.parseCcsdsUtcFormat("1981-01-01T00:00:00Z");
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private TimeUtil() {

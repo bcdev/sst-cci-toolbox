@@ -13,9 +13,11 @@ import java.io.IOException;
  * @author Martin Boettcher
  */
 public interface ObservationReader {
-
+    // todo - create reader instance for each observationFile
     /**
-     * Opens observation file and initialises cache buffer
+     * Opens observation file and initialises cache buffer.
+     * Overrides shall store the given {@code dataFileEntry} in order to be used in
+     * {@link #readObservation(int)}.
      *
      * @param observationFile file of observations in format corresponding to reader
      * @param dataFileEntry   data file entry to be referenced in each observation created by reader
@@ -29,11 +31,11 @@ public interface ObservationReader {
     void close() throws IOException;
 
     /**
-     * Reads length from file attribute
+     * Reads numRecords from file attribute
      *
      * @return the number of records contained in the observation file
      */
-    int length();
+    int getNumRecords();
 
     /**
      * Reads observation time of record
@@ -47,8 +49,11 @@ public interface ObservationReader {
     /**
      * Reads record and retrieves variables for a common observation.
      * Sets geo-location to polygon enclosing subscene.
+     * The returned {@link Observation} instance shall have a reference to {@code dataFileEntry}
+     * passed into {@link #init(java.io.File, org.esa.cci.sst.data.DataFile)}.
      *
-     * @param recordNo index in observation file, must be between 0 and less than length
+     *
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation with values read from observation file
      */
     Observation readObservation(int recordNo) throws IOException, InvalidRangeException;
@@ -57,7 +62,7 @@ public interface ObservationReader {
      * Reads record and retrieves variables for a reference observation.
      * Sets geo-location to pixel corresponding to in-situ measurement.
      *
-     * @param recordNo index in observation file, must be between 0 and less than length
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation with values read from observation file
      */
     Observation readRefObs(int recordNo) throws IOException, InvalidRangeException;

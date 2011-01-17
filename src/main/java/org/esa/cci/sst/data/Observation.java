@@ -29,8 +29,10 @@ public class Observation {
     String sensor;
     Date time;
     PGgeometry location;  // TODO maybe use non-postgres type for external representation
+
     DataFile datafile;
     int recordNo;
+
     boolean clearSky;
 
     @Id

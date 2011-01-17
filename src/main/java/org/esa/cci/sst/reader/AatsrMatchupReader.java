@@ -49,10 +49,10 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
 
     /**
      * Constantly returns null as (A)ATSR MD never serves as common observation
-     * @param recordNo index in observation file, must be between 0 and less than length
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return  null
      * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
     public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
@@ -64,10 +64,10 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
      * Reads record and creates Observation for (A)ATSR pixel contained in MD. This observation
      * may serve as reference observation in some matchup.
      *
-     * @param recordNo index in observation file, must be between 0 and less than length
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation for (A)ATSR pixel
      * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
     public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {

@@ -217,7 +217,7 @@ public class IngestionTool {
             persistenceManager.persist(dataFile);
 
             reader.init(matchupFile, dataFile);
-            System.out.printf("numberOfRecords=%d\n", reader.length());
+            System.out.printf("numberOfRecords=%d\n", reader.getNumRecords());
 
             // TODO remove restriction regarding time interval, used only during initial tests
             final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
@@ -225,7 +225,7 @@ public class IngestionTool {
             int recordsInTimeInterval = 0;
 
             // loop over records
-            for (int recordNo = 0; recordNo < reader.length(); ++recordNo) {
+            for (int recordNo = 0; recordNo < reader.getNumRecords(); ++recordNo) {
                 if (recordNo % 65536 == 0 && recordNo > 0) {
                     System.out.printf("reading record %s %d\n", schemaName, recordNo);
                 }

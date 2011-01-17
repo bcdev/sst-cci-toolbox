@@ -80,10 +80,10 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
      * may serve as common observation in some matchup. METOP sub-scenes contain scan lines scanned
      * from  left to right looking in flight direction.
      *
-     * @param recordNo index in observation file, must be between 0 and less than length
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation for METOP sub-scene
      * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
     public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
@@ -119,10 +119,10 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
      * Reads record and creates Observation for METOP pixel contained in MD. This observation
      * may serve as reference observation in some matchup.
      *
-     * @param recordNo index in observation file, must be between 0 and less than length
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation for METOP pixel
      * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
     public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {

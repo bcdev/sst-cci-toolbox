@@ -81,10 +81,10 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
      * may serve as common observation in some matchup. SEVIRI sub-scenes contain scan lines scanned
      * from right to left looking from first to last scan line.
      *
-     * @param recordNo index in observation file, must be between 0 and less than length
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation for SEVIRI sub-scene
      * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
     public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
@@ -118,10 +118,10 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
 
     /**
      * Constantly returns null as SEVIRI MD never serves as reference observation
-     * @param recordNo index in observation file, must be between 0 and less than length
+     * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return  null
      * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. length-1
+     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
     public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
