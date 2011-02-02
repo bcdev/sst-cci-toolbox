@@ -93,6 +93,13 @@ Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal typ
     select postgis_lib_version();  
     \q
 
+In order to automatically start the database on log-in, type
+
+    cp /usr/local/Cellar/postgresql/9.0.2/org.postgresql.postgres.plist ~/Library/LaunchAgents
+    launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
+
+and open the file ´~/Library/LaunchAgents/org.postgresql.postgres.plist´ and in the entry followingr the ´-D´ item type the path to the database.
+
 Usage
 -----
 
