@@ -61,7 +61,8 @@ All components with test PostGIS database example (changed to mygisdb by Boe)
     sudo apt-add-repository ppa:pitti/postgresql
     sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
     sudo apt-get update
-    sudo apt-get install -y postgresql-9.0 postgresql-server-dev-9.0 postgresql-contrib-9.0 proj libgeos-3.2.2 libgeos-c1 libgeos-dev libgdal1-1.7.0 libgdal1-dev build-essential libxml2 libxml2-dev checkinstall
+    sudo apt-get install -y postgresql-9.0 postgresql-server-dev-9.0 postgresql-contrib-9.0 proj libgeos-3.2.2 libgeos-c1 libgeos-dev libgdal1-1.7.0 libgdal1-dev build-essential libxml2 libxml2-dev
+    checkinstall
 
     wget http://postgis.refractions.net/download/postgis-1.5.2.tar.gz
     tar zxvf postgis-1.5.2.tar.gz && cd postgis-1.5.2/
@@ -75,7 +76,7 @@ All components with test PostGIS database example (changed to mygisdb by Boe)
     psql -U postgres -d mygisdb -c"select postgis_lib_version();"
     exit
 
-#### Mac OS X:
+#### Mac OS X
 
 Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal type:
 
