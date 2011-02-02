@@ -13,7 +13,6 @@ import java.io.IOException;
  * @author Martin Boettcher
  */
 public interface ObservationReader {
-    // todo - create reader instance for each observationFile
     /**
      * Opens observation file and initialises cache buffer.
      * Overrides shall store the given {@code dataFileEntry} in order to be used in
