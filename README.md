@@ -97,7 +97,7 @@ In order to automatically start the database on log-in, type
     cp /usr/local/Cellar/postgresql/9.0.2/org.postgresql.postgres.plist ~/Library/LaunchAgents
     launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
 
-Open `~/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to the database.
+Then open `~/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to the database.
 
 ## Usage
 
