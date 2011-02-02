@@ -1,8 +1,6 @@
-ESA SST_cci Toolbox 
-===================
+# ESA SST_cci Toolbox 
 
-Toolbox overview
-----------------
+## Toolbox overview
 
 The Toolbox services will be implemented basically a set of programs written in the Java
 programming language. A number of the required functions are already implemented in
@@ -39,10 +37,11 @@ programming interfaces (APIs). The desktop application provides advanced imaging
 processing and analysis out-of-the-box, permitting effective assessment of data products 
 by the EO Science Team and Climate Research Group.
 
-Installation
-------------
+## Installation
 
-### Installation of PostgreSQL and PostGIS on Linux
+### Installation of PostgreSQL and PostGIS
+
+#### Linux
 
 (taken from http://www.tokumine.com/2010/10/12/postgres-9-postgis-1-5-2-geos-3-2-2-and-gdal-1-7-on-ubuntu-10-04-lucid)
 
@@ -76,7 +75,7 @@ All components with test PostGIS database example (changed to mygisdb by Boe)
     psql -U postgres -d mygisdb -c"select postgis_lib_version();"
     exit
 
-### Installation of PostgreSQL and PostGIS on Mac OS X:
+#### Mac OS X:
 
 Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal type:
 
