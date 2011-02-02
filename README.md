@@ -82,16 +82,27 @@ Installation of PostgreSQL and PostGIS on Mac OS X:
 Install Homebrew (http://mxcl.github.com/homebrew/). Then from the Terminal type:
 
 brew install postgresql
+
 brew install postgis
+
 mkdir -p /any/path/postgres
+
 cd /any/path/postgres
+
 initdb mygisdb
+
 createdb mygisdb
+
 createlang -dmygisdb plpgsql
+
 psql -d mygisdb -f /usr/local/share/postgis/postgis.sql
+
 psql -d mygisdb -f /usr/local/share/postgis/spatial_ref_sys.sql
+
 psgl -d mygisdb
+
 select postgis_lib_version();
+
 \q
 
 Usage
