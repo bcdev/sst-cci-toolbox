@@ -89,7 +89,7 @@ Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal typ
     createlang -dmygisdb plpgsql  
     psql -d mygisdb -f /usr/local/share/postgis/postgis.sql  
     psql -d mygisdb -f /usr/local/share/postgis/spatial_ref_sys.sql  
-    psgl -d mygisdb  
+    psql -d mygisdb  
     select postgis_lib_version();  
     \q
 
