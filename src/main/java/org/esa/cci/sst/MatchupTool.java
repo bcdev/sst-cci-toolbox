@@ -11,9 +11,11 @@ import java.util.List;
 /**
  * Tool to compute multi-sensor matchups the MMS database.
  */
-public class MatchupTool {
+public class MatchupTool extends MmsTool {
 
-    /** Name of persistence unit in META-INF/persistence.xml */
+    /**
+     * Name of persistence unit in META-INF/persistence.xml
+     */
     private static final String PERSISTENCE_UNIT_NAME = "matchupdb";
 
     private static final String AATSR_AS_REFERENCE = "aatsr.ref";
@@ -48,7 +50,9 @@ public class MatchupTool {
             + " where o1.id = ?"
             + " and o2.id = ?";
 
-    /** JPA persistence entity manager */
+    /**
+     * JPA persistence entity manager
+     */
     private PersistenceManager persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME);
 
     /**
@@ -71,7 +75,8 @@ public class MatchupTool {
             delete.executeUpdate();
 
             // loop over aatsr observations
-            final List<Observation> aatsrObservations = inquireObservations(SENSOR_OBSERVATION_QUERY, AATSR_AS_REFERENCE);
+            final List<Observation> aatsrObservations = inquireObservations(SENSOR_OBSERVATION_QUERY,
+                                                                            AATSR_AS_REFERENCE);
             for (Observation aatsrObservation : aatsrObservations) {
                 //System.out.println(aatsrObservation);
                 Matchup matchup = null;
@@ -100,7 +105,8 @@ public class MatchupTool {
             System.out.println();
 
             // loop over metop observations not yet included in aatsr coincidences
-            final List<Observation> metopObservations = inquireObservations(SECONDARY_OBSERVATION_QUERY, METOP_AS_REFERENCE);
+            final List<Observation> metopObservations = inquireObservations(SECONDARY_OBSERVATION_QUERY,
+                                                                            METOP_AS_REFERENCE);
             for (Observation metopObservation : metopObservations) {
                 //System.out.println(metopObservation);
 
@@ -130,7 +136,8 @@ public class MatchupTool {
      * Inquires observations of a certain sensor.
      *
      * @param queryString JPA query with one numbered variable
-     * @param sensor  name of sensor, for example "aatsr.ref"
+     * @param sensor      name of sensor, for example "aatsr.ref"
+     *
      * @return list of observations of this sensor that fulfils the query
      */
     private List<Observation> inquireObservations(String queryString, String sensor) {
@@ -143,8 +150,10 @@ public class MatchupTool {
     /**
      * Determines temporally nearest common observation of a specific sensor
      * for a reference observation.
-     * @param referenceObservation  reference observation, for example of sensor aatsr.ref
-     * @param sensor  sensor name for common observations to be looked for
+     *
+     * @param referenceObservation reference observation, for example of sensor aatsr.ref
+     * @param sensor               sensor name for common observations to be looked for
+     *
      * @return common observation of sensor with coincidence to reference observation
      *         that is temporally closest to reference observation, null if no
      *         observation of the specified sensor has a coincidence with the
@@ -152,7 +161,8 @@ public class MatchupTool {
      */
     private Observation findCorrespondingObservation(Observation referenceObservation, String sensor) {
 
-        final Query observationQuery = persistenceManager.createNativeQuery(CORRESPONDING_OBSERVATION_QUERY, Observation.class);
+        final Query observationQuery = persistenceManager.createNativeQuery(CORRESPONDING_OBSERVATION_QUERY,
+                                                                            Observation.class);
         observationQuery.setParameter(1, referenceObservation.getId());
         observationQuery.setParameter(2, sensor);
         final List<Observation> observations = observationQuery.getResultList();
@@ -167,7 +177,9 @@ public class MatchupTool {
 
     /**
      * Factory method to create matchup for a reference observation.
-     * @param referenceObservation  the reference observation constituting the matchup
+     *
+     * @param referenceObservation the reference observation constituting the matchup
+     *
      * @return the new Matchup for the reference observation
      */
     private Matchup createMatchup(Observation referenceObservation) {
@@ -181,14 +193,16 @@ public class MatchupTool {
      * Creates Coincidence between a matchup and a common observation,
      * determines temporal and spatial distance by a database query.
      *
-     * @param matchup  the matchup with the reference observation
-     * @param observation  the common observation that has a coincidence with
-     *                     the reference and is temporally closest to it
+     * @param matchup     the matchup with the reference observation
+     * @param observation the common observation that has a coincidence with
+     *                    the reference and is temporally closest to it
+     *
      * @return newly created Coincidence relating matchup and common observation
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
 
-        final Object[] diffs = (Object[]) persistenceManager.pickNative(DISTANCE_QUERY, matchup.getRefObs().getId(), observation.getId());
+        final Object[] diffs = (Object[]) persistenceManager.pickNative(DISTANCE_QUERY, matchup.getRefObs().getId(),
+                                                                        observation.getId());
         final int timeDifference = ((Double) diffs[0]).intValue();
         final float distance = ((Double) diffs[1]).floatValue();
 
