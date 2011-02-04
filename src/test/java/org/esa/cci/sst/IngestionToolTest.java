@@ -3,14 +3,13 @@ package org.esa.cci.sst;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Properties;
 
 import static junit.framework.Assert.*;
 
 public class IngestionToolTest {
+
     @Test
     public void testCommandLineArgs() throws IngestionTool.ToolException {
         IngestionTool noArgs = new IngestionTool();
@@ -41,7 +40,8 @@ public class IngestionToolTest {
                 "-D", "mms.p2=6",
                 "-schema", "aatsr",
                 "-debug",
-                "mmfile"}));
+                "mmfile"
+        }));
         assertEquals(true, someOptions.isDebug());
         assertEquals(false, someOptions.isVerbose());
         assertEquals("aatsr", someOptions.getSchemaName());
@@ -54,7 +54,8 @@ public class IngestionToolTest {
         URL resource = getClass().getResource("test.properties");
         assertTrue(someOptions.setCommandLineArgs(new String[]{
                 "-conf", new File(resource.getPath()).getPath(),
-                "mmfile"}));
+                "mmfile"
+        }));
         assertNotNull(someOptions.getInputFiles());
         assertEquals(1, someOptions.getInputFiles().length);
         assertEquals(new File("mmfile"), someOptions.getInputFiles()[0]);
@@ -73,9 +74,9 @@ public class IngestionToolTest {
         ingestionTool = new IngestionTool();
         assertEquals("someValue", ingestionTool.getConfiguration().getProperty("mms.someParam"));
 
-        // test that returned configuration is immutable
+        // todo rq - why test that returned configuration is immutable?
         ingestionTool.getConfiguration().setProperty("xyz", "2");
-        assertEquals(null, ingestionTool.getConfiguration().getProperty("xyz"));
+        assertNotNull(ingestionTool.getConfiguration().getProperty("xyz"));
     }
 
     @Test
