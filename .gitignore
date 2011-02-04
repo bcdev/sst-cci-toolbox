@@ -1,5 +1,7 @@
 .idea/
+postgres/
 target/
+testdata/
 *.iml
 *.iws
 *.ipr
