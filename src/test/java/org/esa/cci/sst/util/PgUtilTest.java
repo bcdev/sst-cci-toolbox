@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.Test;
