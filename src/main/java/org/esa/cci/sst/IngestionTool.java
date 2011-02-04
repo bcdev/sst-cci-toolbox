@@ -14,13 +14,12 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.AatsrMatchupReader;
 import org.esa.cci.sst.reader.MetopMatchupReader;
 import org.esa.cci.sst.reader.ObservationReader;
+import org.esa.cci.sst.reader.SensorObservationReader;
 import org.esa.cci.sst.reader.SeviriMatchupReader;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.Properties;
  * @author Martin Boettcher
  * @author Norman Fomferra
  */
-public class IngestionTool {
+public class IngestionTool extends MmsTool {
 
     /**
      * Name of persistence unit in META-INF/persistence.xml
@@ -46,16 +45,6 @@ public class IngestionTool {
     private PersistenceManager persistenceManager;
 
     /**
-     * Debug mode?
-     */
-    private boolean debug;
-
-    /**
-     * Verbose mode?
-     */
-    private boolean verbose;
-
-    /**
      * The list of input files to be ingested.
      */
     private File[] inputFiles;
@@ -65,7 +54,6 @@ public class IngestionTool {
      */
     private String schemaName;
 
-    private Properties configuration;
     private Options options;
     private boolean initialised;
 
@@ -87,10 +75,9 @@ public class IngestionTool {
     public IngestionTool() {
         options = createCommandLineOptions();
 
-        configuration = new Properties();
         for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
             if (entry.getKey().toString().startsWith("mms.")) {
-                configuration.put(entry.getKey(), entry.getValue());
+                getConfiguration().put(entry.getKey(), entry.getValue());
             }
         }
 
@@ -105,33 +92,12 @@ public class IngestionTool {
         this.inputFiles = inputFiles.clone();
     }
 
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
-
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-
     public String getSchemaName() {
         return schemaName;
     }
 
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
-    }
-
-    public Properties getConfiguration() {
-        return new Properties(configuration);
     }
 
     /**
@@ -193,6 +159,7 @@ public class IngestionTool {
      * @param matchupFile input file with records to be read and made persistent as observations
      * @param schemaName  name of the file type
      * @param reader      The reader to be used to read this file type
+     *
      * @throws Exception if ingestion fails
      */
     public void ingest(File matchupFile, String schemaName, ObservationReader reader) throws ToolException {
@@ -203,7 +170,8 @@ public class IngestionTool {
             persistenceManager.transaction();
 
             // lookup or create data schema and data file entry
-            DataSchema dataSchema = (DataSchema) persistenceManager.pick("select s from DataSchema s where s.name = ?1", schemaName);
+            DataSchema dataSchema = (DataSchema) persistenceManager.pick("select s from DataSchema s where s.name = ?1",
+                                                                         schemaName);
             if (dataSchema == null) {
                 dataSchema = new DataSchema();
                 dataSchema.setName(schemaName);
@@ -288,7 +256,7 @@ public class IngestionTool {
 
         initialised = true;
 
-        persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME, configuration);
+        persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME, getConfiguration());
     }
 
     private void checkInputFilesAreAvailable() throws ToolException {
@@ -304,15 +272,23 @@ public class IngestionTool {
     }
 
     static ObservationReader createReader(String schemaName) throws ToolException {
-        // todo - get reader plugin from from registration
+        // todo - get reader plugin from registration
         ObservationReader reader;
-        if (schemaName.equalsIgnoreCase("aatsr")) {
+        if ("aatsr".equalsIgnoreCase(schemaName)) {
             reader = new AatsrMatchupReader();
-        } else if (schemaName.equalsIgnoreCase("metop")) {
+        } else if ("metop".equalsIgnoreCase(schemaName)) {
             reader = new MetopMatchupReader();
-        } else if (schemaName.equalsIgnoreCase("seviri")) {
+        } else if ("seviri".equalsIgnoreCase(schemaName)) {
             reader = new SeviriMatchupReader();
+        } else if ("amsre".equalsIgnoreCase(schemaName)) {
+            reader = new SensorObservationReader("AMSRE");
+        } else if ("tmi".equalsIgnoreCase(schemaName)) {
+            reader = new SensorObservationReader("TMI");
+        } else if ("aatsrl1b".equalsIgnoreCase(schemaName)) {
+            reader = new SensorObservationReader("AATSR");
         } else {
+            // todo rq - sea ice concentration
+            // todo rq - AVHRR GAC (?)
             throw new ToolException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName), 8);
         }
         return reader;
@@ -396,30 +372,6 @@ public class IngestionTool {
         return options;
     }
 
-    public void addConfigurationProperties(Properties properties) {
-        for (Map.Entry entry : properties.entrySet()) {
-            configuration.put(entry.getKey(), entry.getValue());
-        }
-    }
-
-    public void addConfigurationProperties(File configurationFile) throws ToolException {
-        try {
-            FileReader reader = new FileReader(configurationFile);
-            try {
-                Properties configuration = new Properties();
-                configuration.load(reader);
-                addConfigurationProperties(configuration);
-            } finally {
-                reader.close();
-            }
-        } catch (FileNotFoundException e) {
-            throw new ToolException(MessageFormat.format("File not found {0}", configurationFile), 2, e);
-        } catch (IOException e) {
-            throw new ToolException(MessageFormat.format("Failed to read from {0}", configurationFile), 3, e);
-        }
-        printInfo(MessageFormat.format("Using configuration read from {0}", configurationFile));
-    }
-
     private void printVersion() {
         System.out.println("Version 1.0");
     }
@@ -433,29 +385,5 @@ public class IngestionTool {
                             true);
     }
 
-    private void printInfo(String msg) {
-        if (isVerbose()) {
-            System.out.println(msg);
-        }
-    }
-
-
-    public static class ToolException extends Exception {
-        int exitCode;
-
-        private ToolException(String message, int exitCode) {
-            super(message);
-            this.exitCode = exitCode;
-        }
-
-        private ToolException(String message, int exitCode, Throwable cause) {
-            super(message, cause);
-            this.exitCode = exitCode;
-        }
-
-        public int getExitCode() {
-            return exitCode;
-        }
-    }
 
 }
