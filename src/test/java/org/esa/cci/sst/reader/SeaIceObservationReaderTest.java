@@ -1,8 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.junit.Test;
-import ucar.ma2.Section;
-import ucar.ma2.StructureData;
+import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
@@ -36,6 +35,20 @@ public class SeaIceObservationReaderTest {
         final List<Variable> headerVariables = ((Structure) header).getVariables();
         for (Variable v : headerVariables) {
             System.out.println("v.getName() = " + v.getName());
+            switch (v.getDataType()) {
+                case CHAR:
+                    System.out.println(v.readScalarString());
+                    break;
+                case FLOAT:
+                    System.out.println(v.readScalarFloat());
+                    break;
+                case INT:
+                    System.out.println(v.readScalarInt());
+                    break;
+                case SHORT:
+                    System.out.println(v.readScalarShort());
+                    break;
+            }
         }
         final List<Attribute> attributeList = header.getAttributes();
         for (Attribute a : attributeList) {
@@ -44,5 +57,7 @@ public class SeaIceObservationReaderTest {
         }
         final Variable data = ncFile.findVariable("Data/data[00]");
         assertNotNull(data);
+
+        System.out.println(ncFile.toString());
     }
 }
