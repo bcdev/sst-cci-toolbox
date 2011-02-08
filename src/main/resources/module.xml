@@ -3,7 +3,9 @@
     <symbolicName>sst-cci-toolbox</symbolicName>
     <version>1.0</version>
     <name>SST CCI Toolbox</name>
-    <description/>
+    <description>
+        Several product readers for data used by the SST CCI project.
+    </description>
 
     <vendor>Brockmann Consult GmbH</vendor>
     <contactAddress>
@@ -25,6 +27,6 @@
         <module>beam-netcdf</module>
     </dependency>
 
-    <categories>Reader,SMOS</categories>
+    <categories>Reader,SST</categories>
 
 </module>
