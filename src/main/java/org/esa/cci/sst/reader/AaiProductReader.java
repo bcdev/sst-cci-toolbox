@@ -51,6 +51,7 @@ public class AaiProductReader extends AbstractProductReader {
     protected Product readProductNodesImpl() throws IOException {
         final File file = getInputFile();
         final Product product = new Product(file.getName(), "AerosolAai", COL_COUNT, ROW_COUNT);
+        product.setPreferredTileSize(COL_COUNT, ROW_COUNT);
 
         final ProductData.UTC startTime = readReferenceTime(file);
         product.setStartTime(startTime);
@@ -69,7 +70,6 @@ public class AaiProductReader extends AbstractProductReader {
                                               band.getSceneRasterWidth(),
                                               band.getSceneRasterHeight(),
                                               createSampleReader(file)));
-
 
         return product;
     }
@@ -178,8 +178,7 @@ public class AaiProductReader extends AbstractProductReader {
                 for (int k = 0, index = 0; k < COL_COUNT; k++, index += 3) {
                     try {
                         samples[i * COL_COUNT + k] = Short.parseShort(line.substring(index, index + 3));
-                    } catch (NumberFormatException e) {
-                        samples[i * COL_COUNT + k] = 0;
+                    } catch (NumberFormatException ignored) {
                     }
                 }
             }
