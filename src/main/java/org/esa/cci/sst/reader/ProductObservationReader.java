@@ -23,14 +23,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class SensorObservationReader implements ObservationReader {
+public class ProductObservationReader implements ObservationReader {
 
     private final String sensorName;
 
     private DataFile dataFileEntry;
     private Product product;
 
-    public SensorObservationReader(String sensorName) {
+    public ProductObservationReader(String sensorName) {
         this.sensorName = sensorName;
     }
 

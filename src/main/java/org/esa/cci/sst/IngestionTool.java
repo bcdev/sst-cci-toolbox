@@ -14,7 +14,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.AatsrMatchupReader;
 import org.esa.cci.sst.reader.MetopMatchupReader;
 import org.esa.cci.sst.reader.ObservationReader;
-import org.esa.cci.sst.reader.SensorObservationReader;
+import org.esa.cci.sst.reader.ProductObservationReader;
 import org.esa.cci.sst.reader.SeviriMatchupReader;
 import org.esa.cci.sst.util.TimeUtil;
 
@@ -281,11 +281,13 @@ public class IngestionTool extends MmsTool {
         } else if ("seviri".equalsIgnoreCase(schemaName)) {
             reader = new SeviriMatchupReader();
         } else if ("amsre".equalsIgnoreCase(schemaName)) {
-            reader = new SensorObservationReader("AMSRE");
+            reader = new ProductObservationReader("AMSRE");
         } else if ("tmi".equalsIgnoreCase(schemaName)) {
-            reader = new SensorObservationReader("TMI");
+            reader = new ProductObservationReader("TMI");
         } else if ("aatsrl1b".equalsIgnoreCase(schemaName)) {
-            reader = new SensorObservationReader("AATSR");
+            reader = new ProductObservationReader("AATSR");
+        } else if ("aai".equalsIgnoreCase(schemaName)) {
+            reader = new ProductObservationReader("AATSR");
         } else {
             // todo rq - sea ice concentration
             // todo rq - AVHRR GAC (?)

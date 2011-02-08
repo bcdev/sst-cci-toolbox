@@ -3,9 +3,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.TimeUtil;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ucar.ma2.InvalidRangeException;
@@ -15,9 +13,9 @@ import java.io.IOException;
 
 import static org.junit.Assert.*;
 
-public class SensorObservationReaderTest {
+public class ProductObservationReaderTest {
 
-    private static final File TEST_FILE =
+    private static final File AMSRE_TEST_FILE =
             new File("testdata/AMSR-E/152", "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42958.dat-v01.nc");
     private static DataFile dataFile;
     private static ObservationReader reader;
@@ -25,8 +23,8 @@ public class SensorObservationReaderTest {
     @BeforeClass
     public static void init() throws IOException {
         dataFile = new DataFile();
-        reader = new SensorObservationReader("AMSRE");
-        reader.init(TEST_FILE, dataFile);
+        reader = new ProductObservationReader("");
+        reader.init(AMSRE_TEST_FILE, dataFile);
     }
 
     @AfterClass
