@@ -287,7 +287,7 @@ public class IngestionTool extends MmsTool {
         } else if ("aatsrl1b".equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader("AATSR");
         } else if ("aai".equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader("AATSR");
+            reader = new ProductObservationReader("AAI");
         } else {
             // todo rq - sea ice concentration
             // todo rq - AVHRR GAC (?)
