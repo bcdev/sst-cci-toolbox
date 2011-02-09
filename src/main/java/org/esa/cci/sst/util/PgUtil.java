@@ -15,12 +15,10 @@ public class PgUtil {
     }
 
     /**
-     * Finds out if the polygon defined by list of points has clockwise orientation.
+     * Finds out if a polygon defined by a list of points has clockwise orientation.
      * The list of points must correspond to a polygon on the Earth's surface; the
      * first point in the list must be the same as the last, i.e. the polygon must
      * be closed.
-     * <p/>
-     * The algorithm makes the assumption that the first point is a corner point.
      *
      * @param geoPolygon The polygon.
      *
