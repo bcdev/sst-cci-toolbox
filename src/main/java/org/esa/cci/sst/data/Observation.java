@@ -1,5 +1,6 @@
 package org.esa.cci.sst.data;
 
+import org.apache.openjpa.persistence.jdbc.Index;
 import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -61,6 +62,7 @@ public class Observation {
         this.sensor = sensor;
     }
 
+    @Index
     @Temporal(TemporalType.TIMESTAMP)
     public Date getTime() {
         return time;
