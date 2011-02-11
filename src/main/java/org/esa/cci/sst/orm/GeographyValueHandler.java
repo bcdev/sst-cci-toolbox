@@ -27,10 +27,11 @@ public class GeographyValueHandler extends AbstractValueHandler {
     /**
      * @deprecated
      */
+    @Override
     public Column[] map(ValueMapping vm, String name, ColumnIO io,
                         boolean adapt) {
         DBDictionary dict = vm.getMappingRepository().getDBDictionary();
-        DBIdentifier colName = DBIdentifier.newColumn(name, dict != null ? dict.delimitAll() : false);
+        DBIdentifier colName = DBIdentifier.newColumn(name, dict != null && dict.delimitAll());
         return map(vm, colName, io, adapt);
     }
 
@@ -47,7 +48,7 @@ public class GeographyValueHandler extends AbstractValueHandler {
 
     @Override
     public Object toDataStoreValue(ValueMapping vm, Object val, JDBCStore store) {
-        return super.toDataStoreValue(vm, val, store);    //To change body of overridden methods use File | Settings | File Templates.
+        return super.toDataStoreValue(vm, val, store);
     }
 
     @Override
