@@ -72,11 +72,12 @@ public class ProductObservationReader implements ObservationReader {
         }
 
         final Observation observation = new Observation();
+        observation.setClearSky(true);
         observation.setDatafile(dataFileEntry);
-        observation.setRecordNo(getNumRecords());
-        observation.setTime(getCenterTimeAsDate());
-        observation.setSensor(sensorName);
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getGeoBoundary())})));
+        observation.setRecordNo(0);
+        observation.setSensor(sensorName);
+        observation.setTime(getCenterTimeAsDate());
 
         return observation;
     }
