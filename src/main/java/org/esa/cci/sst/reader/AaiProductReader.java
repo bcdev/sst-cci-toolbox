@@ -55,7 +55,7 @@ public class AaiProductReader extends AbstractProductReader {
 
         final ProductData.UTC startTime = readReferenceTime(file);
         product.setStartTime(startTime);
-        final ProductData.UTC endTime = new ProductData.UTC(startTime.getDaysFraction(), 86399, 999000);
+        final ProductData.UTC endTime = new ProductData.UTC(startTime.getDaysFraction(), 86399, 999999);
         product.setEndTime(endTime);
 
         final GeoCoding geoCoding = createGeoCoding(new Dimension(COL_COUNT, ROW_COUNT));
