@@ -86,12 +86,12 @@ Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal typ
     cd /any/path/postgres  
     initdb mygisdb 
     createdb mygisdb  
-    createlang -dmygisdb plpgsql  
+    createlang -d mygisdb plpgsql  
     psql -d mygisdb -f /usr/local/share/postgis/postgis.sql  
-    psql -d mygisdb -f /usr/local/share/postgis/spatial_ref_sys.sql  
-    psql -d mygisdb  
-    select postgis_lib_version();  
-    \q
+    psql -d mygisdb -f /usr/local/share/postgis/spatial_ref_sys.sql
+    psql -d mygisdb 
+    # ALTER USER <user> RENAME TO mms ;    
+    # \q
 
 In order to automatically start the database on log-in, type
 
