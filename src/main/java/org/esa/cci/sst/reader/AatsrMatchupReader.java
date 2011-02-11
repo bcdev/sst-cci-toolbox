@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -74,7 +75,7 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
 
         final Observation observation = new Observation();
         observation.setName(getString("insitu.unique_identifier", recordNo));
-        observation.setSensor("aatsr.ref");
+        observation.setSensor(Constants.SENSOR_NAME_AATSR_AS_REFERENCE);
         observation.setLocation(new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                          getFloat("atsr.latitude", recordNo))));
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));

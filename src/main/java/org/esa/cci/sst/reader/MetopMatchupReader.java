@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.PgUtil;
@@ -98,7 +99,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
 
         final Observation observation = new Observation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor("metop");
+        observation.setSensor(Constants.SENSOR_NAME_METOP);
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
         observation.setDatafile(dataFileEntry);
@@ -126,7 +127,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
 
         final Observation observation = new Observation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor("metop.ref");
+        observation.setSensor(Constants.SENSOR_NAME_METOP_AS_REFERENCE);
         observation.setLocation(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
         observation.setDatafile(dataFileEntry);

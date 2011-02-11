@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.TimeUtil;
@@ -96,7 +97,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
 
         final Observation observation = new Observation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor("seviri");
+        observation.setSensor(Constants.SENSOR_NAME_SEVIRI);
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[] { new LinearRing(new Point[] {
                 new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
                           coordinateOf(getInt("lat", recordNo, 0, 0))),

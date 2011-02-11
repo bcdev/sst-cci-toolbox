@@ -38,13 +38,13 @@ public class IngestionToolTest {
         assertTrue(someOptions.setCommandLineArgs(new String[]{
                 "-D", "mms.p1=true",
                 "-D", "mms.p2=6",
-                "-schema", "aatsr",
+                "-schema", Constants.DATA_SCHEMA_NAME_AATSR_MD,
                 "-debug",
                 "mmfile"
         }));
         assertEquals(true, someOptions.isDebug());
         assertEquals(false, someOptions.isVerbose());
-        assertEquals("aatsr", someOptions.getSchemaName());
+        assertEquals(Constants.DATA_SCHEMA_NAME_AATSR_MD, someOptions.getSchemaName());
         assertNotNull(someOptions.getInputFiles());
         assertEquals(1, someOptions.getInputFiles().length);
         assertEquals(new File("mmfile"), someOptions.getInputFiles()[0]);
@@ -81,9 +81,9 @@ public class IngestionToolTest {
 
     @Test
     public void testCreateReader() throws IngestionTool.ToolException, IOException {
-        assertNotNull(IngestionTool.createReader("aatsr"));
-        assertNotNull(IngestionTool.createReader("metop"));
-        assertNotNull(IngestionTool.createReader("seviri"));
+        assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_AATSR_MD));
+        assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_METOP_MD));
+        assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_SEVIRI_MD));
 
         try {
             IngestionTool.createReader("bogus-reader");

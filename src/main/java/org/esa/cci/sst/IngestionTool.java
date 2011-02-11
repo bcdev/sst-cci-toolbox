@@ -223,12 +223,9 @@ public class IngestionTool extends MmsTool {
                     persistenceManager.transaction();
                 }
             }
-
             // make changes in database
             persistenceManager.commit();
-
             System.out.printf("%d %s records in time interval\n", recordsInTimeInterval, schemaName);
-
         } catch (Exception e) {
 
             // do not make any change in case of errors
@@ -274,20 +271,20 @@ public class IngestionTool extends MmsTool {
     static ObservationReader createReader(String schemaName) throws ToolException {
         // todo - get reader plugin from registration
         ObservationReader reader;
-        if ("aatsr".equalsIgnoreCase(schemaName)) {
+        if (Constants.DATA_SCHEMA_NAME_AATSR_MD.equalsIgnoreCase(schemaName)) {
             reader = new AatsrMatchupReader();
-        } else if ("metop".equalsIgnoreCase(schemaName)) {
+        } else if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
             reader = new MetopMatchupReader();
-        } else if ("seviri".equalsIgnoreCase(schemaName)) {
+        } else if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
             reader = new SeviriMatchupReader();
-        } else if ("amsre".equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader("AMSRE");
-        } else if ("tmi".equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader("TMI");
-        } else if ("aatsrl1b".equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader("AATSR");
-        } else if ("aai".equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader("AAI");
+        } else if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AMSRE);
+        } else if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_TMI);
+        } else if (Constants.DATA_SCHEMA_NAME_AATSR_L1B.equalsIgnoreCase(schemaName)) {
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AATSR);
+        } else if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI);
         } else {
             // todo rq - sea ice concentration
             // todo rq - AVHRR GAC (?)
