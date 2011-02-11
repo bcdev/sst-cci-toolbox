@@ -56,6 +56,7 @@ public class IngestionToolIntegrationTest {
         final File dir = new File(dirPath);
         final String pattern = filenamePattern;
         final FileFilter fileFilter = new FileFilter() {
+            @Override
             public boolean accept(File file) {
                 return file.getName().matches(pattern);
             }
