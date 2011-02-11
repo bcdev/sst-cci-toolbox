@@ -254,6 +254,14 @@ public class IngestionTool extends MmsTool {
         initialised = true;
 
         persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME, getConfiguration());
+        persistenceManager.transaction();
+        Query delete = persistenceManager.createQuery("delete from DataFile f");
+        delete.executeUpdate();
+        delete = persistenceManager.createQuery("delete from DataSchema s");
+        delete.executeUpdate();
+        delete = persistenceManager.createQuery("delete from Observation o");
+        delete.executeUpdate();
+        persistenceManager.commit();
     }
 
     private void checkInputFilesAreAvailable() throws ToolException {

@@ -128,9 +128,9 @@ public class MatchupTool extends MmsTool {
             @SuppressWarnings({"unchecked"})
             final List<Matchup> matchupList = query.getResultList();
             for (final Matchup matchup : matchupList) {
- //               addCoincidence(matchup, Constants.SENSOR_NAME_AATSR);
- //               addCoincidence(matchup, Constants.SENSOR_NAME_AMSRE);
- //               addCoincidence(matchup, Constants.SENSOR_NAME_TMI);
+                addCoincidence(matchup, Constants.SENSOR_NAME_AATSR);
+                addCoincidence(matchup, Constants.SENSOR_NAME_AMSRE);
+                addCoincidence(matchup, Constants.SENSOR_NAME_TMI);
                 addCoincidence(matchup, Constants.SENSOR_NAME_AAI);
             }
 
