@@ -10,6 +10,7 @@ import org.apache.commons.cli.PosixParser;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.AatsrMatchupReader;
 import org.esa.cci.sst.reader.MetopMatchupReader;
@@ -172,7 +173,8 @@ public class IngestionTool extends MmsTool {
             // lookup or create data schema and data file entry
             DataSchema dataSchema = (DataSchema) persistenceManager.pick("select s from DataSchema s where s.name = ?1",
                                                                          schemaName);
-            if (dataSchema == null) {
+            final boolean isNewDataSchema = dataSchema == null;
+            if (isNewDataSchema) {
                 dataSchema = new DataSchema();
                 dataSchema.setName(schemaName);
                 //dataSchema.setSensorType(sensorType);
@@ -186,6 +188,14 @@ public class IngestionTool extends MmsTool {
 
             reader.init(matchupFile, dataFile);
             System.out.printf("numberOfRecords=%d\n", reader.getNumRecords());
+
+            if (isNewDataSchema) {
+                final Variable[] variables = reader.getVariables();
+                System.out.printf("number of variables for schema '%s' = %d%n", schemaName, variables.length);
+                for (Variable variable : variables) {
+                    persistenceManager.persist(variable);
+                }
+            }
 
             // TODO remove restriction regarding time interval, used only during initial tests
             final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
@@ -227,7 +237,6 @@ public class IngestionTool extends MmsTool {
             persistenceManager.commit();
             System.out.printf("%d %s records in time interval\n", recordsInTimeInterval, schemaName);
         } catch (Exception e) {
-
             // do not make any change in case of errors
             try {
                 persistenceManager.rollback();
@@ -261,6 +270,8 @@ public class IngestionTool extends MmsTool {
         delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from Observation o");
         delete.executeUpdate();
+        delete = persistenceManager.createQuery("delete from Variable v");
+        delete.executeUpdate();
         persistenceManager.commit();
     }
 
@@ -289,7 +300,7 @@ public class IngestionTool extends MmsTool {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AMSRE);
         } else if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_TMI);
-        } else if (Constants.DATA_SCHEMA_NAME_AATSR_L1B.equalsIgnoreCase(schemaName)) {
+        } else if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AATSR);
         } else if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI);

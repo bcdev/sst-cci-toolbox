@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
@@ -14,6 +15,7 @@ import ucar.nc2.Variable;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,8 +32,6 @@ import java.util.Map;
  */
 abstract public class NetcdfMatchupReader implements ObservationReader {
 
-    static final String DEFAULT_POSTFIX = ".default";
-
     protected NetcdfFile netcdf;
     protected int numRecords;
     protected DataFile dataFileEntry;
@@ -41,6 +41,11 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     private int bufferStart = 0;
     private int bufferFill = 0;
     private int tileSize = 1024;  // TODO adjust default, read from property
+    private final String sensorName;
+
+    protected NetcdfMatchupReader(String sensorName) {
+        this.sensorName = sensorName;
+    }
 
     /**
      * Number of records of file. initialised in init() when opening the NetCDF file.
@@ -50,6 +55,27 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     @Override
     public int getNumRecords() {
         return numRecords;
+    }
+
+    public final String getSensorName() {
+        return sensorName;
+    }
+
+    @Override
+    public org.esa.cci.sst.data.Variable[] getVariables() throws IOException {
+        final ArrayList<org.esa.cci.sst.data.Variable> variableList = new ArrayList<org.esa.cci.sst.data.Variable>();
+        final org.esa.cci.sst.data.Variable observationTime = new org.esa.cci.sst.data.Variable();
+        observationTime.setName(String.format("%s.%s", sensorName, "observationTime"));
+        observationTime.setDataSchema(dataFileEntry.getDataSchema());
+        variableList.add(observationTime);
+        for (Variable var : netcdf.getVariables()) {
+            final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
+            variable.setName(String.format("%s.%s", sensorName, var.getName()));
+            variable.setDataSchema(dataFileEntry.getDataSchema());
+            variableList.add(variable);
+            // todo: add dimension and other attributes
+        }
+        return variableList.toArray(new org.esa.cci.sst.data.Variable[variableList.size()]);
     }
 
     /**

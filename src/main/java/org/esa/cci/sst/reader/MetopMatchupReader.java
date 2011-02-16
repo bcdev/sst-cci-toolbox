@@ -43,6 +43,10 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
     protected int rowCount;
     protected int colCount;
 
+    public MetopMatchupReader() {
+        super(Constants.SENSOR_NAME_METOP);
+    }
+
     @Override
     public String getDimensionName() {
         return "n";
@@ -127,7 +131,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
 
         final Observation observation = new Observation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor(Constants.SENSOR_NAME_METOP_AS_REFERENCE);
+        observation.setSensor(Constants.SENSOR_NAME_METOP_REFERENCE);
         observation.setLocation(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
         observation.setDatafile(dataFileEntry);

@@ -6,8 +6,10 @@ import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.PgUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -27,7 +29,7 @@ public class ProductObservationReader implements ObservationReader {
 
     private final String sensorName;
 
-    private DataFile dataFileEntry;
+    private DataFile dataFile;
     private Product product;
 
     public ProductObservationReader(String sensorName) {
@@ -42,7 +44,7 @@ public class ProductObservationReader implements ObservationReader {
                     MessageFormat.format("Unable to read observation file ''{0}''.", observationFile.getPath()));
         }
         this.product = product;
-        this.dataFileEntry = dataFileEntry;
+        this.dataFile = dataFileEntry;
     }
 
     @Override
@@ -73,7 +75,7 @@ public class ProductObservationReader implements ObservationReader {
 
         final Observation observation = new Observation();
         observation.setClearSky(true);
-        observation.setDatafile(dataFileEntry);
+        observation.setDatafile(dataFile);
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getGeoBoundary())})));
         observation.setRecordNo(0);
         observation.setSensor(sensorName);
@@ -85,6 +87,29 @@ public class ProductObservationReader implements ObservationReader {
     @Override
     public final Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
         return null;
+    }
+
+    @Override
+    public Variable[] getVariables() throws IOException {
+        final ArrayList<Variable> variableList = new ArrayList<Variable>();
+        final Variable observationTime = new Variable();
+        observationTime.setName(String.format("%s.%s", sensorName, "observationTime"));
+        observationTime.setDataSchema(dataFile.getDataSchema());
+        variableList.add(observationTime);
+        for (RasterDataNode node : product.getTiePointGrids()) {
+            final Variable variable = new Variable();
+            variable.setName(String.format("%s.%s", sensorName, node.getName()));
+            variable.setDataSchema(dataFile.getDataSchema());
+            variableList.add(variable);
+            // todo: add dimension and other attributes
+        }
+        for (RasterDataNode node : product.getBands()) {
+            final Variable variable = new Variable();
+            variable.setName(String.format("%s.%s", sensorName, node.getName()));
+            variable.setDataSchema(dataFile.getDataSchema());
+            variableList.add(variable);
+        }
+        return variableList.toArray(new Variable[variableList.size()]);
     }
 
     private Date getCenterTimeAsDate() throws IOException {
@@ -130,22 +155,22 @@ public class ProductObservationReader implements ObservationReader {
         final GeoPos g = new GeoPos();
         final List<Point> geoBoundary = new ArrayList<Point>();
         for (int i = minY; i < maxY; i += stepY) {
-            p.setLocation(minX + 0.5f, i + 0.5f);
+            p.setLocation(minX + 0.5, i + 0.5);
             geoCoding.getGeoPos(p, g);
             geoBoundary.add(new Point(g.getLon(), g.getLat()));
         }
         for (int i = minX; i < maxX; i += stepX) {
-            p.setLocation(i + 0.5f, maxY + 0.5f);
+            p.setLocation(i + 0.5, maxY + 0.5);
             geoCoding.getGeoPos(p, g);
             geoBoundary.add(new Point(g.getLon(), g.getLat()));
         }
         for (int i = maxY; i > minY; i -= stepY) {
-            p.setLocation(maxX + 0.5f, i + 0.5f);
+            p.setLocation(maxX + 0.5, i + 0.5);
             geoCoding.getGeoPos(p, g);
             geoBoundary.add(new Point(g.getLon(), g.getLat()));
         }
         for (int i = maxX; i > minX; i -= stepX) {
-            p.setLocation(i + 0.5f, minY + 0.5f);
+            p.setLocation(i + 0.5, minY + 0.5);
             geoCoding.getGeoPos(p, g);
             geoBoundary.add(new Point(g.getLon(), g.getLat()));
         }
@@ -166,10 +191,10 @@ public class ProductObservationReader implements ObservationReader {
         final PixelPos p = new PixelPos();
         final GeoPos g = new GeoPos();
         for (int i = 0; i < w; i++) {
-            p.setLocation(i + 0.5f, 0.5f);
+            p.setLocation(i + 0.5, 0.5);
             geoCoding.getGeoPos(p, g);
             if (g.isValid()) {
-                p.setLocation(i + 0.5f, h - 0.5f);
+                p.setLocation(i + 0.5, h - 0.5);
                 geoCoding.getGeoPos(p, g);
                 if (g.isValid()) {
                     return i;
@@ -187,10 +212,10 @@ public class ProductObservationReader implements ObservationReader {
         final PixelPos p = new PixelPos();
         final GeoPos g = new GeoPos();
         for (int i = w; i-- > 0;) {
-            p.setLocation(i + 0.5f, 0.5f);
+            p.setLocation(i + 0.5, 0.5);
             geoCoding.getGeoPos(p, g);
             if (g.isValid()) {
-                p.setLocation(i + 0.5f, h - 0.5f);
+                p.setLocation(i + 0.5, h - 0.5);
                 geoCoding.getGeoPos(p, g);
                 if (g.isValid()) {
                     return i;
@@ -209,10 +234,10 @@ public class ProductObservationReader implements ObservationReader {
         final PixelPos p = new PixelPos();
         final GeoPos g = new GeoPos();
         for (int i = 0; i < h; i++) {
-            p.setLocation(0.5f, i + 0.5f);
+            p.setLocation(0.5, i + 0.5);
             geoCoding.getGeoPos(p, g);
             if (g.isValid()) {
-                p.setLocation(w - 0.5f, i + 0.5f);
+                p.setLocation(w - 0.5, i + 0.5);
                 geoCoding.getGeoPos(p, g);
                 if (g.isValid()) {
                     return i;
@@ -230,10 +255,10 @@ public class ProductObservationReader implements ObservationReader {
         final PixelPos p = new PixelPos();
         final GeoPos g = new GeoPos();
         for (int i = h; i-- > 0;) {
-            p.setLocation(0.5f, i + 0.5f);
+            p.setLocation(0.5, i + 0.5);
             geoCoding.getGeoPos(p, g);
             if (g.isValid()) {
-                p.setLocation(w - 0.5f, i + 0.5f);
+                p.setLocation(w - 0.5, i + 0.5);
                 geoCoding.getGeoPos(p, g);
                 if (g.isValid()) {
                     return i;

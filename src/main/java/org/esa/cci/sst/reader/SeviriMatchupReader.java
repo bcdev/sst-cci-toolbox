@@ -3,6 +3,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -36,6 +37,10 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
 
     protected int noOfLines;
     protected int noOfColumns;
+
+    public SeviriMatchupReader() {
+        super(Constants.SENSOR_NAME_SEVIRI);
+    }
 
     @Override
     public String getDimensionName() {
@@ -130,7 +135,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         return null;
     }
 
-     public Date dateOf(double secondsSince1981) {
+    public Date dateOf(double secondsSince1981) {
         return new Date(MILLISECONDS_1981 + (long) secondsSince1981 * 1000);
     }
 

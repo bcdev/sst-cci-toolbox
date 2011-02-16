@@ -2,6 +2,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.After;
@@ -86,6 +87,29 @@ public class ProductObservationReaderTest {
         geometry = observation.getLocation().getGeometry();
         assertTrue(geometry.checkConsistency());
         assertFalse(PgUtil.isClockwise(getPoints(geometry)));
+    }
+
+
+    @Test
+    public void testGetAmsreVariables() throws URISyntaxException, IOException {
+        init(getResourceAsFile(AMSRE_RESOURCE_NAME));
+
+        final Variable[] variables = reader.getVariables();
+        for (Variable variable : variables) {
+            System.out.println("variable.getName() = " + variable.getName());
+        }
+        assertEquals(12, variables.length);
+    }
+
+    @Test
+    public void testGetAaiVariables() throws URISyntaxException, IOException {
+        init(getResourceAsFile(AAI_RESOURCE_NAME));
+
+        final Variable[] variables = reader.getVariables();
+        for (Variable variable : variables) {
+            System.out.println("variable.getName() = " + variable.getName());
+        }
+        assertEquals(1, variables.length);
     }
 
     private static List<Point> getPoints(Geometry geometry) {

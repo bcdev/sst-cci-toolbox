@@ -22,6 +22,10 @@ import java.util.Date;
  */
 public class AatsrMatchupReader extends NetcdfMatchupReader {
 
+    public AatsrMatchupReader() {
+        super(Constants.SENSOR_NAME_AATSR_REFERENCE);
+    }
+
     @Override
     public String getDimensionName() {
         return "match_up";
@@ -75,7 +79,7 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
 
         final Observation observation = new Observation();
         observation.setName(getString("insitu.unique_identifier", recordNo));
-        observation.setSensor(Constants.SENSOR_NAME_AATSR_AS_REFERENCE);
+        observation.setSensor(Constants.SENSOR_NAME_AATSR_REFERENCE);
         observation.setLocation(new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                          getFloat("atsr.latitude", recordNo))));
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));

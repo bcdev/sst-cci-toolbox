@@ -77,7 +77,7 @@ public class MatchupTool extends MmsTool {
 
             // loop over aatsr observations
             final List<Observation> aatsrObservations = inquireObservations(SENSOR_OBSERVATION_QUERY,
-                                                                            Constants.SENSOR_NAME_AATSR_AS_REFERENCE);
+                                                                            Constants.SENSOR_NAME_AATSR_REFERENCE);
             for (Observation aatsrObservation : aatsrObservations) {
                 //System.out.println(aatsrObservation);
                 Matchup matchup = null;
@@ -109,7 +109,7 @@ public class MatchupTool extends MmsTool {
 
             // loop over metop observations not yet included in aatsr coincidences
             final List<Observation> metopObservations = inquireObservations(SECONDARY_OBSERVATION_QUERY,
-                                                                            Constants.SENSOR_NAME_METOP_AS_REFERENCE);
+                                                                            Constants.SENSOR_NAME_METOP_REFERENCE);
             for (Observation metopObservation : metopObservations) {
                 //System.out.println(metopObservation);
 

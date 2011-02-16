@@ -2,6 +2,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Variable;
 import ucar.ma2.InvalidRangeException;
 
 import java.io.File;
@@ -65,4 +66,6 @@ public interface ObservationReader {
      * @return Observation with values read from observation file
      */
     Observation readRefObs(int recordNo) throws IOException, InvalidRangeException;
+
+    Variable[] getVariables() throws IOException;
 }
