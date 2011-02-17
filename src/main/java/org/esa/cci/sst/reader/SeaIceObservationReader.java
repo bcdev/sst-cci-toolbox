@@ -1,6 +1,8 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.ProgressMonitor;
+import ncsa.hdf.hdf5lib.H5;
+import ncsa.hdf.hdf5lib.HDF5Constants;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
@@ -29,6 +31,8 @@ public class SeaIceObservationReader extends AbstractProductReader {
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
     private File seaIceSourcefile;
     private File qualityFlagSourcefile;
+    private int sceneRasterWidth;
+    private int sceneRasterHeight;
 
     public SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
         super(plugin);
@@ -42,11 +46,10 @@ public class SeaIceObservationReader extends AbstractProductReader {
         final NetcdfFile ncFile = NetcdfFile.open(seaIceSourcefile.getPath());
         final List<Variable> variables = ncFile.getVariables();
         Structure headerStructure = getHeaderStructure(variables);
-        String productName;
 
-        productName = getVariable("Header.product", headerStructure).readScalarString();
-        int sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
-        int sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
+        String productName = getVariable("Header.product", headerStructure).readScalarString();
+        sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
+        sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
         int year = getVariable("Header.year", headerStructure).readScalarInt();
         int month = getVariable("Header.month", headerStructure).readScalarInt();
         int day = getVariable("Header.day", headerStructure).readScalarInt();
@@ -62,6 +65,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
         qualityFlagBand.setNoDataValue(-32768);
         product.setGeoCoding(createGeoCoding());
         ncFile.close();
+        readChunk(seaIceSourcefile.getAbsolutePath(), new long[]{0, 0}, new long[]{10, 10});
         return product;
     }
 
@@ -144,10 +148,12 @@ public class SeaIceObservationReader extends AbstractProductReader {
     }
 
     @Override
-    protected synchronized void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth, int sourceHeight,
-                                          int sourceStepX, int sourceStepY, Band destBand, int destOffsetX,
-                                          int destOffsetY, int destWidth, int destHeight, ProductData destBuffer,
-                                          ProgressMonitor pm) throws IOException {
+    protected synchronized void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth,
+                                                       int sourceHeight,
+                                                       int sourceStepX, int sourceStepY, Band destBand, int destOffsetX,
+                                                       int destOffsetY, int destWidth, int destHeight,
+                                                       ProductData destBuffer,
+                                                       ProgressMonitor pm) throws IOException {
         File sourceFile;
         if (SEA_ICE_PARAMETER_BANDNAME.equals(destBand.getName())) {
             sourceFile = seaIceSourcefile;
@@ -168,6 +174,130 @@ public class SeaIceObservationReader extends AbstractProductReader {
             throw new IOException("Unable to read in NetCDF-variable '" + variable.getName() + "'.", e);
         }
         destBuffer.setElems(array.copyTo1DJavaArray());
+    }
+
+    private void readCompact(String filename) {
+        int file_id = -1;
+        int filespace_id = -1;
+        int dataset_id = -1;
+        int dcpl_id = -1;
+        float[][] dsetData = new float[sceneRasterWidth][sceneRasterHeight];
+
+        // Open file and dataset using the default properties.
+        try {
+            file_id = H5.H5Fopen(filename, HDF5Constants.H5F_ACC_RDONLY,
+                                 HDF5Constants.H5P_DEFAULT);
+            // Open an existing dataset.
+            String DATASETNAME = "Data/data[00]";
+            if (file_id >= 0) {
+                dataset_id = H5.H5Dopen(file_id, DATASETNAME);
+            }
+
+            // Retrieve the dataset creation property list.
+            if (dataset_id >= 0) {
+                dcpl_id = H5.H5Dget_create_plist(dataset_id);
+            }
+
+            // Read the data using the default properties.
+            if (dataset_id >= 0) {
+                H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT,
+                           HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
+                           HDF5Constants.H5P_DEFAULT, dsetData);
+            }
+
+            // Output the data to the screen.
+            System.out.println("Data for " + DATASETNAME + " is: ");
+            for (int indx = 0; indx < sceneRasterWidth; indx++) {
+                System.out.print(indx + ": [ ");
+                for (int jndx = 0; jndx < sceneRasterHeight; jndx++) {
+                    System.out.print(dsetData[indx][jndx] + " ");
+                }
+                System.out.println("]");
+            }
+            System.out.println();
+
+            // End access to the dataset and release resources used by it.
+            if (dcpl_id >= 0) {
+                H5.H5Pclose(dcpl_id);
+            }
+            if (dataset_id >= 0) {
+                H5.H5Dclose(dataset_id);
+            }
+            if (filespace_id >= 0) {
+                H5.H5Sclose(filespace_id);
+            }
+
+            // Close the file.
+            if (file_id >= 0) {
+                H5.H5Fclose(file_id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void readChunk(String filename, long[] origin, long[] shape) {
+        final int width = (int) shape[0];
+        final int height = (int) shape[1];
+        float[][] dsetData = new float[width][height];
+
+        try {
+            // Open an existing file.
+            int file_id = H5.H5Fopen(filename, HDF5Constants.H5F_ACC_RDONLY,
+                                     HDF5Constants.H5P_DEFAULT);
+
+            // Open an existing dataset.
+            int dataset_id = H5.H5Dopen(file_id, "Data/data[00]");
+
+            // Retrieve the dataset creation property list.
+            int dcpl_id = H5.H5Dget_create_plist(dataset_id);
+
+//            // Read the data using the default properties.
+//            H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT,
+//                       HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
+//                       HDF5Constants.H5P_DEFAULT, dsetData);
+
+//            // Initialize the read array.
+//            for (int indx = 0; indx < width; indx++) {
+//                for (int jndx = 0; jndx < height; jndx++) {
+//                    dset_data[indx][jndx] = 0;
+//                }
+//            }
+
+            // Define and select the hyperslab to use for reading.
+            int filespace_id = H5.H5Dget_space(dataset_id);
+
+            long[] stride = {1, 1};
+            long[] block = {origin[0] + width, origin[1] + height};
+
+            H5.H5Sselect_hyperslab(filespace_id, HDF5Constants.H5S_SELECT_SET,
+                                   origin, stride, shape, block);
+
+            // Read the data using the previously defined hyperslab.
+            H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_INT,
+                       HDF5Constants.H5S_ALL, filespace_id, HDF5Constants.H5P_DEFAULT,
+                       dsetData);
+
+            // Output the data to the screen.
+            System.out.println("Data as read from disk by hyberslab:");
+            for (int indx = 0; indx < width; indx++) {
+                System.out.print(" [ ");
+                for (int jndx = 0; jndx < height; jndx++) {
+                    System.out.print(dsetData[indx][jndx] + " ");
+                }
+                System.out.println("]");
+            }
+            System.out.println();
+
+            // End access to the dataset and release resources used by it.
+            H5.H5Pclose(dcpl_id);
+            H5.H5Dclose(dataset_id);
+            H5.H5Sclose(filespace_id);
+            H5.H5Fclose(file_id);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

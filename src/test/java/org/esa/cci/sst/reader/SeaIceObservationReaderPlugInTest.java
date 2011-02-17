@@ -46,7 +46,7 @@ public class SeaIceObservationReaderPlugInTest {
     @Test
     public void testGetFormatNames() throws Exception {
         assertEquals(1, plugin.getFormatNames().length);
-        assertEquals("HDF5", plugin.getFormatNames()[0]);
+        assertEquals("Ocean and Sea Ice SAF", plugin.getFormatNames()[0]);
     }
 
     @Test
