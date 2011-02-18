@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
@@ -15,6 +16,7 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 
 import java.io.File;
@@ -92,14 +94,18 @@ public class ProductObservationReader implements ObservationReader {
     @Override
     public Variable[] getVariables() throws IOException {
         final ArrayList<Variable> variableList = new ArrayList<Variable>();
-        final Variable observationTime = new Variable();
-        observationTime.setName(String.format("%s.%s", sensorName, "observationTime"));
-        observationTime.setDataSchema(dataFile.getDataSchema());
-        variableList.add(observationTime);
+        final Variable time = new Variable();
+        time.setName(String.format("%s.%s", sensorName, "observation_time"));
+        time.setType(DataType.DOUBLE.name());
+        time.setDataSchema(dataFile.getDataSchema());
+        variableList.add(time);
         for (RasterDataNode node : product.getTiePointGrids()) {
             final Variable variable = new Variable();
             variable.setName(String.format("%s.%s", sensorName, node.getName()));
             variable.setDataSchema(dataFile.getDataSchema());
+            variable.setType(DataTypeUtils.getNetcdfDataType(node).name());
+            variable.setDimensions("ni nj");
+            variable.setDimensionRoles("ni nj");
             variableList.add(variable);
             // todo: add dimension and other attributes
         }
@@ -107,6 +113,9 @@ public class ProductObservationReader implements ObservationReader {
             final Variable variable = new Variable();
             variable.setName(String.format("%s.%s", sensorName, node.getName()));
             variable.setDataSchema(dataFile.getDataSchema());
+            variable.setType(DataTypeUtils.getNetcdfDataType(node).name());
+            variable.setDimensions("ni nj");
+            variable.setDimensionRoles("ni nj");
             variableList.add(variable);
         }
         return variableList.toArray(new Variable[variableList.size()]);

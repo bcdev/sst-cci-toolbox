@@ -1,12 +1,12 @@
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.ArrayFloat;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
+import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
@@ -64,13 +64,27 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     @Override
     public org.esa.cci.sst.data.Variable[] getVariables() throws IOException {
         final ArrayList<org.esa.cci.sst.data.Variable> variableList = new ArrayList<org.esa.cci.sst.data.Variable>();
-        final org.esa.cci.sst.data.Variable observationTime = new org.esa.cci.sst.data.Variable();
-        observationTime.setName(String.format("%s.%s", sensorName, "observationTime"));
-        observationTime.setDataSchema(dataFileEntry.getDataSchema());
-        variableList.add(observationTime);
-        for (Variable var : netcdf.getVariables()) {
+        final org.esa.cci.sst.data.Variable time = new org.esa.cci.sst.data.Variable();
+        time.setName(String.format("%s.%s", sensorName, "observation_time"));
+        time.setType(DataType.DOUBLE.name());
+        time.setDataSchema(dataFileEntry.getDataSchema());
+        variableList.add(time);
+        for (Variable ncVar : netcdf.getVariables()) {
             final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
-            variable.setName(String.format("%s.%s", sensorName, var.getName()));
+            variable.setName(String.format("%s.%s", sensorName, ncVar.getName()));
+            variable.setType(ncVar.getDataType().name());
+            final String dimensionsString = ncVar.getDimensionsString();
+            variable.setDimensions(dimensionsString);
+            variable.setDimensionRoles(
+                    dimensionsString.replaceFirst("n", "match_up").replace("nx", "nj").replace("ny", "ni").replace(
+                            "len_id", "length").replace("len_filename", "length"));
+//            final StringBuilder sb = new StringBuilder();
+//            for (int i : ncVar.getShape()) {
+//                if (sb.length() != 0) {
+//                    sb.append(" ");
+//                }
+//                sb.append(String.valueOf(i));
+//            }
             variable.setDataSchema(dataFileEntry.getDataSchema());
             variableList.add(variable);
             // todo: add dimension and other attributes
@@ -108,6 +122,7 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @param observationFile file of observations in format corresponding to reader
      * @param dataFileEntry   data file entry to be referenced in each observation created by reader
+     *
      * @throws IOException if file access fails
      */
     @Override
@@ -118,12 +133,14 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
         // open match-up file
         netcdf = NetcdfFile.open(observationFile.getPath());
         if (netcdf == null) {
-            throw new IOException(MessageFormat.format("Can''t find NetCDF IOServiceProvider for file {0}", observationFile));
+            throw new IOException(
+                    MessageFormat.format("Can''t find NetCDF IOServiceProvider for file {0}", observationFile));
         }
         // read number of records value
         final Dimension dimension = netcdf.findDimension(getDimensionName());
         if (dimension == null) {
-            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", getDimensionName(), observationFile));
+            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", getDimensionName(),
+                                                       observationFile));
         }
         numRecords = dimension.getLength();
         // read SST fill value
@@ -152,8 +169,10 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      * Ensures that identified record is in the data buffer, maybe reads tile to achieve this.
      *
      * @param recordNo index of record to be in the data buffer
+     *
      * @return index of first record in buffer, to be used as offset of record
      *         number when accessing data buffer
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
@@ -166,8 +185,8 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
                 final int[] start = new int[shape.length];
                 start[0] = recordNo;
                 shape[0] = (shape[0] < recordNo + tileSize)
-                        ? shape[0] - recordNo
-                        : tileSize;
+                           ? shape[0] - recordNo
+                           : tileSize;
                 final Object values = variable.read(start, shape);
                 data.put(variableName, values);
             }
@@ -182,7 +201,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @param role     variable name
      * @param recordNo record index in range 0 .. numRecords-1
+     *
      * @return record value as String
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
@@ -197,7 +218,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @param role     variable name
      * @param recordNo record index in range 0 .. numRecords-1
+     *
      * @return record value as float
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
@@ -212,7 +235,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @param role     variable name
      * @param recordNo record index in range 0 .. numRecords-1
+     *
      * @return record value as double
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
@@ -227,7 +252,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @param role     variable name
      * @param recordNo record index in range 0 .. numRecords-1
+     *
      * @return record value as int
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
@@ -242,7 +269,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @param role     variable name
      * @param recordNo record index in range 0 .. numRecords-1
+     *
      * @return record value as int
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
@@ -259,7 +288,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      * @param recordNo record index in range 0 .. numRecords-1
      * @param line     pixel line position in sub-scene
      * @param column   pixel column position in sub-scene
+     *
      * @return pixel value as int
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      *                               or line and column are out of range
@@ -277,7 +308,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      * @param recordNo record index in range 0 .. numRecords-1
      * @param line     pixel line position in sub-scene
      * @param column   pixel column position in sub-scene
+     *
      * @return pixel value as int
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      *                               or line and column are out of range
@@ -295,7 +328,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      * @param recordNo record index in range 0 .. numRecords-1
      * @param line     pixel line position in sub-scene
      * @param column   pixel column position in sub-scene
+     *
      * @return pixel value as double
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      *                               or line and column are out of range
@@ -312,7 +347,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      * @param role     variable name
      * @param recordNo record index in range 0 .. numRecords-1
      * @param line     pixel line position in sub-scene
+     *
      * @return pixel value as double
+     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      *                               or line and column are out of range

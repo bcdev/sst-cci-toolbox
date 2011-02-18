@@ -20,6 +20,8 @@ public class Variable {
     String role;
     String name;
     String type;
+    String dimensions;
+    String dimensionRoles;
     String units;
     String standardName;
 
@@ -56,6 +58,22 @@ public class Variable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getDimensions() {
+        return dimensions;
+    }
+
+    public void setDimensions(String dimensions) {
+        this.dimensions = dimensions;
+    }
+
+    public String getDimensionRoles() {
+        return dimensionRoles;
+    }
+
+    public void setDimensionRoles(String dimensionRoles) {
+        this.dimensionRoles = dimensionRoles;
     }
 
     public String getUnits() {
