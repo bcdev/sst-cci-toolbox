@@ -83,11 +83,8 @@ public class AaiProductReaderTest {
     }
 
     @Test
-    public void testSampleReader() throws URISyntaxException {
-        final AaiProductReader.SampleReader sampleReader =
-                AaiProductReader.createSampleReader(getResourceAsFile(RESOURCE_NAME));
-        assertNotNull(sampleReader);
-        final Number[] samples = sampleReader.readAllSamples();
+    public void testReadSamples() throws URISyntaxException {
+        final Number[] samples = AaiProductReader.readSamples(getResourceAsFile(RESOURCE_NAME));
         assertEquals(COL_COUNT * ROW_COUNT, samples.length);
         assertEquals(999, getSample(samples, 0, 0));
         assertEquals(443, getSample(samples, 2, 2));
