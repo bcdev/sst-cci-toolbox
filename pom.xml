@@ -91,6 +91,20 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+            HDF support
+        -->
+        <dependency>
+            <groupId>ncsa.hdf</groupId>
+            <artifactId>lib-hdf</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ncsa.hdf</groupId>
+            <artifactId>jhdf5</artifactId>
+            <version>2.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>

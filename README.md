@@ -16,7 +16,7 @@ needs of the EO Science and Climate teams during the various project tasks.
 
 For Task 2 it provides features for:
 
-* Generation of datasets used for SST algorithm development and improvement, alidation and round-robin inter-comparison,
+* Generation of datasets used for SST algorithm development and improvement, validation and round-robin inter-comparison,
 * Algorithm inter-comparison and selection.
 
 For Task 3 it provides features for:
@@ -106,7 +106,8 @@ Coming soon.
 
 ## Contributors
 
-* Martin Böttcher (martin_boetcher)
+* Martin Böttcher (martin_boettcher)
 * Norman Formferra (forman)
 * Ralf Quast (flar)
+* Thomas Storm (thomasstorm)
 * Marco Zuehlke (mzuehlke)
