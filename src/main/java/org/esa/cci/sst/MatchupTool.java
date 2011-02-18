@@ -13,11 +13,6 @@ import java.util.List;
  */
 public class MatchupTool extends MmsTool {
 
-    /**
-     * Name of persistence unit in META-INF/persistence.xml
-     */
-    private static final String PERSISTENCE_UNIT_NAME = "matchupdb";
-
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o"
             + " from Observation o"
@@ -53,7 +48,7 @@ public class MatchupTool extends MmsTool {
     /**
      * JPA persistence entity manager
      */
-    private PersistenceManager persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME);
+    private PersistenceManager persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME);
 
     /**
      * Loops over (A)ATSR reference observations and inquires METOP and SEVIRI

@@ -21,6 +21,11 @@ public class Constants {
     public static final String SENSOR_NAME_METOP = "metop";
     public static final String SENSOR_NAME_SEVIRI = "seviri";
 
+    /**
+     * Name of persistence unit in META-INF/persistence.xml
+     */
+    public static final String PERSISTENCE_UNIT_NAME = "matchupdb";
+
     private Constants() {
     }
 }
