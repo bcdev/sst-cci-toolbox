@@ -24,6 +24,9 @@ public class Variable {
     String dimensionRoles;
     String units;
     String standardName;
+    Number addOffset;
+    Number scaleFactor;
+    Number fillValue;
 
     @Id
     @GeneratedValue
@@ -74,6 +77,30 @@ public class Variable {
 
     public void setDimensionRoles(String dimensionRoles) {
         this.dimensionRoles = dimensionRoles;
+    }
+
+    public Number getAddOffset() {
+        return addOffset;
+    }
+
+    public void setAddOffset(Number addOffset) {
+        this.addOffset = addOffset;
+    }
+
+    public Number getScaleFactor() {
+        return scaleFactor;
+    }
+
+    public void setScaleFactor(Number scaleFactor) {
+        this.scaleFactor = scaleFactor;
+    }
+
+    public Number getFillValue() {
+        return fillValue;
+    }
+
+    public void setFillValue(Number fillValue) {
+        this.fillValue = fillValue;
     }
 
     public String getUnits() {
