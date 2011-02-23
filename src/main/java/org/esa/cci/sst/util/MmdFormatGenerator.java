@@ -55,6 +55,7 @@ public class MmdFormatGenerator {
         file.addDimension("amsre.nj", 11);
         file.addDimension("tmi.ni", 11);
         file.addDimension("tmi.nj", 11);
+        // todo: tie point dimensions for all sensors (rq-20110223)
 
         addVariables(file, Constants.SENSOR_NAME_AATSR_REFERENCE);
         addInsituDataHistories(file);
