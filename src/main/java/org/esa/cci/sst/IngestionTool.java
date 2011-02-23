@@ -13,6 +13,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.AatsrMatchupReader;
+import org.esa.cci.sst.reader.DefaultGeoBoundaryCalculator;
 import org.esa.cci.sst.reader.MetopMatchupReader;
 import org.esa.cci.sst.reader.ObservationReader;
 import org.esa.cci.sst.reader.ProductObservationReader;
@@ -297,13 +298,15 @@ public class IngestionTool extends MmsTool {
         } else if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
             reader = new SeviriMatchupReader();
         } else if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AMSRE);
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AMSRE, new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_TMI);
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_TMI, new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AATSR);
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AATSR, new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI);
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI, new DefaultGeoBoundaryCalculator());
+        } else if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AVHRR, new DefaultGeoBoundaryCalculator());
         } else {
             // todo rq - sea ice concentration
             // todo rq - AVHRR GAC (?)

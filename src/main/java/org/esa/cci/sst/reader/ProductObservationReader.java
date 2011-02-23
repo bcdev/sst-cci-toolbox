@@ -2,16 +2,12 @@ package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
-import org.esa.cci.sst.util.PgUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -23,19 +19,19 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 public class ProductObservationReader implements ObservationReader {
 
     private final String sensorName;
+    private final GeoBoundaryCalculator gbc;
 
     private DataFile dataFile;
     private Product product;
 
-    public ProductObservationReader(String sensorName) {
+    public ProductObservationReader(String sensorName, GeoBoundaryCalculator gbc) {
         this.sensorName = sensorName;
+        this.gbc = gbc;
     }
 
     @Override
@@ -78,7 +74,7 @@ public class ProductObservationReader implements ObservationReader {
         final Observation observation = new Observation();
         observation.setClearSky(true);
         observation.setDatafile(dataFile);
-        observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getGeoBoundary())})));
+        observation.setLocation(createGeometry(gbc.getGeoBoundary(product)));
         observation.setRecordNo(0);
         observation.setSensor(sensorName);
         observation.setTime(getCenterTimeAsDate());
@@ -94,28 +90,43 @@ public class ProductObservationReader implements ObservationReader {
     @Override
     public Variable[] getVariables() throws IOException {
         final ArrayList<Variable> variableList = new ArrayList<Variable>();
-        final Variable time = new Variable();
-        time.setName(String.format("%s.%s", sensorName, "observation_time"));
-        time.setType(DataType.DOUBLE.name());
-        time.setDataSchema(dataFile.getDataSchema());
-        variableList.add(time);
         for (RasterDataNode node : product.getTiePointGrids()) {
             final Variable variable = new Variable();
             variable.setName(String.format("%s.%s", sensorName, node.getName()));
             variable.setDataSchema(dataFile.getDataSchema());
-            variable.setType(DataTypeUtils.getNetcdfDataType(node).name());
+            final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
+            variable.setType(dataType.name());
             variable.setDimensions("ni nj");
             variable.setDimensionRoles("ni nj");
+            if (node.isScalingApplied()) {
+                variable.setAddOffset(node.getScalingOffset());
+                variable.setScaleFactor(node.getScalingFactor());
+            }
+            if (node.isNoDataValueUsed()) {
+                variable.setFillValue(node.getNoDataValue());
+            }
+            variable.setUnits(node.getUnit());
             variableList.add(variable);
-            // todo: add dimension and other attributes
         }
         for (RasterDataNode node : product.getBands()) {
             final Variable variable = new Variable();
             variable.setName(String.format("%s.%s", sensorName, node.getName()));
             variable.setDataSchema(dataFile.getDataSchema());
-            variable.setType(DataTypeUtils.getNetcdfDataType(node).name());
+            final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
+            variable.setType(dataType.name());
             variable.setDimensions("ni nj");
             variable.setDimensionRoles("ni nj");
+            if (node.isScalingApplied()) {
+                variable.setAddOffset(node.getScalingOffset());
+                variable.setScaleFactor(node.getScalingFactor());
+            }
+            if (node.isNoDataValueUsed()) {
+                variable.setFillValue(node.getNoDataValue());
+            }
+            final String units = node.getUnit();
+            if (units != null && !units.isEmpty()) {
+                variable.setUnits(units);
+            }
             variableList.add(variable);
         }
         return variableList.toArray(new Variable[variableList.size()]);
@@ -134,146 +145,10 @@ public class ProductObservationReader implements ObservationReader {
         return centerTime.getAsDate();
     }
 
-    private Point[] getGeoBoundary() throws IOException {
-        final GeoCoding geoCoding = product.getGeoCoding();
-        if (geoCoding == null) {
-            throw new IOException("Unable to get geo-coding for product '" + product.getName() + "'.");
+    private PGgeometry createGeometry(Point[] geoBoundary) throws IOException {
+        if (geoBoundary == null) {
+            return null;
         }
-
-        final int w = product.getSceneRasterWidth();
-        final int h = product.getSceneRasterHeight();
-        int minX = getMinX();
-        int maxX = getMaxX();
-        int minY = 0;
-        int maxY = h - 1;
-        if (minX == -1 || maxX == -1) {
-            // no pair of opposing geo-coordinates at the horizontal boundaries is valid, try vertical boundaries
-            minX = 0;
-            maxX = w - 1;
-            minY = getMinY();
-            maxY = getMaxY();
-            if (minY == -1 || maxY == -1) {
-                // no pair of opposing geo-coordinates at the vertical boundaries is valid
-                throw new IOException("Unable to get geo-boundary for product '" + product.getName() + "'.");
-            }
-        }
-        final int stepX = Math.max(1, w / 25);
-        final int stepY = Math.max(1, h / 25);
-
-        final PixelPos p = new PixelPos();
-        final GeoPos g = new GeoPos();
-        final List<Point> geoBoundary = new ArrayList<Point>();
-        for (int i = minY; i < maxY; i += stepY) {
-            p.setLocation(minX + 0.5, i + 0.5);
-            geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(g.getLon(), g.getLat()));
-        }
-        for (int i = minX; i < maxX; i += stepX) {
-            p.setLocation(i + 0.5, maxY + 0.5);
-            geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(g.getLon(), g.getLat()));
-        }
-        for (int i = maxY; i > minY; i -= stepY) {
-            p.setLocation(maxX + 0.5, i + 0.5);
-            geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(g.getLon(), g.getLat()));
-        }
-        for (int i = maxX; i > minX; i -= stepX) {
-            p.setLocation(i + 0.5, minY + 0.5);
-            geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(g.getLon(), g.getLat()));
-        }
-        geoBoundary.add(geoBoundary.get(0));
-        if (PgUtil.isClockwise(geoBoundary)) {
-            Collections.reverse(geoBoundary);
-        }
-
-        return geoBoundary.toArray(new Point[geoBoundary.size()]);
-    }
-
-    private int getMinX() {
-        final GeoCoding geoCoding = product.getGeoCoding();
-
-        final int w = product.getSceneRasterWidth();
-        final int h = product.getSceneRasterHeight();
-
-        final PixelPos p = new PixelPos();
-        final GeoPos g = new GeoPos();
-        for (int i = 0; i < w; i++) {
-            p.setLocation(i + 0.5, 0.5);
-            geoCoding.getGeoPos(p, g);
-            if (g.isValid()) {
-                p.setLocation(i + 0.5, h - 0.5);
-                geoCoding.getGeoPos(p, g);
-                if (g.isValid()) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    private int getMaxX() {
-        final GeoCoding geoCoding = product.getGeoCoding();
-        final int w = product.getSceneRasterWidth();
-        final int h = product.getSceneRasterHeight();
-
-        final PixelPos p = new PixelPos();
-        final GeoPos g = new GeoPos();
-        for (int i = w; i-- > 0;) {
-            p.setLocation(i + 0.5, 0.5);
-            geoCoding.getGeoPos(p, g);
-            if (g.isValid()) {
-                p.setLocation(i + 0.5, h - 0.5);
-                geoCoding.getGeoPos(p, g);
-                if (g.isValid()) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    private int getMinY() {
-        final GeoCoding geoCoding = product.getGeoCoding();
-
-        final int w = product.getSceneRasterWidth();
-        final int h = product.getSceneRasterHeight();
-
-        final PixelPos p = new PixelPos();
-        final GeoPos g = new GeoPos();
-        for (int i = 0; i < h; i++) {
-            p.setLocation(0.5, i + 0.5);
-            geoCoding.getGeoPos(p, g);
-            if (g.isValid()) {
-                p.setLocation(w - 0.5, i + 0.5);
-                geoCoding.getGeoPos(p, g);
-                if (g.isValid()) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    private int getMaxY() {
-        final GeoCoding geoCoding = product.getGeoCoding();
-        final int w = product.getSceneRasterWidth();
-        final int h = product.getSceneRasterHeight();
-
-        final PixelPos p = new PixelPos();
-        final GeoPos g = new GeoPos();
-        for (int i = h; i-- > 0;) {
-            p.setLocation(0.5, i + 0.5);
-            geoCoding.getGeoPos(p, g);
-            if (g.isValid()) {
-                p.setLocation(w - 0.5, i + 0.5);
-                geoCoding.getGeoPos(p, g);
-                if (g.isValid()) {
-                    return i;
-                }
-            }
-        }
-        return -1;
+        return new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(geoBoundary)}));
     }
 }
