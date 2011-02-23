@@ -11,25 +11,31 @@ import ucar.nc2.NetcdfFileWriteable;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.MessageFormat;
 import java.util.List;
 
 public class MmdFormatGenerator {
+
+    public static final String DIMENSION_NAME_MATCHUP = "match_up";
+    public static final String DIMENSION_ROLE_MATCHUP = "match_up";
+    public static final String DIMENSION_ROLE_LENGTH = "length";
 
     private final PersistenceManager persistenceManager;
 
     public static void main(String[] args) throws IOException {
         final MmdFormatGenerator generator = new MmdFormatGenerator();
-        generator.generateMmdFormat();
+        generator.generateMmdFile("mmd.nc");
+        NCdumpW.printHeader("mmd.nc", new PrintWriter(System.out));
     }
 
     public MmdFormatGenerator() {
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME);
     }
 
-    private void generateMmdFormat() throws IOException {
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew("mmd.nc");
-        file.addUnlimitedDimension("match_up");
+    private void generateMmdFile(String fileName) throws IOException {
+        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName);
 
+        file.addUnlimitedDimension(DIMENSION_NAME_MATCHUP);
         file.addDimension("aatsr-md-ref.cs_length", 8);
         file.addDimension("aatsr-md-ref.ui_length", 30);
         file.addDimension("aatsr-md-ref.length", 65);
@@ -51,34 +57,54 @@ public class MmdFormatGenerator {
         file.addDimension("tmi.nj", 11);
 
         addVariables(file, Constants.SENSOR_NAME_AATSR_REFERENCE);
+        addInsituDataHistories(file);
 
         addObservationTime(file, Constants.SENSOR_NAME_AATSR);
         addLsMask(file, Constants.SENSOR_NAME_AATSR);
         addVariables(file, Constants.SENSOR_NAME_AATSR);
+        addNwpData(file, Constants.SENSOR_NAME_AATSR);
 
         addObservationTime(file, Constants.SENSOR_NAME_METOP);
         addLsMask(file, Constants.SENSOR_NAME_METOP);
         addVariables(file, Constants.SENSOR_NAME_METOP);
+        addNwpData(file, Constants.SENSOR_NAME_METOP);
 
         addObservationTime(file, Constants.SENSOR_NAME_SEVIRI);
         addLsMask(file, Constants.SENSOR_NAME_SEVIRI);
         addVariables(file, Constants.SENSOR_NAME_SEVIRI);
+        addNwpData(file, Constants.SENSOR_NAME_SEVIRI);
 
         addVariables(file, Constants.SENSOR_NAME_AVHRR);
         addLsMask(file, Constants.SENSOR_NAME_AVHRR);
         addObservationTime(file, Constants.SENSOR_NAME_AVHRR);
+        addNwpData(file, Constants.SENSOR_NAME_AVHRR);
 
         addObservationTime(file, Constants.SENSOR_NAME_AMSRE);
         addLsMask(file, Constants.SENSOR_NAME_AMSRE);
         addVariables(file, Constants.SENSOR_NAME_AMSRE);
+        addNwpData(file, Constants.SENSOR_NAME_AMSRE);
 
         addObservationTime(file, Constants.SENSOR_NAME_TMI);
         addLsMask(file, Constants.SENSOR_NAME_TMI);
         addVariables(file, Constants.SENSOR_NAME_TMI);
+        addNwpData(file, Constants.SENSOR_NAME_TMI);
+
+        addGlobalAttributes(file);
 
         file.create();
         file.close();
-        NCdumpW.printHeader("mmd.nc", new PrintWriter(System.out));
+    }
+
+    private void addGlobalAttributes(NetcdfFileWriteable file) {
+        // todo: add global attributes (rq-20110223)
+    }
+
+    private void addInsituDataHistories(NetcdfFileWriteable file) {
+        // todo: add in-situ data histories (rq-20110223)
+    }
+
+    private void addNwpData(NetcdfFileWriteable file, String sensorName) {
+        // todo: add NWP data (rq-20110223)
     }
 
     private void addObservationTime(NetcdfFileWriteable file, String sensorName) {
@@ -99,75 +125,75 @@ public class MmdFormatGenerator {
         final Query query = createVariablesQuery(sensorName);
         @SuppressWarnings({"unchecked"})
         final List<Variable> resultList = query.getResultList();
-        for (Variable variable : resultList) {
-            final String[] dimensionNames = variable.getDimensions().split(" ");
-            final String[] dimensionRoles = variable.getDimensionRoles().split(" ");
-            final StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < dimensionRoles.length; i++) {
-                final String dimensionName = dimensionNames[i];
-                final String dimensionRole = dimensionRoles[i];
-                if (i != 0) {
-                    sb.append(" ");
-                }
-                if (!"match_up".equals(dimensionRole)) {
-                    sb.append(sensorName);
-                    sb.append(".");
-                }
-                if (!"length".equals(dimensionRole)) {
-                    sb.append(dimensionRole);
-                } else {
-                    sb.append(dimensionName);
-                }
-            }
-            if (!sb.toString().contains("match_up")) {
-                sb.insert(0, "match_up ");
-            }
-            addVariable(file, variable, sb.toString());
+        for (final Variable var : resultList) {
+            addVariable(file, var, createDimensionString(var, sensorName));
         }
     }
 
-    private void addVariable(NetcdfFileWriteable ncFile, Variable var, String dims) {
-        final ucar.nc2.Variable ncVar =
-                ncFile.addVariable(ncFile.getRootGroup(), var.getName(), DataType.valueOf(var.getType()), dims);
-        addAttribute(ncVar, "add_offset", var.getAddOffset(), DataType.FLOAT);
-        addAttribute(ncVar, "scale_factor", var.getScaleFactor(), DataType.FLOAT);
-        addAttribute(ncVar, "_FillValue", var.getFillValue(), ncVar.getDataType());
-        addAttribute(ncVar, "units", var.getUnits());
+    private String createDimensionString(Variable var, String sensorName) {
+        final String[] dimensionNames = var.getDimensions().split(" ");
+        final String[] dimensionRoles = var.getDimensionRoles().split(" ");
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < dimensionRoles.length; i++) {
+            final String dimensionName = dimensionNames[i];
+            final String dimensionRole = dimensionRoles[i];
+            if (i != 0) {
+                sb.append(" ");
+            }
+            if (!DIMENSION_ROLE_MATCHUP.equals(dimensionRole)) {
+                sb.append(sensorName);
+                sb.append(".");
+            }
+            if (!DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
+                sb.append(dimensionRole);
+            } else {
+                sb.append(dimensionName);
+            }
+        }
+        if (!sb.toString().contains(DIMENSION_NAME_MATCHUP)) {
+            sb.insert(0, DIMENSION_NAME_MATCHUP + " ");
+        }
+        return sb.toString();
     }
 
-    private void addAttribute(ucar.nc2.Variable ncVar, String attrName, String attrValue) {
+    private void addVariable(NetcdfFileWriteable file, Variable var, String dims) {
+        final ucar.nc2.Variable v = file.addVariable(null, var.getName(), DataType.valueOf(var.getType()), dims);
+        addAttribute(v, "add_offset", var.getAddOffset(), DataType.FLOAT);
+        addAttribute(v, "scale_factor", var.getScaleFactor(), DataType.FLOAT);
+        addAttribute(v, "_FillValue", var.getFillValue(), v.getDataType());
+        addAttribute(v, "units", var.getUnits());
+        // todo: add description and further attributes (rq-20110223)
+    }
+
+    private void addAttribute(ucar.nc2.Variable v, String attrName, String attrValue) {
         if (attrValue != null) {
-            ncVar.addAttribute(new Attribute(attrName, attrValue));
+            v.addAttribute(new Attribute(attrName, attrValue));
         }
     }
 
-    private void addAttribute(ucar.nc2.Variable ncVar, String attrName, Number attrValue, DataType attrType) {
+    private void addAttribute(ucar.nc2.Variable v, String attrName, Number attrValue, DataType attrType) {
         if (attrValue != null) {
             switch (attrType) {
                 case BYTE:
-                    ncVar.addAttribute(new Attribute(attrName, attrValue.byteValue()));
+                    v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
                     break;
                 case SHORT:
-                    ncVar.addAttribute(new Attribute(attrName, attrValue.shortValue()));
+                    v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
                     break;
                 case INT:
-                    ncVar.addAttribute(new Attribute(attrName, attrValue.intValue()));
-                    break;
-                case LONG:
-                    ncVar.addAttribute(new Attribute(attrName, attrValue.longValue()));
+                    v.addAttribute(new Attribute(attrName, attrValue.intValue()));
                     break;
                 case FLOAT:
-                    ncVar.addAttribute(new Attribute(attrName, attrValue.floatValue()));
+                    v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
                     break;
                 case DOUBLE:
-                    ncVar.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
+                    v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
                     break;
+                default:
+                    throw new IllegalArgumentException(
+                            MessageFormat.format("Attribute type ''{0}'' is not supported", attrType.toString()));
             }
         }
-    }
-
-    private Query createMatchupCountQuery() {
-        return persistenceManager.createQuery("select count(m) from Matchup m");
     }
 
     private Query createVariablesQuery(String sensorName) {
