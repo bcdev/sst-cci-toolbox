@@ -8,6 +8,7 @@ import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -35,15 +36,25 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     protected NetcdfFile netcdf;
     protected int numRecords;
     protected DataFile dataFileEntry;
-    protected int sstFillValue;
 
+    protected int sstFillValue;
     private Map<String, Object> data = new HashMap<String, Object>();
     private int bufferStart = 0;
     private int bufferFill = 0;
     private int tileSize = 1024;  // TODO adjust default, read from property
+
+    private final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
     private final String sensorName;
 
     protected NetcdfMatchupReader(String sensorName) {
+        dimensionRoleMap.put("n", "match_up");
+        dimensionRoleMap.put("nx", "nj");
+        dimensionRoleMap.put("ny", "ni");
+        dimensionRoleMap.put("len_id", "length");
+        dimensionRoleMap.put("len_filename", "length");
+        dimensionRoleMap.put("cs_length", "length");
+        dimensionRoleMap.put("ui_length", "length");
+        dimensionRoleMap.put("length", "length");
         this.sensorName = sensorName;
     }
 
@@ -64,32 +75,49 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     @Override
     public org.esa.cci.sst.data.Variable[] getVariables() throws IOException {
         final ArrayList<org.esa.cci.sst.data.Variable> variableList = new ArrayList<org.esa.cci.sst.data.Variable>();
-        final org.esa.cci.sst.data.Variable time = new org.esa.cci.sst.data.Variable();
-        time.setName(String.format("%s.%s", sensorName, "observation_time"));
-        time.setType(DataType.DOUBLE.name());
-        time.setDataSchema(dataFileEntry.getDataSchema());
-        variableList.add(time);
         for (Variable ncVar : netcdf.getVariables()) {
             final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
             variable.setName(String.format("%s.%s", sensorName, ncVar.getName()));
             variable.setType(ncVar.getDataType().name());
             final String dimensionsString = ncVar.getDimensionsString();
             variable.setDimensions(dimensionsString);
-            variable.setDimensionRoles(
-                    dimensionsString.replaceFirst("n", "match_up").replace("nx", "nj").replace("ny", "ni").replace(
-                            "len_id", "length").replace("len_filename", "length"));
-//            final StringBuilder sb = new StringBuilder();
-//            for (int i : ncVar.getShape()) {
-//                if (sb.length() != 0) {
-//                    sb.append(" ");
-//                }
-//                sb.append(String.valueOf(i));
-//            }
+            final String dimensionRoles = getDimensionRoles(dimensionsString);
+            variable.setDimensionRoles(dimensionRoles);
+            for (final Attribute attr : ncVar.getAttributes()) {
+                if ("add_offset".equals(attr.getName())) {
+                    variable.setAddOffset(attr.getNumericValue());
+                }
+                if ("scale_factor".equals(attr.getName())) {
+                    variable.setScaleFactor(attr.getNumericValue());
+                }
+                if ("_FillValue".equals(attr.getName())) {
+                    variable.setFillValue(attr.getNumericValue());
+                }
+            }
             variable.setDataSchema(dataFileEntry.getDataSchema());
+            final String units = ncVar.getUnitsString();
+            if (units != null && !units.isEmpty()) {
+                variable.setUnits(units);
+            }
             variableList.add(variable);
-            // todo: add dimension and other attributes
         }
         return variableList.toArray(new org.esa.cci.sst.data.Variable[variableList.size()]);
+    }
+
+    private String getDimensionRoles(String dimensionsString) {
+        final StringBuilder sb = new StringBuilder();
+        for (final String dimensionString : dimensionsString.split(" ")) {
+            if (sb.length() != 0) {
+                sb.append(" ");
+            }
+            final String dimensionRole = dimensionRoleMap.get(dimensionString);
+            if (dimensionRole == null) {
+                sb.append(dimensionString);
+            } else {
+                sb.append(dimensionRole);
+            }
+        }
+        return sb.toString();
     }
 
     /**
