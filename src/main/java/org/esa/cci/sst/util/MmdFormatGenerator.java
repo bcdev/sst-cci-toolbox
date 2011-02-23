@@ -12,6 +12,7 @@ import javax.persistence.Query;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.util.Calendar;
 import java.util.List;
 
 public class MmdFormatGenerator {
@@ -97,7 +98,11 @@ public class MmdFormatGenerator {
     }
 
     private void addGlobalAttributes(NetcdfFileWriteable file) {
-        // todo: add global attributes (rq-20110223)
+        file.addGlobalAttribute("title", "SST CCI multi-sensor match-up dataset (MMD) template");
+        file.addGlobalAttribute("institution", "Brockmann Consult");
+        file.addGlobalAttribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)");
+        file.addGlobalAttribute("creation_date", Calendar.getInstance().getTime().toString());
+        file.addGlobalAttribute("total_number_of_matchups", 0);
     }
 
     private void addInsituDataHistories(NetcdfFileWriteable file) {
@@ -109,10 +114,11 @@ public class MmdFormatGenerator {
     }
 
     private void addObservationTime(NetcdfFileWriteable file, String sensorName) {
-        file.addVariable(file.getRootGroup(),
-                         String.format("%s.observation_time", sensorName),
-                         DataType.DOUBLE,
-                         String.format("match_up %s.ni", sensorName));
+        final ucar.nc2.Variable time = file.addVariable(file.getRootGroup(),
+                                                        String.format("%s.observation_time", sensorName),
+                                                        DataType.DOUBLE,
+                                                        String.format("match_up %s.ni", sensorName));
+        addAttribute(time, "units", "Julian Date");
     }
 
     private void addLsMask(NetcdfFileWriteable file, String sensorName) {
@@ -158,12 +164,15 @@ public class MmdFormatGenerator {
     }
 
     private void addVariable(NetcdfFileWriteable file, Variable var, String dims) {
-        final ucar.nc2.Variable v = file.addVariable(null, var.getName(), DataType.valueOf(var.getType()), dims);
+        final ucar.nc2.Variable v = file.addVariable(file.getRootGroup(),
+                                                     var.getName(),
+                                                     DataType.valueOf(var.getType()),
+                                                     dims);
+        addAttribute(v, "standard_name", var.getStandardName());
+        addAttribute(v, "units", var.getUnits());
         addAttribute(v, "add_offset", var.getAddOffset(), DataType.FLOAT);
         addAttribute(v, "scale_factor", var.getScaleFactor(), DataType.FLOAT);
         addAttribute(v, "_FillValue", var.getFillValue(), v.getDataType());
-        addAttribute(v, "units", var.getUnits());
-        // todo: add description and further attributes (rq-20110223)
     }
 
     private void addAttribute(ucar.nc2.Variable v, String attrName, String attrValue) {
@@ -199,6 +208,6 @@ public class MmdFormatGenerator {
 
     private Query createVariablesQuery(String sensorName) {
         return persistenceManager.createQuery(
-                String.format("select v from Variable v where v.name like '%s.%%'", sensorName));
+                String.format("select v from Variable v where v.name like '%s.%%' order by v.name", sensorName));
     }
 }
