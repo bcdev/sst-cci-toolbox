@@ -31,7 +31,7 @@ public class ProductObservationReaderTest {
 
     public void init(File file) throws IOException {
         dataFile = new DataFile();
-        reader = new ProductObservationReader("any");
+        reader = new ProductObservationReader("any", new DefaultGeoBoundaryCalculator());
         reader.init(file, dataFile);
     }
 
