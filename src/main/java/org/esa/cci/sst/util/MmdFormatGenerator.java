@@ -53,21 +53,27 @@ public class MmdFormatGenerator {
         addVariables(file, Constants.SENSOR_NAME_AATSR_REFERENCE);
 
         addObservationTime(file, Constants.SENSOR_NAME_AATSR);
+        addLsMask(file, Constants.SENSOR_NAME_AATSR);
         addVariables(file, Constants.SENSOR_NAME_AATSR);
 
         addObservationTime(file, Constants.SENSOR_NAME_METOP);
+        addLsMask(file, Constants.SENSOR_NAME_METOP);
         addVariables(file, Constants.SENSOR_NAME_METOP);
 
         addObservationTime(file, Constants.SENSOR_NAME_SEVIRI);
+        addLsMask(file, Constants.SENSOR_NAME_SEVIRI);
         addVariables(file, Constants.SENSOR_NAME_SEVIRI);
 
         addVariables(file, Constants.SENSOR_NAME_AVHRR);
+        addLsMask(file, Constants.SENSOR_NAME_AVHRR);
         addObservationTime(file, Constants.SENSOR_NAME_AVHRR);
 
         addObservationTime(file, Constants.SENSOR_NAME_AMSRE);
+        addLsMask(file, Constants.SENSOR_NAME_AMSRE);
         addVariables(file, Constants.SENSOR_NAME_AMSRE);
 
         addObservationTime(file, Constants.SENSOR_NAME_TMI);
+        addLsMask(file, Constants.SENSOR_NAME_TMI);
         addVariables(file, Constants.SENSOR_NAME_TMI);
 
         file.create();
@@ -76,51 +82,17 @@ public class MmdFormatGenerator {
     }
 
     private void addObservationTime(NetcdfFileWriteable file, String sensorName) {
-        file.addVariable(file.getRootGroup(), "observation_time", DataType.DOUBLE,
+        file.addVariable(file.getRootGroup(),
+                         String.format("%s.observation_time", sensorName),
+                         DataType.DOUBLE,
                          String.format("match_up %s.ni", sensorName));
     }
 
-    private void addMdVariables(NetcdfFileWriteable file, String sensorName) {
-        final Query query = createVariablesQuery(sensorName);
-        @SuppressWarnings({"unchecked"})
-        final List<Variable> resultList = query.getResultList();
-        for (Variable variable : resultList) {
-            final String[] dimensionNames = variable.getDimensions().split(" ");
-            final String[] dimensionRoles = variable.getDimensionRoles().split(" ");
-            final StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < dimensionRoles.length; i++) {
-                final String dimensionName = dimensionNames[i];
-                final String dimensionRole = dimensionRoles[i];
-                if (i != 0) {
-                    sb.append(" ");
-                }
-                if (!"match_up".equals(dimensionRole)) {
-                    sb.append(sensorName);
-                    sb.append(".");
-                }
-                if (!dimensionRole.contains("length")) {
-                    sb.append(dimensionRole);
-                } else {
-                    sb.append(dimensionName);
-                }
-            }
-            if (!sb.toString().contains("match_up")) {
-                sb.insert(0, "match_up" + " ");
-            }
-            try {
-                final ucar.nc2.Variable ncVar =
-                        file.addVariable(file.getRootGroup(), variable.getName(), DataType.valueOf(variable.getType()),
-                                         sb.toString());
-                addAttribute(ncVar, "add_offset", variable.getAddOffset(), DataType.FLOAT);
-                addAttribute(ncVar, "scale_factor", variable.getScaleFactor(), DataType.FLOAT);
-                addAttribute(ncVar, "_FillValue", variable.getFillValue(), ncVar.getDataType());
-                if (variable.getUnits() != null) {
-                    ncVar.addAttribute(new Attribute("units", variable.getUnits()));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    private void addLsMask(NetcdfFileWriteable file, String sensorName) {
+        file.addVariable(file.getRootGroup(),
+                         String.format("%s.land_sea_mask", sensorName),
+                         DataType.BYTE,
+                         String.format("match_up %s.ni %s.nj", sensorName, sensorName));
     }
 
     private void addVariables(NetcdfFileWriteable file, String sensorName) {
@@ -150,25 +122,28 @@ public class MmdFormatGenerator {
             if (!sb.toString().contains("match_up")) {
                 sb.insert(0, "match_up ");
             }
-            try {
-                final ucar.nc2.Variable ncVar =
-                        file.addVariable(file.getRootGroup(), variable.getName(), DataType.valueOf(variable.getType()),
-                                         sb.toString());
-                addAttribute(ncVar, "add_offset", variable.getAddOffset(), DataType.FLOAT);
-                addAttribute(ncVar, "scale_factor", variable.getScaleFactor(), DataType.FLOAT);
-                addAttribute(ncVar, "_FillValue", variable.getFillValue(), ncVar.getDataType());
-                if (variable.getUnits() != null) {
-                    ncVar.addAttribute(new Attribute("units", variable.getUnits()));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            addVariable(file, variable, sb.toString());
         }
     }
 
-    private void addAttribute(ucar.nc2.Variable ncVar, String attrName, Number attrValue, DataType dataType) {
+    private void addVariable(NetcdfFileWriteable ncFile, Variable var, String dims) {
+        final ucar.nc2.Variable ncVar =
+                ncFile.addVariable(ncFile.getRootGroup(), var.getName(), DataType.valueOf(var.getType()), dims);
+        addAttribute(ncVar, "add_offset", var.getAddOffset(), DataType.FLOAT);
+        addAttribute(ncVar, "scale_factor", var.getScaleFactor(), DataType.FLOAT);
+        addAttribute(ncVar, "_FillValue", var.getFillValue(), ncVar.getDataType());
+        addAttribute(ncVar, "units", var.getUnits());
+    }
+
+    private void addAttribute(ucar.nc2.Variable ncVar, String attrName, String attrValue) {
         if (attrValue != null) {
-            switch (dataType) {
+            ncVar.addAttribute(new Attribute(attrName, attrValue));
+        }
+    }
+
+    private void addAttribute(ucar.nc2.Variable ncVar, String attrName, Number attrValue, DataType attrType) {
+        if (attrValue != null) {
+            switch (attrType) {
                 case BYTE:
                     ncVar.addAttribute(new Attribute(attrName, attrValue.byteValue()));
                     break;
