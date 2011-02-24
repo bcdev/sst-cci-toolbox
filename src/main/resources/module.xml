@@ -21,10 +21,17 @@
         <module>beam-core</module>
     </dependency>
     <dependency>
+        <module>beam-avhrr-reader</module>
+    </dependency>
+    <dependency>
         <module>beam-envisat-reader</module>
     </dependency>
     <dependency>
         <module>beam-netcdf</module>
+    </dependency>
+    <dependency>
+        <module>beam-visat</module>
+        <optional>true</optional>
     </dependency>
 
     <categories>Reader,SST</categories>
