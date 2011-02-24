@@ -128,6 +128,9 @@ public class MatchupTool extends MmsTool {
 
             System.out.println();
 
+            persistenceManager.commit();
+            persistenceManager.transaction();
+
             // loop over metop observations not yet included in aatsr coincidences
             final List<Observation> metopObservations = inquireObservations(SECONDARY_OBSERVATION_QUERY,
                                                                             Constants.SENSOR_NAME_METOP_REFERENCE,
@@ -153,6 +156,9 @@ public class MatchupTool extends MmsTool {
                 }
             }
 
+            persistenceManager.commit();
+            persistenceManager.transaction();
+
             if (withSingleSensorMatchups) {
                 final List<Observation> seviriObservations = inquireObservations(SECONDARY_OBSERVATION_QUERY,
                                                                                  Constants.SENSOR_NAME_SEVIRI_REFERENCE,
@@ -162,7 +168,10 @@ public class MatchupTool extends MmsTool {
                     persistenceManager.persist(matchup);
                     matchup.setPattern(0x4);
                 }
+                persistenceManager.commit();
+                persistenceManager.transaction();
             }
+
 
             final Query query = persistenceManager.createQuery(ALL_MATCHUPS_QUERY);
             @SuppressWarnings({"unchecked"})
