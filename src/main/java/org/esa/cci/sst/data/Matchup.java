@@ -20,6 +20,7 @@ public class Matchup {
     int id;
     Observation refObs;
     List<Coincidence> coincidences;
+    long pattern;
 
     @Id
     @GeneratedValue
@@ -47,5 +48,13 @@ public class Matchup {
 
     public void setCoincidences(List<Coincidence> coincidences) {
         this.coincidences = coincidences;
+    }
+
+    public long getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(long pattern) {
+        this.pattern = pattern;
     }
 }

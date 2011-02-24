@@ -25,6 +25,6 @@ public class MatchupToolIntegrationTest {
     public void testFindCoincidences() throws Exception {
         final MatchupTool tool = new MatchupTool();
         tool.addConfigurationProperties(new File("./mms-test.properties"));
-        tool.findCoincidences();
+        tool.findCoincidences(true);
     }
 }

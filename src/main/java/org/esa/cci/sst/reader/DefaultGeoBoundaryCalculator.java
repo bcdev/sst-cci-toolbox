@@ -38,8 +38,8 @@ public class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
                 throw new IOException("Unable to get geo-boundary for product '" + product.getName() + "'.");
             }
         }
-        final int stepX = Math.max(1, w / 25);
-        final int stepY = Math.max(1, h / 25);
+        final int stepX = Math.max(100, w / 25);
+        final int stepY = Math.max(100, h / 25);
 
         final PixelPos p = new PixelPos();
         final GeoPos g = new GeoPos();

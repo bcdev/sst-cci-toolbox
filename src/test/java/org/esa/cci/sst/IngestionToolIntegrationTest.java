@@ -19,6 +19,7 @@ public class IngestionToolIntegrationTest {
     public static void main(String[] args) {
         try {
             IngestionTool tool = new IngestionTool();
+            tool.clearObservations();
             tool.addConfigurationProperties(new File("./mms-test.properties"));
             tool.setCommandLineArgs(args);
 

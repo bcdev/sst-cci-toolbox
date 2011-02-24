@@ -2,6 +2,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -90,14 +91,12 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
      * from  left to right looking in flight direction.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
-     *
      * @return Observation for METOP sub-scene
-     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
     @Override
-    public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public GlobalObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
         final int x = colCount / 2;
         final int y = rowCount / 2;
 
@@ -118,9 +117,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
      * may serve as reference observation in some matchup.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
-     *
      * @return Observation for METOP pixel
-     *
      * @throws IOException           if file io fails
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
@@ -144,47 +141,94 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
     private Point[] getPoints(int recordNo) throws IOException, InvalidRangeException {
         final List<Point> pointList = new ArrayList<Point>(9);
 
-        for (int i = 0; i < rowCount - 1; i++) {
-            final int lon = getLon(recordNo, i, 0);
-            final int lat = getLat(recordNo, i, 0);
-            if (isValid(lon, lat)) {
-                if (pointList.size() < 1) {
+        int lon = getLon(recordNo, 0, 0);
+        int lat = getLat(recordNo, 0, 0);
+        if (isValid(lon, lat)) {
+            pointList.add(newPoint(lon, lat));
+        } else {
+            for (int k = 0; k < colCount / 2; k++) {
+                lon = getLon(recordNo, 0, k);
+                lat = getLat(recordNo, 0, k);
+                if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
-                } else {
-                    pointList.add(1, newPoint(lon, lat));
+                    break;
+                }
+            }
+            for (int i = 0; i < rowCount / 2; i++) {
+                lon = getLon(recordNo, i, 0);
+                lat = getLat(recordNo, i, 0);
+                if (isValid(lon, lat)) {
+                    pointList.add(newPoint(lon, lat));
+                    break;
                 }
             }
         }
-        for (int k = 0; k < colCount - 1; k++) {
-            final int lon = getLon(recordNo, rowCount - 1, k);
-            final int lat = getLat(recordNo, rowCount - 1, k);
-            if (isValid(lon, lat)) {
-                if (pointList.size() < 3) {
+
+        lon = getLon(recordNo, rowCount-1, 0);
+        lat = getLat(recordNo, rowCount-1, 0);
+        if (isValid(lon, lat)) {
+            pointList.add(newPoint(lon, lat));
+        } else {
+            for (int i = rowCount -1; i >= rowCount / 2; i--) {
+                lon = getLon(recordNo, i, 0);
+                lat = getLat(recordNo, i, 0);
+                if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
-                } else {
-                    pointList.add(3, newPoint(lon, lat));
+                    break;
+                }
+            }
+            for (int k = 0; k < colCount / 2; k++) {
+                lon = getLon(recordNo, rowCount-1, k);
+                lat = getLat(recordNo, rowCount-1, k);
+                if (isValid(lon, lat)) {
+                    pointList.add(newPoint(lon, lat));
+                    break;
                 }
             }
         }
-        for (int i = rowCount - 1; i > 0; i--) {
-            final int lon = getLon(recordNo, i, colCount - 1);
-            final int lat = getLat(recordNo, i, colCount - 1);
-            if (isValid(lon, lat)) {
-                if (pointList.size() < 5) {
+
+        lon = getLon(recordNo, rowCount-1, colCount-1);
+        lat = getLat(recordNo, rowCount-1, colCount-1);
+        if (isValid(lon, lat)) {
+            pointList.add(newPoint(lon, lat));
+        } else {
+            for (int k = colCount-1; k >= colCount / 2; k--) {
+                lon = getLon(recordNo, rowCount-1, k);
+                lat = getLat(recordNo, rowCount-1, k);
+                if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
-                } else {
-                    pointList.add(5, newPoint(lon, lat));
+                    break;
+                }
+            }
+            for (int i = rowCount-1; i >= rowCount / 2; i--) {
+                lon = getLon(recordNo, i, colCount-1);
+                lat = getLat(recordNo, i, colCount-1);
+                if (isValid(lon, lat)) {
+                    pointList.add(newPoint(lon, lat));
+                    break;
                 }
             }
         }
-        for (int k = colCount - 1; k > 0; k--) {
-            final int lon = getLon(recordNo, 0, k);
-            final int lat = getLat(recordNo, 0, k);
-            if (isValid(lon, lat)) {
-                if (pointList.size() < 7) {
+
+        lon = getLon(recordNo, 0, colCount-1);
+        lat = getLat(recordNo, 0, colCount-1);
+        if (isValid(lon, lat)) {
+            pointList.add(newPoint(lon, lat));
+        } else {
+            for (int i = 0; i < rowCount / 2; i++) {
+                lon = getLon(recordNo, i, colCount-1);
+                lat = getLat(recordNo, i, colCount-1);
+                if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
-                } else {
-                    pointList.add(7, newPoint(lon, lat));
+                    break;
+                }
+            }
+            for (int k = colCount-1; k >= colCount / 2; k--) {
+                lon = getLon(recordNo, 0, k);
+                lat = getLat(recordNo, 0, k);
+                if (isValid(lon, lat)) {
+                    pointList.add(newPoint(lon, lat));
+                    break;
                 }
             }
         }

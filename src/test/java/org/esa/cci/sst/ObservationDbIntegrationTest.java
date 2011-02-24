@@ -25,10 +25,12 @@ public class ObservationDbIntegrationTest {
     public static void main(String[] args) {
         try {
             ObservationDbIntegrationTest t = new ObservationDbIntegrationTest();
-            t.testCreateDbEntry();
-            t.testReadDbEntry();
-            t.testSearchDbEntry();
-            t.testGeoSearchDbEntry();
+            //t.testCreateDbEntry();
+            t.testCreateNullEntry();
+            //t.testReadDbEntry();
+            t.testReadNullEntry();
+            //t.testSearchDbEntry();
+            //t.testGeoSearchDbEntry();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,6 +49,48 @@ public class ObservationDbIntegrationTest {
         i2.setName("isleofman");
         i2.setLocation(new PGgeometry("SRID=4326;POINT(10 50)"));
         m.persist(i2);
+        m.getTransaction().commit();
+        //
+        m.close();
+    }
+
+    public void testCreateNullEntry() throws Exception {
+        final EntityManagerFactory f = Persistence.createEntityManagerFactory("matchupdb");
+        final EntityManager m = f.createEntityManager();
+        // write new observation to database
+        m.getTransaction().begin();
+        final Observation i = new Observation();
+        i.setName("nowhere");
+        i.setLocation(null);
+        //i.setLocation(new PGgeometry("SRID=4326;POINT(-110 30)"));
+        //System.out.println(i.getLocation().getValue());
+        Query q = m.createNativeQuery("insert into mm_observation values (?,?,?,?,?,?,?,?)");
+        q.setParameter(1, 14);
+        q.setParameter(2, i.isClearSky());
+        q.setParameter(3, i.getLocation());
+        q.setParameter(4, i.getName());
+        q.setParameter(5, i.getRecordNo());
+        q.setParameter(6, i.getSensor());
+        q.setParameter(7, i.getTime());
+        q.setParameter(8, 1);
+        q.executeUpdate();
+
+        //m.persist(i);
+        m.getTransaction().commit();
+        m.close();
+
+    }
+
+    public void testReadNullEntry() throws Exception {
+        final EntityManagerFactory f = Persistence.createEntityManagerFactory("matchupdb");
+        final EntityManager m = f.createEntityManager();
+        // read from database
+        m.getTransaction().begin();
+        final Query query = m.createQuery("select o from Observation o where o.location is null");
+        final List results = query.getResultList();
+        for (Object o : results) {
+            System.out.println(o);
+        }
         m.getTransaction().commit();
         //
         m.close();
@@ -89,7 +133,7 @@ public class ObservationDbIntegrationTest {
         // search in database
         System.out.println("geo-search results:");
         m.getTransaction().begin();
-        final Query query = m.createNativeQuery("select o.id, o.name, o.location, o.time, o.recordno from Observation o where st_intersects(o.location, st_geographyfromtext('polygon((-100 20,-120 20,-120 40,-100 40,-100 20))'))", Observation.class);
+        final Query query = m.createNativeQuery("select o.id, o.name, o.location, o.time, o.recordno from mm_observation o where st_intersects(o.location, st_geographyfromtext('polygon((-100 20,-120 20,-120 40,-100 40,-100 20))'))", Observation.class);
         final List results = query.getResultList();
         for (Object o : results) {
             System.out.println(o);

@@ -6,6 +6,7 @@
         <provider>
             org.apache.openjpa.persistence.PersistenceProviderImpl
         </provider>
+        <class>org.esa.cci.sst.data.GlobalObservation</class>
         <class>org.esa.cci.sst.data.Observation</class>
         <class>org.esa.cci.sst.data.DataSchema</class>
         <class>org.esa.cci.sst.data.DataFile</class>

@@ -1,0 +1,47 @@
+### delete database content, create indexes
+
+delete from mm_coincidence;
+delete from mm_datafile;
+delete from mm_dataschema;
+delete from mm_matchup;
+delete from mm_observation;
+delete from mm_variable;
+
+create index geo on mm_observation using gist(location);
+create index tempo on mm_observation ( time );
+vacuum analyse mm_observation;
+
+
+### number of observations
+
+select o.sensor, count(*) from mm_observation o group by o.sensor order by o.sensor;
+
+select date(o.time), count(*) from mm_observation group by date(o.time) order by date(o.time);
+
+select o.sensor, date(o.time), count(*) from mm_observation group by o.sensor, date(o.time) order by date(o.time), o.sensor;
+
+
+### number of matchups
+
+select count(*) from  mm_matchup m;
+
+select o.sensor, count(m) from mm_matchup m, mm_observation o where m.refobs_id = o.id group by o.sensor order by o.sensor;
+
+select date(o.time), count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id group by date(o.time) order by date(o.time);
+
+
+### number of triples, number of coincidences per reference and coincidence sensor
+
+select count(m) 
+from  mm_matchup m, mm_observation o, mm_coincidence c1, mm_observation o1, mm_coincidence c2, mm_observation o2
+where m.refobs_id = o.id 
+and c1.matchup_id = m.id and c1.observation_id = o1.id 
+and c2.matchup_id = m.id and c2.observation_id = o2.id 
+and o.sensor = 'aatsr-md-ref' and o1.sensor = 'metop' and o2.sensor = 'seviri';
+
+select o.sensor, o1.sensor, count(m) 
+from  mm_matchup m, mm_observation o, mm_coincidence c1, mm_observation o1
+where m.refobs_id = o.id 
+and c1.matchup_id = m.id and c1.observation_id = o1.id 
+group by o.sensor, o1.sensor
+order by o.sensor, o1.sensor;
