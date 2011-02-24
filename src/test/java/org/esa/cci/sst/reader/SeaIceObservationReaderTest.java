@@ -47,22 +47,6 @@ public class SeaIceObservationReaderTest {
     }
 
     @Test
-    public void testGetSourceFile() throws Exception {
-        File sourceFile = SeaIceObservationReader.getSeaIceSourceFile(TEST_FILE.getAbsolutePath());
-        assertEquals("ice_conc_sh_201006301200.hdf", sourceFile.getName());
-        sourceFile = SeaIceObservationReader.getSeaIceSourceFile(TEST_QUALITY_FILE.getAbsolutePath());
-        assertEquals("ice_conc_sh_201006301200.hdf", sourceFile.getName());
-    }
-
-    @Test
-    public void testGetQualityFlagFile() throws Exception {
-        File qualityFlagFile = SeaIceObservationReader.getQualityFlagSourceFile(TEST_FILE.getAbsolutePath());
-        assertEquals("ice_conc_sh_qual_201006301200.hdf", qualityFlagFile.getName());
-        qualityFlagFile = SeaIceObservationReader.getQualityFlagSourceFile(TEST_QUALITY_FILE.getAbsolutePath());
-        assertEquals("ice_conc_sh_qual_201006301200.hdf", qualityFlagFile.getName());
-    }
-
-    @Test
     public void testSetStartTime() throws Exception {
         final Product dummyProduct = new Product("dummy", "dummyType", 10, 10);
         reader.setStartTime(dummyProduct, 2011, 2, 16, 11, 50);

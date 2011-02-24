@@ -1,20 +1,28 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.ProgressMonitor;
-import ncsa.hdf.hdf5lib.H5;
-import ncsa.hdf.hdf5lib.HDF5Constants;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.jai.ImageManager;
+import org.esa.beam.jai.ResolutionLevel;
+import org.esa.beam.jai.SingleBandedOpImage;
 import org.esa.beam.util.Debug;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
+import ucar.ma2.Section;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
 import ucar.nc2.Variable;
 
+import javax.media.jai.PlanarImage;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -29,10 +37,9 @@ public class SeaIceObservationReader extends AbstractProductReader {
 
     private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_parameter";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
-    private File seaIceSourcefile;
-    private File qualityFlagSourcefile;
-    private int sceneRasterWidth;
-    private int sceneRasterHeight;
+    private static final String VARIABLE_NAME = "Data/" + NetcdfFile.escapeName("data[00]");
+    private File sourcefile;
+    private NetcdfFile ncFile;
 
     public SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
         super(plugin);
@@ -41,15 +48,14 @@ public class SeaIceObservationReader extends AbstractProductReader {
     @Override
     protected Product readProductNodesImpl() throws IOException {
         final String pathname = getInput().toString();
-        seaIceSourcefile = getSeaIceSourceFile(pathname);
-        qualityFlagSourcefile = getQualityFlagSourceFile(pathname);
-        final NetcdfFile ncFile = NetcdfFile.open(seaIceSourcefile.getPath());
+        sourcefile = new File(pathname);
+        ncFile = NetcdfFile.open(sourcefile.getPath());
         final List<Variable> variables = ncFile.getVariables();
         Structure headerStructure = getHeaderStructure(variables);
 
         String productName = getVariable("Header.product", headerStructure).readScalarString();
-        sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
-        sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
+        int sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
+        int sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
         int year = getVariable("Header.year", headerStructure).readScalarInt();
         int month = getVariable("Header.month", headerStructure).readScalarInt();
         int day = getVariable("Header.day", headerStructure).readScalarInt();
@@ -58,15 +64,33 @@ public class SeaIceObservationReader extends AbstractProductReader {
 
         final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], sceneRasterWidth,
                                             sceneRasterHeight);
+        product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
         setStartTime(product, year, month, day, hour, minute);
-        final Band seaIceBand = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
-        seaIceBand.setNoDataValue(-32767.0);
-        final Band qualityFlagBand = product.addBand(QUALITY_FLAG_BANDNAME, ProductData.TYPE_INT16);
-        qualityFlagBand.setNoDataValue(-32768);
+        final Band band;
+        if (isQualityFlagFile(pathname)) {
+            band = product.addBand(QUALITY_FLAG_BANDNAME, ProductData.TYPE_INT16);
+            band.setNoDataValue(-32767);
+            band.setNoDataValueUsed(true);
+        } else {
+            band = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
+            band.setNoDataValue(-32767.0);
+            band.setNoDataValueUsed(true);
+        }
+
+        final Variable variable = ncFile.findVariable("Data/" + NetcdfFile.escapeName("data[00]"));
+        final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
+        band.setSourceImage(
+                new NetcdfOpImage(variable, ncFile, dataBufferType, sceneRasterWidth, sceneRasterHeight,
+                                  product.getPreferredTileSize(), ResolutionLevel.MAXRES));
+
         product.setGeoCoding(createGeoCoding());
-        ncFile.close();
-        readChunk(seaIceSourcefile.getAbsolutePath(), new long[]{0, 0}, new long[]{10, 10});
         return product;
+    }
+
+    @Override
+    public void close() throws IOException {
+        ncFile.close();
+        super.close();
     }
 
     private GeoCoding createGeoCoding() {
@@ -115,25 +139,8 @@ public class SeaIceObservationReader extends AbstractProductReader {
         throw new IllegalArgumentException("No variable with name '" + varName + "'.");
     }
 
-    static File getSeaIceSourceFile(String pathname) {
-        final File file = new File(pathname);
-        if (file.getName().contains("_qual_")) {
-            String name = file.getName();
-            name = name.replace("_qual", "");
-            return new File(file.getParent(), name);
-        }
-        return file;
-    }
-
-    static File getQualityFlagSourceFile(String pathname) {
-        final File file = new File(pathname);
-        if (file.getName().contains("_qual_")) {
-            return file;
-        }
-        String name = file.getName();
-        int lastUnderscoreIndex = name.lastIndexOf("_");
-        final StringBuilder builder = new StringBuilder(name).insert(lastUnderscoreIndex, "_qual");
-        return new File(file.getParent(), builder.toString());
+    static boolean isQualityFlagFile(String pathname) {
+        return pathname.contains("_qual_");
     }
 
     static Structure getHeaderStructure(List<Variable> variables) {
@@ -154,149 +161,89 @@ public class SeaIceObservationReader extends AbstractProductReader {
                                                        int destOffsetY, int destWidth, int destHeight,
                                                        ProductData destBuffer,
                                                        ProgressMonitor pm) throws IOException {
-        File sourceFile;
-        if (SEA_ICE_PARAMETER_BANDNAME.equals(destBand.getName())) {
-            sourceFile = seaIceSourcefile;
-        } else if (QUALITY_FLAG_BANDNAME.equals(destBand.getName())) {
-            sourceFile = qualityFlagSourcefile;
-        } else {
-            return;
-        }
+        final RenderedImage image = destBand.getSourceImage();
+        final Raster data = image.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
 
-        final NetcdfFile ncFile = NetcdfFile.open(sourceFile.getAbsolutePath());
-        final Variable variable = ncFile.findVariable("Data/" + NetcdfFile.escapeName("data[00]"));
-        int[] origin = new int[]{destOffsetX, destOffsetY};
-        int[] shape = new int[]{destWidth, destHeight};
-        Array array;
-        try {
-            array = variable.read(origin, shape);
-        } catch (InvalidRangeException e) {
-            throw new IOException("Unable to read in NetCDF-variable '" + variable.getName() + "'.", e);
-        }
-        destBuffer.setElems(array.copyTo1DJavaArray());
+        data.getDataElements(destOffsetX, destOffsetY, destWidth, destHeight, destBuffer.getElems());
     }
 
-    private void readCompact(String filename) {
-        int file_id = -1;
-        int filespace_id = -1;
-        int dataset_id = -1;
-        int dcpl_id = -1;
-        float[][] dsetData = new float[sceneRasterWidth][sceneRasterHeight];
+    private static class NetcdfOpImage extends SingleBandedOpImage {
 
-        // Open file and dataset using the default properties.
-        try {
-            file_id = H5.H5Fopen(filename, HDF5Constants.H5F_ACC_RDONLY,
-                                 HDF5Constants.H5P_DEFAULT);
-            // Open an existing dataset.
-            String DATASETNAME = "Data/data[00]";
-            if (file_id >= 0) {
-                dataset_id = H5.H5Dopen(file_id, DATASETNAME);
-            }
+        private final Variable variable;
+        private final Object readLock;
 
-            // Retrieve the dataset creation property list.
-            if (dataset_id >= 0) {
-                dcpl_id = H5.H5Dget_create_plist(dataset_id);
-            }
-
-            // Read the data using the default properties.
-            if (dataset_id >= 0) {
-                H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT,
-                           HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
-                           HDF5Constants.H5P_DEFAULT, dsetData);
-            }
-
-            // Output the data to the screen.
-            System.out.println("Data for " + DATASETNAME + " is: ");
-            for (int indx = 0; indx < sceneRasterWidth; indx++) {
-                System.out.print(indx + ": [ ");
-                for (int jndx = 0; jndx < sceneRasterHeight; jndx++) {
-                    System.out.print(dsetData[indx][jndx] + " ");
-                }
-                System.out.println("]");
-            }
-            System.out.println();
-
-            // End access to the dataset and release resources used by it.
-            if (dcpl_id >= 0) {
-                H5.H5Pclose(dcpl_id);
-            }
-            if (dataset_id >= 0) {
-                H5.H5Dclose(dataset_id);
-            }
-            if (filespace_id >= 0) {
-                H5.H5Sclose(filespace_id);
-            }
-
-            // Close the file.
-            if (file_id >= 0) {
-                H5.H5Fclose(file_id);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        /**
+         * Used to construct an image.
+         *
+         * @param variable       The netCDF variable
+         * @param readLock       The the lock used for reading, usually the netcdf file that contains the variable
+         * @param dataBufferType The data type.
+         * @param sourceWidth    The width of the level 0 image.
+         * @param sourceHeight   The height of the level 0 image.
+         * @param tileSize       The tile size for this image.
+         * @param level          The resolution level.
+         */
+        public NetcdfOpImage(Variable variable, Object readLock, int dataBufferType,
+                             int sourceWidth, int sourceHeight,
+                             Dimension tileSize, ResolutionLevel level) {
+            super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, level);
+            this.variable = variable;
+            this.readLock = readLock;
         }
-    }
 
-    private static void readChunk(String filename, long[] origin, long[] shape) {
-        final int width = (int) shape[0];
-        final int height = (int) shape[1];
-        float[][] dsetData = new float[width][height];
-
-        try {
-            // Open an existing file.
-            int file_id = H5.H5Fopen(filename, HDF5Constants.H5F_ACC_RDONLY,
-                                     HDF5Constants.H5P_DEFAULT);
-
-            // Open an existing dataset.
-            int dataset_id = H5.H5Dopen(file_id, "Data/data[00]");
-
-            // Retrieve the dataset creation property list.
-            int dcpl_id = H5.H5Dget_create_plist(dataset_id);
-
-//            // Read the data using the default properties.
-//            H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT,
-//                       HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
-//                       HDF5Constants.H5P_DEFAULT, dsetData);
-
-//            // Initialize the read array.
-//            for (int indx = 0; indx < width; indx++) {
-//                for (int jndx = 0; jndx < height; jndx++) {
-//                    dset_data[indx][jndx] = 0;
-//                }
-//            }
-
-            // Define and select the hyperslab to use for reading.
-            int filespace_id = H5.H5Dget_space(dataset_id);
-
-            long[] stride = {1, 1};
-            long[] block = {origin[0] + width, origin[1] + height};
-
-            H5.H5Sselect_hyperslab(filespace_id, HDF5Constants.H5S_SELECT_SET,
-                                   origin, stride, shape, block);
-
-            // Read the data using the previously defined hyperslab.
-            H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_INT,
-                       HDF5Constants.H5S_ALL, filespace_id, HDF5Constants.H5P_DEFAULT,
-                       dsetData);
-
-            // Output the data to the screen.
-            System.out.println("Data as read from disk by hyberslab:");
-            for (int indx = 0; indx < width; indx++) {
-                System.out.print(" [ ");
-                for (int jndx = 0; jndx < height; jndx++) {
-                    System.out.print(dsetData[indx][jndx] + " ");
-                }
-                System.out.println("]");
+        @Override
+        protected void computeRect(PlanarImage[] sourceImages, WritableRaster tile, Rectangle destRect) {
+            Rectangle sourceRect;
+            if (getLevel() != 0) {
+                sourceRect = getSourceRect(destRect);
+            } else {
+                sourceRect = destRect;
             }
-            System.out.println();
 
-            // End access to the dataset and release resources used by it.
-            H5.H5Pclose(dcpl_id);
-            H5.H5Dclose(dataset_id);
-            H5.H5Sclose(filespace_id);
-            H5.H5Fclose(file_id);
+            final int rank = variable.getRank();
+            final int[] origin = new int[rank];
+            final int[] shape = new int[rank];
+            final int[] stride = new int[rank];
+            for (int i = 0; i < rank; i++) {
+                shape[i] = 1;
+                origin[i] = 0;
+                stride[i] = 1;
+            }
+            final int xIndex = rank - 2;
+            final int yIndex = rank - 1;
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            shape[yIndex] = sourceRect.height;
+            shape[xIndex] = sourceRect.width;
+
+            origin[yIndex] = sourceRect.y;
+            origin[xIndex] = sourceRect.x;
+
+            double scale = getScale();
+            stride[yIndex] = (int) scale;
+            stride[xIndex] = (int) scale;
+
+            Array array;
+            synchronized (readLock) {
+                try {
+                    final Section section = new Section(origin, shape, stride);
+                    array = variable.read(section);
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                } catch (InvalidRangeException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+            tile.setDataElements(destRect.x, destRect.y,
+                                 destRect.width, destRect.height,
+                                 array.getStorage());
+        }
+
+        private Rectangle getSourceRect(Rectangle rect) {
+            int sourceX = getSourceX(rect.x);
+            int sourceY = getSourceY(rect.y);
+            int sourceWidth = getSourceWidth(rect.width);
+            int sourceHeight = getSourceHeight(rect.height);
+            return new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
         }
     }
 
