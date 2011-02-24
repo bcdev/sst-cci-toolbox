@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.PgUtil;
@@ -67,14 +68,14 @@ public class ProductObservationReaderTest {
     @Test
     public void testReadObservation() throws IOException, InvalidRangeException, URISyntaxException {
         Geometry geometry;
-        Observation observation;
+        GlobalObservation observation;
 
         init(getResourceAsFile(AMSRE_RESOURCE_NAME));
         observation = reader.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
         assertEquals(reader.getTime(0), observation.getTime().getTime());
-        assertNotNull(observation.getLocation());
-        geometry = observation.getLocation().getGeometry();
+        assertNotNull(((Observation) observation).getLocation());
+        geometry = ((Observation) observation).getLocation().getGeometry();
         assertTrue(geometry.checkConsistency());
         assertFalse(PgUtil.isClockwise(getPoints(geometry)));
         clean();
@@ -83,10 +84,10 @@ public class ProductObservationReaderTest {
         observation = reader.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
         assertEquals(reader.getTime(0), observation.getTime().getTime());
-        assertNotNull(observation.getLocation());
-        geometry = observation.getLocation().getGeometry();
-        assertTrue(geometry.checkConsistency());
-        assertFalse(PgUtil.isClockwise(getPoints(geometry)));
+//        assertNotNull(observation.getLocation());
+//        geometry = observation.getLocation().getGeometry();
+//        assertTrue(geometry.checkConsistency());
+//        assertFalse(PgUtil.isClockwise(getPoints(geometry)));
     }
 
 

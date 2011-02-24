@@ -9,6 +9,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
@@ -199,8 +200,8 @@ public class IngestionTool extends MmsTool {
             }
 
             // TODO remove restriction regarding time interval, used only during initial tests
-            final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
-            final long stop = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
+            final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-01T00:00:00Z");
+            final long stop = TimeUtil.parseCcsdsUtcFormat("2010-07-01T00:00:00Z");
             int recordsInTimeInterval = 0;
 
             // loop over records
@@ -221,7 +222,7 @@ public class IngestionTool extends MmsTool {
                         System.out.printf("%s %d reference pixel coordinate missing\n", schemaName, recordNo);
                     }
                     try {
-                        final Observation observation = reader.readObservation(recordNo);
+                        final GlobalObservation observation = reader.readObservation(recordNo);
                         if (observation != null) {
                             persistenceManager.persist(observation);
                         }
@@ -267,11 +268,13 @@ public class IngestionTool extends MmsTool {
         persistenceManager.transaction();
         Query delete = persistenceManager.createQuery("delete from DataFile f");
         delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from DataSchema s");
-        delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from Observation o");
         delete.executeUpdate();
+        delete = persistenceManager.createQuery("delete from GlobalObservation o");
+        delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from Variable v");
+        delete.executeUpdate();
+        delete = persistenceManager.createQuery("delete from DataSchema s");
         delete.executeUpdate();
         persistenceManager.commit();
     }
@@ -304,7 +307,7 @@ public class IngestionTool extends MmsTool {
         } else if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AATSR, new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI, new DefaultGeoBoundaryCalculator());
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI, new NullGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AVHRR, new DefaultGeoBoundaryCalculator());
         } else {

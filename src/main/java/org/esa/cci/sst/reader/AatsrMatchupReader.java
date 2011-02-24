@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.Constants;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -54,13 +55,15 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
 
     /**
      * Constantly returns null as (A)ATSR MD never serves as common observation
+     *
+     *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return  null
      * @throws IOException  if file io fails
      * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
-    public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public GlobalObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
         //throw new UnsupportedOperationException("aatsr only available as reference");
         return null;
     }

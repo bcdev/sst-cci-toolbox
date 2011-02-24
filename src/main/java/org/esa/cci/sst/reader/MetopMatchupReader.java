@@ -2,6 +2,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -89,6 +90,8 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
      * may serve as common observation in some matchup. METOP sub-scenes contain scan lines scanned
      * from  left to right looking in flight direction.
      *
+     *
+     *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      *
      * @return Observation for METOP sub-scene
@@ -97,7 +100,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
      * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
     @Override
-    public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public GlobalObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
         final int x = colCount / 2;
         final int y = rowCount / 2;
 

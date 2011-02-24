@@ -14,6 +14,7 @@ public class Constants {
 
     public static final String SENSOR_NAME_AATSR_REFERENCE = "aatsr-md-ref";
     public static final String SENSOR_NAME_METOP_REFERENCE = "metop-md-ref";
+    public static final String SENSOR_NAME_SEVIRI_REFERENCE = "seviri-md-ref";
 
     public static final String SENSOR_NAME_AAI = "aai";
     public static final String SENSOR_NAME_AATSR = "aatsr";

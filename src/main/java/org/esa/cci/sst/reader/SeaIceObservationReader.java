@@ -200,7 +200,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
 
             // Read the data using the default properties.
             if (dataset_id >= 0) {
-                H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT,
+                H5.H5Dread(dataset_id, HDF5Constants.H5T_FLOAT,
                            HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL,
                            HDF5Constants.H5P_DEFAULT, dsetData);
             }
@@ -274,7 +274,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
                                    origin, stride, shape, block);
 
             // Read the data using the previously defined hyperslab.
-            H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_INT,
+            H5.H5Dread(dataset_id, HDF5Constants.H5T_INTEGER,
                        HDF5Constants.H5S_ALL, filespace_id, HDF5Constants.H5P_DEFAULT,
                        dsetData);
 
