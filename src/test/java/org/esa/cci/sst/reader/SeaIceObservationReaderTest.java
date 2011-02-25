@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 
 public class SeaIceObservationReaderTest {
 
-    private static final File TEST_FILE = new File("testdata/SeaIceConc", "ice_conc_sh_201006301200.hdf");
+    private static final File TEST_FILE = new File("testdata/SeaIceConc", "ice_conc_nh_201006301200.hdf");
     private static final File TEST_QUALITY_FILE = new File("testdata/SeaIceConc", "ice_conc_sh_qual_201006301200.hdf");
     private SeaIceObservationReader reader;
 
@@ -42,7 +42,7 @@ public class SeaIceObservationReaderTest {
         assertNotNull(product);
         final Calendar calendar = ProductData.UTC.parse("2010-06-30-12-00", "yyyy-MM-dd-HH-mm").getAsCalendar();
         assertEquals(calendar.getTimeInMillis(), product.getStartTime().getAsCalendar().getTimeInMillis());
-        assertEquals(2, product.getBands().length);
+        assertEquals(1, product.getBands().length);
         assertNotNull(product.getGeoCoding());
     }
 

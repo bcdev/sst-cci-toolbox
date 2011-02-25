@@ -3,6 +3,7 @@ package org.esa.cci.sst.reader;
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.CrsGeoCoding;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
@@ -10,6 +11,10 @@ import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.jai.SingleBandedOpImage;
 import org.esa.beam.util.Debug;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Section;
@@ -38,8 +43,9 @@ public class SeaIceObservationReader extends AbstractProductReader {
     private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_parameter";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
     private static final String VARIABLE_NAME = "Data/" + NetcdfFile.escapeName("data[00]");
-    private File sourcefile;
     private NetcdfFile ncFile;
+    private int sceneRasterWidth;
+    private int sceneRasterHeight;
 
     public SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
         super(plugin);
@@ -48,14 +54,14 @@ public class SeaIceObservationReader extends AbstractProductReader {
     @Override
     protected Product readProductNodesImpl() throws IOException {
         final String pathname = getInput().toString();
-        sourcefile = new File(pathname);
+        final File sourcefile = new File(pathname);
         ncFile = NetcdfFile.open(sourcefile.getPath());
         final List<Variable> variables = ncFile.getVariables();
         Structure headerStructure = getHeaderStructure(variables);
 
         String productName = getVariable("Header.product", headerStructure).readScalarString();
-        int sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
-        int sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
+        sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
+        sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
         int year = getVariable("Header.year", headerStructure).readScalarInt();
         int month = getVariable("Header.month", headerStructure).readScalarInt();
         int day = getVariable("Header.day", headerStructure).readScalarInt();
@@ -64,6 +70,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
 
         final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], sceneRasterWidth,
                                             sceneRasterHeight);
+        // TODO - find way to read product tile-wise. If read tile-wise in the current implementation, output is wrong.
         product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
         setStartTime(product, year, month, day, hour, minute);
         final Band band;
@@ -77,7 +84,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
             band.setNoDataValueUsed(true);
         }
 
-        final Variable variable = ncFile.findVariable("Data/" + NetcdfFile.escapeName("data[00]"));
+        final Variable variable = ncFile.findVariable(VARIABLE_NAME);
         final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
         band.setSourceImage(
                 new NetcdfOpImage(variable, ncFile, dataBufferType, sceneRasterWidth, sceneRasterHeight,
@@ -94,6 +101,22 @@ public class SeaIceObservationReader extends AbstractProductReader {
     }
 
     private GeoCoding createGeoCoding() {
+        CoordinateReferenceSystem crs;
+        try {
+            crs = CRS.decode("EPSG:3411");
+
+            double easting = -3850000;
+            double northing = 5850000;
+            double pixelSizeX = -(easting * 2 / sceneRasterWidth);
+            double pixelSizeY = northing * 2 / sceneRasterHeight;
+
+            return new CrsGeoCoding(crs, sceneRasterWidth, sceneRasterHeight, easting, northing, pixelSizeX,
+                                    pixelSizeY);
+        } catch (FactoryException e) {
+            e.printStackTrace();
+        } catch (TransformException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
