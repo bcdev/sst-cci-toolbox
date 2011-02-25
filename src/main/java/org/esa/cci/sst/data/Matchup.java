@@ -18,7 +18,7 @@ import java.util.List;
 @Table(name="mm_matchup")
 public class Matchup {
     int id;
-    Observation refObs;
+    ReferenceObservation refObs;
     List<Coincidence> coincidences;
     long pattern;
 
@@ -33,11 +33,11 @@ public class Matchup {
     }
 
     @ManyToOne
-    public Observation getRefObs() {
+    public ReferenceObservation getRefObs() {
         return refObs;
     }
 
-    public void setRefObs(Observation refObs) {
+    public void setRefObs(ReferenceObservation refObs) {
         this.refObs = refObs;
     }
 

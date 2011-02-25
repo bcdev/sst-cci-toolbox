@@ -64,6 +64,9 @@ public class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
             geoCoding.getGeoPos(p, g);
             geoBoundary.add(new Point(g.getLon(), g.getLat()));
         }
+        if (geoBoundary.size() < 3) {
+            throw new IllegalArgumentException(String.format("only %d points in polygon of product %s", geoBoundary.size(), product.getName()));
+        }
         geoBoundary.add(geoBoundary.get(0));
         if (PgUtil.isClockwise(geoBoundary)) {
             Collections.reverse(geoBoundary);

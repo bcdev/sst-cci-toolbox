@@ -7,7 +7,8 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
-import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -75,24 +76,18 @@ public class ProductObservationReader implements ObservationReader {
         final GlobalObservation observation;
         // TODO move distinction to reader level instead
         if (gbc instanceof DefaultGeoBoundaryCalculator) {
-            observation = new Observation();
-            ((Observation) observation).setLocation(createGeometry(gbc.getGeoBoundary(product)));
+            observation = new RelatedObservation();
+            ((RelatedObservation) observation).setLocation(createGeometry(gbc.getGeoBoundary(product)));
         } else {
             observation = new GlobalObservation();
         }
 
-        observation.setClearSky(true);
         observation.setDatafile(dataFile);
         observation.setRecordNo(0);
         observation.setSensor(sensorName);
         observation.setTime(getCenterTimeAsDate());
 
         return observation;
-    }
-
-    @Override
-    public final Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
-        return null;
     }
 
     @Override

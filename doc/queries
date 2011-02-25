@@ -16,9 +16,9 @@ vacuum analyse mm_observation;
 
 select o.sensor, count(*) from mm_observation o group by o.sensor order by o.sensor;
 
-select date(o.time), count(*) from mm_observation group by date(o.time) order by date(o.time);
+select date(o.time), count(*) from mm_observation o group by date(o.time) order by date(o.time);
 
-select o.sensor, date(o.time), count(*) from mm_observation group by o.sensor, date(o.time) order by date(o.time), o.sensor;
+select o.sensor, date(o.time), count(*) from mm_observation o group by o.sensor, date(o.time) order by date(o.time), o.sensor;
 
 
 ### number of matchups
@@ -32,12 +32,25 @@ select date(o.time), count(*) from mm_matchup m, mm_observation o where m.refobs
 
 ### number of triples, number of coincidences per reference and coincidence sensor
 
+select 'atsr-metop-seviri', count(m) from mm_matchup m where m.pattern & 7 = 7;
+select 'atsr-metop', count(m) from mm_matchup m where m.pattern & 7 = 3;
+select 'atsr-seviri', count(m) from mm_matchup m where m.pattern & 7 = 5;
+select 'metop-seviri', count(m) from mm_matchup m where m.pattern & 7 = 6;
+select 'atsr', count(m) from mm_matchup m where m.pattern & 7 = 1;
+select 'metop', count(m) from mm_matchup m where m.pattern & 7 = 2;
+select 'seviri', count(m) from mm_matchup m where m.pattern & 7 = 4;
+select 'atsr-avhrr/pmw', count(m) from mm_matchup m where m.pattern & 7 = 1 and m.pattern & 56 != 0;
+select 'metop-avhrr/pmw', count(m) from mm_matchup m where m.pattern & 7 = 2 and m.pattern & 56 != 0;
+select 'seviri-avhrr/pmw', count(m) from mm_matchup m where m.pattern & 7 = 4 and m.pattern & 56 != 0;
+
+select m.pattern, count(m) from mm_matchup m group by m.pattern order by m.pattern;
+
 select count(m) 
 from  mm_matchup m, mm_observation o, mm_coincidence c1, mm_observation o1, mm_coincidence c2, mm_observation o2
 where m.refobs_id = o.id 
 and c1.matchup_id = m.id and c1.observation_id = o1.id 
 and c2.matchup_id = m.id and c2.observation_id = o2.id 
-and o.sensor = 'aatsr-md-ref' and o1.sensor = 'metop' and o2.sensor = 'seviri';
+and o.sensor = 'aatsr-md' and o1.sensor = 'metop' and o2.sensor = 'seviri';
 
 select o.sensor, o1.sensor, count(m) 
 from  mm_matchup m, mm_observation o, mm_coincidence c1, mm_observation o1

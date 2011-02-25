@@ -1,8 +1,8 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -24,7 +24,7 @@ import java.util.Date;
 public class AatsrMatchupReader extends NetcdfMatchupReader {
 
     public AatsrMatchupReader() {
-        super(Constants.SENSOR_NAME_AATSR_REFERENCE);
+        super(Constants.SENSOR_NAME_AATSR_MD);
     }
 
     @Override
@@ -54,22 +54,7 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
     }
 
     /**
-     * Constantly returns null as (A)ATSR MD never serves as common observation
-     *
-     *
-     * @param recordNo index in observation file, must be between 0 and less than numRecords
-     * @return  null
-     * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
-     */
-    @Override
-    public GlobalObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
-        //throw new UnsupportedOperationException("aatsr only available as reference");
-        return null;
-    }
-
-    /**
-     * Reads record and creates Observation for (A)ATSR pixel contained in MD. This observation
+     * Reads record and creates ReferenceObservation for (A)ATSR pixel contained in MD. This observation
      * may serve as reference observation in some matchup.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
@@ -78,13 +63,16 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
      * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
      */
     @Override
-    public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
+    public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
 
-        final Observation observation = new Observation();
+        final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
+                                                             getFloat("atsr.latitude", recordNo)));
+
+        final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("insitu.unique_identifier", recordNo));
-        observation.setSensor(Constants.SENSOR_NAME_AATSR_REFERENCE);
-        observation.setLocation(new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
-                                                         getFloat("atsr.latitude", recordNo))));
+        observation.setSensor(Constants.SENSOR_NAME_AATSR_MD);
+        observation.setPoint(location);
+        observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
         observation.setDatafile(dataFileEntry);
         observation.setRecordNo(recordNo);

@@ -1,16 +1,9 @@
 package org.esa.cci.sst.data;
 
 import org.apache.openjpa.persistence.jdbc.Index;
-import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.esa.cci.sst.util.TimeUtil;
-import org.postgis.PGgeometry;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.util.Date;
@@ -23,41 +16,9 @@ import java.util.Date;
  * @author Martin Boettcher
  */
 @Entity
-@Table(name = "mm_observation")
-public class GlobalObservation {
-    int id;
-    String name;
-    String sensor;
+public class GlobalObservation extends Observation {
+
     Date time;
-    DataFile datafile;
-    int recordNo;
-    boolean clearSky;
-
-    @Id
-    @GeneratedValue
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSensor() {
-        return sensor;
-    }
-
-    public void setSensor(String sensor) {
-        this.sensor = sensor;
-    }
 
     @Index
     @Temporal(TemporalType.TIMESTAMP)
@@ -69,33 +30,8 @@ public class GlobalObservation {
         this.time = time;
     }
 
-    @ManyToOne
-    public DataFile getDatafile() {
-        return datafile;
-    }
-
-    public void setDatafile(DataFile datafile) {
-        this.datafile = datafile;
-    }
-
-    public int getRecordNo() {
-        return recordNo;
-    }
-
-    public void setRecordNo(int recordNo) {
-        this.recordNo = recordNo;
-    }
-
-    public boolean isClearSky() {
-        return clearSky;
-    }
-
-    public void setClearSky(boolean clearSky) {
-        this.clearSky = clearSky;
-    }
-
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%s,%d,%b)", getId(), getName(), TimeUtil.formatCcsdsUtcFormat(getTime()), getDatafile(), getRecordNo(), isClearSky());
+        return String.format("Observation(%d,%s,%s,%s,%s,%d)", getId(), getName(), getSensor(), TimeUtil.formatCcsdsUtcFormat(getTime()), getDatafile(), getRecordNo());
     }
 }
 

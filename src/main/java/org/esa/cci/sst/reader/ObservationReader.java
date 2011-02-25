@@ -3,6 +3,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Variable;
 import ucar.ma2.InvalidRangeException;
 
@@ -50,25 +51,14 @@ public interface ObservationReader {
     /**
      * Reads record and retrieves variables for a common observation.
      * Sets geo-location to polygon enclosing subscene.
-     * The returned {@link Observation} instance shall have a reference to {@code dataFileEntry}
+     * Sets reference point to pixel corresponding to in-situ measurement.
+     * The returned {@link org.esa.cci.sst.data.ReferenceObservation} instance shall have a reference to {@code dataFileEntry}
      * passed into {@link #init(java.io.File, org.esa.cci.sst.data.DataFile)}.
      *
-     *
-     *
-     *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation with values read from observation file
      */
-    GlobalObservation readObservation(int recordNo) throws IOException, InvalidRangeException;
-
-    /**
-     * Reads record and retrieves variables for a reference observation.
-     * Sets geo-location to pixel corresponding to in-situ measurement.
-     *
-     * @param recordNo index in observation file, must be between 0 and less than numRecords
-     * @return Observation with values read from observation file
-     */
-    Observation readRefObs(int recordNo) throws IOException, InvalidRangeException;
+    Observation readObservation(int recordNo) throws IOException, InvalidRangeException;
 
     Variable[] getVariables() throws IOException;
 }

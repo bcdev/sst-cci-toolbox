@@ -18,7 +18,6 @@ public class Coincidence {
     int id;
     Matchup matchup;
     GlobalObservation observation;
-    float distance;
     double timeDifference;
 
     @Id
@@ -47,14 +46,6 @@ public class Coincidence {
 
     public void setObservation(GlobalObservation observation) {
         this.observation = observation;
-    }
-
-    public float getDistance() {
-        return distance;
-    }
-
-    public void setDistance(float distance) {
-        this.distance = distance;
     }
 
     public double getTimeDifference() {

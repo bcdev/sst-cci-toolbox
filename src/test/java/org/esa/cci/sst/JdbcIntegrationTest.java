@@ -1,23 +1,12 @@
 package org.esa.cci.sst;
 
-import org.apache.openjpa.persistence.Extent;
-import org.apache.openjpa.persistence.OpenJPAEntityManager;
-import org.apache.openjpa.persistence.OpenJPAPersistence;
-import org.esa.cci.sst.data.Observation;
 import org.junit.Ignore;
-import org.postgis.Geometry;
 import org.postgis.PGgeometry;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.List;
 
 /**
  * TODO add API doc

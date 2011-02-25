@@ -9,7 +9,6 @@ import org.apache.openjpa.jdbc.schema.Column;
 import org.apache.openjpa.jdbc.schema.ColumnIO;
 import org.apache.openjpa.jdbc.sql.DBDictionary;
 import org.postgis.PGgeometry;
-import org.postgresql.ds.common.PGObjectFactory;
 import org.postgresql.util.PGobject;
 
 import java.sql.SQLException;
@@ -23,7 +22,7 @@ import java.sql.Types;
  *
  * @author Martin Boettcher
  */
-public class GeographyValueHandler extends AbstractValueHandler {
+public class PointValueHandler extends AbstractValueHandler {
 
     /**
      * @deprecated
@@ -42,20 +41,13 @@ public class GeographyValueHandler extends AbstractValueHandler {
         col.setIdentifier(name);
         col.setJavaType(JavaSQLTypes.JDBC_DEFAULT);  // essential in order not to use BLOB
         col.setSize(-1);
-        col.setTypeIdentifier(DBIdentifier.newColumnDefinition("GEOGRAPHY(GEOMETRY,4326)"));
+        col.setTypeIdentifier(DBIdentifier.newColumnDefinition("GEOGRAPHY(POINT,4326)"));
         col.setType(Types.BINARY);  // essential in order not to use BLOB
         return new Column[] {col};
     }
 
     @Override
     public Object toDataStoreValue(ValueMapping vm, Object val, JDBCStore store) {
-//        if (val == null) {
-//            try {
-//                return PGgeometry.geomFromString("POINT EMPTY");
-//            } catch (SQLException e) {
-//                throw new RuntimeException("conversion to PGgeometry failed", e);
-//            }
-//        }
         return super.toDataStoreValue(vm, val, store);
     }
 

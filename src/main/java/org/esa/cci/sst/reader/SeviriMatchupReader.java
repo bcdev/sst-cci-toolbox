@@ -3,7 +3,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
-import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -83,7 +83,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
     }
 
     /**
-     * Reads record and creates Observation for SEVIRI sub-scene contained in MD. This observation
+     * Reads record and creates ReferenceObservation for SEVIRI sub-scene contained in MD. This observation
      * may serve as common observation in some matchup. SEVIRI sub-scenes contain scan lines scanned
      * from right to left looking from first to last scan line.
      *
@@ -102,7 +102,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         int line = noOfLines / 2;
         int column = noOfColumns / 2;
 
-        final Observation observation = new Observation();
+        final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("msr_id", recordNo));
         observation.setSensor(Constants.SENSOR_NAME_SEVIRI);
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[] { new LinearRing(new Point[] {
@@ -117,54 +117,12 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
                 new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
                           coordinateOf(getInt("lat", recordNo, 0, 0)))
         })})));
+        observation.setPoint(new PGgeometry(new Point(coordinateOf(getInt("lon", recordNo, line, column)),
+                                                      coordinateOf(getInt("lat", recordNo, line, column)))));
         observation.setTime(dateOf(getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
         observation.setDatafile(dataFileEntry);
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != sstFillValue);
-        return observation;
-    }
-
-    /**
-     * Constantly returns null as SEVIRI MD never serves as reference observation
-     * @param recordNo index in observation file, must be between 0 and less than numRecords
-     * @return  null
-     * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
-     */
-/*
-    @Override
-    public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
-        //throw new UnsupportedOperationException("seviri only available as common observation");
-        return null;
-    }
-*/
-
-    /**
-     * Reads record and creates Observation for METOP pixel contained in MD. This observation
-     * may serve as reference observation in some matchup.
-     *
-     * @param recordNo index in observation file, must be between 0 and less than numRecords
-     *
-     * @return Observation for METOP pixel
-     *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
-     */
-    @Override
-    public Observation readRefObs(int recordNo) throws IOException, InvalidRangeException {
-        final int x = noOfColumns / 2;
-        final int y = noOfLines / 2;
-
-        final Observation observation = new Observation();
-        observation.setName(getString("msr_id", recordNo));
-        observation.setSensor(Constants.SENSOR_NAME_SEVIRI_REFERENCE);
-        observation.setLocation(new PGgeometry(new Point(coordinateOf(getInt("lon", recordNo, y, x)),
-                                                         coordinateOf(getInt("lat", recordNo, y, x)))));
-        observation.setTime(dateOf(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
-        observation.setDatafile(dataFileEntry);
-        observation.setRecordNo(recordNo);
-        observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != sstFillValue);
-
         return observation;
     }
 

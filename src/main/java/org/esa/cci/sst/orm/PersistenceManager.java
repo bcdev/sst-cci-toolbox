@@ -96,4 +96,8 @@ public class PersistenceManager {
             throw new NonUniqueResultException("single result instead of " + result.size() + " expected for query " + query.toString());
         }
     }
+
+    public void clearEntityManager() {
+        entityManager.clear();
+    }
 }

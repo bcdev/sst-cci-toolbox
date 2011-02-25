@@ -11,6 +11,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.AatsrMatchupReader;
@@ -108,7 +109,7 @@ public class IngestionTool extends MmsTool {
      *
      * @throws ToolException if deletion fails
      */
-    public void clearObservations() throws ToolException {
+   /* public void clearObservations() throws ToolException {
         initialize();
         try {
             // open database
@@ -120,13 +121,15 @@ public class IngestionTool extends MmsTool {
             delete.executeUpdate();
             delete = persistenceManager.createQuery("delete from DataSchema s");
             delete.executeUpdate();
+            delete = persistenceManager.createQuery("delete from Variable v");
+            delete.executeUpdate();
             persistenceManager.commit();
         } catch (Exception e) {
             // do not make any change in case of errors
             persistenceManager.rollback();
             throw new ToolException("Failed to clear observations: " + e.getMessage(), 6, e);
         }
-    }
+    }*/
 
     /**
      * Ingests all input files and creates observation entries in the database
@@ -189,7 +192,7 @@ public class IngestionTool extends MmsTool {
             persistenceManager.persist(dataFile);
 
             reader.init(matchupFile, dataFile);
-            System.out.printf("numberOfRecords=%d\n", reader.getNumRecords());
+            //System.out.printf("numberOfRecords=%d\n", reader.getNumRecords());
 
             if (isNewDataSchema) {
                 final Variable[] variables = reader.getVariables();
@@ -214,20 +217,12 @@ public class IngestionTool extends MmsTool {
                 if (time >= start && time < stop) {
                     ++recordsInTimeInterval;
                     try {
-                        final Observation refObs = reader.readRefObs(recordNo);
-                        if (refObs != null) {
-                            persistenceManager.persist(refObs);
-                        }
-                    } catch (IllegalArgumentException e) {
-                        System.out.printf("%s %d reference pixel coordinate missing\n", schemaName, recordNo);
-                    }
-                    try {
-                        final GlobalObservation observation = reader.readObservation(recordNo);
+                        final Observation observation = reader.readObservation(recordNo);
                         if (observation != null) {
                             persistenceManager.persist(observation);
                         }
                     } catch (IllegalArgumentException e) {
-                        System.out.printf("%s %d polygon coordinates incomplete\n", schemaName, recordNo);
+                        System.out.printf("%s %d observation incomplete\n", schemaName, recordNo);
                     }
                 }
                 if (recordNo % 65536 == 65535) {
@@ -270,11 +265,13 @@ public class IngestionTool extends MmsTool {
         delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from Observation o");
         delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from GlobalObservation o");
-        delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from Variable v");
         delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from DataSchema s");
+        delete.executeUpdate();
+        delete = persistenceManager.createQuery("delete from Coincidence c");
+        delete.executeUpdate();
+        delete = persistenceManager.createQuery("delete from Matchup m");
         delete.executeUpdate();
         persistenceManager.commit();
     }
@@ -312,7 +309,6 @@ public class IngestionTool extends MmsTool {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AVHRR, new DefaultGeoBoundaryCalculator());
         } else {
             // todo rq - sea ice concentration
-            // todo rq - AVHRR GAC (?)
             throw new ToolException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName), 8);
         }
         return reader;
