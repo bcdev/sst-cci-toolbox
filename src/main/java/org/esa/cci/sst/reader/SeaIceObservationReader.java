@@ -13,7 +13,6 @@ import org.esa.beam.jai.SingleBandedOpImage;
 import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -40,12 +39,11 @@ import java.util.List;
  */
 public class SeaIceObservationReader extends AbstractProductReader {
 
-    private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_parameter";
+    private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_concentration";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
     private static final String VARIABLE_NAME = "Data/" + NetcdfFile.escapeName("data[00]");
+
     private NetcdfFile ncFile;
-    private int sceneRasterWidth;
-    private int sceneRasterHeight;
 
     public SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
         super(plugin);
@@ -54,14 +52,15 @@ public class SeaIceObservationReader extends AbstractProductReader {
     @Override
     protected Product readProductNodesImpl() throws IOException {
         final String pathname = getInput().toString();
-        final File sourcefile = new File(pathname);
-        ncFile = NetcdfFile.open(sourcefile.getPath());
+        final File inputFile = new File(pathname);
+        ncFile = NetcdfFile.open(inputFile.getPath());
         final List<Variable> variables = ncFile.getVariables();
-        Structure headerStructure = getHeaderStructure(variables);
+        final Structure headerStructure = getHeaderStructure(variables);
 
-        String productName = getVariable("Header.product", headerStructure).readScalarString();
-        sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
-        sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
+        final String productName = getVariable("Header.product", headerStructure).readScalarString();
+        final int sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
+        final int sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
+
         int year = getVariable("Header.year", headerStructure).readScalarInt();
         int month = getVariable("Header.month", headerStructure).readScalarInt();
         int day = getVariable("Header.day", headerStructure).readScalarInt();
@@ -70,8 +69,6 @@ public class SeaIceObservationReader extends AbstractProductReader {
 
         final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], sceneRasterWidth,
                                             sceneRasterHeight);
-        // TODO - find way to read product tile-wise. If read tile-wise in the current implementation, output is wrong.
-        product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
         setStartTime(product, year, month, day, hour, minute);
         final Band band;
         if (isQualityFlagFile(pathname)) {
@@ -83,41 +80,41 @@ public class SeaIceObservationReader extends AbstractProductReader {
             band.setNoDataValue(-32767.0);
             band.setNoDataValueUsed(true);
         }
+        try {
+            final double easting = getVariable("Header.Bx", headerStructure).readScalarFloat() * 1000.0;
+            final double northing = getVariable("Header.By", headerStructure).readScalarFloat() * 1000.0;
+            final double pixelSizeX = getVariable("Header.Ax", headerStructure).readScalarFloat() * 1000.0;
+            final double pixelSizeY = getVariable("Header.Ay", headerStructure).readScalarFloat() * 1000.0;
+            final GeoCoding geoCoding = new CrsGeoCoding(CRS.decode("EPSG:3411"),
+                                                         sceneRasterWidth,
+                                                         sceneRasterHeight,
+                                                         easting, northing,
+                                                         pixelSizeX,
+                                                         pixelSizeY, 0.0, 0.0);
+            product.setGeoCoding(geoCoding);
+        } catch (FactoryException e) {
+            // ignore
+        } catch (TransformException e) {
+            // ignore
+        }
+        band.setSourceImage(createSourceImage(band));
+        return product;
+    }
 
+    private NetcdfOpImage createSourceImage(Band band) {
         final Variable variable = ncFile.findVariable(VARIABLE_NAME);
         final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
-        band.setSourceImage(
-                new NetcdfOpImage(variable, ncFile, dataBufferType, sceneRasterWidth, sceneRasterHeight,
-                                  product.getPreferredTileSize(), ResolutionLevel.MAXRES));
-
-        product.setGeoCoding(createGeoCoding());
-        return product;
+        // TODO - resulting image is wrong when more than a single tile is used
+        return new NetcdfOpImage(variable, ncFile, dataBufferType, band.getSceneRasterWidth(),
+                                 band.getSceneRasterHeight(),
+                                 new Dimension(band.getRasterWidth(), band.getSceneRasterHeight()),
+                                 ResolutionLevel.MAXRES);
     }
 
     @Override
     public void close() throws IOException {
         ncFile.close();
         super.close();
-    }
-
-    private GeoCoding createGeoCoding() {
-        CoordinateReferenceSystem crs;
-        try {
-            crs = CRS.decode("EPSG:3411");
-
-            double easting = -3850000;
-            double northing = 5850000;
-            double pixelSizeX = -(easting * 2 / sceneRasterWidth);
-            double pixelSizeY = northing * 2 / sceneRasterHeight;
-
-            return new CrsGeoCoding(crs, sceneRasterWidth, sceneRasterHeight, easting, northing, pixelSizeX,
-                                    pixelSizeY);
-        } catch (FactoryException e) {
-            e.printStackTrace();
-        } catch (TransformException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     void setStartTime(Product product, int year, int month, int day, int hour, int minute) {
@@ -154,7 +151,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
     }
 
     Variable getVariable(String varName, Structure headerStructure) {
-        for (Variable variable : headerStructure.getVariables()) {
+        for (final Variable variable : headerStructure.getVariables()) {
             if (varName.equals(variable.getName())) {
                 return variable;
             }
@@ -269,5 +266,4 @@ public class SeaIceObservationReader extends AbstractProductReader {
             return new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
         }
     }
-
 }

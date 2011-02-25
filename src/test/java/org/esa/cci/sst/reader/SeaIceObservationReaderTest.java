@@ -1,5 +1,8 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.junit.Before;
@@ -28,15 +31,6 @@ public class SeaIceObservationReaderTest {
     }
 
     @Test
-    public void testRead() throws Exception {
-//        final Product product = ProductIO.readProduct(TEST_FILE);
-//        final Band band = product.getBands()[0];
-//        final MultiLevelImage sourceImage = band.getSourceImage();
-//        final DataBuffer data = sourceImage.getData().getDataBuffer();
-//        sourceImage.getSampleModel().getSample(0, 0, 0, data);
-    }
-
-    @Test
     public void testReadProductNodesImpl() throws Exception {
         final Product product = reader.readProductNodes(TEST_FILE, null);
         assertNotNull(product);
@@ -57,7 +51,7 @@ public class SeaIceObservationReaderTest {
     }
 
     @Test
-    public void testReadObservation() throws IOException {
+    public void testFileStructure() throws IOException {
         assertTrue(NetcdfFile.canOpen(TEST_FILE.getPath()));
 
         final NetcdfFile ncFile = NetcdfFile.open(TEST_FILE.getPath());
