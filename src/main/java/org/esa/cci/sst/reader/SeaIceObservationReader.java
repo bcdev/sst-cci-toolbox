@@ -1,10 +1,13 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.ProgressMonitor;
+import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.CrsGeoCoding;
 import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
+import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
@@ -39,8 +42,9 @@ import java.util.List;
  */
 public class SeaIceObservationReader extends AbstractProductReader {
 
-    private static final String NH_GRID = "OSISAF_NH";
-    private static final String SH_GRID = "OSISAF_SH";
+    static final String NH_GRID = "OSISAF_NH";
+    static final String SH_GRID = "OSISAF_SH";
+
     private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_concentration";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
     private static final String VARIABLE_NAME = "Data/" + NetcdfFile.escapeName("data[00]");
@@ -84,9 +88,54 @@ public class SeaIceObservationReader extends AbstractProductReader {
             band.setNoDataValue(-32767.0);
             band.setNoDataValueUsed(true);
         }
+        product.getMetadataRoot().addElement(getMetadata(headerStructure));
         product.setGeoCoding(createGeoCoding(headerStructure));
         band.setSourceImage(createSourceImage(band));
         return product;
+    }
+
+    MetadataElement getMetadata(Structure headerStructure) {
+        final MetadataElement element = new MetadataElement("Header");
+        for (Variable variable : headerStructure.getVariables()) {
+            int type = DataTypeUtils.getEquivalentProductDataType(variable.getDataType(), false, false);
+            ProductData productData = null;
+            try {
+                switch (type) {
+                    case ProductData.TYPE_ASCII: {
+                        productData = ProductData.createInstance(variable.readScalarString());
+                        break;
+                    }
+                    case ProductData.TYPE_INT8: {
+                        productData = ProductData.createInstance(new int[]{variable.readScalarByte()});
+                        break;
+                    }
+                    case ProductData.TYPE_INT16: {
+                        productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
+                        break;
+                    }
+                    case ProductData.TYPE_INT32: {
+                        productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
+                        break;
+                    }
+                    case ProductData.TYPE_FLOAT32: {
+                        productData = ProductData.createInstance(new float[]{variable.readScalarFloat()});
+                        break;
+                    }
+                    case ProductData.TYPE_FLOAT64: {
+                        productData = ProductData.createInstance(new double[]{variable.readScalarDouble()});
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                Debug.trace(e.getMessage());
+            }
+            MetadataAttribute attribute = new MetadataAttribute(variable.getName(), productData, true);
+            element.addAttribute(attribute);
+        }
+        return element;
     }
 
     private GeoCoding createGeoCoding(Structure headerStructure) throws IOException {
@@ -98,8 +147,8 @@ public class SeaIceObservationReader extends AbstractProductReader {
             } else if (SH_GRID.equals(grid)) {
                 code = "EPSG:3412";
             } else {
-                // code for computing math transform for higher latitude grid is to be found in
-                // commit e9a32d1c6d18670c358f8e9434a7d2becb149449
+                // code for computing math transform for higher latitude grid is to be found
+                // in commit e9a32d1c6d18670c358f8e9434a7d2becb149449
                 throw new IllegalStateException(
                         "Grid support for grids different from 'Northern Hemisphere Grid' and " +
                         "'Southern Hemisphere Grid' not yet implemented.");

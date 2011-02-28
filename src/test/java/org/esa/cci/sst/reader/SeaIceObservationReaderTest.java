@@ -1,8 +1,6 @@
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.junit.Before;
@@ -48,6 +46,20 @@ public class SeaIceObservationReaderTest {
         assertNotNull(startTime);
         final Calendar calendar = ProductData.UTC.parse("2011-02-16-11-50", "yyyy-MM-dd-HH-mm").getAsCalendar();
         assertEquals(calendar.getTimeInMillis(), startTime.getAsCalendar().getTimeInMillis());
+    }
+
+    @Test
+    public void testGetMetadata() throws Exception {
+        final NetcdfFile ncFile = NetcdfFile.open(TEST_FILE.getPath());
+        final Variable header = ncFile.findVariable("Header");
+        final MetadataElement metadata = reader.getMetadata((Structure) header);
+        assertNotNull(metadata);
+        assertTrue(metadata.getAttributes() != null && metadata.getAttributes().length > 0);
+        assertEquals(760, metadata.getAttribute("Header.iw").getData().getElemInt());
+        assertEquals(1120, metadata.getAttribute("Header.ih").getData().getElemInt());
+        assertEquals(-3850.0, metadata.getAttribute("Header.Bx").getData().getElemFloat(), 0.0);
+        assertEquals(5850, metadata.getAttribute("Header.By").getData().getElemFloat(), 0.0);
+        assertEquals(SeaIceObservationReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
     }
 
     @Test
