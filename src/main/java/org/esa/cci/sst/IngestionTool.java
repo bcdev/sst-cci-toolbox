@@ -306,9 +306,9 @@ public class IngestionTool extends MmsTool {
         } else if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AVHRR, new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_SEA_ICE.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.DATA_SCHEMA_NAME_SEA_ICE, new DefaultGeoBoundaryCalculator());
+            reader = new ProductObservationReader(Constants.SENSOR_NAME_SEA_ICE, new DefaultGeoBoundaryCalculator());
         } else {
-            // todo rq - sea ice concentration
+            // todo - sea ice quality and in-situ
             throw new ToolException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName), 8);
         }
         return reader;
