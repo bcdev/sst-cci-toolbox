@@ -12,7 +12,13 @@ import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.jai.SingleBandedOpImage;
 import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
+import org.geotools.referencing.ReferencingFactoryFinder;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.datum.GeodeticDatum;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.MathTransformFactory;
 import org.opengis.referencing.operation.TransformException;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -266,4 +272,22 @@ public class SeaIceObservationReader extends AbstractProductReader {
             return new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
         }
     }
+
+    private static MathTransform createStereographicMathTransform(GeodeticDatum datum) throws FactoryException {
+        final MathTransformFactory transformFactory = ReferencingFactoryFinder.getMathTransformFactory(null);
+        final ParameterValueGroup parameters;
+
+        parameters = transformFactory.getDefaultParameters("EPSG:9809");
+
+        parameters.parameter("semi_major").setValue(datum.getEllipsoid().getSemiMajorAxis());
+        parameters.parameter("semi_minor").setValue(datum.getEllipsoid().getSemiMinorAxis());
+        parameters.parameter("central_meridian").setValue(-45.0);
+        parameters.parameter("latitude_of_origin").setValue(90.0);
+        parameters.parameter("scale_factor").setValue(1.0);
+        parameters.parameter("false_easting").setValue(0.0);
+        parameters.parameter("false_northing").setValue(0.0);
+
+        return transformFactory.createParameterizedTransform(parameters);
+    }
+
 }
