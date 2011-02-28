@@ -266,7 +266,7 @@ public class MatchupTool extends MmsTool {
         addCoincidence(matchup, Constants.SENSOR_NAME_TMI, 0x20);
         addCoincidence(matchup, Constants.SENSOR_NAME_AATSR, 0x40);
         addTemporalCoincidence(matchup, Constants.SENSOR_NAME_AAI, 0x80);
-        addCoincidence(matchup, Constants.SENSOR_NAME_SEA_ICE, 0x40);
+        addCoincidence(matchup, Constants.SENSOR_NAME_SEA_ICE, 0x100);
     }
 
 
