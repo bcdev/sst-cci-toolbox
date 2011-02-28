@@ -18,7 +18,7 @@
 
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>
-            <property name="openjpa.ConnectionURL" value="jdbc:postgresql://localhost:5432/mygisdb"/>
+            <property name="openjpa.ConnectionURL" value="jdbc:postgresql://10.3.0.35:5432/mygisdb"/>
             <property name="openjpa.ConnectionUserName" value="mms"/>
             <property name="openjpa.ConnectionPassword" value="mms"/>
             <property name="openjpa.Log" value="DefaultLevel=INFO,SQL=INFO"/>
