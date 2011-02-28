@@ -12,13 +12,7 @@ import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.jai.SingleBandedOpImage;
 import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
-import org.geotools.referencing.ReferencingFactoryFinder;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.datum.GeodeticDatum;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.MathTransformFactory;
 import org.opengis.referencing.operation.TransformException;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -45,11 +39,15 @@ import java.util.List;
  */
 public class SeaIceObservationReader extends AbstractProductReader {
 
+    private static final String NH_GRID = "OSISAF_NH";
+    private static final String SH_GRID = "OSISAF_SH";
     private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_concentration";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
     private static final String VARIABLE_NAME = "Data/" + NetcdfFile.escapeName("data[00]");
 
     private NetcdfFile ncFile;
+    private int sceneRasterWidth;
+    private int sceneRasterHeight;
 
     public SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
         super(plugin);
@@ -63,15 +61,15 @@ public class SeaIceObservationReader extends AbstractProductReader {
         final List<Variable> variables = ncFile.getVariables();
         final Structure headerStructure = getHeaderStructure(variables);
 
-        final String productName = getVariable("Header.product", headerStructure).readScalarString();
-        final int sceneRasterWidth = getVariable("Header.iw", headerStructure).readScalarInt();
-        final int sceneRasterHeight = getVariable("Header.ih", headerStructure).readScalarInt();
+        final String productName = headerStructure.findVariable("product").readScalarString();
+        sceneRasterWidth = headerStructure.findVariable("iw").readScalarInt();
+        sceneRasterHeight = headerStructure.findVariable("ih").readScalarInt();
 
-        int year = getVariable("Header.year", headerStructure).readScalarInt();
-        int month = getVariable("Header.month", headerStructure).readScalarInt();
-        int day = getVariable("Header.day", headerStructure).readScalarInt();
-        int hour = getVariable("Header.hour", headerStructure).readScalarInt();
-        int minute = getVariable("Header.minute", headerStructure).readScalarInt();
+        int year = headerStructure.findVariable("year").readScalarInt();
+        int month = headerStructure.findVariable("month").readScalarInt();
+        int day = headerStructure.findVariable("day").readScalarInt();
+        int hour = headerStructure.findVariable("hour").readScalarInt();
+        int minute = headerStructure.findVariable("minute").readScalarInt();
 
         final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], sceneRasterWidth,
                                             sceneRasterHeight);
@@ -86,25 +84,42 @@ public class SeaIceObservationReader extends AbstractProductReader {
             band.setNoDataValue(-32767.0);
             band.setNoDataValueUsed(true);
         }
-        try {
-            final double easting = getVariable("Header.Bx", headerStructure).readScalarFloat() * 1000.0;
-            final double northing = getVariable("Header.By", headerStructure).readScalarFloat() * 1000.0;
-            final double pixelSizeX = getVariable("Header.Ax", headerStructure).readScalarFloat() * 1000.0;
-            final double pixelSizeY = getVariable("Header.Ay", headerStructure).readScalarFloat() * 1000.0;
-            final GeoCoding geoCoding = new CrsGeoCoding(CRS.decode("EPSG:3411"),
-                                                         sceneRasterWidth,
-                                                         sceneRasterHeight,
-                                                         easting, northing,
-                                                         pixelSizeX,
-                                                         pixelSizeY, 0.0, 0.0);
-            product.setGeoCoding(geoCoding);
-        } catch (FactoryException e) {
-            // ignore
-        } catch (TransformException e) {
-            // ignore
-        }
+        product.setGeoCoding(createGeoCoding(headerStructure));
         band.setSourceImage(createSourceImage(band));
         return product;
+    }
+
+    private GeoCoding createGeoCoding(Structure headerStructure) throws IOException {
+        try {
+            final String grid = headerStructure.findVariable("area").readScalarString();
+            String code;
+            if (NH_GRID.equals(grid)) {
+                code = "EPSG:3411";
+            } else if (SH_GRID.equals(grid)) {
+                code = "EPSG:3412";
+            } else {
+                // code for computing math transform for higher latitude grid is to be found in
+                // commit e9a32d1c6d18670c358f8e9434a7d2becb149449
+                throw new IllegalStateException(
+                        "Grid support for grids different from 'Northern Hemisphere Grid' and " +
+                        "'Southern Hemisphere Grid' not yet implemented.");
+            }
+            final double easting = headerStructure.findVariable("Bx").readScalarFloat() * 1000.0;
+            final double northing = headerStructure.findVariable("By").readScalarFloat() * 1000.0;
+            final double pixelSizeX = headerStructure.findVariable("Ax").readScalarFloat() * 1000.0;
+            final double pixelSizeY = headerStructure.findVariable("Ay").readScalarFloat() * 1000.0;
+            return new CrsGeoCoding(CRS.decode(code),
+                                    sceneRasterWidth,
+                                    sceneRasterHeight,
+                                    easting, northing,
+                                    pixelSizeX,
+                                    pixelSizeY, 0.0, 0.0);
+        } catch (FactoryException e) {
+            Debug.trace(e);
+        } catch (TransformException e) {
+            Debug.trace(e);
+        }
+        return null;
     }
 
     private NetcdfOpImage createSourceImage(Band band) {
@@ -154,15 +169,6 @@ public class SeaIceObservationReader extends AbstractProductReader {
             Debug.trace(e);
         }
         product.setStartTime(startTime);
-    }
-
-    Variable getVariable(String varName, Structure headerStructure) {
-        for (final Variable variable : headerStructure.getVariables()) {
-            if (varName.equals(variable.getName())) {
-                return variable;
-            }
-        }
-        throw new IllegalArgumentException("No variable with name '" + varName + "'.");
     }
 
     static boolean isQualityFlagFile(String pathname) {
@@ -272,22 +278,4 @@ public class SeaIceObservationReader extends AbstractProductReader {
             return new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
         }
     }
-
-    private static MathTransform createStereographicMathTransform(GeodeticDatum datum) throws FactoryException {
-        final MathTransformFactory transformFactory = ReferencingFactoryFinder.getMathTransformFactory(null);
-        final ParameterValueGroup parameters;
-
-        parameters = transformFactory.getDefaultParameters("EPSG:9809");
-
-        parameters.parameter("semi_major").setValue(datum.getEllipsoid().getSemiMajorAxis());
-        parameters.parameter("semi_minor").setValue(datum.getEllipsoid().getSemiMinorAxis());
-        parameters.parameter("central_meridian").setValue(-45.0);
-        parameters.parameter("latitude_of_origin").setValue(90.0);
-        parameters.parameter("scale_factor").setValue(1.0);
-        parameters.parameter("false_easting").setValue(0.0);
-        parameters.parameter("false_northing").setValue(0.0);
-
-        return transformFactory.createParameterizedTransform(parameters);
-    }
-
 }
