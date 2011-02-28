@@ -1,6 +1,10 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.Constants;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.GlobalObservation;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import ucar.ma2.DataType;
@@ -9,7 +13,6 @@ import ucar.nc2.NCdumpW;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.persistence.Query;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.Calendar;
@@ -21,9 +24,14 @@ public class MmdFormatGenerator {
     public static final String DIMENSION_ROLE_MATCHUP = "match_up";
     public static final String DIMENSION_ROLE_LENGTH = "length";
 
+    private static final String ALL_MATCHUPS_QUERY =
+            "select m"
+            + " from Matchup m"
+            + " order by m.id";
+
     private final PersistenceManager persistenceManager;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         final MmdFormatGenerator generator = new MmdFormatGenerator();
         generator.generateMmdFile("mmd.nc");
         NCdumpW.printHeader("mmd.nc", new PrintWriter(System.out));
@@ -33,17 +41,13 @@ public class MmdFormatGenerator {
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME);
     }
 
-    private void generateMmdFile(String fileName) throws IOException {
+    private void generateMmdFile(String fileName) throws Exception {
         final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName);
 
         file.addUnlimitedDimension(DIMENSION_NAME_MATCHUP);
-        file.addDimension("aatsr-md-ref.cs_length", 8);
-        file.addDimension("aatsr-md-ref.ui_length", 30);
-        file.addDimension("aatsr-md-ref.length", 65);
-        file.addDimension("aatsr.ni", 101);
-        file.addDimension("aatsr.nj", 101);
-        file.addDimension("avhrr.ni", 231);
-        file.addDimension("avhrr.nj", 25);
+        file.addDimension("aatsr-md.cs_length", 8);
+        file.addDimension("aatsr-md.ui_length", 30);
+        file.addDimension("aatsr-md.length", 65);
         file.addDimension("metop.ni", 21);
         file.addDimension("metop.nj", 21);
         file.addDimension("metop.len_id", 11);
@@ -52,6 +56,10 @@ public class MmdFormatGenerator {
         file.addDimension("seviri.nj", 5);
         file.addDimension("seviri.len_id", 11);
         file.addDimension("seviri.len_filename", 65);
+        file.addDimension("aatsr.ni", 101);
+        file.addDimension("aatsr.nj", 101);
+        file.addDimension("avhrr.ni", 231);
+        file.addDimension("avhrr.nj", 25);
         file.addDimension("amsre.ni", 11);
         file.addDimension("amsre.nj", 11);
         file.addDimension("tmi.ni", 11);
@@ -91,10 +99,40 @@ public class MmdFormatGenerator {
         addVariables(file, Constants.SENSOR_NAME_TMI);
         addNwpData(file, Constants.SENSOR_NAME_TMI);
 
+        addContent(file);
         addGlobalAttributes(file);
 
         file.create();
         file.close();
+    }
+
+    @SuppressWarnings({"unchecked"})
+    void addContent(NetcdfFileWriteable file) throws Exception {
+        try {
+            // open database
+            persistenceManager.transaction();
+
+            // clear coincidences as they are computed from scratch
+            Query getAllMatchupsQuery = persistenceManager.createQuery(ALL_MATCHUPS_QUERY);
+            final List<Matchup> resultList = getAllMatchupsQuery.getResultList();
+
+            for (Matchup matchup : resultList) {
+//                final ucar.nc2.Variable mId = file.findVariable("mid");
+                final ReferenceObservation referenceObservation = matchup.getRefObs();
+                final List<Coincidence> coincidences = matchup.getCoincidences();
+                for (Coincidence coincidence : coincidences) {
+                    final GlobalObservation observation = coincidence.getObservation();
+                    // todo - ts, mb - get file locations, get reader, read data, put into netcdf-file
+                }
+            }
+
+            // make changes in database
+            persistenceManager.commit();
+            // do not make any change in case of errors
+        } catch(Exception e) {
+            persistenceManager.rollback();
+            throw e;
+        }
     }
 
     private void addGlobalAttributes(NetcdfFileWriteable file) {
