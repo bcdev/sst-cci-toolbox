@@ -142,7 +142,7 @@ public class ProductObservationReader implements ObservationReader {
         }
         final ProductData.UTC endTime = product.getEndTime();
         if (endTime == null) {
-            throw new IOException("Unable to get end time for product '" + product.getName() + "'.");
+            return startTime.getAsDate();
         }
         final ProductData.UTC centerTime = new ProductData.UTC(0.5 * (startTime.getMJD() + endTime.getMJD()));
         return centerTime.getAsDate();

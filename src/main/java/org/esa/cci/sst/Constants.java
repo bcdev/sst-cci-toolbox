@@ -21,6 +21,7 @@ public class Constants {
     public static final String SENSOR_NAME_AMSRE = "amsre";
     public static final String SENSOR_NAME_TMI = "tmi";
     public static final String SENSOR_NAME_AAI = "aai";
+    public static final String SENSOR_NAME_SEA_ICE = "seaice";
     /**
      * Name of persistence unit in META-INF/persistence.xml
      */
