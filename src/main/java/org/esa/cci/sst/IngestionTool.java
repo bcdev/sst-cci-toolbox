@@ -9,9 +9,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.AatsrMatchupReader;
@@ -307,6 +305,8 @@ public class IngestionTool extends MmsTool {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI, new NullGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
             reader = new ProductObservationReader(Constants.SENSOR_NAME_AVHRR, new DefaultGeoBoundaryCalculator());
+        } else if (Constants.DATA_SCHEMA_NAME_SEA_ICE.equalsIgnoreCase(schemaName)) {
+            reader = new ProductObservationReader(Constants.DATA_SCHEMA_NAME_SEA_ICE, new DefaultGeoBoundaryCalculator());
         } else {
             // todo rq - sea ice concentration
             throw new ToolException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName), 8);

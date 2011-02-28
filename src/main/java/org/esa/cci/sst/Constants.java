@@ -10,6 +10,7 @@ public class Constants {
     public static final String DATA_SCHEMA_NAME_ATSR = "atsr";
     public static final String DATA_SCHEMA_NAME_AMR = "amsre";
     public static final String DATA_SCHEMA_NAME_AVHRR_GAC = "avhrr_gac";
+    public static final String DATA_SCHEMA_NAME_SEA_ICE = "seaice";
     public static final String DATA_SCHEMA_NAME_TMI = "tmi";
 
     public static final String SENSOR_NAME_AATSR_MD = "aatsr-md";
@@ -20,7 +21,6 @@ public class Constants {
     public static final String SENSOR_NAME_AMSRE = "amsre";
     public static final String SENSOR_NAME_TMI = "tmi";
     public static final String SENSOR_NAME_AAI = "aai";
-
     /**
      * Name of persistence unit in META-INF/persistence.xml
      */
