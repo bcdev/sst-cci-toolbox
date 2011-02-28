@@ -36,6 +36,8 @@ public class SeaIceObservationReaderTest {
         assertEquals(calendar.getTimeInMillis(), product.getStartTime().getAsCalendar().getTimeInMillis());
         assertEquals(1, product.getBands().length);
         assertNotNull(product.getGeoCoding());
+        assertNotNull(product.getFileLocation());
+        assertNotNull(product.getProductReader());
     }
 
     @Test
@@ -60,6 +62,12 @@ public class SeaIceObservationReaderTest {
         assertEquals(-3850.0, metadata.getAttribute("Header.Bx").getData().getElemFloat(), 0.0);
         assertEquals(5850, metadata.getAttribute("Header.By").getData().getElemFloat(), 0.0);
         assertEquals(SeaIceObservationReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
+    }
+
+    @Test
+    public void testIsSeaIceFile() throws Exception {
+        assertTrue(SeaIceObservationReader.isSeaIceFile(TEST_FILE.getName()));
+        assertFalse(SeaIceObservationReader.isSeaIceFile(TEST_QUALITY_FILE.getName()));
     }
 
     @Test

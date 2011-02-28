@@ -48,6 +48,13 @@ public class SeaIceObservationReader extends AbstractProductReader {
     private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_concentration";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
     private static final String VARIABLE_NAME = "Data/" + NetcdfFile.escapeName("data[00]");
+    private static final String DESCRIPTION_SEA_ICE = "A data product containing information about sea ice " +
+                                                      "concentration: it indicates the areal fraction of a given grid " +
+                                                      "point covered by ice.";
+    private static final String DESCRIPTION_QUALITY_FLAG = "A data product containing a quality flag for sea ice " +
+                                                           "concentration: it indicates the confidence level " +
+                                                           "corresponding to the quality of the calculated sea ice " +
+                                                           "parameter and information on the processing conditions.";
 
     private NetcdfFile ncFile;
     private int sceneRasterWidth;
@@ -79,15 +86,19 @@ public class SeaIceObservationReader extends AbstractProductReader {
                                             sceneRasterHeight);
         setStartTime(product, year, month, day, hour, minute);
         final Band band;
-        if (isQualityFlagFile(pathname)) {
-            band = product.addBand(QUALITY_FLAG_BANDNAME, ProductData.TYPE_INT16);
-            band.setNoDataValue(-32767);
-            band.setNoDataValueUsed(true);
-        } else {
+        if (isSeaIceFile(pathname)) {
             band = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
             band.setNoDataValue(-32767.0);
             band.setNoDataValueUsed(true);
+            product.setDescription(DESCRIPTION_SEA_ICE);
+        } else {
+            band = product.addBand(QUALITY_FLAG_BANDNAME, ProductData.TYPE_INT16);
+            band.setNoDataValue(-32767);
+            band.setNoDataValueUsed(true);
+            product.setDescription(DESCRIPTION_QUALITY_FLAG);
         }
+        product.setFileLocation(inputFile);
+        product.setProductReader(this);
         product.getMetadataRoot().addElement(getMetadata(headerStructure));
         product.setGeoCoding(createGeoCoding(headerStructure));
         band.setSourceImage(createSourceImage(band));
@@ -220,8 +231,8 @@ public class SeaIceObservationReader extends AbstractProductReader {
         product.setStartTime(startTime);
     }
 
-    static boolean isQualityFlagFile(String pathname) {
-        return pathname.contains("_qual_");
+    static boolean isSeaIceFile(String pathname) {
+        return !pathname.contains("_qual_");
     }
 
     static Structure getHeaderStructure(List<Variable> variables) {
