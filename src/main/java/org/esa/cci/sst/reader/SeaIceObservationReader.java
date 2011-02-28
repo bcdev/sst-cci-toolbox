@@ -60,7 +60,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
     private int sceneRasterWidth;
     private int sceneRasterHeight;
 
-    public SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
+    SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
         super(plugin);
     }
 
@@ -69,18 +69,18 @@ public class SeaIceObservationReader extends AbstractProductReader {
         final String pathname = getInput().toString();
         final File inputFile = new File(pathname);
         ncFile = NetcdfFile.open(inputFile.getPath());
-        final List<Variable> variables = ncFile.getVariables();
-        final Structure headerStructure = getHeaderStructure(variables);
+        final Variable header = ncFile.findVariable("Header");
+        final Structure headerStructure = (Structure) header;
 
         final String productName = headerStructure.findVariable("product").readScalarString();
         sceneRasterWidth = headerStructure.findVariable("iw").readScalarInt();
         sceneRasterHeight = headerStructure.findVariable("ih").readScalarInt();
 
-        int year = headerStructure.findVariable("year").readScalarInt();
-        int month = headerStructure.findVariable("month").readScalarInt();
-        int day = headerStructure.findVariable("day").readScalarInt();
-        int hour = headerStructure.findVariable("hour").readScalarInt();
-        int minute = headerStructure.findVariable("minute").readScalarInt();
+        final int year = headerStructure.findVariable("year").readScalarInt();
+        final int month = headerStructure.findVariable("month").readScalarInt();
+        final int day = headerStructure.findVariable("day").readScalarInt();
+        final int hour = headerStructure.findVariable("hour").readScalarInt();
+        final int minute = headerStructure.findVariable("minute").readScalarInt();
 
         final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], sceneRasterWidth,
                                             sceneRasterHeight);
@@ -103,6 +103,25 @@ public class SeaIceObservationReader extends AbstractProductReader {
         product.setGeoCoding(createGeoCoding(headerStructure));
         band.setSourceImage(createSourceImage(band));
         return product;
+    }
+
+    @Override
+    protected synchronized void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth,
+                                                       int sourceHeight,
+                                                       int sourceStepX, int sourceStepY, Band destBand, int destOffsetX,
+                                                       int destOffsetY, int destWidth, int destHeight,
+                                                       ProductData destBuffer,
+                                                       ProgressMonitor pm) throws IOException {
+        final RenderedImage image = destBand.getSourceImage();
+        final Raster data = image.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
+
+        data.getDataElements(destOffsetX, destOffsetY, destWidth, destHeight, destBuffer.getElems());
+    }
+
+    @Override
+    public void close() throws IOException {
+        ncFile.close();
+        super.close();
     }
 
     MetadataElement getMetadata(Structure headerStructure) {
@@ -192,12 +211,6 @@ public class SeaIceObservationReader extends AbstractProductReader {
                                  ResolutionLevel.MAXRES);
     }
 
-    @Override
-    public void close() throws IOException {
-        ncFile.close();
-        super.close();
-    }
-
     void setStartTime(Product product, int year, int month, int day, int hour, int minute) {
         StringBuilder builder = new StringBuilder();
         builder.append(year);
@@ -244,19 +257,6 @@ public class SeaIceObservationReader extends AbstractProductReader {
         throw new IllegalStateException(
                 "HDF-File does not contain a header variable; should not have been opened using '" +
                 SeaIceObservationReader.class.getSimpleName() + "'.");
-    }
-
-    @Override
-    protected synchronized void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth,
-                                                       int sourceHeight,
-                                                       int sourceStepX, int sourceStepY, Band destBand, int destOffsetX,
-                                                       int destOffsetY, int destWidth, int destHeight,
-                                                       ProductData destBuffer,
-                                                       ProgressMonitor pm) throws IOException {
-        final RenderedImage image = destBand.getSourceImage();
-        final Raster data = image.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
-
-        data.getDataElements(destOffsetX, destOffsetY, destWidth, destHeight, destBuffer.getElems());
     }
 
     private static class NetcdfOpImage extends SingleBandedOpImage {

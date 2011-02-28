@@ -6,6 +6,7 @@ import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.util.io.BeamFileFilter;
 import org.esa.beam.util.io.FileUtils;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.util.Locale;
@@ -40,7 +41,8 @@ public class SeaIceObservationReaderPlugIn implements ProductReaderPlugIn {
                 return DecodeQualification.UNABLE;
             }
             final NetcdfFile netcdfFile = NetcdfFile.open(file.getAbsolutePath());
-            if (SeaIceObservationReader.getHeaderStructure(netcdfFile.getVariables()) == null) {
+            final Variable header = netcdfFile.findVariable("Header");
+            if(header == null) {
                 return DecodeQualification.UNABLE;
             }
         } catch (Exception ignore) {
