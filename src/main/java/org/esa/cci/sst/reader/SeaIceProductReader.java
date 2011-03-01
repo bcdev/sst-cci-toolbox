@@ -168,7 +168,7 @@ public class SeaIceProductReader extends AbstractProductReader {
         return element;
     }
 
-    private GeoCoding createGeoCoding(Structure headerStructure) throws IOException {
+    GeoCoding createGeoCoding(Structure headerStructure) throws IOException {
         try {
             final String grid = headerStructure.findVariable("area").readScalarString();
             String code;
