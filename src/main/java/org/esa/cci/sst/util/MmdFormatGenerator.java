@@ -9,11 +9,9 @@ import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
-import ucar.nc2.NCdumpW;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.persistence.Query;
-import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -33,77 +31,83 @@ public class MmdFormatGenerator {
 
     public static void main(String[] args) throws Exception {
         final MmdFormatGenerator generator = new MmdFormatGenerator();
-        generator.generateMmdFile("mmd.nc");
-        NCdumpW.printHeader("mmd.nc", new PrintWriter(System.out));
+        NetcdfFileWriteable mmdFile = null;
+        try {
+            mmdFile = generator.createMmdFile("mmd.nc");
+        } finally {
+            if (mmdFile != null) {
+                mmdFile.close();
+            }
+        }
     }
 
     public MmdFormatGenerator() {
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME);
     }
 
-    private void generateMmdFile(String fileName) throws Exception {
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName);
+    private NetcdfFileWriteable createMmdFile(String fileName) throws Exception {
+        final NetcdfFileWriteable mmdFile = NetcdfFileWriteable.createNew(fileName);
 
-        file.addUnlimitedDimension(DIMENSION_NAME_MATCHUP);
-        file.addDimension("aatsr-md.cs_length", 8);
-        file.addDimension("aatsr-md.ui_length", 30);
-        file.addDimension("aatsr-md.length", 65);
-        file.addDimension("metop.ni", 21);
-        file.addDimension("metop.nj", 21);
-        file.addDimension("metop.len_id", 11);
-        file.addDimension("metop.len_filename", 65);
-        file.addDimension("seviri.ni", 5);
-        file.addDimension("seviri.nj", 5);
-        file.addDimension("seviri.len_id", 11);
-        file.addDimension("seviri.len_filename", 65);
-        file.addDimension("aatsr.ni", 101);
-        file.addDimension("aatsr.nj", 101);
-        file.addDimension("avhrr.ni", 231);
-        file.addDimension("avhrr.nj", 25);
-        file.addDimension("amsre.ni", 11);
-        file.addDimension("amsre.nj", 11);
-        file.addDimension("tmi.ni", 11);
-        file.addDimension("tmi.nj", 11);
+        mmdFile.addUnlimitedDimension(DIMENSION_NAME_MATCHUP);
+        mmdFile.addDimension("aatsr-md.cs_length", 8);
+        mmdFile.addDimension("aatsr-md.ui_length", 30);
+        mmdFile.addDimension("aatsr-md.length", 65);
+        mmdFile.addDimension("metop.ni", 21);
+        mmdFile.addDimension("metop.nj", 21);
+        mmdFile.addDimension("metop.len_id", 11);
+        mmdFile.addDimension("metop.len_filename", 65);
+        mmdFile.addDimension("seviri.ni", 5);
+        mmdFile.addDimension("seviri.nj", 5);
+        mmdFile.addDimension("seviri.len_id", 11);
+        mmdFile.addDimension("seviri.len_filename", 65);
+        mmdFile.addDimension("aatsr.ni", 101);
+        mmdFile.addDimension("aatsr.nj", 101);
+        mmdFile.addDimension("avhrr.ni", 231);
+        mmdFile.addDimension("avhrr.nj", 25);
+        mmdFile.addDimension("amsre.ni", 11);
+        mmdFile.addDimension("amsre.nj", 11);
+        mmdFile.addDimension("tmi.ni", 11);
+        mmdFile.addDimension("tmi.nj", 11);
         // todo: tie point dimensions for all sensors (rq-20110223)
 
-        addVariables(file, Constants.SENSOR_NAME_AATSR_MD);
-        addInsituDataHistories(file);
+        addVariables(mmdFile, Constants.SENSOR_NAME_AATSR_MD);
+        addInsituDataHistories(mmdFile);
 
-        addObservationTime(file, Constants.SENSOR_NAME_AATSR);
-        addLsMask(file, Constants.SENSOR_NAME_AATSR);
-        addVariables(file, Constants.SENSOR_NAME_AATSR);
-        addNwpData(file, Constants.SENSOR_NAME_AATSR);
+        addObservationTime(mmdFile, Constants.SENSOR_NAME_AATSR);
+        addLsMask(mmdFile, Constants.SENSOR_NAME_AATSR);
+        addVariables(mmdFile, Constants.SENSOR_NAME_AATSR);
+        addNwpData(mmdFile, Constants.SENSOR_NAME_AATSR);
 
-        addObservationTime(file, Constants.SENSOR_NAME_METOP);
-        addLsMask(file, Constants.SENSOR_NAME_METOP);
-        addVariables(file, Constants.SENSOR_NAME_METOP);
-        addNwpData(file, Constants.SENSOR_NAME_METOP);
+        addObservationTime(mmdFile, Constants.SENSOR_NAME_METOP);
+        addLsMask(mmdFile, Constants.SENSOR_NAME_METOP);
+        addVariables(mmdFile, Constants.SENSOR_NAME_METOP);
+        addNwpData(mmdFile, Constants.SENSOR_NAME_METOP);
 
-        addObservationTime(file, Constants.SENSOR_NAME_SEVIRI);
-        addLsMask(file, Constants.SENSOR_NAME_SEVIRI);
-        addVariables(file, Constants.SENSOR_NAME_SEVIRI);
-        addNwpData(file, Constants.SENSOR_NAME_SEVIRI);
+        addObservationTime(mmdFile, Constants.SENSOR_NAME_SEVIRI);
+        addLsMask(mmdFile, Constants.SENSOR_NAME_SEVIRI);
+        addVariables(mmdFile, Constants.SENSOR_NAME_SEVIRI);
+        addNwpData(mmdFile, Constants.SENSOR_NAME_SEVIRI);
 
-        addVariables(file, Constants.SENSOR_NAME_AVHRR);
-        addLsMask(file, Constants.SENSOR_NAME_AVHRR);
-        addObservationTime(file, Constants.SENSOR_NAME_AVHRR);
-        addNwpData(file, Constants.SENSOR_NAME_AVHRR);
+        addVariables(mmdFile, Constants.SENSOR_NAME_AVHRR);
+        addLsMask(mmdFile, Constants.SENSOR_NAME_AVHRR);
+        addObservationTime(mmdFile, Constants.SENSOR_NAME_AVHRR);
+        addNwpData(mmdFile, Constants.SENSOR_NAME_AVHRR);
 
-        addObservationTime(file, Constants.SENSOR_NAME_AMSRE);
-        addLsMask(file, Constants.SENSOR_NAME_AMSRE);
-        addVariables(file, Constants.SENSOR_NAME_AMSRE);
-        addNwpData(file, Constants.SENSOR_NAME_AMSRE);
+        addObservationTime(mmdFile, Constants.SENSOR_NAME_AMSRE);
+        addLsMask(mmdFile, Constants.SENSOR_NAME_AMSRE);
+        addVariables(mmdFile, Constants.SENSOR_NAME_AMSRE);
+        addNwpData(mmdFile, Constants.SENSOR_NAME_AMSRE);
 
-        addObservationTime(file, Constants.SENSOR_NAME_TMI);
-        addLsMask(file, Constants.SENSOR_NAME_TMI);
-        addVariables(file, Constants.SENSOR_NAME_TMI);
-        addNwpData(file, Constants.SENSOR_NAME_TMI);
+        addObservationTime(mmdFile, Constants.SENSOR_NAME_TMI);
+        addLsMask(mmdFile, Constants.SENSOR_NAME_TMI);
+        addVariables(mmdFile, Constants.SENSOR_NAME_TMI);
+        addNwpData(mmdFile, Constants.SENSOR_NAME_TMI);
 
-        addContent(file);
-        addGlobalAttributes(file);
+        addContent(mmdFile);
+        addGlobalAttributes(mmdFile);
 
-        file.create();
-        file.close();
+        mmdFile.create();
+        return mmdFile;
     }
 
     @SuppressWarnings({"unchecked"})
@@ -129,7 +133,7 @@ public class MmdFormatGenerator {
             // make changes in database
             persistenceManager.commit();
             // do not make any change in case of errors
-        } catch(Exception e) {
+        } catch (Exception e) {
             persistenceManager.rollback();
             throw e;
         }
