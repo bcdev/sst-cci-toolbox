@@ -1,2 +1,2 @@
 org.esa.cci.sst.reader.AaiProductReaderPlugIn
-org.esa.cci.sst.reader.SeaIceObservationReaderPlugIn
+org.esa.cci.sst.reader.SeaIceProductReaderPlugIn

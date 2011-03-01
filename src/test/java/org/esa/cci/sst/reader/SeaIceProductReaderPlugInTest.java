@@ -12,13 +12,13 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class SeaIceObservationReaderPlugInTest {
+public class SeaIceProductReaderPlugInTest {
 
-    private SeaIceObservationReaderPlugIn plugin;
+    private SeaIceProductReaderPlugIn plugin;
 
     @Before
     public void setUp() throws Exception {
-        plugin = new SeaIceObservationReaderPlugIn();
+        plugin = new SeaIceProductReaderPlugIn();
     }
 
     @Test

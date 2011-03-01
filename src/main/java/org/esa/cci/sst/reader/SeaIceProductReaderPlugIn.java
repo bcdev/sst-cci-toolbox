@@ -16,7 +16,7 @@ import java.util.Locale;
  *
  * @author Thomas Storm
  */
-public class SeaIceObservationReaderPlugIn implements ProductReaderPlugIn {
+public class SeaIceProductReaderPlugIn implements ProductReaderPlugIn {
 
     private static final String FORMAT_NAME = "Ocean and Sea Ice SAF";
     private static final String FILE_EXTENSION_HDF = ".hdf";
@@ -59,7 +59,7 @@ public class SeaIceObservationReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public ProductReader createReaderInstance() {
-        return new SeaIceObservationReader(this);
+        return new SeaIceProductReader(this);
     }
 
     @Override

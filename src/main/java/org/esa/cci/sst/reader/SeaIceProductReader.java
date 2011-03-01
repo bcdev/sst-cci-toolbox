@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @author Thomas Storm
  */
-public class SeaIceObservationReader extends AbstractProductReader {
+public class SeaIceProductReader extends AbstractProductReader {
 
     static final String NH_GRID = "OSISAF_NH";
     static final String SH_GRID = "OSISAF_SH";
@@ -60,7 +60,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
     private int sceneRasterWidth;
     private int sceneRasterHeight;
 
-    SeaIceObservationReader(SeaIceObservationReaderPlugIn plugin) {
+    SeaIceProductReader(SeaIceProductReaderPlugIn plugin) {
         super(plugin);
     }
 
@@ -256,7 +256,7 @@ public class SeaIceObservationReader extends AbstractProductReader {
         }
         throw new IllegalStateException(
                 "HDF-File does not contain a header variable; should not have been opened using '" +
-                SeaIceObservationReader.class.getSimpleName() + "'.");
+                SeaIceProductReader.class.getSimpleName() + "'.");
     }
 
     private static class NetcdfOpImage extends SingleBandedOpImage {

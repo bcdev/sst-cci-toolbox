@@ -17,15 +17,15 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class SeaIceObservationReaderTest {
+public class SeaIceProductReaderTest {
 
     private static final File TEST_FILE = new File("testdata/SeaIceConc", "ice_conc_nh_201006301200.hdf");
     private static final File TEST_QUALITY_FILE = new File("testdata/SeaIceConc", "ice_conc_sh_qual_201006301200.hdf");
-    private SeaIceObservationReader reader;
+    private SeaIceProductReader reader;
 
     @Before
     public void setUp() throws Exception {
-        reader = new SeaIceObservationReader(new SeaIceObservationReaderPlugIn());
+        reader = new SeaIceProductReader(new SeaIceProductReaderPlugIn());
     }
 
     @Test
@@ -61,13 +61,13 @@ public class SeaIceObservationReaderTest {
         assertEquals(1120, metadata.getAttribute("Header.ih").getData().getElemInt());
         assertEquals(-3850.0, metadata.getAttribute("Header.Bx").getData().getElemFloat(), 0.0);
         assertEquals(5850, metadata.getAttribute("Header.By").getData().getElemFloat(), 0.0);
-        assertEquals(SeaIceObservationReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
+        assertEquals(SeaIceProductReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
     }
 
     @Test
     public void testIsSeaIceFile() throws Exception {
-        assertTrue(SeaIceObservationReader.isSeaIceFile(TEST_FILE.getName()));
-        assertFalse(SeaIceObservationReader.isSeaIceFile(TEST_QUALITY_FILE.getName()));
+        assertTrue(SeaIceProductReader.isSeaIceFile(TEST_FILE.getName()));
+        assertFalse(SeaIceProductReader.isSeaIceFile(TEST_QUALITY_FILE.getName()));
     }
 
     @Test
