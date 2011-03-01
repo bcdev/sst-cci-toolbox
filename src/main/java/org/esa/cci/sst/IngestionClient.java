@@ -1,7 +1,12 @@
 package org.esa.cci.sst;
 
+import com.bc.ceres.core.ProgressMonitor;
+import com.bc.ceres.core.runtime.RuntimeRunnable;
+import org.esa.beam.util.SystemUtils;
+
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -14,18 +19,23 @@ import java.util.Properties;
 public class IngestionClient {
 
     public static void main(String[] args) {
+        Locale.setDefault(Locale.ENGLISH);
+        SystemUtils.init3rdPartyLibs(IngestionClient.class.getClassLoader());
+
         try {
             IngestionTool tool = new IngestionTool();
-            //tool.clearObservations();
             tool.addConfigurationProperties(new File(args[0]));
             tool.setCommandLineArgs(args);
 
             final Properties configuration = tool.getConfiguration();
             int n = 0;
             for (int i = 0; i < 100; i++) {
-                final String schemaName = configuration.getProperty(String.format("mms.test.inputSets.%d.schemaName", i));
-                final String inputDirectory = configuration.getProperty(String.format("mms.test.inputSets.%d.inputDirectory", i));
-                final String filenamePattern = configuration.getProperty(String.format("mms.test.inputSets.%d.filenamePattern", i));
+                final String schemaName = configuration.getProperty(
+                        String.format("mms.test.inputSets.%d.schemaName", i));
+                final String inputDirectory = configuration.getProperty(
+                        String.format("mms.test.inputSets.%d.inputDirectory", i));
+                final String filenamePattern = configuration.getProperty(
+                        String.format("mms.test.inputSets.%d.filenamePattern", i));
                 if (schemaName != null && inputDirectory != null) {
                     ingestDirectoryContent(tool,
                                            inputDirectory,
@@ -39,9 +49,9 @@ public class IngestionClient {
             } else {
                 System.err.println("No input sets given.");
                 tool.printHelp("\nInput sets are specified as configuration properties as follows:\n"
-                        + "\tmms.test.inputSets.<i>.schemaName = <schemaName>\n"
-                        + "\tmms.test.inputSets.<i>.inputDirectory = <inputDirectory>\n"
-                        + "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)");
+                               + "\tmms.test.inputSets.<i>.schemaName = <schemaName>\n"
+                               + "\tmms.test.inputSets.<i>.inputDirectory = <inputDirectory>\n"
+                               + "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)");
 
             }
         } catch (Exception e) {
@@ -49,7 +59,10 @@ public class IngestionClient {
         }
     }
 
-    public static void ingestDirectoryContent(IngestionTool tool, String dirPath, String filenamePattern, String schemaName) throws IngestionTool.ToolException {
+    private static void ingestDirectoryContent(IngestionTool tool,
+                                               String dirPath,
+                                               String filenamePattern,
+                                               String schemaName) throws IngestionTool.ToolException {
 
         final File dir = new File(dirPath);
         final String pattern = filenamePattern;

@@ -1,65 +1,77 @@
-<assembly
-        xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
-    <id>client</id>
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.1.xsd">
+    <id>bin</id>
+
     <formats>
-        <format>tar.gz</format>
+        <format>dir</format>
     </formats>
-    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <includeBaseDirectory>false</includeBaseDirectory>
+
     <fileSets>
         <fileSet>
-            <directory>bin</directory>
-            <includes><include>mymms</include></includes>
-            <outputDirectory>.</outputDirectory>
-            <fileMode>0775</fileMode>
-        </fileSet>
-        <fileSet>
-            <directory>bin</directory>
-            <includes><include>*.sh</include></includes>
+            <directory>src/main/bin</directory>
+            <includes>
+                <include>*.sh</include>
+            </includes>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0775</fileMode>
         </fileSet>
-        <fileSet>
-            <directory>target</directory>
-            <includes><include>sst-cci-toolbox-0.1-SNAPSHOT.jar</include></includes>
-            <outputDirectory>lib</outputDirectory>
-        </fileSet>
-        <!-- <fileSet>
-            <directory>target/calvalus-processing-0.1-SNAPSHOT-beam</directory>
-            <includes><include>*.jar</include></includes>
-            <outputDirectory>lib/beam</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>conf</directory>
-            <includes><include>*</include></includes>
-            <outputDirectory>conf</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>src/main/resources/requests</directory>
-            <includes><include>*</include></includes>
-            <outputDirectory>requests</outputDirectory>
-        </fileSet>-->
     </fileSets>
+
     <dependencySets>
+
         <dependencySet>
-
-
             <includes>
-                <include>org.esa.beam:beam-gpf</include>
-                <include>org.esa.beam:beam-core</include>
-                <include>org.esa.beam:beam-envisat-reader</include>
+                <include>com.bc.ceres:*</include>
+                <include>org.esa.beam:*</include>
+                <include>${project.groupId}:*</include>
             </includes>
             <excludes>
-                <exclude>org.esa.beam:beam-ui</exclude>
+                <exclude>com.bc.ceres:ceres-launcher</exclude>
             </excludes>
             <scope>runtime</scope>
             <useTransitiveDependencies>true</useTransitiveDependencies>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-
-
-            <scope>runtime</scope>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
             <outputDirectory>lib</outputDirectory>
+            <outputFileNameMapping>
+                ${artifact.artifactId}.${artifact.extension}
+            </outputFileNameMapping>
+            <fileMode>0444</fileMode>
         </dependencySet>
+
+        <!--
+        <dependencySet>
+            <includes>
+                <include>com.bc.ceres:ceres-launcher</include>
+            </includes>
+            <scope>runtime</scope>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
+            <outputDirectory>bin</outputDirectory>
+            <outputFileNameMapping>
+                ${artifact.artifactId}.${artifact.extension}
+            </outputFileNameMapping>
+            <fileMode>0444</fileMode>
+        </dependencySet>
+        -->
+
+        <dependencySet>
+            <excludes>
+                <exclude>com.bc.ceres:*</exclude>
+                <exclude>org.esa.beam:*</exclude>
+                <exclude>${project.groupId}:*</exclude>
+            </excludes>
+            <scope>runtime</scope>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
+            <outputDirectory>lib</outputDirectory>
+            <outputFileNameMapping>
+                ${artifact.artifactId}.${artifact.extension}
+            </outputFileNameMapping>
+            <fileMode>0444</fileMode>
+        </dependencySet>
+
     </dependencySets>
 </assembly>
