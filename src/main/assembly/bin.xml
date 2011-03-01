@@ -18,10 +18,18 @@
             <outputDirectory>bin</outputDirectory>
             <fileMode>0775</fileMode>
         </fileSet>
+
+        <fileSet>
+            <directory>src/main/config</directory>
+            <includes>
+                <include>*.properties</include>
+            </includes>
+            <outputDirectory>config</outputDirectory>
+            <fileMode>0664</fileMode>
+        </fileSet>
     </fileSets>
 
     <dependencySets>
-
         <dependencySet>
             <includes>
                 <include>com.bc.ceres:*</include>
@@ -72,6 +80,6 @@
             </outputFileNameMapping>
             <fileMode>0444</fileMode>
         </dependencySet>
-
     </dependencySets>
+
 </assembly>
