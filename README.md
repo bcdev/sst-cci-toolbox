@@ -58,6 +58,8 @@ Thankfully, it’s pretty simple to install these latest versions. Here is quick
 
 All components with test PostGIS database example (changed to mygisdb by Boe)
 
+    sudo apt-get install python-software-properties
+
     sudo apt-add-repository ppa:pitti/postgresql
     sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
     sudo apt-get update
