@@ -26,6 +26,7 @@ import org.junit.Test;
 import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFileWriteable;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 
@@ -39,15 +40,17 @@ import static org.junit.Assert.assertTrue;
 @Ignore
 public class MmdFormatGeneratorTest {
 
+    private static final File M2_REPO = new File("/Users/ralf/Public/repository");
+
     @BeforeClass
     public static void loadAgent() throws IOException, AttachNotSupportedException, AgentInitializationException,
-                                     AgentLoadException {
+                                          AgentLoadException {
         String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
         int p = nameOfRunningVM.indexOf('@');
         String pid = nameOfRunningVM.substring(0, p);
 
         VirtualMachine vm = VirtualMachine.attach(pid);
-        vm.loadAgent("/Users/ralf/Public/repository/org/apache/openjpa/openjpa-all/2.0.0/openjpa-all-2.0.0.jar");
+        vm.loadAgent(new File(M2_REPO, "org/apache/openjpa/openjpa-all/2.0.0/openjpa-all-2.0.0.jar").getPath());
         vm.detach();
     }
 
