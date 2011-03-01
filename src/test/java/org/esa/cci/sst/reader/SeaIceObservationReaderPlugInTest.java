@@ -23,10 +23,10 @@ public class SeaIceObservationReaderPlugInTest {
 
     @Test
     public void testGetDecodeQualification() throws Exception {
-        assertEquals(DecodeQualification.INTENDED, plugin.getDecodeQualification("testdata\\SeaIceConc\\ice_conc_sh_qual_201006301200.hdf"));
-        assertEquals(DecodeQualification.INTENDED, plugin.getDecodeQualification(new File("testdata\\SeaIceConc\\ice_conc_sh_qual_201006301200.hdf")));
-        assertEquals(DecodeQualification.UNABLE, plugin.getDecodeQualification(new File("testdata\\SeaIceConc\\some_hdf_file.hdf")));
-        assertEquals(DecodeQualification.UNABLE, plugin.getDecodeQualification(new File("testdata\\SeaIceConc\\ice_conc_sh_qual_201006301200.nc")));
+        assertEquals(DecodeQualification.INTENDED, plugin.getDecodeQualification("testdata/SeaIceConc/ice_conc_sh_qual_201006301200.hdf"));
+        assertEquals(DecodeQualification.INTENDED, plugin.getDecodeQualification(new File("testdata/SeaIceConc/ice_conc_sh_qual_201006301200.hdf")));
+        assertEquals(DecodeQualification.UNABLE, plugin.getDecodeQualification(new File("testdata/SeaIceConc/some_hdf_file.hdf")));
+        assertEquals(DecodeQualification.UNABLE, plugin.getDecodeQualification(new File("testdata/SeaIceConc/ice_conc_sh_qual_201006301200.nc")));
     }
 
     @Test
