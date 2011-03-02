@@ -4,83 +4,43 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URISyntaxException;
 
 import static junit.framework.Assert.*;
 
 public class IngestionToolTest {
 
     @Test
-    public void testCommandLineArgs() throws IngestionTool.ToolException {
+    public void testCommandLineArgs() throws ToolException, URISyntaxException {
         IngestionTool noArgs = new IngestionTool();
         assertTrue(noArgs.setCommandLineArgs(new String[]{}));
         assertEquals(false, noArgs.isDebug());
         assertEquals(false, noArgs.isVerbose());
-        assertEquals("[auto-detect]", noArgs.getSchemaName());
-        assertNotNull(noArgs.getInputFiles());
-        assertEquals(0, noArgs.getInputFiles().length);
+        if (MmsTool.DEFAULT_CONFIGURATION_FILE.exists()) {
+            assertNotNull(noArgs.getConfiguration().getProperty("openjpa.ConnectionURL"));
+        }
 
-        IngestionTool onlyFiles = new IngestionTool();
-        assertTrue(onlyFiles.setCommandLineArgs(new String[]{"file1", "file2", "file3"}));
-        assertEquals(false, onlyFiles.isDebug());
-        assertEquals(false, onlyFiles.isVerbose());
-        assertEquals("[auto-detect]", noArgs.getSchemaName());
-        assertNotNull(onlyFiles.getInputFiles());
-        assertEquals(3, onlyFiles.getInputFiles().length);
-        assertEquals(new File("file1"), onlyFiles.getInputFiles()[0]);
-        assertEquals(new File("file2"), onlyFiles.getInputFiles()[1]);
-        assertEquals(new File("file3"), onlyFiles.getInputFiles()[2]);
+        IngestionTool configOnly = new IngestionTool();
+        final File configFile = new File(getClass().getResource("test.properties").toURI());
+        assertTrue(configOnly.setCommandLineArgs(new String[]{"-c", configFile.getPath()}));
+        assertEquals("value1", configOnly.getConfiguration().getProperty("mms.name1"));
+        if (MmsTool.DEFAULT_CONFIGURATION_FILE.exists()) {
+            assertNull(configOnly.getConfiguration().getProperty("openjpa.ConnectionURL"));
+        }
 
         IngestionTool printHelp = new IngestionTool();
         assertFalse(printHelp.setCommandLineArgs(new String[]{"-help"}));
-
-        IngestionTool someOptions = new IngestionTool();
-        assertTrue(someOptions.setCommandLineArgs(new String[]{
-                "-D", "mms.p1=true",
-                "-D", "mms.p2=6",
-                "-schema", Constants.DATA_SCHEMA_NAME_AATSR_MD,
-                "-debug",
-                "mmfile"
-        }));
-        assertEquals(true, someOptions.isDebug());
-        assertEquals(false, someOptions.isVerbose());
-        assertEquals(Constants.DATA_SCHEMA_NAME_AATSR_MD, someOptions.getSchemaName());
-        assertNotNull(someOptions.getInputFiles());
-        assertEquals(1, someOptions.getInputFiles().length);
-        assertEquals(new File("mmfile"), someOptions.getInputFiles()[0]);
-        assertEquals("true", someOptions.getConfiguration().getProperty("mms.p1"));
-        assertEquals("6", someOptions.getConfiguration().getProperty("mms.p2"));
-
-        URL resource = getClass().getResource("test.properties");
-        assertTrue(someOptions.setCommandLineArgs(new String[]{
-                "-conf", new File(resource.getPath()).getPath(),
-                "mmfile"
-        }));
-        assertNotNull(someOptions.getInputFiles());
-        assertEquals(1, someOptions.getInputFiles().length);
-        assertEquals(new File("mmfile"), someOptions.getInputFiles()[0]);
-        assertEquals("value1", someOptions.getConfiguration().getProperty("mms.name1"));
-        assertEquals("value2", someOptions.getConfiguration().getProperty("mms.name2"));
     }
 
     @Test
     public void testConfiguration() {
-        IngestionTool ingestionTool = new IngestionTool();
-        assertNotNull(ingestionTool.getConfiguration());
-        assertEquals(null, ingestionTool.getConfiguration().getProperty("mms.someParam1"));
-
-        // test that "mms" parameters are copied from system properties
         System.setProperty("mms.someParam", "someValue");
-        ingestionTool = new IngestionTool();
+        IngestionTool ingestionTool = new IngestionTool();
         assertEquals("someValue", ingestionTool.getConfiguration().getProperty("mms.someParam"));
-
-        // todo rq - why test that returned configuration is immutable?
-        ingestionTool.getConfiguration().setProperty("xyz", "2");
-        assertNotNull(ingestionTool.getConfiguration().getProperty("xyz"));
     }
 
     @Test
-    public void testCreateReader() throws IngestionTool.ToolException, IOException {
+    public void testCreateReader() throws ToolException, IOException {
         assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_AATSR_MD));
         assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_METOP_MD));
         assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_SEVIRI_MD));
@@ -88,7 +48,7 @@ public class IngestionToolTest {
         try {
             IngestionTool.createReader("bogus-reader");
             fail("ToolException expected");
-        } catch (IngestionTool.ToolException e) {
+        } catch (ToolException e) {
             // ok
         }
     }
