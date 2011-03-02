@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MmdFormatGenerator {
 
@@ -49,6 +51,8 @@ public class MmdFormatGenerator {
             + " where v.dataSchema.id = %d";
 
     private final PersistenceManager persistenceManager;
+
+    private Map<String, Product> products = new HashMap<String, Product>();
 
     public static void main(String[] args) throws Exception {
         final MmdFormatGenerator generator = new MmdFormatGenerator();
@@ -113,30 +117,31 @@ public class MmdFormatGenerator {
 
         Query getAllMatchupsQuery = persistenceManager.createQuery(ALL_MATCHUPS_QUERY);
         final List<Matchup> resultList = getAllMatchupsQuery.getResultList();
-
-        for (int i = 0; i < resultList.size(); i++) {
+        int matchupCount = resultList.size();
+        for (int i = 0; i < matchupCount; i++) {
             Matchup matchup = resultList.get(i);
+            System.out.println("Writing matchup '" + matchup.getId() + "' (" + i + "/" + matchupCount + ").");
             final ReferenceObservation referenceObservation = matchup.getRefObs();
             final List<Coincidence> coincidences = matchup.getCoincidences();
             final Point referencePoint = referenceObservation.getPoint().getGeometry().getPoint(0);
+            final GeoPos referenceGeoPos = new GeoPos((float) referencePoint.x, (float) referencePoint.y);
             final PixelPos referencePixelPos = new PixelPos();
             for (Coincidence coincidence : coincidences) {
-                writeCoincidence(file, referencePoint, referencePixelPos, coincidence, i);
+                writeCoincidence(file, referenceGeoPos, referencePixelPos, coincidence, i);
             }
         }
         persistenceManager.commit();
     }
 
     @SuppressWarnings({"unchecked"})
-    private void writeCoincidence(NetcdfFileWriteable file, Point referencePoint, PixelPos referencePixelPos,
+    private void writeCoincidence(NetcdfFileWriteable file, GeoPos referencePoint, PixelPos referencePixelPos,
                                   Coincidence coincidence, int matchupIndex) throws IOException, InvalidRangeException {
         // todo - ts, mb - get file locations, get reader, read data, put into netcdf-file
         final GlobalObservation observation = coincidence.getObservation();
         final String fileLocation = observation.getDatafile().getPath();
-        final Product product = ProductIO.readProduct(fileLocation);
+        final Product product = getProduct(fileLocation);
         final GeoCoding geoCoding = product.getGeoCoding();
-        geoCoding.getPixelPos(new GeoPos((float) referencePoint.x, (float) referencePoint.y),
-                              referencePixelPos);
+        geoCoding.getPixelPos(referencePoint, referencePixelPos);
         final int dataschemaId = observation.getDatafile().getDataSchema().getId();
         final Query getVariablesByDataschemaId = persistenceManager.createQuery(
                 String.format(VARIABLES_BY_DATASCHEMA_ID_QUERY, dataschemaId));
@@ -149,9 +154,9 @@ public class MmdFormatGenerator {
             if (band == null) {
                 continue;
             }
+            // todo - clarify: take only one sample or surrounding samples, too?
             final Object sample = getSample(referencePixelPos, band);
             final DataType type = DataTypeUtils.getNetcdfDataType(band);
-            // todo - consider growing origins
             final int[] origin = createOriginArray(matchupIndex, variable);
             final int[] shape = createShapeArray(origin.length);
             final Array array = Array.factory(type, shape);
@@ -159,6 +164,16 @@ public class MmdFormatGenerator {
             originalVarName = NetcdfFile.escapeName(originalVarName);
             file.write(originalVarName, origin, array);
         }
+    }
+
+    private Product getProduct(String fileLocation) throws IOException {
+        Product product = products.get(fileLocation);
+        if( product != null ) {
+            return product;
+        }
+        product = ProductIO.readProduct(fileLocation);
+        products.put(fileLocation, product);
+        return product;
     }
 
     private Object getSample(PixelPos referencePixelPos, Band band) {
