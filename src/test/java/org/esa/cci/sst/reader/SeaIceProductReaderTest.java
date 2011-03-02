@@ -1,6 +1,9 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.MetadataElement;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.junit.Before;
@@ -68,6 +71,25 @@ public class SeaIceProductReaderTest {
     public void testIsSeaIceFile() throws Exception {
         assertTrue(SeaIceProductReader.isSeaIceFile(TEST_FILE.getName()));
         assertFalse(SeaIceProductReader.isSeaIceFile(TEST_QUALITY_FILE.getName()));
+    }
+
+    @Test
+    public void testGeoCoding() throws Exception {
+        final NetcdfFile ncFile = NetcdfFile.open(TEST_FILE.getPath());
+        final Variable header = ncFile.findVariable("Header");
+        final GeoCoding geoCoding = reader.createGeoCoding((Structure) header);
+        assertNotNull(geoCoding);
+        final GeoPos geoPos = new GeoPos();
+        final PixelPos pixelPos = new PixelPos();
+        pixelPos.setLocation(688.18774, 943.7666);
+        geoCoding.getGeoPos(pixelPos, geoPos);
+        assertEquals(48.483643, geoPos.lat, 0.01);
+        assertEquals(-4.7993994, geoPos.lon, 0.01);
+
+        pixelPos.setLocation(718.5, 820.5);
+        geoCoding.getGeoPos(pixelPos, geoPos);
+        assertEquals(53.59092, geoPos.lat, 0.5);
+        assertEquals(9.785294, geoPos.lon, 0.5);
     }
 
     @Test

@@ -27,6 +27,16 @@ public class Constants {
      */
     public static final String PERSISTENCE_UNIT_NAME = "matchupdb";
 
+    public static final String[] SENSOR_NAMES = {
+            SENSOR_NAME_AATSR,
+            SENSOR_NAME_METOP,
+            SENSOR_NAME_SEVIRI,
+            SENSOR_NAME_AVHRR,
+            SENSOR_NAME_AMSRE,
+            SENSOR_NAME_TMI,
+            SENSOR_NAME_SEA_ICE
+    };
+
     private Constants() {
     }
 }
