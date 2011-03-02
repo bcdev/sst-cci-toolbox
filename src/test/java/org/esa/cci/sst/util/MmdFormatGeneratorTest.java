@@ -20,27 +20,34 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
- * TODO fill out or delete
- *
  * @author Thomas Storm
  */
-@Ignore
 public class MmdFormatGeneratorTest {
 
     private static final File M2_REPO = new File("/Users/ralf/Public/repository");
+    private static final String TEST_FILE = "test.nc";
+    private NetcdfFileWriteable file;
+    private MmdFormatGenerator generator;
+
+    @Before
+    public void setUp() throws Exception {
+        generator = new MmdFormatGenerator();
+        file = generator.generateMmdFile(TEST_FILE);
+    }
 
     @BeforeClass
     public static void loadAgent() throws IOException, AttachNotSupportedException, AgentInitializationException,
@@ -56,12 +63,48 @@ public class MmdFormatGeneratorTest {
 
     @Test
     public void testAddContent() throws Exception {
-        final MmdFormatGenerator generator = new MmdFormatGenerator();
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew("");
-        file.addDimension(MmdFormatGenerator.DIMENSION_NAME_MATCHUP, 0, false, true, true);
-        final String var1 = "var1";
-        file.addVariable(var1, DataType.LONG, MmdFormatGenerator.DIMENSION_NAME_MATCHUP);
         generator.addContent(file);
-        assertTrue(file.findVariable(var1).read().getSize() > 0);
+        final Variable variable = file.getVariables().get(0);
+        assertTrue(variable.read().getSize() > 0);
+    }
+
+    @Test
+    public void testCreateOriginArray() throws Exception {
+        final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
+        variable.setDimensions("ni nj");
+        variable.setDimensionRoles("ni nj");
+        int[] originArray = generator.createOriginArray(0, variable);
+        assertEquals(3, originArray.length);
+
+        variable.setDimensions("match_up ni nj");
+        variable.setDimensionRoles("match_up ni nj");
+        originArray = generator.createOriginArray(0, variable);
+        assertEquals(3, originArray.length);
+
+        variable.setDimensions("time");
+        variable.setDimensionRoles("time");
+        originArray = generator.createOriginArray(0, variable);
+        assertEquals(2, originArray.length);
+
+        variable.setDimensions("match_up time");
+        variable.setDimensionRoles("match_up time");
+        originArray = generator.createOriginArray(0, variable);
+        assertEquals(2, originArray.length);
+
+        variable.setDimensions("n ni nj");
+        variable.setDimensionRoles("match_up ni nj");
+        originArray = generator.createOriginArray(0, variable);
+        assertEquals(3, originArray.length);
+
+        variable.setDimensions("n ni nj");
+        variable.setDimensionRoles("n ni nj");
+        originArray = generator.createOriginArray(0, variable);
+        assertEquals(4, originArray.length);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        file.close();
+//        new File(TEST_FILE).delete();
     }
 }
