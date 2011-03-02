@@ -130,7 +130,6 @@
                 <version>2.2</version>
                 <configuration>
                     <descriptors>
-                        <!--<descriptor>src/main/assembly/beam.xml</descriptor>-->
                         <descriptor>src/main/assembly/bin.xml</descriptor>
                     </descriptors>
                 </configuration>

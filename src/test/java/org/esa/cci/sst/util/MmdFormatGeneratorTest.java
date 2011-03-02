@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
+@Ignore
 public class MmdFormatGeneratorTest {
 
     private MmdFormatGenerator generator;

@@ -16,8 +16,4 @@ if [ -z "$CCI_SST_HOME" ]; then
     exit 2
 fi
 
-java \
-    -Xmx1024M \
-    -javaagent:"$CCI_SST_HOME/lib/openjpa-all.jar" \
-    -classpath "$CCI_SST_HOME/lib/*" \
-    org.esa.cci.sst.MatchupTool "$@"
+rsync -r "$CCI_SST_HOME" mms@10.3.0.35:

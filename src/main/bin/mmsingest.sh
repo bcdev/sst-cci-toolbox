@@ -21,5 +21,3 @@ java \
     -javaagent:"$CCI_SST_HOME/lib/openjpa-all.jar" \
     -classpath "$CCI_SST_HOME/lib/*" \
     org.esa.cci.sst.IngestionTool "$@"
-
-exit 0
