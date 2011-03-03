@@ -46,7 +46,7 @@ public class SeaIceProductReaderTest {
     @Test
     public void testSetStartTime() throws Exception {
         final Product dummyProduct = new Product("dummy", "dummyType", 10, 10);
-        reader.setStartTime(dummyProduct, 2011, 2, 16, 11, 50);
+        reader.setTimes(dummyProduct, 2011, 2, 16, 11, 50);
         final ProductData.UTC startTime = dummyProduct.getStartTime();
         assertNotNull(startTime);
         final Calendar calendar = ProductData.UTC.parse("2011-02-16-11-50", "yyyy-MM-dd-HH-mm").getAsCalendar();

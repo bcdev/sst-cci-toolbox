@@ -84,7 +84,7 @@ public class SeaIceProductReader extends AbstractProductReader {
 
         final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], sceneRasterWidth,
                                             sceneRasterHeight);
-        setStartTime(product, year, month, day, hour, minute);
+        setTimes(product, year, month, day, hour, minute);
         final Band band;
         if (isSeaIceFile(pathname)) {
             band = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
@@ -97,6 +97,7 @@ public class SeaIceProductReader extends AbstractProductReader {
             band.setNoDataValueUsed(true);
             product.setDescription(DESCRIPTION_QUALITY_FLAG);
         }
+        product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
         product.setFileLocation(inputFile);
         product.setProductReader(this);
         product.getMetadataRoot().addElement(getMetadata(headerStructure));
@@ -211,7 +212,7 @@ public class SeaIceProductReader extends AbstractProductReader {
                                  ResolutionLevel.MAXRES);
     }
 
-    void setStartTime(Product product, int year, int month, int day, int hour, int minute) {
+    void setTimes(Product product, int year, int month, int day, int hour, int minute) {
         StringBuilder builder = new StringBuilder();
         builder.append(year);
         builder.append("-");
@@ -242,6 +243,7 @@ public class SeaIceProductReader extends AbstractProductReader {
             Debug.trace(e);
         }
         product.setStartTime(startTime);
+        product.setEndTime(startTime);
     }
 
     static boolean isSeaIceFile(String pathname) {
