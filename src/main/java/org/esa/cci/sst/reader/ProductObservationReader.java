@@ -7,6 +7,7 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
 import org.postgis.LinearRing;
@@ -15,20 +16,24 @@ import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.NetcdfFileWriteable;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProductObservationReader implements ObservationReader {
 
     private final String sensorName;
     private final GeoBoundaryCalculator gbc;
+    private final Map<String, Product> products = new HashMap<String, Product>();
 
     private DataFile dataFile;
     private Product product;
+
 
     public ProductObservationReader(String sensorName, GeoBoundaryCalculator gbc) {
         this.sensorName = sensorName;
@@ -36,11 +41,11 @@ public class ProductObservationReader implements ObservationReader {
     }
 
     @Override
-    public final void init(File observationFile, DataFile dataFileEntry) throws IOException {
-        final Product product = ProductIO.readProduct(observationFile);
+    public final void init(DataFile dataFileEntry) throws IOException {
+        final Product product = ProductIO.readProduct(dataFileEntry.getPath());
         if (product == null) {
             throw new IOException(
-                    MessageFormat.format("Unable to read observation file ''{0}''.", observationFile.getPath()));
+                    MessageFormat.format("Unable to read observation file ''{0}''.", dataFileEntry.getPath()));
         }
         this.product = product;
         this.dataFile = dataFileEntry;
@@ -132,6 +137,47 @@ public class ProductObservationReader implements ObservationReader {
             variableList.add(variable);
         }
         return variableList.toArray(new Variable[variableList.size()]);
+    }
+
+    @Override
+    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex) throws
+                                                                                                              IOException {
+//        final String fileLocation = observation.getDatafile().getPath();
+//        final Product product = getProduct(fileLocation);
+//        final GeoCoding geoCoding = product.getGeoCoding();
+//        geoCoding.getPixelPos(referencePoint, referencePixelPos);
+//        final int dataschemaId = observation.getDatafile().getDataSchema().getId();
+//        final Query getVariablesByDataschemaId = persistenceManager.createQuery(
+//                String.format(VARIABLES_BY_DATASCHEMA_ID_QUERY, dataschemaId));
+//        final List<Variable> _variables = getVariablesByDataschemaId.getResultList();
+//        String sensorName = observation.getSensor();
+//        for (Variable variable : _variables) {
+//            String originalVarName = variable.getName();
+//            String variableName = originalVarName.replace(sensorName + ".", "");
+//            final Band band = product.getBand(variableName);
+//            if (band == null) {
+//                continue;
+//            }
+//            // todo - clarify: take only one sample or surrounding samples, too?
+//            final Object sample = getSample(referencePixelPos, band);
+//            final DataType type = DataTypeUtils.getNetcdfDataType(band);
+//            final int[] origin = createOriginArray(matchupIndex, variable);
+//            final int[] shape = createShapeArray(origin.length);
+//            final Array array = Array.factory(type, shape);
+//            array.setObject(0, sample);
+//            originalVarName = NetcdfFile.escapeName(originalVarName);
+//            file.write(originalVarName, origin, array);
+//        }
+    }
+
+    private Product getProduct(String fileLocation) throws IOException {
+        Product product = products.get(fileLocation);
+        if (product != null) {
+            return product;
+        }
+        product = ProductIO.readProduct(fileLocation);
+        products.put(fileLocation, product);
+        return product;
     }
 
     private Date getCenterTimeAsDate() throws IOException {

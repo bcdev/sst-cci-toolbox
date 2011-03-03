@@ -20,6 +20,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.FileInputStream;
+import java.util.Properties;
+
 import static org.junit.Assert.*;
 
 /**
@@ -32,7 +35,9 @@ public class MmdFormatGeneratorTest {
 
     @Before
     public void setUp() throws Exception {
-        generator = new MmdFormatGenerator();
+        final Properties properties = new Properties();
+        properties.load(new FileInputStream("mms-test.properties"));
+        generator = new MmdFormatGenerator(properties);
     }
 
     @Test

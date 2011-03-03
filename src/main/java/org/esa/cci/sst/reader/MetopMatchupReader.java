@@ -2,9 +2,9 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
@@ -12,8 +12,8 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.NetcdfFileWriteable;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -60,22 +60,8 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
     }
 
     @Override
-    public String[] getVariableNames() {
-        return new String[]{
-                "msr_id",
-                "lat",
-                "lon",
-                "box_center_y_coord",
-                "box_center_x_coord",
-                "msr_time",
-                "dtime",
-                "sst"
-        };
-    }
-
-    @Override
-    public void init(File observationFile, DataFile dataFileEntry) throws IOException {
-        super.init(observationFile, dataFileEntry);
+    public void init(DataFile dataFileEntry) throws IOException {
+        super.init(dataFileEntry);
         rowCount = netcdf.findDimension("ny").getLength();
         colCount = netcdf.findDimension("nx").getLength();
     }
@@ -112,6 +98,10 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != sstFillValue);
 
         return observation;
+    }
+
+    @Override
+    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex) {
     }
 
 

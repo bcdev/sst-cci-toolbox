@@ -30,7 +30,6 @@ public class MmsTool {
     /**
      * Name of persistence unit in META-INF/persistence.xml
      */
-    private static final String PERSISTENCE_UNIT_NAME = "matchupdb";
     public static final String CONFIG_FILE_OPTION_NAME = "c";
 
     private final String name;
@@ -131,7 +130,7 @@ public class MmsTool {
             return;
         }
 
-        persistenceManager = new PersistenceManager(PERSISTENCE_UNIT_NAME, getConfiguration());
+        persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, getConfiguration());
         initialised = true;
     }
 

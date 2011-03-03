@@ -3,10 +3,14 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
+import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
 import java.util.Date;
@@ -16,14 +20,13 @@ import java.util.Date;
  * Defines the variables to access in the NetCDF files and implements the conversion
  * to a "reference observation" with a single point as coordinate. (A)ATSR MDs only
  * serve as reference observation. They never provide a coverage to serve as "common
- * observation" that matches a reference observation. Therefore, the readObservation()
- * method is not implemented.
+ * observation" that matches a reference observation.
  *
  * @author Martin Boettcher
  */
-public class AatsrMatchupReader extends NetcdfMatchupReader {
+public class AatsrMdReader extends NetcdfMatchupReader {
 
-    public AatsrMatchupReader() {
+    public AatsrMdReader() {
         super(Constants.SENSOR_NAME_AATSR_MD);
     }
 
@@ -38,17 +41,6 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
     }
 
     @Override
-    public String[] getVariableNames() {
-        return new String[]{
-                "insitu.unique_identifier",
-                "atsr.latitude",
-                "atsr.longitude",
-                "atsr.time.julian",
-                "atsr.sea_surface_temperature.dual"
-        };
-    }
-
-    @Override
     public long getTime(int recordNo) throws IOException, InvalidRangeException {
         return dateOf(getDouble("atsr.time.julian", recordNo)).getTime();
     }
@@ -58,12 +50,14 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
      * may serve as reference observation in some matchup.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
+     *
      * @return Observation for (A)ATSR pixel
-     * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
+     *
+     * @throws IOException           if file io fails
+     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
      */
     @Override
-    public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public ReferenceObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
 
         final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                              getFloat("atsr.latitude", recordNo)));
@@ -78,6 +72,31 @@ public class AatsrMatchupReader extends NetcdfMatchupReader {
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != sstFillValue);
         return observation;
+    }
+
+    @Override
+    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex) throws
+                                                                                                              IOException {
+        String sensorName = observation.getSensor();
+        String originalVarName = variable.getName();
+        String variableName = originalVarName.replace(sensorName + ".", "");
+        final int[] origin = ReaderUtils.createOriginArray(matchupIndex, variable);
+        try {
+            Array variableData = getData(matchupIndex, variableName);
+            file.write(NetcdfFile.escapeName(originalVarName), origin, variableData);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+    }
+
+
+    private static int[] createShapeArray(int size, ucar.nc2.Variable ncVar) {
+        final int[] shape = new int[size];
+        shape[0] = 1;
+        for(int i = 1; i < size; i++) {
+            shape[i] = ncVar.getDimension(i).getLength();
+        }
+        return shape;
     }
 
     private Date dateOf(double julianDate) throws IOException, InvalidRangeException {

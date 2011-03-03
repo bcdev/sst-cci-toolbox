@@ -1,44 +1,45 @@
 package org.esa.cci.sst.util;
 
-import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
-import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.Band;
-import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.reader.ObservationReader;
+import org.esa.cci.sst.reader.ReaderFactory;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
-import ucar.nc2.NCdumpW;
-import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.persistence.Query;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class MmdFormatGenerator {
 
     public static final String DIMENSION_NAME_MATCHUP = "match_up";
     public static final String DIMENSION_ROLE_MATCHUP = "match_up";
     public static final String DIMENSION_ROLE_LENGTH = "length";
+
+    private static final String COUNT_MATCHUPS_QUERY =
+            "select count( m ) "
+            + " from Matchup m";
 
     private static final String ALL_MATCHUPS_QUERY =
             "select m"
@@ -51,25 +52,35 @@ public class MmdFormatGenerator {
             + " where v.dataSchema.id = %d";
 
     private final PersistenceManager persistenceManager;
-
-    private Map<String, Product> products = new HashMap<String, Product>();
+    private Map<String, ObservationReader> readers = new HashMap<String, ObservationReader>();
 
     public static void main(String[] args) throws Exception {
-        final MmdFormatGenerator generator = new MmdFormatGenerator();
-        final NetcdfFileWriteable file = generator.generateMmdFile("mmd.nc");
-        generator.addContent(file);
-        file.close();
-        NCdumpW.printHeader("mmd.nc", new PrintWriter(System.out));
+        NetcdfFileWriteable file = null;
+
+        try {
+            final Properties properties = new Properties();
+            properties.load(new FileInputStream("mms-test.properties"));
+            final MmdFormatGenerator generator = new MmdFormatGenerator(properties);
+            file = generator.generateMmdFile("mmd.nc");
+            generator.addContent(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (file != null) {
+                file.close();
+            }
+        }
+//        NCdumpW.printHeader("mmd.nc", new PrintWriter(System.out));
     }
 
-    public MmdFormatGenerator() {
-        persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME);
+    public MmdFormatGenerator(Properties properties) {
+        persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, properties);
     }
 
     NetcdfFileWriteable generateMmdFile(String fileName) throws Exception {
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName);
+        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, false);
 
-        file.addUnlimitedDimension(DIMENSION_NAME_MATCHUP);
+        file.addDimension(DIMENSION_NAME_MATCHUP, 10);
         file.addDimension("aatsr-md.cs_length", 8);
         file.addDimension("aatsr-md.ui_length", 30);
         file.addDimension("aatsr-md.length", 65);
@@ -89,91 +100,137 @@ public class MmdFormatGenerator {
         file.addDimension("amsre.nj", 11);
         file.addDimension("tmi.ni", 11);
         file.addDimension("tmi.nj", 11);
-        // todo - clarify if this is ok (in each case the maximum dimension value of both grids, cp. Sea Ice Product Manual)
-        file.addDimension("seaice.ni", 790);
-        file.addDimension("seaice.nj", 1120);
+        // todo - ingest feedback from gary
+        file.addDimension("seaice.ni", 11);
+        file.addDimension("seaice.nj", 11);
         // todo: tie point dimensions for all sensors (rq-20110223)
 
         addVariables(file, Constants.SENSOR_NAME_AATSR_MD);
         addInsituDataHistories(file);
 
         for (String sensorName : Constants.SENSOR_NAMES) {
-            addObservationTime(file, sensorName);
-            addLsMask(file, sensorName);
+            if (!Constants.SENSOR_NAME_AATSR_MD.equalsIgnoreCase(sensorName)) {
+                addObservationTime(file, sensorName);
+                addLsMask(file, sensorName);
+                addNwpData(file, sensorName);
+            }
             addVariables(file, sensorName);
-            addNwpData(file, sensorName);
         }
 
+        file.addVariable("mId", DataType.INT, DIMENSION_NAME_MATCHUP);
+        file.setLargeFile(true);
         addGlobalAttributes(file);
         file.create();
 
         return file;
     }
 
+    private int getMatchupCount() {
+        final Query query = persistenceManager.createQuery(COUNT_MATCHUPS_QUERY);
+        return ((Number) query.getSingleResult()).intValue();
+    }
+
     @SuppressWarnings({"unchecked"})
     void addContent(NetcdfFileWriteable file) throws Exception {
         // open database
         persistenceManager.transaction();
+        try {
 
-        Query getAllMatchupsQuery = persistenceManager.createQuery(ALL_MATCHUPS_QUERY);
-        final List<Matchup> resultList = getAllMatchupsQuery.getResultList();
-        int matchupCount = resultList.size();
-        for (int i = 0; i < matchupCount; i++) {
-            Matchup matchup = resultList.get(i);
-            System.out.println("Writing matchup '" + matchup.getId() + "' (" + i + "/" + matchupCount + ").");
-            final ReferenceObservation referenceObservation = matchup.getRefObs();
-            final List<Coincidence> coincidences = matchup.getCoincidences();
-            final Point referencePoint = referenceObservation.getPoint().getGeometry().getPoint(0);
-            final GeoPos referenceGeoPos = new GeoPos((float) referencePoint.x, (float) referencePoint.y);
-            final PixelPos referencePixelPos = new PixelPos();
-            for (Coincidence coincidence : coincidences) {
-                writeCoincidence(file, referenceGeoPos, referencePixelPos, coincidence, i);
+            Query getAllMatchupsQuery = persistenceManager.createQuery(ALL_MATCHUPS_QUERY);
+            final List<Matchup> resultList = getAllMatchupsQuery.getResultList();
+            int matchupCount = resultList.size();
+
+            for (int matchupIndex = 0; matchupIndex < 10; matchupIndex++) {
+                Matchup matchup = resultList.get(matchupIndex);
+                final int matchupId = matchup.getId();
+                System.out.println("Writing matchup '" + matchupId + "' (" + matchupIndex + "/" + matchupCount + ").");
+                final ReferenceObservation referenceObservation = matchup.getRefObs();
+                final List<Coincidence> coincidences = matchup.getCoincidences();
+                final Point referencePoint = referenceObservation.getPoint().getGeometry().getPoint(0);
+                final GeoPos referenceGeoPos = new GeoPos((float) referencePoint.x, (float) referencePoint.y);
+                final PixelPos referencePixelPos = new PixelPos();
+                for (Coincidence coincidence : coincidences) {
+                    writeObservation(file, coincidence.getObservation(), matchupIndex);
+                }
+                writeObservation(file, referenceObservation, matchupIndex);
+                persistenceManager.detach(coincidences);
+//            if( matchupIndex % 1000 == 999 ) {
+//                persistenceManager.commit();
+//                persistenceManager.transaction();
+//                persistenceManager.clearEntityManager();
+//            }
             }
+        } finally {
+            persistenceManager.commit();
+            close();
         }
-        persistenceManager.commit();
     }
 
-    @SuppressWarnings({"unchecked"})
-    private void writeCoincidence(NetcdfFileWriteable file, GeoPos referencePoint, PixelPos referencePixelPos,
-                                  Coincidence coincidence, int matchupIndex) throws IOException, InvalidRangeException {
-        // todo - ts, mb - get file locations, get reader, read data, put into netcdf-file
-        final GlobalObservation observation = coincidence.getObservation();
-        final String fileLocation = observation.getDatafile().getPath();
-        final Product product = getProduct(fileLocation);
-        final GeoCoding geoCoding = product.getGeoCoding();
-        geoCoding.getPixelPos(referencePoint, referencePixelPos);
-        final int dataschemaId = observation.getDatafile().getDataSchema().getId();
-        final Query getVariablesByDataschemaId = persistenceManager.createQuery(
-                String.format(VARIABLES_BY_DATASCHEMA_ID_QUERY, dataschemaId));
-        final List<Variable> variables = getVariablesByDataschemaId.getResultList();
-        String sensorName = observation.getSensor();
+    private void writeObservation(NetcdfFileWriteable file, Observation observation, int matchupIndex) throws
+                                                                                                       Exception {
+        ObservationReader io = getReader(observation);
+        final Variable[] variables = io.getVariables();
         for (Variable variable : variables) {
-            String originalVarName = variable.getName();
-            String variableName = originalVarName.replace(sensorName + ".", "");
-            final Band band = product.getBand(variableName);
-            if (band == null) {
-                continue;
-            }
-            // todo - clarify: take only one sample or surrounding samples, too?
-            final Object sample = getSample(referencePixelPos, band);
-            final DataType type = DataTypeUtils.getNetcdfDataType(band);
-            final int[] origin = createOriginArray(matchupIndex, variable);
-            final int[] shape = createShapeArray(origin.length);
-            final Array array = Array.factory(type, shape);
-            array.setObject(0, sample);
-            originalVarName = NetcdfFile.escapeName(originalVarName);
-            file.write(originalVarName, origin, array);
+            io.write(observation, variable, file, matchupIndex);
         }
     }
 
-    private Product getProduct(String fileLocation) throws IOException {
-        Product product = products.get(fileLocation);
-        if( product != null ) {
-            return product;
+    private ObservationReader getReader(Observation observation) throws Exception {
+        final String name = observation.getDatafile().getDataSchema().getName();
+        ObservationReader reader = readers.get(name);
+        if (reader != null) {
+            return reader;
         }
-        product = ProductIO.readProduct(fileLocation);
-        products.put(fileLocation, product);
-        return product;
+        reader = ReaderFactory.createReader(name);
+        reader.init(observation.getDatafile());
+        readers.put(name, reader);
+        return reader;
+    }
+
+
+    public void close() {
+        for (ObservationReader observationReader : readers.values()) {
+            try {
+                observationReader.close();
+            } catch (IOException ignore) {
+                // ok
+            }
+        }
+    }
+//
+//        final String fileLocation = observation.getDatafile().getPath();
+//        final Product product = getProduct(fileLocation);
+//        final GeoCoding geoCoding = product.getGeoCoding();
+//        geoCoding.getPixelPos(referencePoint, referencePixelPos);
+//        final int dataschemaId = observation.getDatafile().getDataSchema().getId();
+//        final Query getVariablesByDataschemaId = persistenceManager.createQuery(
+//                String.format(VARIABLES_BY_DATASCHEMA_ID_QUERY, dataschemaId));
+//        final List<Variable> _variables = getVariablesByDataschemaId.getResultList();
+//        String sensorName = observation.getSensor();
+//        for (Variable variable : _variables) {
+//            String originalVarName = variable.getName();
+//            String variableName = originalVarName.replace(sensorName + ".", "");
+//            final Band band = product.getBand(variableName);
+//            if (band == null) {
+//                continue;
+//            }
+//            // todo - clarify: take only one sample or surrounding samples, too?
+//            final Object sample = getSample(referencePixelPos, band);
+//            final DataType type = DataTypeUtils.getNetcdfDataType(band);
+//            final int[] origin = createOriginArray(matchupIndex, variable);
+//            final int[] shape = createShapeArray(origin.length);
+//            final Array array = Array.factory(type, shape);
+//            array.setObject(0, sample);
+//            originalVarName = NetcdfFile.escapeName(originalVarName);
+//            file.write(originalVarName, origin, array);
+//        }
+//    }
+
+
+    private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException,
+                                                                                                  InvalidRangeException {
+        final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
+        file.write("mId", new int[]{matchupIndex}, array);
     }
 
     private Object getSample(PixelPos referencePixelPos, Band band) {
@@ -213,14 +270,6 @@ public class MmdFormatGenerator {
             origin[i] = 0;
         }
         return origin;
-    }
-
-    private int[] createShapeArray(int size) {
-        final int[] shape = new int[size];
-        for (int i = 0; i < shape.length; i++) {
-            shape[i] = 1;
-        }
-        return shape;
     }
 
     private void addGlobalAttributes(NetcdfFileWriteable file) {
@@ -336,4 +385,5 @@ public class MmdFormatGenerator {
         return persistenceManager.createQuery(
                 String.format("select v from Variable v where v.name like '%s.%%' order by v.name", sensorName));
     }
+
 }

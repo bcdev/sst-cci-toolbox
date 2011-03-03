@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
+class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
 
     @Override
     public Point[] getGeoBoundary(Product product) throws IOException {

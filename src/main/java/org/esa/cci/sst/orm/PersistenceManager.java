@@ -7,7 +7,6 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Wrapper around JPA EntityManager to abstract from the persistence
@@ -19,10 +18,6 @@ public class PersistenceManager {
 
     private EntityManagerFactory emFactory = null;
     private EntityManager entityManager = null;
-
-    public PersistenceManager(String persistenceUnitName) {
-        this(persistenceUnitName, new Properties());
-    }
 
     public PersistenceManager(String persistenceUnitName, Map conf) {
         emFactory = Persistence.createEntityManagerFactory(persistenceUnitName, conf);
@@ -99,5 +94,9 @@ public class PersistenceManager {
 
     public void clearEntityManager() {
         entityManager.clear();
+    }
+
+    public void detach(Object entity) {
+        entityManager.detach(entity);
     }
 }

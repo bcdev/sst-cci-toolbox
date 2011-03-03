@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.reader.GeoBoundaryCalculator;

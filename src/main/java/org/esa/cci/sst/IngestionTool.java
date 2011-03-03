@@ -5,12 +5,8 @@ import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.AatsrMatchupReader;
-import org.esa.cci.sst.reader.DefaultGeoBoundaryCalculator;
-import org.esa.cci.sst.reader.MetopMatchupReader;
 import org.esa.cci.sst.reader.ObservationReader;
-import org.esa.cci.sst.reader.ProductObservationReader;
-import org.esa.cci.sst.reader.SeviriMatchupReader;
+import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
@@ -82,7 +78,12 @@ public class IngestionTool extends MmsTool {
             if (inputFiles == null) {
                 printInfo(MessageFormat.format("missing directory ''{0}''.", dirPath));
             } else {
-                ObservationReader reader = createReader(schemaName);
+                ObservationReader reader;
+                try {
+                    reader = ReaderFactory.createReader(schemaName);
+                } catch (Exception e) {
+                    throw new ToolException("No reader for schema '" + schemaName + "' found.", 1, e);
+                }
                 for (File inputFile : inputFiles) {
                     ingest(inputFile, schemaName, reader);
                 }
@@ -143,7 +144,7 @@ public class IngestionTool extends MmsTool {
             dataFile.setDataSchema(dataSchema);
             persistenceManager.persist(dataFile);
 
-            reader.init(matchupFile, dataFile);
+            reader.init(dataFile);
             //System.out.printf("numberOfRecords=%d\n", reader.getNumRecords());
 
             if (isNewDataSchema) {
@@ -222,31 +223,4 @@ public class IngestionTool extends MmsTool {
         persistenceManager.commit();
     }
 
-    static ObservationReader createReader(String schemaName) throws ToolException {
-        // todo - get reader plugin from registration
-        ObservationReader reader;
-        if (Constants.DATA_SCHEMA_NAME_AATSR_MD.equalsIgnoreCase(schemaName)) {
-            reader = new AatsrMatchupReader();
-        } else if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
-            reader = new MetopMatchupReader();
-        } else if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
-            reader = new SeviriMatchupReader();
-        } else if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AMSRE, new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_TMI, new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AATSR, new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI, new NullGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AVHRR, new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_SEA_ICE.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_SEA_ICE, new DefaultGeoBoundaryCalculator());
-        } else {
-            // todo - sea ice quality and in-situ
-            throw new ToolException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName), 8);
-        }
-        return reader;
-    }
 }

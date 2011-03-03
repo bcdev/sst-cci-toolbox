@@ -3,7 +3,6 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.PgUtil;
@@ -34,8 +33,9 @@ public class ProductObservationReaderTest {
 
     public void init(File file) throws IOException {
         dataFile = new DataFile();
+        dataFile.setPath(file.getPath());
         reader = new ProductObservationReader("any", new DefaultGeoBoundaryCalculator());
-        reader.init(file, dataFile);
+        reader.init(dataFile);
     }
 
     @After

@@ -1,9 +1,9 @@
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.reader.ReaderFactory;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
 
 import static junit.framework.Assert.*;
@@ -40,15 +40,15 @@ public class IngestionToolTest {
     }
 
     @Test
-    public void testCreateReader() throws ToolException, IOException {
-        assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_AATSR_MD));
-        assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_METOP_MD));
-        assertNotNull(IngestionTool.createReader(Constants.DATA_SCHEMA_NAME_SEVIRI_MD));
+    public void testCreateReader() throws Exception {
+        assertNotNull(ReaderFactory.createReader(Constants.DATA_SCHEMA_NAME_AATSR_MD));
+        assertNotNull(ReaderFactory.createReader(Constants.DATA_SCHEMA_NAME_METOP_MD));
+        assertNotNull(ReaderFactory.createReader(Constants.DATA_SCHEMA_NAME_SEVIRI_MD));
 
         try {
-            IngestionTool.createReader("bogus-reader");
-            fail("ToolException expected");
-        } catch (ToolException e) {
+            ReaderFactory.createReader("bogus-reader");
+            fail("Exception expected");
+        } catch (Exception expected) {
             // ok
         }
     }
