@@ -16,6 +16,7 @@
         <class>org.esa.cci.sst.data.Coincidence</class>
         <class>org.esa.cci.sst.data.Matchup</class>
 
+        <!--
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>
             <property name="openjpa.ConnectionURL" value="jdbc:postgresql://localhost:5432/mygisdb"/>
@@ -24,5 +25,6 @@
             <property name="openjpa.Log" value="DefaultLevel=INFO,SQL=INFO"/>
             <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/>
         </properties>
+        -->
     </persistence-unit>
 </persistence>

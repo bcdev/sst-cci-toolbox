@@ -16,8 +16,13 @@ if [ -z "$CCI_SST_HOME" ]; then
     exit 2
 fi
 
+MMS_OPTIONS=""
+if [ ! -z $MMS_DEBUG ]; then
+    MMS_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=y"
+fi
+
 java \
-    -Xmx1024M \
+    -Xmx1024M $MMS_OPTIONS \
     -javaagent:"$CCI_SST_HOME/lib/openjpa-all.jar" \
     -classpath "$CCI_SST_HOME/lib/*" \
     org.esa.cci.sst.IngestionTool "$@"
