@@ -9,7 +9,6 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
@@ -19,7 +18,6 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.DataType;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 
@@ -69,26 +67,18 @@ public class ProductObservationReader implements ObservationReader {
     }
 
     @Override
-    public final long getTime(int recordNo) throws IOException, InvalidRangeException {
-        if (product == null) {
-            throw new IOException("Unable to get start time.");
-        }
-        return getCenterTimeAsDate().getTime();
-    }
-
-    @Override
-    public final GlobalObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public final RelatedObservation readObservation(int recordNo) throws IOException {
         if (product == null) {
             return null;
         }
 
-        final GlobalObservation observation;
+        final RelatedObservation observation;
         // TODO move distinction to reader level instead
         if (gbc instanceof DefaultGeoBoundaryCalculator) {
             observation = new RelatedObservation();
             ((RelatedObservation) observation).setLocation(createGeometry(gbc.getGeoBoundary(product)));
         } else {
-            observation = new GlobalObservation();
+            observation = new RelatedObservation();
         }
 
         observation.setDatafile(dataFile);

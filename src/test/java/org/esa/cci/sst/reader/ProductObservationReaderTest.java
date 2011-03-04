@@ -1,12 +1,10 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.PgUtil;
-import org.esa.cci.sst.util.TimeUtil;
 import org.junit.After;
 import org.junit.Test;
 import org.postgis.Geometry;
@@ -58,16 +56,6 @@ public class ProductObservationReaderTest {
     }
 
     @Test
-    public void testGetTime() throws IOException, InvalidRangeException, URISyntaxException {
-        init(getResourceAsFile(AMSRE_RESOURCE_NAME));
-        assertTrue(reader.getTime(0) > TimeUtil.MILLISECONDS_1981);
-        clean();
-
-        init(getResourceAsFile(AAI_RESOURCE_NAME));
-        assertTrue(reader.getTime(0) > TimeUtil.MILLISECONDS_1981);
-    }
-
-    @Test
     public void testReadObservation() throws IOException, InvalidRangeException, URISyntaxException {
         Geometry geometry;
         Observation observation;
@@ -75,7 +63,6 @@ public class ProductObservationReaderTest {
         init(getResourceAsFile(AMSRE_RESOURCE_NAME));
         observation = reader.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
-        assertEquals(reader.getTime(0), ((RelatedObservation) observation).getTime().getTime());
         assertNotNull(((RelatedObservation) observation).getLocation());
         geometry = ((RelatedObservation) observation).getLocation().getGeometry();
         assertTrue(geometry.checkConsistency());
@@ -85,7 +72,6 @@ public class ProductObservationReaderTest {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
         observation = reader.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
-        assertEquals(reader.getTime(0), ((GlobalObservation) observation).getTime().getTime());
 //        assertNotNull(observation.getLocation());
 //        geometry = observation.getLocation().getGeometry();
 //        assertTrue(geometry.checkConsistency());

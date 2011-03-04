@@ -4,7 +4,6 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
-import ucar.ma2.InvalidRangeException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -20,25 +19,20 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class AatsrMdReader extends NetcdfMatchupReader {
+public class AatsrMdReader extends NetcdfObservationReader {
 
     public AatsrMdReader() {
         super(SENSOR_NAME_AATSR_MD.getSensor());
     }
 
     @Override
-    public String getDimensionName() {
+    public String getRecordDimensionName() {
         return "match_up";
     }
 
     @Override
     public String getSstVariableName() {
         return "atsr.sea_surface_temperature.dual";
-    }
-
-    @Override
-    public long getTime(int recordNo) throws IOException, InvalidRangeException {
-        return dateOf(getDouble("atsr.time.julian", recordNo)).getTime();
     }
 
     /**
@@ -49,11 +43,10 @@ public class AatsrMdReader extends NetcdfMatchupReader {
      *
      * @return Observation for (A)ATSR pixel
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
-    public ReferenceObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public ReferenceObservation readObservation(int recordNo) throws IOException {
 
         final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                              getFloat("atsr.latitude", recordNo)));
@@ -70,7 +63,7 @@ public class AatsrMdReader extends NetcdfMatchupReader {
         return observation;
     }
 
-    private Date dateOf(double julianDate) throws IOException, InvalidRangeException {
+    private Date dateOf(double julianDate) {
         return TimeUtil.dateOfJulianDate(julianDate);
     }
 }

@@ -1,7 +1,6 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -282,7 +281,7 @@ public class MatchupTool extends MmsTool {
 
     private void addTemporalCoincidence(Matchup matchup, String sensorName, long pattern) {
         final ReferenceObservation refObs = matchup.getRefObs();
-        final GlobalObservation sensorObs = findCorrespondingGlobalObservation(refObs, sensorName);
+        final RelatedObservation sensorObs = findCorrespondingGlobalObservation(refObs, sensorName);
         if (sensorObs != null) {
             final Coincidence coincidence = createCoincidence(matchup, sensorObs);
             getPersistenceManager().persist(coincidence);
@@ -334,14 +333,14 @@ public class MatchupTool extends MmsTool {
         }
     }
 
-    private GlobalObservation findCorrespondingGlobalObservation(ReferenceObservation referenceObservation,
-                                                                 String sensor) {
+    private RelatedObservation findCorrespondingGlobalObservation(ReferenceObservation referenceObservation,
+                                                                  String sensor) {
 
         final Query observationQuery = getPersistenceManager().createNativeQuery(CORRESPONDING_GLOBALOBS_QUERY,
-                                                                                 GlobalObservation.class);
+                                                                                 RelatedObservation.class);
         observationQuery.setParameter(1, referenceObservation.getId());
         observationQuery.setParameter(2, sensor);
-        final List<GlobalObservation> observations = observationQuery.getResultList();
+        final List<RelatedObservation> observations = observationQuery.getResultList();
 
         if (observations.size() > 0) {
             // select temporally nearest common observation
@@ -375,7 +374,7 @@ public class MatchupTool extends MmsTool {
      *
      * @return newly created Coincidence relating matchup and common observation
      */
-    private Coincidence createCoincidence(Matchup matchup, GlobalObservation observation) {
+    private Coincidence createCoincidence(Matchup matchup, RelatedObservation observation) {
 
         final int timeDifference = (int) Math.abs(
                 (matchup.getRefObs().getTime().getTime() - observation.getTime().getTime()) / 1000);

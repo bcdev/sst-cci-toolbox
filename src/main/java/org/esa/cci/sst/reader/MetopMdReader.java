@@ -1,7 +1,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -9,7 +8,6 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
-import ucar.ma2.InvalidRangeException;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -28,7 +26,7 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class MetopMatchupReader extends NetcdfMatchupReader {
+public class MetopMdReader extends NetcdfObservationReader {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
     static final long MILLISECONDS_1981;
@@ -44,12 +42,12 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
     protected int rowCount;
     protected int colCount;
 
-    public MetopMatchupReader() {
+    public MetopMdReader() {
         super(SENSOR_NAME_METOP.getSensor());
     }
 
     @Override
-    public String getDimensionName() {
+    public String getRecordDimensionName() {
         return "n";
     }
 
@@ -65,12 +63,6 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         colCount = netcdf.findDimension("nx").getLength();
     }
 
-    @Override
-    public long getTime(int recordNo) throws IOException, InvalidRangeException {
-        return MILLISECONDS_1981 + 1000L * Math.round(
-                getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, rowCount / 2));
-    }
-
     /**
      * Reads record and creates ReferenceObservation for METOP sub-scene contained in MD. This observation
      * may serve as common observation in some matchup. METOP sub-scenes contain scan lines scanned
@@ -78,11 +70,10 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation for METOP sub-scene
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
-    public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public ReferenceObservation readObservation(int recordNo) throws IOException {
         final int x = colCount / 2;
         final int y = rowCount / 2;
 
@@ -99,7 +90,7 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         return observation;
     }
 
-    private Point[] getPoints(int recordNo) throws IOException, InvalidRangeException {
+    private Point[] getPoints(int recordNo) throws IOException {
         final List<Point> pointList = new ArrayList<Point>(9);
 
         int lon = getLon(recordNo, 0, 0);
@@ -125,12 +116,12 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
             }
         }
 
-        lon = getLon(recordNo, rowCount-1, 0);
-        lat = getLat(recordNo, rowCount-1, 0);
+        lon = getLon(recordNo, rowCount - 1, 0);
+        lat = getLat(recordNo, rowCount - 1, 0);
         if (isValid(lon, lat)) {
             pointList.add(newPoint(lon, lat));
         } else {
-            for (int i = rowCount -1; i >= rowCount / 2; i--) {
+            for (int i = rowCount - 1; i >= rowCount / 2; i--) {
                 lon = getLon(recordNo, i, 0);
                 lat = getLat(recordNo, i, 0);
                 if (isValid(lon, lat)) {
@@ -139,8 +130,8 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
                 }
             }
             for (int k = 0; k < colCount / 2; k++) {
-                lon = getLon(recordNo, rowCount-1, k);
-                lat = getLat(recordNo, rowCount-1, k);
+                lon = getLon(recordNo, rowCount - 1, k);
+                lat = getLat(recordNo, rowCount - 1, k);
                 if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
                     break;
@@ -148,22 +139,22 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
             }
         }
 
-        lon = getLon(recordNo, rowCount-1, colCount-1);
-        lat = getLat(recordNo, rowCount-1, colCount-1);
+        lon = getLon(recordNo, rowCount - 1, colCount - 1);
+        lat = getLat(recordNo, rowCount - 1, colCount - 1);
         if (isValid(lon, lat)) {
             pointList.add(newPoint(lon, lat));
         } else {
-            for (int k = colCount-1; k >= colCount / 2; k--) {
-                lon = getLon(recordNo, rowCount-1, k);
-                lat = getLat(recordNo, rowCount-1, k);
+            for (int k = colCount - 1; k >= colCount / 2; k--) {
+                lon = getLon(recordNo, rowCount - 1, k);
+                lat = getLat(recordNo, rowCount - 1, k);
                 if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
                     break;
                 }
             }
-            for (int i = rowCount-1; i >= rowCount / 2; i--) {
-                lon = getLon(recordNo, i, colCount-1);
-                lat = getLat(recordNo, i, colCount-1);
+            for (int i = rowCount - 1; i >= rowCount / 2; i--) {
+                lon = getLon(recordNo, i, colCount - 1);
+                lat = getLat(recordNo, i, colCount - 1);
                 if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
                     break;
@@ -171,20 +162,20 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
             }
         }
 
-        lon = getLon(recordNo, 0, colCount-1);
-        lat = getLat(recordNo, 0, colCount-1);
+        lon = getLon(recordNo, 0, colCount - 1);
+        lat = getLat(recordNo, 0, colCount - 1);
         if (isValid(lon, lat)) {
             pointList.add(newPoint(lon, lat));
         } else {
             for (int i = 0; i < rowCount / 2; i++) {
-                lon = getLon(recordNo, i, colCount-1);
-                lat = getLat(recordNo, i, colCount-1);
+                lon = getLon(recordNo, i, colCount - 1);
+                lat = getLat(recordNo, i, colCount - 1);
                 if (isValid(lon, lat)) {
                     pointList.add(newPoint(lon, lat));
                     break;
                 }
             }
-            for (int k = colCount-1; k >= colCount / 2; k--) {
+            for (int k = colCount - 1; k >= colCount / 2; k--) {
                 lon = getLon(recordNo, 0, k);
                 lat = getLat(recordNo, 0, k);
                 if (isValid(lon, lat)) {
@@ -194,7 +185,8 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
             }
         }
         if (pointList.size() < 3) {
-            throw new IllegalArgumentException(String.format("only %d points in polygon of record %d", pointList.size(), recordNo));
+            throw new IllegalArgumentException(
+                    String.format("only %d points in polygon of record %d", pointList.size(), recordNo));
         }
         pointList.add(pointList.get(0));
         if (PgUtil.isClockwise(pointList)) {
@@ -204,11 +196,11 @@ public class MetopMatchupReader extends NetcdfMatchupReader {
         return pointList.toArray(new Point[pointList.size()]);
     }
 
-    private int getLat(int recordNo, int y, int x) throws IOException, InvalidRangeException {
+    private int getLat(int recordNo, int y, int x) throws IOException {
         return getShort("lat", recordNo, y, x);
     }
 
-    private int getLon(int recordNo, int y, int x) throws IOException, InvalidRangeException {
+    private int getLon(int recordNo, int y, int x) throws IOException {
         return getShort("lon", recordNo, y, x);
     }
 

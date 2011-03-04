@@ -1,14 +1,13 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
-import ucar.ma2.InvalidRangeException;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -23,7 +22,7 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class SeviriMatchupReader extends NetcdfMatchupReader {
+public class SeviriMatchupReader extends NetcdfObservationReader {
 
     static final long MILLISECONDS_1981;
 
@@ -43,7 +42,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
     }
 
     @Override
-    public String getDimensionName() {
+    public String getRecordDimensionName() {
         return "n";
     }
 
@@ -59,15 +58,6 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         noOfColumns = netcdf.findDimension("nx").getLength();
     }
 
-    @Override
-    public long getTime(int recordNo) throws IOException, InvalidRangeException {
-        //int    line   = getShort("box_center_y_coord", recordNo);
-        //int    column = getShort("box_center_x_coord", recordNo);
-        int line = noOfLines / 2;
-        int column = noOfColumns / 2;
-        return MILLISECONDS_1981 + (long) ((getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)) * 1000);
-    }
-
     /**
      * Reads record and creates ReferenceObservation for SEVIRI sub-scene contained in MD. This observation
      * may serve as common observation in some matchup. SEVIRI sub-scenes contain scan lines scanned
@@ -77,11 +67,10 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation for SEVIRI sub-scene
-     * @throws IOException  if file io fails
-     * @throws InvalidRangeException  if record number is out of range 0 .. numRecords-1
+     * @throws IOException  if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
-    public GlobalObservation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public RelatedObservation readObservation(int recordNo) throws IOException {
 
         //int    line   = getShort("box_center_y_coord", recordNo);
         //int    column = getShort("box_center_x_coord", recordNo);

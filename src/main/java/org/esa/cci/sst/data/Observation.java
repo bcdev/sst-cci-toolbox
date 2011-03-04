@@ -27,6 +27,7 @@ public class Observation {
     String sensor;
     DataFile datafile;
     int recordNo;
+    Date time;
 
     @Id
     @GeneratedValue
@@ -71,8 +72,19 @@ public class Observation {
         this.recordNo = recordNo;
     }
 
+    @Index
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getTime() {
+        return time;
+    }
+
+    public void setTime(Date time) {
+        this.time = time;
+    }
+
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%d)", getId(), getName(), getSensor(), getDatafile(), getRecordNo());
+        return String.format("Observation(%d,%s,%s,%s,%s,%d)", getId(), getName(), getSensor(), TimeUtil.formatCcsdsUtcFormat(
+                getTime()), getDatafile(), getRecordNo());
     }
 }
 

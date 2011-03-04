@@ -32,7 +32,7 @@ import java.util.Map;
  *
  * @author Martin Boettcher
  */
-abstract public class NetcdfMatchupReader implements ObservationReader {
+abstract public class NetcdfObservationReader implements ObservationReader {
 
     protected NetcdfFile netcdf;
     protected int numRecords;
@@ -47,7 +47,7 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     private final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
     private final String sensorName;
 
-    protected NetcdfMatchupReader(String sensorName) {
+    protected NetcdfObservationReader(String sensorName) {
         dimensionRoleMap.put("n", "match_up");
         dimensionRoleMap.put("nx", "nj");
         dimensionRoleMap.put("ny", "ni");
@@ -94,6 +94,18 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
                 if ("_FillValue".equals(attr.getName())) {
                     variable.setFillValue(attr.getNumericValue());
                 }
+                if("valid_min".equals(attr.getName())) {
+                    variable.setValidMin(attr.getNumericValue());
+                }
+                if("valid_max".equals(attr.getName())) {
+                    variable.setValidMax(attr.getNumericValue());
+                }
+                if("long_name".equals(attr.getName())) {
+                    variable.setLongName(attr.getStringValue());
+                }
+                if("standard_name".equals(attr.getName())) {
+                    variable.setStandardName(attr.getStringValue());
+                }
             }
             variable.setDataSchema(dataFileEntry.getDataSchema());
             final String units = ncVar.getUnitsString();
@@ -126,7 +138,7 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return dimension name
      */
-    abstract protected String getDimensionName();
+    abstract protected String getRecordDimensionName();
 
     // todo - only used to compute clearsky condition, generalise clearsky flag computation?!
 
@@ -152,16 +164,16 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
         this.dataFileEntry = dataFileEntry;
 
         // open match-up file
-        netcdf = NetcdfFile.open(dataFileEntry.getPath());
-        if (netcdf == null) {
-            throw new IOException(
-                    MessageFormat.format("Can''t find NetCDF IOServiceProvider for file {0}", dataFileEntry.getPath()));
+        final String path = dataFileEntry.getPath();
+        if(!NetcdfFile.canOpen(path)) {
+            throw new IOException("Cannot open file '" + path + "'.");
         }
+        netcdf = NetcdfFile.open(path);
         // read number of records value
-        final Dimension dimension = netcdf.findDimension(getDimensionName());
+        final Dimension dimension = netcdf.findDimension(getRecordDimensionName());
         if (dimension == null) {
-            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", getDimensionName(),
-                                                       dataFileEntry.getPath()));
+            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", getRecordDimensionName(),
+                                                       path));
         }
         numRecords = dimension.getLength();
         // read SST fill value
@@ -189,10 +201,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      * @return index of first record in buffer, to be used as offset of record
      *         number when accessing data buffer
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    protected int fetch(int recordNo) throws IOException, InvalidRangeException {
+    protected int fetch(int recordNo) throws IOException {
         if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
             int size = tileSize;
             for (Variable variable : netcdf.getVariables()) {
@@ -202,7 +213,12 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
                 shape[0] = (shape[0] < recordNo + tileSize)
                            ? shape[0] - recordNo
                            : tileSize;
-                final Array values = variable.read(start, shape);
+                final Array values;
+                try {
+                    values = variable.read(start, shape);
+                } catch (InvalidRangeException e) {
+                    throw new IOException(e);
+                }
                 data.put(variable.getNameEscaped(), values);
             }
             bufferStart = recordNo;
@@ -211,7 +227,7 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
         return bufferStart;
     }
 
-       public Array getData(int matchupIndex, String variableName) throws IOException, InvalidRangeException {
+       public Array getData(int matchupIndex, String variableName) throws IOException {
         final int offset = fetch(matchupIndex);
         final int index = matchupIndex - offset;
         final Array slice = getData().get(NetcdfFile.escapeName(variableName)).slice(0, index);
@@ -230,10 +246,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return record value as String
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    public String getString(String role, int recordNo) throws IOException, InvalidRangeException {
+    public String getString(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayChar.D2) variableData).getString(recordNo - offset);
@@ -247,10 +262,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return record value as float
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    public float getFloat(String role, int recordNo) throws IOException, InvalidRangeException {
+    public float getFloat(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayFloat.D1) variableData).get(recordNo - offset);
@@ -264,10 +278,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return record value as double
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    public double getDouble(String role, int recordNo) throws IOException, InvalidRangeException {
+    public double getDouble(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayDouble.D1) variableData).get(recordNo - offset);
@@ -281,10 +294,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return record value as int
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    public int getInt(String role, int recordNo) throws IOException, InvalidRangeException {
+    public int getInt(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayInt.D1) variableData).get(recordNo - offset);
@@ -298,10 +310,9 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return record value as int
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    public int getShort(String role, int recordNo) throws IOException, InvalidRangeException {
+    public int getShort(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayShort.D1) variableData).get(recordNo - offset);
@@ -317,11 +328,10 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return pixel value as int
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range
+     * @throws IOException           if record number is out of range 0 .. numRecords-1
+     *                               or line and column are out of range or if file io fails
      */
-    public int getShort(String role, int recordNo, int line, int column) throws IOException, InvalidRangeException {
+    public int getShort(String role, int recordNo, int line, int column) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayShort.D3) variableData).get(recordNo - offset, line, column);
@@ -337,11 +347,10 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return pixel value as int
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range
+     * @throws IOException           if record number is out of range 0 .. numRecords-1
+     *                               or line and column are out of range or if file io fails
      */
-    public int getInt(String role, int recordNo, int line, int column) throws IOException, InvalidRangeException {
+    public int getInt(String role, int recordNo, int line, int column) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayInt.D3) variableData).get(recordNo - offset, line, column);
@@ -357,11 +366,10 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return pixel value as double
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range
+     * @throws IOException           if record number is out of range 0 .. numRecords-1
+     *                               or line and column are out of range or if file io fails
      */
-    public double getDouble(String role, int recordNo, int line, int column) throws IOException, InvalidRangeException {
+    public double getDouble(String role, int recordNo, int line, int column) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayDouble.D3) variableData).get(recordNo - offset, line, column);
@@ -376,11 +384,10 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
      *
      * @return pixel value as double
      *
-     * @throws IOException           if file io fails
-     * @throws InvalidRangeException if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range
+     * @throws IOException           if record number is out of range 0 .. numRecords-1
+     *                               or line and column are out of range or if file io fails
      */
-    public double getDouble(String role, int recordNo, int line) throws IOException, InvalidRangeException {
+    public double getDouble(String role, int recordNo, int line) throws IOException {
         int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayDouble.D2) variableData).get(recordNo - offset, line);

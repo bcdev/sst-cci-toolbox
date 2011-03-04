@@ -34,7 +34,7 @@ public class ReaderFactory {
         if (Constants.DATA_SCHEMA_NAME_AATSR_MD.equalsIgnoreCase(schemaName)) {
             reader = new AatsrMdReader();
         } else if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
-            reader = new MetopMatchupReader();
+            reader = new MetopMdReader();
         } else if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
             reader = new SeviriMatchupReader();
         } else if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {

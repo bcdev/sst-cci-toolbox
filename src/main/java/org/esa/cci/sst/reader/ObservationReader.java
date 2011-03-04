@@ -3,7 +3,6 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
@@ -37,15 +36,6 @@ public interface ObservationReader {
     int getNumRecords();
 
     /**
-     * Reads observation time of record
-     * @param recordNo
-     * @return  time in Java Date.getTime() format (milliseconds since 1970)
-     * @throws IOException
-     * @throws InvalidRangeException
-     */
-    long getTime(int recordNo) throws IOException, InvalidRangeException;
-
-    /**
      * Reads record and retrieves variables for a common observation.
      * Sets geo-location to polygon enclosing subscene.
      * Sets reference point to pixel corresponding to in-situ measurement.
@@ -54,8 +44,9 @@ public interface ObservationReader {
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation with values read from observation file
+     * @throws java.io.IOException if observation could not be read.
      */
-    Observation readObservation(int recordNo) throws IOException, InvalidRangeException;
+    Observation readObservation(int recordNo) throws IOException;
 
     Variable[] getVariables() throws IOException;
 

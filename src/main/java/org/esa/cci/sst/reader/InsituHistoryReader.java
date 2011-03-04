@@ -16,10 +16,11 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.SensorName;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
-import ucar.ma2.InvalidRangeException;
+import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
@@ -31,26 +32,31 @@ import java.io.IOException;
  */
 public class InsituHistoryReader implements ObservationReader {
 
+    private String sensorName;
+    private NetcdfFile file;
+
     @Override
     public void init(DataFile dataFileEntry) throws IOException {
+        sensorName = SensorName.SENSOR_NAME_INSITU.getSensor();
+        final String path = dataFileEntry.getPath();
+        if(!NetcdfFile.canOpen(path)) {
+            throw new IOException("Cannot open file '" + path + "'.");
+        }
+        file = NetcdfFile.open(path);
     }
 
     @Override
     public void close() throws IOException {
+        file.close();
     }
 
     @Override
     public int getNumRecords() {
-        return 0;
+        return 1;
     }
 
     @Override
-    public long getTime(int recordNo) throws IOException, InvalidRangeException {
-        return 0;
-    }
-
-    @Override
-    public Observation readObservation(int recordNo) throws IOException, InvalidRangeException {
+    public Observation readObservation(int recordNo) throws IOException {
         return null;
     }
 

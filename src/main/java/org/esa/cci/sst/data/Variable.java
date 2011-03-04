@@ -27,6 +27,9 @@ public class Variable {
     Number addOffset;
     Number scaleFactor;
     Number fillValue;
+    Number validMin;
+    Number validMax;
+    String longName;
 
     @Id
     @GeneratedValue
@@ -117,5 +120,29 @@ public class Variable {
 
     public void setStandardName(String standardName) {
         this.standardName = standardName;
+    }
+
+    public Number getValidMin() {
+        return validMin;
+    }
+
+    public void setValidMin(Number validMin) {
+        this.validMin = validMin;
+    }
+
+    public Number getValidMax() {
+        return validMax;
+    }
+
+    public void setValidMax(Number validMax) {
+        this.validMax = validMax;
+    }
+
+    public void setLongName(String longName) {
+        this.longName = longName;
+    }
+
+    public String getLongName() {
+        return longName;
     }
 }

@@ -15,7 +15,7 @@ import javax.persistence.Entity;
  * @author Martin Boettcher
  */
 @Entity
-public class RelatedObservation extends GlobalObservation {
+public class RelatedObservation extends Observation {
 
     PGgeometry location;
 
