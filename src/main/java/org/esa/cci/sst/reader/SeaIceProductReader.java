@@ -97,11 +97,12 @@ public class SeaIceProductReader extends AbstractProductReader {
             band.setNoDataValueUsed(true);
             product.setDescription(DESCRIPTION_QUALITY_FLAG);
         }
-        product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
         product.setFileLocation(inputFile);
         product.setProductReader(this);
         product.getMetadataRoot().addElement(getMetadata(headerStructure));
         product.setGeoCoding(createGeoCoding(headerStructure));
+        // TODO - resulting image is wrong when tile size is different from image dimension
+        product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
         band.setSourceImage(createSourceImage(band));
         return product;
     }
@@ -205,10 +206,10 @@ public class SeaIceProductReader extends AbstractProductReader {
     private NetcdfOpImage createSourceImage(Band band) {
         final Variable variable = ncFile.findVariable(VARIABLE_NAME);
         final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
-        // TODO - resulting image is wrong when more than a single tile is used
         return new NetcdfOpImage(variable, ncFile, dataBufferType, band.getSceneRasterWidth(),
                                  band.getSceneRasterHeight(),
-                                 new Dimension(band.getRasterWidth(), band.getSceneRasterHeight()),
+        // TODO - resulting image is wrong when tile size is different from image dimension
+                                 band.getProduct().getPreferredTileSize(),
                                  ResolutionLevel.MAXRES);
     }
 
