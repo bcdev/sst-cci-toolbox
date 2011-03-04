@@ -1,7 +1,10 @@
 package org.esa.cci.sst.reader;
 
+import com.bc.ceres.core.Assert;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
@@ -10,12 +13,14 @@ import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.util.MmdFormatGenerator;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
@@ -139,47 +144,6 @@ public class ProductObservationReader implements ObservationReader {
         return variableList.toArray(new Variable[variableList.size()]);
     }
 
-    @Override
-    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex) throws
-                                                                                                              IOException {
-//        final String fileLocation = observation.getDatafile().getPath();
-//        final Product product = getProduct(fileLocation);
-//        final GeoCoding geoCoding = product.getGeoCoding();
-//        geoCoding.getPixelPos(referencePoint, referencePixelPos);
-//        final int dataschemaId = observation.getDatafile().getDataSchema().getId();
-//        final Query getVariablesByDataschemaId = persistenceManager.createQuery(
-//                String.format(VARIABLES_BY_DATASCHEMA_ID_QUERY, dataschemaId));
-//        final List<Variable> _variables = getVariablesByDataschemaId.getResultList();
-//        String sensorName = observation.getSensor();
-//        for (Variable variable : _variables) {
-//            String originalVarName = variable.getName();
-//            String variableName = originalVarName.replace(sensorName + ".", "");
-//            final Band band = product.getBand(variableName);
-//            if (band == null) {
-//                continue;
-//            }
-//            // todo - clarify: take only one sample or surrounding samples, too?
-//            final Object sample = getSample(referencePixelPos, band);
-//            final DataType type = DataTypeUtils.getNetcdfDataType(band);
-//            final int[] origin = createOriginArray(matchupIndex, variable);
-//            final int[] shape = createShapeArray(origin.length);
-//            final Array array = Array.factory(type, shape);
-//            array.setObject(0, sample);
-//            originalVarName = NetcdfFile.escapeName(originalVarName);
-//            file.write(originalVarName, origin, array);
-//        }
-    }
-
-    private Product getProduct(String fileLocation) throws IOException {
-        Product product = products.get(fileLocation);
-        if (product != null) {
-            return product;
-        }
-        product = ProductIO.readProduct(fileLocation);
-        products.put(fileLocation, product);
-        return product;
-    }
-
     private Date getCenterTimeAsDate() throws IOException {
         final ProductData.UTC startTime = product.getStartTime();
         if (startTime == null) {
@@ -199,4 +163,64 @@ public class ProductObservationReader implements ObservationReader {
         }
         return new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(geoBoundary)}));
     }
+
+
+    @Override
+    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
+                      int[] dimensionSizes) throws IOException {
+        final String fileLocation = observation.getDatafile().getPath();
+        final Product product = getProduct(fileLocation);
+        final GeoCoding geoCoding = product.getGeoCoding();
+        String sensorName = observation.getSensor();
+        String originalVarName = variable.getName();
+        String variableName = originalVarName.replace(sensorName + ".", "");
+        final Band band = product.getBand(variableName);
+        if (band == null) {
+            return;
+        }
+
+        final DataType type = DataTypeUtils.getNetcdfDataType(band);
+        final int[] origin = createOriginArray(matchupIndex, variable);
+        final int[] shape = createShapeArray(origin.length, dimensionSizes);
+//        final Array array = Array.factory(type, shape, data);
+//        array.setObject(0, sample);
+        originalVarName = NetcdfFile.escapeName(originalVarName);
+//        file.write(originalVarName, origin, array);
+    }
+
+    private Product getProduct(String fileLocation) throws IOException {
+        Product product = products.get(fileLocation);
+        if (product != null) {
+            return product;
+        }
+        product = ProductIO.readProduct(fileLocation);
+        products.put(fileLocation, product);
+        return product;
+    }
+
+
+    int[] createOriginArray(int matchupIndex, Variable variable) {
+        String dimString = variable.getDimensions();
+        final String dimensionRoles = variable.getDimensionRoles();
+        String[] dims = dimString.split(" ");
+        int length = dims.length;
+        final boolean addMatchup = !(dimString.contains(MmdFormatGenerator.DIMENSION_NAME_MATCHUP) ||
+                                     dimensionRoles.contains(MmdFormatGenerator.DIMENSION_NAME_MATCHUP));
+        length += addMatchup ? 1 : 0;
+        final int[] origin = new int[length];
+        origin[0] = matchupIndex;
+        for (int i = 1; i < origin.length; i++) {
+            origin[i] = 0;
+        }
+        return origin;
+    }
+
+    int[] createShapeArray(int length, int[] dimensionSizes) {
+        Assert.argument(length == dimensionSizes.length + 1);
+        int[] shape = new int[length];
+        shape[0] = 1;
+        System.arraycopy(dimensionSizes, 0, shape, 1, shape.length - 1);
+        return shape;
+    }
+
 }

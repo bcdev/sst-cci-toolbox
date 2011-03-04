@@ -20,6 +20,8 @@ import org.esa.cci.sst.Constants;
 
 import java.text.MessageFormat;
 
+import static org.esa.cci.sst.SensorName.*;
+
 /**
  * TODO fill out or delete
  *
@@ -36,17 +38,19 @@ public class ReaderFactory {
         } else if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
             reader = new SeviriMatchupReader();
         } else if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AMSRE, new DefaultGeoBoundaryCalculator());
+            reader = new ProductObservationReader(SENSOR_NAME_AMSRE.getSensor(), new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_TMI, new DefaultGeoBoundaryCalculator());
+            reader = new ProductObservationReader(SENSOR_NAME_TMI.getSensor(), new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AATSR, new DefaultGeoBoundaryCalculator());
+            reader = new ProductObservationReader(SENSOR_NAME_AATSR.getSensor(), new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AAI, new NullGeoBoundaryCalculator());
+            reader = new ProductObservationReader(SENSOR_NAME_AAI.getSensor(), new NullGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_AVHRR, new DefaultGeoBoundaryCalculator());
+            reader = new ProductObservationReader(SENSOR_NAME_AVHRR.getSensor(), new DefaultGeoBoundaryCalculator());
         } else if (Constants.DATA_SCHEMA_NAME_SEA_ICE.equalsIgnoreCase(schemaName)) {
-            reader = new ProductObservationReader(Constants.SENSOR_NAME_SEA_ICE, new DefaultGeoBoundaryCalculator());
+            reader = new ProductObservationReader(SENSOR_NAME_SEA_ICE.getSensor(), new DefaultGeoBoundaryCalculator());
+        } else if (Constants.DATA_SCHEMA_INSITU.equalsIgnoreCase(schemaName)) {
+            reader = new InsituHistoryReader();
         } else {
             // todo - sea ice quality and in-situ
             throw new Exception(MessageFormat.format("No appropriate reader for schema {0} found", schemaName));

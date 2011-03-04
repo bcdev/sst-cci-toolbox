@@ -391,8 +391,8 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
     }
 
     @Override
-    public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file, int matchupIndex) throws
-                                                                                                              IOException {
+    public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file,
+                      int matchupIndex, int[] dimensionSizes) throws IOException {
         String sensorName = observation.getSensor();
         String originalVarName = variable.getName();
         String variableName = originalVarName.replace(sensorName + ".", "");

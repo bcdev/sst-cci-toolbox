@@ -29,7 +29,7 @@ public class ProductObservationReaderTest {
     private static final String AMSRE_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42958.dat-v01.nc.gz";
 
     private static DataFile dataFile;
-    private static ObservationReader reader;
+    private static ProductObservationReader reader;
 
     public void init(File file) throws IOException {
         dataFile = new DataFile();
@@ -113,6 +113,58 @@ public class ProductObservationReaderTest {
             System.out.println("variable.getName() = " + variable.getName());
         }
         assertEquals(1, variables.length);
+    }
+
+    @Test
+    public void testCreateOriginArray() throws Exception {
+        init(getResourceAsFile(AAI_RESOURCE_NAME));
+        final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
+        variable.setDimensions("ni nj");
+        variable.setDimensionRoles("ni nj");
+        int[] originArray = reader.createOriginArray(0, variable);
+        assertEquals(3, originArray.length);
+
+        variable.setDimensions("match_up ni nj");
+        variable.setDimensionRoles("match_up ni nj");
+        originArray = reader.createOriginArray(0, variable);
+        assertEquals(3, originArray.length);
+
+        variable.setDimensions("time");
+        variable.setDimensionRoles("time");
+        originArray = reader.createOriginArray(0, variable);
+        assertEquals(2, originArray.length);
+
+        variable.setDimensions("match_up time");
+        variable.setDimensionRoles("match_up time");
+        originArray = reader.createOriginArray(0, variable);
+        assertEquals(2, originArray.length);
+
+        variable.setDimensions("n ni nj");
+        variable.setDimensionRoles("match_up ni nj");
+        originArray = reader.createOriginArray(0, variable);
+        assertEquals(3, originArray.length);
+
+        variable.setDimensions("n ni nj");
+        variable.setDimensionRoles("n ni nj");
+        originArray = reader.createOriginArray(0, variable);
+        assertEquals(4, originArray.length);
+    }
+
+    @Test
+    public void testCreateShapeArray() throws Exception {
+        init(getResourceAsFile(AAI_RESOURCE_NAME));
+        int[] shapeArray = reader.createShapeArray(3, new int[]{11, 11});
+        assertEquals(3, shapeArray.length);
+        assertEquals(1, shapeArray[0]);
+        assertEquals(11, shapeArray[1]);
+        assertEquals(11, shapeArray[2]);
+
+        try {
+            reader.createShapeArray(2, new int[]{11, 11});
+            fail();
+        } catch (IllegalArgumentException expected) {
+            // ok
+        }
     }
 
     private static List<Point> getPoints(Geometry geometry) {

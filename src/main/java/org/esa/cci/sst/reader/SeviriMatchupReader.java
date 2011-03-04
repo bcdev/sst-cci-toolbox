@@ -1,6 +1,5 @@
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -14,6 +13,8 @@ import ucar.ma2.InvalidRangeException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
+
+import static org.esa.cci.sst.SensorName.*;
 
 /**
  * Reads records from an SEVIRI MD NetCDF input file and creates Observations.
@@ -38,7 +39,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
     protected int noOfColumns;
 
     public SeviriMatchupReader() {
-        super(Constants.SENSOR_NAME_SEVIRI);
+        super(SENSOR_NAME_SEVIRI.getSensor());
     }
 
     @Override
@@ -89,7 +90,7 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor(Constants.SENSOR_NAME_SEVIRI);
+        observation.setSensor(SENSOR_NAME_SEVIRI.getSensor());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[] { new LinearRing(new Point[] {
                 new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
                           coordinateOf(getInt("lat", recordNo, 0, 0))),

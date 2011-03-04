@@ -1,6 +1,5 @@
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -9,6 +8,8 @@ import ucar.ma2.InvalidRangeException;
 
 import java.io.IOException;
 import java.util.Date;
+
+import static org.esa.cci.sst.SensorName.*;
 
 /**
  * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.
@@ -22,7 +23,7 @@ import java.util.Date;
 public class AatsrMdReader extends NetcdfMatchupReader {
 
     public AatsrMdReader() {
-        super(Constants.SENSOR_NAME_AATSR_MD);
+        super(SENSOR_NAME_AATSR_MD.getSensor());
     }
 
     @Override
@@ -59,7 +60,7 @@ public class AatsrMdReader extends NetcdfMatchupReader {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("insitu.unique_identifier", recordNo));
-        observation.setSensor(Constants.SENSOR_NAME_AATSR_MD);
+        observation.setSensor(SENSOR_NAME_AATSR_MD.getSensor());
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));

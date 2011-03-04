@@ -65,7 +65,8 @@ public interface ObservationReader {
      * @param variable The variable to write.
      * @param file The file to write into.
      * @param matchupIndex
+     * @param dimensionSizes
      */
-    void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex) throws
-                                                                                                       IOException;
+    void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
+               int[] dimensionSizes) throws IOException;
 }
