@@ -43,12 +43,7 @@ public class MetopMdReader extends NetcdfObservationReader {
     protected int colCount;
 
     public MetopMdReader() {
-        super(SENSOR_NAME_METOP.getSensor());
-    }
-
-    @Override
-    public String getRecordDimensionName() {
-        return "n";
+        super(SENSOR_NAME_METOP.getSensor(), "n");
     }
 
     @Override

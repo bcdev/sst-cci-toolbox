@@ -46,8 +46,10 @@ abstract public class NetcdfObservationReader implements ObservationReader {
 
     private final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
     private final String sensorName;
+    private final String recordDimensionName;
 
-    protected NetcdfObservationReader(String sensorName) {
+    protected NetcdfObservationReader(String sensorName, String recordDimensionName) {
+        this.recordDimensionName = recordDimensionName;
         dimensionRoleMap.put("n", "match_up");
         dimensionRoleMap.put("nx", "nj");
         dimensionRoleMap.put("ny", "ni");
@@ -67,10 +69,6 @@ abstract public class NetcdfObservationReader implements ObservationReader {
     @Override
     public int getNumRecords() {
         return numRecords;
-    }
-
-    public final String getSensorName() {
-        return sensorName;
     }
 
     @Override
@@ -133,13 +131,6 @@ abstract public class NetcdfObservationReader implements ObservationReader {
         return sb.toString();
     }
 
-    /**
-     * Constant name of dimension to read the number of records from
-     *
-     * @return dimension name
-     */
-    abstract protected String getRecordDimensionName();
-
     // todo - only used to compute clearsky condition, generalise clearsky flag computation?!
 
     /**
@@ -170,10 +161,10 @@ abstract public class NetcdfObservationReader implements ObservationReader {
         }
         netcdf = NetcdfFile.open(path);
         // read number of records value
-        final Dimension dimension = netcdf.findDimension(getRecordDimensionName());
+        final Dimension dimension = netcdf.findDimension(recordDimensionName);
         if (dimension == null) {
-            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", getRecordDimensionName(),
-                                                       path));
+            throw new IOException(
+                    MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", recordDimensionName, path));
         }
         numRecords = dimension.getLength();
         // read SST fill value

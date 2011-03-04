@@ -38,12 +38,7 @@ public class SeviriMatchupReader extends NetcdfObservationReader {
     protected int noOfColumns;
 
     public SeviriMatchupReader() {
-        super(SENSOR_NAME_SEVIRI.getSensor());
-    }
-
-    @Override
-    public String getRecordDimensionName() {
-        return "n";
+        super(SENSOR_NAME_SEVIRI.getSensor(), "n");
     }
 
     @Override

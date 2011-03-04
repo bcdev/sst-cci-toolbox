@@ -22,12 +22,7 @@ import static org.esa.cci.sst.SensorName.*;
 public class AatsrMdReader extends NetcdfObservationReader {
 
     public AatsrMdReader() {
-        super(SENSOR_NAME_AATSR_MD.getSensor());
-    }
-
-    @Override
-    public String getRecordDimensionName() {
-        return "match_up";
+        super(SENSOR_NAME_AATSR_MD.getSensor(), "match_up");
     }
 
     @Override
