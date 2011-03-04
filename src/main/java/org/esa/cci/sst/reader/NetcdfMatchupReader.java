@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Observation;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
@@ -11,6 +12,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
@@ -386,5 +388,20 @@ abstract public class NetcdfMatchupReader implements ObservationReader {
 
     protected final Map<String, Array> getData() {
         return data;
+    }
+
+    @Override
+    public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file, int matchupIndex) throws
+                                                                                                              IOException {
+        String sensorName = observation.getSensor();
+        String originalVarName = variable.getName();
+        String variableName = originalVarName.replace(sensorName + ".", "");
+        final int[] origin = ReaderUtils.createOriginArray(matchupIndex, variable);
+        try {
+            Array variableData = getData(matchupIndex, variableName);
+            file.write(NetcdfFile.escapeName(originalVarName), origin, variableData);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
     }
 }

@@ -78,9 +78,9 @@ public class MmdFormatGenerator {
     }
 
     NetcdfFileWriteable generateMmdFile(String fileName) throws Exception {
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, false);
+        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, true);
 
-        file.addDimension(DIMENSION_NAME_MATCHUP, 10);
+        file.addDimension(DIMENSION_NAME_MATCHUP, 1);
         file.addDimension("aatsr-md.cs_length", 8);
         file.addDimension("aatsr-md.ui_length", 30);
         file.addDimension("aatsr-md.length", 65);
@@ -140,7 +140,7 @@ public class MmdFormatGenerator {
             final List<Matchup> resultList = getAllMatchupsQuery.getResultList();
             int matchupCount = resultList.size();
 
-            for (int matchupIndex = 0; matchupIndex < 10; matchupIndex++) {
+            for (int matchupIndex = 0; matchupIndex < 1; matchupIndex++) {
                 Matchup matchup = resultList.get(matchupIndex);
                 final int matchupId = matchup.getId();
                 System.out.println("Writing matchup '" + matchupId + "' (" + matchupIndex + "/" + matchupCount + ").");

@@ -1,16 +1,11 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
-import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
 import java.util.Date;
@@ -72,31 +67,6 @@ public class AatsrMdReader extends NetcdfMatchupReader {
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != sstFillValue);
         return observation;
-    }
-
-    @Override
-    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex) throws
-                                                                                                              IOException {
-        String sensorName = observation.getSensor();
-        String originalVarName = variable.getName();
-        String variableName = originalVarName.replace(sensorName + ".", "");
-        final int[] origin = ReaderUtils.createOriginArray(matchupIndex, variable);
-        try {
-            Array variableData = getData(matchupIndex, variableName);
-            file.write(NetcdfFile.escapeName(originalVarName), origin, variableData);
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
-        }
-    }
-
-
-    private static int[] createShapeArray(int size, ucar.nc2.Variable ncVar) {
-        final int[] shape = new int[size];
-        shape[0] = 1;
-        for(int i = 1; i < size; i++) {
-            shape[i] = ncVar.getDimension(i).getLength();
-        }
-        return shape;
     }
 
     private Date dateOf(double julianDate) throws IOException, InvalidRangeException {

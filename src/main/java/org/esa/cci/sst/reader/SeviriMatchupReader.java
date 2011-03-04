@@ -3,16 +3,13 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -112,10 +109,6 @@ public class SeviriMatchupReader extends NetcdfMatchupReader {
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != sstFillValue);
         return observation;
-    }
-
-    @Override
-    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex) {
     }
 
     public Date dateOf(double secondsSince1981) {
