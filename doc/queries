@@ -58,3 +58,19 @@ where m.refobs_id = o.id
 and c1.matchup_id = m.id and c1.observation_id = o1.id 
 group by o.sensor, o1.sensor
 order by o.sensor, o1.sensor;
+
+### matchup validation
+
+1. Find matchup id with, e.g:
+
+   id from mm_matchup where pattern & 31 = 31 order by id asc;
+
+2. Dump shape files with (there is a shell script for this in the src/main/bin)
+
+   pgsql2shp -h 10.3.0.35 -u mms -f matchup703201-amsre -P mms mmdb "select o.location from mm_observation o, mm_matchup m, mm_coincidence c where m.id = 703201 and c.matchup_id = m.id and c.observation_id = o.id and o.sensor = 'amsre'"
+   pgsql2shp -h 10.3.0.35 -u mms -f matchup703201-avhrr -P mms mmdb "select o.location from mm_observation o, mm_matchup m, mm_coincidence c where m.id = 703201 and c.matchup_id = m.id and c.observation_id = o.id and o.sensor = 'avhrr'"
+   pgsql2shp -h 10.3.0.35 -u mms -f matchup703201-aatsr -P mms mmdb "select o.location from mm_observation o, mm_matchup m, mm_coincidence c where m.id = 703201 and c.matchup_id = m.id and c.observation_id = o.id and o.sensor = 'aatsr'"
+   pgsql2shp -h 10.3.0.35 -u mms -f matchup703201-mds -P mms mmdb "select o.location from mm_observation o, mm_matchup m, mm_coincidence c where m.id = 703201 and c.matchup_id = m.id and c.observation_id = o.id and (o.sensor = 'metop' or o.sensor = 'seviri')"
+   pgsql2shp -h 10.3.0.35 -u mms -f matchup703201-ref -P mms mmdb "select o.location from mm_observation o, mm_matchup m where m.id = 703201 and m.refobs_id = o.id"
+
+3. Display shape files with udig
