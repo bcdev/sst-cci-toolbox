@@ -8,6 +8,7 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -49,8 +50,9 @@ public class SeviriMatchupReader extends NetcdfObservationReader {
     @Override
     public void init(DataFile dataFileEntry) throws IOException {
         super.init(dataFileEntry);
-        noOfLines = netcdf.findDimension("ny").getLength();
-        noOfColumns = netcdf.findDimension("nx").getLength();
+        final NetcdfFile ncFile = getNcFile();
+        noOfLines = ncFile.findDimension("ny").getLength();
+        noOfColumns = ncFile.findDimension("nx").getLength();
     }
 
     /**
@@ -90,9 +92,9 @@ public class SeviriMatchupReader extends NetcdfObservationReader {
         observation.setPoint(new PGgeometry(new Point(coordinateOf(getInt("lon", recordNo, line, column)),
                                                       coordinateOf(getInt("lat", recordNo, line, column)))));
         observation.setTime(dateOf(getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
-        observation.setDatafile(dataFileEntry);
+        observation.setDatafile(getDataFileEntry());
         observation.setRecordNo(recordNo);
-        observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != sstFillValue);
+        observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != getSstFillValue());
         return observation;
     }
 

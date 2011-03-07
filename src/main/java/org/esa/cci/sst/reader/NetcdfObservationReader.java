@@ -9,7 +9,6 @@ import ucar.ma2.ArrayFloat;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -17,7 +16,6 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,33 +30,36 @@ import java.util.Map;
  *
  * @author Martin Boettcher
  */
-abstract public class NetcdfObservationReader implements ObservationReader {
+abstract public class NetcdfObservationReader extends NetcdfObservationStructureReader {
 
-    protected NetcdfFile netcdf;
-    protected int numRecords;
-    protected DataFile dataFileEntry;
-
-    protected int sstFillValue;
+    private int numRecords;
+    private int sstFillValue;
     private Map<String, Array> data = new HashMap<String, Array>();
     private int bufferStart = 0;
     private int bufferFill = 0;
-    private int tileSize = 1024;  // TODO adjust default, read from property
-
-    private final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
-    private final String sensorName;
-    private final String recordDimensionName;
+    private String recordDimensionName;
 
     protected NetcdfObservationReader(String sensorName, String recordDimensionName) {
+        super(sensorName);
         this.recordDimensionName = recordDimensionName;
-        dimensionRoleMap.put("n", "match_up");
-        dimensionRoleMap.put("nx", "nj");
-        dimensionRoleMap.put("ny", "ni");
-        dimensionRoleMap.put("len_id", "length");
-        dimensionRoleMap.put("len_filename", "length");
-        dimensionRoleMap.put("cs_length", "length");
-        dimensionRoleMap.put("ui_length", "length");
-        dimensionRoleMap.put("length", "length");
-        this.sensorName = sensorName;
+    }
+
+    @Override
+    public void init(DataFile dataFileEntry) throws IOException {
+        super.init(dataFileEntry);
+        // read number of records value
+        final String path = dataFileEntry.getPath();
+        final NetcdfFile ncFile = getNcFile();
+        final Dimension dimension = ncFile.findDimension(recordDimensionName);
+        if (dimension == null) {
+            throw new IOException(
+                    MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", recordDimensionName, path));
+        }
+        numRecords = dimension.getLength();
+        // read SST fill value
+        final ucar.nc2.Variable variable = ncFile.findVariable(getSstVariableName().replaceAll("\\.", "%2e"));
+        // todo - only used to compute clearsky condition, generalise clearsky flag computation?!
+        sstFillValue = variable.findAttributeIgnoreCase("_fillvalue").getNumericValue().intValue();
     }
 
     /**
@@ -72,161 +73,18 @@ abstract public class NetcdfObservationReader implements ObservationReader {
     }
 
     @Override
-    public org.esa.cci.sst.data.Variable[] getVariables() throws IOException {
-        final ArrayList<org.esa.cci.sst.data.Variable> variableList = new ArrayList<org.esa.cci.sst.data.Variable>();
-        for (Variable ncVar : netcdf.getVariables()) {
-            final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
-            variable.setName(String.format("%s.%s", sensorName, ncVar.getName()));
-            variable.setType(ncVar.getDataType().name());
-            final String dimensionsString = ncVar.getDimensionsString();
-            variable.setDimensions(dimensionsString);
-            final String dimensionRoles = getDimensionRoles(dimensionsString);
-            variable.setDimensionRoles(dimensionRoles);
-            for (final Attribute attr : ncVar.getAttributes()) {
-                if ("add_offset".equals(attr.getName())) {
-                    variable.setAddOffset(attr.getNumericValue());
-                }
-                if ("scale_factor".equals(attr.getName())) {
-                    variable.setScaleFactor(attr.getNumericValue());
-                }
-                if ("_FillValue".equals(attr.getName())) {
-                    variable.setFillValue(attr.getNumericValue());
-                }
-                if("valid_min".equals(attr.getName())) {
-                    variable.setValidMin(attr.getNumericValue());
-                }
-                if("valid_max".equals(attr.getName())) {
-                    variable.setValidMax(attr.getNumericValue());
-                }
-                if("long_name".equals(attr.getName())) {
-                    variable.setLongName(attr.getStringValue());
-                }
-                if("standard_name".equals(attr.getName())) {
-                    variable.setStandardName(attr.getStringValue());
-                }
-            }
-            variable.setDataSchema(dataFileEntry.getDataSchema());
-            final String units = ncVar.getUnitsString();
-            if (units != null && !units.isEmpty()) {
-                variable.setUnits(units);
-            }
-            variableList.add(variable);
+    public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file,
+                      int matchupIndex, int[] dimensionSizes) throws IOException {
+        String sensorName = observation.getSensor();
+        String originalVarName = variable.getName();
+        String variableName = originalVarName.replace(sensorName + ".", "");
+        final int[] origin = ReaderUtils.createOriginArray(matchupIndex, variable);
+        try {
+            Array variableData = getData(matchupIndex, variableName);
+            file.write(NetcdfFile.escapeName(originalVarName), origin, variableData);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
         }
-        return variableList.toArray(new org.esa.cci.sst.data.Variable[variableList.size()]);
-    }
-
-    private String getDimensionRoles(String dimensionsString) {
-        final StringBuilder sb = new StringBuilder();
-        for (final String dimensionString : dimensionsString.split(" ")) {
-            if (sb.length() != 0) {
-                sb.append(" ");
-            }
-            final String dimensionRole = dimensionRoleMap.get(dimensionString);
-            if (dimensionRole == null) {
-                sb.append(dimensionString);
-            } else {
-                sb.append(dimensionRole);
-            }
-        }
-        return sb.toString();
-    }
-
-    // todo - only used to compute clearsky condition, generalise clearsky flag computation?!
-
-    /**
-     * Constant name of variable to read the sst value from
-     *
-     * @return variable name
-     */
-    abstract protected String getSstVariableName();
-
-    /**
-     * Opens NetCDF file, reads number of records and SST fill value, and
-     * initialises map of variables. May be overridden to initialise additional
-     * variables.
-     *
-     * @param dataFileEntry data file entry to be referenced in each observation created by reader
-     *
-     * @throws IOException if file access fails
-     */
-    @Override
-    public void init(DataFile dataFileEntry) throws IOException {
-
-        this.dataFileEntry = dataFileEntry;
-
-        // open match-up file
-        final String path = dataFileEntry.getPath();
-        if(!NetcdfFile.canOpen(path)) {
-            throw new IOException("Cannot open file '" + path + "'.");
-        }
-        netcdf = NetcdfFile.open(path);
-        // read number of records value
-        final Dimension dimension = netcdf.findDimension(recordDimensionName);
-        if (dimension == null) {
-            throw new IOException(
-                    MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", recordDimensionName, path));
-        }
-        numRecords = dimension.getLength();
-        // read SST fill value
-        final Variable variable = netcdf.findVariable(getSstVariableName().replaceAll("\\.", "%2e"));
-        sstFillValue = variable.findAttributeIgnoreCase("_fillvalue").getNumericValue().intValue();
-    }
-
-    /**
-     * Closes NetCDF file
-     *
-     * @throws IOException if closing fails
-     */
-    @Override
-    public void close() throws IOException {
-        if (netcdf != null) {
-            netcdf.close();
-        }
-    }
-
-    /**
-     * Ensures that identified record is in the data buffer, maybe reads tile to achieve this.
-     *
-     * @param recordNo index of record to be in the data buffer
-     *
-     * @return index of first record in buffer, to be used as offset of record
-     *         number when accessing data buffer
-     *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
-     */
-    protected int fetch(int recordNo) throws IOException {
-        if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
-            int size = tileSize;
-            for (Variable variable : netcdf.getVariables()) {
-                final int[] shape = variable.getShape();
-                final int[] start = new int[shape.length];
-                start[0] = recordNo;
-                shape[0] = (shape[0] < recordNo + tileSize)
-                           ? shape[0] - recordNo
-                           : tileSize;
-                final Array values;
-                try {
-                    values = variable.read(start, shape);
-                } catch (InvalidRangeException e) {
-                    throw new IOException(e);
-                }
-                data.put(variable.getNameEscaped(), values);
-            }
-            bufferStart = recordNo;
-            bufferFill = size;
-        }
-        return bufferStart;
-    }
-
-       public Array getData(int matchupIndex, String variableName) throws IOException {
-        final int offset = fetch(matchupIndex);
-        final int index = matchupIndex - offset;
-        final Array slice = getData().get(NetcdfFile.escapeName(variableName)).slice(0, index);
-        final int[] shape1 = slice.getShape();
-        final int[] shape2 = new int[shape1.length + 1];
-        shape2[0] = 1;
-        System.arraycopy(shape1, 0, shape2, 1, shape1.length);
-        return slice.reshape(shape2);
     }
 
     /**
@@ -384,22 +242,64 @@ abstract public class NetcdfObservationReader implements ObservationReader {
         return ((ArrayDouble.D2) variableData).get(recordNo - offset, line);
     }
 
-    protected final Map<String, Array> getData() {
+    /**
+     * Ensures that identified record is in the data buffer, maybe reads tile to achieve this.
+     *
+     * @param recordNo index of record to be in the data buffer
+     *
+     * @return index of first record in buffer, to be used as offset of record
+     *         number when accessing data buffer
+     *
+     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     */
+    private int fetch(int recordNo) throws IOException {
+        if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
+            int tileSize = 1024;  // TODO adjust default, read from property
+            for (Variable variable : getNcFile().getVariables()) {
+                final int[] shape = variable.getShape();
+                final int[] start = new int[shape.length];
+                start[0] = recordNo;
+                shape[0] = (shape[0] < recordNo + tileSize)
+                           ? shape[0] - recordNo
+                           : tileSize;
+                final Array values;
+                try {
+                    values = variable.read(start, shape);
+                } catch (InvalidRangeException e) {
+                    throw new IOException(e);
+                }
+                data.put(variable.getNameEscaped(), values);
+            }
+            bufferStart = recordNo;
+            bufferFill = tileSize;
+        }
+        return bufferStart;
+    }
+
+    private Array getData(int matchupIndex, String variableName) throws IOException {
+        final int offset = fetch(matchupIndex);
+        final int index = matchupIndex - offset;
+        final Array slice = getData().get(NetcdfFile.escapeName(variableName)).slice(0, index);
+        final int[] shape1 = slice.getShape();
+        final int[] shape2 = new int[shape1.length + 1];
+        shape2[0] = 1;
+        System.arraycopy(shape1, 0, shape2, 1, shape1.length);
+        return slice.reshape(shape2);
+    }
+
+    private Map<String, Array> getData() {
         return data;
     }
 
-    @Override
-    public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file,
-                      int matchupIndex, int[] dimensionSizes) throws IOException {
-        String sensorName = observation.getSensor();
-        String originalVarName = variable.getName();
-        String variableName = originalVarName.replace(sensorName + ".", "");
-        final int[] origin = ReaderUtils.createOriginArray(matchupIndex, variable);
-        try {
-            Array variableData = getData(matchupIndex, variableName);
-            file.write(NetcdfFile.escapeName(originalVarName), origin, variableData);
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
-        }
+    protected int getSstFillValue() {
+        return sstFillValue;
     }
+
+    /**
+     * Constant name of variable to read the sst value from
+     *
+     * @return variable name
+     */
+    abstract protected String getSstVariableName();
+
 }

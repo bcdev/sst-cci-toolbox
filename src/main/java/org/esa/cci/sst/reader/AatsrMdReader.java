@@ -52,9 +52,9 @@ public class AatsrMdReader extends NetcdfObservationReader {
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
-        observation.setDatafile(dataFileEntry);
+        observation.setDatafile(getDataFileEntry());
         observation.setRecordNo(recordNo);
-        observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != sstFillValue);
+        observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != getSstFillValue());
         return observation;
     }
 

@@ -8,6 +8,7 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -54,8 +55,9 @@ public class MetopMdReader extends NetcdfObservationReader {
     @Override
     public void init(DataFile dataFileEntry) throws IOException {
         super.init(dataFileEntry);
-        rowCount = netcdf.findDimension("ny").getLength();
-        colCount = netcdf.findDimension("nx").getLength();
+        final NetcdfFile ncFile = getNcFile();
+        rowCount = ncFile.findDimension("ny").getLength();
+        colCount = ncFile.findDimension("nx").getLength();
     }
 
     /**
@@ -78,9 +80,9 @@ public class MetopMdReader extends NetcdfObservationReader {
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
-        observation.setDatafile(dataFileEntry);
+        observation.setDatafile(getDataFileEntry());
         observation.setRecordNo(recordNo);
-        observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != sstFillValue);
+        observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != getSstFillValue());
 
         return observation;
     }

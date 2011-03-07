@@ -158,6 +158,7 @@ public class ProductObservationReader implements ObservationReader {
     @Override
     public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
                       int[] dimensionSizes) throws IOException {
+        // todo - complete at least for aai, perhaps for sea ice as well (wait for feedback)
         final String fileLocation = observation.getDatafile().getPath();
         final Product product = getProduct(fileLocation);
         final GeoCoding geoCoding = product.getGeoCoding();
