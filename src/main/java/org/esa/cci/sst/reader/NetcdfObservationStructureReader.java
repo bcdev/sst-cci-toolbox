@@ -125,6 +125,10 @@ public abstract class NetcdfObservationStructureReader implements ObservationRea
         }
     }
 
+    protected String getSensorName() {
+        return sensorName;
+    }
+
     protected NetcdfFile getNcFile() {
         return ncFile;
     }

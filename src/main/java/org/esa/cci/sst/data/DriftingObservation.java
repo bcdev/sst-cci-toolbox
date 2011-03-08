@@ -19,13 +19,11 @@ package org.esa.cci.sst.data;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  * @author Thomas Storm
  */
 @Entity
-@Table(name = "mm_observation")
 public class DriftingObservation extends Observation {
 
     long timeRadius;
@@ -40,6 +38,6 @@ public class DriftingObservation extends Observation {
 
     public String toString() {
         return String.format("Observation(%d,%s,%s,%s,%d,%s,%d)", getId(), getName(), getSensor(), TimeUtil.formatCcsdsUtcFormat(
-                getTime()), timeRadius, getDatafile(), getRecordNo());
+                getTime()), getTimeRadius(), getDatafile(), getRecordNo());
     }
 }

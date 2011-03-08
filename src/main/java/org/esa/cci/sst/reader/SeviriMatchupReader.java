@@ -1,8 +1,8 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -60,14 +60,12 @@ public class SeviriMatchupReader extends NetcdfObservationReader {
      * may serve as common observation in some matchup. SEVIRI sub-scenes contain scan lines scanned
      * from right to left looking from first to last scan line.
      *
-     *
-     *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      * @return Observation for SEVIRI sub-scene
      * @throws IOException  if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
-    public RelatedObservation readObservation(int recordNo) throws IOException {
+    public Observation readObservation(int recordNo) throws IOException {
 
         //int    line   = getShort("box_center_y_coord", recordNo);
         //int    column = getShort("box_center_x_coord", recordNo);

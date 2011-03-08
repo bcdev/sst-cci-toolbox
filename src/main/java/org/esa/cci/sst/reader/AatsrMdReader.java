@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -41,7 +42,7 @@ public class AatsrMdReader extends NetcdfObservationReader {
      * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
-    public ReferenceObservation readObservation(int recordNo) throws IOException {
+    public Observation readObservation(int recordNo) throws IOException {
 
         final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                              getFloat("atsr.latitude", recordNo)));

@@ -67,7 +67,7 @@ public class ProductObservationReader implements ObservationReader {
     }
 
     @Override
-    public final RelatedObservation readObservation(int recordNo) throws IOException {
+    public final Observation readObservation(int recordNo) throws IOException {
         if (product == null) {
             return null;
         }
@@ -76,7 +76,7 @@ public class ProductObservationReader implements ObservationReader {
         // TODO move distinction to reader level instead
         if (gbc instanceof DefaultGeoBoundaryCalculator) {
             observation = new RelatedObservation();
-            ((RelatedObservation) observation).setLocation(createGeometry(gbc.getGeoBoundary(product)));
+            observation.setLocation(createGeometry(gbc.getGeoBoundary(product)));
         } else {
             observation = new RelatedObservation();
         }

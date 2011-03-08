@@ -17,11 +17,16 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.SensorName;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.DriftingObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Allows reading of observations from the in-history situ data.
@@ -41,17 +46,48 @@ public class InsituHistoryReader extends NetcdfObservationStructureReader {
 
     @Override
     public Observation readObservation(int recordNo) throws IOException {
-        return null;
+        final DriftingObservation observation = new DriftingObservation();
+        final DataFile dataFile = getDataFileEntry();
+        observation.setDatafile(dataFile);
+        observation.setName(getNcFile().findGlobalAttribute("title").getStringValue());
+        observation.setRecordNo(recordNo);
+        observation.setSensor(getSensorName());
+        try {
+            final String path = dataFile.getPath();
+            final TimeInterval time = getTime(path);
+            observation.setTime(time.centralTime);
+            observation.setTimeRadius(time.timeRadius);
+        } catch (ParseException e) {
+            throw new IOException("Unable to set time", e);
+        }
+        return observation;
     }
 
-    @Override
-    public Variable[] getVariables() throws IOException {
-        return new Variable[0];
+    TimeInterval getTime(final String fileName) throws ParseException {
+        final String[] splittedString = fileName.split("_");
+        String startTimeString = splittedString[splittedString.length - 2];
+        String endTimeString = splittedString[splittedString.length - 1].split("\\.")[0];
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        final Date startTime = dateFormat.parse(startTimeString);
+        final Date endTime = dateFormat.parse(endTimeString);
+        final Date centralTime = new Date((startTime.getTime() + endTime.getTime()) / 2);
+        return new TimeInterval(centralTime, endTime.getTime() - centralTime.getTime());
     }
 
     @Override
     public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
                       int[] dimensionSizes) throws IOException {
+    }
+
+    static class TimeInterval {
+
+        final Date centralTime;
+        final long timeRadius;
+
+        public TimeInterval(final Date centralTime, final long timeRadius) {
+            this.centralTime = centralTime;
+            this.timeRadius = timeRadius;
+        }
     }
 
 }

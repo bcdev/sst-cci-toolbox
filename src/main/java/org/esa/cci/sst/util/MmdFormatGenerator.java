@@ -131,8 +131,8 @@ public class MmdFormatGenerator {
     NetcdfFileWriteable generateMmdFile(String fileName) throws Exception {
         final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, true);
 
-        file.addDimension(DIMENSION_NAME_MATCHUP, 1);
-//      todo - file.addDimension(DIMENSION_NAME_MATCHUP, getMatchupCount());
+//        file.addDimension(DIMENSION_NAME_MATCHUP, 1);
+        file.addDimension(DIMENSION_NAME_MATCHUP, getMatchupCount());
 
         for (String dimensionName : dimensionCountMap.keySet()) {
             file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
@@ -169,7 +169,7 @@ public class MmdFormatGenerator {
             final List<Matchup> resultList = getAllMatchupsQuery.getResultList();
             int matchupCount = resultList.size();
 
-            for (int matchupIndex = 0; matchupIndex < 1; matchupIndex++) {
+            for (int matchupIndex = 0; matchupIndex < getMatchupCount(); matchupIndex++) {
                 Matchup matchup = resultList.get(matchupIndex);
                 final int matchupId = matchup.getId();
                 System.out.println("Writing matchup '" + matchupId + "' (" + matchupIndex + "/" + matchupCount + ").");
@@ -179,12 +179,8 @@ public class MmdFormatGenerator {
                     writeObservation(file, coincidence.getObservation(), matchupIndex);
                 }
                 writeObservation(file, referenceObservation, matchupIndex);
+                writeMatchupId(file, matchupId, matchupIndex);
                 persistenceManager.detach(coincidences);
-//            if( matchupIndex % 1000 == 999 ) {
-//                persistenceManager.commit();
-//                persistenceManager.transaction();
-//                persistenceManager.clearEntityManager();
-//            }
             }
         } finally {
             persistenceManager.commit();
@@ -242,9 +238,11 @@ public class MmdFormatGenerator {
 
     /**
      * Returns the lengths of the dimensions of the variable given by <code>variableName</code>.
+     *
      * @param variableName The variable name to get the dimension sizes for.
+     *
      * @return An array of integers containing the dimension length <code>l[i]</code> for dimension with index
-     * <code>i</code>.
+     *         <code>i</code>.
      */
     private int[] getDimensionSizes(String variableName) {
         final String dimString = varDimensionMap.get(NetcdfFile.escapeName(variableName));

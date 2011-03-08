@@ -120,7 +120,7 @@ public class IngestionTool extends MmsTool {
      * @param schemaName  name of the file type
      * @param reader      The reader to be used to read this file type
      *
-     * @throws Exception if ingestion fails
+     * @throws ToolException if ingestion fails
      */
     private void ingest(File matchupFile, String schemaName, ObservationReader reader) throws ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();

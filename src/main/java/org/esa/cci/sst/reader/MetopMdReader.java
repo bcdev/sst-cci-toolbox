@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -70,7 +71,7 @@ public class MetopMdReader extends NetcdfObservationReader {
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
-    public ReferenceObservation readObservation(int recordNo) throws IOException {
+    public Observation readObservation(int recordNo) throws IOException {
         final int x = colCount / 2;
         final int y = rowCount / 2;
 

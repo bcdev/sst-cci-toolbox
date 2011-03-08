@@ -1,19 +1,11 @@
 package org.esa.cci.sst.data;
 
-import org.apache.openjpa.persistence.jdbc.Index;
 import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import java.util.Date;
 
 /**
  * Data item that represents a single observation, either with an SST value
@@ -47,7 +39,8 @@ public class ReferenceObservation extends RelatedObservation {
     }
 
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getName(), getSensor(), TimeUtil.formatCcsdsUtcFormat(getTime()), getPoint(), getLocation(), getDatafile(), getRecordNo(), isClearSky());
+        return String.format("Observation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getName(), getSensor(), TimeUtil.formatCcsdsUtcFormat(
+                getTime()), getPoint(), getLocation(), getDatafile(), getRecordNo(), isClearSky());
     }
 }
 
