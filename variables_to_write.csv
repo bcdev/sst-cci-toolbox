@@ -1,0 +1,26 @@
+#######################################################################################
+##                                                                                   ##
+# This file contains the list of variables, which are to be written into the MMD-file.#
+# The variables are written line-separated and without any sensor name in front.      #
+# Comments begin with the '#'-character.                                              #
+##                                                                                   ##
+#######################################################################################
+
+msr_lat
+msr_lon
+msr_sst
+msr_depth
+msr_quality
+msr_air_temp
+msr_dew_point_temp
+msr_wind_speed
+msr_wind_direction
+time
+dtime
+lat
+lon
+satzen
+solzen
+relazi
+msr_type
+msr_method

@@ -5,9 +5,12 @@ import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -17,10 +20,13 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -157,26 +163,101 @@ public class ProductObservationReader implements ObservationReader {
 
     @Override
     public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-                      int[] dimensionSizes) throws IOException {
+                      int[] dimensionSizes, final PGgeometry point) throws IOException {
         // todo - complete at least for aai, perhaps for sea ice as well (wait for feedback)
         final String fileLocation = observation.getDatafile().getPath();
         final Product product = getProduct(fileLocation);
-        final GeoCoding geoCoding = product.getGeoCoding();
         String sensorName = observation.getSensor();
         String originalVarName = variable.getName();
         String variableName = originalVarName.replace(sensorName + ".", "");
         final Band band = product.getBand(variableName);
         if (band == null) {
+            // todo - ts - log warning
             return;
         }
 
         final DataType type = DataTypeUtils.getNetcdfDataType(band);
         final int[] origin = createOriginArray(matchupIndex, variable);
         final int[] shape = createShapeArray(origin.length, dimensionSizes);
-//        final Array array = Array.factory(type, shape, data);
-//        array.setObject(0, sample);
+
+        final Rectangle rectangle;
+        final GeoCoding geoCoding = product.getGeoCoding();
+        final float lon = (float) point.getGeometry().getFirstPoint().x;
+        final float lat = (float) point.getGeometry().getFirstPoint().y;
+        final GeoPos geoPos = new GeoPos(lat, lon);
+        PixelPos pixelPos = geoCoding.getPixelPos(geoPos, null);
+
+        if (dimensionSizes.length == 0 || dimensionSizes.length == 1) {
+            // write scalar
+            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, 1, 1);
+        } else if (dimensionSizes.length == 2) {
+            // write one dimension
+            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
+            correctPixelPosAndShape(shape, pixelPos);
+            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], 1);
+        } else if (dimensionSizes.length >= 3) {
+            // write two dimensions
+            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
+            pixelPos.y = pixelPos.y - dimensionSizes[2] / 2;
+            correctPixelPosAndShape(shape, pixelPos);
+            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], shape[2]);
+        } else {
+            // cannot come here
+            throw new IllegalStateException("Array size < 0.");
+        }
+
+        final Array array = createArray(band, type, shape, rectangle);
         originalVarName = NetcdfFile.escapeName(originalVarName);
-//        file.write(originalVarName, origin, array);
+
+        try {
+            file.write(originalVarName, origin, array);
+        } catch (InvalidRangeException e) {
+            throw new IOException("Unable to write to netcdf-file '" + fileLocation + "'.", e);
+        }
+    }
+
+    private void correctPixelPosAndShape(final int[] shape, final PixelPos pixelPos) {
+        if (pixelPos.x < 0) {
+            shape[1] = (int) (shape[1] + 2 * pixelPos.x);
+            pixelPos.x = 0;
+        }
+        if (pixelPos.y < 0) {
+            shape[2] = (int) (shape[2] + 2 * pixelPos.y);
+            pixelPos.y = 0;
+        }
+    }
+
+    private Array createArray(final Band band, final DataType type, final int[] shape, final Rectangle rectangle) {
+        final Array array = Array.factory(type, shape);
+        for (int x = rectangle.getLocation().x; x < rectangle.getWidth(); x++) {
+            for (int y = rectangle.getLocation().y; y < rectangle.getHeight(); y++) {
+                Object value = null;
+                switch (band.getDataType()) {
+                    case ProductData.TYPE_FLOAT64: {
+                        value = ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                        break;
+                    }
+                    case ProductData.TYPE_FLOAT32: {
+                        value = (float) ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                        break;
+                    }
+                    case ProductData.TYPE_INT8:
+                    case ProductData.TYPE_INT16:
+                    case ProductData.TYPE_INT32:
+                    case ProductData.TYPE_UINT8:
+                    case ProductData.TYPE_UINT16:
+                    case ProductData.TYPE_UINT32: {
+                        value = ProductUtils.getGeophysicalSampleLong(band, x, y, 0);
+                    }
+                }
+                array.setObject(computeIndex(x, y, (int) (rectangle.getHeight() - 1)), value);
+            }
+        }
+        return array;
+    }
+
+    static int computeIndex(final int x, final int y, final int maxY) {
+        return x * (maxY + 1) + y;
     }
 
     private Product getProduct(String fileLocation) throws IOException {
@@ -207,10 +288,11 @@ public class ProductObservationReader implements ObservationReader {
     }
 
     int[] createShapeArray(int length, int[] dimensionSizes) {
-        Assert.argument(length == dimensionSizes.length + 1);
+        Assert.argument(length == dimensionSizes.length,
+                        "length == dimensionSizes.length || length == dimensionSizes.length + 1");
         int[] shape = new int[length];
         shape[0] = 1;
-        System.arraycopy(dimensionSizes, 0, shape, 1, shape.length - 1);
+        System.arraycopy(dimensionSizes, 1, shape, 1, shape.length - 1);
         return shape;
     }
 

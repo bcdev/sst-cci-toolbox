@@ -145,4 +145,22 @@ public class Variable {
     public String getLongName() {
         return longName;
     }
+
+    @Override
+    public boolean equals(Object anObject) {
+		if( this == anObject ) {
+			return true;
+		}
+
+		if(!(anObject instanceof Variable)) {
+			return false;
+		}
+
+		return this.getId() == ((Variable)anObject).getId();
+	}
+
+	@Override
+	public int hashCode() {
+		return 31 * getId();
+	}
 }

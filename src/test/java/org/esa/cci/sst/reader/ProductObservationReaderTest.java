@@ -39,7 +39,9 @@ public class ProductObservationReaderTest {
     @After
     public void clean() {
         try {
-            reader.close();
+            if (reader != null) {
+                reader.close();
+            }
         } catch (IOException e) {
             // ignore
         }
@@ -146,10 +148,21 @@ public class ProductObservationReaderTest {
         assertEquals(11, shapeArray[2]);
 
         try {
-            reader.createShapeArray(2, new int[]{11, 11});
+            reader.createShapeArray(2, new int[]{100000, 11, 11});
             fail();
         } catch (IllegalArgumentException expected) {
             // ok
+        }
+    }
+
+    @Test
+    public void testComputeIndex() throws Exception {
+        int count = 0;
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
+                assertEquals(count, ProductObservationReader.computeIndex(x, y, 9));
+                count++;
+            }
         }
     }
 

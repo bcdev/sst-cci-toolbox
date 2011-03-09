@@ -3,6 +3,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
+import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
@@ -13,17 +14,19 @@ import java.io.IOException;
  * @author Martin Boettcher
  */
 public interface ObservationReader {
+
     /**
      * Opens observation file and initialises cache buffer.
      * Overrides shall store the given {@code dataFileEntry} in order to be used in
      * {@link #readObservation(int)}.
      *
-     * @param dataFileEntry   data file entry to be referenced in each observation created by reader
+     * @param dataFileEntry data file entry to be referenced in each observation created by reader
      */
     void init(DataFile dataFileEntry) throws IOException;
 
     /**
      * Closes observation file
+     *
      * @throws IOException
      */
     void close() throws IOException;
@@ -43,7 +46,9 @@ public interface ObservationReader {
      * passed into {@link #init(org.esa.cci.sst.data.DataFile)}.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
+     *
      * @return Observation with values read from observation file
+     *
      * @throws java.io.IOException if observation could not be read.
      */
     Observation readObservation(int recordNo) throws IOException;
@@ -52,12 +57,14 @@ public interface ObservationReader {
 
     /**
      * Writes the variable from the observation in the file.
-     * @param observation The observation to write.
-     * @param variable The variable to write.
-     * @param file The file to write into.
+     *
+     * @param observation    The observation to write.
+     * @param variable       The variable to write.
+     * @param file           The file to write into.
      * @param matchupIndex
      * @param dimensionSizes
+     * @param point
      */
     void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-               int[] dimensionSizes) throws IOException;
+               int[] dimensionSizes, final PGgeometry point) throws IOException;
 }

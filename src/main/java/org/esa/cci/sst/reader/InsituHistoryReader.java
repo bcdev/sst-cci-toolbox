@@ -21,6 +21,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DriftingObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
+import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class InsituHistoryReader extends NetcdfObservationStructureReader {
 
     @Override
     public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-                      int[] dimensionSizes) throws IOException {
+                      int[] dimensionSizes, final PGgeometry point) throws IOException {
     }
 
     static class TimeInterval {

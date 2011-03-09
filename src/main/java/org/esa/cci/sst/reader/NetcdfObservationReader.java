@@ -2,6 +2,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
@@ -48,18 +49,20 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
     public void init(DataFile dataFileEntry) throws IOException {
         super.init(dataFileEntry);
         // read number of records value
-        final String path = dataFileEntry.getPath();
         final NetcdfFile ncFile = getNcFile();
         final Dimension dimension = ncFile.findDimension(recordDimensionName);
         if (dimension == null) {
-            throw new IOException(
-                    MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", recordDimensionName, path));
+            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", recordDimensionName,
+                                                       dataFileEntry.getPath()));
         }
         numRecords = dimension.getLength();
         // read SST fill value
         final ucar.nc2.Variable variable = ncFile.findVariable(getSstVariableName().replaceAll("\\.", "%2e"));
         // todo - only used to compute clearsky condition, generalise clearsky flag computation?!
         sstFillValue = variable.findAttributeIgnoreCase("_fillvalue").getNumericValue().intValue();
+        data.clear();
+        bufferFill = 0;
+        bufferStart = 0;
     }
 
     /**
@@ -74,7 +77,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
 
     @Override
     public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file,
-                      int matchupIndex, int[] dimensionSizes) throws IOException {
+                      int matchupIndex, int[] dimensionSizes, final PGgeometry point) throws IOException {
         String sensorName = observation.getSensor();
         String originalVarName = variable.getName();
         String variableName = originalVarName.replace(sensorName + ".", "");
@@ -95,7 +98,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return record value as String
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     public String getString(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
@@ -111,7 +114,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return record value as float
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     public float getFloat(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
@@ -127,7 +130,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return record value as double
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     public double getDouble(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
@@ -143,7 +146,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return record value as int
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     public int getInt(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
@@ -159,7 +162,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return record value as int
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     public int getShort(String role, int recordNo) throws IOException {
         int offset = fetch(recordNo);
@@ -177,8 +180,8 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return pixel value as int
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1
+     *                     or line and column are out of range or if file io fails
      */
     public int getShort(String role, int recordNo, int line, int column) throws IOException {
         int offset = fetch(recordNo);
@@ -196,8 +199,8 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return pixel value as int
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1
+     *                     or line and column are out of range or if file io fails
      */
     public int getInt(String role, int recordNo, int line, int column) throws IOException {
         int offset = fetch(recordNo);
@@ -215,8 +218,8 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return pixel value as double
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1
+     *                     or line and column are out of range or if file io fails
      */
     public double getDouble(String role, int recordNo, int line, int column) throws IOException {
         int offset = fetch(recordNo);
@@ -233,8 +236,8 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      *
      * @return pixel value as double
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1
-     *                               or line and column are out of range or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1
+     *                     or if line and column are out of range or if file io fails
      */
     public double getDouble(String role, int recordNo, int line) throws IOException {
         int offset = fetch(recordNo);
@@ -250,9 +253,9 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      * @return index of first record in buffer, to be used as offset of record
      *         number when accessing data buffer
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    private int fetch(int recordNo) throws IOException {
+    int fetch(int recordNo) throws IOException {
         if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
             int tileSize = 1024;  // TODO adjust default, read from property
             for (Variable variable : getNcFile().getVariables()) {
@@ -276,9 +279,9 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         return bufferStart;
     }
 
-    private Array getData(int matchupIndex, String variableName) throws IOException {
-        final int offset = fetch(matchupIndex);
-        final int index = matchupIndex - offset;
+    Array getData(int recordNo, String variableName) throws IOException {
+        final int offset = fetch(recordNo);
+        final int index = recordNo - offset;
         final Array slice = getData().get(NetcdfFile.escapeName(variableName)).slice(0, index);
         final int[] shape1 = slice.getShape();
         final int[] shape2 = new int[shape1.length + 1];

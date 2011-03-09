@@ -51,8 +51,7 @@ public abstract class NetcdfObservationStructureReader implements ObservationRea
     }
 
     /**
-     * Opens NetCDF file, reads number of records and SST fill value, and
-     * initialises map of variables. May be overridden to initialise additional
+     * Opens NetCDF file. May be overridden to initialise additional
      * variables.
      *
      * @param dataFileEntry data file entry to be referenced in each observation created by reader
