@@ -64,7 +64,7 @@ public class SeviriMatchupReaderTest {
             final List<Variable> variables = reader.getNcFile().getVariables();
             for (int i = 0; i < 5741; i++) {
                 for (Variable variable : variables) {
-                    reader.getData(i, variable.getName());
+                    reader.getData(variable.getName(), i);
                 }
             }
         } catch (Exception e) {

@@ -10,6 +10,7 @@ import ucar.ma2.ArrayFloat;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -18,6 +19,7 @@ import ucar.nc2.Variable;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,6 +41,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
     private int bufferStart = 0;
     private int bufferFill = 0;
     private String recordDimensionName;
+    private Map<String, Integer> offsetMap = new HashMap<String, Integer>();
 
     protected NetcdfObservationReader(String sensorName, String recordDimensionName) {
         super(sensorName);
@@ -60,9 +63,9 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         final ucar.nc2.Variable variable = ncFile.findVariable(getSstVariableName().replaceAll("\\.", "%2e"));
         // todo - only used to compute clearsky condition, generalise clearsky flag computation?!
         sstFillValue = variable.findAttributeIgnoreCase("_fillvalue").getNumericValue().intValue();
-        data.clear();
-        bufferFill = 0;
-        bufferStart = 0;
+//        data.clear();
+//        bufferFill = 0;
+//        bufferStart = 0;
     }
 
     /**
@@ -83,7 +86,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         String variableName = originalVarName.replace(sensorName + ".", "");
         final int[] origin = ReaderUtils.createOriginArray(matchupIndex, variable);
         try {
-            Array variableData = getData(matchupIndex, variableName);
+            Array variableData = getData(variableName, matchupIndex);
             file.write(NetcdfFile.escapeName(originalVarName), origin, variableData);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
@@ -248,9 +251,49 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
     /**
      * Ensures that identified record is in the data buffer, maybe reads tile to achieve this.
      *
-     * @param recordNo index of record to be in the data buffer
+     * @param varName  The name of the variable to be read.
+     * @param recordNo Index of record to be in the data buffer.
      *
-     * @return index of first record in buffer, to be used as offset of record
+     * @return Index of first record in buffer, to be used as offset of record
+     *         number when accessing data buffer
+     *
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     */
+    int fetch(String varName, int recordNo) throws IOException {
+        int bufferStart = 0;
+        if(offsetMap.get(varName) != null) {
+            bufferStart = offsetMap.get(varName);
+        }
+        if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
+            final Variable variable = getNcFile().findVariable(NetcdfFile.escapeName(varName));
+            int tileSize = 1024;  // TODO adjust default, read from property
+            final int[] shape = variable.getShape();
+            final int[] start = new int[shape.length];
+            start[0] = recordNo;
+//            shape[0] = (shape[0] < recordNo + tileSize)
+//                       ? shape[0] - recordNo
+//                       : tileSize;
+            shape[0] = shape[0] - recordNo;
+            final Array values;
+            try {
+                values = variable.read(start, shape);
+            } catch (InvalidRangeException e) {
+                throw new IOException(e);
+            }
+            data.put(variable.getNameEscaped(), values);
+            bufferStart = recordNo;
+            bufferFill = tileSize;
+            offsetMap.put(varName, bufferStart);
+        }
+        return bufferStart;
+    }
+
+    /**
+     * Ensures that identified record is in the data buffer, maybe reads tile to achieve this.
+     *
+     * @param recordNo Index of record to be in the data buffer.
+     *
+     * @return Index of first record in buffer, to be used as offset of record
      *         number when accessing data buffer
      *
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
@@ -279,10 +322,15 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         return bufferStart;
     }
 
-    Array getData(int recordNo, String variableName) throws IOException {
-        final int offset = fetch(recordNo);
+    Array getData(String variableName, int recordNo) throws IOException {
+        final Variable variable = getNcFile().findVariable(NetcdfFile.escapeName(variableName));
+        if(recordNo > variable.getShape()[0]) {
+            return fill(variable);
+        }
+        fetch(variableName, recordNo);
+        final int offset = offsetMap.get(variableName);
         final int index = recordNo - offset;
-        final Array slice = getData().get(NetcdfFile.escapeName(variableName)).slice(0, index);
+        final Array slice = data.get(NetcdfFile.escapeName(variableName)).slice(0, index);
         final int[] shape1 = slice.getShape();
         final int[] shape2 = new int[shape1.length + 1];
         shape2[0] = 1;
@@ -290,8 +338,28 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         return slice.reshape(shape2);
     }
 
-    private Map<String, Array> getData() {
-        return data;
+    // todo - ts - verify
+    private Array fill(final Variable variable) {
+        final List<Dimension> dimensions = variable.getDimensions();
+        final int dimCount = dimensions.size();
+        final int[] shape = new int[dimCount - 1];
+        for(int i = 1; i < dimCount; i++) {
+            shape[i - 1] = dimensions.get(i).getLength();
+        }
+        Number fillValue = null;
+        final Attribute fillValueAttribute = variable.findAttribute("_FillValue");
+        if (fillValueAttribute != null) {
+            fillValue = fillValueAttribute.getNumericValue();
+        }
+        int size = 1;
+        for(int i : shape) {
+            size *= i;
+        }
+        final Number[] fillData = new Number[size];
+        for (int i = 0; i < fillData.length; i++) {
+            fillData[i] = fillValue;
+        }
+        return Array.factory(variable.getDataType(), shape, fillData);
     }
 
     protected int getSstFillValue() {

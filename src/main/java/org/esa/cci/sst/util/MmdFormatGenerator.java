@@ -4,6 +4,7 @@ import org.esa.beam.util.io.CsvReader;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.SensorName;
 import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -67,17 +68,13 @@ public class MmdFormatGenerator {
             + " from Matchup m"
             + " order by m.id";
 
-    private static final String VARIABLES_BY_DATASCHEMA_ID_QUERY =
-            "select v"
-            + " from Variable v"
-            + " where v.dataSchema.id = %d";
-
     private final PersistenceManager persistenceManager;
     private final Map<String, Integer> dimensionCountMap = new HashMap<String, Integer>(17);
     private final Map<String, String> varDimensionMap = new HashMap<String, String>(61);
     private final List<String> includedVars;
 
     private int matchupCount = -1;
+    private Map<String, ObservationReader> readers = new HashMap<String, ObservationReader>();
 
     public static void main(String[] args) throws Exception {
         NetcdfFileWriteable file = null;
@@ -147,7 +144,7 @@ public class MmdFormatGenerator {
     }
 
     NetcdfFileWriteable generateMmdFileStructure(String fileName) throws Exception {
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, true);
+        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, false);
         for (String dimensionName : dimensionCountMap.keySet()) {
             file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
         }
@@ -172,7 +169,6 @@ public class MmdFormatGenerator {
         file.setLargeFile(true);
         addGlobalAttributes(file);
         file.create();
-
         return file;
     }
 
@@ -187,6 +183,9 @@ public class MmdFormatGenerator {
             int matchupCount = resultList.size();
 
             for (int matchupIndex = 0; matchupIndex < getMatchupCount(); matchupIndex++) {
+                if (matchupIndex < 4440) {
+                    continue;
+                }
                 Matchup matchup = resultList.get(matchupIndex);
                 final int matchupId = matchup.getId();
                 // todo - replace with logging
@@ -208,8 +207,7 @@ public class MmdFormatGenerator {
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex) throws Exception {
-        ObservationReader reader = ReaderFactory.createReader(observation.getDatafile().getDataSchema().getName());
-        reader.init(observation.getDatafile());
+        ObservationReader reader = getReader(observation);
         final Variable[] variables = reader.getVariables();
         for (Variable variable : variables) {
             if (includedVars.contains(variable.getName().replace(observation.getSensor() + ".", ""))) {
@@ -217,6 +215,18 @@ public class MmdFormatGenerator {
             }
         }
         reader.close();
+    }
+
+    private ObservationReader getReader(final Observation observation) throws Exception {
+        final DataFile datafile = observation.getDatafile();
+        final String path = datafile.getPath();
+        if(readers.get(path) != null) {
+            return readers.get(path);
+        }
+        ObservationReader reader = ReaderFactory.createReader(datafile.getDataSchema().getName());
+        readers.put(path, reader);
+        reader.init(datafile);
+        return reader;
     }
 
     private int getMatchupCount() {

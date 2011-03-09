@@ -66,7 +66,7 @@ public class MetopMdReader extends NetcdfObservationReader {
      * may serve as common observation in some matchup. METOP sub-scenes contain scan lines scanned
      * from  left to right looking in flight direction.
      *
-     * @param recordNo index in observation file, must be between 0 and less than numRecords
+     * @param recordNo index in observation file, must be > 0 and less than numRecords
      * @return Observation for METOP sub-scene
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
