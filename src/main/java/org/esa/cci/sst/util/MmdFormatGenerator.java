@@ -50,8 +50,8 @@ public class MmdFormatGenerator {
     private static final int SEVIRI_LEN_ID = 11;
     private static final int SEVIRI_LEN_FILENAME = 65;
     private static final int AATSR_LENGTH = 101;
-    private static final int AVHRR_WIDTH = 231;
-    private static final int AVHRR_HEIGHT = 25;
+    private static final int AVHRR_WIDTH = 25;
+    private static final int AVHRR_HEIGHT = 31;
     private static final int AMSRE_LENGTH = 11;
     private static final int TMI_LENGTH = 11;
     // todo - clarify if this is ok
