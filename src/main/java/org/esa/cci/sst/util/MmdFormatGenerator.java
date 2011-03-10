@@ -78,11 +78,12 @@ public class MmdFormatGenerator {
 
     public static void main(String[] args) throws Exception {
         NetcdfFileWriteable file = null;
+        MmdFormatGenerator generator = null;
 
         try {
             final Properties properties = new Properties();
             properties.load(new FileInputStream("mms-test.properties"));
-            final MmdFormatGenerator generator = new MmdFormatGenerator(properties, getExcludedVariables());
+            generator = new MmdFormatGenerator(properties, getExcludedVariables());
             file = generator.generateMmdFileStructure("mmd.nc");
             generator.writeMatchups(file);
         } catch (Exception e) {
@@ -90,6 +91,9 @@ public class MmdFormatGenerator {
         } finally {
             if (file != null) {
                 file.close();
+            }
+            if (generator != null) {
+                generator.close();
             }
         }
     }
@@ -183,9 +187,9 @@ public class MmdFormatGenerator {
             int matchupCount = resultList.size();
 
             for (int matchupIndex = 0; matchupIndex < getMatchupCount(); matchupIndex++) {
-                if (matchupIndex < 4440) {
-                    continue;
-                }
+//                if (matchupIndex < 4440) {
+//                    continue;
+//                }
                 Matchup matchup = resultList.get(matchupIndex);
                 final int matchupId = matchup.getId();
                 // todo - replace with logging
@@ -214,7 +218,6 @@ public class MmdFormatGenerator {
                 reader.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point);
             }
         }
-        reader.close();
     }
 
     private ObservationReader getReader(final Observation observation) throws Exception {
@@ -388,6 +391,12 @@ public class MmdFormatGenerator {
     private Query createVariablesQuery(String sensorName) {
         return persistenceManager.createQuery(
                 String.format("select v from Variable v where v.name like '%s.%%' order by v.name", sensorName));
+    }
+
+    private void close() throws IOException {
+        for (ObservationReader reader : readers.values()) {
+            reader.close();
+        }
     }
 
 }

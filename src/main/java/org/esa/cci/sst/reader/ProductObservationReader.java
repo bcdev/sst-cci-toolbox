@@ -164,7 +164,6 @@ public class ProductObservationReader implements ObservationReader {
     @Override
     public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
                       int[] dimensionSizes, final PGgeometry point) throws IOException {
-        // todo - complete at least for aai, perhaps for sea ice as well (wait for feedback)
         final String fileLocation = observation.getDatafile().getPath();
         final Product product = getProduct(fileLocation);
         String sensorName = observation.getSensor();
@@ -186,6 +185,8 @@ public class ProductObservationReader implements ObservationReader {
         final float lat = (float) point.getGeometry().getFirstPoint().y;
         final GeoPos geoPos = new GeoPos(lat, lon);
         PixelPos pixelPos = geoCoding.getPixelPos(geoPos, null);
+
+        // todo - replace cutting by filling
 
         if (dimensionSizes.length == 0 || dimensionSizes.length == 1) {
             // write scalar

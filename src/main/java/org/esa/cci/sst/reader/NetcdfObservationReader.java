@@ -42,6 +42,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
     private int bufferFill = 0;
     private String recordDimensionName;
     private Map<String, Integer> offsetMap = new HashMap<String, Integer>();
+    private Map<String, Integer> bufferMap = new HashMap<String, Integer>();
 
     protected NetcdfObservationReader(String sensorName, String recordDimensionName) {
         super(sensorName);
@@ -63,9 +64,6 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         final ucar.nc2.Variable variable = ncFile.findVariable(getSstVariableName().replaceAll("\\.", "%2e"));
         // todo - only used to compute clearsky condition, generalise clearsky flag computation?!
         sstFillValue = variable.findAttributeIgnoreCase("_fillvalue").getNumericValue().intValue();
-//        data.clear();
-//        bufferFill = 0;
-//        bufferStart = 0;
     }
 
     /**
@@ -261,8 +259,10 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
      */
     int fetch(String varName, int recordNo) throws IOException {
         int bufferStart = 0;
-        if(offsetMap.get(varName) != null) {
+        int bufferFill = 0;
+        if (offsetMap.get(varName) != null) {
             bufferStart = offsetMap.get(varName);
+            bufferFill = bufferMap.get(varName);
         }
         if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
             final Variable variable = getNcFile().findVariable(NetcdfFile.escapeName(varName));
@@ -284,6 +284,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
             bufferStart = recordNo;
             bufferFill = tileSize;
             offsetMap.put(varName, bufferStart);
+            bufferMap.put(varName, bufferFill);
         }
         return bufferStart;
     }
@@ -324,8 +325,8 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
 
     Array getData(String variableName, int recordNo) throws IOException {
         final Variable variable = getNcFile().findVariable(NetcdfFile.escapeName(variableName));
-        if(recordNo > variable.getShape()[0]) {
-            return fill(variable);
+        if (recordNo > variable.getShape()[0]) {
+            return getFilledArray(variable);
         }
         fetch(variableName, recordNo);
         final int offset = offsetMap.get(variableName);
@@ -339,11 +340,12 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
     }
 
     // todo - ts - verify
-    private Array fill(final Variable variable) {
+    private Array getFilledArray(final Variable variable) {
         final List<Dimension> dimensions = variable.getDimensions();
         final int dimCount = dimensions.size();
-        final int[] shape = new int[dimCount - 1];
-        for(int i = 1; i < dimCount; i++) {
+        final int[] shape = new int[dimCount];
+        shape[0] = 1;
+        for (int i = 1; i < dimCount; i++) {
             shape[i - 1] = dimensions.get(i).getLength();
         }
         Number fillValue = null;
@@ -352,14 +354,51 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
             fillValue = fillValueAttribute.getNumericValue();
         }
         int size = 1;
-        for(int i : shape) {
+        for (int i : shape) {
             size *= i;
         }
-        final Number[] fillData = new Number[size];
-        for (int i = 0; i < fillData.length; i++) {
-            fillData[i] = fillValue;
+
+        final Array array = Array.factory(variable.getDataType(), shape);
+        for (int i = 0; i < size; i++) {
+            if (variable.getDataType().getPrimitiveClassType() == byte.class) {
+                if (fillValue == null) {
+                    array.setByte(i, (byte) -1);
+                } else {
+                    array.setByte(i, fillValue.byteValue());
+                }
+            } else if (variable.getDataType().getPrimitiveClassType() == short.class) {
+                if (fillValue == null) {
+                    array.setShort(i, (short) -1);
+                } else {
+                    array.setShort(i, fillValue.shortValue());
+                }
+            } else if (variable.getDataType().getPrimitiveClassType() == int.class) {
+                if (fillValue == null) {
+                    array.setInt(i, (short) -1);
+                } else {
+                    array.setInt(i, fillValue.intValue());
+                }
+            } else if (variable.getDataType().getPrimitiveClassType() == float.class) {
+                if (fillValue == null) {
+                    array.setFloat(i, (float) -1);
+                } else {
+                    array.setFloat(i, fillValue.floatValue());
+                }
+            } else if (variable.getDataType().getPrimitiveClassType() == double.class) {
+                if (fillValue == null) {
+                    array.setDouble(i, (double) -1);
+                } else {
+                    array.setDouble(i, fillValue.doubleValue());
+                }
+            } else if (variable.getDataType().getPrimitiveClassType() == long.class) {
+                if (fillValue == null) {
+                    array.setLong(i, (long) -1);
+                } else {
+                    array.setLong(i, fillValue.longValue());
+                }
+            }
         }
-        return Array.factory(variable.getDataType(), shape, fillData);
+        return array;
     }
 
     protected int getSstFillValue() {

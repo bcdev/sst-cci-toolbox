@@ -78,6 +78,10 @@ public class InsituHistoryReader extends NetcdfObservationStructureReader {
     @Override
     public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
                       int[] dimensionSizes, final PGgeometry point) throws IOException {
+        // todo - implement
+        // todo - consider reference observation time; add to parameters
+        // todo - consider gary's answer: do we need to write fitting to aatsr-buoy-id?
+
     }
 
     static class TimeInterval {
