@@ -30,6 +30,7 @@ import ucar.nc2.NetcdfFileWriteable;
 
 import javax.persistence.Query;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -88,9 +89,9 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
                 for (Coincidence coincidence : coincidences) {
-                    writeObservation(file, coincidence.getObservation(), point, matchupIndex);
+                    writeObservation(file, coincidence.getObservation(), point, referenceObservation.getTime(), matchupIndex);
                 }
-                writeObservation(file, referenceObservation, point, matchupIndex);
+                writeObservation(file, referenceObservation, point, referenceObservation.getTime(), matchupIndex);
                 delegate.writeMatchupId(file, matchupId, matchupIndex);
                 delegate.getPersistenceManager().detach(coincidences);
             }
@@ -106,13 +107,13 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     private void writeObservation(final NetcdfFileWriteable file, final RelatedObservation observation,
-                                  final PGgeometry point, final int matchupIndex) throws Exception {
+                                  final PGgeometry point, final Date refTime, final int matchupIndex) throws Exception {
         ObservationIOHandler ioHandler = delegate.getReader(observation);
         final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
             if (outputVariables.contains(variable.getName().replace(observation.getSensor() + ".", ""))) {
                 ioHandler.write(observation, variable, file, matchupIndex, delegate.getDimensionSizes(variable.getName()),
-                             point);
+                             point, refTime);
             }
         }
     }

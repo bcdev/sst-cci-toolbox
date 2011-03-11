@@ -39,6 +39,7 @@ import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,9 +105,10 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
                 for (Coincidence coincidence : coincidences) {
-                    writeObservation(file, coincidence.getObservation(), point, matchupIndex);
+                    writeObservation(file, coincidence.getObservation(), point, matchupIndex,
+                                     referenceObservation.getTime());
                 }
-                writeObservation(file, referenceObservation, point, matchupIndex);
+                writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
                 writeMatchupId(file, matchupId, matchupIndex);
                 persistenceManager.detach(coincidences);
             }
@@ -136,11 +138,12 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
-                          int matchupIndex) throws IOException {
+                          int matchupIndex, final Date refTime) throws IOException {
         ObservationIOHandler ioHandler = getReader(observation);
         final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
-            ioHandler.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point);
+            ioHandler.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point,
+                            refTime);
         }
     }
 

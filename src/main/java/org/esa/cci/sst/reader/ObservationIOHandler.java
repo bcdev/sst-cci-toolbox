@@ -7,6 +7,7 @@ import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * Reads records from an input file and creates Observations.
@@ -27,7 +28,6 @@ public interface ObservationIOHandler {
     /**
      * Closes observation file
      *
-     * @throws IOException
      */
     void close();
 
@@ -58,13 +58,17 @@ public interface ObservationIOHandler {
     /**
      * Writes the variable from the observation in the file.
      *
+     *
      * @param observation    The observation to write.
      * @param variable       The variable to write.
      * @param file           The file to write into.
-     * @param matchupIndex
-     * @param dimensionSizes
-     * @param point
+     * @param matchupIndex   The current matchup index.
+     * @param dimensionSizes An array containing dimension sizes.
+     * @param point          The geo location point of the reference observation.
+     *
+     * @param refTime
+     * @throws java.io.IOException If observation data could not be written into the file.
      */
     void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-               int[] dimensionSizes, final PGgeometry point) throws IOException;
+               int[] dimensionSizes, final PGgeometry point, final Date refTime) throws IOException;
 }

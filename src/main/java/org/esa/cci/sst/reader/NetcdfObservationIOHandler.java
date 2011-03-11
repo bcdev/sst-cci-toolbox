@@ -18,6 +18,7 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,7 @@ abstract public class NetcdfObservationIOHandler extends NetcdfObservationStruct
 
     @Override
     public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file,
-                      int matchupIndex, int[] dimensionSizes, final PGgeometry point) throws IOException {
+                      int matchupIndex, int[] dimensionSizes, final PGgeometry point, final Date refTime) throws IOException {
         String sensorName = observation.getSensor();
         String originalVarName = variable.getName();
         String variableName = originalVarName.replace(sensorName + ".", "");

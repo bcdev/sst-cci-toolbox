@@ -163,7 +163,7 @@ public class ProductObservationIOHandler implements ObservationIOHandler {
 
     @Override
     public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-                      int[] dimensionSizes, final PGgeometry point) throws IOException {
+                      int[] dimensionSizes, final PGgeometry point, final Date refTime) throws IOException {
         final String fileLocation = observation.getDatafile().getPath();
         final Product product = getProduct(fileLocation);
         String sensorName = observation.getSensor();
