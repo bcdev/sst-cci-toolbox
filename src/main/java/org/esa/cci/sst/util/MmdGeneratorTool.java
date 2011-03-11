@@ -20,6 +20,14 @@ public class MmdGeneratorTool {
 
     private static String outputVarsFilename;
 
+    /**
+     * Main method. Generates a matchup data file based on the databases' contents. Configured by the file
+     * <code>mms-config.properties</code>.
+     *
+     * @param args Program arguments, not considered.
+     *
+     * @throws Exception if something goes wrong.
+     */
     public static void main(String[] args) throws Exception {
         NetcdfFileWriteable file = null;
         MmdGenerator generator = null;
@@ -72,6 +80,32 @@ public class MmdGeneratorTool {
     }
 
 
+    static boolean isOutputVariable(final String varName) {
+        final List<String> outputVariables = getOutputVariables(outputVarsFilename);
+        if (outputVariables == null) {
+            return false;
+        } else {
+            for (String variable : outputVariables) {
+                if (varName.equalsIgnoreCase(variable)) {
+                    return true;
+                }
+                String toPattern = variable.replace("*", ".*");
+                toPattern = toPattern.replace("?", ".?");
+                Pattern pattern = Pattern.compile(toPattern);
+                final Matcher matcher = pattern.matcher(varName);
+                if (matcher.find()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean isOutputVariable(final String varName, final String filename) {
+        outputVarsFilename = filename;
+        return isOutputVariable(varName);
+    }
+
     private static MmdGenerator getMmdGenerator(final Properties properties) throws IOException {
         outputVarsFilename = properties.getProperty("mmd.output.variables.filename");
         final List<String> outputVariables = getOutputVariables(outputVarsFilename);
@@ -87,32 +121,6 @@ public class MmdGeneratorTool {
             }
             return new SelectedVarsMmdGenerator(properties, outputVariables);
         }
-    }
-
-    static boolean isOutputVariable(final String varName) {
-        final List<String> outputVariables = getOutputVariables(outputVarsFilename);
-        if(outputVariables == null) {
-            return false;
-        } else {
-            for (String variable : outputVariables) {
-                if(varName.equalsIgnoreCase(variable)) {
-                    return true;
-                }
-                String toPattern = variable.replace("*", ".*");
-                toPattern = toPattern.replace("?", ".?");
-                Pattern pattern = Pattern.compile(toPattern);
-                final Matcher matcher = pattern.matcher(varName);
-                if(matcher.find()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    static boolean isOutputVariable(final String varName, final String filename) {
-        outputVarsFilename = filename;
-        return isOutputVariable(varName);
     }
 
     interface MmdGenerator {
@@ -147,11 +155,28 @@ public class MmdGeneratorTool {
                 + " from Matchup m"
                 + " order by m.id";
 
+        /**
+         * Creates the netcdf structure for the given file, that is, variables, dimensions, and (global) attributes.
+         *
+         * @param file The target MMD file.
+         *
+         * @throws Exception If something goes wrong.
+         */
         void createMmdStructure(NetcdfFileWriteable file) throws Exception;
 
+        /**
+         * Writes the matchups from the database into the MMD file.
+         *
+         * @param file The target MMD file.
+         *
+         * @throws Exception If something goes wrong.
+         */
         void writeMatchups(NetcdfFileWriteable file) throws Exception;
 
-        void close() throws IOException;
+        /**
+         * Closes the generator and performs some cleanup.
+         */
+        void close();
     }
 
 }

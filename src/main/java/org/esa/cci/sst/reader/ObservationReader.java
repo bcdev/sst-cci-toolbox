@@ -29,7 +29,7 @@ public interface ObservationReader {
      *
      * @throws IOException
      */
-    void close() throws IOException;
+    void close();
 
     /**
      * Reads numRecords from file attribute

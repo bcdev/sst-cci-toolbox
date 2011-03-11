@@ -61,7 +61,7 @@ public class ProductObservationReader implements ObservationReader {
     }
 
     @Override
-    public final void close() throws IOException {
+    public final void close() {
         if (product != null) {
             product.dispose();
         }

@@ -117,7 +117,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         for (ObservationReader reader : readers.values()) {
             reader.close();
         }

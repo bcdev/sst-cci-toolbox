@@ -101,7 +101,7 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         delegate.close();
     }
 

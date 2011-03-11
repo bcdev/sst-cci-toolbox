@@ -113,14 +113,16 @@ public abstract class NetcdfObservationStructureReader implements ObservationRea
     }
 
     /**
-     * Closes NetCDF file
-     *
-     * @throws java.io.IOException if closing fails
+     * Closes NetCDF file.
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (ncFile != null) {
-            ncFile.close();
+            try {
+                ncFile.close();
+            } catch (IOException ignore) {
+                // ok
+            }
         }
     }
 
