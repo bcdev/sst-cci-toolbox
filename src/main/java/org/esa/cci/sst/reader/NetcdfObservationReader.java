@@ -270,6 +270,8 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
             final int[] start = new int[shape.length];
             start[0] = recordNo;
             shape[0] = shape[0] - recordNo;
+            ensureBounds(variable, shape);
+
             final Array values;
             try {
                 values = variable.read(start, shape);
@@ -283,6 +285,15 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
             bufferMap.put(varName, bufferFill);
         }
         return bufferStart;
+    }
+
+    private void ensureBounds(final Variable variable, final int[] shape) {
+        for (int i = 0; i < shape.length; i++) {
+            final int dimLength = variable.getDimension(i).getLength();
+            if (shape[i] > dimLength) {
+                shape[i] = dimLength;
+            }
+        }
     }
 
     /**
@@ -342,7 +353,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         final int[] shape = new int[dimCount];
         shape[0] = 1;
         for (int i = 1; i < dimCount; i++) {
-            shape[i - 1] = dimensions.get(i).getLength();
+            shape[i] = dimensions.get(i).getLength();
         }
         Number fillValue = null;
         final Attribute fillValueAttribute = variable.findAttribute("_FillValue");

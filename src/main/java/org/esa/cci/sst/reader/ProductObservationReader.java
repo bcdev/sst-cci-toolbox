@@ -179,33 +179,12 @@ public class ProductObservationReader implements ObservationReader {
         final int[] origin = createOriginArray(matchupIndex, variable);
         final int[] shape = createShapeArray(origin.length, dimensionSizes);
 
-        final Rectangle rectangle;
         final GeoCoding geoCoding = product.getGeoCoding();
         final float lon = (float) point.getGeometry().getFirstPoint().x;
         final float lat = (float) point.getGeometry().getFirstPoint().y;
         final GeoPos geoPos = new GeoPos(lat, lon);
         PixelPos pixelPos = geoCoding.getPixelPos(geoPos, null);
-
-        // todo - replace cutting by filling
-
-        if (dimensionSizes.length == 0 || dimensionSizes.length == 1) {
-            // write scalar
-            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, 1, 1);
-        } else if (dimensionSizes.length == 2) {
-            // write one dimension
-            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
-            correctPixelPosAndShape(shape, pixelPos);
-            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], 1);
-        } else if (dimensionSizes.length >= 3) {
-            // write two dimensions
-            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
-            pixelPos.y = pixelPos.y - dimensionSizes[2] / 2;
-            correctPixelPosAndShape(shape, pixelPos);
-            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], shape[2]);
-        } else {
-            // cannot come here
-            throw new IllegalStateException("Array size < 0.");
-        }
+        final Rectangle rectangle = createRect(dimensionSizes, shape, pixelPos);
 
         final Array array = createArray(band, type, shape, rectangle);
         originalVarName = NetcdfFile.escapeName(originalVarName);
@@ -217,48 +196,61 @@ public class ProductObservationReader implements ObservationReader {
         }
     }
 
-    private void correctPixelPosAndShape(final int[] shape, final PixelPos pixelPos) {
-        if (pixelPos.x < 0) {
-            shape[1] = (int) (shape[1] + 2 * pixelPos.x);
-            pixelPos.x = 0;
+    private Rectangle createRect(final int[] dimensionSizes, final int[] shape, final PixelPos pixelPos) {
+        final Rectangle rectangle;
+        if (dimensionSizes.length == 0 || dimensionSizes.length == 1) {
+            // write scalar
+            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, 1, 1);
+        } else if (dimensionSizes.length == 2) {
+            // write one dimension
+            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
+            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], 1);
+        } else if (dimensionSizes.length >= 3) {
+            // write two dimensions
+            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
+            pixelPos.y = pixelPos.y - dimensionSizes[2] / 2;
+            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], shape[2]);
+        } else {
+            // cannot come here
+            throw new IllegalStateException("Array size < 0.");
         }
-        if (pixelPos.y < 0) {
-            shape[2] = (int) (shape[2] + 2 * pixelPos.y);
-            pixelPos.y = 0;
-        }
+        return rectangle;
     }
 
     private Array createArray(final Band band, final DataType type, final int[] shape, final Rectangle rectangle) {
         final Array array = Array.factory(type, shape);
+        int index = 0;
         for (int x = rectangle.getLocation().x; x < rectangle.getWidth(); x++) {
             for (int y = rectangle.getLocation().y; y < rectangle.getHeight(); y++) {
                 Object value = null;
-                switch (band.getDataType()) {
-                    case ProductData.TYPE_FLOAT64: {
-                        value = ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
-                        break;
-                    }
-                    case ProductData.TYPE_FLOAT32: {
-                        value = (float) ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
-                        break;
-                    }
-                    case ProductData.TYPE_INT8:
-                    case ProductData.TYPE_INT16:
-                    case ProductData.TYPE_INT32:
-                    case ProductData.TYPE_UINT8:
-                    case ProductData.TYPE_UINT16:
-                    case ProductData.TYPE_UINT32: {
-                        value = ProductUtils.getGeophysicalSampleLong(band, x, y, 0);
+                if (x < 0 || y < 0) {
+                    value = band.getNoDataValue();
+                } else {
+                    switch (band.getDataType()) {
+                        case ProductData.TYPE_FLOAT64: {
+                            value = ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                            break;
+                        }
+                        case ProductData.TYPE_FLOAT32: {
+                            value = (float) ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                            break;
+                        }
+                        case ProductData.TYPE_INT8:
+                        case ProductData.TYPE_INT16:
+                        case ProductData.TYPE_INT32:
+                        case ProductData.TYPE_UINT8:
+                        case ProductData.TYPE_UINT16:
+                        case ProductData.TYPE_UINT32: {
+                            value = ProductUtils.getGeophysicalSampleLong(band, x, y, 0);
+                            break;
+                        }
                     }
                 }
-                array.setObject(computeIndex(x, y, (int) (rectangle.getHeight() - 1)), value);
+                array.setObject(index, value);
             }
+            index++;
         }
         return array;
-    }
-
-    static int computeIndex(final int x, final int y, final int maxY) {
-        return x * (maxY + 1) + y;
     }
 
     private Product getProduct(String fileLocation) throws IOException {

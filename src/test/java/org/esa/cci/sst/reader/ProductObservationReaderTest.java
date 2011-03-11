@@ -155,17 +155,6 @@ public class ProductObservationReaderTest {
         }
     }
 
-    @Test
-    public void testComputeIndex() throws Exception {
-        int count = 0;
-        for (int x = 0; x < 10; x++) {
-            for (int y = 0; y < 10; y++) {
-                assertEquals(count, ProductObservationReader.computeIndex(x, y, 9));
-                count++;
-            }
-        }
-    }
-
     private static List<Point> getPoints(Geometry geometry) {
         final List<Point> pointList = new ArrayList<Point>(geometry.numPoints());
         for (int i = 0; i < geometry.numPoints(); i++) {
