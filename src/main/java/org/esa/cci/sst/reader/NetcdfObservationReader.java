@@ -266,13 +266,9 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         }
         if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
             final Variable variable = getNcFile().findVariable(NetcdfFile.escapeName(varName));
-            int tileSize = 1024;  // TODO adjust default, read from property
             final int[] shape = variable.getShape();
             final int[] start = new int[shape.length];
             start[0] = recordNo;
-//            shape[0] = (shape[0] < recordNo + tileSize)
-//                       ? shape[0] - recordNo
-//                       : tileSize;
             shape[0] = shape[0] - recordNo;
             final Array values;
             try {
@@ -282,7 +278,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
             }
             data.put(variable.getNameEscaped(), values);
             bufferStart = recordNo;
-            bufferFill = tileSize;
+            bufferFill = shape[0];
             offsetMap.put(varName, bufferStart);
             bufferMap.put(varName, bufferFill);
         }
@@ -325,7 +321,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
 
     Array getData(String variableName, int recordNo) throws IOException {
         final Variable variable = getNcFile().findVariable(NetcdfFile.escapeName(variableName));
-        if (recordNo > variable.getShape()[0]) {
+        if (recordNo >= variable.getShape()[0]) {
             return getFilledArray(variable);
         }
         fetch(variableName, recordNo);
