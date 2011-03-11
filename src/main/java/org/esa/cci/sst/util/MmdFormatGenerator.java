@@ -84,7 +84,7 @@ public class MmdFormatGenerator {
             final Properties properties = new Properties();
             properties.load(new FileInputStream("mms-test.properties"));
             generator = new MmdFormatGenerator(properties, getExcludedVariables());
-            file = generator.generateMmdFileStructure("mmd.nc");
+            file = generator.createMmdFileStructure("mmd.nc");
             generator.writeMatchups(file);
         } catch (Exception e) {
             e.printStackTrace();
@@ -147,13 +147,13 @@ public class MmdFormatGenerator {
         dimensionCountMap.put("seaice.nj", SEA_ICE_LENGTH);
     }
 
-    NetcdfFileWriteable generateMmdFileStructure(String fileName) throws Exception {
+    NetcdfFileWriteable createMmdFileStructure(String fileName) throws Exception {
         final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, false);
         for (String dimensionName : dimensionCountMap.keySet()) {
             file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
         }
         // todo: tie point dimensions for all sensors (rq-20110223)
-
+        file.addVariable("mId", DataType.INT, DIMENSION_NAME_MATCHUP);
         addVariables(file, SENSOR_NAME_AATSR_MD.getSensor());
         addInsituDataHistories(file);
 
@@ -169,7 +169,6 @@ public class MmdFormatGenerator {
         }
 
         addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT, DIMENSION_NAME_MATCHUP + " aai.ni");
-        file.addVariable("mId", DataType.INT, DIMENSION_NAME_MATCHUP);
         file.setLargeFile(true);
         addGlobalAttributes(file);
         file.create();
@@ -187,9 +186,6 @@ public class MmdFormatGenerator {
             int matchupCount = resultList.size();
 
             for (int matchupIndex = 0; matchupIndex < getMatchupCount(); matchupIndex++) {
-//                if (matchupIndex < 4440) {
-//                    continue;
-//                }
                 Matchup matchup = resultList.get(matchupIndex);
                 final int matchupId = matchup.getId();
                 // todo - replace with logging
@@ -205,6 +201,7 @@ public class MmdFormatGenerator {
                 persistenceManager.detach(coincidences);
             }
         } finally {
+            // close database
             persistenceManager.commit();
         }
     }
@@ -223,7 +220,7 @@ public class MmdFormatGenerator {
     private ObservationReader getReader(final Observation observation) throws Exception {
         final DataFile datafile = observation.getDatafile();
         final String path = datafile.getPath();
-        if(readers.get(path) != null) {
+        if (readers.get(path) != null) {
             return readers.get(path);
         }
         ObservationReader reader = ReaderFactory.createReader(datafile.getDataSchema().getName());
