@@ -23,13 +23,18 @@ import java.text.MessageFormat;
 import static org.esa.cci.sst.SensorName.*;
 
 /**
- * TODO fill out or delete
+ * Factory providing a static method for getting the correct io handler, according to given schema name.
  *
  * @author Thomas Storm
  */
 public class IOHandlerFactory {
 
-    public static ObservationIOHandler createReader(String schemaName) throws Exception {
+    /**
+     * Factory method for getting the correct io handler, according to given schema name.
+     * @param schemaName The schema name to get the io handler for.
+     * @return an instance of <code>ObservationIOHandler</code>.
+     */
+    public static ObservationIOHandler createReader(String schemaName)  {
         ObservationIOHandler ioHandler;
         if (Constants.DATA_SCHEMA_NAME_AATSR_MD.equalsIgnoreCase(schemaName)) {
             ioHandler = new AatsrMdIOHandler();
@@ -52,8 +57,7 @@ public class IOHandlerFactory {
         } else if (Constants.DATA_SCHEMA_INSITU.equalsIgnoreCase(schemaName)) {
             ioHandler = new InsituHistoryIOHandler();
         } else {
-            // todo - sea ice quality and in-situ
-            throw new Exception(MessageFormat.format("No appropriate reader for schema {0} found", schemaName));
+            throw new IllegalArgumentException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName));
         }
         return ioHandler;
     }

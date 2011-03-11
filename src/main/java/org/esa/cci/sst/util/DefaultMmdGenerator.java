@@ -88,7 +88,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     @Override
-    public void writeMatchups(NetcdfFileWriteable file) throws Exception {
+    public void writeMatchups(NetcdfFileWriteable file) throws IOException {
         // open database
         persistenceManager.transaction();
         try {
@@ -136,7 +136,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
-                          int matchupIndex) throws Exception {
+                          int matchupIndex) throws IOException {
         ObservationIOHandler ioHandler = getReader(observation);
         final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
@@ -144,7 +144,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         }
     }
 
-    ObservationIOHandler getReader(final Observation observation) throws Exception {
+    ObservationIOHandler getReader(final Observation observation) throws IOException {
         final DataFile datafile = observation.getDatafile();
         final String path = datafile.getPath();
         if (readers.get(path) != null) {
@@ -165,10 +165,13 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         return matchupCount;
     }
 
-    void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException,
-                                                                                                  InvalidRangeException {
+    void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
         final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
-        file.write("mId", new int[]{matchupIndex}, array);
+        try {
+            file.write("mId", new int[]{matchupIndex}, array);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
     }
 
     void addGlobalAttributes(NetcdfFileWriteable file) {
