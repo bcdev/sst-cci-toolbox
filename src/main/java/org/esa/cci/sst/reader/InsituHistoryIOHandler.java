@@ -34,9 +34,9 @@ import java.util.Date;
  *
  * @author Thomas Storm
  */
-public class InsituHistoryReader extends NetcdfObservationStructureReader {
+public class InsituHistoryIOHandler extends NetcdfObservationStructureReader {
 
-    public InsituHistoryReader() {
+    public InsituHistoryIOHandler() {
         super(SensorName.SENSOR_NAME_INSITU.getSensor());
     }
 

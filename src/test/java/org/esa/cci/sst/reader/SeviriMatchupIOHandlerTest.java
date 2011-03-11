@@ -29,13 +29,13 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class SeviriMatchupReaderTest {
+public class SeviriMatchupIOHandlerTest {
 
-    private NetcdfObservationReader reader;
+    private NetcdfObservationIOHandler ioHandler;
 
     @Before
     public void setUp() throws Exception {
-        reader = new SeviriMatchupReader();
+        ioHandler = new SeviriMatchupIOHandler();
         final DataFile dataFile = new DataFile();
         dataFile.setId(0);
         dataFile.setPath("testdata/SEVIRI_MD/sstmdb1_meteosat09_20100602.nc");
@@ -44,14 +44,14 @@ public class SeviriMatchupReaderTest {
         dataSchema.setName("dataSchema");
         dataSchema.setSensorType("sensorType");
         dataFile.setDataSchema(dataSchema);
-        reader.init(dataFile);
+        ioHandler.init(dataFile);
     }
 
     @Test
     public void testFetch() {
         try {
             for (int i = 0; i < 4435; i++) {
-                reader.fetch(i);
+                ioHandler.fetch(i);
             }
         } catch (Exception e) {
             fail();
@@ -61,10 +61,10 @@ public class SeviriMatchupReaderTest {
     @Test
     public void testWrite() {
         try {
-            final List<Variable> variables = reader.getNcFile().getVariables();
+            final List<Variable> variables = ioHandler.getNcFile().getVariables();
             for (int i = 0; i < 5741; i++) {
                 for (Variable variable : variables) {
-                    reader.getData(variable.getName(), i);
+                    ioHandler.getData(variable.getName(), i);
                 }
             }
         } catch (Exception e) {

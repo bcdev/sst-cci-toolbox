@@ -13,7 +13,7 @@ import java.io.IOException;
  *
  * @author Martin Boettcher
  */
-public interface ObservationReader {
+public interface ObservationIOHandler {
 
     /**
      * Opens observation file and initialises cache buffer.

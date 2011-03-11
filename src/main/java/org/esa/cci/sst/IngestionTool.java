@@ -5,14 +5,13 @@ import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.ObservationReader;
-import org.esa.cci.sst.reader.ReaderFactory;
+import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.reader.ObservationIOHandler;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Properties;
 
@@ -51,7 +50,7 @@ public class IngestionTool extends MmsTool {
      * for all records contained in input file.
      *
      * @throws ToolException if an error occurs.
-     * @see #ingest(java.io.File, String, org.esa.cci.sst.reader.ObservationReader)
+     * @see #ingest(java.io.File, String, org.esa.cci.sst.reader.ObservationIOHandler)
      */
     public void ingest() throws ToolException {
         final Properties configuration = getConfiguration();
@@ -78,14 +77,14 @@ public class IngestionTool extends MmsTool {
             if (inputFiles == null) {
                 printInfo(MessageFormat.format("missing directory ''{0}''.", dirPath));
             } else {
-                ObservationReader reader;
+                ObservationIOHandler ioHandler;
                 try {
-                    reader = ReaderFactory.createReader(schemaName);
+                    ioHandler = IOHandlerFactory.createReader(schemaName);
                 } catch (Exception e) {
                     throw new ToolException("No reader for schema '" + schemaName + "' found.", 1, e);
                 }
                 for (File inputFile : inputFiles) {
-                    ingest(inputFile, schemaName, reader);
+                    ingest(inputFile, schemaName, ioHandler);
                 }
             }
             directoryCount++;
@@ -118,11 +117,11 @@ public class IngestionTool extends MmsTool {
      *
      * @param matchupFile input file with records to be read and made persistent as observations
      * @param schemaName  name of the file type
-     * @param reader      The reader to be used to read this file type
+     * @param ioHandler   The reader to be used to read this file type
      *
      * @throws ToolException if ingestion fails
      */
-    private void ingest(File matchupFile, String schemaName, ObservationReader reader) throws ToolException {
+    private void ingest(File matchupFile, String schemaName, ObservationIOHandler ioHandler) throws ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
             // open database
@@ -144,11 +143,11 @@ public class IngestionTool extends MmsTool {
             dataFile.setDataSchema(dataSchema);
             persistenceManager.persist(dataFile);
 
-            reader.init(dataFile);
+            ioHandler.init(dataFile);
             //System.out.printf("numberOfRecords=%d\n", reader.getNumRecords());
 
             if (isNewDataSchema) {
-                final Variable[] variables = reader.getVariables();
+                final Variable[] variables = ioHandler.getVariables();
                 System.out.printf("number of variables for schema '%s' = %d%n", schemaName, variables.length);
                 for (Variable variable : variables) {
                     persistenceManager.persist(variable);
@@ -161,12 +160,12 @@ public class IngestionTool extends MmsTool {
             int recordsInTimeInterval = 0;
 
             // loop over records
-            for (int recordNo = 0; recordNo < reader.getNumRecords(); ++recordNo) {
+            for (int recordNo = 0; recordNo < ioHandler.getNumRecords(); ++recordNo) {
                 if (recordNo % 65536 == 0 && recordNo > 0) {
                     System.out.printf("reading record %s %d\n", schemaName, recordNo);
                 }
 
-                final Observation observation = reader.readObservation(recordNo);
+                final Observation observation = ioHandler.readObservation(recordNo);
                 final long time = observation.getTime().getTime();
                 if (time >= start && time < stop) {
                     ++recordsInTimeInterval;
@@ -194,12 +193,7 @@ public class IngestionTool extends MmsTool {
             throw new ToolException("Failed to ingest file " + matchupFile, 7, e);
 
         } finally {
-            try {
-                // close match-up file
-                reader.close();
-            } catch (IOException e) {
-                // ignore
-            }
+            ioHandler.close();
         }
     }
 

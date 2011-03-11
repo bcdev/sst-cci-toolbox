@@ -23,7 +23,7 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class SeviriMatchupReader extends NetcdfObservationReader {
+public class SeviriMatchupIOHandler extends NetcdfObservationIOHandler {
 
     static final long MILLISECONDS_1981;
 
@@ -38,7 +38,7 @@ public class SeviriMatchupReader extends NetcdfObservationReader {
     protected int noOfLines;
     protected int noOfColumns;
 
-    public SeviriMatchupReader() {
+    public SeviriMatchupIOHandler() {
         super(SENSOR_NAME_SEVIRI.getSensor(), "n");
     }
 

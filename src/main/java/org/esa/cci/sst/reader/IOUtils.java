@@ -22,7 +22,7 @@ import org.esa.cci.sst.data.Variable;
 /**
  * @author Thomas Storm
  */
-public class ReaderUtils {
+public class IOUtils {
 
     static int[] createOriginArray(int matchupIndex, Variable variable) {
         String dimString = variable.getDimensions();

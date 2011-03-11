@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProductObservationReader implements ObservationReader {
+public class ProductObservationIOHandler implements ObservationIOHandler {
 
     private final String sensorName;
     private final GeoBoundaryCalculator gbc;
@@ -44,7 +44,7 @@ public class ProductObservationReader implements ObservationReader {
     private Product product;
 
 
-    public ProductObservationReader(String sensorName, GeoBoundaryCalculator gbc) {
+    public ProductObservationIOHandler(String sensorName, GeoBoundaryCalculator gbc) {
         this.sensorName = sensorName;
         this.gbc = gbc;
     }

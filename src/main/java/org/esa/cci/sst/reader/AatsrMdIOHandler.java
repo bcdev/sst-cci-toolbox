@@ -20,9 +20,9 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class AatsrMdReader extends NetcdfObservationReader {
+public class AatsrMdIOHandler extends NetcdfObservationIOHandler {
 
-    public AatsrMdReader() {
+    public AatsrMdIOHandler() {
         super(SENSOR_NAME_AATSR_MD.getSensor(), "match_up");
     }
 

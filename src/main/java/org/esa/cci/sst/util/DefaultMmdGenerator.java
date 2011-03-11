@@ -25,8 +25,8 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.ObservationReader;
-import org.esa.cci.sst.reader.ReaderFactory;
+import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.reader.ObservationIOHandler;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -56,7 +56,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new HashMap<String, Integer>(17);
     private final Map<String, String> variablesDimensionsMap = new HashMap<String, String>(61);
-    private final Map<String, ObservationReader> readers = new HashMap<String, ObservationReader>();
+    private final Map<String, ObservationIOHandler> readers = new HashMap<String, ObservationIOHandler>();
     private final PersistenceManager persistenceManager;
 
     private int matchupCount = -1;
@@ -118,8 +118,8 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     @Override
     public void close() {
-        for (ObservationReader reader : readers.values()) {
-            reader.close();
+        for (ObservationIOHandler ioHandler : readers.values()) {
+            ioHandler.close();
         }
     }
 
@@ -137,23 +137,23 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex) throws Exception {
-        ObservationReader reader = getReader(observation);
-        final Variable[] variables = reader.getVariables();
+        ObservationIOHandler ioHandler = getReader(observation);
+        final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
-            reader.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point);
+            ioHandler.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point);
         }
     }
 
-    ObservationReader getReader(final Observation observation) throws Exception {
+    ObservationIOHandler getReader(final Observation observation) throws Exception {
         final DataFile datafile = observation.getDatafile();
         final String path = datafile.getPath();
         if (readers.get(path) != null) {
             return readers.get(path);
         }
-        ObservationReader reader = ReaderFactory.createReader(datafile.getDataSchema().getName());
-        readers.put(path, reader);
-        reader.init(datafile);
-        return reader;
+        ObservationIOHandler ioHandler = IOHandlerFactory.createReader(datafile.getDataSchema().getName());
+        readers.put(path, ioHandler);
+        ioHandler.init(datafile);
+        return ioHandler;
     }
 
     int getMatchupCount() {

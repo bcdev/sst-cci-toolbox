@@ -1,6 +1,6 @@
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.reader.ReaderFactory;
+import org.esa.cci.sst.reader.IOHandlerFactory;
 import org.junit.Test;
 
 import java.io.File;
@@ -41,12 +41,12 @@ public class IngestionToolTest {
 
     @Test
     public void testCreateReader() throws Exception {
-        assertNotNull(ReaderFactory.createReader(Constants.DATA_SCHEMA_NAME_AATSR_MD));
-        assertNotNull(ReaderFactory.createReader(Constants.DATA_SCHEMA_NAME_METOP_MD));
-        assertNotNull(ReaderFactory.createReader(Constants.DATA_SCHEMA_NAME_SEVIRI_MD));
+        assertNotNull(IOHandlerFactory.createReader(Constants.DATA_SCHEMA_NAME_AATSR_MD));
+        assertNotNull(IOHandlerFactory.createReader(Constants.DATA_SCHEMA_NAME_METOP_MD));
+        assertNotNull(IOHandlerFactory.createReader(Constants.DATA_SCHEMA_NAME_SEVIRI_MD));
 
         try {
-            ReaderFactory.createReader("bogus-reader");
+            IOHandlerFactory.createReader("bogus-reader");
             fail("Exception expected");
         } catch (Exception expected) {
             // ok

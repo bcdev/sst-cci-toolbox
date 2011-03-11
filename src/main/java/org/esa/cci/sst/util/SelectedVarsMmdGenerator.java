@@ -23,7 +23,7 @@ import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
-import org.esa.cci.sst.reader.ObservationReader;
+import org.esa.cci.sst.reader.ObservationIOHandler;
 import org.postgis.PGgeometry;
 import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFileWriteable;
@@ -107,11 +107,11 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     private void writeObservation(final NetcdfFileWriteable file, final RelatedObservation observation,
                                   final PGgeometry point, final int matchupIndex) throws Exception {
-        ObservationReader reader = delegate.getReader(observation);
-        final Variable[] variables = reader.getVariables();
+        ObservationIOHandler ioHandler = delegate.getReader(observation);
+        final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
             if (outputVariables.contains(variable.getName().replace(observation.getSensor() + ".", ""))) {
-                reader.write(observation, variable, file, matchupIndex, delegate.getDimensionSizes(variable.getName()),
+                ioHandler.write(observation, variable, file, matchupIndex, delegate.getDimensionSizes(variable.getName()),
                              point);
             }
         }

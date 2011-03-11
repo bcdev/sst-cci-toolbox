@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * @author Martin Boettcher
  */
-abstract public class NetcdfObservationReader extends NetcdfObservationStructureReader {
+abstract public class NetcdfObservationIOHandler extends NetcdfObservationStructureReader {
 
     private int numRecords;
     private int sstFillValue;
@@ -44,7 +44,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
     private Map<String, Integer> offsetMap = new HashMap<String, Integer>();
     private Map<String, Integer> bufferMap = new HashMap<String, Integer>();
 
-    protected NetcdfObservationReader(String sensorName, String recordDimensionName) {
+    protected NetcdfObservationIOHandler(String sensorName, String recordDimensionName) {
         super(sensorName);
         this.recordDimensionName = recordDimensionName;
     }
@@ -82,7 +82,7 @@ abstract public class NetcdfObservationReader extends NetcdfObservationStructure
         String sensorName = observation.getSensor();
         String originalVarName = variable.getName();
         String variableName = originalVarName.replace(sensorName + ".", "");
-        final int[] origin = ReaderUtils.createOriginArray(matchupIndex, variable);
+        final int[] origin = IOUtils.createOriginArray(matchupIndex, variable);
         try {
             Array variableData = getData(variableName, matchupIndex);
             file.write(NetcdfFile.escapeName(originalVarName), origin, variableData);

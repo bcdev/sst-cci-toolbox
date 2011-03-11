@@ -21,29 +21,25 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class ProductObservationReaderTest {
+public class ProductObservationIOHandlerTest {
 
     private static final String AAI_RESOURCE_NAME = "20100601.egr";
     private static final String AMSRE_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42958.dat-v01.nc.gz";
 
     private static DataFile dataFile;
-    private static ProductObservationReader reader;
+    private static ProductObservationIOHandler reader;
 
     public void init(File file) throws IOException {
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        reader = new ProductObservationReader("any", new DefaultGeoBoundaryCalculator());
+        reader = new ProductObservationIOHandler("any", new DefaultGeoBoundaryCalculator());
         reader.init(dataFile);
     }
 
     @After
     public void clean() {
-        try {
-            if (reader != null) {
-                reader.close();
-            }
-        } catch (IOException e) {
-            // ignore
+        if (reader != null) {
+            reader.close();
         }
     }
 

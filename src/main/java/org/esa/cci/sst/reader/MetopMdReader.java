@@ -28,7 +28,7 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class MetopMdReader extends NetcdfObservationReader {
+public class MetopMdReader extends NetcdfObservationIOHandler {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
     static final long MILLISECONDS_1981;

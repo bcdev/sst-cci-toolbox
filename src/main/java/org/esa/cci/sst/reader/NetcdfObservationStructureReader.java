@@ -31,7 +31,7 @@ import java.util.HashMap;
  *
  * @author Thomas Storm
  */
-public abstract class NetcdfObservationStructureReader implements ObservationReader {
+public abstract class NetcdfObservationStructureReader implements ObservationIOHandler {
 
     private NetcdfFile ncFile;
     private DataFile dataFileEntry;
