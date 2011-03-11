@@ -37,7 +37,7 @@ import static org.esa.cci.sst.SensorName.*;
 
 /**
  * Implementation of MmdGenerator, which writes only specified variables. Holds an instance of
- * <code>AllVarsMmdGenerator</code> as delegate.
+ * <code>DefaultMmdGenerator</code> as delegate.
  *
  * @author Thomas Storm
  */

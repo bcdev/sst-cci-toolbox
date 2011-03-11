@@ -9,12 +9,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tool responsible for writing the matchup data file. Comprises a main method, and is configured by the file
  * <code>mms-config.properties</code>, which has to be provided in the working directory.
  */
 public class MmdGeneratorTool {
+
+    private static String outputVarsFilename;
 
     public static void main(String[] args) throws Exception {
         NetcdfFileWriteable file = null;
@@ -46,8 +50,30 @@ public class MmdGeneratorTool {
         }
     }
 
+    static List<String> getOutputVariables(final String filename) {
+        final List<String> outputVariables = new ArrayList<String>();
+        if (filename == null) {
+            return null;
+        }
+        final List<String[]> stringRecords;
+        try {
+            final CsvReader csvReader = new CsvReader(new FileReader(filename), new char[]{' ', ',', '\t', '\n'},
+                                                      true, "#");
+            stringRecords = csvReader.readStringRecords();
+        } catch (IOException e) {
+            // todo - replace with logging
+            e.printStackTrace();
+            return outputVariables;
+        }
+        for (String[] s : stringRecords) {
+            outputVariables.add(s[0]);
+        }
+        return outputVariables;
+    }
+
+
     private static MmdGenerator getMmdGenerator(final Properties properties) throws IOException {
-        final String outputVarsFilename = properties.getProperty("mmd.output.variables.filename");
+        outputVarsFilename = properties.getProperty("mmd.output.variables.filename");
         final List<String> outputVariables = getOutputVariables(outputVarsFilename);
         if (outputVariables == null) {
             // todo - ts - replace with logging
@@ -63,27 +89,30 @@ public class MmdGeneratorTool {
         }
     }
 
-    private static List<String> getOutputVariables(final String filename) {
-        final List<String> outputVariables = new ArrayList<String>();
-        if (filename == null) {
-            return outputVariables;
+    static boolean isOutputVariable(final String varName) {
+        final List<String> outputVariables = getOutputVariables(outputVarsFilename);
+        if(outputVariables == null) {
+            return false;
+        } else {
+            for (String variable : outputVariables) {
+                if(varName.equalsIgnoreCase(variable)) {
+                    return true;
+                }
+                String toPattern = variable.replace("*", ".*");
+                toPattern = toPattern.replace("?", ".?");
+                Pattern pattern = Pattern.compile(toPattern);
+                final Matcher matcher = pattern.matcher(varName);
+                if(matcher.find()) {
+                    return true;
+                }
+            }
         }
-        final List<String[]> stringRecords;
-        try {
-            final CsvReader csvReader = new CsvReader(new FileReader(filename),
-                                                      new char[]{' ', ',', '\t', '\n'},
-                                                      true,
-                                                      "#");
-            stringRecords = csvReader.readStringRecords();
-        } catch (IOException e) {
-            // todo - replace with logging
-            e.printStackTrace();
-            return outputVariables;
-        }
-        for (String[] s : stringRecords) {
-            outputVariables.add(s[0]);
-        }
-        return outputVariables;
+        return false;
+    }
+
+    static boolean isOutputVariable(final String varName, final String filename) {
+        outputVarsFilename = filename;
+        return isOutputVariable(varName);
     }
 
     interface MmdGenerator {

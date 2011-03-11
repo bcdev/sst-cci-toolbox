@@ -1,3 +1,11 @@
+#########################################################################################
+##                                                                                     ##
+# This file contains the list of variables, which are to be written into the MMD-file.  #
+# The variables are written line-separated and without any sensor name in front.        #
+# Comments begin with the '#'-character.                                                #
+##                                                                                     ##
+#########################################################################################
+
 msr_lat
 msr_lon
 msr_sst
@@ -26,14 +34,14 @@ IR_120
 IR_134
 box_center_y_coord
 box_center_x_coord
-prd_sst(n, ny, nx) ;
-sst(n, ny, nx) ;
-sst_1st(n, ny, nx) ;
-x_sdi(n, ny, nx) ;
-x_sdi_dtime(n, ny, nx) ;
-w_sst_gradient(n, ny, nx) ;
-w_sst_diffrate(n, ny, nx) ;
-w_sdi_correction(n, ny, nx) ;
+prd_sst
+sst
+sst_1st
+x_sdi
+x_sdi_dtime
+w_sst_gradient
+w_sst_diffrate
+w_sdi_correction
 msr_time
 time
 dtime
@@ -57,24 +65,24 @@ p_dust
 x_landmask
 x_upwelling_ind
 x_aod_src
-x_sdi_src(n, ny, nx) ;
-x_ice_edge_flag(n, ny, nx) ;
-w_distance_to_cloud(n, ny, nx) ;
-w_time_variability_ind(n, ny, nx) ;
-w_gradient_ind(n, ny, nx) ;
-w_strato_aerosol_ind(n, ny, nx) ;
-w_tvalue_ind(n, ny, nx) ;
-w_dust_aerosol_ind(n, ny, nx) ;
-w_dust_aerosol_src(n, ny, nx) ;
-w_ice_ind(n, ny, nx) ;
-w_sst_algo_daytime(n, ny, nx) ;
-w_sst_algo_nighttime(n, ny, nx) ;
-w_sst_algo_factor(n, ny, nx) ;
-w_algo_risk_ind(n, ny, nx) ;
-sst_mask_ind(n, ny, nx) ;
-sst_confidence_level(n, ny, nx) ;
-sst_missing_reason(n, ny, nx) ;
-prd_sst_confidence_level(n, ny, nx) ;
-prd_sst_mask_ind(n, ny, nx) ;
+x_sdi_src
+x_ice_edge_flag
+w_distance_to_cloud
+w_time_variability_ind
+w_gradient_ind
+w_strato_aerosol_ind
+w_tvalue_ind
+w_dust_aerosol_ind
+w_dust_aerosol_src
+w_ice_ind
+w_sst_algo_daytime
+w_sst_algo_nighttime
+w_sst_algo_factor
+w_algo_risk_ind
+sst_mask_ind
+sst_confidence_level
+sst_missing_reason
+prd_sst_confidence_level
+prd_sst_mask_ind
 prd_time
 prd_dtime
