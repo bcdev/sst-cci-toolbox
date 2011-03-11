@@ -18,6 +18,7 @@ public class Constants {
      * Name of persistence unit in META-INF/persistence.xml
      */
     public static final String PERSISTENCE_UNIT_NAME = "matchupdb";
+    public static final String DIMENSION_NAME_MATCHUP = "match_up";
 
     private Constants() {
     }

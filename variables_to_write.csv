@@ -1,10 +1,10 @@
-#######################################################################################
-##                                                                                   ##
-# This file contains the list of variables, which are to be written into the MMD-file.#
-# The variables are written line-separated and without any sensor name in front.      #
-# Comments begin with the '#'-character.                                              #
-##                                                                                   ##
-#######################################################################################
+#########################################################################################
+##                                                                                     ##
+# This file contains the list of variables, which are to be written into the MMD-file.  #
+# The variables are written line-separated and without any sensor name in front.        #
+# Comments begin with the '#'-character.                                                #
+##                                                                                     ##
+#########################################################################################
 
 msr_lat
 msr_lon
@@ -15,6 +15,34 @@ msr_air_temp
 msr_dew_point_temp
 msr_wind_speed
 msr_wind_direction
+VIS006
+VIS008
+IR_016
+IR_039
+x_clim_mean_sst
+x_clim_mean_sst_stddev
+x_clim_mini_sst
+x_clim_maxi_sst_gradient
+x_aod
+x_aod_dtime
+WV_062
+WV_073
+IR_087
+IR_097
+IR_108
+IR_120
+IR_134
+box_center_y_coord
+box_center_x_coord
+prd_sst(n, ny, nx) ;
+sst(n, ny, nx) ;
+sst_1st(n, ny, nx) ;
+x_sdi(n, ny, nx) ;
+x_sdi_dtime(n, ny, nx) ;
+w_sst_gradient(n, ny, nx) ;
+w_sst_diffrate(n, ny, nx) ;
+w_sdi_correction(n, ny, nx) ;
+msr_time
 time
 dtime
 lat
@@ -24,3 +52,37 @@ solzen
 relazi
 msr_type
 msr_method
+box_cover
+msr_id
+box_prd_filename
+box_sat_filename
+p_landmask
+p_illumination
+p_mask
+p_mask_quality
+p_ice
+p_dust
+x_landmask
+x_upwelling_ind
+x_aod_src
+x_sdi_src(n, ny, nx) ;
+x_ice_edge_flag(n, ny, nx) ;
+w_distance_to_cloud(n, ny, nx) ;
+w_time_variability_ind(n, ny, nx) ;
+w_gradient_ind(n, ny, nx) ;
+w_strato_aerosol_ind(n, ny, nx) ;
+w_tvalue_ind(n, ny, nx) ;
+w_dust_aerosol_ind(n, ny, nx) ;
+w_dust_aerosol_src(n, ny, nx) ;
+w_ice_ind(n, ny, nx) ;
+w_sst_algo_daytime(n, ny, nx) ;
+w_sst_algo_nighttime(n, ny, nx) ;
+w_sst_algo_factor(n, ny, nx) ;
+w_algo_risk_ind(n, ny, nx) ;
+sst_mask_ind(n, ny, nx) ;
+sst_confidence_level(n, ny, nx) ;
+sst_missing_reason(n, ny, nx) ;
+prd_sst_confidence_level(n, ny, nx) ;
+prd_sst_mask_ind(n, ny, nx) ;
+prd_time
+prd_dtime

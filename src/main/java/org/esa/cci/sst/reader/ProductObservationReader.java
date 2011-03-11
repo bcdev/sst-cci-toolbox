@@ -11,11 +11,11 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.beam.util.ProductUtils;
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
-import org.esa.cci.sst.util.MmdFormatGenerator;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -269,8 +269,8 @@ public class ProductObservationReader implements ObservationReader {
         final String dimensionRoles = variable.getDimensionRoles();
         String[] dims = dimString.split(" ");
         int length = dims.length;
-        final boolean addMatchup = !(dimString.contains(MmdFormatGenerator.DIMENSION_NAME_MATCHUP) ||
-                                     dimensionRoles.contains(MmdFormatGenerator.DIMENSION_NAME_MATCHUP));
+        final boolean addMatchup = !(dimString.contains(Constants.DIMENSION_NAME_MATCHUP) ||
+                                     dimensionRoles.contains(Constants.DIMENSION_NAME_MATCHUP));
         length += addMatchup ? 1 : 0;
         final int[] origin = new int[length];
         origin[0] = matchupIndex;

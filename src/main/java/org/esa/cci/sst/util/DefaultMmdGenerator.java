@@ -1,6 +1,21 @@
+/*
+ * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see http://www.gnu.org/licenses/
+ */
+
 package org.esa.cci.sst.util;
 
-import org.esa.beam.util.io.CsvReader;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.SensorName;
 import org.esa.cci.sst.data.Coincidence;
@@ -21,11 +36,8 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.persistence.Query;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -34,95 +46,255 @@ import java.util.Properties;
 
 import static org.esa.cci.sst.SensorName.*;
 
-public class MmdFormatGenerator {
+/**
+ * Default implementation of <code>MmdGenerator</code>, writing all variables. This class provides some (package
+ * private) API for creating an mmd file.
+ *
+ * @author Thomas Storm
+ */
+public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
-    public static final String DIMENSION_NAME_MATCHUP = "match_up";
-    public static final String DIMENSION_ROLE_MATCHUP = "match_up";
-    public static final String DIMENSION_ROLE_LENGTH = "length";
-
-    private static final int AATSR_MD_CS_LENGTH = 8;
-    private static final int AATSR_MD_UI_LENGTH = 30;
-    private static final int AATSR_MD_LENGTH = 65;
-    private static final int METOP_LENGTH = 21;
-    private static final int METOP_LEN_ID = 11;
-    private static final int METOP_LEN_FILENAME = 65;
-    private static final int SEVIRI_LENGTH = 5;
-    private static final int SEVIRI_LEN_ID = 11;
-    private static final int SEVIRI_LEN_FILENAME = 65;
-    private static final int AATSR_LENGTH = 101;
-    private static final int AVHRR_WIDTH = 25;
-    private static final int AVHRR_HEIGHT = 31;
-    private static final int AMSRE_LENGTH = 11;
-    private static final int TMI_LENGTH = 11;
-    // todo - clarify if this is ok
-    private static final int AAI_LENGTH = 1;
-    // todo - clarify if this is ok
-    private static final int SEA_ICE_LENGTH = 11;
-
-    private static final String COUNT_MATCHUPS_QUERY =
-            "select count( m ) "
-            + " from Matchup m";
-
-    private static final String ALL_MATCHUPS_QUERY =
-            "select m"
-            + " from Matchup m"
-            + " order by m.id";
-
-    private final PersistenceManager persistenceManager;
     private final Map<String, Integer> dimensionCountMap = new HashMap<String, Integer>(17);
-    private final Map<String, String> varDimensionMap = new HashMap<String, String>(61);
-    private final List<String> includedVars;
+    private final Map<String, String> variablesDimensionsMap = new HashMap<String, String>(61);
+    private final Map<String, ObservationReader> readers = new HashMap<String, ObservationReader>();
+    private final PersistenceManager persistenceManager;
 
     private int matchupCount = -1;
-    private Map<String, ObservationReader> readers = new HashMap<String, ObservationReader>();
 
-    public static void main(String[] args) throws Exception {
-        NetcdfFileWriteable file = null;
-        MmdFormatGenerator generator = null;
-
-        try {
-            final Properties properties = new Properties();
-            properties.load(new FileInputStream("mms-test.properties"));
-            generator = new MmdFormatGenerator(properties, getExcludedVariables());
-            file = generator.createMmdFileStructure("mmd.nc");
-            generator.writeMatchups(file);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (file != null) {
-                file.close();
-            }
-            if (generator != null) {
-                generator.close();
-            }
-        }
-    }
-
-    private static List<String> getExcludedVariables() {
-        final List<String> excludedVars = new ArrayList<String>();
-
-        final List<String[]> stringRecords;
-        try {
-            final CsvReader csvReader = new CsvReader(new FileReader("variables_to_write.csv"),
-                                                      new char[]{' ', ',', '\t', '\n'},
-                                                      true,
-                                                      "#");
-            stringRecords = csvReader.readStringRecords();
-        } catch (IOException e) {
-            // todo - replace with logging
-            e.printStackTrace();
-            return excludedVars;
-        }
-        for (String[] s : stringRecords) {
-            excludedVars.add(s[0]);
-        }
-        return excludedVars;
-    }
-
-    public MmdFormatGenerator(Properties properties, List<String> includedVars) throws IOException {
-        this.includedVars = includedVars;
+    DefaultMmdGenerator(Properties properties) throws IOException {
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, properties);
-        dimensionCountMap.put(DIMENSION_NAME_MATCHUP, getMatchupCount());
+        setUpDimensionCountMap();
+    }
+
+    @Override
+    public void createMmdStructure(NetcdfFileWriteable file) throws Exception {
+        addDimensions(file);
+        addStandardVariables(file);
+
+        for (SensorName sensorName : SensorName.values()) {
+            if (!SENSOR_NAME_AATSR_MD.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
+                !SENSOR_NAME_AAI.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
+                !SENSOR_NAME_INSITU.getSensor().equalsIgnoreCase(sensorName.getSensor())) {
+                addObservationTime(file, sensorName.getSensor());
+                addLsMask(file, sensorName.getSensor());
+                addNwpData(file, sensorName.getSensor());
+                addVariables(file, sensorName.getSensor());
+            }
+        }
+
+        file.setLargeFile(true);
+        addGlobalAttributes(file);
+        file.create();
+    }
+
+    @Override
+    public void writeMatchups(NetcdfFileWriteable file) throws Exception {
+        // open database
+        persistenceManager.transaction();
+        try {
+            final List<Matchup> resultList = getMatchups();
+            int matchupCount = resultList.size();
+
+            for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
+                Matchup matchup = resultList.get(matchupIndex);
+                final int matchupId = matchup.getId();
+                // todo - replace with logging
+                System.out.println("Writing matchup '" + matchupId + "' (" + matchupIndex + "/" + matchupCount + ").");
+                final ReferenceObservation referenceObservation = matchup.getRefObs();
+                final List<Coincidence> coincidences = matchup.getCoincidences();
+                final PGgeometry point = referenceObservation.getPoint();
+                for (Coincidence coincidence : coincidences) {
+                    writeObservation(file, coincidence.getObservation(), point, matchupIndex);
+                }
+                writeObservation(file, referenceObservation, point, matchupIndex);
+                writeMatchupId(file, matchupId, matchupIndex);
+                persistenceManager.detach(coincidences);
+            }
+        } finally {
+            // close database
+            persistenceManager.commit();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        for (ObservationReader reader : readers.values()) {
+            reader.close();
+        }
+    }
+
+    @SuppressWarnings({"unchecked"})
+    List<Matchup> getMatchups() {
+        Query getAllMatchupsQuery = persistenceManager.createQuery(ALL_MATCHUPS_QUERY);
+        return getAllMatchupsQuery.getResultList();
+    }
+
+    void addDimensions(final NetcdfFileWriteable file) {
+        for (String dimensionName : dimensionCountMap.keySet()) {
+            file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
+        }
+    }
+
+    void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
+                          int matchupIndex) throws Exception {
+        ObservationReader reader = getReader(observation);
+        final Variable[] variables = reader.getVariables();
+        for (Variable variable : variables) {
+            reader.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point);
+        }
+    }
+
+    ObservationReader getReader(final Observation observation) throws Exception {
+        final DataFile datafile = observation.getDatafile();
+        final String path = datafile.getPath();
+        if (readers.get(path) != null) {
+            return readers.get(path);
+        }
+        ObservationReader reader = ReaderFactory.createReader(datafile.getDataSchema().getName());
+        readers.put(path, reader);
+        reader.init(datafile);
+        return reader;
+    }
+
+    int getMatchupCount() {
+        if (matchupCount != -1) {
+            return matchupCount;
+        }
+        final Query query = persistenceManager.createQuery(COUNT_MATCHUPS_QUERY);
+        matchupCount = ((Number) query.getSingleResult()).intValue();
+        return matchupCount;
+    }
+
+    void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException,
+                                                                                                  InvalidRangeException {
+        final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
+        file.write("mId", new int[]{matchupIndex}, array);
+    }
+
+    void addGlobalAttributes(NetcdfFileWriteable file) {
+        file.addGlobalAttribute("title", "SST CCI multi-sensor match-up dataset (MMD) template");
+        file.addGlobalAttribute("institution", "Brockmann Consult");
+        file.addGlobalAttribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)");
+        file.addGlobalAttribute("creation_date", Calendar.getInstance().getTime().toString());
+        file.addGlobalAttribute("total_number_of_matchups", 0);
+    }
+
+    void addInsituDataHistories(NetcdfFileWriteable file) {
+        // todo: add in-situ data histories (rq-20110223)
+    }
+
+    void addNwpData(NetcdfFileWriteable file, String sensorName) {
+        // todo: add NWP data (rq-20110223)
+    }
+
+    /**
+     * Returns the lengths of the dimensions of the variable given by <code>variableName</code>.
+     *
+     * @param variableName The variable name to get the dimension sizes for.
+     *
+     * @return An array of integers containing the dimension length <code>l[i]</code> for dimension with index
+     *         <code>i</code>.
+     */
+    int[] getDimensionSizes(String variableName) {
+        final String dimString = variablesDimensionsMap.get(NetcdfFile.escapeName(variableName));
+        final String[] dims = dimString.split(" ");
+        int[] result = new int[dims.length];
+        for (int i = 0; i < dims.length; i++) {
+            result[i] = dimensionCountMap.get(dims[i]);
+        }
+        return result;
+    }
+
+    void addObservationTime(NetcdfFileWriteable file, String sensorName) {
+        final ucar.nc2.Variable time = file.addVariable(file.getRootGroup(),
+                                                        String.format("%s.observation_time", sensorName),
+                                                        DataType.DOUBLE,
+                                                        String.format("match_up %s.ni", sensorName));
+        addAttribute(time, "units", "Julian Date");
+    }
+
+    void addLsMask(NetcdfFileWriteable file, String sensorName) {
+        file.addVariable(file.getRootGroup(),
+                         String.format("%s.land_sea_mask", sensorName),
+                         DataType.BYTE,
+                         String.format("match_up %s.ni %s.nj", sensorName, sensorName));
+    }
+
+    @SuppressWarnings({"unchecked"})
+    void addVariables(NetcdfFileWriteable file, String sensorName) {
+        final Query query = createVariablesQuery(sensorName);
+        final List<Variable> resultList = query.getResultList();
+        for (final Variable var : resultList) {
+            addVariable(file, var, createDimensionString(var, sensorName));
+        }
+    }
+
+    String createDimensionString(Variable var, String sensorName) {
+        final String[] dimensionNames = var.getDimensions().split(" ");
+        final String[] dimensionRoles = var.getDimensionRoles().split(" ");
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < dimensionRoles.length; i++) {
+            final String dimensionName = dimensionNames[i];
+            final String dimensionRole = dimensionRoles[i];
+            if (i != 0) {
+                sb.append(" ");
+            }
+            if (!DIMENSION_ROLE_MATCHUP.equals(dimensionRole)) {
+                sb.append(sensorName);
+                sb.append(".");
+            }
+            if (!DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
+                sb.append(dimensionRole);
+            } else {
+                sb.append(dimensionName);
+            }
+        }
+        if (!sb.toString().contains(Constants.DIMENSION_NAME_MATCHUP)) {
+            sb.insert(0, Constants.DIMENSION_NAME_MATCHUP + " ");
+        }
+        return sb.toString();
+    }
+
+    void addVariable(NetcdfFileWriteable file, String name, DataType type, String dims) {
+        final Variable var = new Variable();
+        var.setName(name);
+        var.setType(type.name());
+        addVariable(file, var, dims);
+    }
+
+    void addVariable(NetcdfFileWriteable file, Variable var, String dims) {
+        final ucar.nc2.Variable v = file.addVariable(file.getRootGroup(),
+                                                     var.getName(),
+                                                     DataType.valueOf(var.getType()),
+                                                     dims);
+        addAttribute(v, "standard_name", var.getStandardName());
+        addAttribute(v, "units", var.getUnits());
+        addAttribute(v, "add_offset", var.getAddOffset(), DataType.FLOAT);
+        addAttribute(v, "scale_factor", var.getScaleFactor(), DataType.FLOAT);
+        addAttribute(v, "_FillValue", var.getFillValue(), v.getDataType());
+        variablesDimensionsMap.put(v.getNameEscaped(), dims);
+    }
+
+    Query createVariablesQuery(String sensorName) {
+        return persistenceManager.createQuery(
+                String.format("select v from Variable v where v.name like '%s.%%' order by v.name", sensorName));
+    }
+
+    PersistenceManager getPersistenceManager() {
+        return persistenceManager;
+    }
+
+    private void addStandardVariables(final NetcdfFileWriteable file) {
+        // todo: tie point dimensions for all sensors (rq-20110223)
+        file.addVariable("mId", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        addVariables(file, SENSOR_NAME_AATSR_MD.getSensor());
+        addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT,
+                    Constants.DIMENSION_NAME_MATCHUP + " aai.ni");
+        addInsituDataHistories(file);
+    }
+
+    private void setUpDimensionCountMap() {
+        dimensionCountMap.put(Constants.DIMENSION_NAME_MATCHUP, getMatchupCount());
         dimensionCountMap.put("aatsr-md.cs_length", AATSR_MD_CS_LENGTH);
         dimensionCountMap.put("aatsr-md.ui_length", AATSR_MD_UI_LENGTH);
         dimensionCountMap.put("aatsr-md.length", AATSR_MD_LENGTH);
@@ -145,213 +317,6 @@ public class MmdFormatGenerator {
         dimensionCountMap.put("aai.ni", AAI_LENGTH);
         dimensionCountMap.put("seaice.ni", SEA_ICE_LENGTH);
         dimensionCountMap.put("seaice.nj", SEA_ICE_LENGTH);
-    }
-
-    NetcdfFileWriteable createMmdFileStructure(String fileName) throws Exception {
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(fileName, false);
-        for (String dimensionName : dimensionCountMap.keySet()) {
-            file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
-        }
-        // todo: tie point dimensions for all sensors (rq-20110223)
-        file.addVariable("mId", DataType.INT, DIMENSION_NAME_MATCHUP);
-        addVariables(file, SENSOR_NAME_AATSR_MD.getSensor());
-        addInsituDataHistories(file);
-
-        for (SensorName sensorName : SensorName.values()) {
-            if (!SENSOR_NAME_AATSR_MD.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
-                !SENSOR_NAME_AAI.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
-                !SENSOR_NAME_INSITU.getSensor().equalsIgnoreCase(sensorName.getSensor())) {
-                addObservationTime(file, sensorName.getSensor());
-                addLsMask(file, sensorName.getSensor());
-                addNwpData(file, sensorName.getSensor());
-                addVariables(file, sensorName.getSensor());
-            }
-        }
-
-        addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT, DIMENSION_NAME_MATCHUP + " aai.ni");
-        file.setLargeFile(true);
-        addGlobalAttributes(file);
-        file.create();
-        return file;
-    }
-
-    @SuppressWarnings({"unchecked"})
-    void writeMatchups(NetcdfFileWriteable file) throws Exception {
-        // open database
-        persistenceManager.transaction();
-        try {
-
-            Query getAllMatchupsQuery = persistenceManager.createQuery(ALL_MATCHUPS_QUERY);
-            final List<Matchup> resultList = getAllMatchupsQuery.getResultList();
-            int matchupCount = resultList.size();
-
-            for (int matchupIndex = 0; matchupIndex < getMatchupCount(); matchupIndex++) {
-                Matchup matchup = resultList.get(matchupIndex);
-                final int matchupId = matchup.getId();
-                // todo - replace with logging
-                System.out.println("Writing matchup '" + matchupId + "' (" + matchupIndex + "/" + matchupCount + ").");
-                final ReferenceObservation referenceObservation = matchup.getRefObs();
-                final List<Coincidence> coincidences = matchup.getCoincidences();
-                final PGgeometry point = referenceObservation.getPoint();
-                for (Coincidence coincidence : coincidences) {
-                    writeObservation(file, coincidence.getObservation(), point, matchupIndex);
-                }
-                writeObservation(file, referenceObservation, point, matchupIndex);
-                writeMatchupId(file, matchupId, matchupIndex);
-                persistenceManager.detach(coincidences);
-            }
-        } finally {
-            // close database
-            persistenceManager.commit();
-        }
-    }
-
-    void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
-                          int matchupIndex) throws Exception {
-        ObservationReader reader = getReader(observation);
-        final Variable[] variables = reader.getVariables();
-        for (Variable variable : variables) {
-            if (includedVars.contains(variable.getName().replace(observation.getSensor() + ".", ""))) {
-                reader.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point);
-            }
-        }
-    }
-
-    private ObservationReader getReader(final Observation observation) throws Exception {
-        final DataFile datafile = observation.getDatafile();
-        final String path = datafile.getPath();
-        if (readers.get(path) != null) {
-            return readers.get(path);
-        }
-        ObservationReader reader = ReaderFactory.createReader(datafile.getDataSchema().getName());
-        readers.put(path, reader);
-        reader.init(datafile);
-        return reader;
-    }
-
-    private int getMatchupCount() {
-        if (matchupCount != -1) {
-            return matchupCount;
-        }
-        final Query query = persistenceManager.createQuery(COUNT_MATCHUPS_QUERY);
-        matchupCount = ((Number) query.getSingleResult()).intValue();
-        return matchupCount;
-    }
-
-    private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException,
-                                                                                                  InvalidRangeException {
-        final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
-        file.write("mId", new int[]{matchupIndex}, array);
-    }
-
-    private void addGlobalAttributes(NetcdfFileWriteable file) {
-        file.addGlobalAttribute("title", "SST CCI multi-sensor match-up dataset (MMD) template");
-        file.addGlobalAttribute("institution", "Brockmann Consult");
-        file.addGlobalAttribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)");
-        file.addGlobalAttribute("creation_date", Calendar.getInstance().getTime().toString());
-        file.addGlobalAttribute("total_number_of_matchups", 0);
-    }
-
-    private void addInsituDataHistories(NetcdfFileWriteable file) {
-        // todo: add in-situ data histories (rq-20110223)
-    }
-
-    private void addNwpData(NetcdfFileWriteable file, String sensorName) {
-        // todo: add NWP data (rq-20110223)
-    }
-
-    /**
-     * Returns the lengths of the dimensions of the variable given by <code>variableName</code>.
-     *
-     * @param variableName The variable name to get the dimension sizes for.
-     *
-     * @return An array of integers containing the dimension length <code>l[i]</code> for dimension with index
-     *         <code>i</code>.
-     */
-    private int[] getDimensionSizes(String variableName) {
-        final String dimString = varDimensionMap.get(NetcdfFile.escapeName(variableName));
-        final String[] dims = dimString.split(" ");
-        int[] result = new int[dims.length];
-        for (int i = 0; i < dims.length; i++) {
-            result[i] = dimensionCountMap.get(dims[i]);
-        }
-        return result;
-    }
-
-    private void addObservationTime(NetcdfFileWriteable file, String sensorName) {
-        final ucar.nc2.Variable time = file.addVariable(file.getRootGroup(),
-                                                        String.format("%s.observation_time", sensorName),
-                                                        DataType.DOUBLE,
-                                                        String.format("match_up %s.ni", sensorName));
-        addAttribute(time, "units", "Julian Date");
-    }
-
-    private void addLsMask(NetcdfFileWriteable file, String sensorName) {
-        file.addVariable(file.getRootGroup(),
-                         String.format("%s.land_sea_mask", sensorName),
-                         DataType.BYTE,
-                         String.format("match_up %s.ni %s.nj", sensorName, sensorName));
-    }
-
-    @SuppressWarnings({"unchecked"})
-    private void addVariables(NetcdfFileWriteable file, String sensorName) {
-        final Query query = createVariablesQuery(sensorName);
-        final List<Variable> resultList = query.getResultList();
-        for (final Variable var : resultList) {
-            addVariable(file, var, createDimensionString(var, sensorName));
-        }
-    }
-
-    private String createDimensionString(Variable var, String sensorName) {
-        final String[] dimensionNames = var.getDimensions().split(" ");
-        final String[] dimensionRoles = var.getDimensionRoles().split(" ");
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < dimensionRoles.length; i++) {
-            final String dimensionName = dimensionNames[i];
-            final String dimensionRole = dimensionRoles[i];
-            if (i != 0) {
-                sb.append(" ");
-            }
-            if (!DIMENSION_ROLE_MATCHUP.equals(dimensionRole)) {
-                sb.append(sensorName);
-                sb.append(".");
-            }
-            if (!DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
-                sb.append(dimensionRole);
-            } else {
-                sb.append(dimensionName);
-            }
-        }
-        if (!sb.toString().contains(DIMENSION_NAME_MATCHUP)) {
-            sb.insert(0, DIMENSION_NAME_MATCHUP + " ");
-        }
-        return sb.toString();
-    }
-
-    private void addVariable(NetcdfFileWriteable file, String name, DataType type, String dims) {
-        final Variable var = new Variable();
-        var.setName(name);
-        var.setType(type.name());
-        addVariable(file, var, dims);
-    }
-
-    private void addVariable(NetcdfFileWriteable file, Variable var, String dims) {
-        String cleanVarName = var.getName();
-        final int index = cleanVarName.indexOf(".");
-        cleanVarName = cleanVarName.substring(index + 1);
-        if (!includedVars.contains(cleanVarName)) {
-            return;
-        }
-        final ucar.nc2.Variable v = file.addVariable(file.getRootGroup(),
-                                                     var.getName(),
-                                                     DataType.valueOf(var.getType()),
-                                                     dims);
-        addAttribute(v, "standard_name", var.getStandardName());
-        addAttribute(v, "units", var.getUnits());
-        addAttribute(v, "add_offset", var.getAddOffset(), DataType.FLOAT);
-        addAttribute(v, "scale_factor", var.getScaleFactor(), DataType.FLOAT);
-        addAttribute(v, "_FillValue", var.getFillValue(), v.getDataType());
-        varDimensionMap.put(v.getNameEscaped(), dims);
     }
 
     private void addAttribute(ucar.nc2.Variable v, String attrName, String attrValue) {
@@ -384,16 +349,4 @@ public class MmdFormatGenerator {
             }
         }
     }
-
-    private Query createVariablesQuery(String sensorName) {
-        return persistenceManager.createQuery(
-                String.format("select v from Variable v where v.name like '%s.%%' order by v.name", sensorName));
-    }
-
-    private void close() throws IOException {
-        for (ObservationReader reader : readers.values()) {
-            reader.close();
-        }
-    }
-
 }

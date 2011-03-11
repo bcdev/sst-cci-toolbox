@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.Variable;
-import org.esa.cci.sst.util.MmdFormatGenerator;
 
 /**
  * @author Thomas Storm
@@ -29,8 +29,8 @@ public class ReaderUtils {
         final String dimensionRoles = variable.getDimensionRoles();
         String[] dims = dimString.split(" ");
         int length = dims.length;
-        final boolean addMatchup = !(dimString.contains(MmdFormatGenerator.DIMENSION_NAME_MATCHUP) ||
-                                     dimensionRoles.contains(MmdFormatGenerator.DIMENSION_NAME_MATCHUP));
+        final boolean addMatchup = !(dimString.contains(Constants.DIMENSION_NAME_MATCHUP) ||
+                                     dimensionRoles.contains(Constants.DIMENSION_NAME_MATCHUP));
         length += addMatchup ? 1 : 0;
         final int[] origin = new int[length];
         origin[0] = matchupIndex;
@@ -39,13 +39,4 @@ public class ReaderUtils {
         }
         return origin;
     }
-
-    static int[] createShapeArray(int size) {
-        final int[] shape = new int[size];
-        for (int i = 0; i < shape.length; i++) {
-            shape[i] = 1;
-        }
-        return shape;
-    }
-
 }
