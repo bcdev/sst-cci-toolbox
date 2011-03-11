@@ -26,7 +26,7 @@ import java.util.Properties;
  */
 public class MmsTool {
 
-    static final File DEFAULT_CONFIGURATION_FILE = new File("mms-test.properties");
+    static final File DEFAULT_CONFIGURATION_FILE = new File("mms-config.properties");
     /**
      * Name of persistence unit in META-INF/persistence.xml
      */
