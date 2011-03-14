@@ -141,10 +141,8 @@ public class MmdGeneratorTool {
         static final int AVHRR_HEIGHT = 31;
         static final int AMSRE_LENGTH = 11;
         static final int TMI_LENGTH = 11;
-        // todo - clarify if this is ok
         static final int AAI_LENGTH = 1;
-        // todo - clarify if this is ok
-        static final int SEA_ICE_LENGTH = 11;
+        static final int SEA_ICE_LENGTH = 15;
 
         static final String COUNT_MATCHUPS_QUERY =
                 "select count( m ) "
