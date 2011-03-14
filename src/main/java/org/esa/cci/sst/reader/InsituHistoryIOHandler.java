@@ -21,7 +21,11 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DriftingObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
+import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.IOException;
@@ -35,6 +39,8 @@ import java.util.Date;
  * @author Thomas Storm
  */
 public class InsituHistoryIOHandler extends NetcdfObservationStructureReader {
+
+    private static final String VARNAME_DRIFTER_TIME = "drifter.time";
 
     public InsituHistoryIOHandler() {
         super(SensorName.SENSOR_NAME_INSITU.getSensor());
@@ -76,13 +82,63 @@ public class InsituHistoryIOHandler extends NetcdfObservationStructureReader {
     }
 
     @Override
-    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-                      int[] dimensionSizes, final PGgeometry point, final Date refTime) throws IOException {
+    public void write(Observation observation, Variable variable, NetcdfFileWriteable file,
+                      int matchupIndex, int[] dimensionSizes, PGgeometry point, Date refTime) throws IOException {
+        final NetcdfFile sourceFile = getNcFile();
+        final ucar.nc2.Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(variable.getName()));
+        int[] origin = createOrigin(matchupIndex, dimensionSizes.length);
+        int[] shape = createShape(matchupIndex, dimensionSizes);
+        try {
+            Array array;
+            final ucar.nc2.Variable timeVar = sourceFile.findVariable(NetcdfFile.escapeName(VARNAME_DRIFTER_TIME));
+            final Array drifterTimeValue = timeVar.read(createOrigin(matchupIndex, 1), new int[]{1});
+            if (fits(refTime, drifterTimeValue.getDouble(0))) {
+                array = sourceVariable.read(origin, shape);
+            } else {
+                array = createFillArray(sourceVariable.getDataType(), null, shape);
+            }
+            file.write(NetcdfFile.escapeName(variable.getName()), array);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
 
-        // todo - implement
-        // todo - consider reference observation time
         // todo - consider gary's answer: do we need to write fitting to aatsr-buoy-id?
+    }
 
+    Array createFillArray(final DataType dataType, Object fillValue, final int[] shape) {
+        int size = 1;
+        for (int length : shape) {
+            size *= length;
+        }
+        final Array array = Array.factory(dataType, shape);
+        for(int i = 0; i < size; i++) {
+            array.setObject(i, fillValue);
+        }
+        return array;
+    }
+
+    boolean fits(final Date refTime, final double julianDate) throws ParseException {
+        final Date observationDate = TimeUtil.dateOfJulianDate(julianDate);
+        final long time = observationDate.getTime();
+        final int twelveHours = 12 * + 60 * 60 * 1000;
+        return refTime.getTime() < time + twelveHours &&
+               refTime.getTime() > time - twelveHours;
+    }
+
+    private int[] createOrigin(final int matchupIndex, final int length) {
+        final int[] origin = new int[length];
+        origin[0] = matchupIndex;
+        for (int i = 1; i < length; i++) {
+            origin[i] = 0;
+        }
+        return origin;
+    }
+
+    private int[] createShape(final int length, final int dimensionSizes[]) {
+        final int[] shape = new int[length];
+        shape[0] = 1;
+        System.arraycopy(dimensionSizes, 1, shape, 1, length - 1);
+        return shape;
     }
 
     static class TimeInterval {
