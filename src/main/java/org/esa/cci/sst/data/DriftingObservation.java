@@ -21,6 +21,10 @@ import org.esa.cci.sst.util.TimeUtil;
 import javax.persistence.Entity;
 
 /**
+ * Data item that represents a single observation with a non-fixed position,
+ * either with an SST value or a sub-scene or a related value for aerosol,
+ * sea ice, etc. The object refers to a record in an MD file or a record in a related file.
+ *
  * @author Thomas Storm
  */
 @Entity
@@ -37,7 +41,7 @@ public class DriftingObservation extends Observation {
     }
 
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%d,%s,%d)", getId(), getName(), getSensor(), TimeUtil.formatCcsdsUtcFormat(
-                getTime()), getTimeRadius(), getDatafile(), getRecordNo());
+        return String.format("Observation(%d,%s,%s,%s,%d,%s,%d)", getId(), getName(), getSensor(),
+                             TimeUtil.formatCcsdsUtcFormat(getTime()), getTimeRadius(), getDatafile(), getRecordNo());
     }
 }
