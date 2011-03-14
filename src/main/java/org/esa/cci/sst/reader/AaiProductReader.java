@@ -52,6 +52,7 @@ public class AaiProductReader extends AbstractProductReader {
         final File file = getInputFile();
         final Product product = new Product(file.getName(), "AerosolAai", COL_COUNT, ROW_COUNT);
         product.setPreferredTileSize(COL_COUNT, ROW_COUNT);
+        product.setFileLocation(file);
 
         final ProductData.UTC startTime = readReferenceTime(file);
         product.setStartTime(startTime);
