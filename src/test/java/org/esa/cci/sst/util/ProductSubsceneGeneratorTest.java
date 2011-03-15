@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
  */
 public class ProductSubsceneGeneratorTest {
 
+    private static final String TEST_OUTPUT_FILENAME = "test_output.nc";
     private ProductSubsceneGenerator generator;
     private NetcdfFileWriteable ncFile;
 
@@ -36,7 +37,8 @@ public class ProductSubsceneGeneratorTest {
     @SuppressWarnings({"ResultOfMethodCallIgnored"})
     @After
     public void tearDown() throws Exception {
-        new File(ncFile.getLocation()).delete();
+        ncFile.close();
+        new File(TEST_OUTPUT_FILENAME).delete();
     }
 
     @Ignore
@@ -51,7 +53,7 @@ public class ProductSubsceneGeneratorTest {
     @Test
     public void testCreateNcFile() throws Exception {
         Product product = createDummyProduct();
-        ncFile = generator.createNcFile("test_output", product);
+        ncFile = generator.createNcFile(TEST_OUTPUT_FILENAME, product);
         assertNotNull(ncFile);
         assertEquals(3, ncFile.getRootGroup().getVariables().size());
         List<Dimension> elephantDensityDims = ncFile.findVariable("elephant_density").getDimensions();
