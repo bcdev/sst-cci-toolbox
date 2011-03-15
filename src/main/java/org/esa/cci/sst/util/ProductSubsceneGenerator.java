@@ -103,10 +103,7 @@ class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         for (MetadataElement element : product.getMetadataRoot().getElements()) {
             for (MetadataAttribute attribute : element.getAttributes()) {
                 ProductData data = attribute.getData();
-                int type = data.getType();
-//            if(type == ProductData.TYPE_ASCII || type == ProductData.TYPE_UNDEFINED) {
                 ncFile.addGlobalAttribute(element.getName(), data.getElemString());
-//            }
             }
         }
         ncFile.create();
