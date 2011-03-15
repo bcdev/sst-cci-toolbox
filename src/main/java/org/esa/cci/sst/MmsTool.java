@@ -42,7 +42,7 @@ public class MmsTool {
     private boolean initialised;
     private PersistenceManager persistenceManager;
 
-    protected MmsTool(String name, String version) {
+    public MmsTool(String name, String version) {
         this.name = name;
         this.version = version;
         configuration = new Properties();

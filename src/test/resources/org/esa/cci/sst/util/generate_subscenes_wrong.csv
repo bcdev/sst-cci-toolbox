@@ -9,13 +9,4 @@
 ##                                                                                     ##
 #########################################################################################
 
-testdata/ATSR_Level1b/ATS_TOA_1PRUPA20100603_051636_000065272090_00033_43173_4544.N1, testdata/subscenes/ATSR_Level1b/test_subscene.nc
-testfile.N1
-
-
-dilbert
-jeff
-
-
-
-wally
+testdata/ATSR_Level1b/ATS_TOA_1PRUPA20100603_051636_000065272090_00033_43173_4544.N1, testdata/subscenes/ATSR_Level1b/test_subscene.nc, testfile.N1

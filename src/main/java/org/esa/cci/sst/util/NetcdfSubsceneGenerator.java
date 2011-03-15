@@ -16,8 +16,7 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.beam.framework.dataio.ProductSubsetDef;
-import org.esa.beam.framework.datamodel.Product;
+import org.esa.cci.sst.orm.PersistenceManager;
 
 /**
  * Implementation of {@link org.esa.cci.sst.util.SubsceneGeneratorTool.SubsceneGenerator} responsible for creating
@@ -25,15 +24,13 @@ import org.esa.beam.framework.datamodel.Product;
  *
  * @author Thomas Storm
  */
-class NetcdfSubsceneGenerator implements SubsceneGeneratorTool.SubsceneGenerator {
+class NetcdfSubsceneGenerator extends AbstractSubsceneGenerator {
 
-    @Override
-    public ProductSubsetDef createSubsetDef() {
-        return null;
+    NetcdfSubsceneGenerator(PersistenceManager persistenceManager) {
+        super(persistenceManager);
     }
 
     @Override
-    public Product createSubscene(final ProductSubsetDef subsetDef) {
-        return null;
+    public void createSubscene(SubsceneGeneratorTool.SubsceneIO subsceneIO) {
     }
 }

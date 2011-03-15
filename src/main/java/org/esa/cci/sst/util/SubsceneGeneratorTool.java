@@ -17,9 +17,9 @@
 package org.esa.cci.sst.util;
 
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.dataio.ProductSubsetDef;
-import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.util.io.CsvReader;
+import org.esa.cci.sst.MmsTool;
+import org.esa.cci.sst.orm.PersistenceManager;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -30,17 +30,6 @@ import java.util.List;
 /**
  * Tool responsible for cutting out subscenes from a number of files given in a csv file.
  * <p/>
- * For each file <code>f</code> do:
- * <ol>
- * <li>Get geographic boundaries from <code>f</code>
- * <li>Get time stamp from <code>f</code>
- * <li>Perform database query for matchup files with fitting geo boundaries and time
- * <li>Get matchup id from query
- * <li>Create new Netcdf file, add all variables from input product
- * <li>Set dimensions to shape given by subscene definition
- * <li>Add matchup dimension
- * <li>Copy values from input product to netcdf
- * </ol>
  *
  * @author Thomas Storm
  */
@@ -49,27 +38,45 @@ public class SubsceneGeneratorTool {
     private static final String GENERATE_SUBSCENES_FILE = "generate_subscenes.csv";
 
     public static void main(String[] args) throws IOException {
-        for (String filename : getFilenames(GENERATE_SUBSCENES_FILE)) {
-            SubsceneGenerator generator = getSubsceneGenerator(filename);
+        PersistenceManager persistenceManager = new MmsTool("mms-subscenegeneration", "0.1").getPersistenceManager();
+        for (SubsceneIO subsceneIO : getFilenames(GENERATE_SUBSCENES_FILE)) {
+            SubsceneGenerator generator = getSubsceneGenerator(subsceneIO.inputFilename, persistenceManager);
+            generator.createSubscene(subsceneIO);
         }
     }
 
-    static String[] getFilenames(String filename) throws IOException {
-        CsvReader csvReader = new CsvReader(new FileReader(filename), new char[]{' ', '\n', '\t'}, true, "#");
+    static SubsceneIO[] getFilenames(String filename) throws IOException {
+        CsvReader csvReader = new CsvReader(new FileReader(filename), new char[]{' ', ',', '\n', '\t'}, true, "#");
         final List<String[]> records = csvReader.readStringRecords();
-        String[] filenames = new String[records.size()];
+        SubsceneIO[] files = new SubsceneIO[records.size()];
         for (int i = 0; i < records.size(); i++) {
             final String[] record = records.get(i);
-            filenames[i] = record[0];
+            if (record.length == 1) {
+                files[i] = new SubsceneIO(record[0], createDefaultSubsceneName(record[0]));
+            } else if (record.length == 2) {
+                files[i] = new SubsceneIO(record[0], record[1]);
+            } else {
+                throw new IllegalStateException("CSV-file '" + filename + "' has wrong format at record '" + record[0] + "'.");
+            }
         }
-        return filenames;
+        return files;
     }
 
-    static SubsceneGenerator getSubsceneGenerator(final String filename) throws IOException {
+    static String createDefaultSubsceneName(String filename) {
+        StringBuilder builder = new StringBuilder(filename);
+        int offset = filename.lastIndexOf('.');
+        if (offset == -1) {
+            offset = filename.length();
+        }
+        builder.insert(offset, "_subscene");
+        return builder.toString();
+    }
+
+    static SubsceneGenerator getSubsceneGenerator(final String filename, PersistenceManager persistenceManager) throws IOException {
         if (ProductIO.getProductReaderForFile(new File(filename)) != null) {
-            return new ProductSubsceneGenerator();
+            return new ProductSubsceneGenerator(persistenceManager);
         } else if (NetcdfFile.canOpen(filename)) {
-            return new NetcdfSubsceneGenerator();
+            return new NetcdfSubsceneGenerator(persistenceManager);
         }
         throw new IllegalArgumentException("No subscene generator found for file '" + filename + "'.");
     }
@@ -77,10 +84,27 @@ public class SubsceneGeneratorTool {
 
     interface SubsceneGenerator {
 
-        ProductSubsetDef createSubsetDef();
+        void createSubscene(SubsceneIO subsceneIO) throws IOException;
 
-        Product createSubscene(ProductSubsetDef subsetDef);
+    }
 
+    static class SubsceneIO {
+
+        private String inputFilename;
+        private String outputFilename;
+
+        private SubsceneIO(String inputFilename, String outputFilename) {
+            this.inputFilename = inputFilename;
+            this.outputFilename = outputFilename;
+        }
+
+        public String getInputFilename() {
+            return inputFilename;
+        }
+
+        public String getOutputFilename() {
+            return outputFilename;
+        }
     }
 
 }
