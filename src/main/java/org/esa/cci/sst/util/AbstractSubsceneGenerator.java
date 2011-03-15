@@ -8,16 +8,18 @@ import org.esa.cci.sst.orm.PersistenceManager;
  *
  * @author Thomas Storm
  */
-public abstract class AbstractSubsceneGenerator implements SubsceneGeneratorTool.SubsceneGenerator {
+abstract class AbstractSubsceneGenerator implements SubsceneGeneratorTool.SubsceneGenerator {
 
     private PersistenceManager persistenceManager;
 
-    public AbstractSubsceneGenerator(PersistenceManager persistenceManager) {
+    AbstractSubsceneGenerator(PersistenceManager persistenceManager) {
         Assert.argument(persistenceManager != null, "persistance manager must not be null");
         this.persistenceManager = persistenceManager;
     }
 
-    public PersistenceManager getPersistenceManager() {
+    PersistenceManager getPersistenceManager() {
         return persistenceManager;
     }
+
+    abstract int getSensorDimensionSize();
 }

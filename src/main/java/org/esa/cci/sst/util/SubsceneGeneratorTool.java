@@ -19,6 +19,7 @@ package org.esa.cci.sst.util;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.util.io.CsvReader;
 import org.esa.cci.sst.MmsTool;
+import org.esa.cci.sst.SensorName;
 import org.esa.cci.sst.orm.PersistenceManager;
 import ucar.nc2.NetcdfFile;
 
@@ -29,7 +30,6 @@ import java.util.List;
 
 /**
  * Tool responsible for cutting out subscenes from a number of files given in a csv file.
- * <p/>
  *
  * @author Thomas Storm
  */
@@ -74,9 +74,24 @@ public class SubsceneGeneratorTool {
 
     static SubsceneGenerator getSubsceneGenerator(final String filename, PersistenceManager persistenceManager) throws IOException {
         if (ProductIO.getProductReaderForFile(new File(filename)) != null) {
-            return new ProductSubsceneGenerator(persistenceManager);
+            if (SensorName.SENSOR_NAME_AATSR.getSensor().equals(getSensorFromFilename(filename))) {
+                return new AtsrSubsceneGenerator(persistenceManager);
+            } else if(SensorName.SENSOR_NAME_AMSRE.getSensor().equals(getSensorFromFilename(filename))) {
+                return new AmsreSubsceneGenerator(persistenceManager);
+            }
         } else if (NetcdfFile.canOpen(filename)) {
+            // todo - ts - check if needed or if we have beam product readers for all sensors we need subscenes for
             return new NetcdfSubsceneGenerator(persistenceManager);
+        }
+        throw new IllegalArgumentException("No subscene generator found for file '" + filename + "'.");
+    }
+
+    private static String getSensorFromFilename(String filename) {
+        filename = filename.toLowerCase();
+        if(filename.contains("atsr") || filename.contains("ats_toa")) {
+            return SensorName.SENSOR_NAME_AATSR.getSensor();
+        } else if(filename.contains("-amsre-")) {
+            return SensorName.SENSOR_NAME_AMSRE.getSensor();
         }
         throw new IllegalArgumentException("No subscene generator found for file '" + filename + "'.");
     }

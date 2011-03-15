@@ -245,11 +245,11 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
             if (i != 0) {
                 sb.append(" ");
             }
-            if (!DIMENSION_ROLE_MATCHUP.equals(dimensionRole)) {
+            if (!Constants.DIMENSION_ROLE_MATCHUP.equals(dimensionRole)) {
                 sb.append(sensorName);
                 sb.append(".");
             }
-            if (!DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
+            if (!Constants.DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
                 sb.append(dimensionRole);
             } else {
                 sb.append(dimensionName);
@@ -301,28 +301,28 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     private void setUpDimensionCountMap() {
         dimensionCountMap.put(Constants.DIMENSION_NAME_MATCHUP, getMatchupCount());
-        dimensionCountMap.put("aatsr-md.cs_length", AATSR_MD_CS_LENGTH);
-        dimensionCountMap.put("aatsr-md.ui_length", AATSR_MD_UI_LENGTH);
-        dimensionCountMap.put("aatsr-md.length", AATSR_MD_LENGTH);
-        dimensionCountMap.put("metop.ni", METOP_LENGTH);
-        dimensionCountMap.put("metop.nj", METOP_LENGTH);
-        dimensionCountMap.put("metop.len_id", METOP_LEN_ID);
-        dimensionCountMap.put("metop.len_filename", METOP_LEN_FILENAME);
-        dimensionCountMap.put("seviri.ni", SEVIRI_LENGTH);
-        dimensionCountMap.put("seviri.nj", SEVIRI_LENGTH);
-        dimensionCountMap.put("seviri.len_id", SEVIRI_LEN_ID);
-        dimensionCountMap.put("seviri.len_filename", SEVIRI_LEN_FILENAME);
-        dimensionCountMap.put("aatsr.ni", AATSR_LENGTH);
-        dimensionCountMap.put("aatsr.nj", AATSR_LENGTH);
-        dimensionCountMap.put("avhrr.ni", AVHRR_WIDTH);
-        dimensionCountMap.put("avhrr.nj", AVHRR_HEIGHT);
-        dimensionCountMap.put("amsre.ni", AMSRE_LENGTH);
-        dimensionCountMap.put("amsre.nj", AMSRE_LENGTH);
-        dimensionCountMap.put("tmi.ni", TMI_LENGTH);
-        dimensionCountMap.put("tmi.nj", TMI_LENGTH);
-        dimensionCountMap.put("aai.ni", AAI_LENGTH);
-        dimensionCountMap.put("seaice.ni", SEA_ICE_LENGTH);
-        dimensionCountMap.put("seaice.nj", SEA_ICE_LENGTH);
+        dimensionCountMap.put("aatsr-md.cs_length", Constants.AATSR_MD_CS_LENGTH);
+        dimensionCountMap.put("aatsr-md.ui_length", Constants.AATSR_MD_UI_LENGTH);
+        dimensionCountMap.put("aatsr-md.length", Constants.AATSR_MD_LENGTH);
+        dimensionCountMap.put("metop.ni", Constants.METOP_LENGTH);
+        dimensionCountMap.put("metop.nj", Constants.METOP_LENGTH);
+        dimensionCountMap.put("metop.len_id", Constants.METOP_LEN_ID);
+        dimensionCountMap.put("metop.len_filename", Constants.METOP_LEN_FILENAME);
+        dimensionCountMap.put("seviri.ni", Constants.SEVIRI_LENGTH);
+        dimensionCountMap.put("seviri.nj", Constants.SEVIRI_LENGTH);
+        dimensionCountMap.put("seviri.len_id", Constants.SEVIRI_LEN_ID);
+        dimensionCountMap.put("seviri.len_filename", Constants.SEVIRI_LEN_FILENAME);
+        dimensionCountMap.put("aatsr.ni", Constants.AATSR_LENGTH);
+        dimensionCountMap.put("aatsr.nj", Constants.AATSR_LENGTH);
+        dimensionCountMap.put("avhrr.ni", Constants.AVHRR_WIDTH);
+        dimensionCountMap.put("avhrr.nj", Constants.AVHRR_HEIGHT);
+        dimensionCountMap.put("amsre.ni", Constants.AMSRE_LENGTH);
+        dimensionCountMap.put("amsre.nj", Constants.AMSRE_LENGTH);
+        dimensionCountMap.put("tmi.ni", Constants.TMI_LENGTH);
+        dimensionCountMap.put("tmi.nj", Constants.TMI_LENGTH);
+        dimensionCountMap.put("aai.ni", Constants.AAI_LENGTH);
+        dimensionCountMap.put("seaice.ni", Constants.SEA_ICE_LENGTH);
+        dimensionCountMap.put("seaice.nj", Constants.SEA_ICE_LENGTH);
     }
 
     private void addAttribute(ucar.nc2.Variable v, String attrName, String attrValue) {

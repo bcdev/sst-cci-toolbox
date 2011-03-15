@@ -16,25 +16,30 @@
 
 package org.esa.cci.sst.util;
 
+import com.bc.ceres.core.Assert;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.dataio.ProductSubsetDef;
 import org.esa.beam.framework.datamodel.*;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.postgis.*;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
 import ucar.nc2.Group;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.persistence.Query;
-import java.awt.*;
-import java.awt.geom.Point2D;
+import java.awt.Rectangle;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
- * Implementation of {@link org.esa.cci.sst.util.SubsceneGeneratorTool.SubsceneGenerator} responsible for creating
- * and applying subscenes on data products, which can be read using the BEAM API.
+ * Abstract implementation of {@link org.esa.cci.sst.util.SubsceneGeneratorTool.SubsceneGenerator} responsible for
+ * creating and applying subscenes on data products, which can be read using the BEAM API.
+ * Sensor-specific subclasses of this class need to provide the dimension size that shall be used for the subscene.
+ * <p/>
  * <p/>
  * <ol>
  * <li>Get geographic boundaries from<code>f</code>
@@ -49,7 +54,7 @@ import java.util.List;
  *
  * @author Thomas Storm
  */
-class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
+abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
 
     /**
      * all matchup-ids for matchups with a reference observation o, which has
@@ -63,39 +68,94 @@ class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
                     + " and m.oref.time >= %s - '12:00:00' and m.oref.time < %s + '12:00:00'"
                     + " and st_intersects(%s, oref.point)";
 
-    ProductSubsceneGenerator(PersistenceManager persistenceManager) {
+    private final String sensorName;
+
+    ProductSubsceneGenerator(PersistenceManager persistenceManager, String sensorName) {
         super(persistenceManager);
+        this.sensorName = sensorName;
     }
 
     @Override
     public void createSubscene(SubsceneGeneratorTool.SubsceneIO subsceneIO) throws IOException {
         PersistenceManager persistenceManager = getPersistenceManager();
+        String inputFilename = subsceneIO.getInputFilename();
+        String outputFilename = subsceneIO.getOutputFilename();
+        Product product = ProductIO.readProduct(inputFilename);
+        Date time = getTimeStamp(product);
+        org.esa.beam.framework.datamodel.GeoCoding geoCoding = product.getGeoCoding();
+        org.esa.beam.framework.datamodel.GeoPos upperLeft = new org.esa.beam.framework.datamodel.GeoPos();
+        org.esa.beam.framework.datamodel.GeoPos lowerRight = new org.esa.beam.framework.datamodel.GeoPos();
+        geoCoding.getGeoPos(new org.esa.beam.framework.datamodel.PixelPos(0, 0), upperLeft);
+        geoCoding.getGeoPos(new org.esa.beam.framework.datamodel.PixelPos(product.getSceneRasterWidth(), product.getSceneRasterHeight()), lowerRight);
+        NetcdfFileWriteable ncFile = null;
         try {
-            String inputFilename = subsceneIO.getInputFilename();
-            String outputFilename = subsceneIO.getOutputFilename();
-            Product product = ProductIO.readProduct(inputFilename);
-            GeoCoding geoCoding = product.getGeoCoding();
-            GeoPos upperLeft = new GeoPos();
-            GeoPos lowerRight = new GeoPos();
-            geoCoding.getGeoPos(new PixelPos(0, 0), upperLeft);
-            geoCoding.getGeoPos(new PixelPos(product.getSceneRasterWidth(), product.getSceneRasterHeight()), lowerRight);
             persistenceManager.transaction();
-            List<Integer> matchupIds = getMatchupIds("sensorname", "timeString", "boundsString");
-            NetcdfFileWriteable ncFile = createNcFile(outputFilename, product);
-
-
-            Product productSubset = product.createSubset(createSubsetDef(null), outputFilename, "Subscene of product '" + product.getName() + "'");
+            List<Integer> matchupIds = getMatchupIds(sensorName, time, createRegion(upperLeft, lowerRight));
+            ncFile = createNcFile(outputFilename, product, matchupIds);
+            for (Band band : product.getBands()) {
+                writeBand(ncFile, band, matchupIds);
+            }
+        } catch (InvalidRangeException e) {
+            throw new IOException("Error writing to netcdf file.", e);
         } finally {
             persistenceManager.commit();
+            if (ncFile != null) {
+                ncFile.close();
+            }
         }
     }
 
-    NetcdfFileWriteable createNcFile(String outputFilename, Product product) throws IOException {
+    PGgeometry createRegion(GeoPos upperLeft, GeoPos lowerRight) {
+        Point[] points = new Point[4];
+        points[0] = new Point(upperLeft.lat, upperLeft.lon);
+        points[1] = new Point(upperLeft.lat, lowerRight.lon);
+        points[2] = new Point(lowerRight.lat, lowerRight.lon);
+        points[3] = new Point(lowerRight.lat, upperLeft.lon);
+        return new PGgeometry(new MultiPoint(points));
+    }
+
+    void writeBand(NetcdfFileWriteable ncFile, Band band, List<Integer> matchupIds) throws IOException, InvalidRangeException {
+        for (int matchupId : matchupIds) {
+            int[] shape = createShape(matchupId, createBounds(matchupId, band));
+            Array values = Array.factory(DataTypeUtils.getNetcdfDataType(band), shape);
+            values.setInt(0, matchupId);
+            ncFile.write(band.getName(), values);
+        }
+    }
+
+    Rectangle createBounds(int matchupId, Band band) {
+        // todo - ts - implement database query: get point of matchup
+        // then get dimension size for sensor
+        // then verschneide with band's bounds
+
+        return null;  //To change body of created methods use File | Settings | File Templates.
+    }
+
+    int[] createShape(int matchupId, Rectangle bounds) {
+        int[] shape = new int[3];
+        shape[0] = matchupId;
+        shape[1] = (int) bounds.getWidth();
+        shape[2] = (int) bounds.getHeight();
+        return shape;
+    }
+
+    @SuppressWarnings({"ConstantConditions"})
+    Date getTimeStamp(Product product) {
+        ProductData.UTC startTime = product.getStartTime();
+        Assert.argument(startTime != null, "Product '" + product + "' has no start time.");
+        ProductData.UTC endTime = product.getEndTime();
+        if (endTime == null) {
+            return startTime.getAsDate();
+        }
+        return new Date((startTime.getAsDate().getTime() + endTime.getAsDate().getTime()) / 2);
+    }
+
+    NetcdfFileWriteable createNcFile(String outputFilename, Product product, List<Integer> matchupIds) throws IOException {
         NetcdfFileWriteable ncFile = NetcdfFileWriteable.createNew(outputFilename);
         Group rootGroup = ncFile.getRootGroup();
-        ncFile.addDimension(rootGroup, new Dimension(Constants.DIMENSION_NAME_MATCHUP, 1, true));
-        ncFile.addDimension(rootGroup, new Dimension("ni", product.getSceneRasterWidth(), true));
-        ncFile.addDimension(rootGroup, new Dimension("nj", product.getSceneRasterHeight(), true));
+        ncFile.addDimension(rootGroup, new Dimension(Constants.DIMENSION_NAME_MATCHUP, matchupIds.size(), true));
+        ncFile.addDimension(rootGroup, new Dimension("ni", getSensorDimensionSize(), true));
+        ncFile.addDimension(rootGroup, new Dimension("nj", getSensorDimensionSize(), true));
         for (Band band : product.getBands()) {
             String dimString = Constants.DIMENSION_NAME_MATCHUP + " ni nj";
             ncFile.addVariable(rootGroup, band.getName(), DataTypeUtils.getNetcdfDataType(band), dimString);
@@ -111,18 +171,8 @@ class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
     }
 
     @SuppressWarnings({"unchecked"})
-    List<Integer> getMatchupIds(String sensorName, String time, String bounds) {
+    List<Integer> getMatchupIds(String sensorName, Date time, PGgeometry bounds) {
         Query query = getPersistenceManager().createQuery(String.format(GET_MATCHUP_IDS, sensorName, time, time, bounds));
         return query.getResultList();
-    }
-
-    private ProductSubsetDef createSubsetDef(Point2D point) {
-        ProductSubsetDef subsetDef = new ProductSubsetDef();
-        subsetDef.setRegion(createRegion(point));
-        return subsetDef;
-    }
-
-    private Rectangle createRegion(Point2D subsetDef) {
-        return null;
     }
 }

@@ -33,4 +33,9 @@ class NetcdfSubsceneGenerator extends AbstractSubsceneGenerator {
     @Override
     public void createSubscene(SubsceneGeneratorTool.SubsceneIO subsceneIO) {
     }
+
+    int getSensorDimensionSize() {
+        // todo - ts - implement (if needed)
+        return 0;
+    }
 }

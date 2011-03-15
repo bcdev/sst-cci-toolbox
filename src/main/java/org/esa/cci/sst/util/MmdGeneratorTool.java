@@ -125,25 +125,6 @@ public class MmdGeneratorTool {
 
     interface MmdGenerator {
 
-        static final String DIMENSION_ROLE_LENGTH = "length";
-        static final String DIMENSION_ROLE_MATCHUP = "match_up";
-        static final int AATSR_MD_CS_LENGTH = 8;
-        static final int AATSR_MD_UI_LENGTH = 30;
-        static final int AATSR_MD_LENGTH = 65;
-        static final int METOP_LENGTH = 21;
-        static final int METOP_LEN_ID = 11;
-        static final int METOP_LEN_FILENAME = 65;
-        static final int SEVIRI_LENGTH = 5;
-        static final int SEVIRI_LEN_ID = 11;
-        static final int SEVIRI_LEN_FILENAME = 65;
-        static final int AATSR_LENGTH = 101;
-        static final int AVHRR_WIDTH = 25;
-        static final int AVHRR_HEIGHT = 31;
-        static final int AMSRE_LENGTH = 11;
-        static final int TMI_LENGTH = 11;
-        static final int AAI_LENGTH = 1;
-        static final int SEA_ICE_LENGTH = 15;
-
         static final String COUNT_MATCHUPS_QUERY =
                 "select count( m ) "
                 + " from Matchup m";
