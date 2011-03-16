@@ -3,7 +3,7 @@
 # This file contains the list of variables, which are to be written into the MMD-file.  #
 # The variable names are written line-separated. They are expected to start with their  #
 # sensor name, however, wildcards (*, ?) are allowed. E.g. the variable                 #
-# 'seviri.msr_time' would be output if the pattern '*.msr_time' would be provided,      #
+# 'seviri.msr_time' is output if the pattern '*.msr_time' is be provided,               #
 # while the pattern 'seviri.msr_?time' would allow the variable 'seviri.msr_dtime' to   #
 # be output, too.                                                                       #
 #                                                                                       #

@@ -2,7 +2,6 @@ package org.esa.cci.sst.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -10,10 +9,12 @@ public final class TimeUtil {
 
     public static final long MILLISECONDS_1981;
     public static final long TIME_NULL = Long.MIN_VALUE;
-    private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-    private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+    private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss,SSS");
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));

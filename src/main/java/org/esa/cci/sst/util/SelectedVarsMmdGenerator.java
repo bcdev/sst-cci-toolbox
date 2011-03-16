@@ -89,7 +89,8 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
                 for (Coincidence coincidence : coincidences) {
-                    writeObservation(file, coincidence.getObservation(), point, referenceObservation.getTime(), matchupIndex);
+                    writeObservation(file, coincidence.getObservation(), point, referenceObservation.getTime(),
+                                     matchupIndex);
                 }
                 writeObservation(file, referenceObservation, point, referenceObservation.getTime(), matchupIndex);
                 delegate.writeMatchupId(file, matchupId, matchupIndex);
@@ -112,8 +113,9 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
             if (outputVariables.contains(variable.getName().replace(observation.getSensor() + ".", ""))) {
-                ioHandler.write(observation, variable, file, matchupIndex, delegate.getDimensionSizes(variable.getName()),
-                             point, refTime);
+                ioHandler.write(observation, variable, file, matchupIndex,
+                                delegate.getDimensionSizes(variable.getName()),
+                                point, refTime);
             }
         }
     }

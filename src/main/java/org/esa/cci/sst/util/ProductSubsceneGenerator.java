@@ -19,10 +19,19 @@ package org.esa.cci.sst.util;
 import com.bc.ceres.core.Assert;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.datamodel.*;
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
+import org.esa.beam.framework.datamodel.MetadataElement;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.postgis.*;
+import org.postgis.MultiPoint;
+import org.postgis.PGgeometry;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
@@ -63,10 +72,10 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
      */
     private static final String GET_MATCHUP_IDS =
             "select m.id"
-                    + " from Matchup m"
-                    + " where m.oref.sensor = %s"
-                    + " and m.oref.time >= %s - '12:00:00' and m.oref.time < %s + '12:00:00'"
-                    + " and st_intersects(%s, oref.point)";
+            + " from Matchup m"
+            + " where m.oref.sensor = %s"
+            + " and m.oref.time >= %s - '12:00:00' and m.oref.time < %s + '12:00:00'"
+            + " and st_intersects(%s, oref.point)";
 
     private final String sensorName;
 
@@ -82,11 +91,11 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         String outputFilename = subsceneIO.getOutputFilename();
         Product product = ProductIO.readProduct(inputFilename);
         Date time = getTimeStamp(product);
-        org.esa.beam.framework.datamodel.GeoCoding geoCoding = product.getGeoCoding();
-        org.esa.beam.framework.datamodel.GeoPos upperLeft = new org.esa.beam.framework.datamodel.GeoPos();
-        org.esa.beam.framework.datamodel.GeoPos lowerRight = new org.esa.beam.framework.datamodel.GeoPos();
-        geoCoding.getGeoPos(new org.esa.beam.framework.datamodel.PixelPos(0, 0), upperLeft);
-        geoCoding.getGeoPos(new org.esa.beam.framework.datamodel.PixelPos(product.getSceneRasterWidth(), product.getSceneRasterHeight()), lowerRight);
+        GeoCoding geoCoding = product.getGeoCoding();
+        GeoPos upperLeft = new GeoPos();
+        GeoPos lowerRight = new GeoPos();
+        geoCoding.getGeoPos(new PixelPos(0, 0), upperLeft);
+        geoCoding.getGeoPos(new PixelPos(product.getSceneRasterWidth(), product.getSceneRasterHeight()), lowerRight);
         NetcdfFileWriteable ncFile = null;
         try {
             persistenceManager.transaction();
@@ -114,7 +123,8 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         return new PGgeometry(new MultiPoint(points));
     }
 
-    void writeBand(NetcdfFileWriteable ncFile, Band band, List<Integer> matchupIds) throws IOException, InvalidRangeException {
+    void writeBand(NetcdfFileWriteable ncFile, Band band, List<Integer> matchupIds) throws IOException,
+                                                                                           InvalidRangeException {
         for (int matchupId : matchupIds) {
             int[] shape = createShape(matchupId, createBounds(matchupId, band));
             Array values = Array.factory(DataTypeUtils.getNetcdfDataType(band), shape);
@@ -150,7 +160,8 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         return new Date((startTime.getAsDate().getTime() + endTime.getAsDate().getTime()) / 2);
     }
 
-    NetcdfFileWriteable createNcFile(String outputFilename, Product product, List<Integer> matchupIds) throws IOException {
+    NetcdfFileWriteable createNcFile(String outputFilename, Product product, List<Integer> matchupIds) throws
+                                                                                                       IOException {
         NetcdfFileWriteable ncFile = NetcdfFileWriteable.createNew(outputFilename);
         Group rootGroup = ncFile.getRootGroup();
         ncFile.addDimension(rootGroup, new Dimension(Constants.DIMENSION_NAME_MATCHUP, matchupIds.size(), true));
@@ -172,7 +183,8 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
 
     @SuppressWarnings({"unchecked"})
     List<Integer> getMatchupIds(String sensorName, Date time, PGgeometry bounds) {
-        Query query = getPersistenceManager().createQuery(String.format(GET_MATCHUP_IDS, sensorName, time, time, bounds));
+        Query query = getPersistenceManager().createQuery(
+                String.format(GET_MATCHUP_IDS, sensorName, time, time, bounds));
         return query.getResultList();
     }
 }

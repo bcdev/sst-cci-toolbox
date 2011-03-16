@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.net.URL;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Thomas Storm
@@ -43,7 +43,8 @@ public class SubsceneGeneratorToolTest {
     public void testGetFilenames() throws Exception {
         SubsceneGeneratorTool.SubsceneIO[] subsceneIOs = SubsceneGeneratorTool.getFilenames(resource.getFile());
         assertEquals(5, subsceneIOs.length);
-        assertEquals("testdata/ATSR_Level1b/ATS_TOA_1PRUPA20100603_051636_000065272090_00033_43173_4544.N1", subsceneIOs[0].getInputFilename());
+        assertEquals("testdata/ATSR_Level1b/ATS_TOA_1PRUPA20100603_051636_000065272090_00033_43173_4544.N1",
+                     subsceneIOs[0].getInputFilename());
         assertEquals("testdata/subscenes/ATSR_Level1b/test_subscene.nc", subsceneIOs[0].getOutputFilename());
         assertEquals("testfile.N1", subsceneIOs[1].getInputFilename());
         assertEquals("testfile_subscene.N1", subsceneIOs[1].getOutputFilename());

@@ -56,7 +56,8 @@ public class SubsceneGeneratorTool {
             } else if (record.length == 2) {
                 files[i] = new SubsceneIO(record[0], record[1]);
             } else {
-                throw new IllegalStateException("CSV-file '" + filename + "' has wrong format at record '" + record[0] + "'.");
+                throw new IllegalStateException(
+                        "CSV-file '" + filename + "' has wrong format at record '" + record[0] + "'.");
             }
         }
         return files;
@@ -72,11 +73,12 @@ public class SubsceneGeneratorTool {
         return builder.toString();
     }
 
-    static SubsceneGenerator getSubsceneGenerator(final String filename, PersistenceManager persistenceManager) throws IOException {
+    static SubsceneGenerator getSubsceneGenerator(final String filename, PersistenceManager persistenceManager) throws
+                                                                                                                IOException {
         if (ProductIO.getProductReaderForFile(new File(filename)) != null) {
             if (SensorName.SENSOR_NAME_AATSR.getSensor().equals(getSensorFromFilename(filename))) {
                 return new AtsrSubsceneGenerator(persistenceManager);
-            } else if(SensorName.SENSOR_NAME_AMSRE.getSensor().equals(getSensorFromFilename(filename))) {
+            } else if (SensorName.SENSOR_NAME_AMSRE.getSensor().equals(getSensorFromFilename(filename))) {
                 return new AmsreSubsceneGenerator(persistenceManager);
             }
         } else if (NetcdfFile.canOpen(filename)) {
@@ -88,9 +90,9 @@ public class SubsceneGeneratorTool {
 
     private static String getSensorFromFilename(String filename) {
         filename = filename.toLowerCase();
-        if(filename.contains("atsr") || filename.contains("ats_toa")) {
+        if (filename.contains("atsr") || filename.contains("ats_toa")) {
             return SensorName.SENSOR_NAME_AATSR.getSensor();
-        } else if(filename.contains("-amsre-")) {
+        } else if (filename.contains("-amsre-")) {
             return SensorName.SENSOR_NAME_AMSRE.getSensor();
         }
         throw new IllegalArgumentException("No subscene generator found for file '" + filename + "'.");
