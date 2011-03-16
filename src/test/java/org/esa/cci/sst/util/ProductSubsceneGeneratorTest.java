@@ -1,25 +1,31 @@
 package org.esa.cci.sst.util;
 
-import org.esa.beam.framework.datamodel.*;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
+import org.esa.beam.framework.datamodel.MetadataElement;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.postgis.*;
+import org.postgis.LinearRing;
+import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Thomas Storm
@@ -32,7 +38,10 @@ public class ProductSubsceneGeneratorTest {
 
     @Before
     public void setUp() throws Exception {
-        PersistenceManager persistenceManager = mock(PersistenceManager.class);
+        final Properties properties = new Properties();
+        final InputStream stream = getClass().getResourceAsStream("mms-test.properties");
+        properties.load(stream);
+        PersistenceManager persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, properties);
         generator = new ProductSubsceneGenerator(persistenceManager, "ATSR") {
             @Override
             int getSensorDimensionSize() {
@@ -44,18 +53,38 @@ public class ProductSubsceneGeneratorTest {
     @SuppressWarnings({"ResultOfMethodCallIgnored"})
     @After
     public void tearDown() throws Exception {
-        if(ncFile != null) {
+        if (ncFile != null) {
             ncFile.close();
         }
         new File(TEST_OUTPUT_FILENAME).delete();
     }
 
-    @Ignore
     @Test
     public void testGetMatchupIds() throws Exception {
-        List<Integer> matchupIds = generator.getMatchupIds("aatsr", new Date(58906834), new PGgeometry(new Point("0,0,100,100")));
+        final Date date = ProductData.UTC.parse("2010-06-01 13:21", "yyyy-MM-dd HH:mm").getAsDate();
+        final LinearRing[] rings = new LinearRing[]{new LinearRing(new Point[]{
+                new Point(33.7, -27.0),
+                new Point(34, -27),
+                new Point(34, -28),
+                new Point(33, -28),
+                new Point(33.7, -27.0)
+        })};
+        List<Integer> matchupIds = generator.getMatchupIds("aatsr-md", date, new Polygon(rings).toString());
         for (Integer matchupId : matchupIds) {
             System.out.println("matchupId = " + matchupId);
+        }
+    }
+
+    @Test
+    public void testGetPoint() throws Exception {
+        final Point point = generator.getPoint(738901);
+        assertNotNull(point);
+        System.out.println("point = " + point);
+        try {
+            generator.getPoint(-1);
+            fail();
+        } catch(IllegalStateException expected) {
+            System.out.println("expected.getMessage() = " + expected.getMessage());
         }
     }
 
@@ -108,18 +137,40 @@ public class ProductSubsceneGeneratorTest {
     }
 
     @Test
-    public void testCreateRegionString() throws Exception {
-        PGgeometry geometry = generator.createRegion(new GeoPos(48.5f, 8.3f), new GeoPos(49.5f, 9.3f));
-        Point[] expectedPoints = new Point[4];
-        expectedPoints[0] = new Point(48.5, 8.3);
-        expectedPoints[1] = new Point(48.5, 9.3);
-        expectedPoints[2] = new Point(49.5, 9.3);
-        expectedPoints[3] = new Point(49.5, 8.3);
-        assertTrue(geometry.getGeometry() instanceof MultiPoint );
-        Point[] computedPoints = ((MultiPoint) geometry.getGeometry()).getPoints();
-        for (int i = 0; i < computedPoints.length; i++) {
-            assertEquals(computedPoints[i].getX(), expectedPoints[i].getX(), 0.0001);
-        }
+    public void testCreateRegion() throws Exception {
+        String geometry = generator.createRegion(new GeoPos(48.5f, 8.3f), new GeoPos(49.5f, 9.3f));
+
+        final String[] split = geometry.split(",");
+        String current = split[0].substring(split[0].lastIndexOf("(") + 1);
+        assertEquals(48.5, Double.parseDouble(current.split(" ")[0]), 0.0001);
+        assertEquals(8.3, Double.parseDouble(current.split(" ")[1]), 0.0001);
+
+        current = split[1];
+        assertEquals(48.5, Double.parseDouble(current.split(" ")[0]), 0.0001);
+        assertEquals(9.3, Double.parseDouble(current.split(" ")[1]), 0.0001);
+
+        current = split[2];
+        assertEquals(49.5, Double.parseDouble(current.split(" ")[0]), 0.0001);
+        assertEquals(9.3, Double.parseDouble(current.split(" ")[1]), 0.0001);
+
+        current = split[3];
+        assertEquals(49.5, Double.parseDouble(current.split(" ")[0]), 0.0001);
+        assertEquals(8.3, Double.parseDouble(current.split(" ")[1]), 0.0001);
+
+        current = split[4].substring(0, split[4].lastIndexOf(")") - 1);
+        assertEquals(48.5, Double.parseDouble(current.split(" ")[0]), 0.0001);
+        assertEquals(8.3, Double.parseDouble(current.split(" ")[1]), 0.0001);
+
+//      the above is only the long and, sadly, needed version for this line:
+//      assertEquals("POLYGON((48.5 8.3,48.5 9.3,49.5 9.3,49.5 8.3,48.5 8.3))", geometry);
+    }
+
+    @Test
+    public void testConvertGeometry() throws Exception {
+        String pointCode = "0101000020E6100000000000C0AFE640400000006039803BC0";
+        Point point = (Point) PGgeometry.geomFromString(pointCode);
+        System.out.println("point.x = " + point.x);
+        System.out.println("point.y = " + point.y);
     }
 
     private ArrayList<Integer> createMatchupIds() {
@@ -141,7 +192,8 @@ public class ProductSubsceneGeneratorTest {
 
         MetadataElement diabloElement = new MetadataElement("Skills");
         diabloElement.addAttribute(
-                new MetadataAttribute("Barbarian's strength", ProductData.createInstance(new int[]{Integer.MAX_VALUE}), true));
+                new MetadataAttribute("Barbarian's strength", ProductData.createInstance(new int[]{Integer.MAX_VALUE}),
+                                      true));
 
         product.getMetadataRoot().addElement(mortalKombatElement);
         product.getMetadataRoot().addElement(diabloElement);

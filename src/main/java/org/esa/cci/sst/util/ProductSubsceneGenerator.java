@@ -29,9 +29,10 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.postgis.MultiPoint;
+import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
+import org.postgis.Polygon;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
@@ -66,16 +67,27 @@ import java.util.List;
 abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
 
     /**
-     * all matchup-ids for matchups with a reference observation o, which has
-     * - a location within the product bounds
+     * all matchup-ids for matchups with a reference observation oref, which has
      * - a time point within 24 hours of the product's time point
+     * - a location within the product bounds
      */
     private static final String GET_MATCHUP_IDS =
             "select m.id"
-            + " from Matchup m"
-            + " where m.oref.sensor = %s"
-            + " and m.oref.time >= %s - '12:00:00' and m.oref.time < %s + '12:00:00'"
-            + " and st_intersects(%s, oref.point)";
+            + " from mm_matchup m, mm_observation oref"
+            + " where m.refobs_id = oref.id"
+            + " and oref.sensor = ?"
+            + " and oref.time >= ? and oref.time < ?"
+            + " and ST_intersects(geometry(?), oref.point)";
+
+    /**
+     * the reference point for a given matchup id
+     */
+    private static final String GET_POINT_FOR_MATCHUP =
+            "select oref.point"
+            + " from mm_matchup m, mm_observation oref"
+            + " where m.id = ?"
+            + " and m.refobs_id = oref.id";
+
 
     private final String sensorName;
 
@@ -90,7 +102,7 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         String inputFilename = subsceneIO.getInputFilename();
         String outputFilename = subsceneIO.getOutputFilename();
         Product product = ProductIO.readProduct(inputFilename);
-        Date time = getTimeStamp(product);
+        Date productsTime = getTimeStamp(product);
         GeoCoding geoCoding = product.getGeoCoding();
         GeoPos upperLeft = new GeoPos();
         GeoPos lowerRight = new GeoPos();
@@ -98,8 +110,7 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         geoCoding.getGeoPos(new PixelPos(product.getSceneRasterWidth(), product.getSceneRasterHeight()), lowerRight);
         NetcdfFileWriteable ncFile = null;
         try {
-            persistenceManager.transaction();
-            List<Integer> matchupIds = getMatchupIds(sensorName, time, createRegion(upperLeft, lowerRight));
+            List<Integer> matchupIds = getMatchupIds(sensorName, productsTime, createRegion(upperLeft, lowerRight));
             ncFile = createNcFile(outputFilename, product, matchupIds);
             for (Band band : product.getBands()) {
                 writeBand(ncFile, band, matchupIds);
@@ -114,13 +125,17 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         }
     }
 
-    PGgeometry createRegion(GeoPos upperLeft, GeoPos lowerRight) {
-        Point[] points = new Point[4];
-        points[0] = new Point(upperLeft.lat, upperLeft.lon);
-        points[1] = new Point(upperLeft.lat, lowerRight.lon);
-        points[2] = new Point(lowerRight.lat, lowerRight.lon);
-        points[3] = new Point(lowerRight.lat, upperLeft.lon);
-        return new PGgeometry(new MultiPoint(points));
+    String createRegion(GeoPos upperLeft, GeoPos lowerRight) {
+        final LinearRing[] rings = new LinearRing[]{
+                new LinearRing(new Point[]{
+                        new Point(upperLeft.lat, upperLeft.lon),
+                        new Point(upperLeft.lat, lowerRight.lon),
+                        new Point(lowerRight.lat, lowerRight.lon),
+                        new Point(lowerRight.lat, upperLeft.lon),
+                        new Point(upperLeft.lat, upperLeft.lon)
+                })
+        };
+        return new Polygon(rings).toString();
     }
 
     void writeBand(NetcdfFileWriteable ncFile, Band band, List<Integer> matchupIds) throws IOException,
@@ -138,7 +153,20 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         // then get dimension size for sensor
         // then verschneide with band's bounds
 
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        final Point result = getPoint(matchupId);
+
+        return null;
+    }
+
+    Point getPoint(final int matchupId) {
+        final Query query = getPersistenceManager().createNativeQuery(GET_POINT_FOR_MATCHUP);
+        query.setParameter(1, matchupId);
+        try {
+            String queryResult = query.getSingleResult().toString();
+            return (Point) PGgeometry.geomFromString(queryResult);
+        } catch (Exception e) {
+            throw new IllegalStateException("No point for matchup-id '" + matchupId + "'.", e);
+        }
     }
 
     int[] createShape(int matchupId, Rectangle bounds) {
@@ -182,9 +210,26 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
     }
 
     @SuppressWarnings({"unchecked"})
-    List<Integer> getMatchupIds(String sensorName, Date time, PGgeometry bounds) {
-        Query query = getPersistenceManager().createQuery(
-                String.format(GET_MATCHUP_IDS, sensorName, time, time, bounds));
-        return query.getResultList();
+    List<Integer> getMatchupIds(String sensorName, Date productsTime, String bounds) {
+        getPersistenceManager().transaction();
+        Query query = createQuery(sensorName, productsTime, bounds);
+        final List<Integer> resultList = query.getResultList();
+        getPersistenceManager().commit();
+        return resultList;
     }
+
+    Query createQuery(final String sensorName, final Date productsTime, final String bounds) {
+        final long time = productsTime.getTime();
+        final long twelveHours = 12 * 60 * 60 * 1000;
+        final Date minDate = new Date(time - twelveHours);
+        final Date maxDate = new Date(time + twelveHours);
+        final String queryString = String.format(GET_MATCHUP_IDS);
+        Query query = getPersistenceManager().createNativeQuery(queryString);
+        query.setParameter(1, sensorName);
+        query.setParameter(2, minDate);
+        query.setParameter(3, maxDate);
+        query.setParameter(4, bounds);
+        return query;
+    }
+
 }
