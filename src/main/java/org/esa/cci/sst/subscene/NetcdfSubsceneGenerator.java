@@ -14,12 +14,12 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.subscene;
 
 import org.esa.cci.sst.orm.PersistenceManager;
 
 /**
- * Implementation of {@link org.esa.cci.sst.util.SubsceneGeneratorTool.SubsceneGenerator} responsible for creating
+ * Implementation of {@link org.esa.cci.sst.subscene.SubsceneGeneratorTool.SubsceneGenerator} responsible for creating
  * and applying subscenes on data products, which can be read using NetCDF.
  *
  * @author Thomas Storm

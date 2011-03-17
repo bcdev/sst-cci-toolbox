@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.subscene;
 
 import com.bc.ceres.core.Assert;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
@@ -27,6 +27,7 @@ import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.postgis.LinearRing;
@@ -40,17 +41,17 @@ import ucar.nc2.Group;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.persistence.Query;
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Abstract implementation of {@link org.esa.cci.sst.util.SubsceneGeneratorTool.SubsceneGenerator} responsible for
+ * Abstract implementation of {@link org.esa.cci.sst.subscene.SubsceneGeneratorTool.SubsceneGenerator} responsible for
  * creating and applying subscenes on data products, which can be read using the BEAM API.
- * Sensor-specific subclasses of this class need to provide the dimension size that shall be used for the subscene.
- * <p/>
- * <p/>
+ * Sensor-specific subclasses of this class merely need to provide the dimension size that shall be used for the
+ * subscene.
+ *
  * <ol>
  * <li>Get geographic boundaries from<code>f</code>
  * <li>Get time stamp from <code>f</code>
@@ -109,6 +110,7 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         geoCoding.getGeoPos(new PixelPos(0, 0), upperLeft);
         geoCoding.getGeoPos(new PixelPos(product.getSceneRasterWidth(), product.getSceneRasterHeight()), lowerRight);
         NetcdfFileWriteable ncFile = null;
+        persistenceManager.transaction();
         try {
             List<Integer> matchupIds = getMatchupIds(sensorName, productsTime, createRegion(upperLeft, lowerRight));
             ncFile = createNcFile(outputFilename, product, matchupIds);
@@ -125,7 +127,15 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         }
     }
 
+    /**
+     * Create a PGgeometry that may be checked within the database if it contains the reference points of matchups.
+     * @param upperLeft
+     * @param lowerRight
+     * @return
+     */
     String createRegion(GeoPos upperLeft, GeoPos lowerRight) {
+        // todo - ts 17. Mar 2011 - this is wrong
+
         final LinearRing[] rings = new LinearRing[]{
                 new LinearRing(new Point[]{
                         new Point(upperLeft.lat, upperLeft.lon),
@@ -140,22 +150,61 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
 
     void writeBand(NetcdfFileWriteable ncFile, Band band, List<Integer> matchupIds) throws IOException,
                                                                                            InvalidRangeException {
+        final GeoCoding geoCoding = band.getGeoCoding();
         for (int matchupId : matchupIds) {
-            int[] shape = createShape(matchupId, createBounds(matchupId, band));
+            final Point centralPoint = getPoint(matchupId);
+            final Rectangle2D sourceBounds = createBounds(centralPoint, band);
+            int[] shape = createShape(matchupIds.size(), sourceBounds);
             Array values = Array.factory(DataTypeUtils.getNetcdfDataType(band), shape);
-            values.setInt(0, matchupId);
+            final PixelPos startPixelPos = new PixelPos();
+            geoCoding.getPixelPos(new GeoPos((float) sourceBounds.getX(), (float) sourceBounds.getY()), startPixelPos);
+            int index = 0;
+            for (int x = (int) startPixelPos.x; x < startPixelPos.x + sourceBounds.getWidth(); x++) {
+                for (int y = (int) startPixelPos.y; y < startPixelPos.y + sourceBounds.getHeight(); y++) {
+                    Object value = getValue(band, x, y);
+                    values.setObject(index, value);
+                    index++;
+                }
+            }
+
             ncFile.write(band.getName(), values);
         }
     }
 
-    Rectangle createBounds(int matchupId, Band band) {
-        // todo - ts - implement database query: get point of matchup
-        // then get dimension size for sensor
-        // then verschneide with band's bounds
+    Object getValue(final Band band, final int x, final int y) {
+        Object value = null;
+        switch (band.getDataType()) {
+            case ProductData.TYPE_FLOAT64: {
+                value = ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                break;
+            }
+            case ProductData.TYPE_FLOAT32: {
+                value = (float) ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                break;
+            }
+            case ProductData.TYPE_INT8:
+            case ProductData.TYPE_INT16:
+            case ProductData.TYPE_INT32:
+            case ProductData.TYPE_UINT8:
+            case ProductData.TYPE_UINT16:
+            case ProductData.TYPE_UINT32: {
+                value = ProductUtils.getGeophysicalSampleLong(band, x, y, 0);
+                break;
+            }
+        }
+        return value;
+    }
 
-        final Point result = getPoint(matchupId);
-
-        return null;
+    Rectangle2D createBounds(Point centralPoint, Band band) {
+        final int sensorDimensionSize = getSensorDimensionSize();
+        final GeoCoding geoCoding = band.getGeoCoding();
+        PixelPos center = new PixelPos();
+        geoCoding.getPixelPos(new GeoPos((float) centralPoint.x, (float) centralPoint.y), center);
+        Assert.state(center.isValid(),
+                     "Central geo-coordinate '" + centralPoint + "' not within bounds of band '" + band.getName() + "'.");
+        float upper = center.x - sensorDimensionSize;
+        float left = center.y - sensorDimensionSize;
+        return new Rectangle2D.Double(left, upper, sensorDimensionSize, sensorDimensionSize);
     }
 
     Point getPoint(final int matchupId) {
@@ -169,9 +218,9 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         }
     }
 
-    int[] createShape(int matchupId, Rectangle bounds) {
+    int[] createShape(int matchupIdCount, Rectangle2D bounds) {
         int[] shape = new int[3];
-        shape[0] = matchupId;
+        shape[0] = matchupIdCount;
         shape[1] = (int) bounds.getWidth();
         shape[2] = (int) bounds.getHeight();
         return shape;
@@ -211,11 +260,8 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
 
     @SuppressWarnings({"unchecked"})
     List<Integer> getMatchupIds(String sensorName, Date productsTime, String bounds) {
-        getPersistenceManager().transaction();
         Query query = createQuery(sensorName, productsTime, bounds);
-        final List<Integer> resultList = query.getResultList();
-        getPersistenceManager().commit();
-        return resultList;
+        return query.getResultList();
     }
 
     Query createQuery(final String sensorName, final Date productsTime, final String bounds) {

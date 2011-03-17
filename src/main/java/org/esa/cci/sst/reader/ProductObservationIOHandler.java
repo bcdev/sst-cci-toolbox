@@ -222,35 +222,40 @@ public class ProductObservationIOHandler implements ObservationIOHandler {
         int index = 0;
         for (int x = rectangle.getLocation().x; x < rectangle.getWidth(); x++) {
             for (int y = rectangle.getLocation().y; y < rectangle.getHeight(); y++) {
-                Object value = null;
-                if (x < 0 || y < 0) {
-                    value = band.getNoDataValue();
-                } else {
-                    switch (band.getDataType()) {
-                        case ProductData.TYPE_FLOAT64: {
-                            value = ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
-                            break;
-                        }
-                        case ProductData.TYPE_FLOAT32: {
-                            value = (float) ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
-                            break;
-                        }
-                        case ProductData.TYPE_INT8:
-                        case ProductData.TYPE_INT16:
-                        case ProductData.TYPE_INT32:
-                        case ProductData.TYPE_UINT8:
-                        case ProductData.TYPE_UINT16:
-                        case ProductData.TYPE_UINT32: {
-                            value = ProductUtils.getGeophysicalSampleLong(band, x, y, 0);
-                            break;
-                        }
-                    }
-                }
+                Object value = getValue(band, x, y);
                 array.setObject(index, value);
             }
             index++;
         }
         return array;
+    }
+
+    private Object getValue(final Band band, final int x, final int y) {
+        Object value = null;
+        if (x < 0 || y < 0) {
+            value = band.getNoDataValue();
+        } else {
+            switch (band.getDataType()) {
+                case ProductData.TYPE_FLOAT64: {
+                    value = ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                    break;
+                }
+                case ProductData.TYPE_FLOAT32: {
+                    value = (float) ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
+                    break;
+                }
+                case ProductData.TYPE_INT8:
+                case ProductData.TYPE_INT16:
+                case ProductData.TYPE_INT32:
+                case ProductData.TYPE_UINT8:
+                case ProductData.TYPE_UINT16:
+                case ProductData.TYPE_UINT32: {
+                    value = ProductUtils.getGeophysicalSampleLong(band, x, y, 0);
+                    break;
+                }
+            }
+        }
+        return value;
     }
 
     private Product getProduct(String fileLocation) throws IOException {

@@ -1,4 +1,4 @@
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.subscene;
 
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
@@ -62,13 +62,15 @@ public class ProductSubsceneGeneratorTest {
     @Test
     public void testGetMatchupIds() throws Exception {
         final Date date = ProductData.UTC.parse("2010-06-01 13:21", "yyyy-MM-dd HH:mm").getAsDate();
-        final LinearRing[] rings = new LinearRing[]{new LinearRing(new Point[]{
-                new Point(33.7, -27.0),
-                new Point(34, -27),
-                new Point(34, -28),
-                new Point(33, -28),
-                new Point(33.7, -27.0)
-        })};
+        final LinearRing[] rings = new LinearRing[]{
+                new LinearRing(new Point[]{
+                        new Point(33.7, -27.0),
+                        new Point(34, -27),
+                        new Point(34, -28),
+                        new Point(33, -28),
+                        new Point(33.7, -27.0)
+                })
+        };
         List<Integer> matchupIds = generator.getMatchupIds("aatsr-md", date, new Polygon(rings).toString());
         for (Integer matchupId : matchupIds) {
             System.out.println("matchupId = " + matchupId);
@@ -83,7 +85,7 @@ public class ProductSubsceneGeneratorTest {
         try {
             generator.getPoint(-1);
             fail();
-        } catch(IllegalStateException expected) {
+        } catch (IllegalStateException expected) {
             System.out.println("expected.getMessage() = " + expected.getMessage());
         }
     }

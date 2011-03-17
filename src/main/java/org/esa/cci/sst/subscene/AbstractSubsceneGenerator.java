@@ -1,4 +1,4 @@
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.subscene;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.orm.PersistenceManager;

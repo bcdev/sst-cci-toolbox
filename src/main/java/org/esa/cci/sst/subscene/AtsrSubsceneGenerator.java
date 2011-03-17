@@ -1,4 +1,4 @@
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.subscene;
 
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.SensorName;

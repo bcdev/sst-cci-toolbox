@@ -14,12 +14,13 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.subscene;
 
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.util.io.CsvReader;
-import org.esa.cci.sst.MmsTool;
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.SensorName;
+import org.esa.cci.sst.ToolException;
 import org.esa.cci.sst.orm.PersistenceManager;
 import ucar.nc2.NetcdfFile;
 
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Tool responsible for cutting out subscenes from a number of files given in a csv file.
@@ -37,8 +39,10 @@ public class SubsceneGeneratorTool {
 
     private static final String GENERATE_SUBSCENES_FILE = "generate_subscenes.csv";
 
-    public static void main(String[] args) throws IOException {
-        PersistenceManager persistenceManager = new MmsTool("mms-subscenegeneration", "0.1").getPersistenceManager();
+    public static void main(String[] args) throws IOException, ToolException {
+        final Properties properties = new Properties();
+        properties.load(new FileReader("mms-config.properties"));
+        PersistenceManager persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, properties);
         for (SubsceneIO subsceneIO : getFilenames(GENERATE_SUBSCENES_FILE)) {
             SubsceneGenerator generator = getSubsceneGenerator(subsceneIO.inputFilename, persistenceManager);
             generator.createSubscene(subsceneIO);
@@ -82,7 +86,7 @@ public class SubsceneGeneratorTool {
                 return new AmsreSubsceneGenerator(persistenceManager);
             }
         } else if (NetcdfFile.canOpen(filename)) {
-            // todo - ts - check if needed or if we have beam product readers for all sensors we need subscenes for
+            // todo - ts - check if needed or if we have sufficient beam product readers already
             return new NetcdfSubsceneGenerator(persistenceManager);
         }
         throw new IllegalArgumentException("No subscene generator found for file '" + filename + "'.");
@@ -101,6 +105,11 @@ public class SubsceneGeneratorTool {
 
     interface SubsceneGenerator {
 
+        /**
+         * Creates the subscene for the given combination of input and output filename.
+         * @param subsceneIO An object containing input and output filename.
+         * @throws IOException If some error occurs (any error is considered an IO error).
+         */
         void createSubscene(SubsceneIO subsceneIO) throws IOException;
 
     }
