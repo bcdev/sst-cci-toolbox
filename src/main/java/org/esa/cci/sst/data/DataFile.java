@@ -14,8 +14,9 @@ import javax.persistence.Table;
  * @author Martin Boettcher
  */
 @Entity
-@Table(name="mm_datafile")
+@Table(name = "mm_datafile")
 public class DataFile {
+
     int id;
     String path;
     DataSchema dataSchema;
@@ -31,11 +32,11 @@ public class DataFile {
     }
 
     public String getPath() {
-        return path;
+        return slashify(path);
     }
 
     public void setPath(String path) {
-        this.path = path;
+        this.path = slashify(path);
     }
 
     @ManyToOne
@@ -45,5 +46,12 @@ public class DataFile {
 
     public void setDataSchema(DataSchema dataSchema) {
         this.dataSchema = dataSchema;
+    }
+
+    private static String slashify(String path) {
+        if (path != null) {
+            path = path.replace('\\', '/');
+        }
+        return path;
     }
 }
