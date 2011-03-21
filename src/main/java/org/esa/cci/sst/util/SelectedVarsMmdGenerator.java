@@ -121,7 +121,7 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     private void addStandardVariables(final NetcdfFileWriteable file) {
-        delegate.addVariable(file, "mId", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        delegate.addVariable(file, "matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
         delegate.addInsituDataHistories(file);
         delegate.addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT,
                              Constants.DIMENSION_NAME_MATCHUP + " aai.ni");

@@ -79,7 +79,6 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
                 addObservationTime(file, sensorName.getSensor());
                 addLsMask(file, sensorName.getSensor());
                 addNwpData(file, sensorName.getSensor());
-                addVariables(file, sensorName.getSensor());
             }
         }
 
@@ -171,7 +170,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
         final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
         try {
-            file.write("mId", new int[]{matchupIndex}, array);
+            file.write("matchup_id", new int[]{matchupIndex}, array);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         }
@@ -204,7 +203,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     int[] getDimensionSizes(String variableName) {
         final String dimString = variablesDimensionsMap.get(NetcdfFile.escapeName(variableName));
         final String[] dims = dimString.split(" ");
-        int[] result = new int[dims.length];
+        final int[] result = new int[dims.length];
         for (int i = 0; i < dims.length; i++) {
             result[i] = dimensionCountMap.get(dims[i]);
         }
@@ -292,7 +291,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     private void addStandardVariables(final NetcdfFileWriteable file) {
         // todo: tie point dimensions for all sensors (rq-20110223)
-        file.addVariable("mId", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
         addVariables(file, SENSOR_NAME_AATSR_MD.getSensor());
         addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT,
                     Constants.DIMENSION_NAME_MATCHUP + " aai.ni");
