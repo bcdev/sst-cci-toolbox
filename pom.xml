@@ -66,6 +66,7 @@
             <artifactId>postgresql</artifactId>
             <version>9.0-801.jdbc4</version>
         </dependency>
+        <!-- reverted back to 1.5.2, Boe, 2011-03-22
         <dependency>
             <groupId>org.postgis</groupId>
             <artifactId>postgis-main</artifactId>
@@ -75,6 +76,12 @@
             <groupId>org.postgis</groupId>
             <artifactId>postgis-jdbc</artifactId>
             <version>1.3.3</version>
+        </dependency>
+        -->
+        <dependency>
+            <groupId>org.postgis</groupId>
+            <artifactId>postgis</artifactId>
+            <version>1.5.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.openjpa</groupId>
