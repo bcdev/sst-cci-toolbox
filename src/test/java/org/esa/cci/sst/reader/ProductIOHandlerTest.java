@@ -21,36 +21,36 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class ProductObservationIOHandlerTest {
+public class ProductIOHandlerTest {
 
     private static final String AAI_RESOURCE_NAME = "20100601.egr";
     private static final String AMSRE_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42958.dat-v01.nc.gz";
 
     private static DataFile dataFile;
-    private static ProductObservationIOHandler reader;
+    private static ProductIOHandler handler;
 
     public void init(File file) throws IOException {
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        reader = new ProductObservationIOHandler("any", new DefaultGeoBoundaryCalculator());
-        reader.init(dataFile);
+        handler = new ProductIOHandler("any", new DefaultGeoBoundaryCalculator());
+        handler.init(dataFile);
     }
 
     @After
     public void clean() {
-        if (reader != null) {
-            reader.close();
+        if (handler != null) {
+            handler.close();
         }
     }
 
     @Test
     public void testGetNumRecords() throws URISyntaxException, IOException {
         init(getResourceAsFile(AMSRE_RESOURCE_NAME));
-        assertEquals(1, reader.getNumRecords());
+        assertEquals(1, handler.getNumRecords());
         clean();
 
         init(getResourceAsFile(AAI_RESOURCE_NAME));
-        assertEquals(1, reader.getNumRecords());
+        assertEquals(1, handler.getNumRecords());
     }
 
     @Test
@@ -59,7 +59,7 @@ public class ProductObservationIOHandlerTest {
         Observation observation;
 
         init(getResourceAsFile(AMSRE_RESOURCE_NAME));
-        observation = reader.readObservation(0);
+        observation = handler.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
         assertNotNull(((RelatedObservation) observation).getLocation());
         geometry = ((RelatedObservation) observation).getLocation().getGeometry();
@@ -68,7 +68,7 @@ public class ProductObservationIOHandlerTest {
         clean();
 
         init(getResourceAsFile(AAI_RESOURCE_NAME));
-        observation = reader.readObservation(0);
+        observation = handler.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
 //        assertNotNull(observation.getLocation());
 //        geometry = observation.getLocation().getGeometry();
@@ -81,7 +81,7 @@ public class ProductObservationIOHandlerTest {
     public void testGetAmsreVariables() throws URISyntaxException, IOException {
         init(getResourceAsFile(AMSRE_RESOURCE_NAME));
 
-        final Variable[] variables = reader.getVariables();
+        final Variable[] variables = handler.getVariables();
         for (Variable variable : variables) {
             System.out.println("variable.getName() = " + variable.getName());
         }
@@ -92,7 +92,7 @@ public class ProductObservationIOHandlerTest {
     public void testGetAaiVariables() throws URISyntaxException, IOException {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
 
-        final Variable[] variables = reader.getVariables();
+        final Variable[] variables = handler.getVariables();
         for (Variable variable : variables) {
             System.out.println("variable.getName() = " + variable.getName());
         }
@@ -105,46 +105,46 @@ public class ProductObservationIOHandlerTest {
         final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
         variable.setDimensions("ni nj");
         variable.setDimensionRoles("ni nj");
-        int[] originArray = reader.createOriginArray(0, variable);
+        int[] originArray = handler.createOriginArray(0, variable);
         assertEquals(3, originArray.length);
 
         variable.setDimensions("match_up ni nj");
         variable.setDimensionRoles("match_up ni nj");
-        originArray = reader.createOriginArray(0, variable);
+        originArray = handler.createOriginArray(0, variable);
         assertEquals(3, originArray.length);
 
         variable.setDimensions("time");
         variable.setDimensionRoles("time");
-        originArray = reader.createOriginArray(0, variable);
+        originArray = handler.createOriginArray(0, variable);
         assertEquals(2, originArray.length);
 
         variable.setDimensions("match_up time");
         variable.setDimensionRoles("match_up time");
-        originArray = reader.createOriginArray(0, variable);
+        originArray = handler.createOriginArray(0, variable);
         assertEquals(2, originArray.length);
 
         variable.setDimensions("n ni nj");
         variable.setDimensionRoles("match_up ni nj");
-        originArray = reader.createOriginArray(0, variable);
+        originArray = handler.createOriginArray(0, variable);
         assertEquals(3, originArray.length);
 
         variable.setDimensions("n ni nj");
         variable.setDimensionRoles("n ni nj");
-        originArray = reader.createOriginArray(0, variable);
+        originArray = handler.createOriginArray(0, variable);
         assertEquals(4, originArray.length);
     }
 
     @Test
     public void testCreateShapeArray() throws Exception {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
-        int[] shapeArray = reader.createShapeArray(3, new int[]{11, 11});
+        int[] shapeArray = handler.createShapeArray(3, new int[]{11, 11});
         assertEquals(3, shapeArray.length);
         assertEquals(1, shapeArray[0]);
         assertEquals(11, shapeArray[1]);
         assertEquals(11, shapeArray[2]);
 
         try {
-            reader.createShapeArray(2, new int[]{100000, 11, 11});
+            handler.createShapeArray(2, new int[]{100000, 11, 11});
             fail();
         } catch (IllegalArgumentException expected) {
             // ok
