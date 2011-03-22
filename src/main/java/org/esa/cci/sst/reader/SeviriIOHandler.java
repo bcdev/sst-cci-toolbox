@@ -23,7 +23,7 @@ import static org.esa.cci.sst.SensorType.*;
  *
  * @author Martin Boettcher
  */
-public class SeviriMatchupIOHandler extends NetcdfIOHandler {
+public class SeviriIOHandler extends NetcdfIOHandler {
 
     static final long MILLISECONDS_1981;
 
@@ -38,7 +38,7 @@ public class SeviriMatchupIOHandler extends NetcdfIOHandler {
     protected int noOfLines;
     protected int noOfColumns;
 
-    public SeviriMatchupIOHandler() {
+    public SeviriIOHandler() {
         super(SEVIRI.nameLowerCase(), "n");
     }
 

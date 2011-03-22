@@ -29,13 +29,13 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class SeviriMatchupIOHandlerTest {
+public class SeviriIOHandlerTest {
 
-    private NetcdfObservationIOHandler ioHandler;
+    private NetcdfIOHandler ioHandler;
 
     @Before
     public void setUp() throws Exception {
-        ioHandler = new SeviriMatchupIOHandler();
+        ioHandler = new SeviriIOHandler();
         final DataFile dataFile = new DataFile();
         dataFile.setId(0);
         dataFile.setPath("testdata/SEVIRI_MD/sstmdb1_meteosat09_20100602.nc");
