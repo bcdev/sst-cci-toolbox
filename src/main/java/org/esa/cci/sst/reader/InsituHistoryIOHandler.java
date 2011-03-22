@@ -43,7 +43,7 @@ public class InsituHistoryIOHandler extends NetcdfStructureIOHandler {
     private static final String VARNAME_DRIFTER_TIME = "drifter.time";
 
     public InsituHistoryIOHandler() {
-        super(SensorType.INSITU.nameLowerCase());
+        super(SensorType.INSITU.getSensor());
     }
 
     @Override
