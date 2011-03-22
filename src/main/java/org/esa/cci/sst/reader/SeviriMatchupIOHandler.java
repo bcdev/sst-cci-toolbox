@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 
-import static org.esa.cci.sst.SensorName.*;
+import static org.esa.cci.sst.SensorType.*;
 
 /**
  * Reads records from an SEVIRI MD NetCDF input file and creates Observations.
@@ -23,7 +23,7 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class SeviriMatchupIOHandler extends NetcdfObservationIOHandler {
+public class SeviriMatchupIOHandler extends NetcdfIOHandler {
 
     static final long MILLISECONDS_1981;
 
@@ -39,7 +39,7 @@ public class SeviriMatchupIOHandler extends NetcdfObservationIOHandler {
     protected int noOfColumns;
 
     public SeviriMatchupIOHandler() {
-        super(SENSOR_NAME_SEVIRI.getSensor(), "n");
+        super(SEVIRI.nameLowerCase(), "n");
     }
 
     @Override
@@ -48,8 +48,8 @@ public class SeviriMatchupIOHandler extends NetcdfObservationIOHandler {
     }
 
     @Override
-    public void init(DataFile dataFileEntry) throws IOException {
-        super.init(dataFileEntry);
+    public void init(DataFile dataFile) throws IOException {
+        super.init(dataFile);
         final NetcdfFile ncFile = getNcFile();
         noOfLines = ncFile.findDimension("ny").getLength();
         noOfColumns = ncFile.findDimension("nx").getLength();
@@ -74,7 +74,7 @@ public class SeviriMatchupIOHandler extends NetcdfObservationIOHandler {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor(SENSOR_NAME_SEVIRI.getSensor());
+        observation.setSensor(SEVIRI.nameLowerCase());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[] { new LinearRing(new Point[] {
                 new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
                           coordinateOf(getInt("lat", recordNo, 0, 0))),

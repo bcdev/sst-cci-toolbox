@@ -20,8 +20,6 @@ import org.esa.cci.sst.Constants;
 
 import java.text.MessageFormat;
 
-import static org.esa.cci.sst.SensorName.*;
-
 /**
  * Factory providing a static method for getting the correct io handler, according to given schema name.
  *
@@ -30,35 +28,45 @@ import static org.esa.cci.sst.SensorName.*;
 public class IOHandlerFactory {
 
     /**
-     * Factory method for getting the correct io handler, according to given schema name.
-     * @param schemaName The schema name to get the io handler for.
-     * @return an instance of <code>ObservationIOHandler</code>.
+     * Factory method for getting the correct io handler, according to given schema and sensor names.
+     *
+     * @param schemaName The schema name.
+     * @param sensorName The sensor name.
+     *
+     * @return a new instance of <code>IOHandler</code>.
      */
-    public static ObservationIOHandler createReader(String schemaName)  {
-        ObservationIOHandler ioHandler;
+    public static IOHandler createHandler(String schemaName, String sensorName) {
         if (Constants.DATA_SCHEMA_NAME_AATSR_MD.equalsIgnoreCase(schemaName)) {
-            ioHandler = new AatsrMdIOHandler();
-        } else if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
-            ioHandler = new MetopMdReader();
-        } else if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
-            ioHandler = new SeviriMatchupIOHandler();
-        } else if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
-            ioHandler = new ProductObservationIOHandler(SENSOR_NAME_AMSRE.getSensor(), new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
-            ioHandler = new ProductObservationIOHandler(SENSOR_NAME_TMI.getSensor(), new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
-            ioHandler = new ProductObservationIOHandler(SENSOR_NAME_AATSR.getSensor(), new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            ioHandler = new ProductObservationIOHandler(SENSOR_NAME_AAI.getSensor(), new NullGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
-            ioHandler = new ProductObservationIOHandler(SENSOR_NAME_AVHRR.getSensor(), new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_NAME_SEA_ICE.equalsIgnoreCase(schemaName)) {
-            ioHandler = new ProductObservationIOHandler(SENSOR_NAME_SEA_ICE.getSensor(), new DefaultGeoBoundaryCalculator());
-        } else if (Constants.DATA_SCHEMA_INSITU.equalsIgnoreCase(schemaName)) {
-            ioHandler = new InsituHistoryIOHandler();
-        } else {
-            throw new IllegalArgumentException(MessageFormat.format("No appropriate reader for schema {0} found", schemaName));
+            return new AatsrMdIOHandler();
         }
-        return ioHandler;
+        if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
+            return new MetopMdIOHandler();
+        }
+        if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
+            return new SeviriMatchupIOHandler();
+        }
+        if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
+            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+        }
+        if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
+            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+        }
+        if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
+            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+        }
+        if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
+            return new ProductIOHandler(sensorName, new NullGeoBoundaryCalculator());
+        }
+        if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
+            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+        }
+        if (Constants.DATA_SCHEMA_NAME_SEA_ICE.equalsIgnoreCase(schemaName)) {
+            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+        }
+        if (Constants.DATA_SCHEMA_INSITU.equalsIgnoreCase(schemaName)) {
+            return new InsituHistoryIOHandler();
+        }
+        throw new IllegalArgumentException(
+                MessageFormat.format("No appropriate IO handler for schema {0} found.", schemaName));
     }
 }

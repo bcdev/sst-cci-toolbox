@@ -9,7 +9,7 @@ import org.postgis.Point;
 import java.io.IOException;
 import java.util.Date;
 
-import static org.esa.cci.sst.SensorName.*;
+import static org.esa.cci.sst.SensorType.*;
 
 /**
  * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.
@@ -20,10 +20,10 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class AatsrMdIOHandler extends NetcdfObservationIOHandler {
+public class AatsrMdIOHandler extends NetcdfIOHandler {
 
     public AatsrMdIOHandler() {
-        super(SENSOR_NAME_AATSR_MD.getSensor(), "match_up");
+        super(ATSR_MD.nameLowerCase(), "match_up");
     }
 
     @Override
@@ -49,7 +49,7 @@ public class AatsrMdIOHandler extends NetcdfObservationIOHandler {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("insitu.unique_identifier", recordNo));
-        observation.setSensor(SENSOR_NAME_AATSR_MD.getSensor());
+        observation.setSensor(ATSR_MD.nameLowerCase());
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));

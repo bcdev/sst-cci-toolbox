@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProductObservationIOHandler implements ObservationIOHandler {
+public class ProductIOHandler implements IOHandler {
 
     private final String sensorName;
     private final GeoBoundaryCalculator gbc;
@@ -44,20 +44,20 @@ public class ProductObservationIOHandler implements ObservationIOHandler {
     private Product product;
 
 
-    public ProductObservationIOHandler(String sensorName, GeoBoundaryCalculator gbc) {
+    public ProductIOHandler(String sensorName, GeoBoundaryCalculator gbc) {
         this.sensorName = sensorName;
         this.gbc = gbc;
     }
 
     @Override
-    public final void init(DataFile dataFileEntry) throws IOException {
-        final Product product = ProductIO.readProduct(dataFileEntry.getPath());
+    public final void init(DataFile dataFile) throws IOException {
+        final Product product = ProductIO.readProduct(dataFile.getPath());
         if (product == null) {
             throw new IOException(
-                    MessageFormat.format("Unable to read observation file ''{0}''.", dataFileEntry.getPath()));
+                    MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
         }
         this.product = product;
-        this.dataFile = dataFileEntry;
+        this.dataFile = dataFile;
     }
 
     @Override
@@ -162,8 +162,9 @@ public class ProductObservationIOHandler implements ObservationIOHandler {
 
 
     @Override
-    public void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-                      int[] dimensionSizes, final PGgeometry point, final Date refTime) throws IOException {
+    public void write(NetcdfFileWriteable file, Observation observation, Variable variable,
+                      int matchupIndex,
+                      int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws IOException {
         final String fileLocation = observation.getDatafile().getPath();
         final Product product = getProduct(fileLocation);
         String sensorName = observation.getSensor();
@@ -180,8 +181,8 @@ public class ProductObservationIOHandler implements ObservationIOHandler {
         final int[] shape = createShapeArray(origin.length, dimensionSizes);
 
         final GeoCoding geoCoding = product.getGeoCoding();
-        final float lon = (float) point.getGeometry().getFirstPoint().x;
-        final float lat = (float) point.getGeometry().getFirstPoint().y;
+        final float lon = (float) refPoint.getGeometry().getFirstPoint().x;
+        final float lat = (float) refPoint.getGeometry().getFirstPoint().y;
         final GeoPos geoPos = new GeoPos(lat, lon);
         PixelPos pixelPos = geoCoding.getPixelPos(geoPos, null);
         final Rectangle rectangle = createRect(dimensionSizes, shape, pixelPos);

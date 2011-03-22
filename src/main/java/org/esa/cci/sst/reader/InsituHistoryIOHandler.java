@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.SensorName;
+import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DriftingObservation;
 import org.esa.cci.sst.data.Observation;
@@ -38,12 +38,12 @@ import java.util.Date;
  *
  * @author Thomas Storm
  */
-public class InsituHistoryIOHandler extends NetcdfObservationStructureReader {
+public class InsituHistoryIOHandler extends NetcdfStructureIOHandler {
 
     private static final String VARNAME_DRIFTER_TIME = "drifter.time";
 
     public InsituHistoryIOHandler() {
-        super(SensorName.SENSOR_NAME_INSITU.getSensor());
+        super(SensorType.INSITU.nameLowerCase());
     }
 
     @Override
@@ -82,8 +82,8 @@ public class InsituHistoryIOHandler extends NetcdfObservationStructureReader {
     }
 
     @Override
-    public void write(Observation observation, Variable variable, NetcdfFileWriteable file,
-                      int matchupIndex, int[] dimensionSizes, PGgeometry point, Date refTime) throws IOException {
+    public void write(NetcdfFileWriteable file, Observation observation, Variable variable,
+                      int matchupIndex, int[] dimensionSizes, PGgeometry refPoint, Date refTime) throws IOException {
         final NetcdfFile sourceFile = getNcFile();
         final ucar.nc2.Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(variable.getName()));
         int[] origin = createOrigin(matchupIndex, dimensionSizes.length);

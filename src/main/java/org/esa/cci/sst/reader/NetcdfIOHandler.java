@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @author Martin Boettcher
  */
-abstract public class NetcdfObservationIOHandler extends NetcdfObservationStructureReader {
+abstract public class NetcdfIOHandler extends NetcdfStructureIOHandler {
 
     private int numRecords;
     private int sstFillValue;
@@ -45,20 +45,20 @@ abstract public class NetcdfObservationIOHandler extends NetcdfObservationStruct
     private Map<String, Integer> offsetMap = new HashMap<String, Integer>();
     private Map<String, Integer> bufferMap = new HashMap<String, Integer>();
 
-    protected NetcdfObservationIOHandler(String sensorName, String recordDimensionName) {
+    protected NetcdfIOHandler(String sensorName, String recordDimensionName) {
         super(sensorName);
         this.recordDimensionName = recordDimensionName;
     }
 
     @Override
-    public void init(DataFile dataFileEntry) throws IOException {
-        super.init(dataFileEntry);
+    public void init(DataFile dataFile) throws IOException {
+        super.init(dataFile);
         // read number of records value
         final NetcdfFile ncFile = getNcFile();
         final Dimension dimension = ncFile.findDimension(recordDimensionName);
         if (dimension == null) {
             throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", recordDimensionName,
-                                                       dataFileEntry.getPath()));
+                                                       dataFile.getPath()));
         }
         numRecords = dimension.getLength();
         // read SST fill value
@@ -78,8 +78,8 @@ abstract public class NetcdfObservationIOHandler extends NetcdfObservationStruct
     }
 
     @Override
-    public void write(Observation observation, org.esa.cci.sst.data.Variable variable, NetcdfFileWriteable file,
-                      int matchupIndex, int[] dimensionSizes, final PGgeometry point, final Date refTime) throws IOException {
+    public void write(NetcdfFileWriteable file, Observation observation, org.esa.cci.sst.data.Variable variable,
+                      int matchupIndex, int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws IOException {
         String sensorName = observation.getSensor();
         String originalVarName = variable.getName();
         String variableName = originalVarName.replace(sensorName + ".", "");

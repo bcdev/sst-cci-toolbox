@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static org.esa.cci.sst.SensorName.*;
+import static org.esa.cci.sst.SensorType.*;
 
 /**
  * Reads records from an METOP MD NetCDF input file and creates Observations.
@@ -28,7 +28,7 @@ import static org.esa.cci.sst.SensorName.*;
  *
  * @author Martin Boettcher
  */
-public class MetopMdReader extends NetcdfObservationIOHandler {
+public class MetopMdIOHandler extends NetcdfIOHandler {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
     static final long MILLISECONDS_1981;
@@ -44,8 +44,8 @@ public class MetopMdReader extends NetcdfObservationIOHandler {
     protected int rowCount;
     protected int colCount;
 
-    public MetopMdReader() {
-        super(SENSOR_NAME_METOP.getSensor(), "n");
+    public MetopMdIOHandler() {
+        super(METOP.nameLowerCase(), "n");
     }
 
     @Override
@@ -54,8 +54,8 @@ public class MetopMdReader extends NetcdfObservationIOHandler {
     }
 
     @Override
-    public void init(DataFile dataFileEntry) throws IOException {
-        super.init(dataFileEntry);
+    public void init(DataFile dataFile) throws IOException {
+        super.init(dataFile);
         final NetcdfFile ncFile = getNcFile();
         rowCount = ncFile.findDimension("ny").getLength();
         colCount = ncFile.findDimension("nx").getLength();
@@ -77,7 +77,7 @@ public class MetopMdReader extends NetcdfObservationIOHandler {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor(SENSOR_NAME_METOP.getSensor());
+        observation.setSensor(METOP.nameLowerCase());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));

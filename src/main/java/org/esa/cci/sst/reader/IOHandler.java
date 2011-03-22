@@ -14,20 +14,21 @@ import java.util.Date;
  *
  * @author Martin Boettcher
  */
-public interface ObservationIOHandler {
+public interface IOHandler {
 
     /**
      * Opens observation file and initialises cache buffer.
-     * Overrides shall store the given {@code dataFileEntry} in order to be used in
+     * Overrides shall store the given {@code dataFile} in order to be used in
      * {@link #readObservation(int)}.
      *
-     * @param dataFileEntry data file entry to be referenced in each observation created by reader
+     * @param dataFile The data file entry to be referenced in each observation created by reader.
+     *
+     * @throws java.io.IOException when an error has occurred.
      */
-    void init(DataFile dataFileEntry) throws IOException;
+    void init(DataFile dataFile) throws IOException;
 
     /**
      * Closes observation file
-     *
      */
     void close();
 
@@ -58,17 +59,16 @@ public interface ObservationIOHandler {
     /**
      * Writes the variable from the observation in the file.
      *
-     *
+     * @param file           The file to write into.
      * @param observation    The observation to write.
      * @param variable       The variable to write.
-     * @param file           The file to write into.
      * @param matchupIndex   The current matchup index.
      * @param dimensionSizes An array containing dimension sizes.
-     * @param point          The geo location point of the reference observation.
+     * @param refPoint       The geo-location of the reference observation.
+     * @param refTime        The reference time.
      *
-     * @param refTime
      * @throws java.io.IOException If observation data could not be written into the file.
      */
-    void write(Observation observation, Variable variable, NetcdfFileWriteable file, int matchupIndex,
-               int[] dimensionSizes, final PGgeometry point, final Date refTime) throws IOException;
+    void write(NetcdfFileWriteable file, Observation observation, Variable variable, int matchupIndex,
+               int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws IOException;
 }

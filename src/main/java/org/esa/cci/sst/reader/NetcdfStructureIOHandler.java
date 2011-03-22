@@ -31,14 +31,14 @@ import java.util.HashMap;
  *
  * @author Thomas Storm
  */
-public abstract class NetcdfObservationStructureReader implements ObservationIOHandler {
+public abstract class NetcdfStructureIOHandler implements IOHandler {
 
     private NetcdfFile ncFile;
     private DataFile dataFileEntry;
     private final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
     private final String sensorName;
 
-    public NetcdfObservationStructureReader(String sensorName) {
+    public NetcdfStructureIOHandler(String sensorName) {
         this.sensorName = sensorName;
         dimensionRoleMap.put("n", "match_up");
         dimensionRoleMap.put("nx", "nj");
@@ -54,14 +54,14 @@ public abstract class NetcdfObservationStructureReader implements ObservationIOH
      * Opens NetCDF file. May be overridden to initialise additional
      * variables.
      *
-     * @param dataFileEntry data file entry to be referenced in each observation created by reader
+     * @param dataFile data file entry to be referenced in each observation created by reader
      *
      * @throws java.io.IOException if file access fails
      */
     @Override
-    public void init(DataFile dataFileEntry) throws IOException {
-        this.dataFileEntry = dataFileEntry;
-        final String path = dataFileEntry.getPath();
+    public void init(DataFile dataFile) throws IOException {
+        this.dataFileEntry = dataFile;
+        final String path = dataFile.getPath();
         if (!NetcdfFile.canOpen(path)) {
             throw new IOException("Cannot open file '" + path + "'.");
         }
