@@ -41,12 +41,12 @@ public class IngestionToolTest {
 
     @Test
     public void testCreateReader() throws Exception {
-        assertNotNull(IOHandlerFactory.createReader(Constants.DATA_SCHEMA_NAME_AATSR_MD));
-        assertNotNull(IOHandlerFactory.createReader(Constants.DATA_SCHEMA_NAME_METOP_MD));
-        assertNotNull(IOHandlerFactory.createReader(Constants.DATA_SCHEMA_NAME_SEVIRI_MD));
+        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_AATSR_MD, null));
+        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_METOP_MD, null));
+        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_SEVIRI_MD, null));
 
         try {
-            IOHandlerFactory.createReader("bogus-reader");
+            IOHandlerFactory.createHandler("bogus-reader", null);
             fail("Exception expected");
         } catch (Exception expected) {
             // ok
