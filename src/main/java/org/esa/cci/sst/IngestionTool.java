@@ -5,8 +5,8 @@ import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
-import org.esa.cci.sst.reader.ObservationIOHandler;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
@@ -26,7 +26,8 @@ public class IngestionTool extends MmsTool {
     public static void main(String[] args) {
         IngestionTool ingestionTool = new IngestionTool();
         try {
-            if (!ingestionTool.setCommandLineArgs(args)) {
+            final boolean performWork = ingestionTool.setCommandLineArgs(args);
+            if (!performWork) {
                 return;
             }
             ingestionTool.initialize();
@@ -50,7 +51,7 @@ public class IngestionTool extends MmsTool {
      * for all records contained in input file.
      *
      * @throws ToolException if an error occurs.
-     * @see #ingest(java.io.File, String, org.esa.cci.sst.reader.ObservationIOHandler)
+     * @see #ingest(java.io.File, String, String, org.esa.cci.sst.reader.IOHandler)
      */
     public void ingest() throws ToolException {
         final Properties configuration = getConfiguration();
@@ -58,44 +59,50 @@ public class IngestionTool extends MmsTool {
         for (int i = 0; i < 100; i++) {
             final String schemaName = configuration.getProperty(
                     String.format("mms.test.inputSets.%d.schemaName", i));
-            final String dirPath = configuration.getProperty(
+            final String inputDirPath = configuration.getProperty(
                     String.format("mms.test.inputSets.%d.inputDirectory", i));
-            if (schemaName == null || dirPath == null) {
+            final String sensorType = configuration.getProperty(
+                    String.format("mms.test.inputSets.%d.sensorType", i));
+            final String sensor = configuration.getProperty(
+                    String.format("mms.test.inputSets.%d.sensor", i));
+            if (schemaName == null || inputDirPath == null || sensorType == null || sensor == null) {
                 continue;
+            }
+            if (!SensorType.isSensorType(sensorType)) {
+                throw new ToolException(MessageFormat.format("Unknown sensor type ''{0}''.", sensorType), 1);
             }
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.test.inputSets.%d.filenamePattern", i), ".*");
-            final File dir = new File(dirPath);
-            final FileFilter fileFilter = new FileFilter() {
+            final File inputDir = new File(inputDirPath);
+            final File[] inputFiles = inputDir.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File file) {
                     return file.getName().matches(filenamePattern);
                 }
-            };
-
-            final File[] inputFiles = dir.listFiles(fileFilter);
-            if (inputFiles == null) {
-                printInfo(MessageFormat.format("missing directory ''{0}''.", dirPath));
-            } else {
-                ObservationIOHandler ioHandler;
+            });
+            if (inputFiles != null) {
                 try {
-                    ioHandler = IOHandlerFactory.createReader(schemaName);
-                } catch (Exception e) {
-                    throw new ToolException("No reader for schema '" + schemaName + "' found.", 1, e);
+                    final IOHandler ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
+                    for (final File inputFile : inputFiles) {
+                        ingest(inputFile, schemaName, sensorType, ioHandler);
+                    }
+                } catch (IllegalArgumentException e) {
+                    throw new ToolException(MessageFormat.format(
+                            "Cannot create IO handler for schema ''{0}''.", schemaName), 1, e);
                 }
-                for (File inputFile : inputFiles) {
-                    ingest(inputFile, schemaName, ioHandler);
-                }
+                directoryCount++;
+            } else {
+                printInfo(MessageFormat.format("missing directory ''{0}''.", inputDirPath));
             }
-            directoryCount++;
         }
-        if (directoryCount <= 0) {
+        if (directoryCount == 0) {
             throw new ToolException("No input sets given.\n" +
                                     "Input sets are specified as configuration properties as follows:\n" +
                                     "\tmms.test.inputSets.<i>.schemaName = <schemaName>\n" +
                                     "\tmms.test.inputSets.<i>.inputDirectory = <inputDirectory>\n" +
-                                    "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)", 1);
-
+                                    "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)" +
+                                    "\tmms.test.inputSets.<i>.sensor = <sensor>\n" +
+                                    "\tmms.test.inputSets.<i>.sensorType = <sensorType>", 1);
         }
         printInfo(directoryCount + " input set(s) ingested.");
     }
@@ -115,13 +122,14 @@ public class IngestionTool extends MmsTool {
      * every 65536 records. If ingestion fails rollback is only performed to
      * the respective checkpoint.
      *
-     * @param matchupFile input file with records to be read and made persistent as observations
-     * @param schemaName  name of the file type
-     * @param ioHandler   The reader to be used to read this file type
+     * @param file       The input file with records to be read and made persistent as observations.
+     * @param schemaName The name of the input file type.
+     * @param sensorType The type of sensor being the source of the the input data.
+     * @param ioHandler  The handler to be used to read this file type
      *
      * @throws ToolException if ingestion fails
      */
-    private void ingest(File matchupFile, String schemaName, ObservationIOHandler ioHandler) throws ToolException {
+    private void ingest(File file, String schemaName, String sensorType, IOHandler ioHandler) throws ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
             // open database
@@ -130,23 +138,22 @@ public class IngestionTool extends MmsTool {
             // lookup or create data schema and data file entry
             DataSchema dataSchema = (DataSchema) persistenceManager.pick("select s from DataSchema s where s.name = ?1",
                                                                          schemaName);
-            final boolean isNewDataSchema = dataSchema == null;
-            if (isNewDataSchema) {
+            final boolean newDataSchema = (dataSchema == null);
+            if (newDataSchema) {
                 dataSchema = new DataSchema();
                 dataSchema.setName(schemaName);
-                //dataSchema.setSensorType(sensorType);
+                dataSchema.setSensorType(sensorType);
                 persistenceManager.persist(dataSchema);
             }
 
-            DataFile dataFile = new DataFile();
-            dataFile.setPath(matchupFile.getPath());
+            final DataFile dataFile = new DataFile();
+            dataFile.setPath(file.getPath());
             dataFile.setDataSchema(dataSchema);
             persistenceManager.persist(dataFile);
 
             ioHandler.init(dataFile);
-            //System.out.printf("numberOfRecords=%d\n", reader.getNumRecords());
 
-            if (isNewDataSchema) {
+            if (newDataSchema) {
                 final Variable[] variables = ioHandler.getVariables();
                 System.out.printf("number of variables for schema '%s' = %d%n", schemaName, variables.length);
                 for (Variable variable : variables) {
@@ -187,11 +194,10 @@ public class IngestionTool extends MmsTool {
             // do not make any change in case of errors
             try {
                 persistenceManager.rollback();
-            } catch (Exception e2) {
+            } catch (Exception ignored) {
                 // ignored, because surrounding exception is propagated
             }
-            throw new ToolException("Failed to ingest file " + matchupFile, 7, e);
-
+            throw new ToolException("Failed to ingest file " + file, 7, e);
         } finally {
             ioHandler.close();
         }
