@@ -39,7 +39,7 @@ public class SeviriIOHandler extends NetcdfIOHandler {
     protected int noOfColumns;
 
     public SeviriIOHandler() {
-        super(SEVIRI.nameLowerCase(), "n");
+        super(SEVIRI.getSensor(), "n");
     }
 
     @Override
@@ -66,7 +66,6 @@ public class SeviriIOHandler extends NetcdfIOHandler {
      */
     @Override
     public Observation readObservation(int recordNo) throws IOException {
-
         //int    line   = getShort("box_center_y_coord", recordNo);
         //int    column = getShort("box_center_x_coord", recordNo);
         int line = noOfLines / 2;
@@ -74,7 +73,7 @@ public class SeviriIOHandler extends NetcdfIOHandler {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor(SEVIRI.nameLowerCase());
+        observation.setSensor(getSensorName());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[] { new LinearRing(new Point[] {
                 new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
                           coordinateOf(getInt("lat", recordNo, 0, 0))),
