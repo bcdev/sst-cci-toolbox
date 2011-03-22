@@ -9,6 +9,7 @@ import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -29,7 +30,10 @@ import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
+ *
+ * todo - resources required by this test are missing (rq-20110322)
  */
+@Ignore
 public class ProductSubsceneGeneratorTest {
 
     private static final String TEST_OUTPUT_FILENAME = "test_output.nc";
