@@ -1,7 +1,7 @@
 package org.esa.cci.sst.subscene;
 
 import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.SensorName;
+import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.orm.PersistenceManager;
 
 /**
@@ -12,7 +12,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 class AtsrSubsceneGenerator extends ProductSubsceneGenerator {
 
     AtsrSubsceneGenerator(PersistenceManager persistenceManager) {
-        super(persistenceManager, SensorName.SENSOR_NAME_AATSR.getSensor());
+        super(persistenceManager, SensorType.ATSR.nameLowerCase());
     }
 
     @Override
