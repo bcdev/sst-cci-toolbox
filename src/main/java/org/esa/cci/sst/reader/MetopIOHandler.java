@@ -45,7 +45,7 @@ public class MetopIOHandler extends NetcdfIOHandler {
     protected int colCount;
 
     public MetopIOHandler() {
-        super(METOP.nameLowerCase(), "n");
+        super(METOP.getSensor(), "n");
     }
 
     @Override
@@ -77,7 +77,7 @@ public class MetopIOHandler extends NetcdfIOHandler {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("msr_id", recordNo));
-        observation.setSensor(METOP.nameLowerCase());
+        observation.setSensor(getSensorName());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
