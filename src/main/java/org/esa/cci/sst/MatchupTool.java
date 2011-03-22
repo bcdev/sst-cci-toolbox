@@ -260,6 +260,7 @@ public class MatchupTool extends MmsTool {
     }
 
     private void findRelatedObservations(Matchup matchup) {
+        // todo: loop over all sensors in configuration (rq-20110322)
         addCoincidence(matchup, SENSOR_NAME_AVHRR.getSensor(), 0x8);
         addCoincidence(matchup, SENSOR_NAME_AMSRE.getSensor(), 0x10);
         addCoincidence(matchup, SENSOR_NAME_TMI.getSensor(), 0x20);
