@@ -17,13 +17,13 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.SensorName;
+import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Variable;
-import org.esa.cci.sst.reader.ObservationIOHandler;
+import org.esa.cci.sst.reader.IOHandler;
 import org.postgis.PGgeometry;
 import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFileWriteable;
@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import static org.esa.cci.sst.SensorName.*;
+import static org.esa.cci.sst.SensorType.*;
 
 /**
  * Implementation of MmdGenerator, which writes only specified variables. Holds an instance of
@@ -57,14 +57,15 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         delegate.addDimensions(file);
         addStandardVariables(file);
 
-        for (SensorName sensorName : SensorName.values()) {
-            if (!SENSOR_NAME_AATSR_MD.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
-                !SENSOR_NAME_AAI.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
-                !SENSOR_NAME_INSITU.getSensor().equalsIgnoreCase(sensorName.getSensor())) {
-                delegate.addObservationTime(file, sensorName.getSensor());
-                delegate.addLsMask(file, sensorName.getSensor());
-                delegate.addNwpData(file, sensorName.getSensor());
-                addVariables(file, sensorName.getSensor());
+        // todo - iterate over sensors (rq-20110322)
+        for (SensorType sensorType : SensorType.values()) {
+            if (!ATSR_MD.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
+                !AAI.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
+                !INSITU.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase())) {
+                delegate.addObservationTime(file, sensorType.nameLowerCase());
+                delegate.addLsMask(file, sensorType.nameLowerCase());
+                delegate.addNwpData(file, sensorType.nameLowerCase());
+                addVariables(file, sensorType.nameLowerCase());
             }
         }
         delegate.addGlobalAttributes(file);
@@ -109,11 +110,11 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     private void writeObservation(final NetcdfFileWriteable file, final RelatedObservation observation,
                                   final PGgeometry point, final Date refTime, final int matchupIndex) throws Exception {
-        ObservationIOHandler ioHandler = delegate.getReader(observation);
+        IOHandler ioHandler = delegate.getReader(observation);
         final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
             if (outputVariables.contains(variable.getName().replace(observation.getSensor() + ".", ""))) {
-                ioHandler.write(observation, variable, file, matchupIndex,
+                ioHandler.write(file, observation, variable, matchupIndex,
                                 delegate.getDimensionSizes(variable.getName()),
                                 point, refTime);
             }
@@ -123,9 +124,9 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     private void addStandardVariables(final NetcdfFileWriteable file) {
         delegate.addVariable(file, "matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
         delegate.addInsituDataHistories(file);
-        delegate.addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT,
+        delegate.addVariable(file, AAI.nameLowerCase() + ".aai", DataType.SHORT,
                              Constants.DIMENSION_NAME_MATCHUP + " aai.ni");
-        addVariables(file, SENSOR_NAME_AATSR_MD.getSensor());
+        addVariables(file, ATSR_MD.nameLowerCase());
     }
 
     @SuppressWarnings({"unchecked"})

@@ -17,7 +17,7 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.SensorName;
+import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
@@ -25,8 +25,8 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
-import org.esa.cci.sst.reader.ObservationIOHandler;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.esa.cci.sst.SensorName.*;
+import static org.esa.cci.sst.SensorType.*;
 
 /**
  * Default implementation of <code>MmdGenerator</code>, writing all variables. This class provides some (package
@@ -57,7 +57,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new HashMap<String, Integer>(17);
     private final Map<String, String> variablesDimensionsMap = new HashMap<String, String>(61);
-    private final Map<String, ObservationIOHandler> readers = new HashMap<String, ObservationIOHandler>();
+    private final Map<String, IOHandler> readers = new HashMap<String, IOHandler>();
     private final PersistenceManager persistenceManager;
 
     private int matchupCount = -1;
@@ -72,14 +72,15 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         addDimensions(file);
         addStandardVariables(file);
 
-        for (SensorName sensorName : SensorName.values()) {
-            if (!SENSOR_NAME_AATSR_MD.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
-                !SENSOR_NAME_AAI.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
-                !SENSOR_NAME_INSITU.getSensor().equalsIgnoreCase(sensorName.getSensor())) {
+        // todo - iterate over sensors (rq-20110322)
+        for (SensorType sensorType : SensorType.values()) {
+            if (!ATSR_MD.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
+                !AAI.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
+                !INSITU.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase())) {
                 // todo: we do not need observation time, L" mask and NWP for SEVIRI and MetOp (rq-20110321)
-                addObservationTime(file, sensorName.getSensor());
-                addLsMask(file, sensorName.getSensor());
-                addNwpData(file, sensorName.getSensor());
+                addObservationTime(file, sensorType.nameLowerCase());
+                addLsMask(file, sensorType.nameLowerCase());
+                addNwpData(file, sensorType.nameLowerCase());
             }
         }
 
@@ -120,7 +121,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     @Override
     public void close() {
-        for (ObservationIOHandler ioHandler : readers.values()) {
+        for (IOHandler ioHandler : readers.values()) {
             ioHandler.close();
         }
     }
@@ -139,21 +140,21 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
-        ObservationIOHandler ioHandler = getReader(observation);
+        IOHandler ioHandler = getReader(observation);
         final Variable[] variables = ioHandler.getVariables();
         for (Variable variable : variables) {
-            ioHandler.write(observation, variable, file, matchupIndex, getDimensionSizes(variable.getName()), point,
+            ioHandler.write(file, observation, variable, matchupIndex, getDimensionSizes(variable.getName()), point,
                             refTime);
         }
     }
 
-    ObservationIOHandler getReader(final Observation observation) throws IOException {
+    IOHandler getReader(final Observation observation) throws IOException {
         final DataFile datafile = observation.getDatafile();
         final String path = datafile.getPath();
         if (readers.get(path) != null) {
             return readers.get(path);
         }
-        ObservationIOHandler ioHandler = IOHandlerFactory.createReader(datafile.getDataSchema().getName());
+        IOHandler ioHandler = IOHandlerFactory.createHandler(datafile.getDataSchema().getName(), observation.getSensor());
         readers.put(path, ioHandler);
         ioHandler.init(datafile);
         return ioHandler;
@@ -294,8 +295,8 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     private void addStandardVariables(final NetcdfFileWriteable file) {
         file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
         // todo: why are these variables treated in a different manner than the others? (rq-20110321)
-        addVariables(file, SENSOR_NAME_AATSR_MD.getSensor());
-        addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT,
+        addVariables(file, ATSR_MD.nameLowerCase());
+        addVariable(file, AAI.nameLowerCase() + ".aai", DataType.SHORT,
                     Constants.DIMENSION_NAME_MATCHUP + " aai.ni");
         addInsituDataHistories(file);
     }

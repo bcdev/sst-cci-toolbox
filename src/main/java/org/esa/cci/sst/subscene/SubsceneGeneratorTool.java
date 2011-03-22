@@ -19,7 +19,7 @@ package org.esa.cci.sst.subscene;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.util.io.CsvReader;
 import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.SensorName;
+import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.ToolException;
 import org.esa.cci.sst.orm.PersistenceManager;
 import ucar.nc2.NetcdfFile;
@@ -80,9 +80,10 @@ public class SubsceneGeneratorTool {
     static SubsceneGenerator getSubsceneGenerator(final String filename, PersistenceManager persistenceManager) throws
                                                                                                                 IOException {
         if (ProductIO.getProductReaderForFile(new File(filename)) != null) {
-            if (SensorName.SENSOR_NAME_AATSR.getSensor().equals(getSensorFromFilename(filename))) {
+            // todo - check logic (rq-20110322)
+            if (SensorType.ATSR.getSensor().equals(getSensorFromFilename(filename))) {
                 return new AtsrSubsceneGenerator(persistenceManager);
-            } else if (SensorName.SENSOR_NAME_AMSRE.getSensor().equals(getSensorFromFilename(filename))) {
+            } else if (SensorType.AMSRE.getSensor().equals(getSensorFromFilename(filename))) {
                 return new AmsreSubsceneGenerator(persistenceManager);
             }
         } else if (NetcdfFile.canOpen(filename)) {
@@ -95,9 +96,9 @@ public class SubsceneGeneratorTool {
     private static String getSensorFromFilename(String filename) {
         filename = filename.toLowerCase();
         if (filename.contains("atsr") || filename.contains("ats_toa")) {
-            return SensorName.SENSOR_NAME_AATSR.getSensor();
+            return SensorType.ATSR.getSensor();
         } else if (filename.contains("-amsre-")) {
-            return SensorName.SENSOR_NAME_AMSRE.getSensor();
+            return SensorType.AMSRE.getSensor();
         }
         throw new IllegalArgumentException("No subscene generator found for file '" + filename + "'.");
     }
