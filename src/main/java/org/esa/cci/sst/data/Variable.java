@@ -148,16 +148,8 @@ public class Variable {
 
     @Override
     public boolean equals(Object anObject) {
-		if( this == anObject ) {
-			return true;
-		}
-
-		if(!(anObject instanceof Variable)) {
-			return false;
-		}
-
-		return this.getId() == ((Variable)anObject).getId();
-	}
+        return this == anObject || anObject instanceof Variable && this.getId() == ((Variable) anObject).getId();
+    }
 
 	@Override
 	public int hashCode() {
