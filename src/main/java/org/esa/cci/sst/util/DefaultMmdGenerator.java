@@ -76,6 +76,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
             if (!SENSOR_NAME_AATSR_MD.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
                 !SENSOR_NAME_AAI.getSensor().equalsIgnoreCase(sensorName.getSensor()) &&
                 !SENSOR_NAME_INSITU.getSensor().equalsIgnoreCase(sensorName.getSensor())) {
+                // todo: we do not need observation time, L" mask and NWP for SEVIRI and MetOp (rq-20110321)
                 addObservationTime(file, sensorName.getSensor());
                 addLsMask(file, sensorName.getSensor());
                 addNwpData(file, sensorName.getSensor());
@@ -185,6 +186,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     void addInsituDataHistories(NetcdfFileWriteable file) {
+        // todo: is this method really needed? (rq-20110321)
         // todo: add in-situ data histories (rq-20110223)
     }
 
@@ -290,8 +292,8 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     private void addStandardVariables(final NetcdfFileWriteable file) {
-        // todo: tie point dimensions for all sensors (rq-20110223)
         file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        // todo: why are these variables treated in a different manner than the others? (rq-20110321)
         addVariables(file, SENSOR_NAME_AATSR_MD.getSensor());
         addVariable(file, SENSOR_NAME_AAI.getSensor() + ".aai", DataType.SHORT,
                     Constants.DIMENSION_NAME_MATCHUP + " aai.ni");
@@ -322,6 +324,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         dimensionCountMap.put("aai.ni", Constants.AAI_LENGTH);
         dimensionCountMap.put("seaice.ni", Constants.SEA_ICE_LENGTH);
         dimensionCountMap.put("seaice.nj", Constants.SEA_ICE_LENGTH);
+        // todo: tie point dimensions for all sensors (rq-20110223)
     }
 
     private void addAttribute(ucar.nc2.Variable v, String attrName, String attrValue) {
