@@ -40,10 +40,10 @@ public class IOHandlerFactory {
             return new AatsrMdIOHandler();
         }
         if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
-            return new MetopMdIOHandler();
+            return new MetopIOHandler();
         }
         if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
-            return new SeviriMatchupIOHandler();
+            return new SeviriIOHandler();
         }
         if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
             return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
