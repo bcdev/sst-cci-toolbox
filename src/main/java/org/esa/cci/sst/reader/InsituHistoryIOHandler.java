@@ -18,7 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.DriftingObservation;
+import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Variable;
 import org.esa.cci.sst.util.TimeUtil;
@@ -52,8 +52,8 @@ public class InsituHistoryIOHandler extends NetcdfStructureIOHandler {
     }
 
     @Override
-    public Observation readObservation(int recordNo) throws IOException {
-        final DriftingObservation observation = new DriftingObservation();
+    public InsituObservation readObservation(int recordNo) throws IOException {
+        final InsituObservation observation = new InsituObservation();
         final DataFile dataFile = getDataFileEntry();
         observation.setDatafile(dataFile);
         observation.setName(getNcFile().findGlobalAttribute("title").getStringValue());
@@ -111,7 +111,7 @@ public class InsituHistoryIOHandler extends NetcdfStructureIOHandler {
             size *= length;
         }
         final Array array = Array.factory(dataType, shape);
-        for(int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             array.setObject(i, fillValue);
         }
         return array;
@@ -120,7 +120,7 @@ public class InsituHistoryIOHandler extends NetcdfStructureIOHandler {
     boolean fits(final Date refTime, final double julianDate) throws ParseException {
         final Date observationDate = TimeUtil.dateOfJulianDate(julianDate);
         final long time = observationDate.getTime();
-        final int twelveHours = 12 * + 60 * 60 * 1000;
+        final int twelveHours = 12 * +60 * 60 * 1000;
         return refTime.getTime() < time + twelveHours &&
                refTime.getTime() > time - twelveHours;
     }

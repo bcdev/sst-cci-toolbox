@@ -28,7 +28,7 @@ import javax.persistence.Entity;
  * @author Thomas Storm
  */
 @Entity
-public class DriftingObservation extends Observation {
+public class InsituObservation extends Observation {
 
     long timeRadius;
 
