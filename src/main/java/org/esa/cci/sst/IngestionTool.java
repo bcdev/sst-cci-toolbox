@@ -172,15 +172,20 @@ public class IngestionTool extends MmsTool {
                     System.out.printf("reading record %s %d\n", schemaName, recordNo);
                 }
 
-                final Observation observation = ioHandler.readObservation(recordNo);
-                final long time = observation.getTime().getTime();
-                if (time >= start && time < stop) {
-                    ++recordsInTimeInterval;
-                    try {
-                        persistenceManager.persist(observation);
-                    } catch (IllegalArgumentException e) {
-                        System.out.printf("%s %d observation incomplete\n", schemaName, recordNo);
+                try {
+                    final Observation observation = ioHandler.readObservation(recordNo);
+                    final long time = observation.getTime().getTime();
+                    if (time >= start && time < stop) {
+                        ++recordsInTimeInterval;
+                        try {
+                            persistenceManager.persist(observation);
+                        } catch (IllegalArgumentException e) {
+                            System.out.printf("%s %d observation incomplete\n", schemaName, recordNo);
+                        }
                     }
+                } catch (Exception e) {
+                    System.out.println(MessageFormat.format(
+                            "ignoring observation for record number {0}: {1}", recordNo, e.getMessage()));
                 }
                 if (recordNo % 65536 == 65535) {
                     persistenceManager.commit();
