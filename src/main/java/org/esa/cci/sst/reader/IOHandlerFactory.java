@@ -37,7 +37,7 @@ public class IOHandlerFactory {
      */
     public static IOHandler createHandler(String schemaName, String sensorName) {
         if (Constants.DATA_SCHEMA_NAME_AATSR_MD.equalsIgnoreCase(schemaName)) {
-            return new AatsrMdIOHandler();
+            return new AtsrMdIOHandler();
         }
         if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
             return new MetopIOHandler();
