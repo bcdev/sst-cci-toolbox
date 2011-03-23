@@ -20,9 +20,9 @@ import static org.esa.cci.sst.SensorType.*;
  *
  * @author Martin Boettcher
  */
-public class AatsrMdIOHandler extends NetcdfIOHandler {
+public class AtsrMdIOHandler extends NetcdfIOHandler {
 
-    public AatsrMdIOHandler() {
+    public AtsrMdIOHandler() {
         super(ATSR_MD.nameLowerCase(), "match_up");
     }
 
@@ -43,7 +43,6 @@ public class AatsrMdIOHandler extends NetcdfIOHandler {
      */
     @Override
     public Observation readObservation(int recordNo) throws IOException {
-
         final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                              getFloat("atsr.latitude", recordNo)));
 
