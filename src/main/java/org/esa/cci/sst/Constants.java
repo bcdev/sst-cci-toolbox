@@ -2,25 +2,29 @@ package org.esa.cci.sst;
 
 public class Constants {
 
-    public static final String DATA_SCHEMA_NAME_AATSR_MD = "aatsr-md";  // AatsrMdObservation
-    public static final String DATA_SCHEMA_NAME_METOP_MD = "metop-md";  // Subscene-md-observation
-    public static final String DATA_SCHEMA_NAME_SEVIRI_MD = "seviri-md";  // subscene-md-observation
+    public static final String DATA_SCHEMA_NAME_ATSR_MD = "atsr_md";
+    public static final String DATA_SCHEMA_NAME_METOP_MD = "metop_md";
+    public static final String DATA_SCHEMA_NAME_SEVIRI_MD = "seviri_md";
 
-    public static final String DATA_SCHEMA_NAME_AAI = "aai";    // SinglePixelObservation
-    public static final String DATA_SCHEMA_NAME_ATSR = "atsr";  // FullOrbitObservation
-    public static final String DATA_SCHEMA_NAME_AMR = "amsre";  // FullOrbitObservation
-    public static final String DATA_SCHEMA_NAME_AVHRR_GAC = "avhrr_gac";    // FullOrbitObservation
-    public static final String DATA_SCHEMA_NAME_SEA_ICE = "seaice"; // FullOrbitObservation
-    public static final String DATA_SCHEMA_NAME_TMI = "tmi"; // FullOrbitObservation
+    public static final String DATA_SCHEMA_NAME_AAI = "aai";
+    public static final String DATA_SCHEMA_NAME_ATSR_L1B = "atsr_l1b";
+    public static final String DATA_SCHEMA_NAME_AMSRE = "amsre";
+    public static final String DATA_SCHEMA_NAME_AVHRR_GAC = "avhrr_gac";
+    public static final String DATA_SCHEMA_NAME_SEAICE = "seaice";
+    public static final String DATA_SCHEMA_NAME_TMI = "tmi";
     public static final String DATA_SCHEMA_INSITU = "insitu";
 
     /**
      * Name of persistence unit in META-INF/persistence.xml
      */
     public static final String PERSISTENCE_UNIT_NAME = "matchupdb";
+
     public static final String DIMENSION_NAME_MATCHUP = "match_up";
+
     public static final String DIMENSION_ROLE_LENGTH = "length";
+
     public static final String DIMENSION_ROLE_MATCHUP = "match_up";
+
     public static final int AATSR_MD_CS_LENGTH = 8;
     public static final int AATSR_MD_UI_LENGTH = 30;
     public static final int AATSR_MD_LENGTH = 65;
