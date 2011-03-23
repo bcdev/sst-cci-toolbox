@@ -41,7 +41,7 @@ public class IngestionToolTest {
 
     @Test
     public void testCreateReader() throws Exception {
-        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_AATSR_MD, null));
+        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_ATSR_MD, null));
         assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_METOP_MD, null));
         assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_SEVIRI_MD, null));
 
