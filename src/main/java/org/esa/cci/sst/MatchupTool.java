@@ -307,10 +307,13 @@ public class MatchupTool extends MmsTool {
                 case AMSRE:
                 case TMI:
                 case SEAICE:
-                    addCoincidence(matchup, sensor, sensorType);
+                    addSpatiotemporalCoincidence(matchup, sensor, sensorType);
                     break;
                 case AAI:
                     addTemporalCoincidence(matchup, sensor, sensorType);
+                    break;
+                case INSITU:
+                    addInsituHistoryCoincidence(matchup, sensor, sensorType);
                     break;
                 default:
                     final String msg = MessageFormat.format(
@@ -320,7 +323,11 @@ public class MatchupTool extends MmsTool {
         }
     }
 
-    private void addCoincidence(Matchup matchup, String sensorName, SensorType sensorType) {
+    private void addInsituHistoryCoincidence(Matchup matchup, String sensor, SensorType sensorType) {
+        // todo - implement (rq-20110323)
+    }
+
+    private void addSpatiotemporalCoincidence(Matchup matchup, String sensorName, SensorType sensorType) {
         final ReferenceObservation refObs = matchup.getRefObs();
         final RelatedObservation sensorObs = findCorrespondingObservation(refObs, sensorName);
         if (sensorObs != null) {
