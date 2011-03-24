@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 
-import static org.esa.cci.sst.SensorType.*;
+import static org.esa.cci.sst.SensorType.SEVIRI;
 
 /**
  * Reads records from an SEVIRI MD NetCDF input file and creates Observations.
@@ -61,35 +61,37 @@ public class SeviriIOHandler extends NetcdfIOHandler {
      * from right to left looking from first to last scan line.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
+     *
      * @return Observation for SEVIRI sub-scene
-     * @throws IOException  if record number is out of range 0 .. numRecords-1 or if file io fails
+     *
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
     public Observation readObservation(int recordNo) throws IOException {
-        //int    line   = getShort("box_center_y_coord", recordNo);
-        //int    column = getShort("box_center_x_coord", recordNo);
-        int line = noOfLines / 2;
-        int column = noOfColumns / 2;
+        final int line = noOfLines / 2;
+        final int column = noOfColumns / 2;
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("msr_id", recordNo));
         observation.setSensor(getSensorName());
-        observation.setLocation(new PGgeometry(new Polygon(new LinearRing[] { new LinearRing(new Point[] {
-                new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
-                          coordinateOf(getInt("lat", recordNo, 0, 0))),
-                new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, 0)),
-                          coordinateOf(getInt("lat", recordNo, noOfLines - 1, 0))),
-                new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, noOfColumns - 1)),
-                          coordinateOf(getInt("lat", recordNo, noOfLines - 1, noOfColumns - 1))),
-                new Point(coordinateOf(getInt("lon", recordNo, 0, noOfColumns - 1)),
-                          coordinateOf(getInt("lat", recordNo, 0, noOfColumns - 1))),
-                new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
-                          coordinateOf(getInt("lat", recordNo, 0, 0)))
-        })})));
+        observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{
+                new LinearRing(new Point[]{
+                        new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
+                                  coordinateOf(getInt("lat", recordNo, 0, 0))),
+                        new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, 0)),
+                                  coordinateOf(getInt("lat", recordNo, noOfLines - 1, 0))),
+                        new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, noOfColumns - 1)),
+                                  coordinateOf(getInt("lat", recordNo, noOfLines - 1, noOfColumns - 1))),
+                        new Point(coordinateOf(getInt("lon", recordNo, 0, noOfColumns - 1)),
+                                  coordinateOf(getInt("lat", recordNo, 0, noOfColumns - 1))),
+                        new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
+                                  coordinateOf(getInt("lat", recordNo, 0, 0)))
+                })
+        })));
         observation.setPoint(new PGgeometry(new Point(coordinateOf(getInt("lon", recordNo, line, column)),
                                                       coordinateOf(getInt("lat", recordNo, line, column)))));
         observation.setTime(dateOf(getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
-        observation.setDatafile(getDataFileEntry());
+        observation.setDatafile(getDataFile());
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != getSstFillValue());
         return observation;
