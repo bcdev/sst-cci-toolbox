@@ -9,7 +9,7 @@ import org.postgis.Point;
 import java.io.IOException;
 import java.util.Date;
 
-import static org.esa.cci.sst.SensorType.*;
+import static org.esa.cci.sst.SensorType.ATSR_MD;
 
 /**
  * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.
@@ -39,20 +39,19 @@ public class AtsrMdIOHandler extends NetcdfIOHandler {
      *
      * @return Observation for (A)ATSR pixel
      *
-     * @throws IOException           if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
     public Observation readObservation(int recordNo) throws IOException {
         final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                              getFloat("atsr.latitude", recordNo)));
-
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setName(getString("insitu.unique_identifier", recordNo));
+        observation.setName(getString("insitu.callsign", recordNo));
         observation.setSensor(ATSR_MD.nameLowerCase());
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
-        observation.setDatafile(getDataFileEntry());
+        observation.setDatafile(getDataFile());
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != getSstFillValue());
         return observation;
