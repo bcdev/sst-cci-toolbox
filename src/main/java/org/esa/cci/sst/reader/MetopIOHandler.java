@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static org.esa.cci.sst.SensorType.*;
+import static org.esa.cci.sst.SensorType.METOP;
 
 /**
  * Reads records from an METOP MD NetCDF input file and creates Observations.
@@ -67,7 +67,9 @@ public class MetopIOHandler extends NetcdfIOHandler {
      * from  left to right looking in flight direction.
      *
      * @param recordNo index in observation file, must be > 0 and less than numRecords
+     *
      * @return Observation for METOP sub-scene
+     *
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
@@ -81,7 +83,7 @@ public class MetopIOHandler extends NetcdfIOHandler {
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
-        observation.setDatafile(getDataFileEntry());
+        observation.setDatafile(getDataFile());
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != getSstFillValue());
 
