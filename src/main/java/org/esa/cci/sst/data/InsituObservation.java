@@ -16,8 +16,11 @@
 
 package org.esa.cci.sst.data;
 
+import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.esa.cci.sst.util.TimeUtil;
+import org.postgis.PGgeometry;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 
 /**
@@ -28,7 +31,7 @@ import javax.persistence.Entity;
  * @author Thomas Storm
  */
 @Entity
-public class InsituObservation extends Observation {
+public class InsituObservation extends RelatedObservation {
 
     long timeRadius;
 
