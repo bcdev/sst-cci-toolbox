@@ -34,7 +34,7 @@ public enum SensorType {
     ATSR(0x40, "atsr1", "atsr2", "aatsr"),
     AAI(0x80, "aai"),
     SEAICE(0x0100, "seaice"),
-    INSITU(0x0200, "insitu");
+    HISTORY(0x0200, "history");
 
     private final long pattern;
     private final String[] sensors;
