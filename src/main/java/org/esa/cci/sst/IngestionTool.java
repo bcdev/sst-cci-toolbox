@@ -29,6 +29,9 @@ import java.util.Properties;
 public class IngestionTool extends MmsTool {
 
     public static void main(String[] args) {
+        // comment out the following two lines in order to activate the tool
+        System.out.println("The ingestion tool is deactivated in order to preserve the state of the database.");
+        System.exit(0);
         final IngestionTool tool = new IngestionTool();
         try {
             final boolean performWork = tool.setCommandLineArgs(args);
