@@ -98,6 +98,9 @@ public class MatchupTool extends MmsTool {
     }
 
     public static void main(String[] args) {
+        // comment out the following two lines in order to activate the tool
+        System.out.println("The matchup tool is deactivated in order to preserve the state of the database.");
+        System.exit(0);
         final MatchupTool tool = new MatchupTool();
         try {
             final boolean performWork = tool.setCommandLineArgs(args);
