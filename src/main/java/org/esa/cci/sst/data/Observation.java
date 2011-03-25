@@ -47,6 +47,7 @@ public class Observation {
         this.name = name;
     }
 
+    @Index
     public String getSensor() {
         return sensor;
     }
