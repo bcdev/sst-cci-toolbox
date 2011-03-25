@@ -1,6 +1,8 @@
-package org.esa.cci.sst.util;
+package org.esa.cci.sst;
 
 import org.esa.beam.util.io.CsvReader;
+import org.esa.cci.sst.util.DefaultMmdGenerator;
+import org.esa.cci.sst.util.SelectedVarsMmdGenerator;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.FileInputStream;
@@ -13,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Tool responsible for writing the matchup data file. Comprises a main method, and is configured by the file
+ * Tool for writing the matchup data file. Comprises a main method, and is configured by the file
  * <code>mms-config.properties</code>, which has to be provided in the working directory.
  */
 public class MmdGeneratorTool {
@@ -101,7 +103,7 @@ public class MmdGeneratorTool {
         return false;
     }
 
-    static boolean isOutputVariable(final String varName, final String filename) {
+    public static boolean isOutputVariable(final String varName, final String filename) {
         outputVarsFilename = filename;
         return isOutputVariable(varName);
     }
@@ -123,7 +125,7 @@ public class MmdGeneratorTool {
         }
     }
 
-    interface MmdGenerator {
+    public interface MmdGenerator {
 
         static final String COUNT_MATCHUPS_QUERY =
                 "select count( m ) "

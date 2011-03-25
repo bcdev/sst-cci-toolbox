@@ -17,6 +17,7 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.Constants;
+import org.esa.cci.sst.MmdGeneratorTool;
 import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.DataFile;
@@ -62,7 +63,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     private int matchupCount = -1;
 
-    DefaultMmdGenerator(Properties properties) throws IOException {
+    public DefaultMmdGenerator(Properties properties) throws IOException {
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, properties);
         setUpDimensionCountMap();
     }

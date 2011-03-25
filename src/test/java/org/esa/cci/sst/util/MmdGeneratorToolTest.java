@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.MmdGeneratorTool;
 import org.junit.Test;
 
 import java.net.URL;

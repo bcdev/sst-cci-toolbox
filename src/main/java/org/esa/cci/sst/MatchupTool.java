@@ -99,8 +99,8 @@ public class MatchupTool extends MmsTool {
 
     public static void main(String[] args) {
         // comment out the following two lines in order to activate the tool
-        System.out.println("The matchup tool is deactivated in order to preserve the state of the database.");
-        System.exit(0);
+        // System.out.println("The matchup tool is deactivated in order to preserve the state of the database.");
+        // System.exit(0);
         final MatchupTool tool = new MatchupTool();
         try {
             final boolean performWork = tool.setCommandLineArgs(args);
@@ -201,9 +201,9 @@ public class MatchupTool extends MmsTool {
                 final RelatedObservation seviriObservation = findCoincidingObservation(metopObservation,
                                                                                        SEVIRI.getSensor());
                 if (seviriObservation != null) {
-                    Matchup matchup = createMatchup(metopObservation);
+                    final Matchup matchup = createMatchup(metopObservation);
                     getPersistenceManager().persist(matchup);
-                    Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
+                    final Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
                     getPersistenceManager().persist(seviriCoincidence);
                     matchup.setPattern(METOP.getPattern() | SEVIRI.getPattern());
                     findRelatedObservations(matchup);
@@ -391,7 +391,7 @@ public class MatchupTool extends MmsTool {
         query.setParameter(1, refObs.getId());
         query.setParameter(2, sensor);
         @SuppressWarnings({"unchecked"})
-        final List<RelatedObservation> observations = query.getResultList();
+        final List<? extends RelatedObservation> observations = query.getResultList();
         if (observations.size() > 0) {
             // select temporally nearest common observation
             return observations.get(0);

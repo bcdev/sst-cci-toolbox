@@ -73,7 +73,7 @@ public class MetopIOHandler extends MdIOHandler {
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
-    public Observation readObservation(int recordNo) throws IOException {
+    public ReferenceObservation readObservation(int recordNo) throws IOException {
         final int x = colCount / 2;
         final int y = rowCount / 2;
 

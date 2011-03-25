@@ -17,6 +17,7 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.Constants;
+import org.esa.cci.sst.MmdGeneratorTool;
 import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
@@ -47,7 +48,7 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     private final List<String> outputVariables;
     private DefaultMmdGenerator delegate;
 
-    SelectedVarsMmdGenerator(final Properties properties, final List<String> outputVariables) throws IOException {
+    public SelectedVarsMmdGenerator(final Properties properties, final List<String> outputVariables) throws IOException {
         this.outputVariables = outputVariables;
         delegate = new DefaultMmdGenerator(properties);
     }
