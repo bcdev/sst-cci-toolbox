@@ -14,7 +14,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="mm_variable")
-public class Variable {
+public class VariableDescriptor {
     int id;
     DataSchema dataSchema;
     String role;
@@ -148,7 +148,7 @@ public class Variable {
 
     @Override
     public boolean equals(Object anObject) {
-        return this == anObject || anObject instanceof Variable && this.getId() == ((Variable) anObject).getId();
+        return this == anObject || anObject instanceof VariableDescriptor && this.getId() == ((VariableDescriptor) anObject).getId();
     }
 
 	@Override

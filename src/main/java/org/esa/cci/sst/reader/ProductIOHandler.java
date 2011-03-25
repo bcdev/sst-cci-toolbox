@@ -15,7 +15,7 @@ import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -74,17 +74,13 @@ public class ProductIOHandler implements IOHandler {
 
     @Override
     public final Observation readObservation(int recordNo) throws IOException {
-        if (product == null) {
-            return null;
-        }
-
-        final RelatedObservation observation;
-        // TODO move distinction to reader level instead
-        if (gbc instanceof DefaultGeoBoundaryCalculator) {
-            observation = new RelatedObservation();
-            observation.setLocation(createGeometry(gbc.getGeoBoundary(product)));
+        final Observation observation;
+        if (gbc != null) {
+            final RelatedObservation relatedObservation = new RelatedObservation();
+            relatedObservation.setLocation(createGeometry(gbc.getGeoBoundary(product)));
+            observation = relatedObservation;
         } else {
-            observation = new RelatedObservation();
+            observation = new Observation();
         }
 
         observation.setDatafile(dataFile);
@@ -96,48 +92,48 @@ public class ProductIOHandler implements IOHandler {
     }
 
     @Override
-    public Variable[] getVariables() throws IOException {
-        final ArrayList<Variable> variableList = new ArrayList<Variable>();
+    public VariableDescriptor[] getVariableDescriptors() throws IOException {
+        final ArrayList<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
         for (RasterDataNode node : product.getTiePointGrids()) {
-            final Variable variable = new Variable();
-            variable.setName(String.format("%s.%s", sensorName, node.getName()));
-            variable.setDataSchema(dataFile.getDataSchema());
+            final VariableDescriptor variableDescriptor = new VariableDescriptor();
+            variableDescriptor.setName(String.format("%s.%s", sensorName, node.getName()));
+            variableDescriptor.setDataSchema(dataFile.getDataSchema());
             final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
-            variable.setType(dataType.name());
-            variable.setDimensions("ni nj");
-            variable.setDimensionRoles("ni nj");
+            variableDescriptor.setType(dataType.name());
+            variableDescriptor.setDimensions("ni nj");
+            variableDescriptor.setDimensionRoles("ni nj");
             if (node.isScalingApplied()) {
-                variable.setAddOffset(node.getScalingOffset());
-                variable.setScaleFactor(node.getScalingFactor());
+                variableDescriptor.setAddOffset(node.getScalingOffset());
+                variableDescriptor.setScaleFactor(node.getScalingFactor());
             }
             if (node.isNoDataValueUsed()) {
-                variable.setFillValue(node.getNoDataValue());
+                variableDescriptor.setFillValue(node.getNoDataValue());
             }
-            variable.setUnits(node.getUnit());
-            variableList.add(variable);
+            variableDescriptor.setUnits(node.getUnit());
+            variableDescriptorList.add(variableDescriptor);
         }
         for (RasterDataNode node : product.getBands()) {
-            final Variable variable = new Variable();
-            variable.setName(String.format("%s.%s", sensorName, node.getName()));
-            variable.setDataSchema(dataFile.getDataSchema());
+            final VariableDescriptor variableDescriptor = new VariableDescriptor();
+            variableDescriptor.setName(String.format("%s.%s", sensorName, node.getName()));
+            variableDescriptor.setDataSchema(dataFile.getDataSchema());
             final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
-            variable.setType(dataType.name());
-            variable.setDimensions("ni nj");
-            variable.setDimensionRoles("ni nj");
+            variableDescriptor.setType(dataType.name());
+            variableDescriptor.setDimensions("ni nj");
+            variableDescriptor.setDimensionRoles("ni nj");
             if (node.isScalingApplied()) {
-                variable.setAddOffset(node.getScalingOffset());
-                variable.setScaleFactor(node.getScalingFactor());
+                variableDescriptor.setAddOffset(node.getScalingOffset());
+                variableDescriptor.setScaleFactor(node.getScalingFactor());
             }
             if (node.isNoDataValueUsed()) {
-                variable.setFillValue(node.getNoDataValue());
+                variableDescriptor.setFillValue(node.getNoDataValue());
             }
             final String units = node.getUnit();
             if (units != null && !units.isEmpty()) {
-                variable.setUnits(units);
+                variableDescriptor.setUnits(units);
             }
-            variableList.add(variable);
+            variableDescriptorList.add(variableDescriptor);
         }
-        return variableList.toArray(new Variable[variableList.size()]);
+        return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
     }
 
     private Date getCenterTimeAsDate() throws IOException {
@@ -162,13 +158,13 @@ public class ProductIOHandler implements IOHandler {
 
 
     @Override
-    public void write(NetcdfFileWriteable file, Observation observation, Variable variable,
+    public void write(NetcdfFileWriteable file, Observation observation, VariableDescriptor variableDescriptor,
                       int matchupIndex,
                       int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws IOException {
         final String fileLocation = observation.getDatafile().getPath();
         final Product product = getProduct(fileLocation);
         String sensorName = observation.getSensor();
-        String originalVarName = variable.getName();
+        String originalVarName = variableDescriptor.getName();
         String variableName = originalVarName.replace(sensorName + ".", "");
         final Band band = product.getBand(variableName);
         if (band == null) {
@@ -177,7 +173,7 @@ public class ProductIOHandler implements IOHandler {
         }
 
         final DataType type = DataTypeUtils.getNetcdfDataType(band);
-        final int[] origin = createOriginArray(matchupIndex, variable);
+        final int[] origin = createOriginArray(matchupIndex, variableDescriptor);
         final int[] shape = createShapeArray(origin.length, dimensionSizes);
 
         final GeoCoding geoCoding = product.getGeoCoding();
@@ -270,9 +266,9 @@ public class ProductIOHandler implements IOHandler {
     }
 
 
-    int[] createOriginArray(int matchupIndex, Variable variable) {
-        String dimString = variable.getDimensions();
-        final String dimensionRoles = variable.getDimensionRoles();
+    int[] createOriginArray(int matchupIndex, VariableDescriptor variableDescriptor) {
+        String dimString = variableDescriptor.getDimensions();
+        final String dimensionRoles = variableDescriptor.getDimensionRoles();
         String[] dims = dimString.split(" ");
         int length = dims.length;
         final boolean addMatchup = !(dimString.contains(Constants.DIMENSION_NAME_MATCHUP) ||

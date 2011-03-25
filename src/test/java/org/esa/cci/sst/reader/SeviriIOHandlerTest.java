@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
  */
 public class SeviriIOHandlerTest {
 
-    private NetcdfIOHandler ioHandler;
+    private MdIOHandler ioHandler;
 
     @Before
     public void setUp() throws Exception {

@@ -3,7 +3,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.After;
 import org.junit.Ignore;
@@ -82,56 +82,56 @@ public class ProductIOHandlerTest {
     public void testGetAmsreVariables() throws URISyntaxException, IOException {
         init(getResourceAsFile(AMSRE_RESOURCE_NAME));
 
-        final Variable[] variables = handler.getVariables();
-        for (Variable variable : variables) {
-            System.out.println("variable.getName() = " + variable.getName());
+        final VariableDescriptor[] variableDescriptors = handler.getVariableDescriptors();
+        for (VariableDescriptor variableDescriptor : variableDescriptors) {
+            System.out.println("variableDescriptor.getName() = " + variableDescriptor.getName());
         }
-        assertEquals(12, variables.length);
+        assertEquals(12, variableDescriptors.length);
     }
 
     @Test
     public void testGetAaiVariables() throws URISyntaxException, IOException {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
 
-        final Variable[] variables = handler.getVariables();
-        for (Variable variable : variables) {
-            System.out.println("variable.getName() = " + variable.getName());
+        final VariableDescriptor[] variableDescriptors = handler.getVariableDescriptors();
+        for (VariableDescriptor variableDescriptor : variableDescriptors) {
+            System.out.println("variableDescriptor.getName() = " + variableDescriptor.getName());
         }
-        assertEquals(1, variables.length);
+        assertEquals(1, variableDescriptors.length);
     }
 
     @Test
     public void testCreateOriginArray() throws Exception {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
-        final org.esa.cci.sst.data.Variable variable = new org.esa.cci.sst.data.Variable();
-        variable.setDimensions("ni nj");
-        variable.setDimensionRoles("ni nj");
-        int[] originArray = handler.createOriginArray(0, variable);
+        final VariableDescriptor variableDescriptor = new VariableDescriptor();
+        variableDescriptor.setDimensions("ni nj");
+        variableDescriptor.setDimensionRoles("ni nj");
+        int[] originArray = handler.createOriginArray(0, variableDescriptor);
         assertEquals(3, originArray.length);
 
-        variable.setDimensions("match_up ni nj");
-        variable.setDimensionRoles("match_up ni nj");
-        originArray = handler.createOriginArray(0, variable);
+        variableDescriptor.setDimensions("match_up ni nj");
+        variableDescriptor.setDimensionRoles("match_up ni nj");
+        originArray = handler.createOriginArray(0, variableDescriptor);
         assertEquals(3, originArray.length);
 
-        variable.setDimensions("time");
-        variable.setDimensionRoles("time");
-        originArray = handler.createOriginArray(0, variable);
+        variableDescriptor.setDimensions("time");
+        variableDescriptor.setDimensionRoles("time");
+        originArray = handler.createOriginArray(0, variableDescriptor);
         assertEquals(2, originArray.length);
 
-        variable.setDimensions("match_up time");
-        variable.setDimensionRoles("match_up time");
-        originArray = handler.createOriginArray(0, variable);
+        variableDescriptor.setDimensions("match_up time");
+        variableDescriptor.setDimensionRoles("match_up time");
+        originArray = handler.createOriginArray(0, variableDescriptor);
         assertEquals(2, originArray.length);
 
-        variable.setDimensions("n ni nj");
-        variable.setDimensionRoles("match_up ni nj");
-        originArray = handler.createOriginArray(0, variable);
+        variableDescriptor.setDimensions("n ni nj");
+        variableDescriptor.setDimensionRoles("match_up ni nj");
+        originArray = handler.createOriginArray(0, variableDescriptor);
         assertEquals(3, originArray.length);
 
-        variable.setDimensions("n ni nj");
-        variable.setDimensionRoles("n ni nj");
-        originArray = handler.createOriginArray(0, variable);
+        variableDescriptor.setDimensions("n ni nj");
+        variableDescriptor.setDimensionRoles("n ni nj");
+        originArray = handler.createOriginArray(0, variableDescriptor);
         assertEquals(4, originArray.length);
     }
 

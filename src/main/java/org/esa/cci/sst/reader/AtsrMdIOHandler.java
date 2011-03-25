@@ -20,7 +20,7 @@ import static org.esa.cci.sst.SensorType.ATSR_MD;
  *
  * @author Martin Boettcher
  */
-public class AtsrMdIOHandler extends NetcdfIOHandler {
+public class AtsrMdIOHandler extends MdIOHandler {
 
     public AtsrMdIOHandler() {
         super(ATSR_MD.nameLowerCase(), "match_up");

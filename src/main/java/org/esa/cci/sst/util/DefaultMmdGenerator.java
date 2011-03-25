@@ -23,7 +23,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
@@ -76,7 +76,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         for (SensorType sensorType : SensorType.values()) {
             if (!ATSR_MD.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
                 !AAI.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
-                !INSITU.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase())) {
+                !HISTORY.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase())) {
                 // todo: we do not need observation time, L" mask and NWP for SEVIRI and MetOp (rq-20110321)
                 addObservationTime(file, sensorType.nameLowerCase());
                 addLsMask(file, sensorType.nameLowerCase());
@@ -141,9 +141,9 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
         IOHandler ioHandler = getReader(observation);
-        final Variable[] variables = ioHandler.getVariables();
-        for (Variable variable : variables) {
-            ioHandler.write(file, observation, variable, matchupIndex, getDimensionSizes(variable.getName()), point,
+        final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+        for (VariableDescriptor variableDescriptor : variableDescriptors) {
+            ioHandler.write(file, observation, variableDescriptor, matchupIndex, getDimensionSizes(variableDescriptor.getName()), point,
                             refTime);
         }
     }
@@ -231,13 +231,13 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     @SuppressWarnings({"unchecked"})
     void addVariables(NetcdfFileWriteable file, String sensorName) {
         final Query query = createVariablesQuery(sensorName);
-        final List<Variable> resultList = query.getResultList();
-        for (final Variable var : resultList) {
+        final List<VariableDescriptor> resultList = query.getResultList();
+        for (final VariableDescriptor var : resultList) {
             addVariable(file, var, createDimensionString(var, sensorName));
         }
     }
 
-    String createDimensionString(Variable var, String sensorName) {
+    String createDimensionString(VariableDescriptor var, String sensorName) {
         final String[] dimensionNames = var.getDimensions().split(" ");
         final String[] dimensionRoles = var.getDimensionRoles().split(" ");
         final StringBuilder sb = new StringBuilder();
@@ -264,13 +264,13 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     void addVariable(NetcdfFileWriteable file, String name, DataType type, String dims) {
-        final Variable var = new Variable();
+        final VariableDescriptor var = new VariableDescriptor();
         var.setName(name);
         var.setType(type.name());
         addVariable(file, var, dims);
     }
 
-    void addVariable(NetcdfFileWriteable file, Variable var, String dims) {
+    void addVariable(NetcdfFileWriteable file, VariableDescriptor var, String dims) {
         final ucar.nc2.Variable v = file.addVariable(file.getRootGroup(),
                                                      var.getName(),
                                                      DataType.valueOf(var.getType()),
@@ -285,7 +285,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     Query createVariablesQuery(String sensorName) {
         return persistenceManager.createQuery(
-                String.format("select v from Variable v where v.name like '%s.%%' order by v.name", sensorName));
+                String.format("select v from VariableDescriptor v where v.name like '%s.%%' order by v.name", sensorName));
     }
 
     PersistenceManager getPersistenceManager() {

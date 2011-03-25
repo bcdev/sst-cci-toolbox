@@ -36,7 +36,7 @@ public class IOHandlerFactory {
      * @return a new instance of <code>IOHandler</code>.
      */
     public static IOHandler createHandler(String schemaName, String sensorName) {
-        if (Constants.DATA_SCHEMA_NAME_AATSR_MD.equalsIgnoreCase(schemaName)) {
+        if (Constants.DATA_SCHEMA_NAME_ATSR_MD.equalsIgnoreCase(schemaName)) {
             return new AtsrMdIOHandler();
         }
         if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
@@ -45,26 +45,26 @@ public class IOHandlerFactory {
         if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
             return new SeviriIOHandler();
         }
-        if (Constants.DATA_SCHEMA_NAME_AMR.equalsIgnoreCase(schemaName)) {
+        if (Constants.DATA_SCHEMA_NAME_AMSRE.equalsIgnoreCase(schemaName)) {
             return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
         }
         if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
             return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
         }
-        if (Constants.DATA_SCHEMA_NAME_ATSR.equalsIgnoreCase(schemaName)) {
+        if (Constants.DATA_SCHEMA_NAME_ATSR_L1B.equalsIgnoreCase(schemaName)) {
             return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
         }
         if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new NullGeoBoundaryCalculator());
+            return new ProductIOHandler(sensorName, null);
         }
         if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
             return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
         }
-        if (Constants.DATA_SCHEMA_NAME_SEA_ICE.equalsIgnoreCase(schemaName)) {
+        if (Constants.DATA_SCHEMA_NAME_SEAICE.equalsIgnoreCase(schemaName)) {
             return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
         }
-        if (Constants.DATA_SCHEMA_INSITU.equalsIgnoreCase(schemaName)) {
-            return new InsituHistoryIOHandler();
+        if (Constants.DATA_SCHEMA_INSITU_HISTORY.equalsIgnoreCase(schemaName)) {
+            return new InsituIOHandler();
         }
         throw new IllegalArgumentException(
                 MessageFormat.format("No appropriate IO handler for schema {0} found.", schemaName));

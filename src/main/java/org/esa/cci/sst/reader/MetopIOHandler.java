@@ -28,7 +28,7 @@ import static org.esa.cci.sst.SensorType.METOP;
  *
  * @author Martin Boettcher
  */
-public class MetopIOHandler extends NetcdfIOHandler {
+public class MetopIOHandler extends MdIOHandler {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
     static final long MILLISECONDS_1981;

@@ -20,7 +20,7 @@ import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
@@ -29,6 +29,7 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -42,7 +43,7 @@ import java.util.TimeZone;
  *
  * @author Thomas Storm
  */
-public class InsituIOHandler extends NetcdfStructureIOHandler {
+public class InsituIOHandler extends NetcdfIOHandler {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
     private static final String VARNAME_HISTORY_TIME = "history.insitu.time";
@@ -70,7 +71,7 @@ public class InsituIOHandler extends NetcdfStructureIOHandler {
         observation.setSensor(getSensorName());
         try {
             final Date startTime = parseDate("start_date");
-            final Date endTime = parseDate("drog_off_date");
+            final Date endTime = parseDate("end_date");
             observation.setTime(centerTime(startTime, endTime));
             observation.setTimeRadius(timeRadius(startTime, endTime));
         } catch (ParseException e) {
@@ -89,22 +90,22 @@ public class InsituIOHandler extends NetcdfStructureIOHandler {
     }
 
     @Override
-    public void write(NetcdfFileWriteable file, Observation observation, Variable variable,
+    public void write(NetcdfFileWriteable file, Observation observation, VariableDescriptor variableDescriptor,
                       int matchupIndex, int[] dimensionSizes, PGgeometry refPoint, Date refTime) throws IOException {
         final NetcdfFile sourceFile = getNcFile();
-        final ucar.nc2.Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(variable.getName()));
+        final Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(variableDescriptor.getName()));
         int[] origin = createOrigin(matchupIndex, dimensionSizes.length);
         int[] shape = createShape(matchupIndex, dimensionSizes);
         try {
             Array array;
-            final ucar.nc2.Variable timeVar = sourceFile.findVariable(NetcdfFile.escapeName(VARNAME_HISTORY_TIME));
+            final Variable timeVar = sourceFile.findVariable(NetcdfFile.escapeName(VARNAME_HISTORY_TIME));
             final Array drifterTimeValue = timeVar.read(createOrigin(matchupIndex, 1), new int[]{1});
             if (fits(refTime, drifterTimeValue.getDouble(0))) {
                 array = sourceVariable.read(origin, shape);
             } else {
                 array = createFillArray(sourceVariable.getDataType(), null, shape);
             }
-            file.write(NetcdfFile.escapeName(variable.getName()), array);
+            file.write(NetcdfFile.escapeName(variableDescriptor.getName()), array);
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -149,7 +150,17 @@ public class InsituIOHandler extends NetcdfStructureIOHandler {
     }
 
     private static PGgeometry geometry(double startLon, double startLat, double endLon, double endLat) {
+        startLon = normalizeLon(startLon);
+        endLon = normalizeLon(endLon);
+
         return new PGgeometry(new LineString(new Point[]{new Point(startLon, startLat), new Point(endLon, endLat)}));
+    }
+
+    private static double normalizeLon(double lon) {
+        if (lon > 180.0) {
+            lon = lon - 360.0;
+        }
+        return lon;
     }
 
     private Date parseDate(String attributeName) throws ParseException {
@@ -165,6 +176,6 @@ public class InsituIOHandler extends NetcdfStructureIOHandler {
     }
 
     private static long timeRadius(Date startTime, Date endTime) {
-        return Math.abs(endTime.getTime() - startTime.getTime()) / 2;
+        return Math.abs(endTime.getTime() - startTime.getTime()) / 2000;
     }
 }

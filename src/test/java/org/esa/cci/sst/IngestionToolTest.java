@@ -16,7 +16,7 @@ public class IngestionToolTest {
         assertTrue(noArgs.setCommandLineArgs(new String[]{}));
         assertEquals(false, noArgs.isDebug());
         assertEquals(false, noArgs.isVerbose());
-        if (MmsTool.DEFAULT_CONFIGURATION_FILE.exists()) {
+        if (new File(MmsTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
             assertNotNull(noArgs.getConfiguration().getProperty("openjpa.ConnectionURL"));
         }
 
@@ -24,7 +24,7 @@ public class IngestionToolTest {
         final File configFile = new File(getClass().getResource("test.properties").toURI());
         assertTrue(configOnly.setCommandLineArgs(new String[]{"-c", configFile.getPath()}));
         assertEquals("value1", configOnly.getConfiguration().getProperty("mms.name1"));
-        if (MmsTool.DEFAULT_CONFIGURATION_FILE.exists()) {
+        if (new File(MmsTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
             assertNull(configOnly.getConfiguration().getProperty("openjpa.ConnectionURL"));
         }
 

@@ -20,9 +20,9 @@ import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.reader.IOHandler;
 import org.postgis.PGgeometry;
 import ucar.ma2.DataType;
@@ -61,7 +61,7 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         for (SensorType sensorType : SensorType.values()) {
             if (!ATSR_MD.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
                 !AAI.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase()) &&
-                !INSITU.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase())) {
+                !HISTORY.nameLowerCase().equalsIgnoreCase(sensorType.nameLowerCase())) {
                 delegate.addObservationTime(file, sensorType.nameLowerCase());
                 delegate.addLsMask(file, sensorType.nameLowerCase());
                 delegate.addNwpData(file, sensorType.nameLowerCase());
@@ -108,14 +108,14 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         delegate.close();
     }
 
-    private void writeObservation(final NetcdfFileWriteable file, final RelatedObservation observation,
+    private void writeObservation(final NetcdfFileWriteable file, final Observation observation,
                                   final PGgeometry point, final Date refTime, final int matchupIndex) throws Exception {
         IOHandler ioHandler = delegate.getReader(observation);
-        final Variable[] variables = ioHandler.getVariables();
-        for (Variable variable : variables) {
-            if (outputVariables.contains(variable.getName().replace(observation.getSensor() + ".", ""))) {
-                ioHandler.write(file, observation, variable, matchupIndex,
-                                delegate.getDimensionSizes(variable.getName()),
+        final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+        for (VariableDescriptor variableDescriptor : variableDescriptors) {
+            if (outputVariables.contains(variableDescriptor.getName().replace(observation.getSensor() + ".", ""))) {
+                ioHandler.write(file, observation, variableDescriptor, matchupIndex,
+                                delegate.getDimensionSizes(variableDescriptor.getName()),
                                 point, refTime);
             }
         }
@@ -132,8 +132,8 @@ public class SelectedVarsMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     @SuppressWarnings({"unchecked"})
     private void addVariables(final NetcdfFileWriteable file, final String sensor) {
         final Query query = delegate.createVariablesQuery(sensor);
-        final List<Variable> resultList = query.getResultList();
-        for (final Variable var : resultList) {
+        final List<VariableDescriptor> resultList = query.getResultList();
+        for (final VariableDescriptor var : resultList) {
             String cleanVarName = var.getName();
             final int index = cleanVarName.indexOf(".");
             cleanVarName = cleanVarName.substring(index + 1);

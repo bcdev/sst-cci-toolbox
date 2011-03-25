@@ -16,6 +16,10 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The base class for all MMS command line tools.
@@ -26,15 +30,14 @@ import java.util.Properties;
  */
 public class MmsTool {
 
-    static final File DEFAULT_CONFIGURATION_FILE = new File("mms-config.properties");
-    /**
-     * Name of persistence unit in META-INF/persistence.xml
-     */
     public static final String CONFIG_FILE_OPTION_NAME = "c";
+    public static final String DEFAULT_CONFIGURATION_FILE_NAME = "mms-config.properties";
 
     private final String name;
     private final String version;
     private final Properties configuration;
+    private final Logger logger;
+    private final ErrorHandler errorHandler;
     private final Options options;
 
     private boolean verbose;
@@ -46,6 +49,32 @@ public class MmsTool {
         this.name = name;
         this.version = version;
         configuration = new Properties();
+
+        logger = Logger.getLogger("org.esa.cci.sst");
+        try {
+            logger.addHandler(new FileHandler(name.replace(".sh", ".log")));
+        } catch (IOException ignored) {
+            logger.addHandler(new ConsoleHandler());
+        }
+        errorHandler = new ErrorHandler() {
+            @Override
+            public void handleError(Throwable t, String message, int exitCode) {
+                getLogger().log(Level.SEVERE, message, t);
+                for (final StackTraceElement element : t.getStackTrace()) {
+                    getLogger().log(Level.ALL, element.toString());
+                }
+                System.exit(exitCode);
+            }
+
+            @Override
+            public void handleWarning(Throwable t, String message) {
+                Logger.getLogger("org.esa.cci.sst").log(Level.WARNING, message, t);
+                for (final StackTraceElement element : t.getStackTrace()) {
+                    getLogger().log(Level.ALL, element.toString());
+                }
+            }
+        };
+
         options = createCommandLineOptions();
 
         for (final Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
@@ -63,6 +92,14 @@ public class MmsTool {
         return version;
     }
 
+    public final Logger getLogger() {
+        return logger;
+    }
+
+    public final ErrorHandler getErrorHandler() {
+        return errorHandler;
+    }
+
     public final Properties getConfiguration() {
         return configuration;
     }
@@ -73,6 +110,9 @@ public class MmsTool {
 
     public final void setDebug(boolean debug) {
         this.debug = debug;
+        if (debug) {
+            logger.setLevel(Level.ALL);
+        }
     }
 
     public final boolean isVerbose() {
@@ -81,6 +121,9 @@ public class MmsTool {
 
     public final void setVerbose(boolean verbose) {
         this.verbose = verbose;
+        if (verbose) {
+            logger.setLevel(Level.FINE);
+        }
     }
 
     public final Options getOptions() {
@@ -95,8 +138,8 @@ public class MmsTool {
         final CommandLineParser parser = new PosixParser();
         try {
             final CommandLine commandLine = parser.parse(getOptions(), args);
-            setDebug(commandLine.hasOption("debug"));
             setVerbose(commandLine.hasOption("verbose"));
+            setDebug(commandLine.hasOption("debug"));
             if (commandLine.hasOption("version")) {
                 printVersion();
                 return false;
@@ -105,10 +148,11 @@ public class MmsTool {
                 printHelp("");
                 return false;
             }
-            final File configurationFile = (File) commandLine.getParsedOptionValue(CONFIG_FILE_OPTION_NAME);
+            File configurationFile = (File) commandLine.getParsedOptionValue(CONFIG_FILE_OPTION_NAME);
             if (configurationFile == null) {
-                if (DEFAULT_CONFIGURATION_FILE.exists()) {
-                    addConfigurationProperties(DEFAULT_CONFIGURATION_FILE);
+                configurationFile = new File(DEFAULT_CONFIGURATION_FILE_NAME);
+                if (configurationFile.exists()) {
+                    addConfigurationProperties(configurationFile);
                 }
             } else {
                 addConfigurationProperties(configurationFile);
@@ -119,7 +163,7 @@ public class MmsTool {
             }
             setAdditionalCommandLineArgs(commandLine);
         } catch (ParseException e) {
-            throw new ToolException(e.getMessage(), 4, e);
+            throw new ToolException(e.getMessage(), e, ToolException.COMMAND_LINE_ARGUMENTS_PARSE_ERROR);
         }
 
         return true;
@@ -138,12 +182,6 @@ public class MmsTool {
         return getName();
     }
 
-    public void printInfo(String msg) {
-        if (isVerbose()) {
-            System.out.println(MessageFormat.format("{0}: {1}", getName(), msg));
-        }
-    }
-
     protected void setAdditionalCommandLineArgs(CommandLine commandLine) {
     }
 
@@ -159,9 +197,11 @@ public class MmsTool {
             configuration.load(reader);
             addConfigurationProperties(configuration);
         } catch (FileNotFoundException e) {
-            throw new ToolException(MessageFormat.format("File not found {0}", configurationFile), 2, e);
+            throw new ToolException(MessageFormat.format("File not found {0}", configurationFile), e,
+                                    ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
         } catch (IOException e) {
-            throw new ToolException(MessageFormat.format("Failed to read from {0}", configurationFile), 3, e);
+            throw new ToolException(MessageFormat.format("Failed to read from {0}", configurationFile), e,
+                                    ToolException.CONFIGURATION_FILE_IO_ERROR);
         } finally {
             if (reader != null) {
                 try {
@@ -171,7 +211,7 @@ public class MmsTool {
                 }
             }
         }
-        printInfo(MessageFormat.format("Using configuration read from {0}", configurationFile));
+        getLogger().fine(MessageFormat.format("Using configuration read from {0}", configurationFile));
     }
 
     private void addConfigurationProperties(Properties properties) {
@@ -210,4 +250,5 @@ public class MmsTool {
 
         return options;
     }
+
 }

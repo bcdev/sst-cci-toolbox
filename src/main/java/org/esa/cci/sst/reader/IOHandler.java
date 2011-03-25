@@ -2,7 +2,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
@@ -54,14 +54,14 @@ public interface IOHandler {
      */
     Observation readObservation(int recordNo) throws IOException;
 
-    Variable[] getVariables() throws IOException;
+    VariableDescriptor[] getVariableDescriptors() throws IOException;
 
     /**
-     * Writes the variable from the observation in the file.
+     * Writes the variableDescriptor from the observation in the file.
      *
      * @param file           The file to write into.
      * @param observation    The observation to write.
-     * @param variable       The variable to write.
+     * @param variableDescriptor       The variableDescriptor to write.
      * @param matchupIndex   The current matchup index.
      * @param dimensionSizes An array containing dimension sizes.
      * @param refPoint       The geo-location of the reference observation.
@@ -69,6 +69,6 @@ public interface IOHandler {
      *
      * @throws java.io.IOException If observation data could not be written into the file.
      */
-    void write(NetcdfFileWriteable file, Observation observation, Variable variable, int matchupIndex,
+    void write(NetcdfFileWriteable file, Observation observation, VariableDescriptor variableDescriptor, int matchupIndex,
                int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws IOException;
 }

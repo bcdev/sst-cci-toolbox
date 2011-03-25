@@ -2,8 +2,9 @@ package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
+import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
@@ -13,6 +14,10 @@ import javax.persistence.Query;
 import java.io.File;
 import java.io.FileFilter;
 import java.text.MessageFormat;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -24,21 +29,19 @@ import java.util.Properties;
 public class IngestionTool extends MmsTool {
 
     public static void main(String[] args) {
-        IngestionTool ingestionTool = new IngestionTool();
+        final IngestionTool tool = new IngestionTool();
         try {
-            final boolean performWork = ingestionTool.setCommandLineArgs(args);
+            final boolean performWork = tool.setCommandLineArgs(args);
             if (!performWork) {
                 return;
             }
-            ingestionTool.initialize();
-            ingestionTool.cleanup();
-            ingestionTool.ingest();
+            tool.initialize();
+            tool.cleanup();
+            tool.ingest();
         } catch (ToolException e) {
-            System.err.println("Error: " + e.getMessage());
-            if (ingestionTool.isDebug()) {
-                e.printStackTrace(System.err);
-            }
-            System.exit(e.getExitCode());
+            tool.getErrorHandler().handleError(e, e.getMessage(), e.getExitCode());
+        } catch (Throwable t) {
+            tool.getErrorHandler().handleError(t, t.getMessage(), 1);
         }
     }
 
@@ -69,30 +72,28 @@ public class IngestionTool extends MmsTool {
                 continue;
             }
             if (!SensorType.isSensorType(sensorType)) {
-                throw new ToolException(MessageFormat.format("Unknown sensor type ''{0}''.", sensorType), 1);
+                throw new ToolException(MessageFormat.format("Unknown sensor type ''{0}''.", sensorType),
+                                        ToolException.TOOL_CONFIGURATION_ERROR);
             }
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.test.inputSets.%d.filenamePattern", i), ".*");
             final File inputDir = new File(inputDirPath);
-            final File[] inputFiles = inputDir.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().matches(filenamePattern);
-                }
-            });
-            if (inputFiles != null) {
+            final ArrayList<File> inputFileList = new ArrayList<File>(0);
+            collectInputFiles(inputDir, filenamePattern, inputFileList);
+            if (!inputFileList.isEmpty()) {
                 try {
                     final IOHandler ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
-                    for (final File inputFile : inputFiles) {
+                    for (final File inputFile : inputFileList) {
                         ingest(inputFile, schemaName, sensorType, ioHandler);
                     }
                 } catch (IllegalArgumentException e) {
                     throw new ToolException(MessageFormat.format(
-                            "Cannot create IO handler for schema ''{0}''.", schemaName), 1, e);
+                            "Cannot create IO handler for schema ''{0}''.", schemaName), e,
+                                            ToolException.TOOL_CONFIGURATION_ERROR);
                 }
                 directoryCount++;
             } else {
-                printInfo(MessageFormat.format("missing directory ''{0}''.", inputDirPath));
+                getLogger().fine(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
             }
         }
         if (directoryCount == 0) {
@@ -102,9 +103,31 @@ public class IngestionTool extends MmsTool {
                                     "\tmms.test.inputSets.<i>.inputDirectory = <inputDirectory>\n" +
                                     "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)" +
                                     "\tmms.test.inputSets.<i>.sensor = <sensor>\n" +
-                                    "\tmms.test.inputSets.<i>.sensorType = <sensorType>", 1);
+                                    "\tmms.test.inputSets.<i>.sensorType = <sensorType>",
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
-        printInfo(directoryCount + " input set(s) ingested.");
+        getLogger().fine(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
+    }
+
+    private void collectInputFiles(File inputDir, final String filenamePattern, List<File> inputFileList) {
+        if (inputDir.isDirectory()) {
+            final File[] inputFiles = inputDir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.isFile() && file.getName().matches(filenamePattern);
+                }
+            });
+            Collections.addAll(inputFileList, inputFiles);
+            final File[] subDirs = inputDir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.isDirectory();
+                }
+            });
+            for (final File subDir : subDirs) {
+                collectInputFiles(subDir, filenamePattern, inputFileList);
+            }
+        }
     }
 
     /**
@@ -154,37 +177,38 @@ public class IngestionTool extends MmsTool {
             ioHandler.init(dataFile);
 
             if (newDataSchema) {
-                final Variable[] variables = ioHandler.getVariables();
-                System.out.printf("number of variables for schema '%s' = %d%n", schemaName, variables.length);
-                for (Variable variable : variables) {
-                    persistenceManager.persist(variable);
+                final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+                getLogger().info(MessageFormat.format(
+                        "Number of variables for schema ''{0}'' = {1}.", schemaName, variableDescriptors.length));
+                for (VariableDescriptor variableDescriptor : variableDescriptors) {
+                    persistenceManager.persist(variableDescriptor);
                 }
             }
 
-            // TODO remove restriction regarding time interval, used only during initial tests
-            final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-01T00:00:00Z");
-            final long stop = TimeUtil.parseCcsdsUtcFormat("2010-07-01T00:00:00Z");
             int recordsInTimeInterval = 0;
 
             // loop over records
             for (int recordNo = 0; recordNo < ioHandler.getNumRecords(); ++recordNo) {
                 if (recordNo % 65536 == 0 && recordNo > 0) {
-                    System.out.printf("reading record %s %d\n", schemaName, recordNo);
+                    getLogger().info(MessageFormat.format("Reading record {0} {1}.", schemaName, recordNo));
                 }
-
                 try {
                     final Observation observation = ioHandler.readObservation(recordNo);
-                    final long time = observation.getTime().getTime();
-                    if (time >= start && time < stop) {
+                    // todo - remove restriction regarding time interval, used only during initial tests
+                    if (checkTime(observation)) {
                         ++recordsInTimeInterval;
                         try {
                             persistenceManager.persist(observation);
                         } catch (IllegalArgumentException e) {
-                            System.out.printf("%s %d observation incomplete\n", schemaName, recordNo);
+                            final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
+                                                                        schemaName,
+                                                                        recordNo,
+                                                                        e.getMessage());
+                            getErrorHandler().handleWarning(e, message);
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println(MessageFormat.format(
+                    getLogger().fine(MessageFormat.format(
                             "ignoring observation for record number {0}: {1}", recordNo, e.getMessage()));
                 }
                 if (recordNo % 65536 == 65535) {
@@ -194,7 +218,9 @@ public class IngestionTool extends MmsTool {
             }
             // make changes in database
             persistenceManager.commit();
-            System.out.printf("%d %s records in time interval\n", recordsInTimeInterval, schemaName);
+            getLogger().info(MessageFormat.format("{0} {1} records in time interval.",
+                                                  schemaName,
+                                                  recordsInTimeInterval));
         } catch (Exception e) {
             // do not make any change in case of errors
             try {
@@ -202,7 +228,7 @@ public class IngestionTool extends MmsTool {
             } catch (Exception ignored) {
                 // ignored, because surrounding exception is propagated
             }
-            throw new ToolException("Failed to ingest file " + file, 7, e);
+            throw new ToolException("Failed to ingest file '" + file + "'.", e, ToolException.TOOL_ERROR);
         } finally {
             ioHandler.close();
         }
@@ -215,7 +241,7 @@ public class IngestionTool extends MmsTool {
         delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from Observation o");
         delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from Variable v");
+        delete = persistenceManager.createQuery("delete from VariableDescriptor v");
         delete.executeUpdate();
         delete = persistenceManager.createQuery("delete from DataSchema s");
         delete.executeUpdate();
@@ -226,4 +252,16 @@ public class IngestionTool extends MmsTool {
         persistenceManager.commit();
     }
 
+    private static boolean checkTime(Observation observation) throws ParseException {
+        final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-01T00:00:00Z");
+        final long stop = TimeUtil.parseCcsdsUtcFormat("2010-07-01T00:00:00Z");
+        final long time = observation.getTime().getTime();
+        final long timeRadius;
+        if (observation instanceof InsituObservation) {
+            timeRadius = ((InsituObservation) observation).getTimeRadius();
+        } else {
+            timeRadius = 0;
+        }
+        return time + timeRadius * 1000 >= start && time - timeRadius * 1000 < stop;
+    }
 }

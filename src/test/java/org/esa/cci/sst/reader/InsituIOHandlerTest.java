@@ -61,8 +61,8 @@ public class InsituIOHandlerTest {
         assertEquals(11, calendar.get(Calendar.MONTH));
         assertEquals(17, calendar.get(Calendar.DATE));
 
-        final double millisPerDay = 86400000.0;
-        assertEquals(24.5, observation.getTimeRadius() / millisPerDay, 0.0);
+        final double secondsPerDay = 86400.0;
+        assertEquals(24.5, observation.getTimeRadius() / secondsPerDay, 0.0);
 
         final PGgeometry location = observation.getLocation();
         assertNotNull(location);

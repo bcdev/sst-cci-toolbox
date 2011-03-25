@@ -17,16 +17,16 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.data.Variable;
+import org.esa.cci.sst.data.VariableDescriptor;
 
 /**
  * @author Thomas Storm
  */
 public class IOUtils {
 
-    static int[] createOriginArray(int matchupIndex, Variable variable) {
-        String dimString = variable.getDimensions();
-        final String dimensionRoles = variable.getDimensionRoles();
+    static int[] createOriginArray(int matchupIndex, VariableDescriptor variableDescriptor) {
+        String dimString = variableDescriptor.getDimensions();
+        final String dimensionRoles = variableDescriptor.getDimensionRoles();
         String[] dims = dimString.split(" ");
         int length = dims.length;
         final boolean addMatchup = !(dimString.contains(Constants.DIMENSION_NAME_MATCHUP) ||

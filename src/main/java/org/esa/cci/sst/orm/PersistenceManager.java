@@ -25,7 +25,6 @@ public class PersistenceManager {
     }
 
     public void init(String persistenceUnitName) {
-
         emFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
         entityManager = emFactory.createEntityManager();
     }
@@ -59,10 +58,9 @@ public class PersistenceManager {
     }
 
     public Object pick(String queryString, String... parameter) {
-
         final Query query = createQuery(queryString);
-        for (int i=0; i<parameter.length; ++i) {
-            query.setParameter(i+1, parameter[i]);
+        for (int i = 0; i < parameter.length; ++i) {
+            query.setParameter(i + 1, parameter[i]);
         }
         List result = query.getResultList();
 
@@ -71,15 +69,15 @@ public class PersistenceManager {
         } else if (result.size() == 1) {
             return result.get(0);
         } else {
-            throw new NonUniqueResultException("single result instead of " + result.size() + " expected for query " + query.toString());
+            throw new NonUniqueResultException(
+                    "single result instead of " + result.size() + " expected for query " + query.toString());
         }
     }
 
     public Object pickNative(String queryString, Object... parameter) {
-
         final Query query = createNativeQuery(queryString);
-        for (int i=0; i<parameter.length; ++i) {
-            query.setParameter(i+1, parameter[i]);
+        for (int i = 0; i < parameter.length; ++i) {
+            query.setParameter(i + 1, parameter[i]);
         }
         List result = query.getResultList();
 
@@ -88,12 +86,9 @@ public class PersistenceManager {
         } else if (result.size() == 1) {
             return result.get(0);
         } else {
-            throw new NonUniqueResultException("single result instead of " + result.size() + " expected for query " + query.toString());
+            throw new NonUniqueResultException(
+                    "single result instead of " + result.size() + " expected for query " + query.toString());
         }
-    }
-
-    public void clearEntityManager() {
-        entityManager.clear();
     }
 
     public void detach(Object entity) {
