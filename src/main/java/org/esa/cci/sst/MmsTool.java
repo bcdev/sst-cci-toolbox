@@ -222,7 +222,6 @@ public class MmsTool {
                 }
             }
         }
-        getLogger().fine(MessageFormat.format("Using configuration read from {0}", configurationFile));
     }
 
     private void addConfigurationProperties(Properties properties) {

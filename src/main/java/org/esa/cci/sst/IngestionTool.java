@@ -181,8 +181,8 @@ public class IngestionTool extends MmsTool {
 
             if (newDataSchema) {
                 final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-                getLogger().info(MessageFormat.format(
-                        "Number of variables for schema ''{0}'' = {1}.", schemaName, variableDescriptors.length));
+                getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
+                                                      schemaName, variableDescriptors.length));
                 for (VariableDescriptor variableDescriptor : variableDescriptors) {
                     persistenceManager.persist(variableDescriptor);
                 }
@@ -211,8 +211,8 @@ public class IngestionTool extends MmsTool {
                         }
                     }
                 } catch (Exception e) {
-                    getLogger().fine(MessageFormat.format(
-                            "ignoring observation for record number {0}: {1}", recordNo, e.getMessage()));
+                    getLogger().fine(MessageFormat.format("Ignoring observation for record number {0}: {1}",
+                                                          recordNo, e.getMessage()));
                 }
                 if (recordNo % 65536 == 65535) {
                     persistenceManager.commit();
@@ -221,8 +221,7 @@ public class IngestionTool extends MmsTool {
             }
             // make changes in database
             persistenceManager.commit();
-            getLogger().info(MessageFormat.format("{0} {1} records in time interval.",
-                                                  schemaName,
+            getLogger().info(MessageFormat.format("{0} {1} records in time interval.", schemaName,
                                                   recordsInTimeInterval));
         } catch (Exception e) {
             // do not make any change in case of errors
