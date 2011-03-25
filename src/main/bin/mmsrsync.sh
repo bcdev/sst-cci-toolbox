@@ -16,4 +16,4 @@ if [ -z "$CCI_SST_HOME" ]; then
     exit 2
 fi
 
-rsync -r "$CCI_SST_HOME" mms@10.3.0.35:
+rsync -vr "$CCI_SST_HOME" mms@10.3.0.35:
