@@ -389,7 +389,7 @@ public class MatchupTool extends MmsTool {
         query.setParameter(1, refObs.getId());
         query.setParameter(2, sensor);
         @SuppressWarnings({"unchecked"})
-        final List<Observation> observations = query.getResultList();
+        final List<? extends Observation> observations = query.getResultList();
         if (observations.size() > 0) {
             // select temporally nearest common observation
             return observations.get(0);
