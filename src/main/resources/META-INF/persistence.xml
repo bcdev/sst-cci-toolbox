@@ -14,17 +14,14 @@
         <class>org.esa.cci.sst.data.Observation</class>
         <class>org.esa.cci.sst.data.ReferenceObservation</class>
         <class>org.esa.cci.sst.data.RelatedObservation</class>
-        <class>org.esa.cci.sst.data.Variable</class>
+        <class>org.esa.cci.sst.data.VariableDescriptor</class>
 
-        <!--
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>
-            <property name="openjpa.ConnectionURL" value="jdbc:postgresql://localhost:5432/mygisdb"/>
             <property name="openjpa.ConnectionUserName" value="mms"/>
             <property name="openjpa.ConnectionPassword" value="mms"/>
             <property name="openjpa.Log" value="DefaultLevel=INFO,SQL=INFO"/>
             <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/>
         </properties>
-        -->
     </persistence-unit>
 </persistence>
