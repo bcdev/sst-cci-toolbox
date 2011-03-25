@@ -16,6 +16,11 @@
 
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
+
 /**
  * Enumeration of sensor types.
  *
@@ -24,24 +29,30 @@ package org.esa.cci.sst;
  */
 public enum SensorType {
 
-    ATSR_MD(0x01, "atsr_md"),
-    METOP(0x02, "metop"),
-    SEVIRI(0x04, "seviri"),
-    AVHRR(0x08, "avhrr_m01", "avhrr_m02", "avhrr_m03", "avhrr_10", "avhrr_11", "avhrr_12", "avhrr_14", "avhrr_15",
-          "avhrr_16", "avhrr_17", "avhrr_18", "avhrr_19"),
-    AMSRE(0x10, "amsre"),
-    TMI(0x20, "tmi"),
-    ATSR(0x40, "atsr1", "atsr2", "aatsr"),
-    AAI(0x80, "aai"),
-    SEAICE(0x0100, "seaice"),
-    HISTORY(0x0200, "history");
+    ATSR_MD(ReferenceObservation.class, 0x01, "atsr_md"),
+    METOP(ReferenceObservation.class, 0x02, "metop"),
+    SEVIRI(ReferenceObservation.class, 0x04, "seviri"),
+    AVHRR(RelatedObservation.class, 0x08, "avhrr_m01", "avhrr_m02", "avhrr_m03", "avhrr_10", "avhrr_11", "avhrr_12",
+          "avhrr_14", "avhrr_15", "avhrr_16", "avhrr_17", "avhrr_18", "avhrr_19"),
+    AMSRE(RelatedObservation.class, 0x10, "amsre"),
+    TMI(RelatedObservation.class, 0x20, "tmi"),
+    ATSR(RelatedObservation.class, 0x40, "atsr1", "atsr2", "aatsr"),
+    AAI(Observation.class, 0x80, "aai"),
+    SEAICE(RelatedObservation.class, 0x0100, "seaice"),
+    HISTORY(InsituObservation.class, 0x0200, "history");
 
+    private final Class<? extends Observation> observationClass;
     private final long pattern;
     private final String[] sensors;
 
-    private SensorType(long pattern, String... sensors) {
+    private SensorType(Class<? extends Observation> observationClass, long pattern, String... sensors) {
+        this.observationClass = observationClass;
         this.pattern = pattern;
         this.sensors = sensors;
+    }
+
+    public Class<? extends Observation> getObservationClass() {
+        return observationClass;
     }
 
     public long getPattern() {
