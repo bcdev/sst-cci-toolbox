@@ -92,8 +92,9 @@ public class MmsTool {
                         public void handleError(Throwable t, String message, int exitCode) {
                             getLogger().log(Level.SEVERE, message, t);
                             for (final StackTraceElement element : t.getStackTrace()) {
-                                getLogger().log(Level.ALL, element.toString());
+                                getLogger().log(Level.FINEST, element.toString());
                             }
+                            System.err.println(MessageFormat.format("Error: {0}", message));
                             System.exit(exitCode);
                         }
 
@@ -101,7 +102,7 @@ public class MmsTool {
                         public void handleWarning(Throwable t, String message) {
                             Logger.getLogger("org.esa.cci.sst").log(Level.WARNING, message, t);
                             for (final StackTraceElement element : t.getStackTrace()) {
-                                getLogger().log(Level.ALL, element.toString());
+                                getLogger().log(Level.FINEST, element.toString());
                             }
                         }
                     };
@@ -119,10 +120,10 @@ public class MmsTool {
         return debug;
     }
 
-    public final void setDebug(boolean debug) {
+    private void setDebug(boolean debug) {
         this.debug = debug;
         if (debug) {
-            logger.setLevel(Level.ALL);
+            getLogger().setLevel(Level.ALL);
         }
     }
 
@@ -130,10 +131,10 @@ public class MmsTool {
         return verbose;
     }
 
-    public final void setVerbose(boolean verbose) {
+    private void setVerbose(boolean verbose) {
         this.verbose = verbose;
         if (verbose) {
-            logger.setLevel(Level.FINE);
+            getLogger().setLevel(Level.FINE);
         }
     }
 
