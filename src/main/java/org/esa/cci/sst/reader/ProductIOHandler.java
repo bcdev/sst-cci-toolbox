@@ -75,12 +75,12 @@ public class ProductIOHandler implements IOHandler {
     @Override
     public final Observation readObservation(int recordNo) throws IOException {
         final Observation observation;
-        if (gbc != null) {
+        if (gbc == null) {
+            observation = new Observation();
+        } else {
             final RelatedObservation relatedObservation = new RelatedObservation();
             relatedObservation.setLocation(createGeometry(gbc.getGeoBoundary(product)));
             observation = relatedObservation;
-        } else {
-            observation = new Observation();
         }
 
         observation.setDatafile(dataFile);
