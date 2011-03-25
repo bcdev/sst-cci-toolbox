@@ -36,9 +36,10 @@ public class MmsTool {
     private final String name;
     private final String version;
     private final Properties configuration;
-    private final Logger logger;
-    private final ErrorHandler errorHandler;
     private final Options options;
+
+    private Logger logger;
+    private ErrorHandler errorHandler;
 
     private boolean verbose;
     private boolean debug;
@@ -49,32 +50,6 @@ public class MmsTool {
         this.name = name;
         this.version = version;
         configuration = new Properties();
-
-        logger = Logger.getLogger("org.esa.cci.sst");
-        try {
-            logger.addHandler(new FileHandler(name.replace(".sh", ".log")));
-        } catch (IOException ignored) {
-            logger.addHandler(new ConsoleHandler());
-        }
-        errorHandler = new ErrorHandler() {
-            @Override
-            public void handleError(Throwable t, String message, int exitCode) {
-                getLogger().log(Level.SEVERE, message, t);
-                for (final StackTraceElement element : t.getStackTrace()) {
-                    getLogger().log(Level.ALL, element.toString());
-                }
-                System.exit(exitCode);
-            }
-
-            @Override
-            public void handleWarning(Throwable t, String message) {
-                Logger.getLogger("org.esa.cci.sst").log(Level.WARNING, message, t);
-                for (final StackTraceElement element : t.getStackTrace()) {
-                    getLogger().log(Level.ALL, element.toString());
-                }
-            }
-        };
-
         options = createCommandLineOptions();
 
         for (final Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
@@ -93,10 +68,46 @@ public class MmsTool {
     }
 
     public final Logger getLogger() {
+        if (logger == null) {
+            synchronized (this) {
+                if (logger == null) {
+                    logger = Logger.getLogger("org.esa.cci.sst");
+                    try {
+                        logger.addHandler(new FileHandler(name.replace(".sh", ".log")));
+                    } catch (IOException ignored) {
+                        logger.addHandler(new ConsoleHandler());
+                    }
+                }
+            }
+        }
         return logger;
     }
 
     public final ErrorHandler getErrorHandler() {
+        if (errorHandler == null) {
+            synchronized (this) {
+                if (errorHandler == null) {
+                    errorHandler = new ErrorHandler() {
+                        @Override
+                        public void handleError(Throwable t, String message, int exitCode) {
+                            getLogger().log(Level.SEVERE, message, t);
+                            for (final StackTraceElement element : t.getStackTrace()) {
+                                getLogger().log(Level.ALL, element.toString());
+                            }
+                            System.exit(exitCode);
+                        }
+
+                        @Override
+                        public void handleWarning(Throwable t, String message) {
+                            Logger.getLogger("org.esa.cci.sst").log(Level.WARNING, message, t);
+                            for (final StackTraceElement element : t.getStackTrace()) {
+                                getLogger().log(Level.ALL, element.toString());
+                            }
+                        }
+                    };
+                }
+            }
+        }
         return errorHandler;
     }
 
