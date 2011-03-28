@@ -31,9 +31,7 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  *
- * todo - resources required by this test are missing (rq-20110322)
  */
-//@Ignore
 public class ProductSubsceneGeneratorTest {
 
     private static final String TEST_OUTPUT_FILENAME = "test_output.nc";
