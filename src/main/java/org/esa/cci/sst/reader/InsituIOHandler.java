@@ -90,6 +90,21 @@ public class InsituIOHandler extends NetcdfIOHandler {
         return observation;
     }
 
+    /**
+     * Writes a subset of an in-situ history observation to an MMD target file. The method must be called per
+     * variable and per match-up. The subset covers plus/minus 12 hours centered at the reference observation
+     * time. The subset is limited by the size of the target array, which is {@link org.esa.cci.sst.Constants#INSITU_HISTORY_LENGTH}.
+     *
+     * @param targetFile         The target MMD file.
+     * @param observation        The observation to write.
+     * @param variableDescriptor The variable to write.
+     * @param matchupIndex       The target matchup index.
+     * @param dimensionSizes     Not used.
+     * @param refPoint           Not used.
+     * @param refTime            The reference time.
+     *
+     * @throws IOException when an IO error has occurred.
+     */
     @Override
     public void write(NetcdfFileWriteable targetFile, Observation observation, VariableDescriptor variableDescriptor,
                       int matchupIndex, int[] dimensionSizes, PGgeometry refPoint, Date refTime) throws IOException {
