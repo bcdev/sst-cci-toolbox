@@ -36,6 +36,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 import java.util.TimeZone;
 
 /**
@@ -46,7 +47,7 @@ import java.util.TimeZone;
 public class InsituIOHandler extends NetcdfIOHandler {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
-    private static final String VARNAME_HISTORY_TIME = "history.insitu.time";
+    private static final String VARNAME_HISTORY_TIME = "insitu.time";
 
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -90,27 +91,61 @@ public class InsituIOHandler extends NetcdfIOHandler {
     }
 
     @Override
-    public void write(NetcdfFileWriteable file, Observation observation, VariableDescriptor variableDescriptor,
+    public void write(NetcdfFileWriteable targetFile, Observation observation, VariableDescriptor variableDescriptor,
                       int matchupIndex, int[] dimensionSizes, PGgeometry refPoint, Date refTime) throws IOException {
         final NetcdfFile sourceFile = getNcFile();
-        final Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(variableDescriptor.getName()));
-        int[] origin = createOrigin(matchupIndex, dimensionSizes.length);
-        int[] shape = createShape(matchupIndex, dimensionSizes);
+
+        final String sourceVariableName = variableDescriptor.getName().replace(observation.getSensor() + ".", "");
+        final String targetVariableName = variableDescriptor.getName();
+        final Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(sourceVariableName));
+        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
+
+        final int[] sourceShape = sourceVariable.getShape();
+        final int[] sourceOrigin = new int[sourceShape.length];
+        findTimeInterval(sourceFile, refTime, targetVariable.getShape(1), sourceOrigin, sourceShape);
+
+        final int[] targetOrigin = new int[sourceShape.length + 1];
+        targetOrigin[0] = matchupIndex;
+        final int[] targetShape = new int[sourceShape.length + 1];
+        targetShape[0] = 1;
+        System.arraycopy(sourceShape, 0, targetShape, 1, sourceShape.length);
+
         try {
-            Array array;
-            final Variable timeVar = sourceFile.findVariable(NetcdfFile.escapeName(VARNAME_HISTORY_TIME));
-            final Array drifterTimeValue = timeVar.read(createOrigin(matchupIndex, 1), new int[]{1});
-            if (fits(refTime, drifterTimeValue.getDouble(0))) {
-                array = sourceVariable.read(origin, shape);
-            } else {
-                array = createFillArray(sourceVariable.getDataType(), null, shape);
-            }
-            file.write(NetcdfFile.escapeName(variableDescriptor.getName()), array);
+            final Array array = sourceVariable.read(sourceOrigin, sourceShape);
+            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array.reshape(targetShape));
         } catch (Exception e) {
             throw new IOException(e);
         }
+    }
 
-        // todo - consider gary's answer: do we need to write fitting to aatsr-buoy-id?
+    private static void findTimeInterval(NetcdfFile sourceFile, Date refTime, int limit, int[] origin,
+                                         int[] shape) throws IOException {
+        final Variable timeVar = sourceFile.findVariable(NetcdfFile.escapeName(VARNAME_HISTORY_TIME));
+        final Array times = timeVar.read();
+        final double refJd = TimeUtil.julianDate(refTime);
+        int startIndex = -1;
+        int endIndex = (int) times.getSize();
+        for (int i = 0; i < times.getSize(); i++) {
+            final double time = times.getDouble(i);
+            if (startIndex == -1 && time >= refJd - 0.5) {
+                startIndex = i;
+            }
+            if (startIndex != -1 && time <= refJd + 0.5) {
+                endIndex = i;
+            }
+        }
+        if (startIndex == -1) {
+            throw new NoSuchElementException("startIndex == -1");
+        }
+
+        final int size = endIndex - startIndex;
+        if (size <= limit) {
+            origin[0] = startIndex;
+            shape[0] = size;
+        } else {
+            origin[0] = startIndex + (size - limit) / 2;
+            shape[0] = limit;
+        }
     }
 
     static Array createFillArray(final DataType dataType, Object fillValue, final int[] shape) {

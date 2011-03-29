@@ -15,6 +15,8 @@ public final class TimeUtil {
 
     private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss,SSS");
+    public static final double MILLIS_PER_DAY = 86400000.0;
+    public static final double JD_EPOCH = 2440587.5;
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -62,6 +64,10 @@ public final class TimeUtil {
     }
 
     public static Date dateOfJulianDate(double julianDate) {
-        return new Date((long) ((julianDate - 2440587.5) * 86400000l));
+        return new Date((long) ((julianDate - JD_EPOCH) * MILLIS_PER_DAY));
+    }
+
+    public static double julianDate(Date date) {
+        return date.getTime() / MILLIS_PER_DAY + JD_EPOCH;
     }
 }
