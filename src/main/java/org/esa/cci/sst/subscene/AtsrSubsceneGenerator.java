@@ -17,6 +17,6 @@ class AtsrSubsceneGenerator extends ProductSubsceneGenerator {
 
     @Override
     int getSensorDimensionSize() {
-        return Constants.AATSR_LENGTH;
+        return Constants.ATSR_SUBSCENE_HEIGHT;
     }
 }

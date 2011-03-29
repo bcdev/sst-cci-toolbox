@@ -179,7 +179,7 @@ public class IngestionTool extends MmsTool {
 
             ioHandler.init(dataFile);
 
-            if (newDataSchema) {
+            if (true) {
                 final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
                 getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
                                                       schemaName, variableDescriptors.length));

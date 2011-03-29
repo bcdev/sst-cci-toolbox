@@ -2,7 +2,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
@@ -84,16 +83,16 @@ abstract public class MdIOHandler extends NetcdfIOHandler {
     }
 
     @Override
-    public void write(NetcdfFileWriteable file, Observation observation, VariableDescriptor variableDescriptor,
-                      int matchupIndex, int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws
+    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVarName,
+                      String targetVarName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
                                                                                                              IOException {
-        String sensorName = observation.getSensor();
-        final String targetVarName = variableDescriptor.getName();
-        final String sourceVarName = targetVarName.replace(sensorName + ".", "");
-        final int[] origin = IOUtils.createOriginArray(matchupIndex, variableDescriptor);
+        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVarName));
+        final int[] origin = new int[targetVariable.getRank()];
+        origin[0] = matchupIndex;
+
         try {
             final Array variableData = getData(sourceVarName, observation.getRecordNo());
-            file.write(NetcdfFile.escapeName(targetVarName), origin, variableData);
+            targetFile.write(NetcdfFile.escapeName(targetVarName), origin, variableData);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         }
@@ -351,7 +350,7 @@ abstract public class MdIOHandler extends NetcdfIOHandler {
         fetch(variableName, recordNo);
         final int offset = offsetMap.get(variableName);
         final int index = recordNo - offset;
-        final Array slice = data.get(NetcdfFile.escapeName(variableName)).slice(0, index);
+        final Array slice = data.get(variableName).slice(0, index);
         final int[] shape1 = slice.getShape();
         final int[] shape2 = new int[shape1.length + 1];
         shape2[0] = 1;

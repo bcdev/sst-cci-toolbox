@@ -23,7 +23,7 @@ import static org.esa.cci.sst.SensorType.ATSR_MD;
 public class AtsrMdIOHandler extends MdIOHandler {
 
     public AtsrMdIOHandler() {
-        super(ATSR_MD.nameLowerCase(), "match_up");
+        super(ATSR_MD.getSensor(), "match_up");
     }
 
     @Override
@@ -47,7 +47,7 @@ public class AtsrMdIOHandler extends MdIOHandler {
                                                              getFloat("atsr.latitude", recordNo)));
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("insitu.callsign", recordNo));
-        observation.setSensor(ATSR_MD.nameLowerCase());
+        observation.setSensor(ATSR_MD.getSensor());
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));

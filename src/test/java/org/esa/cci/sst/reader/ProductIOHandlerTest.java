@@ -71,10 +71,6 @@ public class ProductIOHandlerTest {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
         observation = handler.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
-//        assertNotNull(observation.getLocation());
-//        geometry = observation.getLocation().getGeometry();
-//        assertTrue(geometry.checkConsistency());
-//        assertFalse(PgUtil.isClockwise(getPoints(geometry)));
     }
 
 
@@ -98,60 +94,6 @@ public class ProductIOHandlerTest {
             System.out.println("variableDescriptor.getName() = " + variableDescriptor.getName());
         }
         assertEquals(1, variableDescriptors.length);
-    }
-
-    @Test
-    public void testCreateOriginArray() throws Exception {
-        init(getResourceAsFile(AAI_RESOURCE_NAME));
-        final VariableDescriptor variableDescriptor = new VariableDescriptor();
-        variableDescriptor.setDimensions("ni nj");
-        variableDescriptor.setDimensionRoles("ni nj");
-        int[] originArray = handler.createOriginArray(0, variableDescriptor);
-        assertEquals(3, originArray.length);
-
-        variableDescriptor.setDimensions("match_up ni nj");
-        variableDescriptor.setDimensionRoles("match_up ni nj");
-        originArray = handler.createOriginArray(0, variableDescriptor);
-        assertEquals(3, originArray.length);
-
-        variableDescriptor.setDimensions("time");
-        variableDescriptor.setDimensionRoles("time");
-        originArray = handler.createOriginArray(0, variableDescriptor);
-        assertEquals(2, originArray.length);
-
-        variableDescriptor.setDimensions("match_up time");
-        variableDescriptor.setDimensionRoles("match_up time");
-        originArray = handler.createOriginArray(0, variableDescriptor);
-        assertEquals(2, originArray.length);
-
-        variableDescriptor.setDimensions("n ni nj");
-        variableDescriptor.setDimensionRoles("match_up ni nj");
-        originArray = handler.createOriginArray(0, variableDescriptor);
-        assertEquals(3, originArray.length);
-
-        variableDescriptor.setDimensions("n ni nj");
-        variableDescriptor.setDimensionRoles("n ni nj");
-        originArray = handler.createOriginArray(0, variableDescriptor);
-        assertEquals(4, originArray.length);
-    }
-
-    @Test
-    @Ignore
-    public void testCreateShapeArray() throws Exception {
-        init(getResourceAsFile(AAI_RESOURCE_NAME));
-        // todo - call of this method results in exception (rq-20110322)
-        int[] shapeArray = handler.createShapeArray(3, new int[]{11, 11});
-        assertEquals(3, shapeArray.length);
-        assertEquals(1, shapeArray[0]);
-        assertEquals(11, shapeArray[1]);
-        assertEquals(11, shapeArray[2]);
-
-        try {
-            handler.createShapeArray(2, new int[]{100000, 11, 11});
-            fail();
-        } catch (IllegalArgumentException expected) {
-            // ok
-        }
     }
 
     private static List<Point> getPoints(Geometry geometry) {

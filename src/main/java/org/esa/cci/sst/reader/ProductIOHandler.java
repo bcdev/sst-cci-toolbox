@@ -1,16 +1,15 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
+import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
-import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
@@ -25,20 +24,20 @@ import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
 import java.awt.Rectangle;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ProductIOHandler implements IOHandler {
 
     private final String sensorName;
     private final GeoBoundaryCalculator gbc;
-    private final Map<String, Product> products = new HashMap<String, Product>();
 
     private DataFile dataFile;
     private Product product;
@@ -158,137 +157,92 @@ public class ProductIOHandler implements IOHandler {
 
 
     @Override
-    public void write(NetcdfFileWriteable file, Observation observation, VariableDescriptor variableDescriptor,
-                      int matchupIndex,
-                      int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws IOException {
-        final String fileLocation = observation.getDatafile().getPath();
-        final Product product = getProduct(fileLocation);
-        String sensorName = observation.getSensor();
-        String originalVarName = variableDescriptor.getName();
-        String variableName = originalVarName.replace(sensorName + ".", "");
-        final Band band = product.getBand(variableName);
-        if (band == null) {
-            // todo - ts - log warning
-            return;
+    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVariableName,
+                      String targetVariableName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
+                                                                                                                  IOException {
+        final String productFilePath = observation.getDatafile().getPath();
+        final RasterDataNode node;
+        if (product.containsBand(sourceVariableName)) {
+            node = product.getBand(sourceVariableName);
+        } else {
+            node = product.getTiePointGrid(sourceVariableName);
         }
 
-        final DataType type = DataTypeUtils.getNetcdfDataType(band);
-        final int[] origin = createOriginArray(matchupIndex, variableDescriptor);
-        final int[] shape = createShapeArray(origin.length, dimensionSizes);
-
+        final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
         final GeoCoding geoCoding = product.getGeoCoding();
         final float lon = (float) refPoint.getGeometry().getFirstPoint().x;
         final float lat = (float) refPoint.getGeometry().getFirstPoint().y;
         final GeoPos geoPos = new GeoPos(lat, lon);
-        PixelPos pixelPos = geoCoding.getPixelPos(geoPos, null);
-        final Rectangle rectangle = createRect(dimensionSizes, shape, pixelPos);
-
-        final Array array = createArray(band, type, shape, rectangle);
-        originalVarName = NetcdfFile.escapeName(originalVarName);
-
+        final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, null);
+        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
+        final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
+        final int[] targetShape = targetVariable.getShape();
+        final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
+        final Array array = readSubsceneData(node, dataType, targetShape, rectangle);
         try {
-            file.write(originalVarName, origin, array);
+            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
         } catch (InvalidRangeException e) {
-            throw new IOException("Unable to write to netcdf-file '" + fileLocation + "'.", e);
+            throw new IOException("Unable to write to netcdf-file '" + productFilePath + "'.", e);
         }
     }
 
-    private Rectangle createRect(final int[] dimensionSizes, final int[] shape, final PixelPos pixelPos) {
-        final Rectangle rectangle;
-        if (dimensionSizes.length == 0 || dimensionSizes.length == 1) {
-            // write scalar
-            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, 1, 1);
-        } else if (dimensionSizes.length == 2) {
-            // write one dimension
-            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
-            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], 1);
-        } else if (dimensionSizes.length >= 3) {
-            // write two dimensions
-            pixelPos.x = pixelPos.x - dimensionSizes[1] / 2;
-            pixelPos.y = pixelPos.y - dimensionSizes[2] / 2;
-            rectangle = new Rectangle((int) pixelPos.x, (int) pixelPos.y, shape[1], shape[2]);
-        } else {
-            // cannot come here
-            throw new IllegalStateException("Array size < 0.");
-        }
-        return rectangle;
+    private static Rectangle createSubsceneRectangle(final PixelPos subsceneCenter, final int[] subsceneShape) {
+        final int w = subsceneShape[2];
+        final int h = subsceneShape[1];
+        final int x = (int) Math.floor(subsceneCenter.getX()) - w / 2;
+        final int y = (int) Math.floor(subsceneCenter.getY()) - h / 2;
+        return new Rectangle(x, y, w, h);
     }
 
-    private Array createArray(final Band band, final DataType type, final int[] shape, final Rectangle rectangle) {
-        final Array array = Array.factory(type, shape);
-        int index = 0;
-        for (int x = rectangle.getLocation().x; x < rectangle.getWidth(); x++) {
-            for (int y = rectangle.getLocation().y; y < rectangle.getHeight(); y++) {
-                Object value = getValue(band, x, y);
-                array.setObject(index, value);
+    private static Array readSubsceneData(final RasterDataNode node, final DataType type, final int[] targetShape,
+                                          final Rectangle rectangle) {
+        final Array array = Array.factory(type, new int[]{1, targetShape[1], targetShape[2]});
+
+        final MultiLevelImage sourceImage = node.getSourceImage();
+        final int minX = sourceImage.getMinX();
+        final int minY = sourceImage.getMinY();
+        final int maxX = sourceImage.getMaxX();
+        final int maxY = sourceImage.getMaxY();
+
+        final int x = Math.max(rectangle.x, minX);
+        final int y = Math.max(rectangle.y, minY);
+        final int w = Math.min(rectangle.x + rectangle.width - 1, maxX) - x + 1;
+        final int h = Math.min(rectangle.y + rectangle.height - 1, maxY) - y + 1;
+        final Rectangle validRectangle = new Rectangle(x, y, w, h);
+        final Raster raster = sourceImage.getData(validRectangle);
+
+        for (int i = rectangle.y, k = 0; i < rectangle.y + rectangle.height; i++) {
+            for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
+                final Number value;
+                if (i < minY || i > maxY || j < minX || j > maxX) {
+                    value = node.getNoDataValue();
+                } else {
+                    try {
+                        value = getSample(raster, j, i);
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+                        throw e;
+                    }
+                }
+                array.setObject(k, value);
             }
-            index++;
         }
         return array;
     }
 
-    private Object getValue(final Band band, final int x, final int y) {
-        Object value = null;
-        if (x < 0 || y < 0) {
-            value = band.getNoDataValue();
-        } else {
-            switch (band.getDataType()) {
-                case ProductData.TYPE_FLOAT64: {
-                    value = ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
-                    break;
-                }
-                case ProductData.TYPE_FLOAT32: {
-                    value = (float) ProductUtils.getGeophysicalSampleDouble(band, x, y, 0);
-                    break;
-                }
-                case ProductData.TYPE_INT8:
-                case ProductData.TYPE_INT16:
-                case ProductData.TYPE_INT32:
-                case ProductData.TYPE_UINT8:
-                case ProductData.TYPE_UINT16:
-                case ProductData.TYPE_UINT32: {
-                    value = ProductUtils.getGeophysicalSampleLong(band, x, y, 0);
-                    break;
-                }
-            }
+    private static Number getSample(Raster raster, int x, int y) {
+        switch (raster.getTransferType()) {
+            case DataBuffer.TYPE_BYTE:
+            case DataBuffer.TYPE_SHORT:
+            case DataBuffer.TYPE_USHORT:
+            case DataBuffer.TYPE_INT:
+                return raster.getSample(x, y, 0);
+            case DataBuffer.TYPE_FLOAT:
+                return raster.getSampleFloat(x, y, 0);
+            case DataBuffer.TYPE_DOUBLE:
+                return raster.getSampleDouble(x, y, 0);
+            default:
+                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
-        return value;
     }
-
-    private Product getProduct(String fileLocation) throws IOException {
-        Product product = products.get(fileLocation);
-        if (product != null) {
-            return product;
-        }
-        product = ProductIO.readProduct(fileLocation);
-        products.put(fileLocation, product);
-        return product;
-    }
-
-
-    int[] createOriginArray(int matchupIndex, VariableDescriptor variableDescriptor) {
-        String dimString = variableDescriptor.getDimensions();
-        final String dimensionRoles = variableDescriptor.getDimensionRoles();
-        String[] dims = dimString.split(" ");
-        int length = dims.length;
-        final boolean addMatchup = !(dimString.contains(Constants.DIMENSION_NAME_MATCHUP) ||
-                                     dimensionRoles.contains(Constants.DIMENSION_NAME_MATCHUP));
-        length += addMatchup ? 1 : 0;
-        final int[] origin = new int[length];
-        origin[0] = matchupIndex;
-        for (int i = 1; i < origin.length; i++) {
-            origin[i] = 0;
-        }
-        return origin;
-    }
-
-    int[] createShapeArray(int length, int[] dimensionSizes) {
-        Assert.argument(length == dimensionSizes.length,
-                        "length == dimensionSizes.length || length == dimensionSizes.length + 1");
-        int[] shape = new int[length];
-        shape[0] = 1;
-        System.arraycopy(dimensionSizes, 1, shape, 1, shape.length - 1);
-        return shape;
-    }
-
 }

@@ -1,6 +1,7 @@
 package org.esa.cci.sst.data;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -15,8 +16,9 @@ import java.util.List;
  * @author Martin Boettcher
  */
 @Entity
-@Table(name="mm_matchup")
+@Table(name = "mm_matchup")
 public class Matchup {
+
     int id;
     ReferenceObservation refObs;
     List<Coincidence> coincidences;
@@ -32,7 +34,7 @@ public class Matchup {
         this.id = id;
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     public ReferenceObservation getRefObs() {
         return refObs;
     }
@@ -41,7 +43,7 @@ public class Matchup {
         this.refObs = refObs;
     }
 
-    @OneToMany(mappedBy = "matchup")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "matchup")
     public List<Coincidence> getCoincidences() {
         return coincidences;
     }

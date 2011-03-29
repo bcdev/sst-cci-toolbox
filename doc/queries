@@ -63,7 +63,7 @@ order by o.sensor, o1.sensor;
 
 1. Find matchup id with, e.g:
 
-   id from mm_matchup where pattern & 31 = 31 order by id asc;
+   select id from mm_matchup where pattern & 31 = 31 order by id asc;
 
 2. Dump shape files with (there is a shell script for this in the src/main/bin)
 

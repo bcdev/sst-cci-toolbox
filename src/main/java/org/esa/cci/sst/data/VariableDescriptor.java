@@ -155,4 +155,8 @@ public class VariableDescriptor {
 	public int hashCode() {
 		return 31 * getId();
 	}
+
+    public String getBasename() {
+        return name.substring(name.indexOf('.') + 1);
+    }
 }

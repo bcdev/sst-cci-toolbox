@@ -21,6 +21,8 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 
+import java.text.MessageFormat;
+
 /**
  * Enumeration of sensor types.
  *
@@ -32,8 +34,8 @@ public enum SensorType {
     ATSR_MD(ReferenceObservation.class, 0x01, "atsr_md"),
     METOP(ReferenceObservation.class, 0x02, "metop"),
     SEVIRI(ReferenceObservation.class, 0x04, "seviri"),
-    AVHRR(RelatedObservation.class, 0x08, "avhrr_m01", "avhrr_m02", "avhrr_m03", "avhrr_10", "avhrr_11", "avhrr_12",
-          "avhrr_14", "avhrr_15", "avhrr_16", "avhrr_17", "avhrr_18", "avhrr_19"),
+    AVHRR(RelatedObservation.class, 0x08, "avhrr_m01", "avhrr_m02", "avhrr_m03", "avhrr_n10", "avhrr_n11", "avhrr_n12",
+          "avhrr_n14", "avhrr_n15", "avhrr_n16", "avhrr_n17", "avhrr_n18", "avhrr_n19"),
     AMSRE(RelatedObservation.class, 0x10, "amsre"),
     TMI(RelatedObservation.class, 0x20, "tmi"),
     ATSR(RelatedObservation.class, 0x40, "atsr1", "atsr2", "aatsr"),
@@ -67,9 +69,15 @@ public enum SensorType {
         return sensors.clone();
     }
 
+
     public String nameLowerCase() {
         // todo - eliminate usages of this method (rq-20110322)
         return getSensor();
+    }
+
+    @Override
+    public String toString() {
+        return name().toLowerCase();
     }
 
     public static boolean isSensorType(String name) {
@@ -82,7 +90,28 @@ public enum SensorType {
         return false;
     }
 
+    public boolean isSensor(String name) {
+        for (final String sensor : getSensors()) {
+            if (sensor.equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static SensorType valueOfIgnoreCase(String name) {
         return valueOf(name.toUpperCase());
+    }
+
+    public static SensorType getSensorType(String sensorName) {
+        final SensorType[] values = SensorType.values();
+        for (final SensorType sensorType : values) {
+            for (final String sensor : sensorType.getSensors()) {
+                if (sensor.equalsIgnoreCase(sensorName)) {
+                    return sensorType;
+                }
+            }
+        }
+        throw new IllegalArgumentException(MessageFormat.format("Unknown sensor ''{0}''.", sensorName));
     }
 }

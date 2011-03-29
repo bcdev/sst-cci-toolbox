@@ -17,7 +17,7 @@ class AmsreSubsceneGenerator extends ProductSubsceneGenerator {
 
     @Override
     int getSensorDimensionSize() {
-        return Constants.AMSRE_LENGTH;
+        return Constants.AMSRE_SUBSCENE_HEIGHT;
     }
 
 }

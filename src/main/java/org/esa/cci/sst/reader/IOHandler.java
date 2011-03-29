@@ -57,18 +57,19 @@ public interface IOHandler {
     VariableDescriptor[] getVariableDescriptors() throws IOException;
 
     /**
-     * Writes the variableDescriptor from the observation in the file.
+     * Writes the variable from the observation in the file.
      *
-     * @param file           The file to write into.
-     * @param observation    The observation to write.
-     * @param variableDescriptor       The variableDescriptor to write.
-     * @param matchupIndex   The current matchup index.
-     * @param dimensionSizes An array containing dimension sizes.
-     * @param refPoint       The geo-location of the reference observation.
-     * @param refTime        The reference time.
+     * @param targetFile         The file to write into.
+     * @param sourceObservation  The observation to write.
+     * @param sourceVariableName The name of the source variable to write.
+     * @param targetVariableName The name of the target variable to write.
+     * @param targetRecordNumber The current matchup index.
+     * @param refPoint           The geo-location of the reference observation.
+     * @param refTime            The reference time.
      *
      * @throws java.io.IOException If observation data could not be written into the file.
      */
-    void write(NetcdfFileWriteable file, Observation observation, VariableDescriptor variableDescriptor, int matchupIndex,
-               int[] dimensionSizes, final PGgeometry refPoint, final Date refTime) throws IOException;
+    void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
+               String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
+                                                                                                                 IOException;
 }
