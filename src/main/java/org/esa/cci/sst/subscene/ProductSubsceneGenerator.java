@@ -52,17 +52,6 @@ import java.util.List;
  * Sensor-specific subclasses of this class merely need to provide the dimension size that shall be used for the
  * subscene.
  *
- * <ol>
- * <li>Get geographic boundaries from<code>f</code>
- * <li>Get time stamp from <code>f</code>
- * <li>Perform database query for matchup files with fitting geo boundaries and time
- * <li>Get matchup id from query
- * <li>Create new Netcdf file, add all variables from input product
- * <li>Set dimensions to shape given by subscene definition
- * <li>Add matchup dimension
- * <li>Copy values from input product to netcdf
- * </ol>
- *
  * @author Thomas Storm
  */
 abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
@@ -207,7 +196,7 @@ abstract class ProductSubsceneGenerator extends AbstractSubsceneGenerator {
         return new Rectangle2D.Double(left, upper, sensorDimensionSize, sensorDimensionSize);
     }
 
-    Point getPoint(final int matchupId) {
+    Point getPoint(int matchupId) {
         final Query query = getPersistenceManager().createNativeQuery(GET_POINT_FOR_MATCHUP);
         query.setParameter(1, matchupId);
         try {

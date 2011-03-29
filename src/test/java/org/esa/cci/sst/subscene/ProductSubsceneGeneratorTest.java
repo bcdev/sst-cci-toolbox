@@ -9,7 +9,6 @@ import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -18,6 +17,7 @@ import org.postgis.Polygon;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 
+import javax.persistence.Query;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.InputStream;
@@ -31,9 +31,7 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  *
- * todo - resources required by this test are missing (rq-20110322)
  */
-@Ignore
 public class ProductSubsceneGeneratorTest {
 
     private static final String TEST_OUTPUT_FILENAME = "test_output.nc";
@@ -43,7 +41,7 @@ public class ProductSubsceneGeneratorTest {
     @Before
     public void setUp() throws Exception {
         final Properties properties = new Properties();
-        final InputStream stream = getClass().getResourceAsStream("mms-test.properties");
+        final InputStream stream = getClass().getResourceAsStream("test.properties");
         properties.load(stream);
         PersistenceManager persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, properties);
         generator = new ProductSubsceneGenerator(persistenceManager, "ATSR") {
@@ -83,7 +81,7 @@ public class ProductSubsceneGeneratorTest {
 
     @Test
     public void testGetPoint() throws Exception {
-        final Point point = generator.getPoint(738901);
+        final Point point = generator.getPoint(getSomeExistingMatchupId());
         assertNotNull(point);
         System.out.println("point = " + point);
         try {
@@ -92,6 +90,12 @@ public class ProductSubsceneGeneratorTest {
         } catch (IllegalStateException expected) {
             System.out.println("expected.getMessage() = " + expected.getMessage());
         }
+    }
+
+    private int getSomeExistingMatchupId() {
+        final Query query = generator.getPersistenceManager().createQuery("SELECT m.id FROM Matchup m");
+        final Object someId = query.getResultList().get(0);
+        return (Integer)someId;
     }
 
     @Test
