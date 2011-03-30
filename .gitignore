@@ -5,4 +5,6 @@ testdata/
 *.iml
 *.iws
 *.ipr
+/*.log
+/*.nc
 /*.properties
