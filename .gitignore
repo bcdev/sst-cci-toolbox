@@ -5,4 +5,4 @@ testdata/
 *.iml
 *.iws
 *.ipr
-mms-test.properties
+/*.properties
