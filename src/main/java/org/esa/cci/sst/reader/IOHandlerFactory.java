@@ -46,22 +46,22 @@ public class IOHandlerFactory {
             return new SeviriIOHandler();
         }
         if (Constants.DATA_SCHEMA_NAME_AMSRE.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
         }
         if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
         }
         if (Constants.DATA_SCHEMA_NAME_ATSR_L1B.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
         }
         if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
             return new ProductIOHandler(sensorName, null);
         }
         if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
         }
         if (Constants.DATA_SCHEMA_NAME_SEAICE.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultGeoBoundaryCalculator());
+            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
         }
         if (Constants.DATA_SCHEMA_INSITU_HISTORY.equalsIgnoreCase(schemaName)) {
             return new InsituIOHandler();

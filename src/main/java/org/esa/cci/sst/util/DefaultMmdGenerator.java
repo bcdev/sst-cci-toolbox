@@ -39,12 +39,16 @@ import ucar.nc2.Variable;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import static org.esa.cci.sst.SensorType.*;
 
@@ -56,8 +60,7 @@ import static org.esa.cci.sst.SensorType.*;
  */
 public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
-    private final Map<String, Integer> dimensionCountMap = new HashMap<String, Integer>(17);
-    private final Map<String, String> variablesDimensionsMap = new HashMap<String, String>(61);
+    private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
     private final Map<String, IOHandler> readers = new HashMap<String, IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties configuration;
@@ -135,12 +138,14 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     @SuppressWarnings({"unchecked"})
     List<Matchup> getMatchups() {
         //return persistenceManager.createQuery(ALL_MATCHUPS_QUERY).getResultList();
-        return persistenceManager.createNativeQuery("select m.id from mm_matchup m where m.pattern & 31 = 31 order by m.id asc;", Matchup.class).getResultList();
+        return persistenceManager.createNativeQuery(
+                "select m.id from mm_matchup m where m.pattern & 31 = 31 order by m.id asc;",
+                Matchup.class).getResultList();
     }
 
     void addDimensions(final NetcdfFileWriteable file) {
         // todo - sort according to dimension name
-        for (String dimensionName : dimensionCountMap.keySet()) {
+        for (final String dimensionName : dimensionCountMap.keySet()) {
             file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
         }
     }
@@ -234,7 +239,13 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     void addVariables(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
         final Query query = createVariablesQuery(sensorName);
         @SuppressWarnings({"unchecked"})
-        final List<VariableDescriptor> descriptorList = query.getResultList();
+        final ArrayList<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
+        Collections.sort(descriptorList, new Comparator<VariableDescriptor>() {
+            @Override
+            public int compare(VariableDescriptor o1, VariableDescriptor o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
         for (final VariableDescriptor descriptor : descriptorList) {
             if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                 addVariable(file, descriptor, createDimensionString(descriptor, sensorType));
@@ -277,7 +288,6 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
         addAttribute(v, "scale_factor", descriptor.getScaleFactor(), DataType.FLOAT);
         addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());
-        variablesDimensionsMap.put(v.getName(), dims);
     }
 
     Query createVariablesQuery(String sensorName) {

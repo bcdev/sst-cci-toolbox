@@ -7,20 +7,26 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.util.PgUtil;
 import org.postgis.Point;
 
-import java.io.IOException;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
+/**
+ * Default implementation of the {@link BoundaryCalculator} interface, which in particular
+ * considers the case of AMSR-E and TMI products, which exhibit leading and trailing rows
+ * (or columns) of pixels where the geo-location is invalid.
+ *
+ * @author Ralf Quast
+ */
+class DefaultBoundaryCalculator implements BoundaryCalculator {
 
     @Override
-    public Point[] getGeoBoundary(Product product) throws IOException {
+    public Rectangle getPixelBoundary(Product product) throws Exception {
         final GeoCoding geoCoding = product.getGeoCoding();
         if (geoCoding == null) {
-            throw new IOException("Unable to get geo-coding for product '" + product.getName() + "'.");
+            throw new Exception("Unable to get geo-coding for product '" + product.getName() + "'.");
         }
-
         final int w = product.getSceneRasterWidth();
         final int h = product.getSceneRasterHeight();
         int minX = getMinX(product);
@@ -35,15 +41,29 @@ class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
             maxY = getMaxY(product);
             if (minY == -1 || maxY == -1) {
                 // no pair of opposing geo-coordinates at the vertical boundaries is valid
-                throw new IOException("Unable to get geo-boundary for product '" + product.getName() + "'.");
+                throw new Exception("Unable to get pixel-boundary for product '" + product.getName() + "'.");
             }
         }
+        return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
+    }
+
+    @Override
+    public Point[] getGeoBoundary(Product product) throws Exception {
+        final Rectangle boundary = getPixelBoundary(product);
+        final int minX = boundary.x;
+        final int minY = boundary.y;
+        final int maxX = boundary.x + boundary.width - 1;
+        final int maxY = boundary.y + boundary.height - 1;
+        final int w = product.getSceneRasterWidth();
+        final int h = product.getSceneRasterHeight();
         final int stepX = Math.max(100, w / 25);
         final int stepY = Math.max(100, h / 25);
 
+        final GeoCoding geoCoding = product.getGeoCoding();
         final PixelPos p = new PixelPos();
         final GeoPos g = new GeoPos();
         final List<Point> geoBoundary = new ArrayList<Point>();
+
         for (int i = minY; i < maxY; i += stepY) {
             p.setLocation(minX + 0.5, i + 0.5);
             geoCoding.getGeoPos(p, g);
@@ -65,7 +85,8 @@ class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
             geoBoundary.add(new Point(g.getLon(), g.getLat()));
         }
         if (geoBoundary.size() < 3) {
-            throw new IllegalArgumentException(String.format("only %d points in polygon of product %s", geoBoundary.size(), product.getName()));
+            throw new IllegalArgumentException(
+                    String.format("only %d points in polygon of product %s", geoBoundary.size(), product.getName()));
         }
         geoBoundary.add(geoBoundary.get(0));
         if (PgUtil.isClockwise(geoBoundary)) {
@@ -75,7 +96,7 @@ class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
         return geoBoundary.toArray(new Point[geoBoundary.size()]);
     }
 
-    private int getMinX(Product product) {
+    private static int getMinX(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
 
         final int w = product.getSceneRasterWidth();
@@ -97,7 +118,7 @@ class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
         return -1;
     }
 
-    private int getMaxX(Product product) {
+    private static int getMaxX(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
         final int w = product.getSceneRasterWidth();
         final int h = product.getSceneRasterHeight();
@@ -118,7 +139,7 @@ class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
         return -1;
     }
 
-    private int getMinY(Product product) {
+    private static int getMinY(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
 
         final int w = product.getSceneRasterWidth();
@@ -140,7 +161,7 @@ class DefaultGeoBoundaryCalculator implements GeoBoundaryCalculator {
         return -1;
     }
 
-    private int getMaxY(Product product) {
+    private static int getMaxY(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
         final int w = product.getSceneRasterWidth();
         final int h = product.getSceneRasterHeight();

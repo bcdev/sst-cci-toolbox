@@ -157,6 +157,6 @@ public class VariableDescriptor {
 	}
 
     public String getBasename() {
-        return name.substring(name.indexOf('.') + 1);
+        return getName().substring(getName().indexOf('.') + 1);
     }
 }

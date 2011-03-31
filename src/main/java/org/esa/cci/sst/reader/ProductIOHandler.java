@@ -1,16 +1,17 @@
 package org.esa.cci.sst.reader;
 
-import com.bc.ceres.core.Assert;
 import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
+import org.esa.beam.framework.dataio.ProductSubsetBuilder;
+import org.esa.beam.framework.dataio.ProductSubsetDef;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
-import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -21,7 +22,6 @@ import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
@@ -37,23 +37,32 @@ import java.util.Date;
 public class ProductIOHandler implements IOHandler {
 
     private final String sensorName;
-    private final GeoBoundaryCalculator gbc;
+    private final BoundaryCalculator bc;
 
     private DataFile dataFile;
     private Product product;
 
 
-    public ProductIOHandler(String sensorName, GeoBoundaryCalculator gbc) {
+    public ProductIOHandler(String sensorName, BoundaryCalculator bc) {
         this.sensorName = sensorName;
-        this.gbc = gbc;
+        this.bc = bc;
     }
 
     @Override
     public final void init(DataFile dataFile) throws IOException {
-        final Product product = ProductIO.readProduct(dataFile.getPath());
+        Product product = ProductIO.readProduct(dataFile.getPath());
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
+        }
+        if (bc != null) {
+            final ProductSubsetDef subsetDef = new ProductSubsetDef();
+            try {
+                subsetDef.setRegion(bc.getPixelBoundary(product));
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+            product = createProductSubset(product, subsetDef);
         }
         this.product = product;
         this.dataFile = dataFile;
@@ -74,11 +83,15 @@ public class ProductIOHandler implements IOHandler {
     @Override
     public final Observation readObservation(int recordNo) throws IOException {
         final Observation observation;
-        if (gbc == null) {
+        if (bc == null) {
             observation = new Observation();
         } else {
             final RelatedObservation relatedObservation = new RelatedObservation();
-            relatedObservation.setLocation(createGeometry(gbc.getGeoBoundary(product)));
+            try {
+                relatedObservation.setLocation(createGeometry(bc.getGeoBoundary(product)));
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
             observation = relatedObservation;
         }
 
@@ -135,6 +148,44 @@ public class ProductIOHandler implements IOHandler {
         return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
     }
 
+    @Override
+    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVariableName,
+                      String targetVariableName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
+                                                                                                                  IOException {
+        final RasterDataNode node;
+        if (product.containsBand(sourceVariableName)) {
+            node = product.getBand(sourceVariableName);
+        } else {
+            node = product.getTiePointGrid(sourceVariableName);
+        }
+
+        final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
+        final float lon = (float) refPoint.getGeometry().getFirstPoint().x;
+        final float lat = (float) refPoint.getGeometry().getFirstPoint().y;
+        final GeoPos geoPos = new GeoPos(lat, lon);
+        if (!geoPos.isValid()) {
+            throw new IOException("Invalid reference geo-location.");
+        }
+        final GeoCoding geoCoding = product.getGeoCoding();
+        final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
+        if (!pixelPos.isValid()) {
+            throw new IOException(MessageFormat.format(
+                    "Unable to find pixel at {0}, {1} in product ''{2}''.", geoPos.getLatString(),
+                    geoPos.getLonString(), product.getName()));
+        }
+        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
+        final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
+        final int[] targetShape = targetVariable.getShape();
+        final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
+        final Array array = readSubsceneData(node, dataType, targetShape, rectangle);
+        try {
+            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
+        } catch (Exception e) {
+            throw new IOException(MessageFormat.format(
+                    "Unable to write subscene for product ''{0}''.", product.getName()), e);
+        }
+    }
+
     private Date getCenterTimeAsDate() throws IOException {
         final ProductData.UTC startTime = product.getStartTime();
         if (startTime == null) {
@@ -148,42 +199,11 @@ public class ProductIOHandler implements IOHandler {
         return centerTime.getAsDate();
     }
 
-    private PGgeometry createGeometry(Point[] geoBoundary) throws IOException {
+    private static PGgeometry createGeometry(Point[] geoBoundary) throws IOException {
         if (geoBoundary == null) {
             return null;
         }
         return new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(geoBoundary)}));
-    }
-
-
-    @Override
-    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVariableName,
-                      String targetVariableName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
-                                                                                                                  IOException {
-        final String productFilePath = observation.getDatafile().getPath();
-        final RasterDataNode node;
-        if (product.containsBand(sourceVariableName)) {
-            node = product.getBand(sourceVariableName);
-        } else {
-            node = product.getTiePointGrid(sourceVariableName);
-        }
-
-        final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
-        final GeoCoding geoCoding = product.getGeoCoding();
-        final float lon = (float) refPoint.getGeometry().getFirstPoint().x;
-        final float lat = (float) refPoint.getGeometry().getFirstPoint().y;
-        final GeoPos geoPos = new GeoPos(lat, lon);
-        final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, null);
-        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
-        final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
-        final int[] targetShape = targetVariable.getShape();
-        final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
-        final Array array = readSubsceneData(node, dataType, targetShape, rectangle);
-        try {
-            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
-        } catch (InvalidRangeException e) {
-            throw new IOException("Unable to write to netcdf-file '" + productFilePath + "'.", e);
-        }
     }
 
     private static Rectangle createSubsceneRectangle(final PixelPos subsceneCenter, final int[] subsceneShape) {
@@ -192,6 +212,22 @@ public class ProductIOHandler implements IOHandler {
         final int x = (int) Math.floor(subsceneCenter.getX()) - w / 2;
         final int y = (int) Math.floor(subsceneCenter.getY()) - h / 2;
         return new Rectangle(x, y, w, h);
+    }
+
+    private Product createProductSubset(Product product, ProductSubsetDef subsetDef) throws IOException {
+        final Product subset = ProductSubsetBuilder.createProductSubset(product, true, subsetDef, product.getName(),
+                                                                        product.getDescription());
+        // work around Issue BEAM-1240
+        final GeoCoding geoCoding = subset.getGeoCoding();
+        if (geoCoding instanceof PixelGeoCoding) {
+            final PixelGeoCoding pixelGeoCoding = (PixelGeoCoding) geoCoding;
+            subset.setGeoCoding(new SimplePixelGeoCoding(pixelGeoCoding.getLatBand(), pixelGeoCoding.getLonBand()));
+            // the original geo-codings of the subset and parent products can be disposed
+            geoCoding.dispose();
+            product.getGeoCoding().dispose();
+            product.setGeoCoding(null);
+        }
+        return subset;
     }
 
     private static Array readSubsceneData(final RasterDataNode node, final DataType type, final int[] targetShape,

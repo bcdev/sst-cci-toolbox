@@ -6,7 +6,6 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.Point;
@@ -33,7 +32,7 @@ public class ProductIOHandlerTest {
     public void init(File file) throws IOException {
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        handler = new ProductIOHandler("any", new DefaultGeoBoundaryCalculator());
+        handler = new ProductIOHandler("any", new DefaultBoundaryCalculator());
         handler.init(dataFile);
     }
 
