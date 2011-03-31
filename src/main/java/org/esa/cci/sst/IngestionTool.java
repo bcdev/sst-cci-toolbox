@@ -254,9 +254,11 @@ public class IngestionTool extends MmsTool {
         persistenceManager.commit();
     }
 
-    private static boolean checkTime(Observation observation) throws ParseException {
-        final long start = TimeUtil.parseCcsdsUtcFormat("2010-06-01T00:00:00Z");
-        final long stop = TimeUtil.parseCcsdsUtcFormat("2010-07-01T00:00:00Z");
+    private boolean checkTime(Observation observation) throws ParseException {
+        final String startTime = getConfiguration().getProperty("mms.test.startTime");
+        final String endTime = getConfiguration().getProperty("mms.test.endTime");
+        final long start = TimeUtil.parseCcsdsUtcFormat(startTime);
+        final long stop = TimeUtil.parseCcsdsUtcFormat(endTime);
         final long time = observation.getTime().getTime();
         final long timeRadius;
         if (observation instanceof InsituObservation) {

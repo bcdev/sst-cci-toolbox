@@ -1,7 +1,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -18,7 +17,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static org.esa.cci.sst.SensorType.METOP;
+import static org.esa.cci.sst.SensorType.*;
 
 /**
  * Reads records from an METOP MD NetCDF input file and creates Observations.

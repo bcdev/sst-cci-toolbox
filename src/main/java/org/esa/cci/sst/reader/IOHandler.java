@@ -72,4 +72,6 @@ public interface IOHandler {
     void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
                String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
                                                                                                                  IOException;
+
+    String getDataFilePath();
 }

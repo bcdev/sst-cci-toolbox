@@ -14,11 +14,8 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.util;
+package org.esa.cci.sst;
 
-import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.MmdGeneratorTool;
-import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
@@ -37,18 +34,21 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import static org.esa.cci.sst.SensorType.*;
 
@@ -58,20 +58,25 @@ import static org.esa.cci.sst.SensorType.*;
  *
  * @author Thomas Storm
  */
-public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
+class DefaultMmdGenerator implements MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
-    private final Map<String, IOHandler> readers = new HashMap<String, IOHandler>();
+    private final SortedMap<Long, IOHandler> ioHandlers = new TreeMap<Long, IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties configuration;
     private final Properties targetVariables;
+    private final Logger logger;
 
-    private int matchupCount = 10;
+    private int matchupCount;
 
-    public DefaultMmdGenerator(Properties configuration, Properties targetVariables) throws IOException {
-        this.configuration = configuration;
-        this.targetVariables = targetVariables;
-        persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, configuration);
+    DefaultMmdGenerator(final MmsTool tool) throws IOException {
+        this.configuration = tool.getConfiguration();
+        final String propertiesFilePath = configuration.getProperty("mmd.output.variables");
+        final InputStream is = new FileInputStream(propertiesFilePath);
+        this.targetVariables = new Properties();
+        targetVariables.load(is);
+        this.logger = tool.getLogger();
+        persistenceManager = tool.getPersistenceManager();
         initDimensionCountMap();
     }
 
@@ -103,14 +108,15 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
         persistenceManager.transaction();
         try {
             final List<Matchup> resultList = getMatchups();
-            //final int matchupCount = resultList.size();
+            final int matchupCount = resultList.size();
 
             for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
+                if(matchupIndex != 57) continue;
                 Matchup matchup = resultList.get(matchupIndex);
-                final int matchupId = matchup.getId();
-                // todo - replace with logging
-                System.out.println("Writing matchup '" + matchupId + "' (" + matchupIndex + "/" + matchupCount + ").");
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
+                final int matchupId = matchup.getId();
+                logger.info(MessageFormat.format("Writing matchup ''{0}'' ({1}/{2}).", matchupId, matchupIndex,
+                                                 matchupCount));
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
                 writeMatchupId(file, matchupId, matchupIndex);
@@ -130,21 +136,24 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
 
     @Override
     public void close() {
-        for (IOHandler ioHandler : readers.values()) {
+        for (IOHandler ioHandler : this.ioHandlers.values()) {
             ioHandler.close();
         }
     }
 
     @SuppressWarnings({"unchecked"})
     List<Matchup> getMatchups() {
-        //return persistenceManager.createQuery(ALL_MATCHUPS_QUERY).getResultList();
-        return persistenceManager.createNativeQuery(
-                "select m.id from mm_matchup m where m.pattern & 31 = 31 order by m.id asc;",
-                Matchup.class).getResultList();
+        String startTime = configuration.getProperty("mms.test.startTime");
+        String endTime = configuration.getProperty("mms.test.endTime");
+
+        String queryString = String.format(TIME_CONSTRAINED_MATCHUPS_QUERY, startTime, endTime);
+        final Query query = persistenceManager.createNativeQuery(queryString, Matchup.class);
+//        query.setParameter(1, "'" + startTime + "'");
+//        query.setParameter(2, "'" + endTime + "'");
+        return query.getResultList();
     }
 
     void addDimensions(final NetcdfFileWriteable file) {
-        // todo - sort according to dimension name
         for (final String dimensionName : dimensionCountMap.keySet()) {
             file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
         }
@@ -172,25 +181,26 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     IOHandler getIOHandler(final Observation observation) throws IOException {
-        final DataFile datafile = observation.getDatafile();
-        final String path = datafile.getPath();
-        if (readers.get(path) != null) {
-            return readers.get(path);
+        for (Map.Entry<Long, IOHandler> entry : ioHandlers.entrySet()) {
+            if(entry.getValue().getDataFilePath().equals(observation.getDatafile().getPath())) {
+                return entry.getValue();
+            }
         }
-        IOHandler ioHandler = IOHandlerFactory.createHandler(datafile.getDataSchema().getName(),
+        final DataFile datafile = observation.getDatafile();
+        final IOHandler ioHandler = IOHandlerFactory.createHandler(datafile.getDataSchema().getName(),
                                                              observation.getSensor());
-        readers.put(path, ioHandler);
+        final long time = observation.getTime().getTime();
+        memorizeIOHandler(time, ioHandler);
         ioHandler.init(datafile);
         return ioHandler;
     }
 
-    int getMatchupCount() {
-        if (matchupCount != -1) {
-            return matchupCount;
+    private void memorizeIOHandler(final long key, final IOHandler ioHandler) {
+        if (ioHandlers.size() >= 30) {
+            final IOHandler removedHandler = ioHandlers.remove(ioHandlers.firstKey());
+            removedHandler.close();
         }
-        final Query query = persistenceManager.createQuery(COUNT_MATCHUPS_QUERY);
-        matchupCount = ((Number) query.getSingleResult()).intValue();
-        return matchupCount;
+        ioHandlers.put(key, ioHandler);
     }
 
     void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
@@ -296,7 +306,7 @@ public class DefaultMmdGenerator implements MmdGeneratorTool.MmdGenerator {
     }
 
     private void initDimensionCountMap() {
-        dimensionCountMap.put(Constants.DIMENSION_NAME_MATCHUP, getMatchupCount());
+        dimensionCountMap.put(Constants.DIMENSION_NAME_MATCHUP, getMatchups().size());
         // todo: use properties instead of constants (rq-20110329)
         dimensionCountMap.put("atsr_md.cs_length", Constants.ATSR_MD_CS_LENGTH);
         dimensionCountMap.put("atsr_md.ui_length", Constants.ATSR_MD_UI_LENGTH);
