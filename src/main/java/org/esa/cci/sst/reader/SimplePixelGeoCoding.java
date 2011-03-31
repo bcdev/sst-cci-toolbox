@@ -25,8 +25,9 @@ import org.esa.beam.framework.dataop.maptransf.Datum;
 import org.esa.beam.util.ProductUtils;
 
 import java.awt.Rectangle;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -36,13 +37,16 @@ import java.util.concurrent.ConcurrentMap;
  * that avoids an issue (BEAM-1240) with full-orbit products, which affects TMI and AMSR-E.
  * <p/>
  * The simple pixel geo-coding is definitely slower than {@link org.esa.beam.framework.datamodel.PixelGeoCoding}
- * and must not be used for products that are displayed or reprojected.
+ * and must not be used for products that are displayed, reprojected, stored etc.
+ *
+ * @author Ralf Quast
  */
 class SimplePixelGeoCoding extends AbstractGeoCoding {
 
     private static final double D2R = Math.PI / 180.0;
 
-    private final ConcurrentMap<Rectangle, GeoRegion> regionMap = new ConcurrentHashMap<Rectangle, GeoRegion>();
+    private final Map<Rectangle, GeoRegion> regionMap =
+            Collections.synchronizedMap(new HashMap<Rectangle, GeoRegion>());
     private final Band latBand;
     private final Band lonBand;
 
@@ -176,16 +180,16 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
                 final double lon3 = getLon(x2, y2);
 
                 final double f = Math.cos(lat * D2R);
-                if (result.update(x1, y1, sqr(lat - lat0, f * delta(lon, lon0)))) {
+                if (result.update(x1, y1, sqr(lat - lat0, f * Result.delta(lon, lon0)))) {
                     return true;
                 }
-                if (result.update(x1, y2, sqr(lat - lat1, f * delta(lon, lon1)))) {
+                if (result.update(x1, y2, sqr(lat - lat1, f * Result.delta(lon, lon1)))) {
                     return true;
                 }
-                if (result.update(x2, y1, sqr(lat - lat2, f * delta(lon, lon2)))) {
+                if (result.update(x2, y1, sqr(lat - lat2, f * Result.delta(lon, lon2)))) {
                     return true;
                 }
-                if (result.update(x2, y2, sqr(lat - lat3, f * delta(lon, lon3)))) {
+                if (result.update(x2, y2, sqr(lat - lat3, f * Result.delta(lon, lon3)))) {
                     return true;
                 }
             } else if (w >= 2 && h >= 2) {
@@ -290,27 +294,37 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
 
     private static class GeoRegion {
 
-        double minLat = 90.0f;
-        double maxLat = -90.0f;
-        double minLon = 180.0f;
-        double maxLon = -180.0f;
+        final double minLat;
+        final double maxLat;
+        final double minLon;
+        final double maxLon;
+        final boolean antimeridianCrossed;
 
-        boolean antimeridianIncluded;
-
-        private GeoRegion(double minLat, double maxLat, double minLon, double maxLon, boolean antimeridianIncluded) {
+        private GeoRegion(double minLat, double maxLat, double minLon, double maxLon, boolean antimeridianCrossed) {
             this.minLat = minLat;
             this.maxLat = maxLat;
             this.minLon = minLon;
             this.maxLon = maxLon;
-            this.antimeridianIncluded = antimeridianIncluded;
+            this.antimeridianCrossed = antimeridianCrossed;
         }
 
+        /**
+         * Conservatively tests if a point (lat, lon) is outside of the region, considering a
+         * certain tolerance.
+         *
+         * @param lat       The latitude.
+         * @param lon       The longitude.
+         * @param tolerance The tolerance
+         *
+         * @return {@code true} if the point (lat, lon) is outside, {@code false} otherwise.
+         */
         private boolean isOutside(double lat, double lon, double tolerance) {
-            final double f = Math.cos(lat * D2R);
-
+            // be careful when expanding this expression into usage of if-else, it is critical for speed
             return lat < minLat - tolerance ||
                    lat > maxLat + tolerance ||
-                   !antimeridianIncluded && (lon < minLon - f * tolerance || lon > maxLon + f * tolerance);
+                   // do not evaluate the cosine expression unless it is needed
+                   !antimeridianCrossed && (tolerance *= Math.cos(lat * D2R)) >= 0.0 && (lon < minLon - tolerance ||
+                                                                                         lon > maxLon + tolerance);
         }
     }
 
@@ -324,15 +338,6 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
 
     private static double sqr(double dx, double dy) {
         return dx * dx + dy * dy;
-    }
-
-    private static double delta(double lon, double lon0) {
-        final double e = Math.abs(lon - lon0);
-        if (e < 180.0) {
-            return e;
-        } else {
-            return 360.0 - e;
-        }
     }
 
     private static class Result {
@@ -351,6 +356,15 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
                 this.delta = delta;
             }
             return b;
+        }
+
+        private static double delta(double lon, double lon0) {
+            final double e = Math.abs(lon - lon0);
+            if (e < 180.0) {
+                return e;
+            } else { // the Antimeridian is crossed
+                return 360.0 - e;
+            }
         }
     }
 }
