@@ -163,7 +163,22 @@ public class ProductIOHandler implements IOHandler {
             node = product.getTiePointGrid(sourceVariableName);
         }
 
+        final PixelPos pixelPos = findPixelPos(refPoint);
+        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
+        final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
+        final int[] targetShape = targetVariable.getShape();
+        final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
         final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
+        final Array array = readSubsceneData(node, dataType, targetShape, rectangle);
+        try {
+            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
+        } catch (Exception e) {
+            throw new IOException(MessageFormat.format(
+                    "Unable to write subscene for product ''{0}''.", product.getName()), e);
+        }
+    }
+
+    private PixelPos findPixelPos(PGgeometry refPoint) throws IOException {
         final float lon = (float) refPoint.getGeometry().getFirstPoint().x;
         final float lat = (float) refPoint.getGeometry().getFirstPoint().y;
         final GeoPos geoPos = new GeoPos(lat, lon);
@@ -177,17 +192,7 @@ public class ProductIOHandler implements IOHandler {
                     "Unable to find pixel at {0}, {1} in product ''{2}''.", geoPos.getLatString(),
                     geoPos.getLonString(), product.getName()));
         }
-        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
-        final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
-        final int[] targetShape = targetVariable.getShape();
-        final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
-        final Array array = readSubsceneData(node, dataType, targetShape, rectangle);
-        try {
-            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
-        } catch (Exception e) {
-            throw new IOException(MessageFormat.format(
-                    "Unable to write subscene for product ''{0}''.", product.getName()), e);
-        }
+        return pixelPos;
     }
 
     @Override
