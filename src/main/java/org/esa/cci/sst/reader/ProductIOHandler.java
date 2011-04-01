@@ -5,6 +5,7 @@ import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.dataio.ProductSubsetBuilder;
 import org.esa.beam.framework.dataio.ProductSubsetDef;
+import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
@@ -221,7 +222,11 @@ public class ProductIOHandler implements IOHandler {
         final GeoCoding geoCoding = subset.getGeoCoding();
         if (geoCoding instanceof PixelGeoCoding) {
             final PixelGeoCoding pixelGeoCoding = (PixelGeoCoding) geoCoding;
-            subset.setGeoCoding(new SimplePixelGeoCoding(pixelGeoCoding.getLatBand(), pixelGeoCoding.getLonBand()));
+            final Band latBand = pixelGeoCoding.getLatBand();
+            final Band lonBand = pixelGeoCoding.getLonBand();
+            final PixelSource latPixelSource = new RasterDataNodePixelSource(latBand);
+            final PixelSource lonPixelSource = new RasterDataNodePixelSource(lonBand);
+            subset.setGeoCoding(new SimplePixelGeoCoding(latPixelSource, lonPixelSource));
             // the original geo-codings of the subset and parent products can be disposed
             geoCoding.dispose();
             product.getGeoCoding().dispose();
@@ -281,4 +286,5 @@ public class ProductIOHandler implements IOHandler {
                 throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
+
 }
