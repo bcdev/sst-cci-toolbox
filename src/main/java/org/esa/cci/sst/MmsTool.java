@@ -72,6 +72,7 @@ public class MmsTool {
             synchronized (this) {
                 if (logger == null) {
                     logger = Logger.getLogger("org.esa.cci.sst");
+                    logger.setLevel(Level.WARNING);
                     try {
                         logger.addHandler(new FileHandler(name.replace(".sh", ".log")));
                     } catch (IOException ignored) {
@@ -134,7 +135,7 @@ public class MmsTool {
     private void setVerbose(boolean verbose) {
         this.verbose = verbose;
         if (verbose) {
-            getLogger().setLevel(Level.FINE);
+            getLogger().setLevel(Level.INFO);
         }
     }
 
