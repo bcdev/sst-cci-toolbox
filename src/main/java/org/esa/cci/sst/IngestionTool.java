@@ -28,6 +28,8 @@ import java.util.Properties;
  */
 public class IngestionTool extends MmsTool {
 
+    public static final String ALL_SENSORS_QUERY = "select sensor from mm_observation group by sensor";
+
     public static void main(String[] args) {
         // comment out the following two lines in order to activate the tool
         //System.out.println("The ingestion tool is deactivated in order to preserve the state of the database.");
@@ -57,7 +59,6 @@ public class IngestionTool extends MmsTool {
      * for all records contained in input file.
      *
      * @throws ToolException if an error occurs.
-     * @see #ingest(java.io.File, String, String, org.esa.cci.sst.reader.IOHandler)
      */
     public void ingest() throws ToolException {
         final Properties configuration = getConfiguration();
@@ -87,7 +88,7 @@ public class IngestionTool extends MmsTool {
                 try {
                     final IOHandler ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
                     for (final File inputFile : inputFileList) {
-                        ingest(inputFile, schemaName, sensorType, ioHandler);
+                        ingest(inputFile, schemaName, sensorType, sensor, ioHandler);
                     }
                 } catch (IllegalArgumentException e) {
                     throw new ToolException(MessageFormat.format(
@@ -151,11 +152,13 @@ public class IngestionTool extends MmsTool {
      * @param file       The input file with records to be read and made persistent as observations.
      * @param schemaName The name of the input file type.
      * @param sensorType The type of sensor being the source of the the input data.
+     * @param sensorName The sensor name.
      * @param ioHandler  The handler to be used to read this file type
      *
      * @throws ToolException if ingestion fails
      */
-    private void ingest(File file, String schemaName, String sensorType, IOHandler ioHandler) throws ToolException {
+    private void ingest(File file, String schemaName, String sensorType, String sensorName, IOHandler ioHandler) throws
+                                                                                                                 ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
             // open database
@@ -179,12 +182,17 @@ public class IngestionTool extends MmsTool {
 
             ioHandler.init(dataFile);
 
-            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
-                                                  schemaName, variableDescriptors.length));
-            for (VariableDescriptor variableDescriptor : variableDescriptors) {
-                // todo - check if descriptors have already been persisted (rq-20100401)
-                persistenceManager.persist(variableDescriptor);
+            final Query query = persistenceManager.createNativeQuery(ALL_SENSORS_QUERY, String.class);
+            @SuppressWarnings({"unchecked"})
+            final List<String> sensorList = query.getResultList();
+
+            if (!sensorList.contains(sensorName)) {
+                final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+                getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
+                                                      schemaName, variableDescriptors.length));
+                for (final VariableDescriptor variableDescriptor : variableDescriptors) {
+                    persistenceManager.persist(variableDescriptor);
+                }
             }
 
             int recordsInTimeInterval = 0;
