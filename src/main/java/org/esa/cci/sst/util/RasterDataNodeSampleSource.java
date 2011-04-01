@@ -31,7 +31,7 @@ public class RasterDataNodeSampleSource implements SampleSource {
      * @return the scene raster width of the wrapped node.
      */
     @Override
-    public int getMaxX() {
+    public int getWidth() {
         return node.getSceneRasterWidth();
     }
 
@@ -41,7 +41,7 @@ public class RasterDataNodeSampleSource implements SampleSource {
      * @return the scene raster height of the wrapped node.
      */
     @Override
-    public int getMaxY() {
+    public int getHeight() {
         return node.getSceneRasterHeight();
     }
 

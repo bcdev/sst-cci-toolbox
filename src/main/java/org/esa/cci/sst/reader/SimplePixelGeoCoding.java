@@ -51,10 +51,10 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
      */
     SimplePixelGeoCoding(final SampleSource latSource, final SampleSource lonSource) {
         this.pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
-        if (latSource.getMaxX() < 2) {
+        if (latSource.getWidth() < 2) {
             throw new IllegalArgumentException("latBand.getWidth() < 2");
         }
-        if (latSource.getMaxY() < 2) {
+        if (latSource.getHeight() < 2) {
             throw new IllegalArgumentException("latBand.getHeight() < 2");
         }
         this.latSource = latSource;
@@ -95,8 +95,8 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
         if (pixelPos.isValid()) {
             final int x0 = (int) Math.floor(pixelPos.x);
             final int y0 = (int) Math.floor(pixelPos.y);
-            final int w = latSource.getMaxX();
-            final int h = latSource.getMaxY();
+            final int w = latSource.getWidth();
+            final int h = latSource.getHeight();
 
             if (x0 >= 0 && x0 < w && y0 >= 0 && y0 < h) {
                 final float lat = (float) latSource.getSample(x0, y0);

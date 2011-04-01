@@ -297,20 +297,6 @@ public class ProductIOHandler implements IOHandler {
         }
     }
 
-    private static void workAroundBeamIssue1241(Product product) {
-        final GeoCoding geoCoding = product.getGeoCoding();
-        if (geoCoding instanceof TiePointGeoCoding) {
-            // work around Issue BEAM-1241
-            final TiePointGeoCoding tiePointGeoCoding = (TiePointGeoCoding) geoCoding;
-            final TiePointGrid latGrid = tiePointGeoCoding.getLatGrid();
-            final TiePointGrid lonGrid = tiePointGeoCoding.getLonGrid();
-            final SampleSource latSource = new RasterDataNodeSampleSource(latGrid);
-            final SampleSource lonSource = new RasterDataNodeSampleSource(lonGrid);
-            final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
-            product.setGeoCoding(new TiePointGeoCodingWithFallback(tiePointGeoCoding, pixelFinder));
-        }
-    }
-
     private static void workAroundBeamIssue1240(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
         if (geoCoding instanceof PixelGeoCoding) {
@@ -323,6 +309,20 @@ public class ProductIOHandler implements IOHandler {
             product.setGeoCoding(new SimplePixelGeoCoding(latSource, lonSource));
             // the original geo-coding can be disposed
             geoCoding.dispose();
+        }
+    }
+
+    private static void workAroundBeamIssue1241(Product product) {
+        final GeoCoding geoCoding = product.getGeoCoding();
+        if (geoCoding instanceof TiePointGeoCoding) {
+            // work around Issue BEAM-1241
+            final TiePointGeoCoding tiePointGeoCoding = (TiePointGeoCoding) geoCoding;
+            final TiePointGrid latGrid = tiePointGeoCoding.getLatGrid();
+            final TiePointGrid lonGrid = tiePointGeoCoding.getLonGrid();
+            final SampleSource latSource = new RasterDataNodeSampleSource(latGrid);
+            final SampleSource lonSource = new RasterDataNodeSampleSource(lonGrid);
+            final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
+            product.setGeoCoding(new TiePointGeoCodingWithFallback(tiePointGeoCoding, pixelFinder));
         }
     }
 
@@ -354,7 +354,11 @@ public class ProductIOHandler implements IOHandler {
         @Override
         public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
             tiePointGeoCoding.getPixelPos(geoPos, pixelPos);
-            if (!pixelPos.isValid()) {
+            if (!pixelPos.isValid() ||
+                pixelPos.x < 0 ||
+                pixelPos.y < 0 ||
+                pixelPos.x > tiePointGeoCoding.getLatGrid().getSceneRasterWidth() ||
+                pixelPos.y > tiePointGeoCoding.getLatGrid().getSceneRasterHeight()) {
                 final boolean pixelFound = pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
                 if (!pixelFound) {
                     pixelPos.setInvalid();

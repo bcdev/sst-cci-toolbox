@@ -29,10 +29,10 @@ public class QuadTreePixelFinder implements PixelFinder {
      * @throws IllegalArgumentException when the dimension of the sample sources are different.
      */
     public QuadTreePixelFinder(SampleSource lonSource, SampleSource latSource) {
-        if (lonSource.getMaxX() != latSource.getMaxX()) {
+        if (lonSource.getWidth() != latSource.getWidth()) {
             throw new IllegalArgumentException("lonSource.getMaxX() != latSource.getMaxX()");
         }
-        if (lonSource.getMaxY() != latSource.getMaxY()) {
+        if (lonSource.getHeight() != latSource.getHeight()) {
             throw new IllegalArgumentException("lonSource.getMaxY() != latSource.getMaxY()");
         }
         this.lonSource = lonSource;
@@ -42,8 +42,8 @@ public class QuadTreePixelFinder implements PixelFinder {
     @Override
     public boolean findPixel(double lon, double lat, Point2D pixelPos) {
         final Result result = new Result();
-        final int w = latSource.getMaxX();
-        final int h = latSource.getMaxY();
+        final int w = latSource.getWidth();
+        final int h = latSource.getHeight();
         final boolean pixelFound = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
         if (pixelFound) {
             pixelPos.setLocation(result.x + 0.5, result.y + 0.5);

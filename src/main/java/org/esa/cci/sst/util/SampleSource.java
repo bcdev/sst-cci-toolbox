@@ -1,29 +1,29 @@
 package org.esa.cci.sst.util;
 
 /**
- * A source of sample values indexed by (x, y) with x in {0, ..., maxX} and y
- * in {0, ..., maxY}.
+ * A source of sample values indexed by (x, y) with x in {0, ..., width - 1} and y
+ * in {0, ..., height - 1}.
  * <p/>
- * This interface is an abstraction of any construct where samples values are
- * arranged on a rectangular raster.
+ * This interface is an abstraction of any construct where samples values are arranged
+ * on a rectangular raster.
  *
  * @author Ralf Quast
  */
 public interface SampleSource {
 
     /**
-     * Returns the maximum value of x.
+     * Returns the raster width of the sample source.
      *
-     * @return the maximum value of x.
+     * @return the raster width of the sample source.
      */
-    int getMaxX();
+    int getWidth();
 
     /**
-     * Returns the maximum value of y.
+     * Returns the raster height of the sample source.
      *
-     * @return the maximum value of y.
+     * @return the raster height of the sample source.
      */
-    int getMaxY();
+    int getHeight();
 
     /**
      * Returns the value of the sample indexed by (x, y).
