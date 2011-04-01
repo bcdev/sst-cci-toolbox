@@ -1,0 +1,66 @@
+
+0. OBSERVATIONS
+===============
+
+mmdb=> select sensor, count(*) from mm_observation o group by sensor order by sensor;
+
+  sensor   | count
+-----------+--------
+ aai       |     30
+ aatsr     |     43
+ amsre     |     42
+ atsr_md   |  55188
+ avhrr_n15 |     46
+ avhrr_n16 |     43
+ avhrr_n17 |     46
+ avhrr_n18 |     43
+ avhrr_n19 |     43
+ history   |   1405
+ metop     | 244835
+ seaice    |     60
+ seviri    | 167746
+ tmi       |     46
+(14 rows)
+
+mmdb=> select count (*) from mm_observation ;
+ count
+--------
+ 469616
+(1 row)
+
+
+1. OBSERVATIONS FOR 2ND DAY
+===========================
+
+mmdb=> select sensor, count(*) from mm_observation o where o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' group by sensor order by sensor;
+
+  sensor   | count
+-----------+-------
+ aai       |     1
+ aatsr     |    14
+ amsre     |    13
+ atsr_md   |  1966
+ avhrr_n15 |    14
+ avhrr_n16 |    14
+ avhrr_n17 |    15
+ avhrr_n18 |    14
+ avhrr_n19 |    14
+ history   |     1
+ metop     |  8228
+ seaice    |     2
+ seviri    |  5800
+ tmi       |    15
+(14 rows)
+
+
+mmdb=> select count(*) from mm_observation o where o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' ;
+ count
+-------
+ 16111
+(1 row)
+
+
+2. MATCHUPS
+===========
+
+

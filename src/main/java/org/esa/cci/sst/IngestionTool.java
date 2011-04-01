@@ -30,8 +30,8 @@ public class IngestionTool extends MmsTool {
 
     public static void main(String[] args) {
         // comment out the following two lines in order to activate the tool
-        System.out.println("The ingestion tool is deactivated in order to preserve the state of the database.");
-        System.exit(0);
+        //System.out.println("The ingestion tool is deactivated in order to preserve the state of the database.");
+        //System.exit(0);
         final IngestionTool tool = new IngestionTool();
         try {
             final boolean performWork = tool.setCommandLineArgs(args);
@@ -179,13 +179,12 @@ public class IngestionTool extends MmsTool {
 
             ioHandler.init(dataFile);
 
-            if (true) {
-                final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-                getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
-                                                      schemaName, variableDescriptors.length));
-                for (VariableDescriptor variableDescriptor : variableDescriptors) {
-                    persistenceManager.persist(variableDescriptor);
-                }
+            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
+                                                  schemaName, variableDescriptors.length));
+            for (VariableDescriptor variableDescriptor : variableDescriptors) {
+                // todo - check if descriptors have already been persisted (rq-20100401)
+                persistenceManager.persist(variableDescriptor);
             }
 
             int recordsInTimeInterval = 0;
@@ -197,7 +196,6 @@ public class IngestionTool extends MmsTool {
                 }
                 try {
                     final Observation observation = ioHandler.readObservation(recordNo);
-                    // todo - remove restriction regarding time interval, used only during initial tests
                     if (checkTime(observation)) {
                         ++recordsInTimeInterval;
                         try {
@@ -230,7 +228,7 @@ public class IngestionTool extends MmsTool {
             } catch (Exception ignored) {
                 // ignored, because surrounding exception is propagated
             }
-            throw new ToolException("Failed to ingest file '" + file + "'.", e, ToolException.TOOL_ERROR);
+            getErrorHandler().handleWarning(e, MessageFormat.format("Failed to ingest file ''{0}''.", file));
         } finally {
             ioHandler.close();
         }

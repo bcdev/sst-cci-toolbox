@@ -74,3 +74,228 @@ order by o.sensor, o1.sensor;
    pgsql2shp -h 10.3.0.35 -u mms -f matchup703201-ref -P mms mmdb "select o.location from mm_observation o, mm_matchup m where m.id = 703201 and m.refobs_id = o.id"
 
 3. Display shape files with udig
+
+### statistics for PM3
+
+0. Observations
+
+mygisdb=> select sensor, count(*) from mm_observation o group by sensor order by sensor;
+  sensor   | count
+-----------+--------
+ aai       |     30
+ aatsr     |     43
+ amsre     |     43
+ atsr_md   |  55188
+ avhrr_n15 |     46
+ avhrr_n16 |     43
+ avhrr_n17 |     46
+ avhrr_n18 |     43
+ avhrr_n19 |     43
+ history   |   1405
+ metop     | 244835
+ seaice    |     60
+ seviri    | 167746
+ tmi       |     46
+(14 rows)
+
+mygisdb=> select count (*) from mm_observation ;
+ count
+--------
+ 469617
+(1 row)
+
+ 2nd day
+
+mygisdb=> select sensor, count(*) from mm_observation o where o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' group by sensor order by sensor;
+  sensor   | count
+-----------+-------
+ aai       |     1
+ aatsr     |    14
+ amsre     |    14
+ atsr_md   |  1966
+ avhrr_n15 |    14
+ avhrr_n16 |    14
+ avhrr_n17 |    15
+ avhrr_n18 |    14
+ avhrr_n19 |    14
+ history   |     1
+ metop     |  8228
+ seaice    |     2
+ seviri    |  5800
+ tmi       |    15
+(14 rows)
+
+
+
+1. Matchup for test month
+
+mygisdb=> select pattern & 7, count(*) from mm_matchup group by pattern & 7 order by pattern & 7;
+ ?column? | count
+----------+--------
+        1 |  30071           a
+        2 | 161833           m
+        3 |  14408           a & m
+        4 | 143524           s
+        5 |   4067           a & s
+        6 |  69213           m & s
+        7 |   6642           a & m & s
+(7 rows)
+
+mygisdb=> select count (*) from mm_matchup ;
+ count
+--------
+ 429758
+(1 row)
+
+2. Matchups for 2nd day (complete)
+
+mygisdb=> select pattern & 7, count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' group by pattern & 7 order by pattern & 7;
+ ?column? | count
+----------+-------
+        1 |  1123
+        2 |  5203
+        3 |   487
+        4 |  4918
+        5 |   123
+        6 |  2536
+        7 |   233
+(7 rows)
+
+mygisdb=> select count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and pattern & 127 = 127 and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z';
+ count
+-------
+    95
+(1 row)
+
+mygisdb=> select pattern, count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' group by pattern order by pattern;
+ pattern | count
+---------+-------
+     138 |     7
+     140 |    16
+     142 |    11
+     154 |    87
+     156 |    81
+     158 |    56
+     170 |    81
+     172 |    31
+     174 |    23
+     186 |  1093
+     188 |   328
+     190 |   187
+     201 |    10
+     202 |     5
+     203 |    10
+     204 |    15
+     206 |     4
+     207 |     2
+     217 |    67
+     218 |    22
+     219 |     7
+     220 |    84
+     221 |    12
+     222 |    61
+     223 |    24
+     233 |    53
+     234 |    32
+     235 |    22
+     236 |    59
+     237 |     7
+     238 |     8
+     239 |    12
+     249 |    88
+     250 |   289
+     251 |    64
+     252 |   180
+     253 |    11
+     254 |    66
+     255 |    31
+     396 |     1
+     410 |   196
+     412 |   352
+     414 |   228
+     442 |    31
+     444 |    30
+     446 |     9
+     457 |     1
+     459 |     2
+     460 |     4
+     473 |   188
+     474 |   166
+     475 |    32
+     476 |   216
+     477 |    12
+     478 |   178
+     479 |    24
+     489 |     2
+     505 |     3
+     506 |    28
+     507 |     4
+     508 |     4
+     510 |     4
+     650 |    40
+     652 |    36
+     654 |    22
+     665 |     1
+     666 |   250
+     668 |   239
+     670 |   114
+     682 |   109
+     684 |   213
+     686 |    59
+     698 |  1341
+     700 |  1671
+     702 |   952
+     713 |    11
+     714 |    27
+     715 |     9
+     716 |    75
+     717 |     3
+     718 |    22
+     719 |     8
+     729 |    67
+     730 |   167
+     731 |    32
+     732 |   201
+     733 |     8
+     734 |    92
+     735 |    19
+     745 |    83
+     746 |   113
+     747 |    80
+     748 |   205
+     749 |    16
+     750 |    73
+     751 |    27
+     761 |   285
+     762 |   693
+     763 |   152
+     764 |   723
+     765 |    36
+     766 |   246
+     767 |    64
+     921 |     1
+     922 |    23
+     924 |    48
+     926 |    50
+     940 |     2
+     953 |     1
+     956 |    51
+     958 |    18
+     985 |   217
+     986 |   391
+     987 |    69
+     988 |    49
+     989 |    15
+     990 |    50
+     991 |    22
+    1001 |     2
+    1003 |     2
+    1017 |    43
+    1018 |    12
+    1019 |     2
+    1020 |     4
+    1021 |     3
+    1022 |     3
+(126 rows)
+
+
