@@ -1,15 +1,14 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.reader.IOHandlerFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import static junit.framework.Assert.*;
 
-@Ignore
 public class IngestionToolTest {
 
     @Test
@@ -23,7 +22,8 @@ public class IngestionToolTest {
         }
 
         IngestionTool configOnly = new IngestionTool();
-        final File configFile = new File(getClass().getResource("test.properties").toURI());
+        final URL url = IngestionToolTest.class.getResource("ingestionToolTest.properties");
+        final File configFile = new File(url.toURI());
         assertTrue(configOnly.setCommandLineArgs(new String[]{"-c", configFile.getPath()}));
         assertEquals("value1", configOnly.getConfiguration().getProperty("mms.name1"));
         if (new File(MmsTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {

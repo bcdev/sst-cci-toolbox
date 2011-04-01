@@ -13,7 +13,6 @@ import java.sql.Timestamp;
  *
  * @author Martin Boettcher
  */
-@Ignore
 public class JdbcIntegrationTest {
 
     public static void main(String[] args) {

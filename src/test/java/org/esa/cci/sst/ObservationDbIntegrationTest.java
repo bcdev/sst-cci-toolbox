@@ -18,7 +18,6 @@ import java.util.List;
  *
  * @author Martin Boettcher
  */
-@Ignore
 public class ObservationDbIntegrationTest {
 
     public static void main(String[] args) {
