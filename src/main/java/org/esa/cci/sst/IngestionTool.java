@@ -13,6 +13,7 @@ import org.esa.cci.sst.util.TimeUtil;
 import javax.persistence.Query;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class IngestionTool extends MmsTool {
         }
     }
 
-    public IngestionTool() {
+    IngestionTool() {
         super("mmsingest.sh", "0.1");
     }
 
@@ -60,7 +61,7 @@ public class IngestionTool extends MmsTool {
      *
      * @throws ToolException if an error occurs.
      */
-    public void ingest() throws ToolException {
+    private void ingest() throws ToolException {
         final Properties configuration = getConfiguration();
         int directoryCount = 0;
         for (int i = 0; i < 100; i++) {
@@ -85,15 +86,16 @@ public class IngestionTool extends MmsTool {
             final ArrayList<File> inputFileList = new ArrayList<File>(0);
             collectInputFiles(inputDir, filenamePattern, inputFileList);
             if (!inputFileList.isEmpty()) {
+                final IOHandler ioHandler;
                 try {
-                    final IOHandler ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
-                    for (final File inputFile : inputFileList) {
-                        ingest(inputFile, schemaName, sensorType, sensor, ioHandler);
-                    }
+                    ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
                 } catch (IllegalArgumentException e) {
                     throw new ToolException(MessageFormat.format(
                             "Cannot create IO handler for schema ''{0}''.", schemaName), e,
                                             ToolException.TOOL_CONFIGURATION_ERROR);
+                }
+                for (final File inputFile : inputFileList) {
+                    ingest(inputFile, schemaName, sensorType, ioHandler);
                 }
                 directoryCount++;
             } else {
@@ -149,82 +151,29 @@ public class IngestionTool extends MmsTool {
      * every 65536 records. If ingestion fails rollback is only performed to
      * the respective checkpoint.
      *
+     *
      * @param file       The input file with records to be read and made persistent as observations.
      * @param schemaName The name of the input file type.
      * @param sensorType The type of sensor being the source of the the input data.
-     * @param sensorName The sensor name.
      * @param ioHandler  The handler to be used to read this file type
      *
      * @throws ToolException if ingestion fails
      */
-    private void ingest(File file, String schemaName, String sensorType, String sensorName, IOHandler ioHandler) throws
+    private void ingest(File file, String schemaName, String sensorType, IOHandler ioHandler) throws
                                                                                                                  ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
             // open database
             persistenceManager.transaction();
+            DataSchema dataSchema = getDataSchema(schemaName, sensorType);
 
-            // lookup or create data schema and data file entry
-            DataSchema dataSchema = (DataSchema) persistenceManager.pick("select s from DataSchema s where s.name = ?1",
-                                                                         schemaName);
-            final boolean newDataSchema = (dataSchema == null);
-            if (newDataSchema) {
-                dataSchema = new DataSchema();
-                dataSchema.setName(schemaName);
-                dataSchema.setSensorType(sensorType);
-                persistenceManager.persist(dataSchema);
-            }
-
-            final DataFile dataFile = new DataFile();
-            dataFile.setPath(file.getPath());
-            dataFile.setDataSchema(dataSchema);
-            persistenceManager.persist(dataFile);
-
+            final DataFile dataFile = createDataFile(file, dataSchema);
             ioHandler.init(dataFile);
 
-            final Query query = persistenceManager.createNativeQuery(ALL_SENSORS_QUERY, String.class);
-            @SuppressWarnings({"unchecked"})
-            final List<String> sensorList = query.getResultList();
+            persistenceManager.persist(dataFile);
+            persistVariableDescriptors(schemaName, ioHandler);
 
-            if (!sensorList.contains(sensorName)) {
-                final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-                getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
-                                                      schemaName, variableDescriptors.length));
-                for (final VariableDescriptor variableDescriptor : variableDescriptors) {
-                    persistenceManager.persist(variableDescriptor);
-                }
-            }
-
-            int recordsInTimeInterval = 0;
-
-            // loop over records
-            for (int recordNo = 0; recordNo < ioHandler.getNumRecords(); ++recordNo) {
-                if (recordNo % 65536 == 0 && recordNo > 0) {
-                    getLogger().info(MessageFormat.format("Reading record {0} {1}.", schemaName, recordNo));
-                }
-                try {
-                    final Observation observation = ioHandler.readObservation(recordNo);
-                    if (checkTime(observation)) {
-                        ++recordsInTimeInterval;
-                        try {
-                            persistenceManager.persist(observation);
-                        } catch (IllegalArgumentException e) {
-                            final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
-                                                                        schemaName,
-                                                                        recordNo,
-                                                                        e.getMessage());
-                            getErrorHandler().handleWarning(e, message);
-                        }
-                    }
-                } catch (Exception e) {
-                    getLogger().fine(MessageFormat.format("Ignoring observation for record number {0}: {1}",
-                                                          recordNo, e.getMessage()));
-                }
-                if (recordNo % 65536 == 65535) {
-                    persistenceManager.commit();
-                    persistenceManager.transaction();
-                }
-            }
+            int recordsInTimeInterval = persistObservations(schemaName, ioHandler);
             // make changes in database
             persistenceManager.commit();
             getLogger().info(MessageFormat.format("{0} {1} records in time interval.", schemaName,
@@ -242,7 +191,91 @@ public class IngestionTool extends MmsTool {
         }
     }
 
-    public void cleanup() throws ToolException {
+    private int persistObservations(final String schemaName, final IOHandler ioHandler) {
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        int recordsInTimeInterval = 0;
+
+        // loop over records
+        for (int recordNo = 0; recordNo < ioHandler.getNumRecords(); ++recordNo) {
+            if (recordNo % 65536 == 0 && recordNo > 0) {
+                getLogger().info(MessageFormat.format("Reading record {0} {1}.", schemaName, recordNo));
+            }
+            try {
+                if (persistObservation(ioHandler, recordNo)) {
+                    recordsInTimeInterval++;
+                }
+            } catch (Exception e) {
+                getLogger().fine(MessageFormat.format("Ignoring observation for record number {0}: {1}",
+                                                      recordNo, e.getMessage()));
+            }
+            if (recordNo % 65536 == 65535) {
+                persistenceManager.commit();
+                persistenceManager.transaction();
+            }
+        }
+        return recordsInTimeInterval;
+    }
+
+    private boolean persistObservation(final IOHandler ioHandler, final int recordNo) throws IOException,
+                                                                                             ParseException {
+        boolean hasPersisted = false;
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final Observation observation = ioHandler.readObservation(recordNo);
+        // todo - remove restriction regarding time interval, used only during initial tests
+        if (checkTime(observation)) {
+            hasPersisted = true;
+            try {
+                persistenceManager.persist(observation);
+            } catch (IllegalArgumentException e) {
+                final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
+                                                            observation.getName(),
+                                                            recordNo,
+                                                            e.getMessage());
+                getErrorHandler().handleWarning(e, message);
+            }
+        }
+        return hasPersisted;
+    }
+
+    private DataSchema getDataSchema(final String schemaName, final String sensorType) {
+        // lookup or create data schema and data file entry
+        DataSchema dataSchema = (DataSchema) getPersistenceManager().pick(
+                "select s from DataSchema s where s.name = ?1",
+                schemaName);
+        if (dataSchema == null) {
+            dataSchema = createDataSchema(schemaName, sensorType);
+            getPersistenceManager().persist(dataSchema);
+        }
+        return dataSchema;
+    }
+
+    private void persistVariableDescriptors(final String schemaName, final IOHandler ioHandler) throws IOException {
+        if (true) { // todo - ts 01Apr2011 - clearify
+            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
+                                                  schemaName, variableDescriptors.length));
+            for (VariableDescriptor variableDescriptor : variableDescriptors) {
+                getPersistenceManager().persist(variableDescriptor);
+            }
+        }
+    }
+
+    private DataSchema createDataSchema(final String schemaName, final String sensorType) {
+        final DataSchema dataSchema;
+        dataSchema = new DataSchema();
+        dataSchema.setName(schemaName);
+        dataSchema.setSensorType(sensorType);
+        return dataSchema;
+    }
+
+    private DataFile createDataFile(final File file, final DataSchema dataSchema) {
+        final DataFile dataFile = new DataFile();
+        dataFile.setPath(file.getPath());
+        dataFile.setDataSchema(dataSchema);
+        return dataFile;
+    }
+
+    private void cleanup() throws ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         persistenceManager.transaction();
         Query delete = persistenceManager.createQuery("delete from DataFile f");
