@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.cci.sst.util;
 
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
@@ -6,16 +6,35 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A {@link PixelFinder} implementation using a quad-tree algorithm.
+ *
+ * @author Ralf Quast
+ */
 public class QuadTreePixelFinder implements PixelFinder {
 
     private static final double D2R = Math.PI / 180.0;
 
     private final Map<Rectangle, GeoRegion> regionMap =
             Collections.synchronizedMap(new HashMap<Rectangle, GeoRegion>());
-    private final PixelSource lonSource;
-    private final PixelSource latSource;
+    private final SampleSource lonSource;
+    private final SampleSource latSource;
 
-    public QuadTreePixelFinder(PixelSource lonSource, PixelSource latSource) {
+    /**
+     * Constructs a new instance of this class.
+     *
+     * @param lonSource The source of longitude samples.
+     * @param latSource The source of latitude samples.
+     *
+     * @throws IllegalArgumentException when the dimension of the sample sources are different.
+     */
+    public QuadTreePixelFinder(SampleSource lonSource, SampleSource latSource) {
+        if (lonSource.getMaxX() != latSource.getMaxX()) {
+            throw new IllegalArgumentException("lonSource.getMaxX() != latSource.getMaxX()");
+        }
+        if (lonSource.getMaxY() != latSource.getMaxY()) {
+            throw new IllegalArgumentException("lonSource.getMaxY() != latSource.getMaxY()");
+        }
         this.lonSource = lonSource;
         this.latSource = latSource;
     }
@@ -23,8 +42,8 @@ public class QuadTreePixelFinder implements PixelFinder {
     @Override
     public boolean findPixel(double lon, double lat, Point2D pixelPos) {
         final Result result = new Result();
-        final int w = latSource.getWidth();
-        final int h = latSource.getHeight();
+        final int w = latSource.getMaxX();
+        final int h = latSource.getMaxY();
         final boolean pixelFound = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
         if (pixelFound) {
             pixelPos.setLocation(result.x + 0.5, result.y + 0.5);

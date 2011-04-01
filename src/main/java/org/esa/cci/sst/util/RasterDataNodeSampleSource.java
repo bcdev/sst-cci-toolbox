@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.cci.sst.util;
 
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
@@ -7,21 +7,41 @@ import org.esa.beam.jai.ImageManager;
 import javax.media.jai.PlanarImage;
 import java.awt.image.Raster;
 
-public class RasterDataNodePixelSource implements PixelSource {
+/**
+ * A simple facade wrapping a {@link RasterDataNode}.
+ *
+ * @author Ralf Quast
+ */
+public class RasterDataNodeSampleSource implements SampleSource {
 
     private final RasterDataNode node;
 
-    public RasterDataNodePixelSource(RasterDataNode node) {
+    /**
+     * Construct a new instance of this class.
+     *
+     * @param node The raster data node to be wrapped.
+     */
+    public RasterDataNodeSampleSource(RasterDataNode node) {
         this.node = node;
     }
 
+    /**
+     * Returns the scene raster width of the wrapped node.
+     *
+     * @return the scene raster width of the wrapped node.
+     */
     @Override
-    public int getWidth() {
+    public int getMaxX() {
         return node.getSceneRasterWidth();
     }
 
+    /**
+     * Returns the scene raster height of the wrapped node.
+     *
+     * @return the scene raster height of the wrapped node.
+     */
     @Override
-    public int getHeight() {
+    public int getMaxY() {
         return node.getSceneRasterHeight();
     }
 

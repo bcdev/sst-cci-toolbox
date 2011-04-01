@@ -21,6 +21,9 @@ import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Scene;
 import org.esa.beam.framework.dataop.maptransf.Datum;
+import org.esa.cci.sst.util.PixelFinder;
+import org.esa.cci.sst.util.SampleSource;
+import org.esa.cci.sst.util.QuadTreePixelFinder;
 
 
 /**
@@ -36,8 +39,8 @@ import org.esa.beam.framework.dataop.maptransf.Datum;
  */
 class SimplePixelGeoCoding extends AbstractGeoCoding {
 
-    private final PixelSource latSource;
-    private final PixelSource lonSource;
+    private final SampleSource latSource;
+    private final SampleSource lonSource;
     private final PixelFinder pixelFinder;
 
     /**
@@ -46,12 +49,12 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
      * @param latSource The band, which provides the latitudes.
      * @param lonSource The band, which provides the longitudes.
      */
-    SimplePixelGeoCoding(final PixelSource latSource, final PixelSource lonSource) {
+    SimplePixelGeoCoding(final SampleSource latSource, final SampleSource lonSource) {
         this.pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
-        if (latSource.getWidth() < 2) {
+        if (latSource.getMaxX() < 2) {
             throw new IllegalArgumentException("latBand.getWidth() < 2");
         }
-        if (latSource.getHeight() < 2) {
+        if (latSource.getMaxY() < 2) {
             throw new IllegalArgumentException("latBand.getHeight() < 2");
         }
         this.latSource = latSource;
@@ -92,8 +95,8 @@ class SimplePixelGeoCoding extends AbstractGeoCoding {
         if (pixelPos.isValid()) {
             final int x0 = (int) Math.floor(pixelPos.x);
             final int y0 = (int) Math.floor(pixelPos.y);
-            final int w = latSource.getWidth();
-            final int h = latSource.getHeight();
+            final int w = latSource.getMaxX();
+            final int h = latSource.getMaxY();
 
             if (x0 >= 0 && x0 < w && y0 >= 0 && y0 < h) {
                 final float lat = (float) latSource.getSample(x0, y0);

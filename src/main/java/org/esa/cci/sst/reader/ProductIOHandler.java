@@ -13,10 +13,19 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.beam.framework.datamodel.TiePointGeoCoding;
+import org.esa.beam.framework.datamodel.TiePointGrid;
+import org.esa.beam.framework.dataop.maptransf.Datum;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.util.PixelFinder;
+import org.esa.cci.sst.util.QuadTreePixelFinder;
+import org.esa.cci.sst.util.RasterDataNodeSampleSource;
+import org.esa.cci.sst.util.SampleSource;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -28,6 +37,7 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.io.IOException;
@@ -57,14 +67,11 @@ public class ProductIOHandler implements IOHandler {
                     MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
         }
         if (bc != null) {
-            final ProductSubsetDef subsetDef = new ProductSubsetDef();
-            try {
-                subsetDef.setRegion(bc.getPixelBoundary(product));
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
-            product = createProductSubset(product, subsetDef);
+            product = createSubsetProductIfNecessary(product, bc);
         }
+        workAroundBeamIssue1240(product);
+        workAroundBeamIssue1241(product);
+
         this.product = product;
         this.dataFile = dataFile;
     }
@@ -220,24 +227,22 @@ public class ProductIOHandler implements IOHandler {
         return new Rectangle(x, y, w, h);
     }
 
-    private Product createProductSubset(Product product, ProductSubsetDef subsetDef) throws IOException {
-        final Product subset = ProductSubsetBuilder.createProductSubset(product, true, subsetDef, product.getName(),
-                                                                        product.getDescription());
-        // work around Issue BEAM-1240
-        final GeoCoding geoCoding = subset.getGeoCoding();
-        if (geoCoding instanceof PixelGeoCoding) {
-            final PixelGeoCoding pixelGeoCoding = (PixelGeoCoding) geoCoding;
-            final Band latBand = pixelGeoCoding.getLatBand();
-            final Band lonBand = pixelGeoCoding.getLonBand();
-            final PixelSource latPixelSource = new RasterDataNodePixelSource(latBand);
-            final PixelSource lonPixelSource = new RasterDataNodePixelSource(lonBand);
-            subset.setGeoCoding(new SimplePixelGeoCoding(latPixelSource, lonPixelSource));
-            // the original geo-codings of the subset and parent products can be disposed
-            geoCoding.dispose();
-            product.getGeoCoding().dispose();
-            product.setGeoCoding(null);
+    private static Product createSubsetProductIfNecessary(Product product, BoundaryCalculator bc) throws IOException {
+        final ProductSubsetDef def = new ProductSubsetDef();
+        try {
+            def.setRegion(bc.getPixelBoundary(product));
+        } catch (Exception e) {
+            throw new IOException(e);
         }
-        return subset;
+        final Rectangle subRegion = def.getRegion();
+        if (subRegion == null) {
+            return product;
+        }
+        if (product.getSceneRasterHeight() == subRegion.height && product.getSceneRasterWidth() == subRegion.width) {
+            return product;
+        }
+        return ProductSubsetBuilder.createProductSubset(product, true, def, product.getName(),
+                                                        product.getDescription());
     }
 
     private static Array readSubsceneData(final RasterDataNode node, final DataType type, final int[] targetShape,
@@ -292,4 +297,120 @@ public class ProductIOHandler implements IOHandler {
         }
     }
 
+    private static void workAroundBeamIssue1241(Product product) {
+        final GeoCoding geoCoding = product.getGeoCoding();
+        if (geoCoding instanceof TiePointGeoCoding) {
+            // work around Issue BEAM-1241
+            final TiePointGeoCoding tiePointGeoCoding = (TiePointGeoCoding) geoCoding;
+            final TiePointGrid latGrid = tiePointGeoCoding.getLatGrid();
+            final TiePointGrid lonGrid = tiePointGeoCoding.getLonGrid();
+            final SampleSource latSource = new RasterDataNodeSampleSource(latGrid);
+            final SampleSource lonSource = new RasterDataNodeSampleSource(lonGrid);
+            final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
+            product.setGeoCoding(new TiePointGeoCodingWithFallback(tiePointGeoCoding, pixelFinder));
+        }
+    }
+
+    private static void workAroundBeamIssue1240(Product product) {
+        final GeoCoding geoCoding = product.getGeoCoding();
+        if (geoCoding instanceof PixelGeoCoding) {
+            // work around Issue BEAM-1240
+            final PixelGeoCoding pixelGeoCoding = (PixelGeoCoding) geoCoding;
+            final Band latBand = pixelGeoCoding.getLatBand();
+            final Band lonBand = pixelGeoCoding.getLonBand();
+            final SampleSource latSource = new RasterDataNodeSampleSource(latBand);
+            final SampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
+            product.setGeoCoding(new SimplePixelGeoCoding(latSource, lonSource));
+            // the original geo-coding can be disposed
+            geoCoding.dispose();
+        }
+    }
+
+    private static class TiePointGeoCodingWithFallback implements GeoCoding {
+
+        private final TiePointGeoCoding tiePointGeoCoding;
+        private final PixelFinder pixelFinder;
+
+        public TiePointGeoCodingWithFallback(TiePointGeoCoding tiePointGeoCoding, PixelFinder pixelFinder) {
+            this.tiePointGeoCoding = tiePointGeoCoding;
+            this.pixelFinder = pixelFinder;
+        }
+
+        @Override
+        public boolean isCrossingMeridianAt180() {
+            return tiePointGeoCoding.isCrossingMeridianAt180();
+        }
+
+        @Override
+        public boolean canGetPixelPos() {
+            return tiePointGeoCoding.canGetPixelPos();
+        }
+
+        @Override
+        public boolean canGetGeoPos() {
+            return tiePointGeoCoding.canGetGeoPos();
+        }
+
+        @Override
+        public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
+            tiePointGeoCoding.getPixelPos(geoPos, pixelPos);
+            if (!pixelPos.isValid()) {
+                final boolean pixelFound = pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
+                if (!pixelFound) {
+                    pixelPos.setInvalid();
+                }
+            }
+            return pixelPos;
+        }
+
+        @Override
+        public GeoPos getGeoPos(PixelPos pixelPos, GeoPos geoPos) {
+            return tiePointGeoCoding.getGeoPos(pixelPos, geoPos);
+        }
+
+        @Override
+        public Datum getDatum() {
+            return tiePointGeoCoding.getDatum();
+        }
+
+        @Override
+        public void dispose() {
+            tiePointGeoCoding.dispose();
+        }
+
+        @Override
+        public CoordinateReferenceSystem getImageCRS() {
+            return tiePointGeoCoding.getImageCRS();
+        }
+
+        @Override
+        public CoordinateReferenceSystem getMapCRS() {
+            return tiePointGeoCoding.getMapCRS();
+        }
+
+        @Override
+        public CoordinateReferenceSystem getGeoCRS() {
+            return tiePointGeoCoding.getGeoCRS();
+        }
+
+        @Override
+        public MathTransform getImageToMapTransform() {
+            return tiePointGeoCoding.getImageToMapTransform();
+        }
+
+        @Override
+        public CoordinateReferenceSystem getBaseCRS() {
+            return tiePointGeoCoding.getBaseCRS();
+        }
+
+        @Override
+        public CoordinateReferenceSystem getModelCRS() {
+            return tiePointGeoCoding.getModelCRS();
+        }
+
+        @Override
+        public AffineTransform getImageToModelTransform() {
+            return tiePointGeoCoding.getImageToModelTransform();
+        }
+    }
 }
