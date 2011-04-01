@@ -61,13 +61,13 @@ import static org.esa.cci.sst.SensorType.*;
 class DefaultMmdGenerator implements MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
-    private final SortedMap<Long, IOHandler> ioHandlers = new TreeMap<Long, IOHandler>();
+    private final SortedMap<Long, IOHandler> ioHandlerMap = new TreeMap<Long, IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties configuration;
     private final Properties targetVariables;
     private final Logger logger;
 
-    private int matchupCount;
+    private long ioHandlerId;
 
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
         this.configuration = tool.getConfiguration();
@@ -111,8 +111,7 @@ class DefaultMmdGenerator implements MmdGenerator {
             final int matchupCount = resultList.size();
 
             for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
-                if(matchupIndex != 57) continue;
-                Matchup matchup = resultList.get(matchupIndex);
+                final Matchup matchup = resultList.get(matchupIndex);
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
                 final int matchupId = matchup.getId();
                 logger.info(MessageFormat.format("Writing matchup ''{0}'' ({1}/{2}).", matchupId, matchupIndex,
@@ -136,7 +135,7 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     @Override
     public void close() {
-        for (IOHandler ioHandler : this.ioHandlers.values()) {
+        for (IOHandler ioHandler : this.ioHandlerMap.values()) {
             ioHandler.close();
         }
     }
@@ -166,8 +165,12 @@ class DefaultMmdGenerator implements MmdGenerator {
             if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                 final String sourceVariableName = descriptor.getBasename();
                 final String targetVariableName = getTargetVariableName(descriptor.getName());
-                ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
-                                refTime);
+                try {
+                    ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
+                                    refTime);
+                } catch (IOException e) {
+                    logger.warning(e.getMessage());
+                }
             }
         }
     }
@@ -180,30 +183,25 @@ class DefaultMmdGenerator implements MmdGenerator {
         return result;
     }
 
-    IOHandler getIOHandler(final Observation observation) throws IOException {
-        for (Map.Entry<Long, IOHandler> entry : ioHandlers.entrySet()) {
-            if(entry.getValue().getDataFilePath().equals(observation.getDatafile().getPath())) {
-                return entry.getValue();
+    private IOHandler getIOHandler(final Observation observation) throws IOException {
+        for (final IOHandler ioHandler : ioHandlerMap.values()) {
+            if (ioHandler.getDataFilePath().equals(observation.getDatafile().getPath())) {
+                return ioHandler;
             }
         }
         final DataFile datafile = observation.getDatafile();
         final IOHandler ioHandler = IOHandlerFactory.createHandler(datafile.getDataSchema().getName(),
-                                                             observation.getSensor());
-        final long time = observation.getTime().getTime();
-        memorizeIOHandler(time, ioHandler);
+                                                                   observation.getSensor());
+        if (ioHandlerMap.size() >= 30) {
+            final IOHandler removedHandler = ioHandlerMap.remove(ioHandlerMap.firstKey());
+            removedHandler.close();
+        }
+        ioHandlerMap.put(ioHandlerId++, ioHandler);
         ioHandler.init(datafile);
         return ioHandler;
     }
 
-    private void memorizeIOHandler(final long key, final IOHandler ioHandler) {
-        if (ioHandlers.size() >= 30) {
-            final IOHandler removedHandler = ioHandlers.remove(ioHandlers.firstKey());
-            removedHandler.close();
-        }
-        ioHandlers.put(key, ioHandler);
-    }
-
-    void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
+    private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
         final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
         try {
             file.write("matchup_id", new int[]{matchupIndex}, array);
@@ -212,7 +210,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
     }
 
-    void addGlobalAttributes(NetcdfFileWriteable file) {
+    private void addGlobalAttributes(NetcdfFileWriteable file) {
         file.addGlobalAttribute("title", "SST CCI multi-sensor match-up dataset (MMD) template");
         file.addGlobalAttribute("institution", "Brockmann Consult");
         file.addGlobalAttribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)");
@@ -220,11 +218,11 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.addGlobalAttribute("total_number_of_matchups", 0);
     }
 
-    void addNwpData(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addNwpData(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
         // todo: add NWP data (rq-20110223)
     }
 
-    void addObservationTime(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addObservationTime(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
         final String variableName = String.format("%s.observation_time", sensorName);
         if (targetVariables.isEmpty() || targetVariables.containsKey(variableName)) {
             final Variable time = file.addVariable(file.getRootGroup(),
@@ -235,7 +233,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
     }
 
-    void addLsMask(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addLsMask(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
         final String variableName = String.format("%s.land_sea_mask", sensorName);
         if (targetVariables.isEmpty() || targetVariables.containsKey(variableName)) {
             final Variable mask = file.addVariable(file.getRootGroup(),
@@ -246,7 +244,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
     }
 
-    void addVariables(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addVariables(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
         final Query query = createVariablesQuery(sensorName);
         @SuppressWarnings({"unchecked"})
         final ArrayList<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
@@ -263,7 +261,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
     }
 
-    String createDimensionString(VariableDescriptor var, SensorType sensorType) {
+    private String createDimensionString(VariableDescriptor var, SensorType sensorType) {
         final String[] dimensionNames = var.getDimensions().split(" ");
         final String[] dimensionRoles = var.getDimensionRoles().split(" ");
         final StringBuilder sb = new StringBuilder();
@@ -289,7 +287,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         return sb.toString();
     }
 
-    void addVariable(NetcdfFileWriteable file, VariableDescriptor descriptor, String dims) {
+    private void addVariable(NetcdfFileWriteable file, VariableDescriptor descriptor, String dims) {
         final DataType dataType = DataType.valueOf(descriptor.getType());
         final String targetVariableName = getTargetVariableName(descriptor.getName());
         final Variable v = file.addVariable(file.getRootGroup(), targetVariableName, dataType, dims);
@@ -300,7 +298,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());
     }
 
-    Query createVariablesQuery(String sensorName) {
+    private Query createVariablesQuery(String sensorName) {
         return persistenceManager.createQuery(String.format(
                 "select v from VariableDescriptor v where v.name like '%s.%%' order by v.name", sensorName));
     }

@@ -11,7 +11,7 @@ import java.util.Properties;
 public class MmdGeneratorTool extends MmsTool {
 
     public MmdGeneratorTool() {
-        super("mmscreatemmd", "0.1");
+        super("mmscreatemmd.sh", "0.1");
     }
 
     /**

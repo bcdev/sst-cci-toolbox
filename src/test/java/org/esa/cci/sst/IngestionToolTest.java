@@ -1,6 +1,7 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -8,6 +9,7 @@ import java.net.URISyntaxException;
 
 import static junit.framework.Assert.*;
 
+@Ignore
 public class IngestionToolTest {
 
     @Test
