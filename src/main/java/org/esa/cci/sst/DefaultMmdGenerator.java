@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import static org.esa.cci.sst.SensorType.*;
 
@@ -63,19 +62,17 @@ class DefaultMmdGenerator implements MmdGenerator {
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
     private final SortedMap<Long, IOHandler> ioHandlerMap = new TreeMap<Long, IOHandler>();
     private final PersistenceManager persistenceManager;
-    private final Properties configuration;
     private final Properties targetVariables;
-    private final Logger logger;
+    private final MmsTool tool;
 
     private long ioHandlerId;
 
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
-        this.configuration = tool.getConfiguration();
-        final String propertiesFilePath = configuration.getProperty("mmd.output.variables");
+        this.tool = tool;
+        final String propertiesFilePath = tool.getConfiguration().getProperty("mmd.output.variables");
         final InputStream is = new FileInputStream(propertiesFilePath);
         this.targetVariables = new Properties();
         targetVariables.load(is);
-        this.logger = tool.getLogger();
         persistenceManager = tool.getPersistenceManager();
         initDimensionCountMap();
     }
@@ -85,7 +82,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         addDimensions(file);
         file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
 
-        for (final Map.Entry<Object, Object> entry : configuration.entrySet()) {
+        for (final Map.Entry<Object, Object> entry : tool.getConfiguration().entrySet()) {
             if (entry.getKey().toString().matches("mms.test.inputSets.[0-9]+.sensor")) {
                 final String sensorName = entry.getValue().toString();
                 final SensorType sensorType = SensorType.getSensorType(sensorName);
@@ -114,8 +111,9 @@ class DefaultMmdGenerator implements MmdGenerator {
                 final Matchup matchup = resultList.get(matchupIndex);
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
                 final int matchupId = matchup.getId();
-                logger.info(MessageFormat.format("Writing matchup ''{0}'' ({1}/{2}).", matchupId, matchupIndex,
-                                                 matchupCount));
+                tool.getLogger().info(
+                        MessageFormat.format("Writing matchup ''{0}'' ({1}/{2}).", matchupId, matchupIndex,
+                                             matchupCount));
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
                 writeMatchupId(file, matchupId, matchupIndex);
@@ -142,8 +140,8 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     @SuppressWarnings({"unchecked"})
     List<Matchup> getMatchups() {
-        String startTime = configuration.getProperty("mms.test.startTime");
-        String endTime = configuration.getProperty("mms.test.endTime");
+        String startTime = tool.getConfiguration().getProperty("mms.test.startTime");
+        String endTime = tool.getConfiguration().getProperty("mms.test.endTime");
 
         String queryString = String.format(TIME_CONSTRAINED_MATCHUPS_QUERY, startTime, endTime);
         final Query query = persistenceManager.createNativeQuery(queryString, Matchup.class);
@@ -169,7 +167,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                     ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
                                     refTime);
                 } catch (IOException e) {
-                    logger.warning(e.getMessage());
+                    tool.getErrorHandler().handleWarning(e, e.getMessage());
                 }
             }
         }
