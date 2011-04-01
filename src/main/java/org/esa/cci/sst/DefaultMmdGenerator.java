@@ -30,6 +30,7 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
+import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
@@ -285,15 +286,17 @@ class DefaultMmdGenerator implements MmdGenerator {
         return sb.toString();
     }
 
-    private void addVariable(NetcdfFileWriteable file, VariableDescriptor descriptor, String dims) {
+    private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor, String dims) {
         final DataType dataType = DataType.valueOf(descriptor.getType());
         final String targetVariableName = getTargetVariableName(descriptor.getName());
-        final Variable v = file.addVariable(file.getRootGroup(), targetVariableName, dataType, dims);
-        addAttribute(v, "standard_name", descriptor.getStandardName());
-        addAttribute(v, "units", descriptor.getUnits());
-        addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
-        addAttribute(v, "scale_factor", descriptor.getScaleFactor(), DataType.FLOAT);
-        addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());
+        if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
+            final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType, dims);
+            addAttribute(v, "standard_name", descriptor.getStandardName());
+            addAttribute(v, "units", descriptor.getUnits());
+            addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
+            addAttribute(v, "scale_factor", descriptor.getScaleFactor(), DataType.FLOAT);
+            addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());
+        }
     }
 
     private Query createVariablesQuery(String sensorName) {
