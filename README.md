@@ -102,6 +102,16 @@ In order to automatically start the database on log-in, type
 
 Then open `~/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to the database.
 
+## Installation on Eddie VM
+
+mkdir ~/pgdata
+/usr/pgsql-9.0/bin/initdb -D ~/pgdata/mms
+mkdir ~/pgdata/mms/logs
+/usr/pgsql-9.0/bin/pg_ctl -D /home/v1mbottc/pgdata/mms -l ~/pgdata/mms/logs/mms.log start
+psql -d mms -f /usr/pgsql-9.0/share/contrib/postgis-1.5/postgis.sql
+
+  failed with /usr/pgsql-9.0/lib/postgis-1.5.so: undefined symbol: GEOSHausdorffDistance
+
 ## Usage
 
 Coming soon.
