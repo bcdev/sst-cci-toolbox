@@ -36,7 +36,7 @@ public class MmdGeneratorTool extends MmsTool {
             tool.initialize();
             final Properties properties = tool.getConfiguration();
             final String mmdFileName = properties.getProperty("mmd.output.filename", "mmd.nc");
-            file = NetcdfFileWriteable.createNew(mmdFileName, true);
+            file = NetcdfFileWriteable.createNew(mmdFileName, true); // todo - fill = true is really expensive
             generator = new DefaultMmdGenerator(tool);
             generator.createMmdStructure(file);
             generator.writeMatchups(file);

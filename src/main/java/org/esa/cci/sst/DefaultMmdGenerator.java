@@ -83,9 +83,10 @@ class DefaultMmdGenerator implements MmdGenerator {
         addDimensions(file);
         file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
 
-        for (final Map.Entry<Object, Object> entry : tool.getConfiguration().entrySet()) {
-            if (entry.getKey().toString().matches("mms.test.inputSets.[0-9]+.sensor")) {
-                final String sensorName = entry.getValue().toString();
+        for (int i = 0; i < 100; i++) {
+            final String sensorName =
+                    tool.getConfiguration().getProperty(String.format("mms.test.inputSets.%d.sensor", i));
+            if (sensorName != null) {
                 final SensorType sensorType = SensorType.getSensorType(sensorName);
                 addVariables(file, sensorType, sensorName);
                 if (sensorType == ATSR || sensorType == AVHRR || sensorType == AMSRE || sensorType == TMI) {
