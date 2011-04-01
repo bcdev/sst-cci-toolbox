@@ -1,6 +1,5 @@
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -53,6 +52,11 @@ public class AtsrMdIOHandler extends MdIOHandler {
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
         observation.setDatafile(getDataFile());
         observation.setRecordNo(recordNo);
+        try {
+            observation.setClassification(getByte("insitu.reference_flag", recordNo));
+        } catch (IOException ignore) {
+            // ignore, there is no insitu.reference_flag
+        }
         observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != getSstFillValue());
         return observation;
     }
