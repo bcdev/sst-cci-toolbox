@@ -32,7 +32,7 @@ import java.util.HashMap;
  *
  * @author Thomas Storm
  */
-public abstract class NetcdfIOHandler implements IOHandler {
+abstract class NetcdfIOHandler implements IOHandler {
 
     private final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
     private final String sensorName;

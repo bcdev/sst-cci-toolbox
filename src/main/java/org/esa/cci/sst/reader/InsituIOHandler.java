@@ -44,7 +44,7 @@ import java.util.TimeZone;
  *
  * @author Thomas Storm
  */
-public class InsituIOHandler extends NetcdfIOHandler {
+class InsituIOHandler extends NetcdfIOHandler {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
     private static final String VARNAME_HISTORY_TIME = "insitu.time";

@@ -23,7 +23,7 @@ import ucar.nc2.NetcdfFileWriteable;
 *
 * @author Thomas Storm
 */
-public interface MmdGenerator {
+interface MmdGenerator {
 
     static final String COUNT_MATCHUPS_QUERY =
             "select count( m ) "

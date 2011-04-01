@@ -8,7 +8,7 @@ import org.postgis.Point;
 import java.io.IOException;
 import java.util.Date;
 
-import static org.esa.cci.sst.SensorType.ATSR_MD;
+import static org.esa.cci.sst.SensorType.*;
 
 /**
  * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.
@@ -19,7 +19,7 @@ import static org.esa.cci.sst.SensorType.ATSR_MD;
  *
  * @author Martin Boettcher
  */
-public class AtsrMdIOHandler extends MdIOHandler {
+class AtsrMdIOHandler extends MdIOHandler {
 
     public AtsrMdIOHandler() {
         super(ATSR_MD.getSensor(), "match_up");

@@ -23,7 +23,7 @@ import static org.esa.cci.sst.SensorType.SEVIRI;
  *
  * @author Martin Boettcher
  */
-public class SeviriIOHandler extends MdIOHandler {
+class SeviriIOHandler extends MdIOHandler {
 
     static final long MILLISECONDS_1981;
 

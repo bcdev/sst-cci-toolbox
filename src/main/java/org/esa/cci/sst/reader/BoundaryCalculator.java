@@ -12,7 +12,7 @@ import java.awt.Rectangle;
  *
  * @author Ralf Quast
  */
-public interface BoundaryCalculator {
+interface BoundaryCalculator {
 
     /**
      * Returns the pixel boundary of a product. The pixel boundary shall enclose only

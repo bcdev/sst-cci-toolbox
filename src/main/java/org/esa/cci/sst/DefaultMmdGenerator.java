@@ -17,6 +17,7 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -29,7 +30,6 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
-import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
@@ -46,6 +46,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import static org.esa.cci.sst.SensorType.*;
@@ -59,10 +60,12 @@ import static org.esa.cci.sst.SensorType.*;
 class DefaultMmdGenerator implements MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
+    private final SortedMap<Long, IOHandler> ioHandlerMap = new TreeMap<Long, IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties targetVariables;
     private final MmsTool tool;
-    private final List<Matchup> matchupList = new ArrayList<Matchup>();
+
+    private long ioHandlerId;
 
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
         this.tool = tool;
@@ -79,10 +82,9 @@ class DefaultMmdGenerator implements MmdGenerator {
         addDimensions(file);
         file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
 
-        for (int i = 0; i < 100; i++) {
-            final String sensorName =
-                    tool.getConfiguration().getProperty(String.format("mms.test.inputSets.%d.sensor", i));
-            if (sensorName != null) {
+        for (final Map.Entry<Object, Object> entry : tool.getConfiguration().entrySet()) {
+            if (entry.getKey().toString().matches("mms.test.inputSets.[0-9]+.sensor")) {
+                final String sensorName = entry.getValue().toString();
                 final SensorType sensorType = SensorType.getSensorType(sensorName);
                 addVariables(file, sensorType, sensorName);
                 if (sensorType == ATSR || sensorType == AVHRR || sensorType == AMSRE || sensorType == TMI) {
@@ -114,7 +116,6 @@ class DefaultMmdGenerator implements MmdGenerator {
                                              matchupCount));
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
-                // todo - optimize: search ref. point only once per subs-scene (rq-20110403)
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
                 for (final Coincidence coincidence : coincidences) {
@@ -132,20 +133,21 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     @Override
     public void close() {
+        for (IOHandler ioHandler : this.ioHandlerMap.values()) {
+            ioHandler.close();
+        }
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<Matchup> getMatchups() {
-        if (matchupList.isEmpty()) {
-            final String startTime = tool.getConfiguration().getProperty("mms.test.startTime");
-            final String endTime = tool.getConfiguration().getProperty("mms.test.endTime");
-            final String queryString = String.format(TIME_CONSTRAINED_MATCHUPS_QUERY, startTime, endTime);
-            final Query query = persistenceManager.createNativeQuery(queryString, Matchup.class);
-            // query.setParameter(1, "'" + startTime + "'");
-            // query.setParameter(2, "'" + endTime + "'");
-            matchupList.addAll(query.getResultList());
-        }
-        return matchupList;
+    List<Matchup> getMatchups() {
+        String startTime = tool.getConfiguration().getProperty("mms.test.startTime");
+        String endTime = tool.getConfiguration().getProperty("mms.test.endTime");
+
+        String queryString = String.format(TIME_CONSTRAINED_MATCHUPS_QUERY, startTime, endTime);
+        final Query query = persistenceManager.createNativeQuery(queryString, Matchup.class);
+//        query.setParameter(1, "'" + startTime + "'");
+//        query.setParameter(2, "'" + endTime + "'");
+        return query.getResultList();
     }
 
     void addDimensions(final NetcdfFileWriteable file) {
@@ -156,31 +158,17 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
-        if ("seaice".equals(observation.getSensor())) {
-            // todo - for unknown reasons sea ice data files are not closed (rq-20110403)
-            return;
-        }
-        IOHandler ioHandler = null;
-        try {
-            ioHandler = createIOHandler(observation);
-            ioHandler.init(observation.getDatafile());
-            for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
-                if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
-                    final String sourceVariableName = descriptor.getBasename();
-                    final String targetVariableName = getTargetVariableName(descriptor.getName());
-                    try {
-                        ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
-                                        refTime);
-                    } catch (Exception e) {
-                        tool.getErrorHandler().handleWarning(e, MessageFormat.format(
-                                "Unable to write data for observation ''{0}'': {1}", observation, e.getMessage()));
-                    }
+        final IOHandler ioHandler = getIOHandler(observation);
+        for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
+            if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
+                final String sourceVariableName = descriptor.getBasename();
+                final String targetVariableName = getTargetVariableName(descriptor.getName());
+                try {
+                    ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
+                                    refTime);
+                } catch (IOException e) {
+                    tool.getErrorHandler().handleWarning(e, e.getMessage());
                 }
-            }
-        } finally {
-            // todo - optimize: keep some files open or loop over source data files (rq-20110403)
-            if (ioHandler != null) {
-                ioHandler.close();
             }
         }
     }
@@ -193,9 +181,22 @@ class DefaultMmdGenerator implements MmdGenerator {
         return result;
     }
 
-    private IOHandler createIOHandler(Observation observation) throws IOException {
-        return IOHandlerFactory.createHandler(observation.getDatafile().getDataSchema().getName(),
-                                              observation.getSensor());
+    private IOHandler getIOHandler(final Observation observation) throws IOException {
+        for (final IOHandler ioHandler : ioHandlerMap.values()) {
+            if (ioHandler.getDataFilePath().equals(observation.getDatafile().getPath())) {
+                return ioHandler;
+            }
+        }
+        final DataFile datafile = observation.getDatafile();
+        final IOHandler ioHandler = IOHandlerFactory.createHandler(datafile.getDataSchema().getName(),
+                                                                   observation.getSensor());
+        if (ioHandlerMap.size() >= 30) {
+            final IOHandler removedHandler = ioHandlerMap.remove(ioHandlerMap.firstKey());
+            removedHandler.close();
+        }
+        ioHandlerMap.put(ioHandlerId++, ioHandler);
+        ioHandler.init(datafile);
+        return ioHandler;
     }
 
     private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
@@ -212,7 +213,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.addGlobalAttribute("institution", "Brockmann Consult");
         file.addGlobalAttribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)");
         file.addGlobalAttribute("creation_date", Calendar.getInstance().getTime().toString());
-        file.addGlobalAttribute("total_number_of_matchups", getMatchups().size());
+        file.addGlobalAttribute("total_number_of_matchups", 0);
     }
 
     private void addNwpData(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
@@ -284,17 +285,15 @@ class DefaultMmdGenerator implements MmdGenerator {
         return sb.toString();
     }
 
-    private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor, String dims) {
+    private void addVariable(NetcdfFileWriteable file, VariableDescriptor descriptor, String dims) {
         final DataType dataType = DataType.valueOf(descriptor.getType());
         final String targetVariableName = getTargetVariableName(descriptor.getName());
-        if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
-            final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType, dims);
-            addAttribute(v, "standard_name", descriptor.getStandardName());
-            addAttribute(v, "units", descriptor.getUnits());
-            addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
-            addAttribute(v, "scale_factor", descriptor.getScaleFactor(), DataType.FLOAT);
-            addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());
-        }
+        final Variable v = file.addVariable(file.getRootGroup(), targetVariableName, dataType, dims);
+        addAttribute(v, "standard_name", descriptor.getStandardName());
+        addAttribute(v, "units", descriptor.getUnits());
+        addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
+        addAttribute(v, "scale_factor", descriptor.getScaleFactor(), DataType.FLOAT);
+        addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());
     }
 
     private Query createVariablesQuery(String sensorName) {
@@ -342,24 +341,24 @@ class DefaultMmdGenerator implements MmdGenerator {
     private static void addAttribute(Variable v, String attrName, Number attrValue, DataType attrType) {
         if (attrValue != null) {
             switch (attrType) {
-            case BYTE:
-                v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
-                break;
-            case SHORT:
-                v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
-                break;
-            case INT:
-                v.addAttribute(new Attribute(attrName, attrValue.intValue()));
-                break;
-            case FLOAT:
-                v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
-                break;
-            case DOUBLE:
-                v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
-                break;
-            default:
-                throw new IllegalArgumentException(MessageFormat.format(
-                        "Attribute type ''{0}'' is not supported", attrType.toString()));
+                case BYTE:
+                    v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
+                    break;
+                case SHORT:
+                    v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
+                    break;
+                case INT:
+                    v.addAttribute(new Attribute(attrName, attrValue.intValue()));
+                    break;
+                case FLOAT:
+                    v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
+                    break;
+                case DOUBLE:
+                    v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
+                    break;
+                default:
+                    throw new IllegalArgumentException(MessageFormat.format(
+                            "Attribute type ''{0}'' is not supported", attrType.toString()));
             }
         }
     }
