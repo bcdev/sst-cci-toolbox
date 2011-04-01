@@ -4,6 +4,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
+import ucar.ma2.ArrayByte;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.ArrayFloat;
@@ -83,6 +84,14 @@ abstract public class MdIOHandler extends NetcdfIOHandler {
     }
 
     @Override
+    public void close() {
+        super.close();
+        data.clear();
+        offsetMap.clear();
+        bufferMap.clear();
+    }
+
+    @Override
     public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVarName,
                       String targetVarName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
                                                                                                              IOException {
@@ -144,6 +153,22 @@ abstract public class MdIOHandler extends NetcdfIOHandler {
         final int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayDouble.D1) variableData).get(recordNo - offset);
+    }
+
+    /**
+     * Reads record value contained in byte array
+     *
+     * @param role     variable name
+     * @param recordNo record index in range 0 .. numRecords-1
+     *
+     * @return record value as byte
+     *
+     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     */
+    public byte getByte(String role, int recordNo) throws IOException {
+        final int offset = fetch(recordNo);
+        Object variableData = data.get(role);
+        return ((ArrayByte.D1) variableData).get(recordNo - offset);
     }
 
     /**
@@ -343,8 +368,7 @@ abstract public class MdIOHandler extends NetcdfIOHandler {
     Array getData(String variableName, int recordNo) throws IOException {
         final Variable variable = getNcFile().findVariable(NetcdfFile.escapeName(variableName));
         if (recordNo >= variable.getShape()[0]) {
-            // todo - why not return null or throw an exception? (rq-20110323)
-            return getFilledArray(variable);
+            throw new IllegalArgumentException("recordNo >= variable.getShape()[0]");
         }
         // todo - why not use fetch(recordNo)? (rq-20110323)
         fetch(variableName, recordNo);
@@ -356,68 +380,6 @@ abstract public class MdIOHandler extends NetcdfIOHandler {
         shape2[0] = 1;
         System.arraycopy(shape1, 0, shape2, 1, shape1.length);
         return slice.reshape(shape2);
-    }
-
-    // todo - ts - verify
-    private Array getFilledArray(final Variable variable) {
-        final List<Dimension> dimensions = variable.getDimensions();
-        final int dimCount = dimensions.size();
-        final int[] shape = new int[dimCount];
-        shape[0] = 1;
-        for (int i = 1; i < dimCount; i++) {
-            shape[i] = dimensions.get(i).getLength();
-        }
-        Number fillValue = null;
-        final Attribute fillValueAttribute = variable.findAttribute("_FillValue");
-        if (fillValueAttribute != null) {
-            fillValue = fillValueAttribute.getNumericValue();
-        }
-        int size = 1;
-        for (int i : shape) {
-            size *= i;
-        }
-
-        final Array array = Array.factory(variable.getDataType(), shape);
-        for (int i = 0; i < size; i++) {
-            if (variable.getDataType().getPrimitiveClassType() == byte.class) {
-                if (fillValue == null) {
-                    array.setByte(i, (byte) -1);
-                } else {
-                    array.setByte(i, fillValue.byteValue());
-                }
-            } else if (variable.getDataType().getPrimitiveClassType() == short.class) {
-                if (fillValue == null) {
-                    array.setShort(i, (short) -1);
-                } else {
-                    array.setShort(i, fillValue.shortValue());
-                }
-            } else if (variable.getDataType().getPrimitiveClassType() == int.class) {
-                if (fillValue == null) {
-                    array.setInt(i, (short) -1);
-                } else {
-                    array.setInt(i, fillValue.intValue());
-                }
-            } else if (variable.getDataType().getPrimitiveClassType() == float.class) {
-                if (fillValue == null) {
-                    array.setFloat(i, (float) -1);
-                } else {
-                    array.setFloat(i, fillValue.floatValue());
-                }
-            } else if (variable.getDataType().getPrimitiveClassType() == double.class) {
-                if (fillValue == null) {
-                    array.setDouble(i, (double) -1);
-                } else {
-                    array.setDouble(i, fillValue.doubleValue());
-                }
-            } else if (variable.getDataType().getPrimitiveClassType() == long.class) {
-                if (fillValue == null) {
-                    array.setLong(i, (long) -1);
-                } else {
-                    array.setLong(i, fillValue.longValue());
-                }
-            }
-        }
-        return array;
     }
 
     protected int getSstFillValue() {
