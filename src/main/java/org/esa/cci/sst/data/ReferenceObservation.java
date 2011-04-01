@@ -1,5 +1,6 @@
 package org.esa.cci.sst.data;
 
+import org.apache.openjpa.persistence.jdbc.Index;
 import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -18,6 +19,7 @@ import javax.persistence.Entity;
 public class ReferenceObservation extends RelatedObservation {
 
     PGgeometry point;
+    byte classification;
     boolean clearSky;
 
     @Column(columnDefinition = "GEOGRAPHY(POINT,4326)")
@@ -30,6 +32,15 @@ public class ReferenceObservation extends RelatedObservation {
         this.point = point;
     }
 
+    @Index
+    public byte getClassification() {
+        return classification;
+    }
+
+    public void setClassification(byte classification) {
+        this.classification = classification;
+    }
+
     public boolean isClearSky() {
         return clearSky;
     }
@@ -39,8 +50,9 @@ public class ReferenceObservation extends RelatedObservation {
     }
 
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getName(), getSensor(), TimeUtil.formatCcsdsUtcFormat(
-                getTime()), getPoint(), getLocation(), getDatafile(), getRecordNo(), isClearSky());
+        return String.format("Observation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getName(), getSensor(),
+                             TimeUtil.formatCcsdsUtcFormat(
+                                     getTime()), getPoint(), getLocation(), getDatafile(), getRecordNo(), isClearSky());
     }
 }
 
