@@ -169,8 +169,9 @@ class DefaultMmdGenerator implements MmdGenerator {
                 try {
                     ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
                                     refTime);
-                } catch (IOException e) {
-                    tool.getErrorHandler().handleWarning(e, e.getMessage());
+                } catch (Exception e) {
+                    tool.getErrorHandler().handleWarning(e, MessageFormat.format(
+                            "Unable to write data for observation ''{0}'': {1}", observation, e.getMessage()));
                 }
             }
         }

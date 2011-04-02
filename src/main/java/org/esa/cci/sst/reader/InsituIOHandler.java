@@ -31,6 +31,7 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -145,7 +146,8 @@ public class InsituIOHandler extends NetcdfIOHandler {
             }
         }
         if (startIndex == -1) {
-            throw new NoSuchElementException("startIndex == -1");
+            throw new NoSuchElementException(
+                    MessageFormat.format("Unable to find time interval for reference time {0}", refTime.toString()));
         }
 
         final int size = endIndex - startIndex;
