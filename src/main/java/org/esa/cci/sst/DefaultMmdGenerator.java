@@ -191,6 +191,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
         final IOHandler ioHandler = IOHandlerFactory.createHandler(dataFile.getDataSchema().getName(),
                                                                    observation.getSensor());
+        ioHandler.init(dataFile);
         ioHandlerMap.put(dataFile.getPath(), ioHandler);
         return ioHandler;
     }
