@@ -62,7 +62,6 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
     private final Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
-    private final List<IOHandler> ioHandlerList = new ArrayList<IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties targetVariables;
     private final MmsTool tool;
