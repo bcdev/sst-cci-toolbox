@@ -44,10 +44,10 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import static org.esa.cci.sst.SensorType.*;
@@ -61,12 +61,11 @@ import static org.esa.cci.sst.SensorType.*;
 class DefaultMmdGenerator implements MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
-    private final SortedMap<Long, IOHandler> ioHandlerMap = new TreeMap<Long, IOHandler>();
+    private final Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
+    private final List<IOHandler> ioHandlerList = new ArrayList<IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties targetVariables;
     private final MmsTool tool;
-
-    private long ioHandlerId;
 
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
         this.tool = tool;
@@ -127,6 +126,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                     }
                 }
                 persistenceManager.detach(coincidences);
+                close();
             }
         } finally {
             persistenceManager.commit();
@@ -135,9 +135,10 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     @Override
     public void close() {
-        for (IOHandler ioHandler : this.ioHandlerMap.values()) {
+        for (final IOHandler ioHandler : ioHandlerMap.values()) {
             ioHandler.close();
         }
+        ioHandlerMap.clear();
     }
 
     @SuppressWarnings({"unchecked"})
@@ -184,20 +185,13 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private IOHandler getIOHandler(final Observation observation) throws IOException {
-        for (final IOHandler ioHandler : ioHandlerMap.values()) {
-            if (ioHandler.getDataFilePath().equals(observation.getDatafile().getPath())) {
-                return ioHandler;
-            }
+        final DataFile dataFile = observation.getDatafile();
+        if (ioHandlerMap.containsKey(dataFile.getPath())) {
+            return ioHandlerMap.get(dataFile.getPath());
         }
-        final DataFile datafile = observation.getDatafile();
-        final IOHandler ioHandler = IOHandlerFactory.createHandler(datafile.getDataSchema().getName(),
+        final IOHandler ioHandler = IOHandlerFactory.createHandler(dataFile.getDataSchema().getName(),
                                                                    observation.getSensor());
-        if (ioHandlerMap.size() >= 30) {
-            final IOHandler removedHandler = ioHandlerMap.remove(ioHandlerMap.firstKey());
-            removedHandler.close();
-        }
-        ioHandlerMap.put(ioHandlerId++, ioHandler);
-        ioHandler.init(datafile);
+        ioHandlerMap.put(dataFile.getPath(), ioHandler);
         return ioHandler;
     }
 
@@ -345,24 +339,24 @@ class DefaultMmdGenerator implements MmdGenerator {
     private static void addAttribute(Variable v, String attrName, Number attrValue, DataType attrType) {
         if (attrValue != null) {
             switch (attrType) {
-                case BYTE:
-                    v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
-                    break;
-                case SHORT:
-                    v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
-                    break;
-                case INT:
-                    v.addAttribute(new Attribute(attrName, attrValue.intValue()));
-                    break;
-                case FLOAT:
-                    v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
-                    break;
-                case DOUBLE:
-                    v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
-                    break;
-                default:
-                    throw new IllegalArgumentException(MessageFormat.format(
-                            "Attribute type ''{0}'' is not supported", attrType.toString()));
+            case BYTE:
+                v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
+                break;
+            case SHORT:
+                v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
+                break;
+            case INT:
+                v.addAttribute(new Attribute(attrName, attrValue.intValue()));
+                break;
+            case FLOAT:
+                v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
+                break;
+            case DOUBLE:
+                v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
+                break;
+            default:
+                throw new IllegalArgumentException(MessageFormat.format(
+                        "Attribute type ''{0}'' is not supported", attrType.toString()));
             }
         }
     }
