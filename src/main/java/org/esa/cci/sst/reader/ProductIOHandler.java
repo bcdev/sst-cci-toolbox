@@ -173,8 +173,7 @@ public class ProductIOHandler implements IOHandler {
         try {
             targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
         } catch (Exception e) {
-            throw new IOException(MessageFormat.format(
-                    "Unable to write subscene for product ''{0}''.", product.getName()), e);
+            throw new IOException(e.getMessage(), e);
         }
     }
 
