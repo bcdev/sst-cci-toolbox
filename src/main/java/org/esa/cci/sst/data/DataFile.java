@@ -1,5 +1,7 @@
 package org.esa.cci.sst.data;
 
+import org.esa.cci.sst.util.TimeUtil;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -46,6 +48,11 @@ public class DataFile {
 
     public void setDataSchema(DataSchema dataSchema) {
         this.dataSchema = dataSchema;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("DataFile(%d,%s,%s)", getId(), getDataSchema(), getPath());
     }
 
     private static String slashify(String path) {
