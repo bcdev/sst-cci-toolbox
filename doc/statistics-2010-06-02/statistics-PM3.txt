@@ -63,4 +63,111 @@ mmdb=> select count(*) from mm_observation o where o.time >= '2010-06-02T00:00:0
 2. MATCHUPS
 ===========
 
+mmdb=> select pattern & 7, count(*) from mm_matchup group by pattern & 7 order by pattern & 7;
+ ?column? | count
+----------+--------
+        1 |  30071    a
+        2 | 161837    m
+        3 |  14408    am
+        4 | 143558    s
+        5 |   4067    as
+        6 |  69215    ms
+        7 |   6642    ams
+(7 rows)
+
+mmdb=> select count (*) from mm_matchup ;
+ count
+--------
+ 429798
+(1 row)
+
+
+
+3. MATCHUPS FOR 2ND DAY
+=======================
+
+mmdb=> select pattern & 7, count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' group by pattern & 7 order by pattern & 7;
+ ?column? | count
+----------+-------
+        1 |  1123
+        2 |  5203
+        3 |   487
+        4 |  4922
+        5 |   123
+        6 |  2540
+        7 |   233
+(7 rows)
+
+mmdb=> select count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z'; count
+-------
+ 14631
+(1 row)
+
+
+Matchups with all satellite sub-scenes:
+
+mmdb=> select count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and pattern & 127 = 127 and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z';
+ count
+-------
+    95
+(1 row)
+
+
+Matchups by patter:
+
+mmdb=> select pattern, count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' group by pattern order by pattern;
+
+     713 |    12
+     714 |    26
+     715 |     9
+     716 |    76
+     717 |     3
+     718 |    22
+     719 |     8
+     729 |    66
+     730 |   167
+     731 |    32
+     732 |   202
+     733 |     8
+     734 |    93
+     735 |    19
+     745 |    94
+     746 |   113
+     747 |    83
+     748 |   208
+     749 |    16
+     750 |    74
+     751 |    27
+     761 |   274
+     762 |   694
+     763 |   149
+     764 |   719
+     765 |    36
+     766 |   248
+     767 |    64
+     921 |     1
+     922 |    23
+     924 |    48
+     926 |    50
+     940 |     2
+     953 |     1
+     956 |    51
+     958 |    18
+     985 |   217
+     986 |   391
+     987 |    69
+     988 |    49
+     989 |    15
+     990 |    50
+     991 |    22
+    1001 |     2
+    1003 |     2
+    1017 |    43
+    1018 |    12
+    1019 |     2
+    1020 |     4
+    1021 |     3
+    1022 |     3
+(126 rows)
+
 
