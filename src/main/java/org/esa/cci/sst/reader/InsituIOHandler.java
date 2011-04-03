@@ -180,22 +180,6 @@ public class InsituIOHandler extends NetcdfIOHandler {
                refTime.getTime() > time - twelveHours;
     }
 
-    private static int[] createOrigin(final int matchupIndex, final int length) {
-        final int[] origin = new int[length];
-        origin[0] = matchupIndex;
-        for (int i = 1; i < length; i++) {
-            origin[i] = 0;
-        }
-        return origin;
-    }
-
-    private static int[] createShape(final int length, final int dimensionSizes[]) {
-        final int[] shape = new int[length];
-        shape[0] = 1;
-        System.arraycopy(dimensionSizes, 1, shape, 1, length - 1);
-        return shape;
-    }
-
     private static PGgeometry geometry(double startLon, double startLat, double endLon, double endLat) {
         startLon = normalizeLon(startLon);
         endLon = normalizeLon(endLon);

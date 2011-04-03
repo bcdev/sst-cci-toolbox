@@ -62,12 +62,12 @@ public abstract class NetcdfIOHandler implements IOHandler {
      */
     @Override
     public void init(DataFile dataFile) throws IOException {
-        this.dataFile = dataFile;
         final String path = dataFile.getPath();
-        if (!NetcdfFile.canOpen(path)) {
-            throw new IOException("Cannot open file '" + path + "'.");
+        if (ncFile != null) {
+            close();
         }
         ncFile = NetcdfFile.open(path);
+        this.dataFile = dataFile;
     }
 
     @Override
@@ -131,6 +131,7 @@ public abstract class NetcdfIOHandler implements IOHandler {
                 // ok
             }
         }
+        dataFile = null;
     }
 
     protected String getSensorName() {

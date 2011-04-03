@@ -68,6 +68,9 @@ public class ProductIOHandler implements IOHandler {
         workAroundBeamIssue1240(product);
         workAroundBeamIssue1241(product);
 
+        if (this.product != null) {
+            close();
+        }
         this.product = product;
         this.dataFile = dataFile;
     }
@@ -77,6 +80,7 @@ public class ProductIOHandler implements IOHandler {
         if (product != null) {
             product.dispose();
         }
+        dataFile = null;
     }
 
     @Override

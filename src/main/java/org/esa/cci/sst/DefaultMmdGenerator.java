@@ -125,7 +125,6 @@ class DefaultMmdGenerator implements MmdGenerator {
                     }
                 }
                 persistenceManager.detach(coincidences);
-                close();
             }
         } finally {
             persistenceManager.commit();
@@ -161,18 +160,22 @@ class DefaultMmdGenerator implements MmdGenerator {
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
         final IOHandler ioHandler = getIOHandler(observation);
-        for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
-            if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
-                final String sourceVariableName = descriptor.getBasename();
-                final String targetVariableName = getTargetVariableName(descriptor.getName());
-                try {
-                    ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
-                                    refTime);
-                } catch (Exception e) {
-                    tool.getErrorHandler().handleWarning(e, MessageFormat.format(
-                            "Unable to write data for observation ''{0}'': {1}", observation, e.getMessage()));
+        try {
+            for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
+                if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
+                    final String sourceVariableName = descriptor.getBasename();
+                    final String targetVariableName = getTargetVariableName(descriptor.getName());
+                    try {
+                        ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
+                                        refTime);
+                    } catch (Exception e) {
+                        tool.getErrorHandler().handleWarning(e, MessageFormat.format(
+                                "Unable to write data for observation ''{0}'': {1}", observation, e.getMessage()));
+                    }
                 }
             }
+        } finally {
+            close();
         }
     }
 
