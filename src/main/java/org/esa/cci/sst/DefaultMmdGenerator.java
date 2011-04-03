@@ -153,18 +153,18 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
+        if ("seaice".equals(observation.getSensor())) {
+            // todo - for unknown reasons sea ice data files are not closed (rq-20110403)
+            return;
+        }
         IOHandler ioHandler = null;
-        boolean initialized = false;
         try {
             ioHandler = createIOHandler(observation);
+            ioHandler.init(observation.getDatafile());
             for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                     final String sourceVariableName = descriptor.getBasename();
                     final String targetVariableName = getTargetVariableName(descriptor.getName());
-                    if (!initialized) {
-                        ioHandler.init(observation.getDatafile());
-                        initialized = true;
-                    }
                     try {
                         ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
                                         refTime);
