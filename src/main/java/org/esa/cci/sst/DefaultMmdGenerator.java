@@ -43,7 +43,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -155,13 +154,16 @@ class DefaultMmdGenerator implements MmdGenerator {
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
         IOHandler ioHandler = null;
+        boolean initialized = false;
         try {
+            ioHandler = createIOHandler(observation);
             for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                     final String sourceVariableName = descriptor.getBasename();
                     final String targetVariableName = getTargetVariableName(descriptor.getName());
-                    if (ioHandler == null) {
-                        ioHandler = createIOHandler(observation);
+                    if (!initialized) {
+                        ioHandler.init(observation.getDatafile());
+                        initialized = true;
                     }
                     try {
                         ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
@@ -189,10 +191,8 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private IOHandler createIOHandler(Observation observation) throws IOException {
-        final IOHandler ioHandler = IOHandlerFactory.createHandler(observation.getDatafile().getDataSchema().getName(),
-                                                                   observation.getSensor());
-        ioHandler.init(observation.getDatafile());
-        return ioHandler;
+        return IOHandlerFactory.createHandler(observation.getDatafile().getDataSchema().getName(),
+                                              observation.getSensor());
     }
 
     private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
