@@ -62,6 +62,7 @@ class DefaultMmdGenerator implements MmdGenerator {
     private final PersistenceManager persistenceManager;
     private final Properties targetVariables;
     private final MmsTool tool;
+    private final List<Matchup> matchupList = new ArrayList<Matchup>();
 
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
         this.tool = tool;
@@ -134,15 +135,17 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     @SuppressWarnings({"unchecked"})
-    List<Matchup> getMatchups() {
-        String startTime = tool.getConfiguration().getProperty("mms.test.startTime");
-        String endTime = tool.getConfiguration().getProperty("mms.test.endTime");
-
-        String queryString = String.format(TIME_CONSTRAINED_MATCHUPS_QUERY, startTime, endTime);
-        final Query query = persistenceManager.createNativeQuery(queryString, Matchup.class);
-//        query.setParameter(1, "'" + startTime + "'");
-//        query.setParameter(2, "'" + endTime + "'");
-        return query.getResultList();
+    private List<Matchup> getMatchups() {
+        if (matchupList.isEmpty()) {
+            final String startTime = tool.getConfiguration().getProperty("mms.test.startTime");
+            final String endTime = tool.getConfiguration().getProperty("mms.test.endTime");
+            final String queryString = String.format(TIME_CONSTRAINED_MATCHUPS_QUERY, startTime, endTime);
+            final Query query = persistenceManager.createNativeQuery(queryString, Matchup.class);
+            // query.setParameter(1, "'" + startTime + "'");
+            // query.setParameter(2, "'" + endTime + "'");
+            matchupList.addAll(query.getResultList());
+        }
+        return matchupList;
     }
 
     void addDimensions(final NetcdfFileWriteable file) {
@@ -209,7 +212,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.addGlobalAttribute("institution", "Brockmann Consult");
         file.addGlobalAttribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)");
         file.addGlobalAttribute("creation_date", Calendar.getInstance().getTime().toString());
-        file.addGlobalAttribute("total_number_of_matchups", 0);
+        file.addGlobalAttribute("total_number_of_matchups", getMatchups().size());
     }
 
     private void addNwpData(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
