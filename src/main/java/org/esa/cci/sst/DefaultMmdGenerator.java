@@ -61,7 +61,7 @@ import static org.esa.cci.sst.SensorType.*;
 class DefaultMmdGenerator implements MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
-    private final Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
+    private final Map<Observation, IOHandler> ioHandlerMap = new HashMap<Observation, IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties targetVariables;
     private final MmsTool tool;
@@ -188,14 +188,14 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private IOHandler getIOHandler(final Observation observation) throws IOException {
-        final DataFile dataFile = observation.getDatafile();
-        if (ioHandlerMap.containsKey(dataFile.getPath())) {
-            return ioHandlerMap.get(dataFile.getPath());
+        if (ioHandlerMap.containsKey(observation)) {
+            return ioHandlerMap.get(observation);
         }
+        final DataFile dataFile = observation.getDatafile();
         final IOHandler ioHandler = IOHandlerFactory.createHandler(dataFile.getDataSchema().getName(),
                                                                    observation.getSensor());
         ioHandler.init(dataFile);
-        ioHandlerMap.put(dataFile.getPath(), ioHandler);
+        ioHandlerMap.put(observation, ioHandler);
         return ioHandler;
     }
 
