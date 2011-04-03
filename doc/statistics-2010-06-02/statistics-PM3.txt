@@ -113,7 +113,7 @@ mmdb=> select count(*) from mm_matchup m, mm_observation o where m.refobs_id = o
 (1 row)
 
 
-Matchups by patter:
+Matchups by pattern:
 
 mmdb=> select pattern, count(*) from mm_matchup m, mm_observation o where m.refobs_id = o.id and o.time >= '2010-06-02T00:00:00Z' and o.time < '2010-06-03T00:00:00Z' group by pattern order by pattern;
 

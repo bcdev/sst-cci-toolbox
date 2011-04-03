@@ -81,6 +81,7 @@ public class ProductIOHandler implements IOHandler {
             product.dispose();
         }
         dataFile = null;
+        product = null;
     }
 
     @Override

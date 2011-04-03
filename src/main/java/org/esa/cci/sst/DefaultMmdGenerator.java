@@ -17,7 +17,6 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -61,7 +60,6 @@ import static org.esa.cci.sst.SensorType.*;
 class DefaultMmdGenerator implements MmdGenerator {
 
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
-    private final Map<Observation, IOHandler> ioHandlerMap = new HashMap<Observation, IOHandler>();
     private final PersistenceManager persistenceManager;
     private final Properties targetVariables;
     private final MmsTool tool;
@@ -134,10 +132,6 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     @Override
     public void close() {
-        for (final IOHandler ioHandler : ioHandlerMap.values()) {
-            ioHandler.close();
-        }
-        ioHandlerMap.clear();
     }
 
     @SuppressWarnings({"unchecked"})
@@ -160,8 +154,9 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
-        final IOHandler ioHandler = getIOHandler(observation);
+        IOHandler ioHandler = null;
         try {
+            ioHandler = createIOHandler(observation);
             for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                     final String sourceVariableName = descriptor.getBasename();
@@ -177,7 +172,9 @@ class DefaultMmdGenerator implements MmdGenerator {
             }
         } finally {
             // todo - optimize: keep some files open or loop over source data files (rq-20110403)
-            close();
+            if (ioHandler != null) {
+                ioHandler.close();
+            }
         }
     }
 
@@ -189,15 +186,10 @@ class DefaultMmdGenerator implements MmdGenerator {
         return result;
     }
 
-    private IOHandler getIOHandler(final Observation observation) throws IOException {
-        if (ioHandlerMap.containsKey(observation)) {
-            return ioHandlerMap.get(observation);
-        }
-        final DataFile dataFile = observation.getDatafile();
-        final IOHandler ioHandler = IOHandlerFactory.createHandler(dataFile.getDataSchema().getName(),
+    private IOHandler createIOHandler(Observation observation) throws IOException {
+        final IOHandler ioHandler = IOHandlerFactory.createHandler(observation.getDatafile().getDataSchema().getName(),
                                                                    observation.getSensor());
-        ioHandler.init(dataFile);
-        ioHandlerMap.put(observation, ioHandler);
+        ioHandler.init(observation.getDatafile());
         return ioHandler;
     }
 

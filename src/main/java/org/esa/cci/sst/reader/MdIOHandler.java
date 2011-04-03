@@ -85,10 +85,10 @@ abstract public class MdIOHandler extends NetcdfIOHandler {
 
     @Override
     public void close() {
-        super.close();
-        data.clear();
-        offsetMap.clear();
         bufferMap.clear();
+        offsetMap.clear();
+        data.clear();
+        super.close();
     }
 
     @Override
