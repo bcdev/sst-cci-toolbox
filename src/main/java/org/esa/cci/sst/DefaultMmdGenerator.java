@@ -116,6 +116,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                                              matchupCount));
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
+                // todo - optimize: search ref. point only once per subs-scene (rq-20110403)
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
                 for (final Coincidence coincidence : coincidences) {
@@ -175,6 +176,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                 }
             }
         } finally {
+            // todo - optimize: keep some files open or loop over source data files (rq-20110403)
             close();
         }
     }
