@@ -62,10 +62,10 @@ public abstract class NetcdfIOHandler implements IOHandler {
      */
     @Override
     public void init(DataFile dataFile) throws IOException {
-        final String path = dataFile.getPath();
         if (ncFile != null) {
             close();
         }
+        final String path = dataFile.getPath();
         ncFile = NetcdfFile.open(path);
         this.dataFile = dataFile;
     }

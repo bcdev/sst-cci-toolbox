@@ -57,20 +57,25 @@ public class ProductIOHandler implements IOHandler {
 
     @Override
     public final void init(DataFile dataFile) throws IOException {
+        if (this.product != null) {
+            close();
+        }
         Product product = ProductIO.readProduct(dataFile.getPath());
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
         }
         if (bc != null) {
-            product = createSubsetProductIfNecessary(product, bc);
+            try {
+                product = createSubsetProductIfNecessary(product, bc);
+            } catch (Exception e) {
+                product.dispose();
+                throw new IOException(e);
+            }
         }
         workAroundBeamIssue1240(product);
         workAroundBeamIssue1241(product);
 
-        if (this.product != null) {
-            close();
-        }
         this.product = product;
         this.dataFile = dataFile;
     }
@@ -288,17 +293,17 @@ public class ProductIOHandler implements IOHandler {
 
     private static Number getSample(Raster raster, int x, int y) {
         switch (raster.getTransferType()) {
-            case DataBuffer.TYPE_BYTE:
-            case DataBuffer.TYPE_SHORT:
-            case DataBuffer.TYPE_USHORT:
-            case DataBuffer.TYPE_INT:
-                return raster.getSample(x, y, 0);
-            case DataBuffer.TYPE_FLOAT:
-                return raster.getSampleFloat(x, y, 0);
-            case DataBuffer.TYPE_DOUBLE:
-                return raster.getSampleDouble(x, y, 0);
-            default:
-                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+        case DataBuffer.TYPE_BYTE:
+        case DataBuffer.TYPE_SHORT:
+        case DataBuffer.TYPE_USHORT:
+        case DataBuffer.TYPE_INT:
+            return raster.getSample(x, y, 0);
+        case DataBuffer.TYPE_FLOAT:
+            return raster.getSampleFloat(x, y, 0);
+        case DataBuffer.TYPE_DOUBLE:
+            return raster.getSampleDouble(x, y, 0);
+        default:
+            throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
 
