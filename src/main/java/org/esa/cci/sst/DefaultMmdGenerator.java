@@ -156,11 +156,13 @@ class DefaultMmdGenerator implements MmdGenerator {
                           int matchupIndex, final Date refTime) throws IOException {
         IOHandler ioHandler = null;
         try {
-            ioHandler = createIOHandler(observation);
             for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                     final String sourceVariableName = descriptor.getBasename();
                     final String targetVariableName = getTargetVariableName(descriptor.getName());
+                    if (ioHandler == null) {
+                        ioHandler = createIOHandler(observation);
+                    }
                     try {
                         ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
                                         refTime);
