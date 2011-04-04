@@ -95,7 +95,7 @@ public class IngestionTool extends MmsTool {
                                             ToolException.TOOL_CONFIGURATION_ERROR);
                 }
                 for (final File inputFile : inputFileList) {
-                    ingest(inputFile, schemaName, sensorType, ioHandler);
+                    ingest(inputFile, schemaName, sensorType, sensor, ioHandler);
                 }
                 directoryCount++;
             } else {
@@ -151,15 +151,15 @@ public class IngestionTool extends MmsTool {
      * every 65536 records. If ingestion fails rollback is only performed to
      * the respective checkpoint.
      *
-     *
      * @param file       The input file with records to be read and made persistent as observations.
      * @param schemaName The name of the input file type.
      * @param sensorType The type of sensor being the source of the the input data.
+     * @param sensorName The sensor name.
      * @param ioHandler  The handler to be used to read this file type
      *
      * @throws ToolException if ingestion fails
      */
-    private void ingest(File file, String schemaName, String sensorType, IOHandler ioHandler) throws
+    private void ingest(File file, String schemaName, String sensorType, String sensorName, IOHandler ioHandler) throws
                                                                                                                  ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
@@ -171,7 +171,7 @@ public class IngestionTool extends MmsTool {
             ioHandler.init(dataFile);
 
             persistenceManager.persist(dataFile);
-            persistVariableDescriptors(schemaName, ioHandler);
+            persistVariableDescriptors(schemaName, sensorName, ioHandler);
 
             int recordsInTimeInterval = persistObservations(schemaName, ioHandler);
             // make changes in database
@@ -249,12 +249,16 @@ public class IngestionTool extends MmsTool {
         return dataSchema;
     }
 
-    private void persistVariableDescriptors(final String schemaName, final IOHandler ioHandler) throws IOException {
-        if (true) { // todo - ts 01Apr2011 - clearify
+    private void persistVariableDescriptors(final String schemaName, final String sensorName, final IOHandler ioHandler) throws IOException {
+        final Query query = getPersistenceManager().createNativeQuery(ALL_SENSORS_QUERY, String.class);
+        @SuppressWarnings({"unchecked"})
+        final List<String> sensorList = query.getResultList();
+
+        if (!sensorList.contains(sensorName)) {
             final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
             getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
                                                   schemaName, variableDescriptors.length));
-            for (VariableDescriptor variableDescriptor : variableDescriptors) {
+            for (final VariableDescriptor variableDescriptor : variableDescriptors) {
                 getPersistenceManager().persist(variableDescriptor);
             }
         }
