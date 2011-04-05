@@ -10,6 +10,7 @@ public class Constants {
     public static final String DATA_SCHEMA_NAME_ATSR_L1B = "atsr_l1b";
     public static final String DATA_SCHEMA_NAME_AMSRE = "amsre";
     public static final String DATA_SCHEMA_NAME_AVHRR_GAC = "avhrr_gac";
+    public static final String DATA_SCHEMA_NAME_MMD = "mmd";
     public static final String DATA_SCHEMA_NAME_SEAICE = "seaice";
     public static final String DATA_SCHEMA_NAME_TMI = "tmi";
     public static final String DATA_SCHEMA_INSITU_HISTORY = "history";

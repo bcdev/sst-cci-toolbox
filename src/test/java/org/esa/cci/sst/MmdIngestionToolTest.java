@@ -16,15 +16,38 @@
 
 package org.esa.cci.sst;
 
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Properties;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
  */
 public class MmdIngestionToolTest {
 
-    @Test
-    public void testName() throws Exception {
+    private MmdIngestionTool tool;
 
+    @Before
+    public void setUp() throws Exception {
+        tool = new MmdIngestionTool();
+    }
+
+    @Test
+    public void testLoadConfiguration() throws Exception {
+        tool.loadArcProperties();
+        final Properties arcProperties = tool.getArcProperties();
+        assertEquals("mmd.nc", arcProperties.getProperty("mms.test.arc3.output.filename"));
+    }
+
+    @Test(expected = IOException.class)
+    public void testCloseReader() throws Exception {
+        final FileReader reader = new FileReader("pom.xml");
+        tool.closeReader(reader);
+        reader.ready();
     }
 }
