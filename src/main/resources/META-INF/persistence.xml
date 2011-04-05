@@ -18,7 +18,7 @@
 
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>
-            <property name="openjpa.ConnectionUserName" value="mms"/>
+            <property name="openjpa.ConnectionUserName" value="mmdb"/>
             <property name="openjpa.ConnectionPassword" value="mms"/>
             <property name="openjpa.Log" value="DefaultLevel=INFO,SQL=INFO"/>
             <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema"/>
