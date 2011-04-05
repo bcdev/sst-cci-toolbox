@@ -242,7 +242,7 @@ class DefaultMmdGenerator implements MmdGenerator {
     private void addVariables(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
         final Query query = createVariablesQuery(sensorName);
         @SuppressWarnings({"unchecked"})
-        final ArrayList<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
+        final List<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
         Collections.sort(descriptorList, new Comparator<VariableDescriptor>() {
             @Override
             public int compare(VariableDescriptor o1, VariableDescriptor o2) {
