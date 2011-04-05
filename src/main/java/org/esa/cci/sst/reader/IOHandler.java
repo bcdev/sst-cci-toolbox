@@ -48,7 +48,7 @@ public interface IOHandler {
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
      *
-     * @return Observation with values read from observation file
+     * @return Observation with values read from observation file, never null
      *
      * @throws java.io.IOException if observation could not be read.
      */
@@ -72,6 +72,4 @@ public interface IOHandler {
     void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
                String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
                                                                                                                  IOException;
-
-    String getDataFilePath();
 }
