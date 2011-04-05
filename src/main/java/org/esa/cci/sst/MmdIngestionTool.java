@@ -22,11 +22,9 @@ import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.util.DataUtil;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
-import java.util.Properties;
 
 /**
  * MmsTool responsible for ingesting mmd files which have been processed by ARC3. Uses {@link IngestionTool} as delegate.
@@ -35,45 +33,26 @@ import java.util.Properties;
  */
 public class MmdIngestionTool extends MmsTool {
 
-    private static final String ARC_CHAIN_PROPERTIES_FILENAME = "arc-chain.properties";
-
     public static void main(String[] args) throws ToolException {
         final MmdIngestionTool tool = new MmdIngestionTool();
-        tool.init();
+        final boolean performWork = tool.setCommandLineArgs(args);
+        if (!performWork) {
+            return;
+        }
+        tool.init(args);
         tool.ingest();
     }
 
     private IngestionTool delegate;
-    private Properties arcProperties;
 
     MmdIngestionTool() throws ToolException {
         super("mmdingest.sh", "0.1");
     }
 
-    public void init() throws ToolException {
-        loadArcProperties();
+    public void init(final String[] args) throws ToolException {
         delegate = new IngestionTool();
+        delegate.setCommandLineArgs(args);
         delegate.initialize();
-    }
-
-    void loadArcProperties() throws ToolException {
-        Reader reader = null;
-        try {
-            reader = new FileReader(ARC_CHAIN_PROPERTIES_FILENAME);
-            arcProperties = loadArcProperties(reader);
-        } catch (IOException e) {
-            getErrorHandler().handleError(e,
-                                          MessageFormat.format("Could not read file ''{0}''.", ARC_CHAIN_PROPERTIES_FILENAME),
-                                          ToolException.CONFIGURATION_FILE_IO_ERROR);
-        } finally {
-            closeReader(reader);
-        }
-    }
-
-    Properties loadArcProperties(Reader reader) throws IOException {
-        Properties arcProperties = new Properties();
-        arcProperties.load(reader);
-        return arcProperties;
     }
 
     private void ingest() throws ToolException {
@@ -81,7 +60,11 @@ public class MmdIngestionTool extends MmsTool {
         final File mmdFile = getMmdFile();
         final DataFile dataFile = getDataFile(mmdFile);
         initIOHandler(ioHandler, dataFile);
-        for (int i = 0; i < ioHandler.getNumRecords(); i++) {
+        final int numRecords = ioHandler.getNumRecords();
+        for (int i = 0; i < numRecords; i++) {
+            if(i % 10 == 9) {
+                getLogger().info("ingestion of record '" + i + "/" + numRecords + "'");
+            }
             persistObservation(ioHandler, i);
         }
     }
@@ -96,7 +79,7 @@ public class MmdIngestionTool extends MmsTool {
     }
 
     private File getMmdFile() {
-        final String filename = arcProperties.getProperty("mms.test.arc3.output.filename", "mmd.nc");
+        final String filename = getConfiguration().getProperty("mms.test.arc3.output.filename", "mmd.nc");
         return new File(filename);
     }
 
@@ -129,9 +112,4 @@ public class MmdIngestionTool extends MmsTool {
             }
         }
     }
-
-    Properties getArcProperties() {
-        return arcProperties;
-    }
-
 }
