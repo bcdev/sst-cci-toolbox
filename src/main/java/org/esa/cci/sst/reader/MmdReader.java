@@ -23,6 +23,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.DataUtil;
+import org.esa.cci.sst.util.ReaderUtil;
 import org.postgis.PGgeometry;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
@@ -55,12 +56,6 @@ public class MmdReader implements IOHandler {
         mmd = NetcdfFile.open(fileLocation);
     }
 
-    private void validateFileLocation(final String fileLocation) throws IOException {
-        if (!NetcdfFile.canOpen(fileLocation)) {
-            throw new IOException("File '" + fileLocation + "' cannot be opened.");
-        }
-    }
-
     @Override
     public void close() {
         if (mmd != null) {
@@ -81,14 +76,13 @@ public class MmdReader implements IOHandler {
 
     @Override
     public Observation readObservation(final int recordNo) throws IOException {
-        if(getNumRecords() < recordNo) {
+        if (getNumRecords() < recordNo) {
             throw new IllegalArgumentException(MessageFormat.format("Invalid record number: ''{0}''.", recordNo));
         }
         final RelatedObservation observation = new RelatedObservation();
-//        observation.setLocation();
+        setObservationLocation(observation, recordNo);
         observation.setDatafile(createDatafile());
-//        observation.setId();
-//        observation.setName();
+        observation.setName("mmd_observation_" + recordNo);
         observation.setRecordNo(recordNo);
         observation.setSensor("ARC");   // todo - ts 4Apr2011 - ok?
         observation.setTime(getCreationDate());
@@ -131,6 +125,33 @@ public class MmdReader implements IOHandler {
         }
     }
 
+    void setObservationLocation(final RelatedObservation observation, int recordNo) throws IOException {
+        final Variable lon = mmd.findVariable(NetcdfFile.escapeName("lon"));
+        final Variable lat = mmd.findVariable(NetcdfFile.escapeName("lat"));
+        final int[] startOrigin = {recordNo, 0, 0};
+        final int[] endOrigin = getEndOrigin(recordNo);
+        final int[] shape = {1, 1, 1};
+        final float startLon;
+        final float endLon;
+        final float startLat;
+        final float endLat;
+        try {
+            startLon = lon.read(startOrigin, shape).getFloat(0);
+            endLon = lon.read(endOrigin, shape).getFloat(0);
+            startLat = lat.read(startOrigin, shape).getFloat(0);
+            endLat = lat.read(endOrigin, shape).getFloat(0);
+        } catch (Exception e) {
+            throw new IOException("Unable to read location.", e);
+        }
+        observation.setLocation(ReaderUtil.createGeometry(startLon, startLat, endLon, endLat));
+    }
+
+    int[] getEndOrigin(final int recordNo) {
+        final int lastIndexOfNiDim = mmd.findDimension("ni").getLength() - 1;
+        final int lastIndexOfNjDim = mmd.findDimension("nj").getLength() - 1;
+        return new int[]{recordNo, lastIndexOfNiDim, lastIndexOfNjDim};
+    }
+
     private Dimension getRecordDimension() {
         final Dimension recordDimension = mmd.findDimension(RECORD_DIMENSION_NAME);
         if (recordDimension == null) {
@@ -150,4 +171,11 @@ public class MmdReader implements IOHandler {
         final String sensorType = "ARC";   // todo - ts 4Apr2011 - ok?
         return DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, sensorType);
     }
+
+    private void validateFileLocation(final String fileLocation) throws IOException {
+        if (!NetcdfFile.canOpen(fileLocation)) {
+            throw new IOException("File '" + fileLocation + "' cannot be opened.");
+        }
+    }
+
 }

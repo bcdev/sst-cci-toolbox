@@ -18,6 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.util.ReaderUtil;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.LineString;
@@ -84,35 +85,35 @@ public class InsituIOHandlerTest {
         final double julianDateOf_2007_11_23_172624 = 2454428.185;
 
         Date testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071123_120000_000");
-        assertTrue(InsituIOHandler.fits(testTime, julianDateOf_2007_11_23_172624));
+        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071124_020000_000");
-        assertTrue(InsituIOHandler.fits(testTime, julianDateOf_2007_11_23_172624));
+        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071123_020000_000");
-        assertFalse(InsituIOHandler.fits(testTime, julianDateOf_2007_11_23_172624));
+        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071124_060000_000");
-        assertFalse(InsituIOHandler.fits(testTime, julianDateOf_2007_11_23_172624));
+        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
 
         final double julianDateOf_2008_01_11_222721 = 2454477.394;
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_220000_000");
-        assertTrue(InsituIOHandler.fits(testTime, julianDateOf_2008_01_11_222721));
+        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_110000_000");
-        assertTrue(InsituIOHandler.fits(testTime, julianDateOf_2008_01_11_222721));
+        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_080000_000");
-        assertFalse(InsituIOHandler.fits(testTime, julianDateOf_2008_01_11_222721));
+        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20101124_050000_000");
-        assertFalse(InsituIOHandler.fits(testTime, julianDateOf_2008_01_11_222721));
+        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
     }
 
     @Test
     public void testCreateFilledArray() throws Exception {
-        Array fillArray = InsituIOHandler.createFillArray(DataType.INT, 15, new int[]{2, 3, 4});
+        Array fillArray = ReaderUtil.createFillArray(DataType.INT, 15, new int[]{2, 3, 4});
         assertEquals(3, fillArray.getShape().length);
         assertEquals(24, fillArray.getSize());
         long size = fillArray.getSize();
@@ -121,7 +122,7 @@ public class InsituIOHandlerTest {
             assertEquals(15, value);
         }
 
-        fillArray = InsituIOHandler.createFillArray(DataType.DOUBLE, Double.NEGATIVE_INFINITY, new int[]{5, 6, 7});
+        fillArray = ReaderUtil.createFillArray(DataType.DOUBLE, Double.NEGATIVE_INFINITY, new int[]{5, 6, 7});
         assertEquals(3, fillArray.getShape().length);
         assertEquals(210, fillArray.getSize());
         size = fillArray.getSize();

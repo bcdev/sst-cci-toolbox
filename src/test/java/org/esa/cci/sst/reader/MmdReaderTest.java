@@ -18,9 +18,10 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.postgis.Point;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -36,6 +37,9 @@ import static org.junit.Assert.*;
  * @author Thomas Storm
  */
 public class MmdReaderTest {
+
+    static final String TEST_WITH_CORRECTED_DATUM = "test_with_corrected_datum.nc";
+    static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
 
     private MmdReader mmdReader;
 
@@ -59,39 +63,71 @@ public class MmdReaderTest {
 
     @Test
     public void testInit() throws Exception {
-        initMmdReader();
+        initMmdReader(TEST_WITH_CORRECTED_DATUM);
         final Field mmd = mmdReader.getClass().getDeclaredField("mmd");
         mmd.setAccessible(true);
         final NetcdfFile mmdObj = (NetcdfFile) mmd.get(mmdReader);
 
         assertNotNull(mmdObj);
         final String location = mmdObj.getLocation();
-        assertEquals("mmd_test_output.nc", location.substring(location.lastIndexOf("/") + 1, location.length()));
+        assertEquals(TEST_WITH_CORRECTED_DATUM, location.substring(location.lastIndexOf("/") + 1, location.length()));
     }
 
     @Test
     public void testGetNumRecords() throws Exception {
-        initMmdReader();
+        initMmdReader(TEST_WITH_CORRECTED_DATUM);
         assertEquals(10, mmdReader.getNumRecords());
     }
 
     @Test
+    public void testSetObservationLocationToFirstMatchup() throws Exception {
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
+        final RelatedObservation observation = new RelatedObservation();
+        mmdReader.setObservationLocation(observation, 0);
+
+        final Point expectedFirstPoint = new Point(-48.65955, 3.351261);
+        final Point actualFirstPoint = observation.getLocation().getGeometry().getFirstPoint();
+
+        assertEquals(expectedFirstPoint.x, actualFirstPoint.x, 0.0001);
+        assertEquals(expectedFirstPoint.y, actualFirstPoint.y, 0.0001);
+    }
+
+    @Test
+    public void testSetObservationLocationToLastMatchup() throws Exception {
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
+        final RelatedObservation observation = new RelatedObservation();
+        mmdReader.setObservationLocation(observation, 9);
+
+        final Point expectedLastPoint = new Point(-53.55205, 14.84941);
+        final Point actualLastPoint = observation.getLocation().getGeometry().getLastPoint();
+
+        assertEquals(expectedLastPoint.x, actualLastPoint.x, 0.0001);
+        assertEquals(expectedLastPoint.y, actualLastPoint.y, 0.0001);
+    }
+
+    @Test
+    public void testGetEndOrigin() throws Exception {
+        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        final int[] endOrigin = mmdReader.getEndOrigin(5);
+        assertArrayEquals(new int[]{5, 100, 100}, endOrigin);
+    }
+
+    @Test
     public void testReadObservation() throws Exception {
-        initMmdReader();
+        initMmdReader(TEST_WITH_CORRECTED_DATUM);
         final Observation observation = mmdReader.readObservation(0);
         assertNotNull(observation);
     }
 
-    @Ignore
     @Test(expected = IOException.class)
     public void testReadObservationFails() throws Exception {
-        initMmdReader();
-        mmdReader.readObservation(1);
+        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        mmdReader.readObservation(10);
     }
 
     @Test
     public void testGetCreationDate() throws Exception {
-        initMmdReader();
+        initMmdReader(TEST_WITH_CORRECTED_DATUM);
         final Date creationDate = mmdReader.getCreationDate();
         final String testDateString = "2011 04 05 06 08 53";
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH mm ss");
@@ -100,7 +136,7 @@ public class MmdReaderTest {
 
     @Test
     public void testGetSSTVariable() throws Exception {
-        initMmdReader();
+        initMmdReader(TEST_WITH_CORRECTED_DATUM);
         final Variable sstVariable = mmdReader.getSSTVariable();
         assertNotNull(sstVariable);
     }
@@ -115,9 +151,9 @@ public class MmdReaderTest {
         mmdReader.getVariableDescriptors();
     }
 
-    private void initMmdReader() throws IOException {
+    private void initMmdReader(final String filename) throws IOException {
         final DataFile dataFile = new DataFile();
-        final File file = new File(getClass().getResource("mmd_test_output.nc").getFile());
+        final File file = new File(getClass().getResource(filename).getFile());
         dataFile.setPath(file.getPath());
         mmdReader.init(dataFile);
     }

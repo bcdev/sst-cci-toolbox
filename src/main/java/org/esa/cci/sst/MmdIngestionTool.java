@@ -87,6 +87,9 @@ public class MmdIngestionTool extends MmsTool {
     }
 
     private DataFile getDataFile(final File file) {
+
+        // todo - ts 5Apr2011 - data file has to be ingested, too, if that has not yet happened
+
         final String sensorType = "ARC";   // todo - ts 4Apr2011 - ok?
         final DataSchema dataSchema = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, sensorType);
         return DataUtil.createDataFile(file, dataSchema);

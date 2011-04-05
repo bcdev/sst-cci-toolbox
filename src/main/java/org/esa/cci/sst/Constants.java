@@ -59,6 +59,8 @@ public class Constants {
     public static final int INSITU_HISTORY_LENGTH = 24;
     public static final int INSITU_HISTORY_QC_LENGTH = 2;
 
+    public static final String VARNAME_HISTORY_TIME = "insitu.time";
+
     private Constants() {
     }
 }
