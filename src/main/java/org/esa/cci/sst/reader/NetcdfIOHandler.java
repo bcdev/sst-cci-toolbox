@@ -114,11 +114,6 @@ abstract class NetcdfIOHandler implements IOHandler {
         return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
     }
 
-    @Override
-    public String getDataFilePath() {
-        return dataFile.getPath();
-    }
-
     /**
      * Closes NetCDF file.
      */

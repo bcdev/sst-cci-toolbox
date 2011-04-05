@@ -204,11 +204,6 @@ public class ProductIOHandler implements IOHandler {
         return pixelPos;
     }
 
-    @Override
-    public String getDataFilePath() {
-        return dataFile.getPath();
-    }
-
     private Date getCenterTimeAsDate() throws IOException {
         final ProductData.UTC startTime = product.getStartTime();
         if (startTime == null) {
