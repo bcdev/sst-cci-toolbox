@@ -168,14 +168,14 @@ public class IngestionTool extends MmsTool {
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.test.inputSets.%d.filenamePattern", i), ".*");
             final File inputDir = new File(inputDirPath);
-            final ArrayList<File> inputFileList = getInputFiles(filenamePattern, inputDir);
+            final List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
             if (inputFileList.isEmpty()) {
                 getLogger().fine(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
             }
             for (final File inputFile : inputFileList) {
                 ingest(inputFile, schemaName, sensorType, sensor);
+                directoryCount++;
             }
-            directoryCount++;
         }
         checkInputSet(directoryCount);
         getLogger().fine(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
@@ -265,8 +265,8 @@ public class IngestionTool extends MmsTool {
         }
     }
 
-    private ArrayList<File> getInputFiles(final String filenamePattern, final File inputDir) {
-        final ArrayList<File> inputFileList = new ArrayList<File>(0);
+    private List<File> getInputFiles(final String filenamePattern, final File inputDir) {
+        final List<File> inputFileList = new ArrayList<File>(0);
         collectInputFiles(inputDir, filenamePattern, inputFileList);
         return inputFileList;
     }
