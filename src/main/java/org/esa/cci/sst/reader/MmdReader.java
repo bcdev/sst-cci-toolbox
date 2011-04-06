@@ -27,6 +27,8 @@ import org.esa.cci.sst.util.DataUtil;
 import org.esa.cci.sst.util.ReaderUtil;
 import org.postgis.Geometry;
 import org.postgis.PGgeometry;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -51,12 +53,24 @@ public class MmdReader implements IOHandler {
                                                                        "FROM mm_coincidence c, mm_observation o " +
                                                                        "WHERE c.matchup_id = %d " +
                                                                        "AND c.observation_id = o.id " +
-                                                                       "AND ST_Intersects(o.location, '%s')" +
-                                                                       "AND ST_Intersects(o.location, '%s')" +
+                                                                       "AND ST_Intersects(o.location, '%s') " +
+                                                                       "AND ST_Intersects(o.location, '%s') " +
                                                                        "ORDER BY o.time";
+
+    private static final String CORRESPONDING_REFERENCE_OBSERVATION_TIME_QUERY = "SELECT o.time " +
+                                                                                 "FROM mm_observation o " +
+                                                                                 "WHERE ST_Intersects(o.location, '%s') " +
+                                                                                 "AND ST_Intersects(o.location, '%s') " +
+                                                                                 "AND o.dtype = 'ReferenceObservation'" +
+                                                                                 "ORDER BY o.time";
+
+    private static final String MAXIMUM_RECORD_NUMBER = "SELECT MAX(recordno) " +
+                                                        "FROM mm_observation";
 
     private static final String RECORD_DIMENSION_NAME = "record";
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
+    private static final String VARIABLE_NAME_MATCHUP = "matchup_id";
+
     private NetcdfFile mmd;
     private final PersistenceManager persistenceManager;
 
@@ -98,10 +112,37 @@ public class MmdReader implements IOHandler {
         setObservationLocation(observation, recordNo);
         observation.setDatafile(createDatafile());
         observation.setName("mmd_observation_" + recordNo);
-        observation.setRecordNo(recordNo); // todo - ts 06Apr2011 - set to last record number + 1
+        setObservationRecordNo(observation);
         observation.setSensor("ARC");   // todo - ts 04Apr2011 - ok?
-        observation.setTime(getCreationDate(8368401, observation));
+        setObservationTime(recordNo, observation);
         return observation;
+    }
+
+    private void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
+        final int matchupId = getMatchupId(recordNo);
+        System.out.println("matchupId = " + matchupId);
+        final Date creationDate = getCreationDate(matchupId, observation);
+        observation.setTime(creationDate);
+    }
+
+    private int getMatchupId(final int recordNo) throws IOException {
+        final Variable matchupIds = mmd.findVariable(NetcdfFile.escapeName(VARIABLE_NAME_MATCHUP));
+        final Array matchupId = readMatchupId(recordNo, matchupIds);
+        return matchupId.getInt(0);
+    }
+
+    private Array readMatchupId(final int recordNo, final Variable matchupIds) throws IOException {
+        final Array matchupId;
+        try {
+            matchupId = matchupIds.read(new int[]{recordNo}, new int[]{1});
+        } catch (InvalidRangeException e) {
+            throw new IOException("Unable to read matchup_id from file '" + mmd.getLocation() + "'.", e);
+        }
+        return matchupId;
+    }
+
+    private void setObservationRecordNo(final RelatedObservation observation) {
+//        observation.setRecordNo(0); // todo - ts 06Apr2011 - set to last record number + 1
     }
 
     @Override
@@ -129,19 +170,29 @@ public class MmdReader implements IOHandler {
         return variable;
     }
 
-    Date getCreationDate(final int matchupId, final RelatedObservation observation) throws IOException {
-        persistenceManager.transaction();
+    Date getCreationDate(final int matchupId, final RelatedObservation observation) {
         final Geometry geometry = observation.getLocation().getGeometry();
         final String firstPoint = geometry.getFirstPoint().toString();
         final String lastPoint = geometry.getLastPoint().toString();
 
-        final String queryString = String.format(CORRESPONDING_OBSERVATION_TIME_QUERY, matchupId, firstPoint, lastPoint );
-        final Query query = persistenceManager.createNativeQuery(queryString, Date.class);
-        final List resultList = query.getResultList();
+        final String coincidenceQueryString = String.format(CORRESPONDING_OBSERVATION_TIME_QUERY, matchupId, firstPoint,
+                                                            lastPoint);
+        final Query coincidenceQuery = persistenceManager.createNativeQuery(coincidenceQueryString, Date.class);
+        List resultList = coincidenceQuery.getResultList();
 
-        persistenceManager.commit();
+        if (resultList.isEmpty()) {
+            final String refObsQueryString = String.format(CORRESPONDING_REFERENCE_OBSERVATION_TIME_QUERY, firstPoint,
+                                                           lastPoint);
+            final Query refObsQuery = persistenceManager.createNativeQuery(refObsQueryString, Date.class);
+            resultList = refObsQuery.getResultList();
 
-        return (Date) resultList.get(resultList.size() / 2 );
+            if(resultList.isEmpty()) {
+                throw new IllegalStateException("No corresponding observation found.");
+            }
+
+        }
+
+        return (Date) resultList.get(resultList.size() / 2);
     }
 
     void setObservationLocation(final RelatedObservation observation, int recordNo) throws IOException {

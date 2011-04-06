@@ -22,6 +22,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.postgis.Geometry;
@@ -43,7 +44,6 @@ import static org.junit.Assert.*;
  */
 public class MmdReaderTest {
 
-    static final String TEST_WITH_CORRECTED_DATUM = "test_with_corrected_datum.nc";
     static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
 
     private MmdReader mmdReader;
@@ -61,6 +61,16 @@ public class MmdReaderTest {
         mmdReader = new MmdReader(persistenceManager);
     }
 
+    @After
+    public void tearDown() throws Exception {
+        try {
+            mmdReader.close();
+        } catch (IllegalStateException ignore) {
+            // ok
+        }
+        mmdReader = null;
+    }
+
     @Test(expected = IOException.class)
     public void testFailingInit() throws Exception {
         final DataFile dataFile = new DataFile();
@@ -76,19 +86,19 @@ public class MmdReaderTest {
 
     @Test
     public void testInit() throws Exception {
-        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
         final Field mmd = mmdReader.getClass().getDeclaredField("mmd");
         mmd.setAccessible(true);
         final NetcdfFile mmdObj = (NetcdfFile) mmd.get(mmdReader);
 
         assertNotNull(mmdObj);
         final String location = mmdObj.getLocation();
-        assertEquals(TEST_WITH_CORRECTED_DATUM, location.substring(location.lastIndexOf("/") + 1, location.length()));
+        assertEquals(TEST_WITH_ACTUAL_DATA, location.substring(location.lastIndexOf("/") + 1, location.length()));
     }
 
     @Test
     public void testGetNumRecords() throws Exception {
-        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
         assertEquals(10, mmdReader.getNumRecords());
     }
 
@@ -123,21 +133,21 @@ public class MmdReaderTest {
 
     @Test
     public void testGetEndOrigin() throws Exception {
-        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
         final int[] endOrigin = mmdReader.getEndOrigin(5);
         assertArrayEquals(new int[]{5, 100, 100}, endOrigin);
     }
 
     @Test
     public void testReadObservation() throws Exception {
-        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
         final Observation observation = mmdReader.readObservation(0);
         assertNotNull(observation);
     }
 
     @Test(expected = IOException.class)
     public void testReadObservationFails() throws Exception {
-        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
         mmdReader.readObservation(10);
     }
 
@@ -154,7 +164,7 @@ public class MmdReaderTest {
 
     @Test
     public void testGetSSTVariable() throws Exception {
-        initMmdReader(TEST_WITH_CORRECTED_DATUM);
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
         final Variable sstVariable = mmdReader.getSSTVariable();
         assertNotNull(sstVariable);
     }
