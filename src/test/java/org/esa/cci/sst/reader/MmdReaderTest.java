@@ -16,11 +16,15 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.junit.Before;
 import org.junit.Test;
+import org.postgis.Geometry;
 import org.postgis.Point;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -30,6 +34,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 import static org.junit.Assert.*;
 
@@ -45,7 +50,15 @@ public class MmdReaderTest {
 
     @Before
     public void setUp() throws Exception {
-        mmdReader = new MmdReader();
+        final Properties config = new Properties();
+        config.setProperty("openjpa.ConnectionDriverName", "org.postgresql.Driver");
+        config.setProperty("openjpa.ConnectionURL", "jdbc:postgresql://10.3.0.35:5432/mygisdb");
+        config.setProperty("openjpa.ConnectionUserName", "mms");
+        config.setProperty("openjpa.ConnectionPassword", "mms");
+        config.setProperty("openjpa.Log", "DefaultLevel=INFO,SQL=INFO");
+        config.setProperty("openjpa.jdbc.SynchronizeMappings", "buildSchema");
+        final PersistenceManager persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, config);
+        mmdReader = new MmdReader(persistenceManager);
     }
 
     @Test(expected = IOException.class)
@@ -86,7 +99,10 @@ public class MmdReaderTest {
         mmdReader.setObservationLocation(observation, 0);
 
         final Point expectedFirstPoint = new Point(-48.65955, 3.351261);
-        final Point actualFirstPoint = observation.getLocation().getGeometry().getFirstPoint();
+        final Geometry geometry = observation.getLocation().getGeometry();
+        final Point actualFirstPoint = geometry.getFirstPoint();
+        final Point actualLastPoint = geometry.getLastPoint();
+        System.out.println("actualLastPoint = " + actualLastPoint);
 
         assertEquals(expectedFirstPoint.x, actualFirstPoint.x, 0.0001);
         assertEquals(expectedFirstPoint.y, actualFirstPoint.y, 0.0001);
@@ -127,11 +143,13 @@ public class MmdReaderTest {
 
     @Test
     public void testGetCreationDate() throws Exception {
-        initMmdReader(TEST_WITH_CORRECTED_DATUM);
-        final Date creationDate = mmdReader.getCreationDate();
-        final String testDateString = "2011 04 05 06 08 53";
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH mm ss");
-        assertEquals(sdf.parse(testDateString).getTime(), creationDate.getTime());
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
+        final ReferenceObservation observation = new ReferenceObservation();
+        mmdReader.setObservationLocation(observation, 0);
+        final Date actualDate = mmdReader.getCreationDate(8368401, observation);
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+        final Date expectedDate = sdf.parse("2010-06-01 08-18-29");
+        assertEquals(expectedDate.getTime(), actualDate.getTime());
     }
 
     @Test

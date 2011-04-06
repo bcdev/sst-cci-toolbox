@@ -66,9 +66,6 @@ public class IOHandlerFactory {
         if (Constants.DATA_SCHEMA_INSITU_HISTORY.equalsIgnoreCase(schemaName)) {
             return new InsituIOHandler();
         }
-        if (Constants.DATA_SCHEMA_NAME_MMD.equalsIgnoreCase(schemaName)) {
-            return new MmdReader();
-        }
         throw new IllegalArgumentException(
                 MessageFormat.format("No appropriate IO handler for schema {0} found.", schemaName));
     }

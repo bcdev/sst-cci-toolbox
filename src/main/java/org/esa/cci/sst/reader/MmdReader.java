@@ -22,21 +22,22 @@ import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.DataUtil;
 import org.esa.cci.sst.util.ReaderUtil;
+import org.postgis.Geometry;
 import org.postgis.PGgeometry;
-import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Reader for reading from an mmd file. Does not implement the <code>write</code>-method.
@@ -45,9 +46,23 @@ import java.util.Date;
  */
 public class MmdReader implements IOHandler {
 
+    // todo - ts 6Apr2011 - review
+    private static final String CORRESPONDING_OBSERVATION_TIME_QUERY = "SELECT o.time " +
+                                                                       "FROM mm_coincidence c, mm_observation o " +
+                                                                       "WHERE c.matchup_id = %d " +
+                                                                       "AND c.observation_id = o.id " +
+                                                                       "AND ST_Intersects(o.location, '%s')" +
+                                                                       "AND ST_Intersects(o.location, '%s')" +
+                                                                       "ORDER BY o.time";
+
     private static final String RECORD_DIMENSION_NAME = "record";
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
     private NetcdfFile mmd;
+    private final PersistenceManager persistenceManager;
+
+    public MmdReader(final PersistenceManager persistenceManager) {
+        this.persistenceManager = persistenceManager;
+    }
 
     @Override
     public void init(final DataFile dataFile) throws IOException {
@@ -83,9 +98,9 @@ public class MmdReader implements IOHandler {
         setObservationLocation(observation, recordNo);
         observation.setDatafile(createDatafile());
         observation.setName("mmd_observation_" + recordNo);
-        observation.setRecordNo(recordNo);
-        observation.setSensor("ARC");   // todo - ts 4Apr2011 - ok?
-        observation.setTime(getCreationDate());
+        observation.setRecordNo(recordNo); // todo - ts 06Apr2011 - set to last record number + 1
+        observation.setSensor("ARC");   // todo - ts 04Apr2011 - ok?
+        observation.setTime(getCreationDate(8368401, observation));
         return observation;
     }
 
@@ -114,15 +129,19 @@ public class MmdReader implements IOHandler {
         return variable;
     }
 
-    Date getCreationDate() throws IOException {
-        final Attribute creationDateAttribute = mmd.findGlobalAttributeIgnoreCase("date_created");
-        final String creationDateAttributeStringValue = creationDateAttribute.getStringValue();
-        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");
-        try {
-            return simpleDateFormat.parse(creationDateAttributeStringValue);
-        } catch (ParseException e) {
-            throw new IOException("Unable to read creation date of file '" + mmd.getLocation() + "'.", e);
-        }
+    Date getCreationDate(final int matchupId, final RelatedObservation observation) throws IOException {
+        persistenceManager.transaction();
+        final Geometry geometry = observation.getLocation().getGeometry();
+        final String firstPoint = geometry.getFirstPoint().toString();
+        final String lastPoint = geometry.getLastPoint().toString();
+
+        final String queryString = String.format(CORRESPONDING_OBSERVATION_TIME_QUERY, matchupId, firstPoint, lastPoint );
+        final Query query = persistenceManager.createNativeQuery(queryString, Date.class);
+        final List resultList = query.getResultList();
+
+        persistenceManager.commit();
+
+        return (Date) resultList.get(resultList.size() / 2 );
     }
 
     void setObservationLocation(final RelatedObservation observation, int recordNo) throws IOException {

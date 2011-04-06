@@ -18,7 +18,9 @@ package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
+import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.util.DataUtil;
 
 import java.io.File;
@@ -56,15 +58,13 @@ public class MmdIngestionTool extends MmsTool {
     }
 
     private void ingest() throws ToolException {
-        final IOHandler ioHandler = delegate.getIOHandler(Constants.DATA_SCHEMA_NAME_MMD, null);
+        final IOHandler ioHandler = new MmdReader(delegate.getPersistenceManager());
         final File mmdFile = getMmdFile();
         final DataFile dataFile = getDataFile(mmdFile);
         initIOHandler(ioHandler, dataFile);
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
-            if(i % 10 == 9) {
-                getLogger().info("ingestion of record '" + i + "/" + numRecords + "'");
-            }
+            getLogger().info("ingestion of record '" + (i + 1) + "/" + numRecords + "'");
             persistObservation(ioHandler, i);
         }
     }
@@ -84,14 +84,15 @@ public class MmdIngestionTool extends MmsTool {
     }
 
     private void persistObservation(final IOHandler ioHandler, int recordNo) throws ToolException {
-        getPersistenceManager().transaction();
+        final PersistenceManager persistenceManager = delegate.getPersistenceManager();
+        persistenceManager.transaction();
         try {
             delegate.persistObservation(ioHandler, recordNo);
         } catch (Exception e) {
             getErrorHandler().handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo),
                                           ToolException.TOOL_ERROR);
         } finally {
-            getPersistenceManager().commit();
+            persistenceManager.commit();
         }
     }
 
