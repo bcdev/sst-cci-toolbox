@@ -49,7 +49,7 @@ import java.util.List;
  */
 public class MmdReader implements IOHandler {
 
-    // todo - ts 6Apr2011 - review
+    // todo - ts 07Apr2011 - remove when getting the corresponding observation directly from the file
     private static final String CORRESPONDING_OBSERVATION_TIME_QUERY = "SELECT o.time " +
                                                                        "FROM mm_coincidence c, mm_observation o " +
                                                                        "WHERE c.matchup_id = %d " +
@@ -73,6 +73,8 @@ public class MmdReader implements IOHandler {
     private static final String VARIABLE_NAME_MATCHUP = "matchup_id";
 
     private NetcdfFile mmd;
+    private int maxRecordNumber = -1;
+
     private final PersistenceManager persistenceManager;
 
     public MmdReader(final PersistenceManager persistenceManager) {
@@ -143,7 +145,14 @@ public class MmdReader implements IOHandler {
     }
 
     private void setObservationRecordNo(final RelatedObservation observation) {
-//        observation.setRecordNo(0); // todo - ts 06Apr2011 - set to last record number + 1
+        if(maxRecordNumber == -1) {
+            final Query maxRecordNumberQuery = persistenceManager.createNativeQuery(MAXIMUM_RECORD_NUMBER,
+                                                                                    Integer.class);
+            maxRecordNumber = (Integer)maxRecordNumberQuery.getSingleResult();
+        }
+
+        maxRecordNumber++;
+        observation.setRecordNo(maxRecordNumber);
     }
 
     @Override
