@@ -67,22 +67,30 @@ class DefaultBoundaryCalculator implements BoundaryCalculator {
         for (int i = minY; i < maxY; i += stepY) {
             p.setLocation(minX + 0.5, i + 0.5);
             geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            if (g.isValid()) {
+                geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            }
         }
         for (int i = minX; i < maxX; i += stepX) {
             p.setLocation(i + 0.5, maxY + 0.5);
             geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            if (g.isValid()) {
+                geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            }
         }
         for (int i = maxY; i > minY; i -= stepY) {
             p.setLocation(maxX + 0.5, i + 0.5);
             geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            if (g.isValid()) {
+                geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            }
         }
         for (int i = maxX; i > minX; i -= stepX) {
             p.setLocation(i + 0.5, minY + 0.5);
             geoCoding.getGeoPos(p, g);
-            geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            if (g.isValid()) {
+                geoBoundary.add(new Point(GeoPos.normalizeLon(g.getLon()), g.getLat()));
+            }
         }
         if (geoBoundary.size() < 3) {
             throw new IllegalArgumentException(
