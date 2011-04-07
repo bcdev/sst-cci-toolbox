@@ -24,8 +24,6 @@ import org.postgis.Geometry;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
 
 import java.io.File;
 import java.net.URI;
@@ -109,28 +107,6 @@ public class InsituIOHandlerTest {
 
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20101124_050000_000");
         assertFalse(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
-    }
-
-    @Test
-    public void testCreateFilledArray() throws Exception {
-        Array fillArray = ReaderUtil.createFillArray(DataType.INT, 15, new int[]{2, 3, 4});
-        assertEquals(3, fillArray.getShape().length);
-        assertEquals(24, fillArray.getSize());
-        long size = fillArray.getSize();
-        for (int i = 0; i < size; i++) {
-            Object value = fillArray.getInt(i);
-            assertEquals(15, value);
-        }
-
-        fillArray = ReaderUtil.createFillArray(DataType.DOUBLE, Double.NEGATIVE_INFINITY, new int[]{5, 6, 7});
-        assertEquals(3, fillArray.getShape().length);
-        assertEquals(210, fillArray.getSize());
-        size = fillArray.getSize();
-        for (int i = 0; i < size; i++) {
-            Object value = fillArray.getDouble(i);
-            assertEquals(Double.NEGATIVE_INFINITY, value);
-        }
-
     }
 
     private InsituIOHandler createIOHandler() throws Exception {
