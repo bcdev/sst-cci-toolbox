@@ -38,6 +38,7 @@ import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -147,7 +148,12 @@ public class MmdReader implements IOHandler {
 
     @Override
     public VariableDescriptor[] getVariableDescriptors() throws IOException {
-        throw new IllegalStateException("not needed, therefore not implemented");
+        final List<VariableDescriptor> variableDescriptors = new ArrayList<VariableDescriptor>();
+        final List<Variable> variables = mmd.getVariables();
+        for (Variable variable : variables) {
+            variableDescriptors.add(createVariableDescriptor(variable, "ARC3", createDatafile()));
+        }
+        return variableDescriptors.toArray(new VariableDescriptor[variableDescriptors.size()]);
     }
 
     @Override
@@ -186,7 +192,7 @@ public class MmdReader implements IOHandler {
             final Query refObsQuery = persistenceManager.createNativeQuery(refObsQueryString, Date.class);
             resultList = refObsQuery.getResultList();
 
-            if(resultList.isEmpty()) {
+            if (resultList.isEmpty()) {
                 throw new IllegalStateException("No corresponding observation found.");
             }
 
@@ -220,6 +226,16 @@ public class MmdReader implements IOHandler {
         final int lastIndexOfNiDim = mmd.findDimension("ni").getLength() - 1;
         final int lastIndexOfNjDim = mmd.findDimension("nj").getLength() - 1;
         return new int[]{recordNo, lastIndexOfNiDim, lastIndexOfNjDim};
+    }
+
+    private VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
+                                                        final DataFile dataFile) {
+        final VariableDescriptor variableDescriptor = ReaderUtil.createBasicVariableDescriptor(variable, sensorName);
+        ReaderUtil.setVariableDescriptorDimensions(variable, variableDescriptor);
+        ReaderUtil.setVariableDescriptorAttributes(variable, variableDescriptor);
+        ReaderUtil.setVariableUnits(variable, variableDescriptor);
+        ReaderUtil.setVariableDesciptorDataSchema(dataFile, variableDescriptor);
+        return variableDescriptor;
     }
 
     private Dimension getRecordDimension() {

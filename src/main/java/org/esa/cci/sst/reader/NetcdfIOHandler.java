@@ -18,7 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.VariableDescriptor;
-import ucar.nc2.Attribute;
+import org.esa.cci.sst.util.ReaderUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -34,14 +34,13 @@ import java.util.HashMap;
  */
 abstract class NetcdfIOHandler implements IOHandler {
 
-    private final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
+    private static final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
     private final String sensorName;
 
     private NetcdfFile ncFile;
     private DataFile dataFile;
 
-    public NetcdfIOHandler(String sensorName) {
-        this.sensorName = sensorName;
+    static {
         dimensionRoleMap.put("n", "match_up");
         dimensionRoleMap.put("nx", "nj");
         dimensionRoleMap.put("ny", "ni");
@@ -50,6 +49,10 @@ abstract class NetcdfIOHandler implements IOHandler {
         dimensionRoleMap.put("cs_length", "length");
         dimensionRoleMap.put("ui_length", "length");
         dimensionRoleMap.put("length", "length");
+    }
+
+    public NetcdfIOHandler(String sensorName) {
+        this.sensorName = sensorName;
     }
 
     /**
@@ -74,41 +77,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     public VariableDescriptor[] getVariableDescriptors() throws IOException {
         final ArrayList<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
         for (final Variable variable : ncFile.getVariables()) {
-            final VariableDescriptor variableDescriptor = new VariableDescriptor();
-            variableDescriptor.setName(String.format("%s.%s", sensorName, variable.getName()));
-            variableDescriptor.setType(variable.getDataType().name());
-            final String dimensions = variable.getDimensionsString();
-            variableDescriptor.setDimensions(dimensions);
-            final String dimensionRoles = getDimensionRoles(dimensions);
-            variableDescriptor.setDimensionRoles(dimensionRoles);
-            for (final Attribute attr : variable.getAttributes()) {
-                if ("add_offset".equals(attr.getName())) {
-                    variableDescriptor.setAddOffset(attr.getNumericValue());
-                }
-                if ("scale_factor".equals(attr.getName())) {
-                    variableDescriptor.setScaleFactor(attr.getNumericValue());
-                }
-                if ("_FillValue".equals(attr.getName())) {
-                    variableDescriptor.setFillValue(attr.getNumericValue());
-                }
-                if ("valid_min".equals(attr.getName())) {
-                    variableDescriptor.setValidMin(attr.getNumericValue());
-                }
-                if ("valid_max".equals(attr.getName())) {
-                    variableDescriptor.setValidMax(attr.getNumericValue());
-                }
-                if ("long_name".equals(attr.getName())) {
-                    variableDescriptor.setLongName(attr.getStringValue());
-                }
-                if ("standard_name".equals(attr.getName())) {
-                    variableDescriptor.setStandardName(attr.getStringValue());
-                }
-            }
-            variableDescriptor.setDataSchema(dataFile.getDataSchema());
-            final String units = variable.getUnitsString();
-            if (units != null && !units.isEmpty()) {
-                variableDescriptor.setUnits(units);
-            }
+            final VariableDescriptor variableDescriptor = createVariableDescriptor(variable, sensorName, dataFile);
             variableDescriptorList.add(variableDescriptor);
         }
         return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
@@ -127,6 +96,22 @@ abstract class NetcdfIOHandler implements IOHandler {
             }
         }
         dataFile = null;
+    }
+
+    private VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
+                                                        final DataFile dataFile) {
+        final VariableDescriptor variableDescriptor = ReaderUtil.createBasicVariableDescriptor(variable, sensorName);
+        final String dimensions = ReaderUtil.setVariableDescriptorDimensions(variable, variableDescriptor);
+        ReaderUtil.setVariableDescriptorAttributes(variable, variableDescriptor);
+        ReaderUtil.setVariableUnits(variable, variableDescriptor);
+        setDimensionRoles(variableDescriptor, dimensions);
+        ReaderUtil.setVariableDesciptorDataSchema(dataFile, variableDescriptor);
+        return variableDescriptor;
+    }
+
+    private void setDimensionRoles(final VariableDescriptor variableDescriptor, final String dimensions) {
+        final String dimensionRoles = getDimensionRoles(dimensions);
+        variableDescriptor.setDimensionRoles(dimensionRoles);
     }
 
     protected String getSensorName() {

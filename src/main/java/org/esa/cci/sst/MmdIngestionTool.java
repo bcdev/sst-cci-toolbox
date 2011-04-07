@@ -42,10 +42,13 @@ public class MmdIngestionTool extends MmsTool {
             return;
         }
         tool.init(args);
-        tool.ingest();
+        tool.ingestVariableDescriptors();
+        tool.ingestObservations();
+        tool.ingestCoincidences();
     }
 
     private IngestionTool delegate;
+    private IOHandler ioHandler;
 
     MmdIngestionTool() throws ToolException {
         super("mmdingest.sh", "0.1");
@@ -55,10 +58,19 @@ public class MmdIngestionTool extends MmsTool {
         delegate = new IngestionTool();
         delegate.setCommandLineArgs(args);
         delegate.initialize();
+        ioHandler = new MmdReader(delegate.getPersistenceManager());
     }
 
-    private void ingest() throws ToolException {
-        final IOHandler ioHandler = new MmdReader(delegate.getPersistenceManager());
+    private void ingestVariableDescriptors() throws ToolException {
+        try {
+            delegate.persistVariableDescriptors("mmd", "ARC3", ioHandler);
+        } catch (IOException e) {
+            throw new ToolException("Unable to persist variable descriptors for sensor 'ARC'.", e,
+                                    ToolException.TOOL_ERROR);
+        }
+    }
+
+    private void ingestObservations() throws ToolException {
         final File mmdFile = getMmdFile();
         final DataFile dataFile = getDataFile(mmdFile);
         initIOHandler(ioHandler, dataFile);
@@ -67,6 +79,10 @@ public class MmdIngestionTool extends MmsTool {
             getLogger().info("ingestion of record '" + (i + 1) + "/" + numRecords + "'");
             persistObservation(ioHandler, i);
         }
+    }
+
+    private void ingestCoincidences() {
+
     }
 
     private DataFile getDataFile(final File file) {

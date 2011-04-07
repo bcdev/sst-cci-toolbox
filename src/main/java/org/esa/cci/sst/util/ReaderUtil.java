@@ -17,11 +17,13 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.Constants;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -37,6 +39,9 @@ import java.util.NoSuchElementException;
  * @author Thomas Storm
  */
 public class ReaderUtil {
+
+    private ReaderUtil() {
+    }
 
     public static void findTimeInterval(NetcdfFile sourceFile, Date refTime, int limit, int[] origin,
                                         int[] shape) throws IOException {
@@ -69,18 +74,6 @@ public class ReaderUtil {
         }
     }
 
-    public static Array createFillArray(final DataType dataType, Object fillValue, final int[] shape) {
-        int size = 1;
-        for (int length : shape) {
-            size *= length;
-        }
-        final Array array = Array.factory(dataType, shape);
-        for (int i = 0; i < size; i++) {
-            array.setObject(i, fillValue);
-        }
-        return array;
-    }
-
     public static boolean fits(final Date refTime, final double julianDate) throws ParseException {
         final Date observationDate = TimeUtil.dateOfJulianDate(julianDate);
         final long time = observationDate.getTime();
@@ -109,5 +102,58 @@ public class ReaderUtil {
             lon = lon - 360.0;
         }
         return lon;
+    }
+
+    public static void setVariableUnits(final Variable variable, final VariableDescriptor variableDescriptor) {
+        final String units = variable.getUnitsString();
+        if (units != null && !units.isEmpty()) {
+            variableDescriptor.setUnits(units);
+        }
+    }
+
+    public static void setVariableDescriptorAttributes(final Variable variable,
+                                                       final VariableDescriptor variableDescriptor) {
+        for (final Attribute attr : variable.getAttributes()) {
+            if ("add_offset".equals(attr.getName())) {
+                variableDescriptor.setAddOffset(attr.getNumericValue());
+            }
+            if ("scale_factor".equals(attr.getName())) {
+                variableDescriptor.setScaleFactor(attr.getNumericValue());
+            }
+            if ("_FillValue".equals(attr.getName())) {
+                variableDescriptor.setFillValue(attr.getNumericValue());
+            }
+            if ("valid_min".equals(attr.getName())) {
+                variableDescriptor.setValidMin(attr.getNumericValue());
+            }
+            if ("valid_max".equals(attr.getName())) {
+                variableDescriptor.setValidMax(attr.getNumericValue());
+            }
+            if ("long_name".equals(attr.getName())) {
+                variableDescriptor.setLongName(attr.getStringValue());
+            }
+            if ("standard_name".equals(attr.getName())) {
+                variableDescriptor.setStandardName(attr.getStringValue());
+            }
+        }
+    }
+
+    public static String setVariableDescriptorDimensions(final Variable variable,
+                                                         final VariableDescriptor variableDescriptor) {
+        final String dimensions = variable.getDimensionsString();
+        variableDescriptor.setDimensions(dimensions);
+        return dimensions;
+    }
+
+    public static VariableDescriptor createBasicVariableDescriptor(final Variable variable, final String sensorName) {
+        final VariableDescriptor variableDescriptor = new VariableDescriptor();
+        variableDescriptor.setName(String.format("%s.%s", sensorName, variable.getName()));
+        variableDescriptor.setType(variable.getDataType().name());
+        return variableDescriptor;
+    }
+
+    public static void setVariableDesciptorDataSchema(final DataFile dataFile,
+                                                      final VariableDescriptor variableDescriptor) {
+        variableDescriptor.setDataSchema(dataFile.getDataSchema());
     }
 }

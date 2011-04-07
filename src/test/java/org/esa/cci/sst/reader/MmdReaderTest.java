@@ -21,6 +21,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.junit.After;
 import org.junit.Before;
@@ -174,9 +175,19 @@ public class MmdReaderTest {
         mmdReader.write(null, null, "", "", 0, null, null);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testGetVariableDescriptors() throws Exception {
-        mmdReader.getVariableDescriptors();
+        initMmdReader(TEST_WITH_ACTUAL_DATA);
+        final VariableDescriptor[] variableDescriptors = mmdReader.getVariableDescriptors();
+
+        assertEquals(8, variableDescriptors.length);
+
+        for (VariableDescriptor variableDescriptor : variableDescriptors) {
+            assertTrue(variableDescriptor.getName().startsWith("ARC3."));
+            assertEquals("ARC", variableDescriptor.getDataSchema().getSensorType());
+            assertEquals("mmd", variableDescriptor.getDataSchema().getName());
+        }
+
     }
 
     private void initMmdReader(final String filename) throws IOException {

@@ -111,7 +111,7 @@ public class IngestionTool extends MmsTool {
     }
 
     boolean persistObservation(final IOHandler ioHandler, final int recordNo) throws IOException,
-                                                                                             ParseException {
+                                                                                     ParseException {
         boolean hasPersisted = false;
         final PersistenceManager persistenceManager = getPersistenceManager();
         final Observation observation = ioHandler.readObservation(recordNo);
@@ -141,6 +141,22 @@ public class IngestionTool extends MmsTool {
                                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
         return ioHandler;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    void persistVariableDescriptors(final String schemaName, final String sensorName,
+                                    final IOHandler ioHandler) throws IOException {
+        final Query query = getPersistenceManager().createNativeQuery(ALL_SENSORS_QUERY, String.class);
+        final List<String> sensorList = query.getResultList();
+
+        if (!sensorList.contains(sensorName)) {
+            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
+                                                  schemaName, variableDescriptors.length));
+            for (final VariableDescriptor variableDescriptor : variableDescriptors) {
+                getPersistenceManager().persist(variableDescriptor);
+            }
+        }
     }
 
     /**
@@ -204,22 +220,6 @@ public class IngestionTool extends MmsTool {
             }
         }
         return recordsInTimeInterval;
-    }
-
-    private void persistVariableDescriptors(final String schemaName, final String sensorName,
-                                            final IOHandler ioHandler) throws IOException {
-        final Query query = getPersistenceManager().createNativeQuery(ALL_SENSORS_QUERY, String.class);
-        @SuppressWarnings({"unchecked"})
-        final List<String> sensorList = query.getResultList();
-
-        if (!sensorList.contains(sensorName)) {
-            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
-                                                  schemaName, variableDescriptors.length));
-            for (final VariableDescriptor variableDescriptor : variableDescriptors) {
-                getPersistenceManager().persist(variableDescriptor);
-            }
-        }
     }
 
     private void cleanup() throws ToolException {
