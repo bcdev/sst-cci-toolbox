@@ -14,30 +14,32 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst;
+package org.esa.cci.sst.util;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.DataSchema;
 
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.File;
 
 /**
+ * Provides some common utility methods.
+ *
  * @author Thomas Storm
  */
-public class MmdIngestionToolTest {
+public class DataUtil {
 
-    private MmdIngestionTool tool;
-
-    @Before
-    public void setUp() throws Exception {
-        tool = new MmdIngestionTool();
+    public static DataSchema createDataSchema(final String schemaName, final String sensorType) {
+        final DataSchema dataSchema;
+        dataSchema = new DataSchema();
+        dataSchema.setName(schemaName);
+        dataSchema.setSensorType(sensorType);
+        return dataSchema;
     }
 
-    @Test(expected = IOException.class)
-    public void testCloseReader() throws Exception {
-        final FileReader reader = new FileReader("pom.xml");
-        tool.closeReader(reader);
-        reader.ready();
+    public static DataFile createDataFile(final File file, final DataSchema dataSchema) {
+        final DataFile dataFile = new DataFile();
+        dataFile.setPath(file.getPath());
+        dataFile.setDataSchema(dataSchema);
+        return dataFile;
     }
 }

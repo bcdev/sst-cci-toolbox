@@ -8,6 +8,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.util.DataUtil;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
@@ -56,87 +57,6 @@ public class IngestionTool extends MmsTool {
     }
 
     /**
-     * Ingests all input files and creates observation entries in the database
-     * for all records contained in input file.
-     *
-     * @throws ToolException if an error occurs.
-     */
-    private void ingest() throws ToolException {
-        final Properties configuration = getConfiguration();
-        int directoryCount = 0;
-        for (int i = 0; i < 100; i++) {
-            final String schemaName = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.schemaName", i));
-            final String inputDirPath = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.inputDirectory", i));
-            final String sensorType = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.sensorType", i));
-            final String sensor = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.sensor", i));
-            if (schemaName == null || inputDirPath == null || sensorType == null || sensor == null) {
-                continue;
-            }
-            if (!SensorType.isSensorType(sensorType)) {
-                throw new ToolException(MessageFormat.format("Unknown sensor type ''{0}''.", sensorType),
-                                        ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-            final String filenamePattern = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.filenamePattern", i), ".*");
-            final File inputDir = new File(inputDirPath);
-            final ArrayList<File> inputFileList = new ArrayList<File>(0);
-            collectInputFiles(inputDir, filenamePattern, inputFileList);
-            if (!inputFileList.isEmpty()) {
-                final IOHandler ioHandler;
-                try {
-                    ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
-                } catch (IllegalArgumentException e) {
-                    throw new ToolException(MessageFormat.format(
-                            "Cannot create IO handler for schema ''{0}''.", schemaName), e,
-                                            ToolException.TOOL_CONFIGURATION_ERROR);
-                }
-                for (final File inputFile : inputFileList) {
-                    ingest(inputFile, schemaName, sensorType, sensor, ioHandler);
-                }
-                directoryCount++;
-            } else {
-                getLogger().fine(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
-            }
-        }
-        if (directoryCount == 0) {
-            throw new ToolException("No input sets given.\n" +
-                                    "Input sets are specified as configuration properties as follows:\n" +
-                                    "\tmms.test.inputSets.<i>.schemaName = <schemaName>\n" +
-                                    "\tmms.test.inputSets.<i>.inputDirectory = <inputDirectory>\n" +
-                                    "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)" +
-                                    "\tmms.test.inputSets.<i>.sensor = <sensor>\n" +
-                                    "\tmms.test.inputSets.<i>.sensorType = <sensorType>",
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-        getLogger().fine(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
-    }
-
-    private void collectInputFiles(File inputDir, final String filenamePattern, List<File> inputFileList) {
-        if (inputDir.isDirectory()) {
-            final File[] inputFiles = inputDir.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.isFile() && file.getName().matches(filenamePattern);
-                }
-            });
-            Collections.addAll(inputFileList, inputFiles);
-            final File[] subDirs = inputDir.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.isDirectory();
-                }
-            });
-            for (final File subDir : subDirs) {
-                collectInputFiles(subDir, filenamePattern, inputFileList);
-            }
-        }
-    }
-
-    /**
      * Ingests one input file and creates observation entries in the database
      * for all records contained in input file. Further creates the data file
      * entry, and the schema entry unless it exists, <p>
@@ -155,19 +75,18 @@ public class IngestionTool extends MmsTool {
      * @param schemaName The name of the input file type.
      * @param sensorType The type of sensor being the source of the the input data.
      * @param sensorName The sensor name.
-     * @param ioHandler  The handler to be used to read this file type
      *
      * @throws ToolException if ingestion fails
      */
-    private void ingest(File file, String schemaName, String sensorType, String sensorName, IOHandler ioHandler) throws
-                                                                                                                 ToolException {
+    void ingest(File file, String schemaName, String sensorType, String sensorName) throws ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
+        final IOHandler ioHandler = getIOHandler(schemaName, sensorName);
         try {
             // open database
             persistenceManager.transaction();
             DataSchema dataSchema = getDataSchema(schemaName, sensorType);
 
-            final DataFile dataFile = createDataFile(file, dataSchema);
+            final DataFile dataFile = DataUtil.createDataFile(file, dataSchema);
             ioHandler.init(dataFile);
 
             persistenceManager.persist(dataFile);
@@ -189,6 +108,93 @@ public class IngestionTool extends MmsTool {
         } finally {
             ioHandler.close();
         }
+    }
+
+    boolean persistObservation(final IOHandler ioHandler, final int recordNo) throws IOException,
+                                                                                     ParseException {
+        boolean hasPersisted = false;
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final Observation observation = ioHandler.readObservation(recordNo);
+        // todo - remove restriction regarding time interval, used only during initial tests
+        if (checkTime(observation)) {
+            try {
+                persistenceManager.persist(observation);
+                hasPersisted = true;
+            } catch (IllegalArgumentException e) {
+                final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
+                                                            observation.getName(),
+                                                            recordNo,
+                                                            e.getMessage());
+                getErrorHandler().handleWarning(e, message);
+            }
+        }
+        return hasPersisted;
+    }
+
+    IOHandler getIOHandler(final String schemaName, final String sensor) throws ToolException {
+        final IOHandler ioHandler;
+        try {
+            ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
+        } catch (IllegalArgumentException e) {
+            throw new ToolException(MessageFormat.format(
+                    "Cannot create IO handler for schema ''{0}''.", schemaName), e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        return ioHandler;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    void persistVariableDescriptors(final String schemaName, final String sensorName,
+                                    final IOHandler ioHandler) throws IOException {
+        final Query query = getPersistenceManager().createNativeQuery(ALL_SENSORS_QUERY, String.class);
+        final List<String> sensorList = query.getResultList();
+
+        if (!sensorList.contains(sensorName)) {
+            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
+                                                  schemaName, variableDescriptors.length));
+            for (final VariableDescriptor variableDescriptor : variableDescriptors) {
+                getPersistenceManager().persist(variableDescriptor);
+            }
+        }
+    }
+
+    /**
+     * Ingests all input files and creates observation entries in the database
+     * for all records contained in input file.
+     *
+     * @throws ToolException if an error occurs.
+     */
+    private void ingest() throws ToolException {
+        final Properties configuration = getConfiguration();
+        int directoryCount = 0;
+        for (int i = 0; i < 100; i++) {
+            final String schemaName = configuration.getProperty(
+                    String.format("mms.test.inputSets.%d.schemaName", i));
+            final String inputDirPath = configuration.getProperty(
+                    String.format("mms.test.inputSets.%d.inputDirectory", i));
+            final String sensorType = configuration.getProperty(
+                    String.format("mms.test.inputSets.%d.sensorType", i));
+            final String sensor = configuration.getProperty(
+                    String.format("mms.test.inputSets.%d.sensor", i));
+            if (schemaName == null || inputDirPath == null || sensorType == null || sensor == null) {
+                continue;
+            }
+            validateSensorType(sensorType);
+            final String filenamePattern = configuration.getProperty(
+                    String.format("mms.test.inputSets.%d.filenamePattern", i), ".*");
+            final File inputDir = new File(inputDirPath);
+            final List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
+            if (inputFileList.isEmpty()) {
+                getLogger().fine(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
+            }
+            for (final File inputFile : inputFileList) {
+                ingest(inputFile, schemaName, sensorType, sensor);
+                directoryCount++;
+            }
+        }
+        checkInputSet(directoryCount);
+        getLogger().fine(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
     }
 
     private int persistObservations(final String schemaName, final IOHandler ioHandler) {
@@ -216,69 +222,6 @@ public class IngestionTool extends MmsTool {
         return recordsInTimeInterval;
     }
 
-    private boolean persistObservation(final IOHandler ioHandler, final int recordNo) throws IOException,
-                                                                                             ParseException {
-        boolean hasPersisted = false;
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        final Observation observation = ioHandler.readObservation(recordNo);
-        // todo - remove restriction regarding time interval, used only during initial tests
-        if (checkTime(observation)) {
-            hasPersisted = true;
-            try {
-                persistenceManager.persist(observation);
-            } catch (IllegalArgumentException e) {
-                final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
-                                                            observation.getName(),
-                                                            recordNo,
-                                                            e.getMessage());
-                getErrorHandler().handleWarning(e, message);
-            }
-        }
-        return hasPersisted;
-    }
-
-    private DataSchema getDataSchema(final String schemaName, final String sensorType) {
-        // lookup or create data schema and data file entry
-        DataSchema dataSchema = (DataSchema) getPersistenceManager().pick(
-                "select s from DataSchema s where s.name = ?1",
-                schemaName);
-        if (dataSchema == null) {
-            dataSchema = createDataSchema(schemaName, sensorType);
-            getPersistenceManager().persist(dataSchema);
-        }
-        return dataSchema;
-    }
-
-    private void persistVariableDescriptors(final String schemaName, final String sensorName, final IOHandler ioHandler) throws IOException {
-        final Query query = getPersistenceManager().createNativeQuery(ALL_SENSORS_QUERY, String.class);
-        @SuppressWarnings({"unchecked"})
-        final List<String> sensorList = query.getResultList();
-
-        if (!sensorList.contains(sensorName)) {
-            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
-                                                  schemaName, variableDescriptors.length));
-            for (final VariableDescriptor variableDescriptor : variableDescriptors) {
-                getPersistenceManager().persist(variableDescriptor);
-            }
-        }
-    }
-
-    private DataSchema createDataSchema(final String schemaName, final String sensorType) {
-        final DataSchema dataSchema;
-        dataSchema = new DataSchema();
-        dataSchema.setName(schemaName);
-        dataSchema.setSensorType(sensorType);
-        return dataSchema;
-    }
-
-    private DataFile createDataFile(final File file, final DataSchema dataSchema) {
-        final DataFile dataFile = new DataFile();
-        dataFile.setPath(file.getPath());
-        dataFile.setDataSchema(dataSchema);
-        return dataFile;
-    }
-
     private void cleanup() throws ToolException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         persistenceManager.transaction();
@@ -295,6 +238,65 @@ public class IngestionTool extends MmsTool {
         delete = persistenceManager.createQuery("delete from Matchup m");
         delete.executeUpdate();
         persistenceManager.commit();
+    }
+
+    private DataSchema getDataSchema(final String schemaName, final String sensorType) {
+        // lookup or create data schema and data file entry
+        DataSchema dataSchema = (DataSchema) getPersistenceManager().pick(
+                "select s from DataSchema s where s.name = ?1",
+                schemaName);
+        if (dataSchema == null) {
+            dataSchema = DataUtil.createDataSchema(schemaName, sensorType);
+            getPersistenceManager().persist(dataSchema);
+        }
+        return dataSchema;
+    }
+
+    private void checkInputSet(final int directoryCount) throws ToolException {
+        if (directoryCount == 0) {
+            throw new ToolException("No input sets given.\n" +
+                                    "Input sets are specified as configuration properties as follows:\n" +
+                                    "\tmms.test.inputSets.<i>.schemaName = <schemaName>\n" +
+                                    "\tmms.test.inputSets.<i>.inputDirectory = <inputDirectory>\n" +
+                                    "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)" +
+                                    "\tmms.test.inputSets.<i>.sensor = <sensor>\n" +
+                                    "\tmms.test.inputSets.<i>.sensorType = <sensorType>",
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
+    private List<File> getInputFiles(final String filenamePattern, final File inputDir) {
+        final List<File> inputFileList = new ArrayList<File>(0);
+        collectInputFiles(inputDir, filenamePattern, inputFileList);
+        return inputFileList;
+    }
+
+    private void validateSensorType(final String sensorType) throws ToolException {
+        if (!SensorType.isSensorType(sensorType)) {
+            throw new ToolException(MessageFormat.format("Unknown sensor type ''{0}''.", sensorType),
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
+    private void collectInputFiles(File inputDir, final String filenamePattern, List<File> inputFileList) {
+        if (inputDir.isDirectory()) {
+            final File[] inputFiles = inputDir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.isFile() && file.getName().matches(filenamePattern);
+                }
+            });
+            Collections.addAll(inputFileList, inputFiles);
+            final File[] subDirs = inputDir.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.isDirectory();
+                }
+            });
+            for (final File subDir : subDirs) {
+                collectInputFiles(subDir, filenamePattern, inputFileList);
+            }
+        }
     }
 
     private boolean checkTime(Observation observation) throws ParseException {
