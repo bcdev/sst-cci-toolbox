@@ -23,10 +23,13 @@ import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.util.DataUtil;
 
+import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * MmsTool responsible for ingesting mmd files which have been processed by ARC3. Uses {@link IngestionTool} as delegate.
@@ -42,13 +45,28 @@ public class MmdIngestionTool extends MmsTool {
             return;
         }
         tool.init(args);
+        tool.ingestDataFile();
+        tool.ingestDataSchema();
         tool.ingestVariableDescriptors();
         tool.ingestObservations();
         tool.ingestCoincidences();
     }
 
+    private static final String DATAFILE_ALREADY_INGESTED_QUERY = "SELECT COUNT (id) " +
+                                                                  "FROM mm_datafile " +
+                                                                  "WHERE path = %s";
+
+    private static final String DATASCHEMA_ALREADY_INGESTED_QUERY = "SELECT COUNT (id) " +
+                                                                    "FROM mm_dataschema " +
+                                                                    "WHERE name = %s";
+
+
     private IngestionTool delegate;
+    private File mmdFile;
     private IOHandler ioHandler;
+
+    private final DataSchema dataSchema = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, "ARC");
+    private final Map<File, DataFile> dataFileMap = new HashMap<File, DataFile>();
 
     MmdIngestionTool() throws ToolException {
         super("mmdingest.sh", "0.1");
@@ -61,6 +79,15 @@ public class MmdIngestionTool extends MmsTool {
         ioHandler = new MmdReader(delegate.getPersistenceManager());
     }
 
+    private void ingestDataFile() {
+        final DataFile dataFile = getDataFile();
+        ingestOnce(dataFile, DATAFILE_ALREADY_INGESTED_QUERY);
+    }
+
+    private void ingestDataSchema() {
+        ingestOnce(dataSchema, DATASCHEMA_ALREADY_INGESTED_QUERY);
+    }
+
     private void ingestVariableDescriptors() throws ToolException {
         try {
             delegate.persistVariableDescriptors("mmd", "ARC3", ioHandler);
@@ -71,12 +98,11 @@ public class MmdIngestionTool extends MmsTool {
     }
 
     private void ingestObservations() throws ToolException {
-        final File mmdFile = getMmdFile();
-        final DataFile dataFile = getDataFile(mmdFile);
+        final DataFile dataFile = getDataFile();
         initIOHandler(ioHandler, dataFile);
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
-            getLogger().info("ingestion of record '" + (i + 1) + "/" + numRecords + "'");
+            getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
             persistObservation(ioHandler, i);
         }
     }
@@ -85,18 +111,37 @@ public class MmdIngestionTool extends MmsTool {
 
     }
 
+    private void ingestOnce(final Object data, String queryString) {
+        final PersistenceManager persistenceManager = delegate.getPersistenceManager();
+        final Query query = persistenceManager.createNativeQuery(queryString, Integer.class);
+        int result = (Integer) query.getSingleResult();
+        if (result == 0) {
+            persistenceManager.persist(data);
+        } else {
+            getLogger().info("Data of type '" + data.getClass().getSimpleName() + "' already ingested.");
+        }
+    }
+
+    private DataFile getDataFile() {
+        final File mmdFile = getMmdFile();
+        return getDataFile(mmdFile);
+    }
+
     private DataFile getDataFile(final File file) {
-
-        // todo - ts 5Apr2011 - data file has to be ingested, too, if that has not yet happened
-
-        final String sensorType = "ARC";   // todo - ts 4Apr2011 - ok?
-        final DataSchema dataSchema = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, sensorType);
-        return DataUtil.createDataFile(file, dataSchema);
+        if (dataFileMap.get(file) == null) {
+            final DataFile dataFile = DataUtil.createDataFile(file, dataSchema);
+            dataFileMap.put(file, dataFile);
+            return dataFile;
+        }
+        return dataFileMap.get(file);
     }
 
     private File getMmdFile() {
         final String filename = getConfiguration().getProperty("mms.test.arc3.output.filename", "mmd.nc");
-        return new File(filename);
+        if (mmdFile == null) {
+            mmdFile = new File(filename);
+        }
+        return mmdFile;
     }
 
     private void persistObservation(final IOHandler ioHandler, int recordNo) throws ToolException {

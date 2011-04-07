@@ -28,9 +28,11 @@ import java.io.File;
  */
 public class DataUtil {
 
+    private DataUtil() {
+    }
+
     public static DataSchema createDataSchema(final String schemaName, final String sensorType) {
-        final DataSchema dataSchema;
-        dataSchema = new DataSchema();
+        final DataSchema dataSchema = new DataSchema();
         dataSchema.setName(schemaName);
         dataSchema.setSensorType(sensorType);
         return dataSchema;
