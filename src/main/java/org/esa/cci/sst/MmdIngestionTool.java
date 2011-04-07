@@ -22,6 +22,10 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.util.DataUtil;
+import ucar.ma2.Array;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import javax.persistence.Query;
 import java.io.File;
@@ -29,6 +33,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,6 +64,13 @@ public class MmdIngestionTool extends MmsTool {
     private static final String DATASCHEMA_ALREADY_INGESTED_QUERY = "SELECT COUNT (id) " +
                                                                     "FROM mm_dataschema " +
                                                                     "WHERE name = %s";
+
+    private static final String GET_OBSERVATION_AND_TIME_DELTA = "SELECT o1.id " +
+                                                                 "FROM mm_observation o1, mm_observation o2, mm_matchup m " +
+                                                                 "WHERE m.id = %d " +
+                                                                 "AND m.refObs_id = o2.id " +
+                                                                 "AND o2.time LIKE o1.time" +  // todo - ts 07Apr2011 - that's not yet correct
+                                                                 "AND o2.location LIKE o1.location ";
 
 
     private IngestionTool delegate;
@@ -107,8 +119,67 @@ public class MmdIngestionTool extends MmsTool {
         }
     }
 
-    private void ingestCoincidences() {
+    private void ingestCoincidences() throws ToolException {
+        final int[] matchupIds = getMatchupIds();
+        for (int matchupId : matchupIds) {
+            // todo - ts 07Apr2011 - continue here
+            final Query query = delegate.getPersistenceManager().createQuery(GET_OBSERVATION_AND_TIME_DELTA);
+            final List resultList = query.getResultList();
+        }
+    }
 
+    private int[] getMatchupIds() throws ToolException {
+        final String location = validateMmdFile();
+        final NetcdfFile mmdFile = openMmdFile(location);
+        final String varNameMatchupEscaped = NetcdfFile.escapeName(MmdReader.VARIABLE_NAME_MATCHUP);
+        final Variable matchupVariable = mmdFile.findVariable(varNameMatchupEscaped);
+        return getMatchupIds(matchupVariable);
+    }
+
+    private int[] getMatchupIds(final Variable matchupVariable) throws ToolException {
+        final Dimension matchupDimension = matchupVariable.getDimension(0);
+        final int[] shape = {matchupDimension.getLength()};
+        final int[] origin = {0};
+        return readMatchupIdsFromFile(matchupVariable, origin, shape);
+    }
+
+    int[] readMatchupIdsFromFile(final Variable matchupVariable, final int[] origin,
+                                 final int[] shape) throws ToolException {
+        final Array matchupIds;
+        try {
+            matchupIds = matchupVariable.read(origin, shape);
+        } catch (Exception e) {
+            throw new ToolException(
+                    MessageFormat.format("Unable to read from variable ''{0}''.", MmdReader.VARIABLE_NAME_MATCHUP), e,
+                    ToolException.TOOL_ERROR);
+        }
+        int[] result = new int[(int) matchupIds.getSize()];
+        for (int i = 0; i < matchupIds.getSize(); i++) {
+            result[i] = matchupIds.getInt(i);
+        }
+        return result;
+    }
+
+    private NetcdfFile openMmdFile(final String location) throws ToolException {
+        final NetcdfFile mmdFile;
+        try {
+            mmdFile = NetcdfFile.open(location);
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Cannot open mmd file ''{0}''.", location), e,
+                                    ToolException.TOOL_ERROR);
+        }
+        return mmdFile;
+    }
+
+    private String validateMmdFile() throws ToolException {
+        final String location = getMmdFile().getAbsolutePath();
+        try {
+            NetcdfFile.canOpen(location);
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Cannot open mmd file ''{0}''.", location), e,
+                                    ToolException.TOOL_ERROR);
+        }
+        return location;
     }
 
     private void ingestOnce(final Object data, String queryString) {
@@ -118,7 +189,8 @@ public class MmdIngestionTool extends MmsTool {
         if (result == 0) {
             persistenceManager.persist(data);
         } else {
-            getLogger().info("Data of type '" + data.getClass().getSimpleName() + "' already ingested.");
+            getLogger().info(
+                    MessageFormat.format("Data of type ''{0}'' already ingested.", data.getClass().getSimpleName()));
         }
     }
 
@@ -161,7 +233,7 @@ public class MmdIngestionTool extends MmsTool {
         try {
             ioHandler.init(dataFile);
         } catch (IOException e) {
-            getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file", ToolException.TOOL_ERROR);
+            getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file.", ToolException.TOOL_ERROR);
         }
     }
 

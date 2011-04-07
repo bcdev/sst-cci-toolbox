@@ -49,6 +49,9 @@ import java.util.List;
  */
 public class MmdReader implements IOHandler {
 
+    public static final String RECORD_DIMENSION_NAME = "record";
+    public static final String VARIABLE_NAME_MATCHUP = "matchup_id";
+
     // todo - ts 07Apr2011 - remove when getting the corresponding observation directly from the file
     private static final String CORRESPONDING_OBSERVATION_TIME_QUERY = "SELECT o.time " +
                                                                        "FROM mm_coincidence c, mm_observation o " +
@@ -65,12 +68,8 @@ public class MmdReader implements IOHandler {
                                                                                  "AND o.dtype = 'ReferenceObservation'" +
                                                                                  "ORDER BY o.time";
 
-    private static final String MAXIMUM_RECORD_NUMBER = "SELECT MAX(recordno) " +
-                                                        "FROM mm_observation";
-
-    private static final String RECORD_DIMENSION_NAME = "record";
+    private static final String MAXIMUM_RECORD_NUMBER = "SELECT MAX(recordno) FROM mm_observation";
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
-    private static final String VARIABLE_NAME_MATCHUP = "matchup_id";
 
     private NetcdfFile mmd;
     private int maxRecordNumber = -1;

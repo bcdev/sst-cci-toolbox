@@ -45,7 +45,7 @@ import static org.junit.Assert.*;
  */
 public class MmdReaderTest {
 
-    static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
+    public static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
 
     private MmdReader mmdReader;
 
