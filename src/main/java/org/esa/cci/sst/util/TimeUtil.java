@@ -7,24 +7,24 @@ import java.util.TimeZone;
 
 public final class TimeUtil {
 
-    public static final long MILLISECONDS_1981;
-    public static final long TIME_NULL = Long.MIN_VALUE;
     private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
+    private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss,SSS");
+    private static final double JD_EPOCH = 2440587.5;
+    private static final long MILLIS_1981;
     public static final double MILLIS_PER_DAY = 86400000.0;
-    public static final double JD_EPOCH = 2440587.5;
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         CCSDS_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+
         try {
-            MILLISECONDS_1981 = TimeUtil.parseCcsdsUtcFormat("1981-01-01T00:00:00Z");
+            MILLIS_1981 = TimeUtil.parseCcsdsUtcFormat("1981-01-01T00:00:00Z");
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -39,35 +39,30 @@ public final class TimeUtil {
         return CCSDS_UTC_FORMAT.format(time);
     }
 
-    public static String formatCcsdsUtcFormat(long timeInMillis) {
-        if (timeInMillis == TIME_NULL) {
-            return "";
-        }
+    private static String formatCcsdsUtcFormat(long timeInMillis) {
         return CCSDS_UTC_FORMAT.format(new Date(timeInMillis));
     }
 
-    public static long parseCcsdsLocalTimeWithoutT(String timeString) throws ParseException {
-        if (timeString.isEmpty()) {
-            return TIME_NULL;
-        }
+    private static long parseCcsdsLocalTimeWithoutT(String timeString) throws ParseException {
         return CCSDS_LOCAL_WITHOUT_T_FORMAT.parse(timeString).getTime();
     }
 
     public static long parseCcsdsUtcFormat(String timeString) throws ParseException {
-        if (timeString == null || timeString.isEmpty()) {
-            return TIME_NULL;
-        }
         if (timeString.length() == "yyyy-MM-ddTHH:MM:ssZ".length()) {
             return CCSDS_UTC_FORMAT.parse(timeString).getTime();
         }
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString).getTime();
     }
 
-    public static Date dateOfJulianDate(double julianDate) {
+    public static Date toDate(double julianDate) {
         return new Date((long) ((julianDate - JD_EPOCH) * MILLIS_PER_DAY));
     }
 
-    public static double julianDate(Date date) {
+    public static double toJulianDate(Date date) {
         return date.getTime() / MILLIS_PER_DAY + JD_EPOCH;
+    }
+
+    public static Date secondsSince1981ToDate(double secondsSince1981) {
+        return new Date(MILLIS_1981 + (long) (secondsSince1981 * 1000.0));
     }
 }

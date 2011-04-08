@@ -18,7 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.util.ReaderUtil;
+import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -34,21 +34,21 @@ import java.util.HashMap;
  */
 abstract class NetcdfIOHandler implements IOHandler {
 
-    private static final HashMap<String, String> dimensionRoleMap = new HashMap<String, String>(7);
+    private static final HashMap<String, String> DIMENSION_ROLE_MAP = new HashMap<String, String>(7);
     private final String sensorName;
 
     private NetcdfFile ncFile;
     private DataFile dataFile;
 
     static {
-        dimensionRoleMap.put("n", "match_up");
-        dimensionRoleMap.put("nx", "nj");
-        dimensionRoleMap.put("ny", "ni");
-        dimensionRoleMap.put("len_id", "length");
-        dimensionRoleMap.put("len_filename", "length");
-        dimensionRoleMap.put("cs_length", "length");
-        dimensionRoleMap.put("ui_length", "length");
-        dimensionRoleMap.put("length", "length");
+        DIMENSION_ROLE_MAP.put("n", "match_up");
+        DIMENSION_ROLE_MAP.put("nx", "nj");
+        DIMENSION_ROLE_MAP.put("ny", "ni");
+        DIMENSION_ROLE_MAP.put("len_id", "length");
+        DIMENSION_ROLE_MAP.put("len_filename", "length");
+        DIMENSION_ROLE_MAP.put("cs_length", "length");
+        DIMENSION_ROLE_MAP.put("ui_length", "length");
+        DIMENSION_ROLE_MAP.put("length", "length");
     }
 
     public NetcdfIOHandler(String sensorName) {
@@ -98,22 +98,6 @@ abstract class NetcdfIOHandler implements IOHandler {
         dataFile = null;
     }
 
-    private VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
-                                                        final DataFile dataFile) {
-        final VariableDescriptor variableDescriptor = ReaderUtil.createBasicVariableDescriptor(variable, sensorName);
-        final String dimensions = ReaderUtil.setVariableDescriptorDimensions(variable, variableDescriptor);
-        ReaderUtil.setVariableDescriptorAttributes(variable, variableDescriptor);
-        ReaderUtil.setVariableUnits(variable, variableDescriptor);
-        setDimensionRoles(variableDescriptor, dimensions);
-        ReaderUtil.setVariableDesciptorDataSchema(dataFile, variableDescriptor);
-        return variableDescriptor;
-    }
-
-    private void setDimensionRoles(final VariableDescriptor variableDescriptor, final String dimensions) {
-        final String dimensionRoles = getDimensionRoles(dimensions);
-        variableDescriptor.setDimensionRoles(dimensionRoles);
-    }
-
     protected String getSensorName() {
         return sensorName;
     }
@@ -126,13 +110,26 @@ abstract class NetcdfIOHandler implements IOHandler {
         return dataFile;
     }
 
-    private String getDimensionRoles(String dimensionsString) {
+    private static VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
+                                                               final DataFile dataFile) {
+        final VariableDescriptor descriptor = IoUtil.createVariableDescriptor(variable, sensorName);
+        setDimensionRoles(descriptor);
+        descriptor.setDataSchema(dataFile.getDataSchema());
+        return descriptor;
+    }
+
+    private static void setDimensionRoles(final VariableDescriptor variableDescriptor) {
+        final String dimensionRoles = getDimensionRoles(variableDescriptor.getDimensions());
+        variableDescriptor.setDimensionRoles(dimensionRoles);
+    }
+
+    private static String getDimensionRoles(String dimensionsString) {
         final StringBuilder sb = new StringBuilder();
         for (final String dimensionString : dimensionsString.split(" ")) {
             if (sb.length() != 0) {
                 sb.append(" ");
             }
-            final String dimensionRole = dimensionRoleMap.get(dimensionString);
+            final String dimensionRole = DIMENSION_ROLE_MAP.get(dimensionString);
             if (dimensionRole == null) {
                 sb.append(dimensionString);
             } else {

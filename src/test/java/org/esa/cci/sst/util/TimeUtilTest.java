@@ -30,15 +30,15 @@ public class TimeUtilTest {
 
     @Test
     public void testToJulian() throws Exception {
-        Date date = TimeUtil.dateOfJulianDate(2454428.185);
+        Date date = TimeUtil.toDate(2454428.185);
         Date testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071123_172624_000");
         assertEquals(testTime, date);
 
-        date = TimeUtil.dateOfJulianDate(2454477.394);
+        date = TimeUtil.toDate(2454477.394);
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_222721_599");
         assertEquals(testTime.getTime(), date.getTime());
 
-        date = TimeUtil.dateOfJulianDate(2454115.05486);
+        date = TimeUtil.toDate(2454115.05486);
         testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20070114_141859_904");
         assertEquals(testTime.getTime(), date.getTime());
     }

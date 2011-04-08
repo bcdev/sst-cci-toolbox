@@ -1,7 +1,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
@@ -11,8 +10,6 @@ import org.postgis.Polygon;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Date;
 
 import static org.esa.cci.sst.SensorType.SEVIRI;
 
@@ -24,16 +21,6 @@ import static org.esa.cci.sst.SensorType.SEVIRI;
  * @author Martin Boettcher
  */
 class SeviriIOHandler extends MdIOHandler {
-
-    static final long MILLISECONDS_1981;
-
-    static {
-        try {
-            MILLISECONDS_1981 = TimeUtil.parseCcsdsUtcFormat("1981-01-01T00:00:00Z");
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     protected int noOfLines;
     protected int noOfColumns;
@@ -90,15 +77,12 @@ class SeviriIOHandler extends MdIOHandler {
         })));
         observation.setPoint(new PGgeometry(new Point(coordinateOf(getInt("lon", recordNo, line, column)),
                                                       coordinateOf(getInt("lat", recordNo, line, column)))));
-        observation.setTime(dateOf(getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
+        observation.setTime(TimeUtil.secondsSince1981ToDate(
+                getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
         observation.setDatafile(getDataFile());
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != getSstFillValue());
         return observation;
-    }
-
-    public Date dateOf(double secondsSince1981) {
-        return new Date(MILLISECONDS_1981 + (long) secondsSince1981 * 1000);
     }
 
     public float coordinateOf(int intCoordinate) {

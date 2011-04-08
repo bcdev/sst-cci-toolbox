@@ -16,11 +16,13 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.Constants;
 import org.esa.cci.sst.SensorType;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.util.ReaderUtil;
+import org.esa.cci.sst.util.IoUtil;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
@@ -67,8 +69,8 @@ class InsituIOHandler extends NetcdfIOHandler {
         try {
             final Date startTime = parseDate("start_date");
             final Date endTime = parseDate("end_date");
-            observation.setTime(ReaderUtil.centerTime(startTime, endTime));
-            observation.setTimeRadius(ReaderUtil.timeRadius(startTime, endTime));
+            observation.setTime(IoUtil.centerTime(startTime, endTime));
+            observation.setTimeRadius(IoUtil.timeRadius(startTime, endTime));
         } catch (ParseException e) {
             throw new IOException("Unable to set time.", e);
         }
@@ -77,7 +79,7 @@ class InsituIOHandler extends NetcdfIOHandler {
             final double startLat = parseDouble("start_lat");
             final double endLon = parseDouble("end_lon");
             final double endLat = parseDouble("end_lat");
-            observation.setLocation(ReaderUtil.createGeometry(startLon, startLat, endLon, endLat));
+            observation.setLocation(IoUtil.createLineGeometry(startLon, startLat, endLon, endLat));
         } catch (ParseException e) {
             throw new IOException("Unable to set location.", e);
         }
@@ -107,7 +109,10 @@ class InsituIOHandler extends NetcdfIOHandler {
 
         final int[] sourceShape = sourceVariable.getShape();
         final int[] sourceOrigin = new int[sourceShape.length];
-        ReaderUtil.findTimeInterval(sourceFile, refTime, targetVariable.getShape(1), sourceOrigin, sourceShape);
+        final Variable timeVar = sourceFile.findVariable(NetcdfFile.escapeName(Constants.VARNAME_HISTORY_TIME));
+        IoUtil.findTimeInterval(timeVar.read(), TimeUtil.toJulianDate(refTime), targetVariable.getShape(1),
+                                sourceOrigin, sourceShape
+        );
 
         final int[] targetOrigin = new int[sourceShape.length + 1];
         targetOrigin[0] = matchupIndex;

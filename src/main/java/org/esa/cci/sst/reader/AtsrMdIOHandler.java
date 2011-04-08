@@ -62,6 +62,6 @@ class AtsrMdIOHandler extends MdIOHandler {
     }
 
     private Date dateOf(double julianDate) {
-        return TimeUtil.dateOfJulianDate(julianDate);
+        return TimeUtil.toDate(julianDate);
     }
 }

@@ -24,7 +24,7 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.DataUtil;
-import org.esa.cci.sst.util.ReaderUtil;
+import org.esa.cci.sst.util.IoUtil;
 import org.postgis.Geometry;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
@@ -227,7 +227,8 @@ public class MmdReader implements IOHandler {
         } catch (Exception e) {
             throw new IOException("Unable to read location.", e);
         }
-        observation.setLocation(ReaderUtil.createGeometry(startLon, startLat, endLon, endLat));
+        observation.setLocation(IoUtil.createLineGeometry(startLon, startLat, endLon, endLat));
+        throw new IOException("Why is the geometry of an MMD record a line?");
     }
 
     int[] getEndOrigin(final int recordNo) {
@@ -238,11 +239,8 @@ public class MmdReader implements IOHandler {
 
     private VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
                                                         final DataFile dataFile) {
-        final VariableDescriptor variableDescriptor = ReaderUtil.createBasicVariableDescriptor(variable, sensorName);
-        ReaderUtil.setVariableDescriptorDimensions(variable, variableDescriptor);
-        ReaderUtil.setVariableDescriptorAttributes(variable, variableDescriptor);
-        ReaderUtil.setVariableUnits(variable, variableDescriptor);
-        ReaderUtil.setVariableDesciptorDataSchema(dataFile, variableDescriptor);
+        final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensorName);
+        variableDescriptor.setDataSchema(dataFile.getDataSchema());
         return variableDescriptor;
     }
 

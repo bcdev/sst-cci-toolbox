@@ -18,7 +18,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.util.ReaderUtil;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.LineString;
@@ -29,9 +28,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -76,37 +73,6 @@ public class InsituIOHandlerTest {
         final Point endPoint = geometry.getLastPoint();
         assertEquals(84.82, endPoint.getX(), 0.0);
         assertEquals(15.60, endPoint.getY(), 0.0);
-    }
-
-    @Test
-    public void testFits() throws Exception {
-        final double julianDateOf_2007_11_23_172624 = 2454428.185;
-
-        Date testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071123_120000_000");
-        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
-
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071124_020000_000");
-        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
-
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071123_020000_000");
-        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
-
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071124_060000_000");
-        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2007_11_23_172624));
-
-        final double julianDateOf_2008_01_11_222721 = 2454477.394;
-
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_220000_000");
-        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
-
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_110000_000");
-        assertTrue(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
-
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_080000_000");
-        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
-
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20101124_050000_000");
-        assertFalse(ReaderUtil.fits(testTime, julianDateOf_2008_01_11_222721));
     }
 
     private InsituIOHandler createIOHandler() throws Exception {

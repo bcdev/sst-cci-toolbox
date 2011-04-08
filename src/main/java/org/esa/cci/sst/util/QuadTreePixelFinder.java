@@ -100,6 +100,8 @@ public class QuadTreePixelFinder implements PixelFinder {
     private GeoRegion getGeoRegion(int x1, int x2, int y1, int y2) {
         final Rectangle pixelRegion = new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
 
+        // todo!!! - do not use region map when the pixelRegion is sufficiently small  (rq-20110408)
+
         synchronized (regionMap) {
             if (!regionMap.containsKey(pixelRegion)) {
                 double minLat = 90.0f;
@@ -236,6 +238,9 @@ public class QuadTreePixelFinder implements PixelFinder {
         /**
          * Conservatively tests if a point (lat, lon) is outside of the region, considering a
          * certain tolerance.
+         * <p/>
+         * Note that this test does not yield the expected results when the region contains a
+         * pole.
          *
          * @param lat       The latitude.
          * @param lon       The longitude.

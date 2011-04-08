@@ -11,13 +11,11 @@ import org.postgis.Polygon;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
-import static org.esa.cci.sst.SensorType.*;
+import static org.esa.cci.sst.SensorType.METOP;
 
 /**
  * Reads records from an METOP MD NetCDF input file and creates Observations.
@@ -30,15 +28,6 @@ import static org.esa.cci.sst.SensorType.*;
 public class MetopIOHandler extends MdIOHandler {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
-    static final long MILLISECONDS_1981;
-
-    static {
-        try {
-            MILLISECONDS_1981 = TimeUtil.parseCcsdsUtcFormat("1981-01-01T00:00:00Z");
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     protected int rowCount;
     protected int colCount;
@@ -81,7 +70,8 @@ public class MetopIOHandler extends MdIOHandler {
         observation.setSensor(getSensorName());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
-        observation.setTime(toDate(getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
+        observation.setTime(TimeUtil.secondsSince1981ToDate(
+                getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
         observation.setDatafile(getDataFile());
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != getSstFillValue());
@@ -201,10 +191,6 @@ public class MetopIOHandler extends MdIOHandler {
 
     private int getLon(int recordNo, int y, int x) throws IOException {
         return getShort("lon", recordNo, y, x);
-    }
-
-    private static Date toDate(double secondsSince1981) {
-        return new Date(MILLISECONDS_1981 + (long) secondsSince1981 * 1000);
     }
 
     private static boolean isValid(int lon, int lat) {
