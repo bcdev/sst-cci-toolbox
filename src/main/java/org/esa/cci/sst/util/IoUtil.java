@@ -85,8 +85,9 @@ public class IoUtil {
 
         return new PGgeometry(new Polygon(new LinearRing[]{
                 new LinearRing(new Point[]{
-                        new Point(startLat, startLon),
-                        new Point(endLat, endLon)})
+                        new Point(startLon, startLat),
+                        new Point(endLon, endLat)
+                })
         }));
     }
 
