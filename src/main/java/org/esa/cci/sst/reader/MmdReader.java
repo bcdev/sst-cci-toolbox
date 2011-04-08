@@ -185,6 +185,10 @@ public class MmdReader implements IOHandler {
     }
 
     Date getCreationDate(final int matchupId, final RelatedObservation observation) {
+        if(true) {
+            return new Date(57238597444233L);
+        }
+        // todo - ts - 08Apr2011 - replace by getting date from file
         final Geometry geometry = observation.getLocation().getGeometry();
         final String firstPoint = geometry.getFirstPoint().toString();
         final String lastPoint = geometry.getLastPoint().toString();
@@ -206,7 +210,7 @@ public class MmdReader implements IOHandler {
 
         }
 
-        return (Date) resultList.get(resultList.size() / 2);
+        return (Date) resultList.get(0);
     }
 
     void setObservationLocation(final RelatedObservation observation, int recordNo) throws IOException {

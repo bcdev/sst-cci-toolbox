@@ -16,15 +16,16 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.tools.Constants;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.Point;
@@ -158,6 +159,7 @@ public class MmdReaderTest {
         mmdReader.readObservation(10);
     }
 
+    @Ignore
     @Test
     public void testGetCreationDate() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
