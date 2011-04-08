@@ -35,11 +35,11 @@ class MmdDataInfoIngester {
 
     static final String DATAFILE_ALREADY_INGESTED = "SELECT COUNT (id) " +
                                                     "FROM mm_datafile " +
-                                                    "WHERE path = %s";
+                                                    "WHERE path = '%s'";
 
     static final String DATASCHEMA_ALREADY_INGESTED = "SELECT COUNT (id) " +
                                                       "FROM mm_dataschema " +
-                                                      "WHERE name = %s";
+                                                      "WHERE name = '%s'";
 
     static final DataSchema DATA_SCHEMA = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, "ARC");
 
@@ -51,11 +51,13 @@ class MmdDataInfoIngester {
 
     void ingestDataFile() {
         final DataFile dataFile = tool.getDataFile();
-        ingestOnce(dataFile, DATAFILE_ALREADY_INGESTED);
+        final String queryString = String.format(DATAFILE_ALREADY_INGESTED, dataFile.getPath());
+        ingestOnce(dataFile, queryString);
     }
 
     void ingestDataSchema() {
-        ingestOnce(DATA_SCHEMA, DATASCHEMA_ALREADY_INGESTED);
+        final String queryString = String.format(DATASCHEMA_ALREADY_INGESTED, DATA_SCHEMA.getName());
+        ingestOnce(DATA_SCHEMA, queryString);
     }
 
     private void ingestOnce(final Object data, String queryString) {
