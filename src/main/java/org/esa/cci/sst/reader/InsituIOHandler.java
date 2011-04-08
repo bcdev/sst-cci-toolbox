@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.Constants;
-import org.esa.cci.sst.SensorType;
+import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
@@ -89,7 +89,7 @@ class InsituIOHandler extends NetcdfIOHandler {
     /**
      * Writes a subset of an in-situ history observation to an MMD target file. The method must be called per
      * variable and per match-up. The subset covers plus/minus 12 hours centered at the reference observation
-     * time. The subset is limited by the size of the target array, which is {@link org.esa.cci.sst.Constants#INSITU_HISTORY_LENGTH}.
+     * time. The subset is limited by the size of the target array, which is {@link org.esa.cci.sst.tools.Constants#INSITU_HISTORY_LENGTH}.
      *
      * @param targetFile   The target MMD file.
      * @param observation  The observation to write.

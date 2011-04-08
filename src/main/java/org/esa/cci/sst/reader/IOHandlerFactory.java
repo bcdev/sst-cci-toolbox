@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.Constants;
+import org.esa.cci.sst.tools.Constants;
 
 import java.text.MessageFormat;
 

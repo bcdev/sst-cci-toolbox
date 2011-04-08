@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.esa.cci.sst.SensorType.*;
+import static org.esa.cci.sst.tools.SensorType.*;
 
 /**
  * Tool to compute multi-sensor match-ups from the MMS database.

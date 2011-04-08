@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools;
 
 import ucar.nc2.NetcdfFileWriteable;
 

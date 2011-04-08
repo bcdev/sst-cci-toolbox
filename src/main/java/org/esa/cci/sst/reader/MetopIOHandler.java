@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.esa.cci.sst.SensorType.METOP;
+import static org.esa.cci.sst.tools.SensorType.METOP;
 
 /**
  * Reads records from an METOP MD NetCDF input file and creates Observations.

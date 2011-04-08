@@ -11,7 +11,7 @@ import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 
-import static org.esa.cci.sst.SensorType.SEVIRI;
+import static org.esa.cci.sst.tools.SensorType.SEVIRI;
 
 /**
  * Reads records from an SEVIRI MD NetCDF input file and creates Observations.

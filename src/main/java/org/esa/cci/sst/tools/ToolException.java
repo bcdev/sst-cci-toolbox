@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools;
 
 /**
  * This exception is thrown by MMM tools.

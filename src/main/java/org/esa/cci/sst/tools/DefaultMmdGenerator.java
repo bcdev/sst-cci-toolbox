@@ -14,7 +14,7 @@
 * with this program; if not, see http://www.gnu.org/licenses/
 */
 
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import static org.esa.cci.sst.SensorType.*;
+import static org.esa.cci.sst.tools.SensorType.*;
 
 /**
  * Default implementation of <code>MmdGenerator</code>, writing all variables. This class provides some (package
@@ -78,6 +78,8 @@ class DefaultMmdGenerator implements MmdGenerator {
     public void createMmdStructure(NetcdfFileWriteable file) throws Exception {
         addDimensions(file);
         file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        // todo - ts 07Apr2011 - add time to observations
+//        file.addVariable("time", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
 
         for (int i = 0; i < 100; i++) {
             final String sensorName =
@@ -105,7 +107,8 @@ class DefaultMmdGenerator implements MmdGenerator {
             final List<Matchup> resultList = getMatchups();
             final int matchupCount = resultList.size();
 
-            for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
+            for (int matchupIndex = 0; matchupIndex < 10; matchupIndex++) {
+//            for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
                 final Matchup matchup = resultList.get(matchupIndex);
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
                 final int matchupId = matchup.getId();
@@ -117,6 +120,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                 // todo - optimize: search ref. point only once per subs-scene (rq-20110403)
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
+                // todo - ts 07Apr2011 - write time variable with dimension matchup_id
                 for (final Coincidence coincidence : coincidences) {
                     final Observation observation = coincidence.getObservation();
                     if (!AVHRR.isSensor(observation.getSensor())) {
@@ -147,8 +151,8 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     void addDimensions(final NetcdfFileWriteable file) {
-        for (final String dimensionName : dimensionCountMap.keySet()) {
-            file.addDimension(dimensionName, dimensionCountMap.get(dimensionName));
+        for (final Map.Entry<String, Integer> stringIntegerEntry : dimensionCountMap.entrySet()) {
+            file.addDimension(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
         }
     }
 
@@ -256,19 +260,19 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
     }
 
-    private String createDimensionString(VariableDescriptor var, SensorType sensorType) {
-        final String[] dimensionNames = var.getDimensions().split(" ");
-        final String[] dimensionRoles = var.getDimensionRoles().split(" ");
+    private String createDimensionString(VariableDescriptor variableDescriptor, SensorType sensorType) {
+        final String[] dimensionNames = variableDescriptor.getDimensions().split(" ");
+        final String[] dimensionRoles = variableDescriptor.getDimensionRoles().split(" ");
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < dimensionRoles.length; i++) {
             final String dimensionName = dimensionNames[i];
             final String dimensionRole = dimensionRoles[i];
             if (i != 0) {
-                sb.append(" ");
+                sb.append(' ');
             }
             if (!Constants.DIMENSION_ROLE_MATCHUP.equals(dimensionRole)) {
                 sb.append(sensorType);
-                sb.append(".");
+                sb.append('.');
             }
             if (!Constants.DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
                 sb.append(dimensionRole);
@@ -277,7 +281,7 @@ class DefaultMmdGenerator implements MmdGenerator {
             }
         }
         if (!sb.toString().contains(Constants.DIMENSION_NAME_MATCHUP)) {
-            sb.insert(0, Constants.DIMENSION_NAME_MATCHUP + " ");
+            sb.insert(0, Constants.DIMENSION_NAME_MATCHUP + ' ');
         }
         return sb.toString();
     }
@@ -301,7 +305,8 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private void initDimensionCountMap() {
-        dimensionCountMap.put(Constants.DIMENSION_NAME_MATCHUP, getMatchups().size());
+//        dimensionCountMap.put(Constants.DIMENSION_NAME_MATCHUP, getMatchups().size());
+        dimensionCountMap.put(Constants.DIMENSION_NAME_MATCHUP, 10);
         // todo: use properties instead of constants (rq-20110329)
         dimensionCountMap.put("atsr_md.cs_length", Constants.ATSR_MD_CS_LENGTH);
         dimensionCountMap.put("atsr_md.ui_length", Constants.ATSR_MD_UI_LENGTH);

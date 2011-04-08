@@ -1,6 +1,9 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.ToolException;
 import org.junit.Test;
 
 import java.io.File;

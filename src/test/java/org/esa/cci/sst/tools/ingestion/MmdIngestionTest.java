@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class MmdIngestionToolTest {
+public class MmdIngestionTest {
 
     private MmdIngestionTool tool;
 
@@ -48,7 +48,7 @@ public class MmdIngestionToolTest {
         final Variable matchupVariable = file.findVariable(NetcdfFile.escapeName("matchup_id"));
         final int[] origin = {0};
         final int[] shape = {10};
-        final int[] ids = tool.readMatchupIdsFromFile(matchupVariable, origin, shape);
+        final int[] ids = new MmdCoincidenceIngester(tool).readMatchupIdsFromFile(matchupVariable, origin, shape);
         for (int i = 0; i < ids.length; i++) {
             assertEquals(8368401 + i, ids[i]);
         }
@@ -56,15 +56,17 @@ public class MmdIngestionToolTest {
 
     @Test
     public void testGetMatchupAndObservation() throws Exception {
-        tool.getObservations(7943562);
+        new MmdCoincidenceIngester(tool).getObservations(7943562);
     }
 
     @Test
     public void testGetDataBaseObjectById() throws Exception {
-        final Object observation = tool.getDatabaseObjectById(MmdIngestionTool.GET_OBSERVATION, 7545306);
+        final MmdCoincidenceIngester coincidenceIngester = new MmdCoincidenceIngester(tool);
+        final Object observation = coincidenceIngester.getDatabaseObjectById(MmdCoincidenceIngester.GET_OBSERVATION,
+                                                                                7545306);
         assertTrue(observation instanceof Observation);
 
-        final Object matchup = tool.getDatabaseObjectById(MmdIngestionTool.GET_MATCHUP, 7976381);
+        final Object matchup = coincidenceIngester.getDatabaseObjectById(MmdCoincidenceIngester.GET_MATCHUP, 7976381);
         assertTrue(matchup instanceof Matchup);
     }
 }

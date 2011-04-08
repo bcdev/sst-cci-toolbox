@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

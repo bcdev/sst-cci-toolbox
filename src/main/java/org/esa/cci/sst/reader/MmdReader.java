@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.Constants;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;

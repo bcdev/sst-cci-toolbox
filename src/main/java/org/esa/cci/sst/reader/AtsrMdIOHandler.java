@@ -8,7 +8,7 @@ import org.postgis.Point;
 import java.io.IOException;
 import java.util.Date;
 
-import static org.esa.cci.sst.SensorType.*;
+import static org.esa.cci.sst.tools.SensorType.*;
 
 /**
  * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.

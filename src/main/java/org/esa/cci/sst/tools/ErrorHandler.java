@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools;
 
 /**
  * Error handler interface.

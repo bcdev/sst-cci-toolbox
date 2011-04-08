@@ -1,4 +1,4 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
@@ -8,6 +8,9 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.SensorType;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
 import org.esa.cci.sst.util.TimeUtil;
 
