@@ -16,14 +16,14 @@
 
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.MmdReaderTest;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.net.URL;
 
 import static org.junit.Assert.*;
@@ -38,13 +38,7 @@ public class MmdIngestionToolTest {
     @Before
     public void setUp() throws Exception {
         tool = new MmdIngestionTool();
-    }
-
-    @Test(expected = IOException.class)
-    public void testCloseReader() throws Exception {
-        final FileReader reader = new FileReader("pom.xml");
-        tool.closeReader(reader);
-        reader.ready();
+        tool.init(new String[]{"-csrc\\test\\config\\mms-config.properties"});
     }
 
     @Test
@@ -58,5 +52,19 @@ public class MmdIngestionToolTest {
         for (int i = 0; i < ids.length; i++) {
             assertEquals(8368401 + i, ids[i]);
         }
+    }
+
+    @Test
+    public void testGetMatchupAndObservation() throws Exception {
+        tool.getObservations(7943562);
+    }
+
+    @Test
+    public void testGetDataBaseObjectById() throws Exception {
+        final Object observation = tool.getDatabaseObjectById(MmdIngestionTool.GET_OBSERVATION, 7545306);
+        assertTrue(observation instanceof Observation);
+
+        final Object matchup = tool.getDatabaseObjectById(MmdIngestionTool.GET_MATCHUP, 7976381);
+        assertTrue(matchup instanceof Matchup);
     }
 }

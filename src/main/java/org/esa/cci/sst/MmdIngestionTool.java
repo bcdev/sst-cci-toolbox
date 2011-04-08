@@ -16,12 +16,16 @@
 
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.util.DataUtil;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
@@ -30,8 +34,8 @@ import ucar.nc2.Variable;
 import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,21 +61,28 @@ public class MmdIngestionTool extends MmsTool {
         tool.ingestCoincidences();
     }
 
-    private static final String DATAFILE_ALREADY_INGESTED_QUERY = "SELECT COUNT (id) " +
-                                                                  "FROM mm_datafile " +
-                                                                  "WHERE path = %s";
+     static final String DATAFILE_ALREADY_INGESTED = "SELECT COUNT (id) " +
+                                                            "FROM mm_datafile " +
+                                                            "WHERE path = %s";
 
-    private static final String DATASCHEMA_ALREADY_INGESTED_QUERY = "SELECT COUNT (id) " +
-                                                                    "FROM mm_dataschema " +
-                                                                    "WHERE name = %s";
+     static final String DATASCHEMA_ALREADY_INGESTED = "SELECT COUNT (id) " +
+                                                              "FROM mm_dataschema " +
+                                                              "WHERE name = %s";
 
-    private static final String GET_OBSERVATION_AND_TIME_DELTA = "SELECT o1.id " +
-                                                                 "FROM mm_observation o1, mm_observation o2, mm_matchup m " +
-                                                                 "WHERE m.id = %d " +
-                                                                 "AND m.refObs_id = o2.id " +
-                                                                 "AND o2.time LIKE o1.time" +  // todo - ts 07Apr2011 - that's not yet correct
-                                                                 "AND o2.location LIKE o1.location ";
+     static final String GET_OBSERVATION_ID = "SELECT o1.id " +
+                                                     "FROM mm_observation o1, mm_observation oref, mm_matchup m " +
+                                                     "WHERE m.id = %d " +
+                                                     "AND m.refObs_id = oref.id " +
+                                                     "AND o1.time >= oref.time - '12:00:00' and o1.time < oref.time + '12:00:00' " +
+                                                     "AND st_intersects(o1.location, oref.point)";
 
+     static final String GET_OBSERVATION = "SELECT o " +
+                                                  "FROM Observation o " +
+                                                  "WHERE o.id = %d";
+
+     static final String GET_MATCHUP = "SELECT m " +
+                                              "FROM Matchup m " +
+                                              "WHERE m.id = %d";
 
     private IngestionTool delegate;
     private File mmdFile;
@@ -93,11 +104,11 @@ public class MmdIngestionTool extends MmsTool {
 
     private void ingestDataFile() {
         final DataFile dataFile = getDataFile();
-        ingestOnce(dataFile, DATAFILE_ALREADY_INGESTED_QUERY);
+        ingestOnce(dataFile, DATAFILE_ALREADY_INGESTED);
     }
 
     private void ingestDataSchema() {
-        ingestOnce(dataSchema, DATASCHEMA_ALREADY_INGESTED_QUERY);
+        ingestOnce(dataSchema, DATASCHEMA_ALREADY_INGESTED);
     }
 
     private void ingestVariableDescriptors() throws ToolException {
@@ -122,10 +133,53 @@ public class MmdIngestionTool extends MmsTool {
     private void ingestCoincidences() throws ToolException {
         final int[] matchupIds = getMatchupIds();
         for (int matchupId : matchupIds) {
-            // todo - ts 07Apr2011 - continue here
-            final Query query = delegate.getPersistenceManager().createQuery(GET_OBSERVATION_AND_TIME_DELTA);
-            final List resultList = query.getResultList();
+            ingestCoincidences(matchupId);
         }
+    }
+
+    private void ingestCoincidences(final int matchupId) {
+        final List<Observation> observations = getObservations(matchupId);
+        final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
+        for (Observation observation : observations) {
+            final Coincidence coincidence = createCoincidence(matchup, observation);
+            delegate.getPersistenceManager().persist(coincidence);
+        }
+    }
+
+    private Coincidence createCoincidence(final Matchup matchup, final Observation observation) {
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setMatchup(matchup);
+        coincidence.setObservation(observation);
+        setCoincidenceTimeDelta(matchup, observation, coincidence);
+        return coincidence;
+    }
+
+    private void setCoincidenceTimeDelta(final Matchup matchup, final Observation observation,
+                                         final Coincidence coincidence) {
+        final int timeDelta = TimeUtil.computeTimeDelta(matchup, observation);
+        coincidence.setTimeDifference(timeDelta);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    List<Observation> getObservations(final int matchupId) {
+        final String queryString = String.format(GET_OBSERVATION_ID, matchupId);
+        final Query query = delegate.getPersistenceManager().createNativeQuery(queryString);
+        return getObservationsForIds((List<Integer>) query.getResultList());
+    }
+
+    private List<Observation> getObservationsForIds(final List<Integer> observationIds) {
+        List<Observation> observations = new ArrayList<Observation>();
+        for (int observationId : observationIds) {
+            final Observation observation = (Observation) getDatabaseObjectById(GET_OBSERVATION, observationId);
+            observations.add(observation);
+        }
+        return observations;
+    }
+
+    Object getDatabaseObjectById(final String baseQuery, final int id) {
+        final String queryString = String.format(baseQuery, id);
+        final Query query = delegate.getPersistenceManager().createQuery(queryString);
+        return query.getSingleResult();
     }
 
     private int[] getMatchupIds() throws ToolException {
@@ -153,9 +207,13 @@ public class MmdIngestionTool extends MmsTool {
                     MessageFormat.format("Unable to read from variable ''{0}''.", MmdReader.VARIABLE_NAME_MATCHUP), e,
                     ToolException.TOOL_ERROR);
         }
-        int[] result = new int[(int) matchupIds.getSize()];
-        for (int i = 0; i < matchupIds.getSize(); i++) {
-            result[i] = matchupIds.getInt(i);
+        return toIntArray(matchupIds);
+    }
+
+    private int[] toIntArray(final Array array) {
+        int[] result = new int[(int) array.getSize()];
+        for (int i = 0; i < array.getSize(); i++) {
+            result[i] = array.getInt(i);
         }
         return result;
     }
@@ -234,16 +292,6 @@ public class MmdIngestionTool extends MmsTool {
             ioHandler.init(dataFile);
         } catch (IOException e) {
             getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file.", ToolException.TOOL_ERROR);
-        }
-    }
-
-    void closeReader(final Reader reader) {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (IOException e) {
-                // ignore
-            }
         }
     }
 }

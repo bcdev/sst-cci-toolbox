@@ -53,7 +53,7 @@ public class MmdReaderTest {
     public void setUp() throws Exception {
         final Properties config = new Properties();
         config.setProperty("openjpa.ConnectionDriverName", "org.postgresql.Driver");
-        config.setProperty("openjpa.ConnectionURL", "jdbc:postgresql://10.3.0.35:5432/mygisdb");
+        config.setProperty("openjpa.ConnectionURL", "jdbc:postgresql://10.3.0.35:5432/mmdb");
         config.setProperty("openjpa.ConnectionUserName", "mms");
         config.setProperty("openjpa.ConnectionPassword", "mms");
         config.setProperty("openjpa.Log", "DefaultLevel=INFO,SQL=INFO");
