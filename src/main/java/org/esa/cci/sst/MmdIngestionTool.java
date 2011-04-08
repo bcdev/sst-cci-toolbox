@@ -22,11 +22,19 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.util.DataUtil;
+import ucar.ma2.Array;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
+import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * MmsTool responsible for ingesting mmd files which have been processed by ARC3. Uses {@link IngestionTool} as delegate.
@@ -42,13 +50,35 @@ public class MmdIngestionTool extends MmsTool {
             return;
         }
         tool.init(args);
+        tool.ingestDataFile();
+        tool.ingestDataSchema();
         tool.ingestVariableDescriptors();
         tool.ingestObservations();
         tool.ingestCoincidences();
     }
 
+    private static final String DATAFILE_ALREADY_INGESTED_QUERY = "SELECT COUNT (id) " +
+                                                                  "FROM mm_datafile " +
+                                                                  "WHERE path = %s";
+
+    private static final String DATASCHEMA_ALREADY_INGESTED_QUERY = "SELECT COUNT (id) " +
+                                                                    "FROM mm_dataschema " +
+                                                                    "WHERE name = %s";
+
+    private static final String GET_OBSERVATION_AND_TIME_DELTA = "SELECT o1.id " +
+                                                                 "FROM mm_observation o1, mm_observation o2, mm_matchup m " +
+                                                                 "WHERE m.id = %d " +
+                                                                 "AND m.refObs_id = o2.id " +
+                                                                 "AND o2.time LIKE o1.time" +  // todo - ts 07Apr2011 - that's not yet correct
+                                                                 "AND o2.location LIKE o1.location ";
+
+
     private IngestionTool delegate;
+    private File mmdFile;
     private IOHandler ioHandler;
+
+    private final DataSchema dataSchema = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, "ARC");
+    private final Map<File, DataFile> dataFileMap = new HashMap<File, DataFile>();
 
     MmdIngestionTool() throws ToolException {
         super("mmdingest.sh", "0.1");
@@ -61,6 +91,15 @@ public class MmdIngestionTool extends MmsTool {
         ioHandler = new MmdReader(delegate.getPersistenceManager());
     }
 
+    private void ingestDataFile() {
+        final DataFile dataFile = getDataFile();
+        ingestOnce(dataFile, DATAFILE_ALREADY_INGESTED_QUERY);
+    }
+
+    private void ingestDataSchema() {
+        ingestOnce(dataSchema, DATASCHEMA_ALREADY_INGESTED_QUERY);
+    }
+
     private void ingestVariableDescriptors() throws ToolException {
         try {
             delegate.persistVariableDescriptors("mmd", "ARC3", ioHandler);
@@ -71,32 +110,110 @@ public class MmdIngestionTool extends MmsTool {
     }
 
     private void ingestObservations() throws ToolException {
-        final File mmdFile = getMmdFile();
-        final DataFile dataFile = getDataFile(mmdFile);
+        final DataFile dataFile = getDataFile();
         initIOHandler(ioHandler, dataFile);
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
-            getLogger().info("ingestion of record '" + (i + 1) + "/" + numRecords + "'");
+            getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
             persistObservation(ioHandler, i);
         }
     }
 
-    private void ingestCoincidences() {
+    private void ingestCoincidences() throws ToolException {
+        final int[] matchupIds = getMatchupIds();
+        for (int matchupId : matchupIds) {
+            // todo - ts 07Apr2011 - continue here
+            final Query query = delegate.getPersistenceManager().createQuery(GET_OBSERVATION_AND_TIME_DELTA);
+            final List resultList = query.getResultList();
+        }
+    }
 
+    private int[] getMatchupIds() throws ToolException {
+        final String location = validateMmdFile();
+        final NetcdfFile mmdFile = openMmdFile(location);
+        final String varNameMatchupEscaped = NetcdfFile.escapeName(MmdReader.VARIABLE_NAME_MATCHUP);
+        final Variable matchupVariable = mmdFile.findVariable(varNameMatchupEscaped);
+        return getMatchupIds(matchupVariable);
+    }
+
+    private int[] getMatchupIds(final Variable matchupVariable) throws ToolException {
+        final Dimension matchupDimension = matchupVariable.getDimension(0);
+        final int[] shape = {matchupDimension.getLength()};
+        final int[] origin = {0};
+        return readMatchupIdsFromFile(matchupVariable, origin, shape);
+    }
+
+    int[] readMatchupIdsFromFile(final Variable matchupVariable, final int[] origin,
+                                 final int[] shape) throws ToolException {
+        final Array matchupIds;
+        try {
+            matchupIds = matchupVariable.read(origin, shape);
+        } catch (Exception e) {
+            throw new ToolException(
+                    MessageFormat.format("Unable to read from variable ''{0}''.", MmdReader.VARIABLE_NAME_MATCHUP), e,
+                    ToolException.TOOL_ERROR);
+        }
+        int[] result = new int[(int) matchupIds.getSize()];
+        for (int i = 0; i < matchupIds.getSize(); i++) {
+            result[i] = matchupIds.getInt(i);
+        }
+        return result;
+    }
+
+    private NetcdfFile openMmdFile(final String location) throws ToolException {
+        final NetcdfFile mmdFile;
+        try {
+            mmdFile = NetcdfFile.open(location);
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Cannot open mmd file ''{0}''.", location), e,
+                                    ToolException.TOOL_ERROR);
+        }
+        return mmdFile;
+    }
+
+    private String validateMmdFile() throws ToolException {
+        final String location = getMmdFile().getAbsolutePath();
+        try {
+            NetcdfFile.canOpen(location);
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Cannot open mmd file ''{0}''.", location), e,
+                                    ToolException.TOOL_ERROR);
+        }
+        return location;
+    }
+
+    private void ingestOnce(final Object data, String queryString) {
+        final PersistenceManager persistenceManager = delegate.getPersistenceManager();
+        final Query query = persistenceManager.createNativeQuery(queryString, Integer.class);
+        int result = (Integer) query.getSingleResult();
+        if (result == 0) {
+            persistenceManager.persist(data);
+        } else {
+            getLogger().info(
+                    MessageFormat.format("Data of type ''{0}'' already ingested.", data.getClass().getSimpleName()));
+        }
+    }
+
+    private DataFile getDataFile() {
+        final File mmdFile = getMmdFile();
+        return getDataFile(mmdFile);
     }
 
     private DataFile getDataFile(final File file) {
-
-        // todo - ts 5Apr2011 - data file has to be ingested, too, if that has not yet happened
-
-        final String sensorType = "ARC";   // todo - ts 4Apr2011 - ok?
-        final DataSchema dataSchema = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, sensorType);
-        return DataUtil.createDataFile(file, dataSchema);
+        if (dataFileMap.get(file) == null) {
+            final DataFile dataFile = DataUtil.createDataFile(file, dataSchema);
+            dataFileMap.put(file, dataFile);
+            return dataFile;
+        }
+        return dataFileMap.get(file);
     }
 
     private File getMmdFile() {
         final String filename = getConfiguration().getProperty("mms.test.arc3.output.filename", "mmd.nc");
-        return new File(filename);
+        if (mmdFile == null) {
+            mmdFile = new File(filename);
+        }
+        return mmdFile;
     }
 
     private void persistObservation(final IOHandler ioHandler, int recordNo) throws ToolException {
@@ -116,7 +233,7 @@ public class MmdIngestionTool extends MmsTool {
         try {
             ioHandler.init(dataFile);
         } catch (IOException e) {
-            getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file", ToolException.TOOL_ERROR);
+            getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file.", ToolException.TOOL_ERROR);
         }
     }
 

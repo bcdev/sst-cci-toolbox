@@ -16,11 +16,17 @@
 
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.reader.MmdReaderTest;
 import org.junit.Before;
 import org.junit.Test;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
@@ -39,5 +45,18 @@ public class MmdIngestionToolTest {
         final FileReader reader = new FileReader("pom.xml");
         tool.closeReader(reader);
         reader.ready();
+    }
+
+    @Test
+    public void testGetMatchupdsFromFile() throws Exception {
+        final URL resource = getClass().getResource(MmdReaderTest.TEST_WITH_ACTUAL_DATA);
+        final NetcdfFile file = NetcdfFile.open(resource.getFile());
+        final Variable matchupVariable = file.findVariable(NetcdfFile.escapeName("matchup_id"));
+        final int[] origin = {0};
+        final int[] shape = {10};
+        final int[] ids = tool.readMatchupIdsFromFile(matchupVariable, origin, shape);
+        for (int i = 0; i < ids.length; i++) {
+            assertEquals(8368401 + i, ids[i]);
+        }
     }
 }

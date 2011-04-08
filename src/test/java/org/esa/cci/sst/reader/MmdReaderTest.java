@@ -45,7 +45,7 @@ import static org.junit.Assert.*;
  */
 public class MmdReaderTest {
 
-    static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
+    public static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
 
     private MmdReader mmdReader;
 
@@ -142,8 +142,14 @@ public class MmdReaderTest {
     @Test
     public void testReadObservation() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
-        final Observation observation = mmdReader.readObservation(0);
-        assertNotNull(observation);
+        final Observation firstObservation = mmdReader.readObservation(0);
+        final Observation secondObservation = mmdReader.readObservation(1);
+
+        assertTrue(firstObservation.getDatafile().getPath().endsWith(TEST_WITH_ACTUAL_DATA));
+        assertEquals("mmd_observation_0", firstObservation.getName());
+        assertEquals(55229, firstObservation.getRecordNo());
+        assertEquals(55230, secondObservation.getRecordNo());
+        assertEquals("ARC", firstObservation.getSensor());
     }
 
     @Test(expected = IOException.class)
