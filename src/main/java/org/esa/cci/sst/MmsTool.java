@@ -63,10 +63,6 @@ public class MmsTool {
         return name;
     }
 
-    public final String getVersion() {
-        return version;
-    }
-
     public final Logger getLogger() {
         if (logger == null) {
             synchronized (this) {
@@ -210,10 +206,10 @@ public class MmsTool {
             configuration.load(reader);
             addConfigurationProperties(configuration);
         } catch (FileNotFoundException e) {
-            throw new ToolException(MessageFormat.format("File not found {0}", configurationFile), e,
+            throw new ToolException(MessageFormat.format("File not found: {0}", configurationFile), e,
                                     ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
         } catch (IOException e) {
-            throw new ToolException(MessageFormat.format("Failed to read from {0}", configurationFile), e,
+            throw new ToolException(MessageFormat.format("Failed to read from {0}.", configurationFile), e,
                                     ToolException.CONFIGURATION_FILE_IO_ERROR);
         } finally {
             if (reader != null) {
@@ -233,7 +229,7 @@ public class MmsTool {
     }
 
     private void printVersion() {
-        System.out.println(MessageFormat.format("Version {0}", getVersion()));
+        System.out.println(MessageFormat.format("Version {0}", version));
     }
 
     private static Options createCommandLineOptions() {
