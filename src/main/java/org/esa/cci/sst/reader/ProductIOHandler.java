@@ -1,6 +1,8 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.glevel.MultiLevelImage;
+import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
+import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.dataio.ProductSubsetBuilder;
@@ -36,6 +38,7 @@ import ucar.nc2.Variable;
 import java.awt.Rectangle;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -60,7 +63,8 @@ public class ProductIOHandler implements IOHandler {
         if (this.product != null) {
             close();
         }
-        Product product = ProductIO.readProduct(dataFile.getPath());
+        Product product = ProductIO.readProduct(new File(dataFile.getPath()), EnvisatConstants.ENVISAT_FORMAT_NAME,
+                                                AvhrrReaderPlugIn.FORMAT_NAME, "NetCDF-CF");
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
