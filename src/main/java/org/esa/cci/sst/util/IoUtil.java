@@ -18,8 +18,10 @@ package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.LineString;
+import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
+import org.postgis.Polygon;
 import ucar.ma2.Array;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
@@ -75,6 +77,17 @@ public class IoUtil {
         endLon = normalizeLon(endLon);
 
         return new PGgeometry(new LineString(new Point[]{new Point(startLon, startLat), new Point(endLon, endLat)}));
+    }
+
+    public static PGgeometry createPolygonGeometry(double startLon, double startLat, double endLon, double endLat) {
+        startLon = normalizeLon(startLon);
+        endLon = normalizeLon(endLon);
+
+        return new PGgeometry(new Polygon(new LinearRing[]{
+                new LinearRing(new Point[]{
+                        new Point(startLat, startLon),
+                        new Point(endLat, endLon)})
+        }));
     }
 
     public static VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName) {

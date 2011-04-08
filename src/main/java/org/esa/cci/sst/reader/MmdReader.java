@@ -227,8 +227,7 @@ public class MmdReader implements IOHandler {
         } catch (Exception e) {
             throw new IOException("Unable to read location.", e);
         }
-        observation.setLocation(IoUtil.createLineGeometry(startLon, startLat, endLon, endLat));
-        throw new IOException("Why is the geometry of an MMD record a line?");
+        observation.setLocation(IoUtil.createPolygonGeometry(startLon, startLat, endLon, endLat));
     }
 
     int[] getEndOrigin(final int recordNo) {
