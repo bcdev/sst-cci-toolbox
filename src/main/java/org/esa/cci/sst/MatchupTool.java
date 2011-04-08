@@ -4,6 +4,7 @@ import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.text.MessageFormat;
@@ -424,8 +425,7 @@ public class MatchupTool extends MmsTool {
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
 
-        final int timeDifference = (int) Math.abs(
-                (matchup.getRefObs().getTime().getTime() - observation.getTime().getTime()) / 1000);
+        final int timeDifference = TimeUtil.computeTimeDelta(matchup, observation);
         final Coincidence coincidence = new Coincidence();
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);
