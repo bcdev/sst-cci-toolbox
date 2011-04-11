@@ -17,10 +17,6 @@ class ForwardingGeoCoding implements GeoCoding {
         this.delegate = delegate;
     }
 
-    public final GeoCoding getDelegate() {
-        return delegate;
-    }
-
     @Override
     public boolean isCrossingMeridianAt180() {
         return delegate.isCrossingMeridianAt180();
@@ -75,20 +71,4 @@ class ForwardingGeoCoding implements GeoCoding {
     public MathTransform getImageToMapTransform() {
         return delegate.getImageToMapTransform();
     }
-
-    @Override
-    public CoordinateReferenceSystem getBaseCRS() {
-        return delegate.getBaseCRS();
-    }
-
-    @Override
-    public CoordinateReferenceSystem getModelCRS() {
-        return delegate.getModelCRS();
-    }
-
-    @Override
-    public AffineTransform getImageToModelTransform() {
-        return delegate.getImageToModelTransform();
-    }
-
 }
