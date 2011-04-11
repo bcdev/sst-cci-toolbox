@@ -43,14 +43,14 @@ class MmdDataInfoIngester {
 
     static final DataSchema DATA_SCHEMA = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, "ARC");
 
-    private final MmdIngestionTool tool;
+    private final MmdIngester ingester;
 
-    MmdDataInfoIngester(MmdIngestionTool tool) {
-        this.tool = tool;
+    MmdDataInfoIngester(MmdIngester ingester) {
+        this.ingester = ingester;
     }
 
     void ingestDataFile() {
-        final DataFile dataFile = tool.getDataFile();
+        final DataFile dataFile = ingester.getDataFile();
         final String queryString = String.format(DATAFILE_ALREADY_INGESTED, dataFile.getPath());
         ingestOnce(dataFile, queryString);
     }
@@ -61,13 +61,13 @@ class MmdDataInfoIngester {
     }
 
     private void ingestOnce(final Object data, String queryString) {
-        final PersistenceManager persistenceManager = tool.getPersistenceManager();
+        final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         final Query query = persistenceManager.createNativeQuery(queryString, Integer.class);
         int result = (Integer) query.getSingleResult();
         if (result == 0) {
             persistenceManager.persist(data);
         } else {
-            final Logger logger = tool.getLogger();
+            final Logger logger = ingester.getLogger();
             logger.info(
                     MessageFormat.format("Data of type ''{0}'' already ingested.", data.getClass().getSimpleName()));
         }
