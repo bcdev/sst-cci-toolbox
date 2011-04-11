@@ -24,6 +24,7 @@ import org.postgis.LineString;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Range;
 
@@ -166,7 +167,7 @@ public class InsituIOHandlerTest {
     }
 
     @Test
-    public void testCreateSubset() throws InvalidRangeException {
+    public void testCreateSubset_1D() throws InvalidRangeException {
         final Array historyTimes = createHistoryTimeArray();
         final Range range = InsituIOHandler.findRange(historyTimes, 2455090.56);
         final List<Range> s = InsituIOHandler.createSubsampling(historyTimes, range, 10);
@@ -176,6 +177,21 @@ public class InsituIOHandlerTest {
         assertEquals(10, subset.getIndexPrivate().getShape(0));
         assertEquals(historyTimes.getDouble(s.get(0).first()), subset.getDouble(0), 0.0);
         assertEquals(historyTimes.getDouble(s.get(9).first()), subset.getDouble(9), 0.0);
+    }
+
+    @Test
+    public void testCreateSubset_2D() throws InvalidRangeException {
+        final Array historyTimes = createHistoryTimeArray();
+        final int historyLength = historyTimes.getIndexPrivate().getShape(0);
+        final Range range = InsituIOHandler.findRange(historyTimes, 2455090.56);
+        final List<Range> s = InsituIOHandler.createSubsampling(historyTimes, range, 10);
+
+        final Array array = Array.factory(DataType.INT, new int[]{historyLength, 2});
+        final Array subset = InsituIOHandler.createSubset(array, s);
+
+        assertEquals(2, subset.getRank());
+        assertEquals(10, subset.getIndexPrivate().getShape(0));
+        assertEquals(2, subset.getIndexPrivate().getShape(1));
     }
 
     private static Array createHistoryTimeArray() {
