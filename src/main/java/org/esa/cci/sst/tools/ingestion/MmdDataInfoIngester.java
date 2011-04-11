@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.util.DataUtil;
 
 import javax.persistence.Query;
@@ -41,7 +42,7 @@ class MmdDataInfoIngester {
                                                       "FROM mm_dataschema " +
                                                       "WHERE name = '%s'";
 
-    static final DataSchema DATA_SCHEMA = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, "ARC");
+    static final DataSchema DATA_SCHEMA = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, SensorType.ARC.getSensor());
 
     private final MmdIngester ingester;
 
@@ -61,6 +62,16 @@ class MmdDataInfoIngester {
     }
 
     private void ingestOnce(final Object data, String queryString) {
+        final PersistenceManager persistenceManager = ingester.getPersistenceManager();
+        persistenceManager.transaction();
+        try {
+            persistDataOnce(data, queryString);
+        } finally {
+            persistenceManager.commit();
+        }
+    }
+
+    private void persistDataOnce(final Object data, final String queryString) {
         final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         final Query query = persistenceManager.createNativeQuery(queryString, Integer.class);
         int result = (Integer) query.getSingleResult();

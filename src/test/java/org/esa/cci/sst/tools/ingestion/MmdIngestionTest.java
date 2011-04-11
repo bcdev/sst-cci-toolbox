@@ -38,7 +38,7 @@ public class MmdIngestionTest {
     @Before
     public void setUp() throws Exception {
         tool = new MmdIngester();
-        tool.init(new String[]{"-csrc\\test\\config\\mms-config.properties"});
+        tool.init(new String[]{"-csrc/test/config/mms-config.properties"});
     }
 
     @Test

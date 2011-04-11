@@ -201,7 +201,7 @@ public class IngestionTool extends MmsTool {
                 directoryCount++;
             }
         }
-        checkInputSet(directoryCount);
+        validateInputSet(directoryCount);
         getLogger().info(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
     }
 
@@ -220,7 +220,7 @@ public class IngestionTool extends MmsTool {
                 }
             } catch (Exception e) {
                 getLogger().warning(MessageFormat.format("Ignoring observation for record number {0}: {1}",
-                                                      recordNo, e.getMessage()));
+                                                         recordNo, e.getMessage()));
             }
             if (recordNo % 65536 == 65535) {
                 persistenceManager.commit();
@@ -265,7 +265,7 @@ public class IngestionTool extends MmsTool {
         return dataSchema;
     }
 
-    private void checkInputSet(final int directoryCount) throws ToolException {
+    private void validateInputSet(final int directoryCount) throws ToolException {
         if (directoryCount == 0) {
             throw new ToolException("No input sets given.\n" +
                                     "Input sets are specified as configuration properties as follows:\n" +
