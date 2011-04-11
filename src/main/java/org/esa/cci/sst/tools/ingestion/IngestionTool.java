@@ -189,7 +189,7 @@ public class IngestionTool extends MmsTool {
             final File inputDir = new File(inputDirPath);
             final List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
             if (inputFileList.isEmpty()) {
-                getLogger().fine(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
+                getLogger().warning(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
             }
             for (final File inputFile : inputFileList) {
                 ingest(inputFile, schemaName, sensorType, sensor);
@@ -197,7 +197,7 @@ public class IngestionTool extends MmsTool {
             }
         }
         checkInputSet(directoryCount);
-        getLogger().fine(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
+        getLogger().info(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
     }
 
     private int persistObservations(final String schemaName, final IOHandler ioHandler) {
@@ -214,7 +214,7 @@ public class IngestionTool extends MmsTool {
                     recordsInTimeInterval++;
                 }
             } catch (Exception e) {
-                getLogger().fine(MessageFormat.format("Ignoring observation for record number {0}: {1}",
+                getLogger().warning(MessageFormat.format("Ignoring observation for record number {0}: {1}",
                                                       recordNo, e.getMessage()));
             }
             if (recordNo % 65536 == 65535) {
