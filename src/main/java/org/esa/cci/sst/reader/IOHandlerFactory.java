@@ -37,34 +37,34 @@ public class IOHandlerFactory {
      */
     public static IOHandler createHandler(String schemaName, String sensorName) {
         if (Constants.DATA_SCHEMA_NAME_ATSR_MD.equalsIgnoreCase(schemaName)) {
-            return new AtsrMdIOHandler();
+            return new GzipDeflatingIOHandlerWrapper(new AtsrMdIOHandler());
         }
         if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
-            return new MetopIOHandler();
+            return new GzipDeflatingIOHandlerWrapper(new MetopIOHandler());
         }
         if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
-            return new SeviriIOHandler();
+            return new GzipDeflatingIOHandlerWrapper(new SeviriIOHandler());
         }
         if (Constants.DATA_SCHEMA_NAME_AMSRE.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
+            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
         }
         if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
+            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
         }
         if (Constants.DATA_SCHEMA_NAME_ATSR_L1B.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
+            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());  // intentionally not wrapped, can read streams
         }
         if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, null);
+            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, null));
         }
         if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
+            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
         }
         if (Constants.DATA_SCHEMA_NAME_SEAICE.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());
+            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
         }
         if (Constants.DATA_SCHEMA_INSITU_HISTORY.equalsIgnoreCase(schemaName)) {
-            return new InsituIOHandler();
+            return new GzipDeflatingIOHandlerWrapper(new InsituIOHandler());
         }
         throw new IllegalArgumentException(
                 MessageFormat.format("No appropriate IO handler for schema {0} found.", schemaName));

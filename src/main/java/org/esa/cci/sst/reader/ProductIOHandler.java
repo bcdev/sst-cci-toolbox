@@ -59,7 +59,7 @@ public class ProductIOHandler implements IOHandler {
     }
 
     @Override
-    public final void init(DataFile dataFile) throws IOException {
+    public void init(DataFile dataFile) throws IOException {
         if (this.product != null) {
             close();
         }
@@ -85,7 +85,7 @@ public class ProductIOHandler implements IOHandler {
     }
 
     @Override
-    public final void close() {
+    public void close() {
         if (product != null) {
             product.dispose();
         }

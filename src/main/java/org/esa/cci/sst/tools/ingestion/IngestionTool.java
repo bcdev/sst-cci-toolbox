@@ -45,8 +45,11 @@ public class IngestionTool extends MmsTool {
             if (!performWork) {
                 return;
             }
+            final boolean withCleanup = Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.initialcleanup"));
             tool.initialize();
-            tool.cleanup();
+            if (withCleanup) {
+                tool.cleanup();
+            }
             tool.ingest();
         } catch (ToolException e) {
             tool.getErrorHandler().handleError(e, e.getMessage(), e.getExitCode());
@@ -82,6 +85,7 @@ public class IngestionTool extends MmsTool {
      * @throws ToolException if ingestion fails
      */
     void ingest(File file, String schemaName, String sensorType, String sensorName) throws ToolException {
+        getLogger().info("ingesting file " + file.getName());
         final PersistenceManager persistenceManager = getPersistenceManager();
         final IOHandler ioHandler = getIOHandler(schemaName, sensorName);
         try {
@@ -184,6 +188,7 @@ public class IngestionTool extends MmsTool {
                 continue;
             }
             validateSensorType(sensorType);
+            getLogger().info("looking for " + sensor + " files");
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.test.inputSets.%d.filenamePattern", i), ".*");
             final File inputDir = new File(inputDirPath);
@@ -226,20 +231,25 @@ public class IngestionTool extends MmsTool {
     }
 
     private void cleanup() throws ToolException {
+        getLogger().info("cleaning up database");
         final PersistenceManager persistenceManager = getPersistenceManager();
         persistenceManager.transaction();
-        Query delete = persistenceManager.createQuery("delete from DataFile f");
-        delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from Observation o");
-        delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from VariableDescriptor v");
-        delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from DataSchema s");
-        delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from Coincidence c");
-        delete.executeUpdate();
-        delete = persistenceManager.createQuery("delete from Matchup m");
-        delete.executeUpdate();
+        Query statement = persistenceManager.createQuery("delete from DataFile f");
+        statement.executeUpdate();
+        statement = persistenceManager.createQuery("delete from Observation o");
+        statement.executeUpdate();
+        statement = persistenceManager.createQuery("delete from VariableDescriptor v");
+        statement.executeUpdate();
+        statement = persistenceManager.createQuery("delete from DataSchema s");
+        statement.executeUpdate();
+        statement = persistenceManager.createQuery("delete from Coincidence c");
+        statement.executeUpdate();
+        statement = persistenceManager.createQuery("delete from Matchup m");
+        statement.executeUpdate();
+        statement = persistenceManager.createNativeQuery("drop index geo");
+        statement.executeUpdate();
+        statement = persistenceManager.createNativeQuery("create index geo on mm_observation using gist(location)");
+        statement.executeUpdate();
         persistenceManager.commit();
     }
 

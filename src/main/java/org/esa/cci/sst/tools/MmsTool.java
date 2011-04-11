@@ -144,6 +144,7 @@ public class MmsTool {
     }
 
     public final boolean setCommandLineArgs(String[] args) throws ToolException {
+        getLogger().info("parsing command line and setting parameters");
         final CommandLineParser parser = new PosixParser();
         try {
             final CommandLine commandLine = parser.parse(getOptions(), args);
@@ -170,6 +171,10 @@ public class MmsTool {
             if (optionProperties.size() > 0) {
                 addConfigurationProperties(optionProperties);
             }
+            // set java.io.tmpdir system property for file io of compressed files
+            final String tmpDir = commandLine.getOptionValue("tmp", "/tmp");
+            System.getProperties().put("java.io.tmpdir", tmpDir);
+
             setAdditionalCommandLineArgs(commandLine);
         } catch (ParseException e) {
             throw new ToolException(e.getMessage(), e, ToolException.COMMAND_LINE_ARGUMENTS_PARSE_ERROR);
@@ -183,6 +188,7 @@ public class MmsTool {
             return;
         }
 
+        getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, getConfiguration());
         initialised = true;
     }
@@ -248,6 +254,8 @@ public class MmsTool {
         propertyOpt.setArgName("property=value");
         propertyOpt.setArgs(2);
 
+        final Option tmpDirOpt = new Option("tmp", true, "temp dir for file IO");
+
         Options options = new Options();
         options.addOption(helpOpt);
         options.addOption(versionOpt);
@@ -255,6 +263,7 @@ public class MmsTool {
         options.addOption(debugOpt);
         options.addOption(confFileOpt);
         options.addOption(propertyOpt);
+        options.addOption(tmpDirOpt);
 
         return options;
     }
