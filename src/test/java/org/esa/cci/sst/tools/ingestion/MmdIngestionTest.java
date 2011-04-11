@@ -33,11 +33,11 @@ import static org.junit.Assert.*;
  */
 public class MmdIngestionTest {
 
-    private MmdIngestionTool tool;
+    private MmdIngester tool;
 
     @Before
     public void setUp() throws Exception {
-        tool = new MmdIngestionTool();
+        tool = new MmdIngester();
         tool.init(new String[]{"-csrc\\test\\config\\mms-config.properties"});
     }
 

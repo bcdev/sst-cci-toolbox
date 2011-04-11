@@ -54,10 +54,10 @@ class MmdCoincidenceIngester {
     static final String GET_OBSERVATION = "SELECT o " +
                                                   "FROM Observation o " +
                                                   "WHERE o.id = %d";
-    private final MmdIngestionTool tool;
+    private final MmdIngester ingester;
 
-    MmdCoincidenceIngester(final MmdIngestionTool tool) {
-        this.tool = tool;
+    MmdCoincidenceIngester(final MmdIngester ingester) {
+        this.ingester = ingester;
     }
 
     void ingestCoincidences() throws ToolException {
@@ -72,7 +72,7 @@ class MmdCoincidenceIngester {
         final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
         for (Observation observation : observations) {
             final Coincidence coincidence = createCoincidence(matchup, observation);
-            tool.getPersistenceManager().persist(coincidence);
+            ingester.getPersistenceManager().persist(coincidence);
         }
     }
 
@@ -138,7 +138,7 @@ class MmdCoincidenceIngester {
     }
 
     private String validateMmdFile() throws ToolException {
-        final String location = tool.getMmdFile().getAbsolutePath();
+        final String location = ingester.getMmdFile().getAbsolutePath();
         try {
             NetcdfFile.canOpen(location);
         } catch (IOException e) {
@@ -151,7 +151,7 @@ class MmdCoincidenceIngester {
     @SuppressWarnings({"unchecked"})
     List<Observation> getObservations(final int matchupId) {
         final String queryString = String.format(GET_OBSERVATION_ID, matchupId);
-        final Query query = tool.getPersistenceManager().createNativeQuery(queryString);
+        final Query query = ingester.getPersistenceManager().createNativeQuery(queryString);
         return getObservationsForIds((List<Integer>) query.getResultList());
     }
 
@@ -166,7 +166,7 @@ class MmdCoincidenceIngester {
 
     Object getDatabaseObjectById(final String baseQuery, final int id) {
         final String queryString = String.format(baseQuery, id);
-        final Query query = tool.getPersistenceManager().createQuery(queryString);
+        final Query query = ingester.getPersistenceManager().createQuery(queryString);
         return query.getSingleResult();
     }
 

@@ -30,28 +30,28 @@ import java.text.MessageFormat;
  */
 class MmdObservationIngester {
 
-    private final MmdIngestionTool tool;
+    private final MmdIngester ingester;
 
-    MmdObservationIngester(final MmdIngestionTool tool) {
-        this.tool = tool;
+    MmdObservationIngester(final MmdIngester ingester) {
+        this.ingester = ingester;
     }
 
     void ingestObservations() throws ToolException {
-        final IOHandler ioHandler = tool.getIoHandler();
+        final IOHandler ioHandler = ingester.getIoHandler();
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
-            tool.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
+            ingester.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
             persistObservation(ioHandler, i);
         }
     }
 
     private void persistObservation(final IOHandler ioHandler, int recordNo) throws ToolException {
-        final PersistenceManager persistenceManager = tool.getPersistenceManager();
+        final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         persistenceManager.transaction();
         try {
-            tool.getDelegate().persistObservation(ioHandler, recordNo);
+            ingester.getDelegate().persistObservation(ioHandler, recordNo);
         } catch (Exception e) {
-            final ErrorHandler errorHandler = tool.getErrorHandler();
+            final ErrorHandler errorHandler = ingester.getErrorHandler();
             errorHandler.handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo),
                                      ToolException.TOOL_ERROR);
         } finally {
