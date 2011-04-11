@@ -16,11 +16,8 @@
 
 package org.esa.cci.sst.data;
 
-import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.esa.cci.sst.util.TimeUtil;
-import org.postgis.PGgeometry;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 
 /**
@@ -35,10 +32,20 @@ public class InsituObservation extends RelatedObservation {
 
     long timeRadius;
 
+    /**
+     * Returns the time radius (seconds) of this observation.
+     *
+     * @return the time radius (seconds).
+     */
     public long getTimeRadius() {
         return timeRadius;
     }
 
+    /**
+     * Sets the time radius (seconds) of this observation.
+     *
+     * @param timeRadius The time radius (seconds).
+     */
     public void setTimeRadius(long timeRadius) {
         this.timeRadius = timeRadius;
     }
