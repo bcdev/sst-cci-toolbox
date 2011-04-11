@@ -107,8 +107,8 @@ class DefaultMmdGenerator implements MmdGenerator {
             final List<Matchup> resultList = getMatchups();
             final int matchupCount = resultList.size();
 
-            for (int matchupIndex = 0; matchupIndex < 10; matchupIndex++) {
-//            for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
+//            for (int matchupIndex = 0; matchupIndex < 10; matchupIndex++) {
+            for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
                 final Matchup matchup = resultList.get(matchupIndex);
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
                 final int matchupId = matchup.getId();
