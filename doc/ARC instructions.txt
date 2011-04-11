@@ -6,7 +6,9 @@ In directory '/exports/nas/exports/cse/geos/scratch/gc/sst-cci/avhrr/l1b', call
 
 where $filename has to point to a file somewhere below the current directory.
 
-The output file is put into /exports/work/scratch/sst-cci/LOC; the file name is the name of the source file, plus the string '.LOC' just before the file extension. The log files are in /exports/work/scratch/sst-cci/LOC/stdout, named like the source file, but prefixed with 'LOC_' and suffixed by the processor id.
+The output file is put into /exports/work/scratch/sst-cci/LOC; the file name is the name of the source file, plus the
+string '.LOC' just before the file extension. The log files are in /exports/work/scratch/sst-cci/LOC/stdout, named like
+the source file, but prefixed with 'LOC_' and suffixed by the processor id.
 
 ARC2:
 
@@ -19,7 +21,8 @@ where matchups.txt is the list of matchups.
 ARC3:
 
 Calling ARC3 is more complicated.
-An easy solution is to copy the executable and the files needed for execution to a dedicated directory. The files needed are:
+An easy solution is to copy the executable and the files needed for execution to a dedicated directory. The files needed
+are:
 
 - the executable (MMD_SCREEN_Linux)
 - the configuration file (MDB.INP)
@@ -27,10 +30,12 @@ An easy solution is to copy the executable and the files needed for execution to
 - test_nwp.nc
 
 and are located at /exports/nas/exports/cse/geos/scratch/gc/sst-cci/tmp/arc3_example.
-The reason why these files should be copied is that possibly they need to be re-configured; for example, the file CCI_MMD_AATSR_img.INF contains information about dimension names.
+The reason why these files should be copied is that possibly they need to be re-configured; for example, the file
+CCI_MMD_AATSR_img.INF contains information about dimension names.
 
 From the directory the files have been copied to, the call is then
 
 ./MMD_SCREEN_Linux MDB.INP $source $nwp $target,
 
-where $source is the source MMD file, $nwp the NWP file to be used, and $target the output file. The logfile is called MDB.log.
+where $source is the source MMD file, $nwp the NWP file to be used, and $target the output file. The logfile is called
+MDB.log.
