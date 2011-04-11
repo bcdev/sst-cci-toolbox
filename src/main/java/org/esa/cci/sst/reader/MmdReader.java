@@ -16,14 +16,12 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.util.DataUtil;
+import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.util.IoUtil;
 import org.postgis.Geometry;
 import org.postgis.PGgeometry;
@@ -35,7 +33,6 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
-import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -67,6 +64,11 @@ public class MmdReader implements IOHandler {
                                                                                  "AND ST_Intersects(o.location, '%s') " +
                                                                                  "AND o.dtype = 'ReferenceObservation'" +
                                                                                  "ORDER BY o.time";
+
+    private static final String DATAFILE_QUERY = "SELECT df " +
+                                                 "FROM DataFile df, DataSchema ds " +
+                                                 "WHERE ds.sensorType = '%s\' " +
+                                                 "AND df.dataSchema = ds";
 
     private static final String MAXIMUM_RECORD_NUMBER = "SELECT MAX(recordno) FROM mm_observation";
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
@@ -112,7 +114,7 @@ public class MmdReader implements IOHandler {
         }
         final RelatedObservation observation = new RelatedObservation();
         setObservationLocation(observation, recordNo);
-        observation.setDatafile(createDatafile());
+        observation.setDatafile(getDatafile());
         observation.setName("mmd_observation_" + recordNo);
         setObservationRecordNo(observation);
         observation.setSensor("ARC");   // todo - ts 04Apr2011 - ok?
@@ -144,10 +146,10 @@ public class MmdReader implements IOHandler {
     }
 
     private void setObservationRecordNo(final RelatedObservation observation) {
-        if(maxRecordNumber == -1) {
+        if (maxRecordNumber == -1) {
             final Query maxRecordNumberQuery = persistenceManager.createNativeQuery(MAXIMUM_RECORD_NUMBER,
                                                                                     Integer.class);
-            maxRecordNumber = (Integer)maxRecordNumberQuery.getSingleResult();
+            maxRecordNumber = (Integer) maxRecordNumberQuery.getSingleResult();
         }
 
         maxRecordNumber++;
@@ -159,16 +161,15 @@ public class MmdReader implements IOHandler {
         final List<VariableDescriptor> variableDescriptors = new ArrayList<VariableDescriptor>();
         final List<Variable> variables = mmd.getVariables();
         for (Variable variable : variables) {
-            variableDescriptors.add(createVariableDescriptor(variable, "ARC3", createDatafile()));
+            variableDescriptors.add(createVariableDescriptor(variable, "ARC3", getDatafile()));
         }
         return variableDescriptors.toArray(new VariableDescriptor[variableDescriptors.size()]);
     }
 
     @Override
     public void write(final NetcdfFileWriteable targetFile, final Observation sourceObservation,
-                      final String sourceVariableName,
-                      final String targetVariableName, final int targetRecordNumber, final PGgeometry refPoint,
-                      final Date refTime) throws IOException {
+                      final String sourceVariableName, final String targetVariableName, final int targetRecordNumber,
+                      final PGgeometry refPoint, final Date refTime) throws IOException {
         throw new IllegalStateException("not needed, therefore not implemented");
     }
 
@@ -185,7 +186,7 @@ public class MmdReader implements IOHandler {
     }
 
     Date getCreationDate(final int matchupId, final RelatedObservation observation) {
-        if(true) {
+        if (true) {
             return new Date(57238597444233L);
         }
         // todo - ts - 08Apr2011 - replace by getting date from file
@@ -257,14 +258,10 @@ public class MmdReader implements IOHandler {
         return recordDimension;
     }
 
-    private DataFile createDatafile() {
-        final DataSchema dataSchema = createDataSchema();
-        return DataUtil.createDataFile(new File(mmd.getLocation()), dataSchema);
-    }
-
-    private DataSchema createDataSchema() {
-        final String sensorType = "ARC";   // todo - ts 4Apr2011 - ok?
-        return DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, sensorType);
+    private DataFile getDatafile() {
+        final String queryString = String.format(DATAFILE_QUERY, SensorType.ARC.getSensor());
+        final Query query = persistenceManager.createQuery(queryString);
+        return (DataFile) query.getSingleResult();
     }
 
     private void validateFileLocation(final String fileLocation) throws IOException {

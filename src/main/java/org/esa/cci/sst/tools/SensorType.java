@@ -41,7 +41,8 @@ public enum SensorType {
     ATSR(RelatedObservation.class, 0x40, "atsr1", "atsr2", "aatsr"),
     AAI(Observation.class, 0x80, "aai"),
     SEAICE(RelatedObservation.class, 0x0100, "seaice"),
-    HISTORY(InsituObservation.class, 0x0200, "history");
+    HISTORY(InsituObservation.class, 0x0200, "history"),
+    ARC(Observation.class, 0x0400, "ARC");
 
     private final Class<? extends Observation> observationClass;
     private final long pattern;
@@ -67,12 +68,6 @@ public enum SensorType {
 
     public String[] getSensors() {
         return sensors.clone();
-    }
-
-
-    public String nameLowerCase() {
-        // todo - eliminate usages of this method (rq-20110322)
-        return getSensor();
     }
 
     @Override

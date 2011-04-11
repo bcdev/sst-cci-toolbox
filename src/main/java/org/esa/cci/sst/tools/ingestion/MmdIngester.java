@@ -65,9 +65,9 @@ public class MmdIngester extends MmsTool {
     }
 
     File getMmdFile() {
-        final Properties configuration = getConfiguration();
-        final String filename = configuration.getProperty("mms.test.arc3.output.filename", "mmd.nc");
         if (mmdFile == null) {
+            final Properties configuration = getConfiguration();
+            final String filename = configuration.getProperty("mms.test.arc3.output.filename", "mmd.nc");
             mmdFile = new File(filename);
         }
         return mmdFile;
@@ -91,11 +91,15 @@ public class MmdIngester extends MmsTool {
     }
 
     void ingestVariableDescriptors() throws ToolException {
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        persistenceManager.transaction();
         try {
             delegate.persistVariableDescriptors("mmd", "ARC3", ioHandler);
         } catch (IOException e) {
             throw new ToolException("Unable to persist variable descriptors for sensor 'ARC'.", e,
                                     ToolException.TOOL_ERROR);
+        } finally {
+            persistenceManager.commit();
         }
     }
 
