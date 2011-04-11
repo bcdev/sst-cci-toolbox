@@ -23,12 +23,16 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.Array;
+import ucar.ma2.IndexIterator;
+import ucar.ma2.InvalidRangeException;
+import ucar.ma2.Range;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
-import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
-import java.util.NoSuchElementException;
+import java.util.List;
 
 /**
  * Utility class for commonly used IO utility functions.
@@ -38,34 +42,6 @@ import java.util.NoSuchElementException;
 public class IoUtil {
 
     private IoUtil() {
-    }
-
-    public static void findTimeInterval(Array jds, double referenceJd, int limit, int[] origin, int[] shape) {
-        int startIndex = -1;
-        int endIndex = (int) jds.getSize();
-        for (int i = 0; i < jds.getSize(); i++) {
-            final double time = jds.getDouble(i);
-            if (startIndex == -1 && time >= referenceJd - 0.5) {
-                startIndex = i;
-            }
-            if (startIndex != -1 && time <= referenceJd + 0.5) {
-                endIndex = i;
-            }
-        }
-        if (startIndex == -1) {
-            throw new NoSuchElementException(
-                    MessageFormat.format("Unable to find time interval for reference time {0}",
-                                         TimeUtil.toDate(referenceJd).toString()));
-        }
-
-        final int size = endIndex - startIndex;
-        if (size <= limit) {
-            origin[0] = startIndex;
-            shape[0] = size;
-        } else {
-            origin[0] = startIndex + (size - limit) / 2;
-            shape[0] = limit;
-        }
     }
 
     public static Date centerTime(Date startTime, Date endTime) {
