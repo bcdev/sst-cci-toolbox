@@ -16,15 +16,17 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
+import ucar.ma2.IndexIterator;
+import ucar.ma2.InvalidRangeException;
+import ucar.ma2.Range;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
@@ -32,7 +34,10 @@ import ucar.nc2.Variable;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -44,6 +49,7 @@ import java.util.TimeZone;
 class InsituIOHandler extends NetcdfIOHandler {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
+    private Array historyTimes;
 
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -51,6 +57,12 @@ class InsituIOHandler extends NetcdfIOHandler {
 
     public InsituIOHandler() {
         super(SensorType.HISTORY.getSensor());
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        historyTimes = null;
     }
 
     @Override
@@ -66,14 +78,13 @@ class InsituIOHandler extends NetcdfIOHandler {
         observation.setName(getNcFile().findGlobalAttribute("wmo_id").getStringValue());
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
-        try {
-            final Date startTime = parseDate("start_date");
-            final Date endTime = parseDate("end_date");
-            observation.setTime(IoUtil.centerTime(startTime, endTime));
-            observation.setTimeRadius(IoUtil.timeRadius(startTime, endTime));
-        } catch (ParseException e) {
-            throw new IOException("Unable to set time.", e);
-        }
+
+        historyTimes = readTimes();
+        final Date startTime = TimeUtil.toDate(historyTimes.getDouble(0));
+        final Date endTime = TimeUtil.toDate(historyTimes.getDouble(historyTimes.getIndexPrivate().getShape(0) - 1));
+        observation.setTime(IoUtil.centerTime(startTime, endTime));
+        observation.setTimeRadius(IoUtil.timeRadius(startTime, endTime));
+
         try {
             final double startLon = parseDouble("start_lon");
             final double startLat = parseDouble("start_lat");
@@ -107,32 +118,130 @@ class InsituIOHandler extends NetcdfIOHandler {
         final Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(sourceVariableName));
         final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
 
-        final int[] sourceShape = sourceVariable.getShape();
-        final int[] sourceOrigin = new int[sourceShape.length];
-        final Variable timeVar = sourceFile.findVariable(NetcdfFile.escapeName(Constants.VARNAME_HISTORY_TIME));
-        IoUtil.findTimeInterval(timeVar.read(), TimeUtil.toJulianDate(refTime), targetVariable.getShape(1),
-                                sourceOrigin, sourceShape
-        );
-
-        final int[] targetOrigin = new int[sourceShape.length + 1];
-        targetOrigin[0] = matchupIndex;
-        final int[] targetShape = new int[sourceShape.length + 1];
+        final int[] targetShape = targetVariable.getShape();
         targetShape[0] = 1;
-        System.arraycopy(sourceShape, 0, targetShape, 1, sourceShape.length);
+        final int[] targetOrigin = new int[targetShape.length];
+        targetOrigin[0] = matchupIndex;
 
         try {
-            final Array array = sourceVariable.read(sourceOrigin, sourceShape);
-            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array.reshape(targetShape));
+            final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
+            final List<Range> subsampling = createSubsampling(historyTimes, range, targetShape[1]);
+            final Array source = sourceVariable.read();
+            final Array target = createSubset(source, subsampling);
+            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, target.reshape(targetShape));
         } catch (Exception e) {
             throw new IOException(e);
         }
     }
 
-    private Date parseDate(String attributeName) throws ParseException {
-        return DATE_FORMAT.parse(getNcFile().findGlobalAttribute(attributeName).getStringValue());
-    }
-
     private double parseDouble(String attributeName) throws ParseException {
         return Double.parseDouble(getNcFile().findGlobalAttribute(attributeName).getStringValue());
     }
+
+    private Array readTimes() throws IOException {
+        return getNcFile().findVariable(NetcdfFile.escapeName("insitu.time")).read();
+    }
+
+    /**
+     * Returns the range of the in-situ history time data that falls within ±12 hours of a
+     * given reference time.
+     *
+     * @param historyTimes  The in-situ history time data (JD). The array must be of rank 1 and
+     *                      its elements must be sorted in ascending order.
+     * @param referenceTime The reference time (JD).
+     *
+     * @return the range of the in-situ history time data that falls within ±12 hours of the
+     *         given reference time.
+     *
+     * @throws IllegalArgumentException when {@code historyTimes.getRank() != 1}.
+     */
+    static Range findRange(Array historyTimes, double referenceTime) {
+        if (historyTimes.getRank() != 1) {
+            throw new IllegalArgumentException("history.getRank() != 1");
+        }
+        if (referenceTime + 0.5 < historyTimes.getDouble(0)) {
+            return Range.EMPTY;
+        }
+        final int historyLength = historyTimes.getIndexPrivate().getShape(0);
+        if (referenceTime - 0.5 > historyTimes.getDouble(historyLength - 1)) {
+            return Range.EMPTY;
+        }
+        int startIndex = -1;
+        int endIndex = -1;
+        for (int i = 0; i < historyLength; i++) {
+            final double time = historyTimes.getDouble(i);
+            if (startIndex == -1) {
+                if (time >= referenceTime - 0.5) {
+                    startIndex = i;
+                    endIndex = startIndex;
+                }
+            } else {
+                if (time <= referenceTime + 0.5) {
+                    endIndex = i;
+                } else {
+                    break;
+                }
+            }
+        }
+        try {
+            return new Range(startIndex, endIndex);
+        } catch (InvalidRangeException e) {
+            return Range.EMPTY;
+        }
+    }
+
+    static List<Range> createSubsampling(Array historyTimes, Range range, int maxLength) {
+        try {
+            final ArrayList<Range> subsampling = new ArrayList<Range>();
+            if (range.length() > maxLength) {
+                subsampling.add(new Range(range.first(), range.first()));
+                // get maxLength-2 entries from the history
+                final double startTime = historyTimes.getDouble(range.first());
+                final double endTime = historyTimes.getDouble(range.last());
+                final double timeStep = (endTime - startTime) / (maxLength - 1);
+                for (int i = range.first() + 1; i < range.last(); i++) {
+                    if (historyTimes.getDouble(i) >= startTime + subsampling.size() * timeStep) {
+                        if (subsampling.size() < maxLength - 1) {
+                            subsampling.add(new Range(i, i));
+                        }
+                    }
+                }
+                subsampling.add(new Range(range.last(), range.last()));
+            } else { // no subset needed
+                subsampling.add(range);
+            }
+            return subsampling;
+        } catch (InvalidRangeException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    static Array createSubset(Array source, List<Range> subsetRanges) throws InvalidRangeException {
+        // compute subset shape for first dimension
+        int length = 0;
+        for (final Range r : subsetRanges) {
+            length += r.length();
+        }
+        // create empty subset array
+        final int[] subsetShape = source.getShape();
+        subsetShape[0] = length;
+        final Array subset = Array.factory(source.getElementType(), subsetShape);
+        // setup ranges for copying
+        final ArrayList<Range> sourceRanges = new ArrayList<Range>(source.getRank());
+        for (int i = 0; i < source.getRank(); i++) {
+            sourceRanges.add(null);
+        }
+        // copy values from source to subset
+        final IndexIterator subsetIterator = subset.getIndexIterator();
+        for (final Range s : subsetRanges) {
+            sourceRanges.set(0, s);
+            final Array sourceSection = source.section(sourceRanges);
+            final IndexIterator sourceIterator = sourceSection.getIndexIterator();
+            while (sourceIterator.hasNext()) {
+                subsetIterator.setObjectNext(sourceIterator.getObjectNext());
+            }
+        }
+        return subset;
+    }
+
 }
