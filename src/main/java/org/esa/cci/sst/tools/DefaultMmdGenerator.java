@@ -159,10 +159,6 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     void writeObservation(NetcdfFileWriteable file, Observation observation, final PGgeometry point,
                           int matchupIndex, final Date refTime) throws IOException {
-        if ("seaice".equals(observation.getSensor())) {
-            // todo - for unknown reasons sea ice data files are not closed (rq-20110403)
-            return;
-        }
         IOHandler ioHandler = null;
         try {
             ioHandler = createIOHandler(observation);
@@ -213,7 +209,8 @@ class DefaultMmdGenerator implements MmdGenerator {
     private void writeTime(final NetcdfFileWriteable file, final int matchupIndex,
                            final ReferenceObservation referenceObservation) {
         final Date referenceObservationTime = referenceObservation.getTime();
-        final Array time = Array.factory(DataType.DOUBLE, new int[]{1}, new double[]{referenceObservationTime.getTime()});
+        final Array time = Array.factory(DataType.DOUBLE, new int[]{1},
+                                         new double[]{referenceObservationTime.getTime()});
         try {
             file.write(VARIABLE_NAME_TIME, new int[]{matchupIndex}, time);
         } catch (Exception e) {

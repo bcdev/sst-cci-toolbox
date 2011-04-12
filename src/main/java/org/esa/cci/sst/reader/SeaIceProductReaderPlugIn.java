@@ -9,6 +9,7 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 
 /**
@@ -26,7 +27,7 @@ public class SeaIceProductReaderPlugIn implements ProductReaderPlugIn {
         if (!(o instanceof File) && !(o instanceof String)) {
             return DecodeQualification.UNABLE;
         }
-        File file = new File(o.toString());
+        final File file = new File(o.toString());
         if (!FILE_EXTENSION_HDF.equals(FileUtils.getExtension(file))) {
             return DecodeQualification.UNABLE;
         }
@@ -36,17 +37,26 @@ public class SeaIceProductReaderPlugIn implements ProductReaderPlugIn {
             !fileName.startsWith("multi_edge_") && !fileName.startsWith("multi_type_")) {
             return DecodeQualification.UNABLE;
         }
+        NetcdfFile netcdfFile = null;
         try {
             if (!NetcdfFile.canOpen(file.getAbsolutePath())) {
                 return DecodeQualification.UNABLE;
             }
-            final NetcdfFile netcdfFile = NetcdfFile.open(file.getAbsolutePath());
+            netcdfFile = NetcdfFile.open(file.getAbsolutePath());
             final Variable header = netcdfFile.findVariable("Header");
-            if(header == null) {
+            if (header == null) {
                 return DecodeQualification.UNABLE;
             }
         } catch (Exception ignore) {
             return DecodeQualification.UNABLE;
+        } finally {
+            if (netcdfFile != null) {
+                try {
+                    netcdfFile.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
         }
 
         return DecodeQualification.INTENDED;

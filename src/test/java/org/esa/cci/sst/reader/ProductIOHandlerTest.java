@@ -25,6 +25,7 @@ public class ProductIOHandlerTest {
 
     private static final String AAI_RESOURCE_NAME = "20100601.egr";
     private static final String AMSRE_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42958.dat-v01.nc.gz";
+    private static final File SEAICE_FILE = new File("testdata/SeaIceConc", "ice_conc_nh_201006301200.hdf");
 
     private static DataFile dataFile;
     private static ProductIOHandler handler;
@@ -71,7 +72,6 @@ public class ProductIOHandlerTest {
         observation = handler.readObservation(0);
         assertSame(dataFile, observation.getDatafile());
     }
-
 
     @Test
     public void testGetAmsreVariables() throws URISyntaxException, IOException {
