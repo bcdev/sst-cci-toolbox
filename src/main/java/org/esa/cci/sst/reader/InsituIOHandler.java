@@ -60,6 +60,12 @@ class InsituIOHandler extends NetcdfIOHandler {
     }
 
     @Override
+    public void init(DataFile dataFile) throws IOException {
+        super.init(dataFile);
+        historyTimes = readHistoryTimes();
+    }
+
+    @Override
     public void close() {
         super.close();
         historyTimes = null;
@@ -79,7 +85,6 @@ class InsituIOHandler extends NetcdfIOHandler {
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 
-        historyTimes = readTimes();
         final Date startTime = TimeUtil.toDate(historyTimes.getDouble(0));
         final Date endTime = TimeUtil.toDate(historyTimes.getDouble(historyTimes.getIndexPrivate().getShape(0) - 1));
         observation.setTime(IoUtil.centerTime(startTime, endTime));
@@ -138,7 +143,7 @@ class InsituIOHandler extends NetcdfIOHandler {
         return Double.parseDouble(getNcFile().findGlobalAttribute(attributeName).getStringValue());
     }
 
-    private Array readTimes() throws IOException {
+    private Array readHistoryTimes() throws IOException {
         return getNcFile().findVariable(NetcdfFile.escapeName("insitu.time")).read();
     }
 
@@ -243,5 +248,4 @@ class InsituIOHandler extends NetcdfIOHandler {
         }
         return subset;
     }
-
 }
