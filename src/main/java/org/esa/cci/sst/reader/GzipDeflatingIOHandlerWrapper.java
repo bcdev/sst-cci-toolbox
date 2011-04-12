@@ -23,7 +23,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class GzipDeflatingIOHandlerWrapper implements IOHandler {
 
-    private IOHandler delegate;
+    private final IOHandler delegate;
     private File tmpFile = null;
 
     public GzipDeflatingIOHandlerWrapper(IOHandler delegate) {
