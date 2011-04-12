@@ -64,6 +64,9 @@ class DefaultMmdGenerator implements MmdGenerator {
     private final MmsTool tool;
     private final List<Matchup> matchupList = new ArrayList<Matchup>();
 
+    private static final String VARIABLE_NAME_MATCHUP_ID = "matchup_id";
+    private static final String VARIABLE_NAME_TIME = "time";
+
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
         this.tool = tool;
         final String propertiesFilePath = tool.getConfiguration().getProperty("mmd.output.variables");
@@ -77,9 +80,8 @@ class DefaultMmdGenerator implements MmdGenerator {
     @Override
     public void createMmdStructure(NetcdfFileWriteable file) throws Exception {
         addDimensions(file);
-        file.addVariable("matchup_id", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
-        // todo - ts 07Apr2011 - add time to observations
-//        file.addVariable("time", DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
 
         for (int i = 0; i < 100; i++) {
             final String sensorName =
@@ -119,7 +121,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                 // todo - optimize: search ref. point only once per subs-scene (rq-20110403)
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
-                // todo - ts 07Apr2011 - write time variable with dimension matchup_id
+                writeTime(file, matchupIndex, referenceObservation);
                 for (final Coincidence coincidence : coincidences) {
                     final Observation observation = coincidence.getObservation();
                     if (!AVHRR.isSensor(observation.getSensor())) {
@@ -202,9 +204,20 @@ class DefaultMmdGenerator implements MmdGenerator {
     private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
         final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
         try {
-            file.write("matchup_id", new int[]{matchupIndex}, array);
+            file.write(VARIABLE_NAME_MATCHUP_ID, new int[]{matchupIndex}, array);
         } catch (InvalidRangeException e) {
-            throw new IOException(e);
+            tool.getErrorHandler().handleError(e, "Unable to write matchup id.", ToolException.TOOL_ERROR);
+        }
+    }
+
+    private void writeTime(final NetcdfFileWriteable file, final int matchupIndex,
+                           final ReferenceObservation referenceObservation) {
+        final Date referenceObservationTime = referenceObservation.getTime();
+        final Array time = Array.factory(DataType.DOUBLE, new int[]{1}, new double[]{referenceObservationTime.getTime()});
+        try {
+            file.write(VARIABLE_NAME_TIME, new int[]{matchupIndex}, time);
+        } catch (Exception e) {
+            tool.getErrorHandler().handleError(e, "Unable to write time.", ToolException.TOOL_ERROR);
         }
     }
 
