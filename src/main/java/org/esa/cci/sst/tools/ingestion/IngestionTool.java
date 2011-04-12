@@ -122,7 +122,6 @@ public class IngestionTool extends MmsTool {
         boolean hasPersisted = false;
         final PersistenceManager persistenceManager = getPersistenceManager();
         final Observation observation = ioHandler.readObservation(recordNo);
-        // todo - remove restriction regarding time interval, used only during initial tests
         if (checkTime(observation)) {
             try {
                 persistenceManager.persist(observation);
