@@ -45,9 +45,9 @@ public class IngestionTool extends MmsTool {
             if (!performWork) {
                 return;
             }
-            final boolean withCleanup = Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.initialcleanup"));
             tool.initialize();
-            if (withCleanup) {
+            final boolean doCleanup = Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.initialcleanup"));
+            if (doCleanup) {
                 tool.cleanup();
             }
             tool.ingest();

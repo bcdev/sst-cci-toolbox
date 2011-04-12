@@ -41,19 +41,19 @@ import java.util.List;
 class MmdCoincidenceIngester {
 
     static final String GET_MATCHUP = "SELECT m " +
-                                             "FROM Matchup m " +
-                                             "WHERE m.id = %d";
+                                      "FROM Matchup m " +
+                                      "WHERE m.id = %d";
 
     static final String GET_OBSERVATION_ID = "SELECT o1.id " +
-                                                     "FROM mm_observation o1, mm_observation oref, mm_matchup m " +
-                                                     "WHERE m.id = %d " +
-                                                     "AND m.refObs_id = oref.id " +
-                                                     "AND o1.time >= oref.time - '12:00:00' and o1.time < oref.time + '12:00:00' " +
-                                                     "AND st_intersects(o1.location, oref.point)";
+                                             "FROM mm_observation o1, mm_observation oref, mm_matchup m " +
+                                             "WHERE m.id = %d " +
+                                             "AND m.refObs_id = oref.id " +
+                                             "AND o1.time >= oref.time - '12:00:00' and o1.time < oref.time + '12:00:00' " +
+                                             "AND st_intersects(o1.location, oref.point)";
 
     static final String GET_OBSERVATION = "SELECT o " +
-                                                  "FROM Observation o " +
-                                                  "WHERE o.id = %d";
+                                          "FROM Observation o " +
+                                          "WHERE o.id = %d";
     private final MmdIngester ingester;
 
     MmdCoincidenceIngester(final MmdIngester ingester) {
@@ -91,7 +91,8 @@ class MmdCoincidenceIngester {
     }
 
     private int[] getMatchupIds() throws ToolException {
-        final String location = validateMmdFile();
+        final String location = ingester.getMmdFile().getAbsolutePath();
+        validateMmdFile(location);
         final NetcdfFile mmdFile = openMmdFile(location);
         final String varNameMatchupEscaped = NetcdfFile.escapeName(MmdReader.VARIABLE_NAME_MATCHUP);
         final Variable matchupVariable = mmdFile.findVariable(varNameMatchupEscaped);
@@ -137,15 +138,13 @@ class MmdCoincidenceIngester {
         return mmdFile;
     }
 
-    private String validateMmdFile() throws ToolException {
-        final String location = ingester.getMmdFile().getAbsolutePath();
+    private void validateMmdFile(String location) throws ToolException {
         try {
             NetcdfFile.canOpen(location);
         } catch (IOException e) {
             throw new ToolException(MessageFormat.format("Cannot open mmd file ''{0}''.", location), e,
                                     ToolException.TOOL_ERROR);
         }
-        return location;
     }
 
     @SuppressWarnings({"unchecked"})

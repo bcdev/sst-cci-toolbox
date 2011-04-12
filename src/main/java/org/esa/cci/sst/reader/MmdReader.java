@@ -25,6 +25,7 @@ import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.util.IoUtil;
 import org.postgis.Geometry;
 import org.postgis.PGgeometry;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
@@ -232,7 +233,10 @@ public class MmdReader implements IOHandler {
         } catch (Exception e) {
             throw new IOException("Unable to read location.", e);
         }
-        observation.setLocation(IoUtil.createPolygonGeometry(startLon, startLat, endLon, endLat));
+        final float centralLat = (startLat - endLat) / 2;
+        final float centralLon = (startLon - endLon) / 2;
+        final PGgeometry location = new PGgeometry(new Point(centralLon, centralLat));
+        observation.setLocation(location);
     }
 
     int[] getEndOrigin(final int recordNo) {
