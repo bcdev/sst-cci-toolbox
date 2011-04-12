@@ -23,9 +23,14 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 
 import javax.persistence.Query;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Tool responsible for extracting subscenes using the ARC processors, and to re-ingest these subscenes into the MMDB.
@@ -53,8 +58,21 @@ public class ArcProcessingTool extends MmsTool {
     }
 
     public static void main(String[] args) {
-        ArcProcessingTool tool = createArcProcessingTool(args);
-        tool.performArcChain();
+//        ArcProcessingTool tool = createArcProcessingTool(args);
+//        tool.performArcChain();
+        testSimpleExecutable();
+    }
+
+    public static void testSimpleExecutable() {
+        try {
+            Runtime runTime = Runtime.getRuntime();
+            Process child = runTime.exec("halloWorld.sh");
+            BufferedWriter outCommand = new BufferedWriter(new OutputStreamWriter(child.getOutputStream()));
+            outCommand.write("MyShellScript");
+            outCommand.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static ArcProcessingTool createArcProcessingTool(final String[] args) {
@@ -71,7 +89,7 @@ public class ArcProcessingTool extends MmsTool {
 
     private void performArcChain() {
         List<GeoPos> coordinates = getCoordinates();
-//        List<File> geoInformationFiles = processAllAvhrrFilesWithArc1();
+        List<File> geoInformationFiles = processAllAvhrrFilesWithArc1();
 //        List<PixelPos> pixelPositions = getPixelPositions(coordinates, geoInformationFiles);
 //        List<File> avhrrSubscenes = processArc2(pixelPositions);
 //        ingestAvhrrSubscenes(avhrrSubscenes);
@@ -99,6 +117,12 @@ public class ArcProcessingTool extends MmsTool {
             result.add(geoPos);
         }
         return result;
+    }
+
+    private List<File> processAllAvhrrFilesWithArc1() {
+        final Properties configuration = getConfiguration();
+        final Arc1Caller arc1Caller = new Arc1Caller(this);
+        return arc1Caller.processAllAvhrrFiles();
     }
 
 }
