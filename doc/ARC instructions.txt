@@ -12,11 +12,12 @@ the source file, but prefixed with 'LOC_' and suffixed by the processor id.
 
 ARC2:
 
-Just like ARC1; the only difference is that the call is 
+Nearly like ARC1; the first difference is that the call is
 
 /exports/work/geos_gc_sst_cci/avhrr/scripts/start_ARC2.bash $filename /exports/work/geos_gc_sst_cci/avhrr/matchups.txt,
 
-where matchups.txt is the list of matchups.
+where matchups.txt is the list of matchups, and the second difference is that the output files are located in
+/exports/work/scratch/sst-cci/MMM.
 
 ARC3:
 
