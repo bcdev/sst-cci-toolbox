@@ -19,9 +19,6 @@ package org.esa.cci.sst.tools.ingestion;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.SensorType;
-import org.esa.cci.sst.util.DataUtil;
 
 import javax.persistence.Query;
 import java.text.MessageFormat;
@@ -42,36 +39,36 @@ class MmdDataInfoIngester {
                                                       "FROM mm_dataschema " +
                                                       "WHERE name = '%s'";
 
-    static final DataSchema DATA_SCHEMA = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, SensorType.ARC.getSensor());
-
     private final MmdIngester ingester;
 
     MmdDataInfoIngester(MmdIngester ingester) {
         this.ingester = ingester;
     }
 
-    void ingestDataFile() {
-        final DataFile dataFile = ingester.getDataFile();
-        final String queryString = String.format(DATAFILE_ALREADY_INGESTED, dataFile.getPath());
-        ingestOnce(dataFile, queryString);
-    }
-
-    void ingestDataSchema() {
-        final String queryString = String.format(DATASCHEMA_ALREADY_INGESTED, DATA_SCHEMA.getName());
-        ingestOnce(DATA_SCHEMA, queryString);
-    }
-
-    private void ingestOnce(final Object data, String queryString) {
+    void ingestDataInfo() {
         final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         persistenceManager.transaction();
         try {
-            persistDataOnce(data, queryString);
+            ingestDataSchema();
+            ingestDataFile();
         } finally {
             persistenceManager.commit();
         }
     }
 
-    private void persistDataOnce(final Object data, final String queryString) {
+    private void ingestDataSchema() {
+        final DataSchema dataSchema = ingester.getDataSchema();
+        final String queryString = String.format(DATASCHEMA_ALREADY_INGESTED, dataSchema.getName());
+        ingestOnce(dataSchema, queryString);
+    }
+
+    private void ingestDataFile() {
+        final DataFile dataFile = ingester.getDataFile();
+        final String queryString = String.format(DATAFILE_ALREADY_INGESTED, dataFile.getPath());
+        ingestOnce(dataFile, queryString);
+    }
+
+    private void ingestOnce(final Object data, final String queryString) {
         final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         final Query query = persistenceManager.createNativeQuery(queryString, Integer.class);
         int result = (Integer) query.getSingleResult();

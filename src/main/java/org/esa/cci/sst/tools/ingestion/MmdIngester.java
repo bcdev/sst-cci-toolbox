@@ -17,10 +17,13 @@
 package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.MmdReader;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
 
@@ -40,6 +43,7 @@ public class MmdIngester extends MmsTool {
     private IngestionTool delegate;
     private IOHandler ioHandler;
     private File mmdFile;
+    private DataSchema dataSchema;
 
     private final Map<File, DataFile> dataFileMap = new HashMap<File, DataFile>();
 
@@ -83,7 +87,7 @@ public class MmdIngester extends MmsTool {
 
     DataFile getDataFile(final File file) {
         if (dataFileMap.get(file) == null) {
-            final DataFile dataFile = DataUtil.createDataFile(file, MmdDataInfoIngester.DATA_SCHEMA);
+            final DataFile dataFile = DataUtil.createDataFile(file, getDataSchema());
             dataFileMap.put(file, dataFile);
             return dataFile;
         }
@@ -110,6 +114,13 @@ public class MmdIngester extends MmsTool {
         } catch (IOException e) {
             getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file.", ToolException.TOOL_ERROR);
         }
+    }
+
+    DataSchema getDataSchema() {
+        if (dataSchema == null) {
+            dataSchema = DataUtil.createDataSchema(Constants.DATA_SCHEMA_NAME_MMD, SensorType.ARC.getSensor());
+        }
+        return dataSchema;
     }
 
 }

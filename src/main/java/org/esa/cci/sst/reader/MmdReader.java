@@ -21,6 +21,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.util.IoUtil;
 import org.postgis.Geometry;
@@ -47,7 +48,6 @@ import java.util.List;
  */
 public class MmdReader implements IOHandler {
 
-    public static final String RECORD_DIMENSION_NAME = "record";
     public static final String VARIABLE_NAME_MATCHUP = "matchup_id";
 
     // todo - ts 07Apr2011 - remove when getting the corresponding observation directly from the file
@@ -70,7 +70,6 @@ public class MmdReader implements IOHandler {
                                                  "FROM DataFile df, DataSchema ds " +
                                                  "WHERE ds.sensorType = '%s\' " +
                                                  "AND df.dataSchema = ds";
-
     private static final String MAXIMUM_RECORD_NUMBER = "SELECT MAX(recordno) FROM mm_observation";
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
 
@@ -253,12 +252,9 @@ public class MmdReader implements IOHandler {
     }
 
     private Dimension getRecordDimension() {
-        final Dimension recordDimension = mmd.findDimension(RECORD_DIMENSION_NAME);
-        if (recordDimension == null) {
-            throw new IllegalStateException(
-                    MessageFormat.format("Mmd file does not contain a record dimension called ''{0}''.",
-                                         RECORD_DIMENSION_NAME));
-        }
+        String recordDimensionName = Constants.DIMENSION_NAME_MATCHUP;
+        Dimension recordDimension = mmd.findDimension(recordDimensionName);
+        validateRecordDimension(recordDimensionName, recordDimension);
         return recordDimension;
     }
 
@@ -268,10 +264,17 @@ public class MmdReader implements IOHandler {
         return (DataFile) query.getSingleResult();
     }
 
-    private void validateFileLocation(final String fileLocation) throws IOException {
-        if (!NetcdfFile.canOpen(fileLocation)) {
-            throw new IOException("File '" + fileLocation + "' cannot be opened.");
+    private void validateRecordDimension(final String recordDimensionName, final Dimension recordDimension) {
+        if(recordDimension == null) {
+            throw new IllegalStateException(
+                    MessageFormat.format("Mmd file does not contain a record dimension called ''{0}''.",
+                                         recordDimensionName));
         }
     }
 
+    private void validateFileLocation(final String fileLocation) throws IOException {
+        if (!NetcdfFile.canOpen(fileLocation)) {
+            throw new IOException(MessageFormat.format("File ''{0}'' cannot be opened.", fileLocation));
+        }
+    }
 }

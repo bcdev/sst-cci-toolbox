@@ -43,8 +43,7 @@ public class MmdIngestionTool {
 
     private static void ingestDataInfo(final MmdIngester tool) {
         final MmdDataInfoIngester mmdDataInfoIngester = new MmdDataInfoIngester(tool);
-        mmdDataInfoIngester.ingestDataSchema();
-        mmdDataInfoIngester.ingestDataFile();
+        mmdDataInfoIngester.ingestDataInfo();
     }
 
     private static void ingestVariableDescriptors(final MmdIngester tool) throws ToolException {
