@@ -123,17 +123,14 @@ class InsituIOHandler extends NetcdfIOHandler {
         final Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(sourceVariableName));
         final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
 
-        final int[] targetShape = targetVariable.getShape();
-        targetShape[0] = 1;
-        final int[] targetOrigin = new int[targetShape.length];
-        targetOrigin[0] = matchupIndex;
-
         try {
             final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
-            final List<Range> subsampling = createSubsampling(historyTimes, range, targetShape[1]);
-            final Array source = sourceVariable.read();
-            final Array target = createSubset(source, subsampling);
-            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, target.reshape(targetShape));
+            if (range != Range.EMPTY) {
+                final List<Range> subsampling = createSubsampling(historyTimes, range, targetVariable.getShape(1));
+                final Array source = sourceVariable.read();
+                final Array subset = createSubset(source, subsampling);
+                writeSubset(targetFile, targetVariable, matchupIndex, subset);
+            }
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -247,5 +244,15 @@ class InsituIOHandler extends NetcdfIOHandler {
             }
         }
         return subset;
+    }
+
+    private static void writeSubset(NetcdfFileWriteable targetFile, Variable targetVariable, int matchupIndex,
+                                    Array subset) throws Exception {
+        final int[] origin = new int[targetVariable.getRank()];
+        origin[0] = matchupIndex;
+        final int[] shape = targetVariable.getShape();
+        shape[0] = 1;
+        shape[1] = subset.getIndexPrivate().getShape(0);
+        targetFile.write(NetcdfFile.escapeName(targetVariable.getName()), origin, subset.reshape(shape));
     }
 }
