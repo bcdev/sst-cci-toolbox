@@ -46,8 +46,6 @@ import java.util.List;
  */
 public class MmdReader implements IOHandler {
 
-    public static final String VARIABLE_NAME_MATCHUP = "matchup_id";
-
     private static final String DATAFILE_QUERY = "SELECT df " +
                                                  "FROM DataFile df, DataSchema ds " +
                                                  "WHERE ds.sensorType = '%s\' " +
@@ -61,6 +59,7 @@ public class MmdReader implements IOHandler {
                                                "WHERE o.id = m.refobs_id " +
                                                "AND m.id = %d";
 
+    private static final String VARIABLE_NAME_MATCHUP = "matchup_id";
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
 
     private NetcdfFile mmd;
@@ -192,12 +191,6 @@ public class MmdReader implements IOHandler {
             throw new IOException("Unable to set location", e);
         }
         observation.setLocation(geometry);
-    }
-
-    int[] getEndOrigin(final int recordNo) {
-        final int lastIndexOfNiDim = mmd.findDimension("ni").getLength() - 1;
-        final int lastIndexOfNjDim = mmd.findDimension("nj").getLength() - 1;
-        return new int[]{recordNo, lastIndexOfNiDim, lastIndexOfNjDim};
     }
 
     private Array readMatchupId(final int recordNo, final Variable matchupIds) throws IOException {

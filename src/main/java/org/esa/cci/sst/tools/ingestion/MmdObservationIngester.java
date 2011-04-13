@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 /**
- * Responsible for re-ingesting observations from an mmd file into the database.
+ * Responsible for re-ingesting observations and coincidences from an mmd file into the database.
  *
  * @author Thomas Storm
  */
@@ -46,16 +46,16 @@ class MmdObservationIngester {
         this.ingester = ingester;
     }
 
-    void ingestObservationsAndCoincidences() throws ToolException {
+    void ingestObservations() throws ToolException {
         final MmdReader ioHandler = (MmdReader) ingester.getIoHandler();
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
             ingester.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
-            persistObservationAndCoincidence(ioHandler, i);
+            persistObservation(ioHandler, i);
         }
     }
 
-    private void persistObservationAndCoincidence(final MmdReader ioHandler, int recordNo) throws ToolException {
+    private void persistObservation(final MmdReader ioHandler, int recordNo) throws ToolException {
         final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         persistenceManager.transaction();
         try {

@@ -69,30 +69,12 @@ public class MmdIngester extends MmsTool {
         return getDataFile(mmdFile);
     }
 
-    File getMmdFile() {
-        if (mmdFile == null) {
-            final Properties configuration = getConfiguration();
-            final String filename = configuration.getProperty("mms.reingestion.filename");
-            mmdFile = new File(filename);
-        }
-        return mmdFile;
-    }
-
     IngestionTool getDelegate() {
         return delegate;
     }
 
     IOHandler getIoHandler() {
         return ioHandler;
-    }
-
-    DataFile getDataFile(final File file) {
-        if (dataFileMap.get(file) == null) {
-            final DataFile dataFile = DataUtil.createDataFile(file, getDataSchema());
-            dataFileMap.put(file, dataFile);
-            return dataFile;
-        }
-        return dataFileMap.get(file);
     }
 
     void ingestVariableDescriptors() throws ToolException {
@@ -110,7 +92,34 @@ public class MmdIngester extends MmsTool {
         }
     }
 
-    void initIOHandler(final DataFile dataFile) throws ToolException {
+    DataSchema getDataSchema() {
+        if (dataSchema == null) {
+            final String sensorType = getProperty(MMS_REINGESTION_SENSORTYPE_PROPERTY);
+            final String schemaName = getProperty(MMS_REINGESTION_SCHEMANAME_PROPERTY);
+            dataSchema = DataUtil.createDataSchema(schemaName, sensorType);
+        }
+        return dataSchema;
+    }
+
+    private File getMmdFile() {
+        if (mmdFile == null) {
+            final Properties configuration = getConfiguration();
+            final String filename = configuration.getProperty("mms.reingestion.filename");
+            mmdFile = new File(filename);
+        }
+        return mmdFile;
+    }
+
+    private DataFile getDataFile(final File file) {
+        if (dataFileMap.get(file) == null) {
+            final DataFile dataFile = DataUtil.createDataFile(file, getDataSchema());
+            dataFileMap.put(file, dataFile);
+            return dataFile;
+        }
+        return dataFileMap.get(file);
+    }
+
+    private void initIOHandler(final DataFile dataFile) throws ToolException {
         final String sensor = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
         final String schemaName = getProperty(MMS_REINGESTION_SCHEMANAME_PROPERTY);
         ioHandler = new MmdReader(delegate.getPersistenceManager(), sensor, schemaName);
@@ -119,15 +128,6 @@ public class MmdIngester extends MmsTool {
         } catch (IOException e) {
             getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file.", ToolException.TOOL_ERROR);
         }
-    }
-
-    DataSchema getDataSchema() {
-        if (dataSchema == null) {
-            final String sensorType = getProperty(MMS_REINGESTION_SENSORTYPE_PROPERTY);
-            final String schemaName = getProperty(MMS_REINGESTION_SCHEMANAME_PROPERTY);
-            dataSchema = DataUtil.createDataSchema(schemaName, sensorType);
-        }
-        return dataSchema;
     }
 
     private String getProperty(String key) {

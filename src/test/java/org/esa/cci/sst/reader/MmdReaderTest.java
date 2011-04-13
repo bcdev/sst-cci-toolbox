@@ -134,13 +134,6 @@ public class MmdReaderTest {
     }
 
     @Test
-    public void testGetEndOrigin() throws Exception {
-        initMmdReader(TEST_WITH_ACTUAL_DATA);
-        final int[] endOrigin = mmdReader.getEndOrigin(5);
-        assertArrayEquals(new int[]{5, 100, 100}, endOrigin);
-    }
-
-    @Test
     public void testReadObservation() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
         final Observation firstObservation = mmdReader.readObservation(0);

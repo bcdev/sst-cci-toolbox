@@ -37,8 +37,7 @@ public class MmdIngestionTool {
         tool.init(args);
         ingestDataInfo(tool);
         ingestVariableDescriptors(tool);
-        ingestObservationsAndCoincidences(tool);
-//        ingestCoincidences(tool);
+        ingestObservations(tool);
     }
 
     private static void ingestDataInfo(final MmdIngester tool) {
@@ -50,13 +49,9 @@ public class MmdIngestionTool {
         tool.ingestVariableDescriptors();
     }
 
-    private static void ingestObservationsAndCoincidences(final MmdIngester tool) throws ToolException {
+    private static void ingestObservations(final MmdIngester tool) throws ToolException {
         final MmdObservationIngester observationIngester = new MmdObservationIngester(tool);
-        observationIngester.ingestObservationsAndCoincidences();
+        observationIngester.ingestObservations();
     }
 
-    private static void ingestCoincidences(final MmdIngester tool) throws ToolException {
-        final MmdCoincidenceIngester coincidenceIngester = new MmdCoincidenceIngester(tool);
-        coincidenceIngester.ingestCoincidences();
-    }
 }
