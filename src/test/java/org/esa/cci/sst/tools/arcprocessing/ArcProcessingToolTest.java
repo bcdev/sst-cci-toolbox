@@ -16,12 +16,10 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
@@ -38,11 +36,8 @@ public class ArcProcessingToolTest {
     }
 
     @Test
-    public void testBlah() throws Exception {
-        final List<GeoPos> coordinates = arcProcessingTool.getCoordinates();
-        assertNotNull(coordinates);
-        for (GeoPos coordinate : coordinates) {
-            assertTrue(coordinate.isValid());
-        }
+    public void testGetCoordinates() throws Exception {
+        final List<Object[]> avhrrFilesAndPoints = arcProcessingTool.inquireAvhrrFilesAndPoints();
+        arcProcessingTool.prepareAndPerformArcCall(avhrrFilesAndPoints);
     }
 }

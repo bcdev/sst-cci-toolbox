@@ -16,21 +16,22 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
-import org.esa.beam.framework.datamodel.GeoPos;
+import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
-import org.postgis.PGgeometry;
-import org.postgis.Point;
+import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tool responsible for extracting subscenes using the ARC processors, and to re-ingest these subscenes into the MMDB.
@@ -48,81 +49,123 @@ import java.util.Properties;
  */
 public class ArcProcessingTool extends MmsTool {
 
-    private static final String ALL_POINTS_QUERY = "SELECT o.point " +
-                                                   "FROM ReferenceObservation o, Matchup m " +
-                                                   "WHERE m.refObs.id = o.id " +
-                                                   "ORDER BY m.id";
+    private static final String AVHRR_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
+                                                               "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
+                                                               "     mm_coincidence c, mm_observation ref " +
+                                                               "WHERE c.matchup_id = m.id " +
+                                                               "AND o.id = c.observation_id " +
+                                                               "AND df.id = o.datafile_id " +
+                                                               "AND o.sensor LIKE 'avhrr%' " +
+                                                               "AND ref.id = m.refobs_id " +
+                                                               "AND ref.time >= ? " +
+                                                               "AND ref.time < ? " +
+                                                               "ORDER BY df.path";
 
     public ArcProcessingTool() {
         super("mmssubscenes.sh", "0.1");
     }
 
-    public static void main(String[] args) {
-//        ArcProcessingTool tool = createArcProcessingTool(args);
-//        tool.performArcChain();
-        testSimpleExecutable();
-    }
-
-    public static void testSimpleExecutable() {
+    public static void main(String[] args) throws ToolException {
+        final ArcProcessingTool arcProcessingTool = new ArcProcessingTool();
+        arcProcessingTool.setCommandLineArgs(args);
+        arcProcessingTool.initialize();
+        final List<Object[]> avhrrFilesAndPoints = arcProcessingTool.inquireAvhrrFilesAndPoints();
         try {
-            Runtime runTime = Runtime.getRuntime();
-            Process child = runTime.exec("halloWorld.sh");
-            BufferedWriter outCommand = new BufferedWriter(new OutputStreamWriter(child.getOutputStream()));
-            outCommand.write("MyShellScript");
-            outCommand.flush();
+            arcProcessingTool.prepareAndPerformArcCall(avhrrFilesAndPoints);
         } catch (IOException e) {
-            e.printStackTrace();
+            arcProcessingTool.getErrorHandler().handleError(e, "Tool failed.", ToolException.TOOL_ERROR);
         }
     }
 
-    private static ArcProcessingTool createArcProcessingTool(final String[] args) {
-        final ArcProcessingTool tool = new ArcProcessingTool();
-        try {
-            tool.setCommandLineArgs(args);
-            tool.initialize();
-        } catch (ToolException e) {
-            tool.getErrorHandler().handleError(e, MessageFormat.format("Unable to initialise ''{0}''.", tool.getName()),
-                                               ToolException.TOOL_ERROR);
+    void prepareAndPerformArcCall(List<Object[]> avhrrFilesAndPoints) throws IOException {
+        final List<String> geoPositions = new ArrayList<String>();
+        final List<String> matchupIds = new ArrayList<String>();
+        String currentFilename = null;
+        for (Object[] result : avhrrFilesAndPoints) {
+            final String matchupId = result[0].toString();
+            final String point = result[1].toString();
+            final String filename = result[2].toString();
+            if (!filename.equals(currentFilename)) {
+                if (currentFilename != null) {
+                    writeLatLonFile(matchupIds, geoPositions, currentFilename);
+                    callShellScript(currentFilename, getLatLonFile(currentFilename));
+                    geoPositions.clear();
+                    matchupIds.clear();
+                }
+                currentFilename = filename;
+            }
+            geoPositions.add(point);
+            matchupIds.add(matchupId);
         }
-        return tool;
-    }
-
-    private void performArcChain() {
-        List<GeoPos> coordinates = getCoordinates();
-        List<File> geoInformationFiles = processAllAvhrrFilesWithArc1();
-//        List<PixelPos> pixelPositions = getPixelPositions(coordinates, geoInformationFiles);
-//        List<File> avhrrSubscenes = processArc2(pixelPositions);
-//        ingestAvhrrSubscenes(avhrrSubscenes);
-    }
-
-    List<GeoPos> getCoordinates() {
-        getPersistenceManager().transaction();
-        final List<GeoPos> result;
-        try {
-            result = getCoordinatesFromOpenDatabase();
-        } finally {
-            getPersistenceManager().commit();
+        if (!geoPositions.isEmpty()) {
+            writeLatLonFile(matchupIds, geoPositions, currentFilename);
+            callShellScript(currentFilename, getLatLonFile(currentFilename));
         }
-        return result;
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<GeoPos> getCoordinatesFromOpenDatabase() {
-        final Query allPointsQuery = getPersistenceManager().createQuery(ALL_POINTS_QUERY);
-        final List<PGgeometry> results = allPointsQuery.getResultList();
-        final List<GeoPos> result = new ArrayList<GeoPos>(results.size());
-        for (PGgeometry geometry : results) {
-            final Point point = geometry.getGeometry().getFirstPoint();
-            final GeoPos geoPos = new GeoPos((float) point.getY(), (float) point.getX());
-            result.add(geoPos);
+    List<Object[]> inquireAvhrrFilesAndPoints() {
+        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_FILES_AND_POINTS_QUERY,
+                                                                               Object[].class);
+        allPointsQuery.setParameter(1, getTime("mms.arcprocessing.starttime"));
+        allPointsQuery.setParameter(2, getTime("mms.arcprocessing.endtime"));
+        return allPointsQuery.getResultList();
+    }
+
+    private void writeLatLonFile(final List<String> matchupIds, final List<String> geoPositions,
+                                 final String currentFilename) throws IOException {
+        Assert.argument(matchupIds.size() == geoPositions.size(), "Same number of matchups and points expected.");
+        final File latLonFile = getLatLonFile(currentFilename);
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(latLonFile));
+            writer.write(String.format("%d\n", geoPositions.size()));
+            for (int i = 0; i < geoPositions.size(); i++) {
+                final String geoPosition = geoPositions.get(i);
+                final String matchupId = matchupIds.get(i);
+                final Pattern pattern = Pattern.compile("POINT\\(([0-9.-]*) ([0-9.-]*)\\)");
+                final Matcher matcher = pattern.matcher(geoPosition);
+                matcher.matches();
+                final String lon = matcher.group(1);
+                final String lat = matcher.group(2);
+                writer.write(String.format("\t%s\t%s\t%s\n", matchupId, lon, lat));
+            }
+        } finally {
+            close(writer);
         }
-        return result;
     }
 
-    private List<File> processAllAvhrrFilesWithArc1() {
-        final Properties configuration = getConfiguration();
-        final Arc1Caller arc1Caller = new Arc1Caller(this);
-        return arc1Caller.processAllAvhrrFiles();
+    private void callShellScript(final String currentFilename, final File latLonFile) {
+        final String latLonFileName = latLonFile.getName();
+        System.out.format("scp %s tstorm@eddie.ecdf.ed.ac.uk:tmp/\n", latLonFileName);
+        System.out.format("ssh tstorm@eddie.ecdf.ed.ac.uk arc1arc2.sh %s tmp/%s\n", currentFilename, latLonFileName);
     }
 
+    private void close(final BufferedWriter writer) {
+        try {
+            if (writer != null) {
+                writer.close();
+            }
+        } catch (IOException ignore) {
+            // ok
+        }
+    }
+
+    private File getLatLonFile(final String currentFilename) {
+        final int slashIndex = currentFilename.lastIndexOf('/');
+        final String baseFilename = currentFilename.substring(slashIndex + 1);
+        return new File(baseFilename + ".latlon");
+    }
+
+    private Date getTime(String key) {
+        final String time = getConfiguration().getProperty(key);
+        Date date = null;
+        try {
+            date = new Date(TimeUtil.parseCcsdsUtcFormat(time));
+        } catch (ParseException e) {
+            getErrorHandler().handleError(e, "Unable to parse time parameter '" + key + "'.",
+                                          ToolException.CONFIGURATION_FILE_IO_ERROR);
+        }
+        return date;
+    }
 }

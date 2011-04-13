@@ -92,6 +92,7 @@ public class MmsTool {
                                 getLogger().log(Level.FINEST, element.toString());
                             }
                             System.err.println(MessageFormat.format("Error: {0}", message));
+                            // todo - ts,mb 13Apr2011 - replace by raising exception
                             System.exit(exitCode);
                         }
 
