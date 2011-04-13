@@ -18,11 +18,10 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.MmsTool;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -35,9 +34,6 @@ import ucar.nc2.Variable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Properties;
 
 import static org.junit.Assert.*;
 
@@ -52,15 +48,13 @@ public class MmdReaderTest {
 
     @Before
     public void setUp() throws Exception {
-        final Properties config = new Properties();
-        config.setProperty("openjpa.ConnectionDriverName", "org.postgresql.Driver");
-        config.setProperty("openjpa.ConnectionURL", "jdbc:postgresql://10.3.0.35:5432/mmdb");
-        config.setProperty("openjpa.ConnectionUserName", "mms");
-        config.setProperty("openjpa.ConnectionPassword", "mms");
-        config.setProperty("openjpa.Log", "DefaultLevel=INFO,SQL=INFO");
-        config.setProperty("openjpa.jdbc.SynchronizeMappings", "buildSchema");
-        final PersistenceManager persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, config);
-        mmdReader = new MmdReader(persistenceManager, "", "");
+        final MmsTool tool = new MmsTool("dummy", "version");
+        tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
+        tool.initialize();
+        final PersistenceManager persistenceManager = tool.getPersistenceManager();
+        final String sensor = tool.getConfiguration().getProperty("mms.reingestion.sensor");
+        final String schemaName = tool.getConfiguration().getProperty("mms.reingestion.schemaname");
+        mmdReader = new MmdReader(persistenceManager, sensor, schemaName);
     }
 
     @After
@@ -104,6 +98,7 @@ public class MmdReaderTest {
         assertEquals(10, mmdReader.getNumRecords());
     }
 
+    @Ignore
     @Test
     public void testSetObservationLocationToFirstMatchup() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
@@ -120,6 +115,7 @@ public class MmdReaderTest {
         assertEquals(expectedFirstPoint.y, actualFirstPoint.y, 0.0001);
     }
 
+    @Ignore
     @Test
     public void testSetObservationLocationToLastMatchup() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
@@ -133,6 +129,7 @@ public class MmdReaderTest {
         assertEquals(expectedLastPoint.y, actualLastPoint.y, 0.0001);
     }
 
+    @Ignore
     @Test
     public void testReadObservation() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
@@ -144,24 +141,6 @@ public class MmdReaderTest {
         assertEquals(55229, firstObservation.getRecordNo());
         assertEquals(55230, secondObservation.getRecordNo());
         assertEquals("ARC", firstObservation.getSensor());
-    }
-
-    @Test(expected = IOException.class)
-    public void testReadObservationFails() throws Exception {
-        initMmdReader(TEST_WITH_ACTUAL_DATA);
-        mmdReader.readObservation(10);
-    }
-
-    @Ignore
-    @Test
-    public void testGetCreationDate() throws Exception {
-        initMmdReader(TEST_WITH_ACTUAL_DATA);
-        final ReferenceObservation observation = new ReferenceObservation();
-        mmdReader.setObservationLocation(observation, 0);
-        final Date actualDate = mmdReader.getCreationDate(8368401);
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
-        final Date expectedDate = sdf.parse("2010-06-01 08-18-29");
-        assertEquals(expectedDate.getTime(), actualDate.getTime());
     }
 
     @Test
@@ -184,11 +163,10 @@ public class MmdReaderTest {
         assertEquals(8, variableDescriptors.length);
 
         for (VariableDescriptor variableDescriptor : variableDescriptors) {
-            assertTrue(variableDescriptor.getName().startsWith("ARC3."));
-            assertEquals("ARC", variableDescriptor.getDataSchema().getSensorType());
-            assertEquals("mmd", variableDescriptor.getDataSchema().getName());
+            assertTrue(variableDescriptor.getName().contains("_sub"));
+            assertEquals("atsr_sub", variableDescriptor.getDataSchema().getSensorType());
+            assertEquals("atsr_sub", variableDescriptor.getDataSchema().getName());
         }
-
     }
 
     private void initMmdReader(final String filename) throws IOException {

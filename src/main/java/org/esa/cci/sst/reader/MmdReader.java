@@ -96,8 +96,8 @@ public class MmdReader implements IOHandler {
 
     @Override
     public int getNumRecords() {
-        final Dimension recordDimension = getRecordDimension();
-        return recordDimension.getLength();
+        final Variable variable = mmd.findVariable(VARIABLE_NAME_MATCHUP);
+        return variable.getDimensions().get(0).getLength();
     }
 
     @Override
@@ -208,13 +208,6 @@ public class MmdReader implements IOHandler {
         final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensor);
         variableDescriptor.setDataSchema(dataFile.getDataSchema());
         return variableDescriptor;
-    }
-
-    private Dimension getRecordDimension() {
-        String recordDimensionName = Constants.DIMENSION_NAME_MATCHUP;
-        Dimension recordDimension = mmd.findDimension(recordDimensionName);
-        validateRecordDimension(recordDimensionName, recordDimension);
-        return recordDimension;
     }
 
     private DataFile getDatafile() {
