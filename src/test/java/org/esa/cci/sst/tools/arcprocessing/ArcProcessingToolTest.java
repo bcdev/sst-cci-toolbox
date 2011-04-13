@@ -32,7 +32,6 @@ public class ArcProcessingToolTest {
     public void setUp() throws Exception {
         arcProcessingTool = new ArcProcessingTool();
         arcProcessingTool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
-        arcProcessingTool.initialize();
     }
 
     @Test
