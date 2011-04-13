@@ -19,6 +19,7 @@ public class QuadTreePixelFinder implements PixelFinder {
             Collections.synchronizedMap(new HashMap<Rectangle, GeoRegion>());
     private final SampleSource lonSource;
     private final SampleSource latSource;
+    private final double tolerance;
 
     /**
      * Constructs a new instance of this class.
@@ -37,6 +38,8 @@ public class QuadTreePixelFinder implements PixelFinder {
         }
         this.lonSource = lonSource;
         this.latSource = latSource;
+        // corresponds to 5 km at the equator, i.e. half a pixel for TMI and AMSR-E
+        this.tolerance = 0.045;
     }
 
     @Override
@@ -62,36 +65,38 @@ public class QuadTreePixelFinder implements PixelFinder {
         final int y1 = y;
         final int y2 = y1 + h - 1;
 
-        final GeoRegion geoRegion = getGeoRegion(x1, x2, y1, y2);
-        final double tolerance = 0.045; // corresponds to 5 km at the equator, i.e. half a pixel for TMI and AMSR-E
-        if (!geoRegion.isOutside(lat, lon, tolerance)) {
-            if (w == 2 && h == 2) {
-                final double lat0 = getLat(x1, y1);
-                final double lat1 = getLat(x1, y2);
-                final double lat2 = getLat(x2, y1);
-                final double lat3 = getLat(x2, y2);
-
-                final double lon0 = getLon(x1, y1);
-                final double lon1 = getLon(x1, y2);
-                final double lon2 = getLon(x2, y1);
-                final double lon3 = getLon(x2, y2);
-
-                final double f = Math.cos(lat * D2R);
-                if (result.update(x1, y1, sqr(lat - lat0, f * Result.delta(lon, lon0)))) {
-                    return true;
-                }
-                if (result.update(x1, y2, sqr(lat - lat1, f * Result.delta(lon, lon1)))) {
-                    return true;
-                }
-                if (result.update(x2, y1, sqr(lat - lat2, f * Result.delta(lon, lon2)))) {
-                    return true;
-                }
-                if (result.update(x2, y2, sqr(lat - lat3, f * Result.delta(lon, lon3)))) {
-                    return true;
-                }
-            } else if (w >= 2 && h >= 2) {
-                return quadTreeRecursion(depth, lat, lon, x1, y1, w, h, result);
+        if (w > 32 && h > 32) {
+            final GeoRegion geoRegion = getGeoRegion(x1, x2, y1, y2);
+            if (geoRegion.isOutside(lat, lon, tolerance)) {
+                return false;
             }
+        }
+        if (w == 2 && h == 2) {
+            final double lat0 = getLat(x1, y1);
+            final double lat1 = getLat(x1, y2);
+            final double lat2 = getLat(x2, y1);
+            final double lat3 = getLat(x2, y2);
+
+            final double lon0 = getLon(x1, y1);
+            final double lon1 = getLon(x1, y2);
+            final double lon2 = getLon(x2, y1);
+            final double lon3 = getLon(x2, y2);
+
+            final double f = Math.cos(lat * D2R);
+            if (result.update(x1, y1, sqr(lat - lat0, f * Result.delta(lon, lon0)))) {
+                return true;
+            }
+            if (result.update(x1, y2, sqr(lat - lat1, f * Result.delta(lon, lon1)))) {
+                return true;
+            }
+            if (result.update(x2, y1, sqr(lat - lat2, f * Result.delta(lon, lon2)))) {
+                return true;
+            }
+            if (result.update(x2, y2, sqr(lat - lat3, f * Result.delta(lon, lon3)))) {
+                return true;
+            }
+        } else {
+            return quadTreeRecursion(depth, lat, lon, x1, y1, w, h, result);
         }
 
         return false;
@@ -99,8 +104,6 @@ public class QuadTreePixelFinder implements PixelFinder {
 
     private GeoRegion getGeoRegion(int x1, int x2, int y1, int y2) {
         final Rectangle pixelRegion = new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
-
-        // todo!!! - do not use region map when the pixelRegion is sufficiently small  (rq-20110408)
 
         synchronized (regionMap) {
             if (!regionMap.containsKey(pixelRegion)) {

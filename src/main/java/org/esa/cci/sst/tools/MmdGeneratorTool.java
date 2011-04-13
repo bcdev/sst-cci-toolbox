@@ -23,8 +23,8 @@ public class MmdGeneratorTool extends MmsTool {
      * @throws Exception if something goes wrong.
      */
     public static void main(String[] args) throws Exception {
-        NetcdfFileWriteable file = null;
         MmdGenerator generator = null;
+        NetcdfFileWriteable file = null;
 
         final MmdGeneratorTool tool = new MmdGeneratorTool();
 
@@ -36,7 +36,7 @@ public class MmdGeneratorTool extends MmsTool {
             tool.initialize();
             final Properties properties = tool.getConfiguration();
             final String mmdFileName = properties.getProperty("mmd.output.filename", "mmd.nc");
-            file = NetcdfFileWriteable.createNew(mmdFileName, false); // todo - fill = true is really expensive
+            file = NetcdfFileWriteable.createNew(mmdFileName, false);
             generator = new DefaultMmdGenerator(tool);
             generator.createMmdStructure(file);
             generator.writeMatchups(file);

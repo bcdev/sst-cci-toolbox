@@ -52,6 +52,9 @@ public class ProductIOHandler implements IOHandler {
     private DataFile dataFile;
     private Product product;
 
+    Product getProduct() {
+        return product;
+    }
 
     public ProductIOHandler(String sensorName, BoundaryCalculator bc) {
         this.sensorName = sensorName;
@@ -201,9 +204,10 @@ public class ProductIOHandler implements IOHandler {
         final GeoCoding geoCoding = product.getGeoCoding();
         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
         if (!pixelPos.isValid()) {
-            throw new IOException(MessageFormat.format(
-                    "Unable to find pixel at {0}, {1} in product ''{2}''.", geoPos.getLatString(),
-                    geoPos.getLonString(), product.getName()));
+            throw new IOException(MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
+                                                       geoPos.getLon(),
+                                                       geoPos.getLat(),
+                                                       product.getName()));
         }
         return pixelPos;
     }

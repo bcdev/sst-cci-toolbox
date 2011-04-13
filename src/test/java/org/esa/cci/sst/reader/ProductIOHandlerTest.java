@@ -1,5 +1,8 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -24,8 +27,7 @@ import static org.junit.Assert.*;
 public class ProductIOHandlerTest {
 
     private static final String AAI_RESOURCE_NAME = "20100601.egr";
-    private static final String AMSRE_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42958.dat-v01.nc.gz";
-    private static final File SEAICE_FILE = new File("testdata/SeaIceConc", "ice_conc_nh_201006301200.hdf");
+    private static final String AMSR_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42970.dat-v01.nc.gz";
 
     private static DataFile dataFile;
     private static ProductIOHandler handler;
@@ -45,54 +47,88 @@ public class ProductIOHandlerTest {
     }
 
     @Test
-    public void testGetNumRecords() throws URISyntaxException, IOException {
-        init(getResourceAsFile(AMSRE_RESOURCE_NAME));
-        assertEquals(1, handler.getNumRecords());
-        clean();
-
+    public void testWorkAroundBeamIssue1240() throws URISyntaxException, IOException {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
+        final GeoCoding geoCoding = handler.getProduct().getGeoCoding();
+        final float wantedLat = -47.9727f;
+        final float wantedLon = 18.7432f;
+        final GeoPos g = new GeoPos(wantedLat, wantedLon);
+        final PixelPos p = new PixelPos();
+        geoCoding.getPixelPos(g, p);
+
+        assertTrue(p.isValid());
+
+        final float actualLat = g.getLat();
+        final float actualLon = g.getLon();
+        final float actualDelta = delta(wantedLat, wantedLon, actualLat, actualLon);
+
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                p.setLocation(p.x + j, p.y + i);
+                geoCoding.getGeoPos(p, g);
+
+                assertTrue(actualDelta <= delta(wantedLat, wantedLon, g.lat, g.lon));
+            }
+        }
+    }
+
+    @Test
+    public void testGetNumRecords_AAI() throws URISyntaxException, IOException {
+        init(getResourceAsFile(AAI_RESOURCE_NAME));
+
         assertEquals(1, handler.getNumRecords());
     }
 
     @Test
-    public void testReadObservation() throws IOException, InvalidRangeException, URISyntaxException {
-        Geometry geometry;
-        Observation observation;
+    public void testGetNumRecords_AMSR() throws URISyntaxException, IOException {
+        init(getResourceAsFile(AMSR_RESOURCE_NAME));
 
-        init(getResourceAsFile(AMSRE_RESOURCE_NAME));
-        observation = handler.readObservation(0);
+        assertEquals(1, handler.getNumRecords());
+    }
+
+    @Test
+    public void testReadObservation_AAI() throws IOException, InvalidRangeException, URISyntaxException {
+        init(getResourceAsFile(AAI_RESOURCE_NAME));
+        final Observation observation = handler.readObservation(0);
+
         assertSame(dataFile, observation.getDatafile());
-        assertNotNull(((RelatedObservation) observation).getLocation());
-        geometry = ((RelatedObservation) observation).getLocation().getGeometry();
+    }
+
+    @Test
+    public void testReadObservation_AMSR() throws IOException, InvalidRangeException, URISyntaxException {
+        init(getResourceAsFile(AMSR_RESOURCE_NAME));
+        final Observation observation = handler.readObservation(0);
+
+        assertSame(dataFile, observation.getDatafile());
+        assertTrue(observation instanceof RelatedObservation);
+
+        final RelatedObservation relatedObservation = (RelatedObservation) observation;
+        assertNotNull(relatedObservation.getLocation());
+
+        final Geometry geometry = relatedObservation.getLocation().getGeometry();
+
         assertTrue(geometry.checkConsistency());
         assertFalse(PgUtil.isClockwise(getPoints(geometry)));
-        clean();
-
-        init(getResourceAsFile(AAI_RESOURCE_NAME));
-        observation = handler.readObservation(0);
-        assertSame(dataFile, observation.getDatafile());
     }
 
     @Test
-    public void testGetAmsreVariables() throws URISyntaxException, IOException {
-        init(getResourceAsFile(AMSRE_RESOURCE_NAME));
+    public void testGetVariableDescriptors_AAI() throws URISyntaxException, IOException {
+        init(getResourceAsFile(AAI_RESOURCE_NAME));
+        final VariableDescriptor[] descriptors = handler.getVariableDescriptors();
 
-        final VariableDescriptor[] variableDescriptors = handler.getVariableDescriptors();
-        for (VariableDescriptor variableDescriptor : variableDescriptors) {
-            System.out.println("variableDescriptor.getName() = " + variableDescriptor.getName());
-        }
-        assertEquals(12, variableDescriptors.length);
+        assertEquals(1, descriptors.length);
     }
 
     @Test
-    public void testGetAaiVariables() throws URISyntaxException, IOException {
-        init(getResourceAsFile(AAI_RESOURCE_NAME));
+    public void testGetVariableDescriptors_AMSR() throws URISyntaxException, IOException {
+        init(getResourceAsFile(AMSR_RESOURCE_NAME));
+        final VariableDescriptor[] descriptors = handler.getVariableDescriptors();
 
-        final VariableDescriptor[] variableDescriptors = handler.getVariableDescriptors();
-        for (VariableDescriptor variableDescriptor : variableDescriptors) {
-            System.out.println("variableDescriptor.getName() = " + variableDescriptor.getName());
-        }
-        assertEquals(1, variableDescriptors.length);
+        assertEquals(12, descriptors.length);
+    }
+
+    private static float delta(float wantedLat, float wantedLon, float lat, float lon) {
+        return (lat - wantedLat) * (lat - wantedLat) + (lon - wantedLon) * (lon - wantedLon);
     }
 
     private static List<Point> getPoints(Geometry geometry) {
