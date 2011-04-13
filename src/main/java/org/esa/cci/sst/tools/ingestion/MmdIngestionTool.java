@@ -19,7 +19,7 @@ package org.esa.cci.sst.tools.ingestion;
 import org.esa.cci.sst.tools.ToolException;
 
 /**
- * MmsTool responsible for ingesting mmd files which have been processed by ARC3. Uses {@link IngestionTool} as delegate.
+ * MmsTool responsible for re-ingesting mmd files. Uses {@link IngestionTool} as delegate.
  *
  * @author Thomas Storm
  */
@@ -37,8 +37,8 @@ public class MmdIngestionTool {
         tool.init(args);
         ingestDataInfo(tool);
         ingestVariableDescriptors(tool);
-        ingestObservations(tool);
-        ingestCoincidences(tool);
+        ingestObservationsAndCoincidences(tool);
+//        ingestCoincidences(tool);
     }
 
     private static void ingestDataInfo(final MmdIngester tool) {
@@ -50,9 +50,9 @@ public class MmdIngestionTool {
         tool.ingestVariableDescriptors();
     }
 
-    private static void ingestObservations(final MmdIngester tool) throws ToolException {
+    private static void ingestObservationsAndCoincidences(final MmdIngester tool) throws ToolException {
         final MmdObservationIngester observationIngester = new MmdObservationIngester(tool);
-        observationIngester.ingestObservations();
+        observationIngester.ingestObservationsAndCoincidences();
     }
 
     private static void ingestCoincidences(final MmdIngester tool) throws ToolException {

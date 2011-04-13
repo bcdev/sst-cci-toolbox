@@ -59,6 +59,10 @@ public class Constants {
     public static final int INSITU_HISTORY_LENGTH = 24;
     public static final int INSITU_HISTORY_QC_LENGTH = 2;
 
+    public static final String VARIABLE_NAME_TIME = "time";
+    public static final String VARIABLE_NAME_LON = "lon";
+    public static final String VARIABLE_NAME_LAT = "lat";
+
     private Constants() {
     }
 }

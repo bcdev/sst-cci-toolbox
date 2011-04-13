@@ -25,6 +25,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
 import org.postgis.PGgeometry;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -65,7 +66,6 @@ class DefaultMmdGenerator implements MmdGenerator {
     private final List<Matchup> matchupList = new ArrayList<Matchup>();
 
     private static final String VARIABLE_NAME_MATCHUP_ID = "matchup_id";
-    private static final String VARIABLE_NAME_TIME = "time";
 
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
         this.tool = tool;
@@ -81,7 +81,9 @@ class DefaultMmdGenerator implements MmdGenerator {
     public void createMmdStructure(NetcdfFileWriteable file) throws Exception {
         addDimensions(file);
         file.addVariable(VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
-        file.addVariable(VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
 
         for (int i = 0; i < 100; i++) {
             final String sensorName =
@@ -122,6 +124,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
                 writeTime(file, matchupIndex, referenceObservation);
+                writeLocation(file, matchupIndex, referenceObservation);
                 for (final Coincidence coincidence : coincidences) {
                     final Observation observation = coincidence.getObservation();
                     if (!AVHRR.isSensor(observation.getSensor())) {
@@ -212,9 +215,24 @@ class DefaultMmdGenerator implements MmdGenerator {
         final Array time = Array.factory(DataType.DOUBLE, new int[]{1},
                                          new double[]{referenceObservationTime.getTime()});
         try {
-            file.write(VARIABLE_NAME_TIME, new int[]{matchupIndex}, time);
+            file.write(Constants.VARIABLE_NAME_TIME, new int[]{matchupIndex}, time);
         } catch (Exception e) {
             tool.getErrorHandler().handleError(e, "Unable to write time.", ToolException.TOOL_ERROR);
+        }
+    }
+
+    private void writeLocation(final NetcdfFileWriteable file, final int matchupIndex,
+                               final ReferenceObservation referenceObservation) {
+        final Point point = referenceObservation.getPoint().getGeometry().getFirstPoint();
+        float lon = (float) point.getX();
+        float lat = (float) point.getY();
+        final Array lonArray = Array.factory(DataType.FLOAT, new int[]{1}, new float[]{lon});
+        final Array latArray = Array.factory(DataType.FLOAT, new int[]{1}, new float[]{lat});
+        try {
+            file.write(Constants.VARIABLE_NAME_LON, new int[]{matchupIndex}, lonArray);
+            file.write(Constants.VARIABLE_NAME_LAT, new int[]{matchupIndex}, latArray);
+        } catch (Exception e) {
+            tool.getErrorHandler().handleError(e, "Unable to write location.", ToolException.TOOL_ERROR);
         }
     }
 

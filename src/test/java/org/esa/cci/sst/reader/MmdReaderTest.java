@@ -60,7 +60,7 @@ public class MmdReaderTest {
         config.setProperty("openjpa.Log", "DefaultLevel=INFO,SQL=INFO");
         config.setProperty("openjpa.jdbc.SynchronizeMappings", "buildSchema");
         final PersistenceManager persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, config);
-        mmdReader = new MmdReader(persistenceManager);
+        mmdReader = new MmdReader(persistenceManager, "", "");
     }
 
     @After
@@ -165,7 +165,7 @@ public class MmdReaderTest {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
         final ReferenceObservation observation = new ReferenceObservation();
         mmdReader.setObservationLocation(observation, 0);
-        final Date actualDate = mmdReader.getCreationDate(8368401, observation);
+        final Date actualDate = mmdReader.getCreationDate(8368401);
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
         final Date expectedDate = sdf.parse("2010-06-01 08-18-29");
         assertEquals(expectedDate.getTime(), actualDate.getTime());
