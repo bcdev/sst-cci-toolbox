@@ -128,38 +128,12 @@ public class ProductIOHandler implements IOHandler {
     public VariableDescriptor[] getVariableDescriptors() throws IOException {
         final ArrayList<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
         for (RasterDataNode node : product.getTiePointGrids()) {
-            final VariableDescriptor variableDescriptor = new VariableDescriptor();
-            variableDescriptor.setName(String.format("%s.%s", sensorName, node.getName()));
-            variableDescriptor.setDataSchema(dataFile.getDataSchema());
-            final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
-            variableDescriptor.setType(dataType.name());
-            variableDescriptor.setDimensions("ni nj");
-            variableDescriptor.setDimensionRoles("ni nj");
-            if (node.isScalingApplied()) {
-                variableDescriptor.setAddOffset(node.getScalingOffset());
-                variableDescriptor.setScaleFactor(node.getScalingFactor());
-            }
-            if (node.isNoDataValueUsed()) {
-                variableDescriptor.setFillValue(node.getNoDataValue());
-            }
+            final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
             variableDescriptor.setUnits(node.getUnit());
             variableDescriptorList.add(variableDescriptor);
         }
         for (RasterDataNode node : product.getBands()) {
-            final VariableDescriptor variableDescriptor = new VariableDescriptor();
-            variableDescriptor.setName(String.format("%s.%s", sensorName, node.getName()));
-            variableDescriptor.setDataSchema(dataFile.getDataSchema());
-            final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
-            variableDescriptor.setType(dataType.name());
-            variableDescriptor.setDimensions("ni nj");
-            variableDescriptor.setDimensionRoles("ni nj");
-            if (node.isScalingApplied()) {
-                variableDescriptor.setAddOffset(node.getScalingOffset());
-                variableDescriptor.setScaleFactor(node.getScalingFactor());
-            }
-            if (node.isNoDataValueUsed()) {
-                variableDescriptor.setFillValue(node.getNoDataValue());
-            }
+            final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
             final String units = node.getUnit();
             if (units != null && !units.isEmpty()) {
                 variableDescriptor.setUnits(units);
@@ -167,6 +141,24 @@ public class ProductIOHandler implements IOHandler {
             variableDescriptorList.add(variableDescriptor);
         }
         return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
+    }
+
+    private VariableDescriptor setUpVariableDescriptor(final RasterDataNode node) {
+        final VariableDescriptor variableDescriptor = new VariableDescriptor();
+        variableDescriptor.setName(String.format("%s.%s", sensorName, node.getName()));
+        variableDescriptor.setDataSchema(dataFile.getDataSchema());
+        final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
+        variableDescriptor.setType(dataType.name());
+        variableDescriptor.setDimensions("ni nj");
+        variableDescriptor.setDimensionRoles("ni nj");
+        if (node.isScalingApplied()) {
+            variableDescriptor.setAddOffset(node.getScalingOffset());
+            variableDescriptor.setScaleFactor(node.getScalingFactor());
+        }
+        if (node.isNoDataValueUsed()) {
+            variableDescriptor.setFillValue(node.getNoDataValue());
+        }
+        return variableDescriptor;
     }
 
     @Override
