@@ -27,6 +27,7 @@ import org.esa.cci.sst.tools.ToolException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -76,15 +77,20 @@ public class ArcPixelPosTool extends MmsTool {
         String line;
         final PixelPos pixelPos = new PixelPos();
         while ((line = reader.readLine()) != null) {
-            final GeoPos geoPos = parseGeoPos(line);
-            geoCoding.getPixelPos(geoPos, pixelPos);
-            buffer.append(parseMatchupId(line));
-            buffer.append('\t');
-            buffer.append(pixelPos.x);
-            buffer.append('\t');
-            buffer.append(pixelPos.y);
-            buffer.append('\n');
+            addGeoPosLine(geoCoding, line, pixelPos);
         }
+    }
+
+    private void addGeoPosLine(final GeoCoding geoCoding, final String line, final PixelPos pixelPos) {
+        final GeoPos geoPos = parseGeoPos(line);
+        geoCoding.getPixelPos(geoPos, pixelPos);
+        buffer.append('\t');
+        buffer.append(parseMatchupId(line));
+        buffer.append('\t');
+        buffer.append(pixelPos.x);
+        buffer.append('\t');
+        buffer.append(pixelPos.y);
+        buffer.append('\n');
     }
 
     String parseMatchupId(String line) {
@@ -119,7 +125,7 @@ public class ArcPixelPosTool extends MmsTool {
         final String locationFile = getConfiguration().getProperty(LOCATIONFILE_PROPERTY);
         BufferedWriter writer = null;
         try {
-            writer = new BufferedWriter(new FileWriter(locationFile + "_pixelPos"));
+            writer = new BufferedWriter(new FileWriter(new File(locationFile + "_pixelPos")));
             writer.write(buffer.toString());
         } finally {
             if(writer != null) {
@@ -136,5 +142,6 @@ public class ArcPixelPosTool extends MmsTool {
     private void initBuffer(final String firstLine) {
         buffer = new StringBuilder();
         buffer.append(firstLine.trim());
+        buffer.append('\n');
     }
 }
