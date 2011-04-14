@@ -29,32 +29,45 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 /**
+ * Writes a land water mask band to a given netcdf file. That file has to comprise the correct structure already (a
+ * variable named {@code Constants.VARIABLE_NAME_WATERMASK}, dimensions named 'aatsr.latitude' and 'aatsr.longitude',
+ * and their corresponding dimensions 'atsr.ni' and 'atsr.ni').
+ *
  * @author Thomas Storm
  */
 class LandWaterMaskWriter {
 
     private final NetcdfFileWriteable file;
+    private final Variable latitude;
+    private final Variable longitude;
+    private final WatermaskClassifier classifier;
 
-    LandWaterMaskWriter(final NetcdfFileWriteable file) {
+    private int matchupIndex;
+
+    LandWaterMaskWriter(final NetcdfFileWriteable file) throws IOException {
         this.file = file;
+        latitude = file.findVariable(NetcdfFile.escapeName("aatsr.latitude"));
+        longitude = file.findVariable(NetcdfFile.escapeName("aatsr.longitude"));
+        classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50);
     }
 
     void writeLandWaterMask(int matchupIndex) throws IOException {
+        this.matchupIndex = matchupIndex;
         final Dimension xDimension = file.findDimension("atsr.ni");
         final Dimension yDimension = file.findDimension("atsr.nj");
-        final Variable latitude = file.findVariable(NetcdfFile.escapeName("aatsr.latitude"));
-        final Variable longitude = file.findVariable(NetcdfFile.escapeName("aatsr.longitude"));
-        final WatermaskClassifier classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50);
         for (int x = 0; x < xDimension.getLength(); x++) {
             for (int y = 0; y < yDimension.getLength(); y++) {
-                float lat = readSingleFloat(matchupIndex, latitude, x, y);
-                float lon = readSingleFloat(matchupIndex, longitude, x, y);
-                final short sample = (short) classifier.getWaterMaskSample(lat, lon);
-                final Array value = Array.factory(DataType.SHORT, new int[]{1, 1, 1}, new short[]{sample});
-                final int[] origin = {matchupIndex, x, y};
-                writeValue(value, origin);
+                final Array value = getValue(x, y);
+                writeValue(value, new int[]{matchupIndex, x, y});
             }
         }
+    }
+
+    private Array getValue(final int x, final int y) throws IOException {
+        float lat = readSingleFloat(latitude, x, y);
+        float lon = readSingleFloat(longitude, x, y);
+        final short sample = (short) classifier.getWaterMaskSample(lat, lon);
+        return Array.factory(DataType.SHORT, new int[]{1, 1, 1}, new short[]{sample});
     }
 
     private void writeValue(final Array value, final int[] origin) throws IOException {
@@ -66,9 +79,8 @@ class LandWaterMaskWriter {
         }
     }
 
-    private float readSingleFloat(final int matchupId, final Variable variable, final int x, final int y) throws
-                                                                                                          IOException {
-        final int[] origin = {matchupId, x, y};
+    private float readSingleFloat(final Variable variable, final int x, final int y) throws IOException {
+        final int[] origin = {matchupIndex, x, y};
         final int[] shape = {1, 1, 1};
         final Array latArray;
         try {
