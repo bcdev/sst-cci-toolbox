@@ -84,6 +84,8 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.VARIABLE_NAME_WATERMASK, DataType.SHORT,
+                         String.format("%s atsr.ni atsr.nj", Constants.DIMENSION_NAME_MATCHUP));
 
         for (int i = 0; i < 100; i++) {
             final String sensorName =
@@ -110,7 +112,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         try {
             final List<Matchup> resultList = getMatchups();
             final int matchupCount = resultList.size();
-
+            final LandWaterMaskWriter landWaterMaskWriter = new LandWaterMaskWriter(file);
             for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
                 final Matchup matchup = resultList.get(matchupIndex);
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
@@ -131,6 +133,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                         writeObservation(file, observation, point, matchupIndex, referenceObservation.getTime());
                     }
                 }
+                landWaterMaskWriter.writeLandWaterMask(matchupIndex);
                 persistenceManager.detach(coincidences);
             }
         } finally {
