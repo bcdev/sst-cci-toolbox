@@ -78,8 +78,8 @@ public class ArcPixelPosTool extends MmsTool {
         final GeoCoding geoCoding = product.getGeoCoding();
         final BufferedReader reader = new BufferedReader(new FileReader(latlonFile));
         initBuffer(reader.readLine());
-        String line;
         final PixelPos pixelPos = new PixelPos();
+        String line;
         while ((line = reader.readLine()) != null) {
             addGeoPosLine(geoCoding, line, pixelPos);
         }
@@ -117,7 +117,8 @@ public class ArcPixelPosTool extends MmsTool {
     Product readProduct(final String locationFile) throws ToolException {
         final Product product;
         try {
-            final ProductReader reader = new ArcReaderPlugIn().createReaderInstance();
+            final ArcReaderPlugIn arcReaderPlugIn = new ArcReaderPlugIn(locationFile);
+            final ProductReader reader = arcReaderPlugIn.createReaderInstance();
             product = reader.readProductNodes(locationFile, null);
         } catch (IOException e) {
             throw new ToolException(MessageFormat.format("File ''{0}'' could not be read.", locationFile), e,
@@ -152,9 +153,15 @@ public class ArcPixelPosTool extends MmsTool {
 
     private static class ArcReaderPlugIn extends CfNetCdfReaderPlugIn {
 
+        private final String locationFile;
+
+        ArcReaderPlugIn(final String locationFile) {
+            this.locationFile = locationFile;
+        }
+
         @Override
         public ProfilePartReader createBandPartReader() {
-            return new ArcBandPartReader();
+            return new ArcBandPartReader(locationFile);
         }
 
         @Override

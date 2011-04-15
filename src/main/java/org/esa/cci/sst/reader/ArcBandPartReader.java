@@ -16,15 +16,18 @@
 
 package org.esa.cci.sst.reader;
 
-import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.netcdf.ProfileReadContext;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.util.ImageUtils;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import javax.media.jai.ImageLayout;
+import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.SourcelessOpImage;
 import java.awt.Rectangle;
@@ -40,35 +43,43 @@ import java.io.IOException;
 public class ArcBandPartReader extends CfBandPart {
 
     private static final String LONGITUDE_BAND_NAME = "lon";
+    private final String locationFile;
+
+    public ArcBandPartReader(final String locationFile) {
+        this.locationFile = locationFile;
+    }
 
     @Override
     public void decode(ProfileReadContext ctx, Product p) throws IOException {
         super.decode(ctx, p);
-        final Band lon = p.getBand(LONGITUDE_BAND_NAME);
-        final MultiLevelImage sourceImage = lon.getSourceImage();
-        final SourcelessOpImage image = createOpImage(lon, sourceImage);
+        p.removeBand(p.getBand(LONGITUDE_BAND_NAME));
+        final NetcdfFile file = NetcdfFile.open(locationFile);
+        final Variable variable = file.findVariable(NetcdfFile.escapeName(LONGITUDE_BAND_NAME));
+        final SourcelessOpImage image = createOpImage(variable);
+        final Band lon = p.addBand(LONGITUDE_BAND_NAME, ProductData.TYPE_FLOAT32);
         lon.setSourceImage(image);
     }
 
-    private SourcelessOpImage createOpImage(final Band lon, final MultiLevelImage sourceImage) {
-        final MultiLevelImage lonImage = lon.getSourceImage();
-        int width = lonImage.getWidth();
-        int height = lonImage.getHeight();
+    private SourcelessOpImage createOpImage(final Variable lonVar) throws IOException {
+        int width = lonVar.getDimension(0).getLength();
+        int height = lonVar.getDimension(1).getLength();
         final ImageLayout layout = ImageManager.createSingleBandedImageLayout(DataBuffer.TYPE_FLOAT,
                                                                               width, height, width, height);
         final SampleModel sampleModel = ImageUtils.createSingleBandedSampleModel(DataBuffer.TYPE_FLOAT, width, height);
-        return new LongitudeNormaliseImage(layout, sampleModel, width, height, sourceImage);
+        return new LongitudeNormaliseImage(layout, sampleModel, width, height, lonVar);
     }
 
     private static class LongitudeNormaliseImage extends SourcelessOpImage {
 
         private static final double FILL_VALUE = -1.0E30;
-        private final Raster data;
+        private static final long TILE_CACHE_SIZE = 8 * 300 * 1024 * 1024L;
+        private final Variable lonVar;
 
         LongitudeNormaliseImage(final ImageLayout layout, final SampleModel sampleModel, final int width,
-                                final int height, final MultiLevelImage sourceImage) {
+                                final int height, final Variable lonVar) throws IOException {
             super(layout, null, sampleModel, 0, 0, width, height);
-            data = sourceImage.getData();
+            this.lonVar = lonVar;
+            setTileCache(JAI.createTileCache(TILE_CACHE_SIZE));
         }
 
         @Override
@@ -87,8 +98,8 @@ public class ArcBandPartReader extends CfBandPart {
         }
 
         private float computeValue(final int x, final int y) {
-            final float sourceSample = data.getSampleFloat(x, y, 0);
-            if(sourceSample == FILL_VALUE) {
+            float sourceSample = getSourceSample(x, y);
+            if (sourceSample == FILL_VALUE) {
                 return Float.NaN;
             }
             float normalisedLon = sourceSample + 180.0f;
@@ -97,5 +108,14 @@ public class ArcBandPartReader extends CfBandPart {
             return normalisedLon;
         }
 
+        private float getSourceSample(final int x, final int y) {
+            final float sourceSample;
+            try {
+                sourceSample = lonVar.read(new int[]{x, y}, new int[]{1, 1}).getFloat(0);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+            return sourceSample;
+        }
     }
 }
