@@ -84,6 +84,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
+        // todo - add attributes explaining mask values
         file.addVariable(Constants.VARIABLE_NAME_WATERMASK, DataType.SHORT,
                          String.format("%s atsr.ni atsr.nj", Constants.DIMENSION_NAME_MATCHUP));
 
