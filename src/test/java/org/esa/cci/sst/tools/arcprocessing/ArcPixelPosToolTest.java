@@ -18,7 +18,6 @@ package org.esa.cci.sst.tools.arcprocessing;
 
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class ArcPixelPosToolTest {
         final String file = getClass().getResource("NSS.GHRR.NP.D10365.S2336.E2359.B0978080.SV.LOC.nc").getFile();
         final Product product = tool.readProduct(file);
         assertNotNull(product);
-        assertTrue(product.getGeoCoding() instanceof PixelGeoCoding);
+        assertNotNull(product.getGeoCoding());
     }
 
     @Test
@@ -87,7 +86,7 @@ public class ArcPixelPosToolTest {
         for (int x = raster.getMinX(); x < raster.getWidth(); x++) {
             for (int y = raster.getMinY(); y < raster.getHeight(); y++) {
                 final float value = raster.getSampleFloat(x, y, 0);
-                assertTrue(value < 180.0001 || value > -180.0001 || value == Float.NaN);
+                assertTrue(value < 180.0001 || value > -180.0001);
             }
         }
     }

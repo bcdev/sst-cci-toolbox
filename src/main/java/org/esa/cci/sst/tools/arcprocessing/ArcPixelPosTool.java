@@ -141,8 +141,8 @@ public class ArcPixelPosTool extends MmsTool {
     }
 
     private void validateInput(final String locationFile, final String latlonFile) {
-        Assert.notNull(locationFile, "Property '" + LOCATIONFILE_PROPERTY + "' must not be null.");
-        Assert.notNull(latlonFile, "Property '" + LOCATIONFILE_PROPERTY + "' must not be null.");
+        Assert.notNull(locationFile, MessageFormat.format("Property ''{0}'' must not be null.", LOCATIONFILE_PROPERTY));
+        Assert.notNull(latlonFile, MessageFormat.format("Property ''{0}'' must not be null.", LOCATIONFILE_PROPERTY));
     }
 
     private void initBuffer(final String firstLine) {
