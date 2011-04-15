@@ -82,6 +82,7 @@ public class ArcPixelPosTool extends MmsTool {
         String line;
         while ((line = reader.readLine()) != null) {
             addGeoPosLine(geoCoding, line, pixelPos);
+//            break;
         }
     }
 

@@ -90,4 +90,19 @@ public class ArcPixelPosToolTest {
             }
         }
     }
+
+    @Test
+    public void testShift() throws Exception {
+        int i = 2;
+        i >>= 1;
+        assertEquals(1, i);
+
+        i = 8;
+        i >>= 1;
+        assertEquals(4, i);
+
+        i = 10;
+        i >>= 1;
+        assertEquals(5, i);
+    }
 }

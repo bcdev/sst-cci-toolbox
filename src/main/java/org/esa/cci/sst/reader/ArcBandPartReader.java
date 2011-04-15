@@ -61,8 +61,8 @@ public class ArcBandPartReader extends CfBandPart {
     }
 
     private SourcelessOpImage createOpImage(final Variable lonVar) throws IOException {
-        int width = lonVar.getDimension(0).getLength();
-        int height = lonVar.getDimension(1).getLength();
+        int width = lonVar.getDimension(1).getLength();
+        int height = lonVar.getDimension(0).getLength();
         final ImageLayout layout = ImageManager.createSingleBandedImageLayout(DataBuffer.TYPE_FLOAT,
                                                                               width, height, width, height);
         final SampleModel sampleModel = ImageUtils.createSingleBandedSampleModel(DataBuffer.TYPE_FLOAT, width, height);
@@ -99,6 +99,9 @@ public class ArcBandPartReader extends CfBandPart {
 
         private float computeValue(final int x, final int y) {
             float sourceSample = getSourceSample(x, y);
+            if(Float.isNaN(sourceSample)) {
+                int blah = 0;
+            }
             if (sourceSample == FILL_VALUE) {
                 return Float.NaN;
             }
@@ -111,7 +114,7 @@ public class ArcBandPartReader extends CfBandPart {
         private float getSourceSample(final int x, final int y) {
             final float sourceSample;
             try {
-                sourceSample = lonVar.read(new int[]{x, y}, new int[]{1, 1}).getFloat(0);
+                sourceSample = lonVar.read(new int[]{y, x}, new int[]{1, 1}).getFloat(0);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
