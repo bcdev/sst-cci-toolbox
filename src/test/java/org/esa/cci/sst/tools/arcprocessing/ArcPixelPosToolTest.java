@@ -16,11 +16,14 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
+import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.awt.image.Raster;
 
 import static org.junit.Assert.*;
 
@@ -73,5 +76,19 @@ public class ArcPixelPosToolTest {
 
         matchupId = tool.parseMatchupId(testStrings[1]);
         assertEquals("170942", matchupId);
+    }
+
+    @Test
+    public void testNormaliseProduct() throws Exception {
+        final String file = getClass().getResource("NSS.GHRR.NP.D10365.S2336.E2359.B0978080.SV.LOC.nc").getFile();
+        final Product product = tool.readProduct(file);
+        final Band lon = product.getBand("lon");
+        final Raster raster = lon.getSourceImage().getData();
+        for (int x = raster.getMinX(); x < raster.getWidth(); x++) {
+            for (int y = raster.getMinY(); y < raster.getHeight(); y++) {
+                final float value = raster.getSampleFloat(x, y, 0);
+                assertTrue(value < 180.0001 || value > -180.0001 || value == Float.NaN);
+            }
+        }
     }
 }

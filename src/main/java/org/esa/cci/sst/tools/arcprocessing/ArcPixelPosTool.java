@@ -17,11 +17,15 @@
 package org.esa.cci.sst.tools.arcprocessing;
 
 import com.bc.ceres.core.Assert;
-import org.esa.beam.framework.dataio.ProductIO;
+import org.esa.beam.dataio.netcdf.metadata.ProfilePartReader;
+import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfNetCdfReaderPlugIn;
+import org.esa.beam.framework.dataio.ProductReader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.cci.sst.reader.ArcBandPartReader;
+import org.esa.cci.sst.reader.ArcPixelGeoCodingReader;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 
@@ -113,7 +117,8 @@ public class ArcPixelPosTool extends MmsTool {
     Product readProduct(final String locationFile) throws ToolException {
         final Product product;
         try {
-            product = ProductIO.readProduct(locationFile);
+            final ProductReader reader = new ArcReaderPlugIn().createReaderInstance();
+            product = reader.readProductNodes(locationFile, null);
         } catch (IOException e) {
             throw new ToolException(MessageFormat.format("File ''{0}'' could not be read.", locationFile), e,
                                     ToolException.TOOL_ERROR);
@@ -143,5 +148,18 @@ public class ArcPixelPosTool extends MmsTool {
         buffer = new StringBuilder();
         buffer.append(firstLine.trim());
         buffer.append('\n');
+    }
+
+    private static class ArcReaderPlugIn extends CfNetCdfReaderPlugIn {
+
+        @Override
+        public ProfilePartReader createBandPartReader() {
+            return new ArcBandPartReader();
+        }
+
+        @Override
+        public ProfilePartReader createGeoCodingPartReader() {
+            return new ArcPixelGeoCodingReader();
+        }
     }
 }

@@ -328,34 +328,13 @@ public class ProductIOHandler implements IOHandler {
         }
     }
 
-    private static class PixelGeoCodingWithFallback extends ForwardingGeoCoding {
-
-        private final PixelFinder pixelFinder;
-
-        public PixelGeoCodingWithFallback(PixelGeoCoding pixelGeoCoding, PixelFinder pixelFinder) {
-            super(pixelGeoCoding);
-            this.pixelFinder = pixelFinder;
-        }
-
-        @Override
-        public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
-            super.getPixelPos(geoPos, pixelPos);
-            if (geoPos.isValid()) {
-                if (!pixelPos.isValid()) {
-                    pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
-                }
-            }
-            return pixelPos;
-        }
-    }
-
     private static class TiePointGeoCodingWithFallback extends ForwardingGeoCoding {
 
         private final int sceneRasterWidth;
         private final int sceneRasterHeight;
         private final PixelFinder pixelFinder;
 
-        public TiePointGeoCodingWithFallback(TiePointGeoCoding tiePointGeoCoding, PixelFinder pixelFinder) {
+        TiePointGeoCodingWithFallback(TiePointGeoCoding tiePointGeoCoding, PixelFinder pixelFinder) {
             super(tiePointGeoCoding);
             sceneRasterWidth = tiePointGeoCoding.getLatGrid().getSceneRasterWidth();
             sceneRasterHeight = tiePointGeoCoding.getLatGrid().getSceneRasterHeight();
