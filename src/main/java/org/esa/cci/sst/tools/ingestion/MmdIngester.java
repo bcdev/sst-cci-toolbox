@@ -27,6 +27,7 @@ import org.esa.cci.sst.util.DataUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -85,7 +86,8 @@ public class MmdIngester extends MmsTool {
         try {
             delegate.persistVariableDescriptors(schemaName, sensor, ioHandler);
         } catch (IOException e) {
-            throw new ToolException("Unable to persist variable descriptors for sensor '" + sensor + "'.", e,
+            throw new ToolException(
+                    MessageFormat.format("Unable to persist variable descriptors for sensor ''{0}''.", sensor), e,
                                     ToolException.TOOL_ERROR);
         } finally {
             persistenceManager.commit();
@@ -134,7 +136,7 @@ public class MmdIngester extends MmsTool {
         final String property = getConfiguration().getProperty(key);
         if (property == null) {
             throw new IllegalStateException(
-                    "Property '" + key + "' not specified in config file.");
+                    MessageFormat.format("Property ''{0}'' not specified in config file.", key));
         }
         return property;
     }
