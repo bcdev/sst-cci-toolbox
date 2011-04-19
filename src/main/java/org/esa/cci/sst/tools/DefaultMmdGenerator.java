@@ -24,6 +24,10 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.reader.InsituRecord;
+import org.esa.cci.sst.reader.InsituVariable;
+import org.esa.cci.sst.reader.MdIOHandler;
+import org.esa.cci.sst.util.IoUtil;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -83,6 +87,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.addVariable(VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
 
+        addInsituReference(file);
         for (int i = 0; i < 100; i++) {
             final String sensorName =
                     tool.getConfiguration().getProperty(String.format("mms.test.inputSets.%d.sensor", i));
@@ -100,6 +105,21 @@ class DefaultMmdGenerator implements MmdGenerator {
         addGlobalAttributes(file);
         file.setLargeFile(true);
         file.create();
+    }
+
+    private void addInsituReference(NetcdfFileWriteable file) {
+        for (final InsituVariable v : InsituVariable.values()) {
+            final String prefixedName = "reference." + v.getName();
+            if (targetVariables.isEmpty() || targetVariables.containsKey(prefixedName)) {
+                final Variable variable = file.addVariable(file.getRootGroup(),
+                                                           getTargetVariableName(prefixedName),
+                                                           v.getDataType(),
+                                                           "match_up");
+                for (final Attribute a : v.getAttributes()) {
+                    variable.addAttribute(a);
+                }
+            }
+        }
     }
 
     @Override
@@ -121,6 +141,8 @@ class DefaultMmdGenerator implements MmdGenerator {
                 // todo - optimize: search ref. point only once per subs-scene (rq-20110403)
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
+                writeInsitu(file, matchupIndex, referenceObservation, "reference.");
+                writeInsitu(file, matchupIndex, referenceObservation, "history.");
                 writeTime(file, matchupIndex, referenceObservation);
                 for (final Coincidence coincidence : coincidences) {
                     final Observation observation = coincidence.getObservation();
@@ -132,6 +154,29 @@ class DefaultMmdGenerator implements MmdGenerator {
             }
         } finally {
             persistenceManager.commit();
+        }
+    }
+
+    private void writeInsitu(NetcdfFileWriteable targetFile, int targetRecordNo,
+                             ReferenceObservation referenceObservation, String prefix) throws IOException {
+        MdIOHandler handler = null;
+        try {
+            handler = (MdIOHandler) createIOHandler(referenceObservation);
+            final InsituRecord record = handler.readInsituRecord(referenceObservation.getRecordNo());
+            for (final InsituVariable v : InsituVariable.values()) {
+                final String prefixedName = prefix + v.getName();
+                if (targetVariables.isEmpty() || targetVariables.containsKey(prefixedName)) {
+                    final Number variableValue = record.getValue(v);
+                    targetFile.write(NetcdfFile.escapeName(prefixedName), new int[]{targetRecordNo, 0},
+                                     IoUtil.toArray2D(variableValue));
+                }
+            }
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        } finally {
+            if (handler != null) {
+                handler.close();
+            }
         }
     }
 

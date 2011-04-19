@@ -132,4 +132,10 @@ public class IoUtil {
             descriptor.setUnits(units);
         }
     }
+
+    public static Array toArray2D(Number value) {
+        final Array array = Array.factory(value.getClass(), new int[]{1, 1});
+        array.setObject(0, value);
+        return array;
+    }
 }

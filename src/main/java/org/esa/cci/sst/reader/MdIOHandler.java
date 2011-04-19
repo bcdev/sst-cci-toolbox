@@ -35,7 +35,7 @@ import java.util.Map;
  *
  * @author Martin Boettcher
  */
-abstract class MdIOHandler extends NetcdfIOHandler {
+public abstract class MdIOHandler extends NetcdfIOHandler {
 
     private final String recordDimensionName;
     private final Map<String, Array> data = new HashMap<String, Array>();
@@ -393,4 +393,5 @@ abstract class MdIOHandler extends NetcdfIOHandler {
      */
     abstract protected String getSstVariableName();
 
+    abstract public InsituRecord readInsituRecord(int recordNo);
 }
