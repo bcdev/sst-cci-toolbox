@@ -34,20 +34,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Tool responsible for extracting subscenes using the ARC processors, and to re-ingest these subscenes into the MMDB.
- * Its basic steps are
- * <pre>
- * 1) get coordinates c for each matchup from the database
- * 2) process all AVHRR-GAC files using ARC1; result: corresponding files gi with geo information.
- * 3) for each coordinate of c: get pixel position for each file of gi for that information; result: list of pixel
- *    positions pp
- * 4) pp serves as input for ARC2, together with each AVHRR-GAC file; result: AVHRR subscenes s.
- * 5) ingest s into the MMDB.
- * </pre>
+ * Tool responsible for extracting subscenes using the ARC1 processor.
  *
  * @author Thomas Storm
  */
-public class ArcProcessingTool extends MmsTool {
+public class Arc1ProcessingTool extends MmsTool {
 
     private static final String AVHRR_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
                                                                "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
@@ -61,19 +52,19 @@ public class ArcProcessingTool extends MmsTool {
                                                                "AND ref.time < ? " +
                                                                "ORDER BY df.path";
 
-    public ArcProcessingTool() {
+    public Arc1ProcessingTool() {
         super("mmssubscenes.sh", "0.1");
     }
 
     public static void main(String[] args) throws ToolException {
-        final ArcProcessingTool arcProcessingTool = new ArcProcessingTool();
-        arcProcessingTool.setCommandLineArgs(args);
-        arcProcessingTool.initialize();
-        final List<Object[]> avhrrFilesAndPoints = arcProcessingTool.inquireAvhrrFilesAndPoints();
+        final Arc1ProcessingTool tool = new Arc1ProcessingTool();
+        tool.setCommandLineArgs(args);
+        tool.initialize();
+        final List<Object[]> avhrrFilesAndPoints = tool.inquireAvhrrFilesAndPoints();
         try {
-            arcProcessingTool.prepareAndPerformArcCall(avhrrFilesAndPoints);
+            tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
         } catch (IOException e) {
-            arcProcessingTool.getErrorHandler().handleError(e, "Tool failed.", ToolException.TOOL_ERROR);
+            tool.getErrorHandler().handleError(e, "Tool failed.", ToolException.TOOL_ERROR);
         }
     }
 
@@ -107,8 +98,8 @@ public class ArcProcessingTool extends MmsTool {
     List<Object[]> inquireAvhrrFilesAndPoints() {
         final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_FILES_AND_POINTS_QUERY,
                                                                                Object[].class);
-        allPointsQuery.setParameter(1, getTime("mms.arcprocessing.starttime"));
-        allPointsQuery.setParameter(2, getTime("mms.arcprocessing.endtime"));
+        allPointsQuery.setParameter(1, getTimeProperty("mms.arcprocessing.starttime"));
+        allPointsQuery.setParameter(2, getTimeProperty("mms.arcprocessing.endtime"));
         return allPointsQuery.getResultList();
     }
 
@@ -137,6 +128,7 @@ public class ArcProcessingTool extends MmsTool {
 
     private void callShellScript(final String currentFilename, final File latLonFile) {
         final String latLonFileName = latLonFile.getName();
+        // todo - ts 19Apr2011 - replace by concrete call
         System.out.format("scp %s tstorm@eddie.ecdf.ed.ac.uk:tmp/\n", latLonFileName);
         System.out.format("ssh tstorm@eddie.ecdf.ed.ac.uk arc1arc2.sh %s tmp/%s\n", currentFilename, latLonFileName);
     }
@@ -157,7 +149,7 @@ public class ArcProcessingTool extends MmsTool {
         return new File(baseFilename + ".latlon");
     }
 
-    private Date getTime(String key) {
+    private Date getTimeProperty(String key) {
         final String time = getConfiguration().getProperty(key);
         Date date = null;
         try {

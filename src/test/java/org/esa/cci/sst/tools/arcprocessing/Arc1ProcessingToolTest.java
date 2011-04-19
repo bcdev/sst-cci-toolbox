@@ -24,19 +24,19 @@ import java.util.List;
 /**
  * @author Thomas Storm
  */
-public class ArcProcessingToolTest {
+public class Arc1ProcessingToolTest {
 
-    private ArcProcessingTool arcProcessingTool;
+    private Arc1ProcessingTool tool;
 
     @Before
     public void setUp() throws Exception {
-        arcProcessingTool = new ArcProcessingTool();
-        arcProcessingTool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
+        tool = new Arc1ProcessingTool();
+        tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
     }
 
     @Test
     public void testGetCoordinates() throws Exception {
-        final List<Object[]> avhrrFilesAndPoints = arcProcessingTool.inquireAvhrrFilesAndPoints();
-        arcProcessingTool.prepareAndPerformArcCall(avhrrFilesAndPoints);
+        final List<Object[]> avhrrFilesAndPoints = tool.inquireAvhrrFilesAndPoints();
+        tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
     }
 }
