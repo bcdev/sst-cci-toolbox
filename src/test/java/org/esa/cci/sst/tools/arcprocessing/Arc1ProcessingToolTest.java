@@ -16,39 +16,27 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
-import org.esa.cci.sst.tools.MmsTool;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
-
 /**
  * @author Thomas Storm
  */
-public class Arc1CallerTest {
+public class Arc1ProcessingToolTest {
 
-    private Arc1Caller arc1Caller;
+    private Arc1ProcessingTool tool;
 
     @Before
     public void setUp() throws Exception {
-        final MmsTool tool = new MmsTool("name", "version");
+        tool = new Arc1ProcessingTool();
         tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
-        tool.initialize();
-        arc1Caller = new Arc1Caller(tool);
     }
 
     @Test
-    public void testGetAvhrrFiles() throws Exception {
-        final List<String> paths = arc1Caller.getAvhrrFilePaths();
-        assertNotNull(paths);
-        for (String path : paths) {
-            assertTrue(path.contains("AVHRR_GAC"));
-            assertTrue(path.contains("noaa-"));
-            assertTrue(path.contains("NSS.GHRR."));
-            assertTrue(path.endsWith("GC") || path.endsWith("WI") || path.endsWith("SV"));
-        }
+    public void testGetCoordinates() throws Exception {
+        final List<AvhrrInfo> avhrrFilesAndPoints = tool.inquireAvhrrInfos();
+        tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
     }
-
 }

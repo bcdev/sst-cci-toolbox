@@ -14,35 +14,33 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools.arcprocessing;
+package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoPos;
-import org.junit.*;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
+import org.esa.beam.framework.datamodel.PixelGeoCoding;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.util.PixelFinder;
 
 /**
- * @author Thomas Storm
- */
-public class ArcProcessingToolTest {
+* @author Ralf Quast
+*/
+class PixelGeoCodingWithFallback extends ForwardingGeoCoding {
 
-    private ArcProcessingTool arcProcessingTool;
+    private final PixelFinder pixelFinder;
 
-    @Before
-    public void setUp() throws Exception {
-        arcProcessingTool = new ArcProcessingTool();
-        arcProcessingTool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
-        arcProcessingTool.initialize();
+    PixelGeoCodingWithFallback(PixelGeoCoding pixelGeoCoding, PixelFinder pixelFinder) {
+        super(pixelGeoCoding);
+        this.pixelFinder = pixelFinder;
     }
 
-    @Test
-    public void testBlah() throws Exception {
-        final List<GeoPos> coordinates = arcProcessingTool.getCoordinates();
-        assertNotNull(coordinates);
-        for (GeoPos coordinate : coordinates) {
-            assertTrue(coordinate.isValid());
+    @Override
+    public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
+        super.getPixelPos(geoPos, pixelPos);
+        if (geoPos.isValid()) {
+            if (!pixelPos.isValid()) {
+                pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
+            }
         }
+        return pixelPos;
     }
 }

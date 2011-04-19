@@ -1,5 +1,7 @@
 package org.esa.cci.sst.util;
 
+import com.bc.ceres.core.Assert;
+
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.Collections;
@@ -65,12 +67,6 @@ public class QuadTreePixelFinder implements PixelFinder {
         final int y1 = y;
         final int y2 = y1 + h - 1;
 
-        if (w > 32 && h > 32) {
-            final GeoRegion geoRegion = getGeoRegion(x1, x2, y1, y2);
-            if (geoRegion.isOutside(lat, lon, tolerance)) {
-                return false;
-            }
-        }
         if (w == 2 && h == 2) {
             final double lat0 = getLat(x1, y1);
             final double lat1 = getLat(x1, y2);
@@ -83,23 +79,20 @@ public class QuadTreePixelFinder implements PixelFinder {
             final double lon3 = getLon(x2, y2);
 
             final double f = Math.cos(lat * D2R);
-            if (result.update(x1, y1, sqr(lat - lat0, f * Result.delta(lon, lon0)))) {
-                return true;
-            }
-            if (result.update(x1, y2, sqr(lat - lat1, f * Result.delta(lon, lon1)))) {
-                return true;
-            }
-            if (result.update(x2, y1, sqr(lat - lat2, f * Result.delta(lon, lon2)))) {
-                return true;
-            }
-            if (result.update(x2, y2, sqr(lat - lat3, f * Result.delta(lon, lon3)))) {
-                return true;
-            }
-        } else {
-            return quadTreeRecursion(depth, lat, lon, x1, y1, w, h, result);
+            boolean update = result.update(x1, y1, sqr(lat - lat0, f * Result.delta(lon, lon0)));
+            update |= result.update(x1, y2, sqr(lat - lat1, f * Result.delta(lon, lon1)));
+            update |= result.update(x2, y1, sqr(lat - lat2, f * Result.delta(lon, lon2)));
+            update |= result.update(x2, y2, sqr(lat - lat3, f * Result.delta(lon, lon3)));
+            return update;
         }
 
-        return false;
+        Assert.state(w > 2 || h > 2, "w > 2 || h > 2 failed.");
+
+        final GeoRegion geoRegion = getGeoRegion(x1, x2, y1, y2);
+        if (geoRegion != null && geoRegion.isOutside(lat, lon, tolerance)) {
+            return false;
+        }
+        return quadTreeRecursion(depth, lat, lon, x1, y1, w, h, result);
     }
 
     private GeoRegion getGeoRegion(int x1, int x2, int y1, int y2) {
@@ -111,55 +104,77 @@ public class QuadTreePixelFinder implements PixelFinder {
                 double maxLat = -90.0f;
                 double minLon = 180.0f;
                 double maxLon = -180.0f;
-                boolean antimeridianIncluded = false;
 
                 double lastLon1 = getLon(x1, y1);
                 double lastLon2 = getLon(x2, y1);
                 for (int y = y1; y <= y2; y++) {
                     final double lat1 = getLat(x1, y);
                     final double lat2 = getLat(x2, y);
+                    final double lo1 = getLon(x1, y);
+                    final double lo2 = getLon(x2, y);
+                    if (Double.isNaN(lat1) || Double.isNaN(lat2) || Double.isNaN(lo1) || Double.isNaN(lo2)) {
+                        return returnNull(pixelRegion);
+                    }
                     minLat = min(lat1, minLat);
                     minLat = min(lat2, minLat);
                     maxLat = max(lat1, maxLat);
                     maxLat = max(lat2, maxLat);
-                    final double lo1 = getLon(x1, y);
-                    final double lo2 = getLon(x2, y);
                     minLon = min(lo1, minLon);
                     minLon = min(lo2, minLon);
                     maxLon = max(lo1, maxLon);
                     maxLon = max(lo2, maxLon);
-                    if (!antimeridianIncluded) {
-                        antimeridianIncluded = Math.abs(lastLon1 - lo1) > 180.0 || Math.abs(lastLon2 - lo2) > 180.0;
-                        lastLon1 = lo1;
-                        lastLon2 = lo2;
+                    final boolean antimeridianIncluded = Math.abs(lastLon1 - lo1) > 180.0 || Math.abs(
+                            lastLon2 - lo2) > 180.0;
+                    if (antimeridianIncluded) {
+                        return returnNull(pixelRegion);
                     }
+                    final boolean meridianIncluded = (lastLon1 > 0 != lo1 > 0) || (lastLon2 > 0 != lo2 > 0);
+                    if (meridianIncluded) {
+                        return returnNull(pixelRegion);
+                    }
+                    lastLon1 = lo1;
+                    lastLon2 = lo2;
                 }
                 lastLon1 = getLon(x1, y1);
                 lastLon2 = getLon(x1, y2);
                 for (int x = x1; x <= x2; x++) {
                     final double lat1 = getLat(x, y1);
                     final double lat2 = getLat(x, y2);
+                    final double lo1 = getLon(x, y1);
+                    final double lo2 = getLon(x, y2);
+                    if (Double.isNaN(lat1) || Double.isNaN(lat2) || Double.isNaN(lo1) || Double.isNaN(lo2)) {
+                        return returnNull(pixelRegion);
+                    }
                     minLat = min(lat1, minLat);
                     minLat = min(lat2, minLat);
                     maxLat = max(lat1, maxLat);
                     maxLat = max(lat2, maxLat);
-                    final double lo1 = getLon(x, y1);
-                    final double lo2 = getLon(x, y2);
                     minLon = min(lo1, minLon);
                     minLon = min(lo2, minLon);
                     maxLon = max(lo1, maxLon);
                     maxLon = max(lo2, maxLon);
-                    if (!antimeridianIncluded) {
-                        antimeridianIncluded = Math.abs(lastLon1 - lo1) > 180.0 || Math.abs(lastLon2 - lo2) > 180.0;
-                        lastLon1 = lo1;
-                        lastLon2 = lo2;
+                    final boolean antimeridianIncluded = Math.abs(lastLon1 - lo1) > 180.0 || Math.abs(
+                            lastLon2 - lo2) > 180.0;
+                    if (antimeridianIncluded) {
+                        return returnNull(pixelRegion);
                     }
+                    final boolean meridianIncluded = (lastLon1 > 0 != lo1 > 0) || (lastLon2 > 0 != lo2 > 0);
+                    if (meridianIncluded) {
+                        return returnNull(pixelRegion);
+                    }
+                    lastLon1 = lo1;
+                    lastLon2 = lo2;
                 }
-                regionMap.put(pixelRegion, new GeoRegion(minLat, maxLat, minLon, maxLon, antimeridianIncluded));
+                regionMap.put(pixelRegion, new GeoRegion(minLat, maxLat, minLon, maxLon));
             }
 
             return regionMap.get(pixelRegion);
         }
+    }
+
+    private GeoRegion returnNull(Rectangle pixelRegion) {
+        regionMap.put(pixelRegion, null);
+        return null;
     }
 
     private boolean quadTreeRecursion(int depth, double lat, double lon, int i, int j, int w, int h, Result result) {
@@ -178,10 +193,26 @@ public class QuadTreePixelFinder implements PixelFinder {
             h2 = 2;
         }
 
-        final boolean b1 = quadTreeSearch(depth + 1, lat, lon, i, j, w2, h2, result);
-        final boolean b2 = quadTreeSearch(depth + 1, lat, lon, i, j2, w2, h2r, result);
-        final boolean b3 = quadTreeSearch(depth + 1, lat, lon, i2, j, w2r, h2, result);
-        final boolean b4 = quadTreeSearch(depth + 1, lat, lon, i2, j2, w2r, h2r, result);
+        final boolean b1;
+        final boolean b2;
+        final boolean b3;
+        final boolean b4;
+        if (w >= 2 * h) {
+            b1 = quadTreeSearch(depth + 1, lat, lon, i, j, w2, h, result);
+            b2 = quadTreeSearch(depth + 1, lat, lon, i2, j, w2r, h, result);
+            b3 = false;
+            b4 = false;
+        } else if (h >= 2 * w) {
+            b1 = quadTreeSearch(depth + 1, lat, lon, i, j, w, h2, result);
+            b2 = quadTreeSearch(depth + 1, lat, lon, i, j2, w, h2r, result);
+            b3 = false;
+            b4 = false;
+        } else {
+            b1 = quadTreeSearch(depth + 1, lat, lon, i, j, w2, h2, result);
+            b2 = quadTreeSearch(depth + 1, lat, lon, i, j2, w2, h2r, result);
+            b3 = quadTreeSearch(depth + 1, lat, lon, i2, j, w2r, h2, result);
+            b4 = quadTreeSearch(depth + 1, lat, lon, i2, j2, w2r, h2r, result);
+        }
 
         return b1 || b2 || b3 || b4;
     }
@@ -202,23 +233,19 @@ public class QuadTreePixelFinder implements PixelFinder {
         private int y;
         private double delta = INVALID;
 
-        public final boolean update(int x, int y, double delta) {
-            final boolean b = delta < this.delta;
-            if (b) {
+        private boolean update(int x, int y, double delta) {
+            final boolean doUpdate = delta < this.delta;
+            if (doUpdate) {
                 this.x = x;
                 this.y = y;
                 this.delta = delta;
             }
-            return b;
+            return doUpdate;
         }
 
         private static double delta(double lon, double lon0) {
             final double e = Math.abs(lon - lon0);
-            if (e < 180.0) {
-                return e;
-            } else { // the Antimeridian is crossed
-                return 360.0 - e;
-            }
+            return e < 180.0 ? e : 360.0 - e;
         }
     }
 
@@ -228,14 +255,12 @@ public class QuadTreePixelFinder implements PixelFinder {
         final double maxLat;
         final double minLon;
         final double maxLon;
-        final boolean antimeridianCrossed;
 
-        private GeoRegion(double minLat, double maxLat, double minLon, double maxLon, boolean antimeridianCrossed) {
+        private GeoRegion(double minLat, double maxLat, double minLon, double maxLon) {
             this.minLat = minLat;
             this.maxLat = maxLat;
             this.minLon = minLon;
             this.maxLon = maxLon;
-            this.antimeridianCrossed = antimeridianCrossed;
         }
 
         /**
@@ -256,8 +281,8 @@ public class QuadTreePixelFinder implements PixelFinder {
             return lat < minLat - tolerance ||
                    lat > maxLat + tolerance ||
                    // do not evaluate the cosine expression unless it is needed
-                   !antimeridianCrossed && (tolerance *= Math.cos(lat * D2R)) >= 0.0 && (lon < minLon - tolerance ||
-                                                                                         lon > maxLon + tolerance);
+                   (tolerance *= Math.cos(
+                           lat * D2R)) >= 0.0 && (lon < minLon - tolerance || lon > maxLon + tolerance);
         }
     }
 

@@ -124,6 +124,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Watermask support -->
+
+        <dependency>
+            <groupId>org.esa.beam</groupId>
+            <artifactId>beam-watermask-operator</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
     <build>

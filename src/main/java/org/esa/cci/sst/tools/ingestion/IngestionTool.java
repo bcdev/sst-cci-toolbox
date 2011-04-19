@@ -117,11 +117,10 @@ public class IngestionTool extends MmsTool {
         }
     }
 
-    boolean persistObservation(final IOHandler ioHandler, final int recordNo) throws IOException,
+    boolean persistObservation(final Observation observation, final int recordNo) throws IOException,
                                                                                      ParseException {
         boolean hasPersisted = false;
         final PersistenceManager persistenceManager = getPersistenceManager();
-        final Observation observation = ioHandler.readObservation(recordNo);
         if (checkTime(observation)) {
             try {
                 persistenceManager.persist(observation);
@@ -140,7 +139,7 @@ public class IngestionTool extends MmsTool {
     IOHandler getIOHandler(final String schemaName, final String sensor) throws ToolException {
         final IOHandler ioHandler;
         try {
-            ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
+            ioHandler = IOHandlerFactory.createHandler(getPersistenceManager(), schemaName, sensor);
         } catch (IllegalArgumentException e) {
             throw new ToolException(MessageFormat.format(
                     "Cannot create IO handler for schema ''{0}''.", schemaName), e,
@@ -214,7 +213,8 @@ public class IngestionTool extends MmsTool {
                 getLogger().info(MessageFormat.format("Reading record {0} {1}.", schemaName, recordNo));
             }
             try {
-                if (persistObservation(ioHandler, recordNo)) {
+                final Observation observation = ioHandler.readObservation(recordNo);
+                if (persistObservation(observation, recordNo)) {
                     recordsInTimeInterval++;
                 }
             } catch (Exception e) {

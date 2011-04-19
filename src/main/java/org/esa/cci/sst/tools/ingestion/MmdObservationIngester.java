@@ -16,15 +16,21 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.IOHandler;
+import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.ErrorHandler;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.TimeUtil;
 
+import javax.persistence.Query;
+import java.io.IOException;
 import java.text.MessageFormat;
 
 /**
- * Responsible for re-ingesting observations from an mmd file into the database.
+ * Responsible for re-ingesting observations and coincidences from an mmd file into the database.
  *
  * @author Thomas Storm
  */
@@ -32,12 +38,16 @@ class MmdObservationIngester {
 
     private final MmdIngester ingester;
 
+    static final String GET_MATCHUP = "SELECT m " +
+                                      "FROM Matchup m " +
+                                      "WHERE m.id = %d";
+
     MmdObservationIngester(final MmdIngester ingester) {
         this.ingester = ingester;
     }
 
     void ingestObservations() throws ToolException {
-        final IOHandler ioHandler = ingester.getIoHandler();
+        final MmdReader ioHandler = (MmdReader) ingester.getIoHandler();
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
             ingester.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
@@ -45,18 +55,51 @@ class MmdObservationIngester {
         }
     }
 
-    private void persistObservation(final IOHandler ioHandler, int recordNo) throws ToolException {
+    private void persistObservation(final MmdReader ioHandler, int recordNo) throws ToolException {
         final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         persistenceManager.transaction();
         try {
-            ingester.getDelegate().persistObservation(ioHandler, recordNo);
+            final Observation observation = ioHandler.readObservation(recordNo);
+            final IngestionTool delegate = ingester.getDelegate();
+            final boolean hasPersisted = delegate.persistObservation(observation, recordNo);
+            if(hasPersisted) {
+                persistCoincidence(ioHandler, recordNo, observation);
+            }
         } catch (Exception e) {
             final ErrorHandler errorHandler = ingester.getErrorHandler();
-            errorHandler.handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo),
+            errorHandler.handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo + 1),
                                      ToolException.TOOL_ERROR);
         } finally {
             persistenceManager.commit();
         }
+    }
+
+    private void persistCoincidence(final MmdReader ioHandler, final int recordNo, final Observation observation) throws
+                                                                                                                  IOException {
+        final int matchupId = ioHandler.getMatchupId(recordNo);
+        final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
+        final Coincidence coincidence = createCoincidence(matchup, observation);
+        ingester.getPersistenceManager().persist(coincidence);
+    }
+
+    private Coincidence createCoincidence(final Matchup matchup, final Observation observation) {
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setMatchup(matchup);
+        coincidence.setObservation(observation);
+        setCoincidenceTimeDelta(matchup, observation, coincidence);
+        return coincidence;
+    }
+
+    private void setCoincidenceTimeDelta(final Matchup matchup, final Observation observation,
+                                         final Coincidence coincidence) {
+        final int timeDelta = TimeUtil.computeTimeDelta(matchup, observation);
+        coincidence.setTimeDifference(timeDelta);
+    }
+
+    private Object getDatabaseObjectById(final String baseQuery, final int id) {
+        final String queryString = String.format(baseQuery, id);
+        final Query query = ingester.getPersistenceManager().createQuery(queryString);
+        return query.getSingleResult();
     }
 
 }

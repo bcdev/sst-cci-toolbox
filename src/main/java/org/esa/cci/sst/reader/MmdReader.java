@@ -22,20 +22,17 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.util.IoUtil;
-import org.postgis.Geometry;
 import org.postgis.PGgeometry;
-import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,38 +45,34 @@ import java.util.List;
  */
 public class MmdReader implements IOHandler {
 
-    public static final String VARIABLE_NAME_MATCHUP = "matchup_id";
-
-    // todo - ts 07Apr2011 - remove when getting the corresponding observation directly from the file
-    private static final String CORRESPONDING_OBSERVATION_TIME_QUERY = "SELECT o.time " +
-                                                                       "FROM mm_coincidence c, mm_observation o " +
-                                                                       "WHERE c.matchup_id = %d " +
-                                                                       "AND c.observation_id = o.id " +
-                                                                       "AND ST_Intersects(o.location, '%s') " +
-                                                                       "AND ST_Intersects(o.location, '%s') " +
-                                                                       "ORDER BY o.time";
-
-    private static final String CORRESPONDING_REFERENCE_OBSERVATION_TIME_QUERY = "SELECT o.time " +
-                                                                                 "FROM mm_observation o " +
-                                                                                 "WHERE ST_Intersects(o.location, '%s') " +
-                                                                                 "AND ST_Intersects(o.location, '%s') " +
-                                                                                 "AND o.dtype = 'ReferenceObservation'" +
-                                                                                 "ORDER BY o.time";
-
     private static final String DATAFILE_QUERY = "SELECT df " +
                                                  "FROM DataFile df, DataSchema ds " +
                                                  "WHERE ds.sensorType = '%s\' " +
                                                  "AND df.dataSchema = ds";
-    private static final String MAXIMUM_RECORD_NUMBER = "SELECT MAX(recordno) FROM mm_observation";
+
+    private static final String MAXIMUM_RECORD_NUMBER = "SELECT MAX(recordno) " +
+                                                        "FROM mm_observation";
+
+    private static final String GET_LOCATION = "SELECT o.location " +
+                                               "FROM mm_observation o, mm_matchup m " +
+                                               "WHERE o.id = m.refobs_id " +
+                                               "AND m.id = %d";
+
+    private static final String VARIABLE_NAME_MATCHUP = "matchup_id";
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
 
     private NetcdfFile mmd;
     private int maxRecordNumber = -1;
 
     private final PersistenceManager persistenceManager;
+    private final String sensor;
+    private final String schemaName;
+    private Variable matchupIds;
 
-    public MmdReader(final PersistenceManager persistenceManager) {
+    public MmdReader(final PersistenceManager persistenceManager, final String sensor, final String schemaName) {
         this.persistenceManager = persistenceManager;
+        this.sensor = sensor;
+        this.schemaName = schemaName;
     }
 
     @Override
@@ -87,6 +80,7 @@ public class MmdReader implements IOHandler {
         final String fileLocation = dataFile.getPath();
         validateFileLocation(fileLocation);
         mmd = NetcdfFile.open(fileLocation);
+        matchupIds = mmd.findVariable(NetcdfFile.escapeName(VARIABLE_NAME_MATCHUP));
     }
 
     @Override
@@ -103,8 +97,8 @@ public class MmdReader implements IOHandler {
 
     @Override
     public int getNumRecords() {
-        final Dimension recordDimension = getRecordDimension();
-        return recordDimension.getLength();
+        final Variable variable = mmd.findVariable(VARIABLE_NAME_MATCHUP);
+        return variable.getDimensions().get(0).getLength();
     }
 
     @Override
@@ -115,34 +109,16 @@ public class MmdReader implements IOHandler {
         final RelatedObservation observation = new RelatedObservation();
         setObservationLocation(observation, recordNo);
         observation.setDatafile(getDatafile());
-        observation.setName("mmd_observation_" + recordNo);
+        observation.setName(String.format("mmd_observation_%d", recordNo));
         setObservationRecordNo(observation);
-        observation.setSensor("ARC");   // todo - ts 04Apr2011 - ok?
+        observation.setSensor(sensor);
         setObservationTime(recordNo, observation);
         return observation;
     }
 
     private void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
-        final int matchupId = getMatchupId(recordNo);
-        System.out.println("matchupId = " + matchupId);
-        final Date creationDate = getCreationDate(matchupId, observation);
+        final Date creationDate = getCreationDate(recordNo);
         observation.setTime(creationDate);
-    }
-
-    private int getMatchupId(final int recordNo) throws IOException {
-        final Variable matchupIds = mmd.findVariable(NetcdfFile.escapeName(VARIABLE_NAME_MATCHUP));
-        final Array matchupId = readMatchupId(recordNo, matchupIds);
-        return matchupId.getInt(0);
-    }
-
-    private Array readMatchupId(final int recordNo, final Variable matchupIds) throws IOException {
-        final Array matchupId;
-        try {
-            matchupId = matchupIds.read(new int[]{recordNo}, new int[]{1});
-        } catch (InvalidRangeException e) {
-            throw new IOException("Unable to read matchup_id from file '" + mmd.getLocation() + "'.", e);
-        }
-        return matchupId;
     }
 
     private void setObservationRecordNo(final RelatedObservation observation) {
@@ -160,8 +136,9 @@ public class MmdReader implements IOHandler {
     public VariableDescriptor[] getVariableDescriptors() throws IOException {
         final List<VariableDescriptor> variableDescriptors = new ArrayList<VariableDescriptor>();
         final List<Variable> variables = mmd.getVariables();
+        final DataFile datafile = getDatafile();
         for (Variable variable : variables) {
-            variableDescriptors.add(createVariableDescriptor(variable, "ARC3", getDatafile()));
+            variableDescriptors.add(createVariableDescriptor(variable, datafile));
         }
         return variableDescriptors.toArray(new VariableDescriptor[variableDescriptors.size()]);
     }
@@ -171,6 +148,17 @@ public class MmdReader implements IOHandler {
                       final String sourceVariableName, final String targetVariableName, final int targetRecordNumber,
                       final PGgeometry refPoint, final Date refTime) throws IOException {
         throw new IllegalStateException("not needed, therefore not implemented");
+    }
+
+    public int getMatchupId(final int recordNo) throws IOException {
+        final Array matchupId;
+        try {
+            matchupId = matchupIds.read(new int[]{recordNo}, new int[]{1});
+        } catch (InvalidRangeException e) {
+            throw new IOException(
+                    MessageFormat.format("Unable to read matchup_id from file ''{0}''.", mmd.getLocation()), e);
+        }
+        return matchupId.getInt(0);
     }
 
     Variable getSSTVariable() {
@@ -185,91 +173,42 @@ public class MmdReader implements IOHandler {
         return variable;
     }
 
-    Date getCreationDate(final int matchupId, final RelatedObservation observation) {
-        if (true) {
-            return new Date(57238597444233L);
+    Date getCreationDate(final int matchupId) throws IOException {
+        final Variable variable = mmd.findVariable(Constants.VARIABLE_NAME_TIME);
+        final Array timeArray;
+        try {
+            timeArray = variable.read(new int[]{matchupId}, new int[]{1});
+        } catch (Exception e) {
+            throw new IOException("Unable to read time.", e);
         }
-        // todo - ts - 08Apr2011 - replace by getting date from file
-        final Geometry geometry = observation.getLocation().getGeometry();
-        final String firstPoint = geometry.getFirstPoint().toString();
-        final String lastPoint = geometry.getLastPoint().toString();
-
-        final String coincidenceQueryString = String.format(CORRESPONDING_OBSERVATION_TIME_QUERY, matchupId, firstPoint,
-                                                            lastPoint);
-        final Query coincidenceQuery = persistenceManager.createNativeQuery(coincidenceQueryString, Date.class);
-        List resultList = coincidenceQuery.getResultList();
-
-        if (resultList.isEmpty()) {
-            final String refObsQueryString = String.format(CORRESPONDING_REFERENCE_OBSERVATION_TIME_QUERY, firstPoint,
-                                                           lastPoint);
-            final Query refObsQuery = persistenceManager.createNativeQuery(refObsQueryString, Date.class);
-            resultList = refObsQuery.getResultList();
-
-            if (resultList.isEmpty()) {
-                throw new IllegalStateException("No corresponding observation found.");
-            }
-
-        }
-
-        return (Date) resultList.get(0);
+        final long time = (long) timeArray.getDouble(0);
+        return new Date(time);
     }
 
     void setObservationLocation(final RelatedObservation observation, int recordNo) throws IOException {
-        final Variable lon = mmd.findVariable(NetcdfFile.escapeName("lon"));
-        final Variable lat = mmd.findVariable(NetcdfFile.escapeName("lat"));
-        final int[] startOrigin = {recordNo, 0, 0};
-        final int[] endOrigin = getEndOrigin(recordNo);
-        final int[] shape = {1, 1, 1};
-        final float startLon;
-        final float endLon;
-        final float startLat;
-        final float endLat;
+        final int matchupId = getMatchupId(recordNo);
+        final String getLocation = String.format(GET_LOCATION, matchupId);
+        final Query query = persistenceManager.createNativeQuery(getLocation);
+        final Object result = query.getSingleResult();
+        final PGgeometry geometry;
         try {
-            startLon = lon.read(startOrigin, shape).getFloat(0);
-            endLon = lon.read(endOrigin, shape).getFloat(0);
-            startLat = lat.read(startOrigin, shape).getFloat(0);
-            endLat = lat.read(endOrigin, shape).getFloat(0);
-        } catch (Exception e) {
-            throw new IOException("Unable to read location.", e);
+            geometry = new PGgeometry(result.toString());
+        } catch (SQLException e) {
+            throw new IOException("Unable to set location", e);
         }
-        final float centralLat = (startLat - endLat) / 2;
-        final float centralLon = (startLon - endLon) / 2;
-        final PGgeometry location = new PGgeometry(new Point(centralLon, centralLat));
-        observation.setLocation(location);
+        observation.setLocation(geometry);
     }
 
-    int[] getEndOrigin(final int recordNo) {
-        final int lastIndexOfNiDim = mmd.findDimension("ni").getLength() - 1;
-        final int lastIndexOfNjDim = mmd.findDimension("nj").getLength() - 1;
-        return new int[]{recordNo, lastIndexOfNiDim, lastIndexOfNjDim};
-    }
-
-    private VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
-                                                        final DataFile dataFile) {
-        final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensorName);
+    private VariableDescriptor createVariableDescriptor(final Variable variable, final DataFile dataFile) {
+        final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensor);
         variableDescriptor.setDataSchema(dataFile.getDataSchema());
         return variableDescriptor;
     }
 
-    private Dimension getRecordDimension() {
-        String recordDimensionName = Constants.DIMENSION_NAME_MATCHUP;
-        Dimension recordDimension = mmd.findDimension(recordDimensionName);
-        validateRecordDimension(recordDimensionName, recordDimension);
-        return recordDimension;
-    }
-
     private DataFile getDatafile() {
-        final String queryString = String.format(DATAFILE_QUERY, SensorType.ARC.getSensor());
+        final String queryString = String.format(DATAFILE_QUERY, schemaName);
         final Query query = persistenceManager.createQuery(queryString);
         return (DataFile) query.getSingleResult();
-    }
-
-    private void validateRecordDimension(final String recordDimensionName, final Dimension recordDimension) {
-        if(recordDimension == null) {
-            throw new IllegalStateException(
-                    MessageFormat.format("Mmd file does not contain a record dimension called ''{0}''.",
-                                         recordDimensionName));
-        }
     }
 
     private void validateFileLocation(final String fileLocation) throws IOException {

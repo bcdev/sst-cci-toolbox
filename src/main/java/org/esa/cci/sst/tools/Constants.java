@@ -59,6 +59,16 @@ public class Constants {
     public static final int INSITU_HISTORY_LENGTH = 24;
     public static final int INSITU_HISTORY_QC_LENGTH = 2;
 
+    public static final String VARIABLE_NAME_TIME = "time";
+    public static final String VARIABLE_NAME_LON = "lon";
+    public static final String VARIABLE_NAME_LAT = "lat";
+    public static final String VARIABLE_NAME_WATERMASK = "watermask";
+
+    public static final String LOCATIONFILE_PROPERTY = "mms.arcprocessing.locationfile";
+    public static final String LATLONFILE_PROPERTY = "mms.arcprocessing.latlonfile";
+    public static final String PIXEL_POS_SUFFIX = "_pixelPos";
+    public static final String DATA_SCHEMA_NAME_ATSR_SUB = "atsr_sub";
+
     private Constants() {
     }
 }

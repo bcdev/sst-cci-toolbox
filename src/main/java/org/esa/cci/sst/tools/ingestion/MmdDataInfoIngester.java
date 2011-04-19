@@ -31,13 +31,13 @@ import java.util.logging.Logger;
  */
 class MmdDataInfoIngester {
 
-    static final String DATAFILE_ALREADY_INGESTED = "SELECT COUNT (id) " +
-                                                    "FROM mm_datafile " +
-                                                    "WHERE path = '%s'";
+    private static final String DATAFILE_ALREADY_INGESTED = "SELECT COUNT (id) " +
+                                                            "FROM mm_datafile " +
+                                                            "WHERE path = '%s'";
 
-    static final String DATASCHEMA_ALREADY_INGESTED = "SELECT COUNT (id) " +
-                                                      "FROM mm_dataschema " +
-                                                      "WHERE name = '%s'";
+    private static final String DATASCHEMA_ALREADY_INGESTED = "SELECT COUNT (id) " +
+                                                              "FROM mm_dataschema " +
+                                                              "WHERE name = '%s'";
 
     private final MmdIngester ingester;
 
