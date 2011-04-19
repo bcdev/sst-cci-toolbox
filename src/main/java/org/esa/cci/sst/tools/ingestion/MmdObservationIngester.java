@@ -60,11 +60,14 @@ class MmdObservationIngester {
         persistenceManager.transaction();
         try {
             final Observation observation = ioHandler.readObservation(recordNo);
-            persistCoincidence(ioHandler, recordNo, observation);
-            ingester.getDelegate().persistObservation(observation, recordNo);
+            final IngestionTool delegate = ingester.getDelegate();
+            final boolean hasPersisted = delegate.persistObservation(observation, recordNo);
+            if(hasPersisted) {
+                persistCoincidence(ioHandler, recordNo, observation);
+            }
         } catch (Exception e) {
             final ErrorHandler errorHandler = ingester.getErrorHandler();
-            errorHandler.handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo),
+            errorHandler.handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo + 1),
                                      ToolException.TOOL_ERROR);
         } finally {
             persistenceManager.commit();

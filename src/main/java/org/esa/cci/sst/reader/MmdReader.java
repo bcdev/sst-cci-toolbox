@@ -26,7 +26,6 @@ import org.esa.cci.sst.util.IoUtil;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
@@ -68,6 +67,7 @@ public class MmdReader implements IOHandler {
     private final PersistenceManager persistenceManager;
     private final String sensor;
     private final String schemaName;
+    private Variable matchupIds;
 
     public MmdReader(final PersistenceManager persistenceManager, final String sensor, final String schemaName) {
         this.persistenceManager = persistenceManager;
@@ -80,6 +80,7 @@ public class MmdReader implements IOHandler {
         final String fileLocation = dataFile.getPath();
         validateFileLocation(fileLocation);
         mmd = NetcdfFile.open(fileLocation);
+        matchupIds = mmd.findVariable(NetcdfFile.escapeName(VARIABLE_NAME_MATCHUP));
     }
 
     @Override
@@ -150,8 +151,13 @@ public class MmdReader implements IOHandler {
     }
 
     public int getMatchupId(final int recordNo) throws IOException {
-        final Variable matchupIds = mmd.findVariable(NetcdfFile.escapeName(VARIABLE_NAME_MATCHUP));
-        final Array matchupId = readMatchupId(recordNo, matchupIds);
+        final Array matchupId;
+        try {
+            matchupId = matchupIds.read(new int[]{recordNo}, new int[]{1});
+        } catch (InvalidRangeException e) {
+            throw new IOException(
+                    MessageFormat.format("Unable to read matchup_id from file ''{0}''.", mmd.getLocation()), e);
+        }
         return matchupId.getInt(0);
     }
 
@@ -193,17 +199,6 @@ public class MmdReader implements IOHandler {
         observation.setLocation(geometry);
     }
 
-    private Array readMatchupId(final int recordNo, final Variable matchupIds) throws IOException {
-        final Array matchupId;
-        try {
-            matchupId = matchupIds.read(new int[]{recordNo}, new int[]{1});
-        } catch (InvalidRangeException e) {
-            throw new IOException(
-                    MessageFormat.format("Unable to read matchup_id from file ''{0}''.", mmd.getLocation()), e);
-        }
-        return matchupId;
-    }
-
     private VariableDescriptor createVariableDescriptor(final Variable variable, final DataFile dataFile) {
         final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensor);
         variableDescriptor.setDataSchema(dataFile.getDataSchema());
@@ -214,14 +209,6 @@ public class MmdReader implements IOHandler {
         final String queryString = String.format(DATAFILE_QUERY, schemaName);
         final Query query = persistenceManager.createQuery(queryString);
         return (DataFile) query.getSingleResult();
-    }
-
-    private void validateRecordDimension(final String recordDimensionName, final Dimension recordDimension) {
-        if (recordDimension == null) {
-            throw new IllegalStateException(
-                    MessageFormat.format("Mmd file does not contain a record dimension called ''{0}''.",
-                                         recordDimensionName));
-        }
     }
 
     private void validateFileLocation(final String fileLocation) throws IOException {
