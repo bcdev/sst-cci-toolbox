@@ -200,7 +200,7 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private IOHandler createIOHandler(Observation observation) throws IOException {
-        return IOHandlerFactory.createHandler(observation.getDatafile().getDataSchema().getName(),
+        return IOHandlerFactory.createHandler(persistenceManager, observation.getDatafile().getDataSchema().getName(),
                                               observation.getSensor());
     }
 

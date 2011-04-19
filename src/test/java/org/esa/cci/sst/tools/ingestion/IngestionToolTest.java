@@ -1,7 +1,5 @@
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.reader.IOHandlerFactory;
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.junit.Test;
@@ -42,19 +40,5 @@ public class IngestionToolTest {
         System.setProperty("mms.someParam", "someValue");
         IngestionTool ingestionTool = new IngestionTool();
         assertEquals("someValue", ingestionTool.getConfiguration().getProperty("mms.someParam"));
-    }
-
-    @Test
-    public void testCreateReader() throws Exception {
-        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_ATSR_MD, null));
-        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_METOP_MD, null));
-        assertNotNull(IOHandlerFactory.createHandler(Constants.DATA_SCHEMA_NAME_SEVIRI_MD, null));
-
-        try {
-            IOHandlerFactory.createHandler("bogus-reader", null);
-            fail("Exception expected");
-        } catch (Exception expected) {
-            // ok
-        }
     }
 }

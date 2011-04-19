@@ -139,7 +139,7 @@ public class IngestionTool extends MmsTool {
     IOHandler getIOHandler(final String schemaName, final String sensor) throws ToolException {
         final IOHandler ioHandler;
         try {
-            ioHandler = IOHandlerFactory.createHandler(schemaName, sensor);
+            ioHandler = IOHandlerFactory.createHandler(getPersistenceManager(), schemaName, sensor);
         } catch (IllegalArgumentException e) {
             throw new ToolException(MessageFormat.format(
                     "Cannot create IO handler for schema ''{0}''.", schemaName), e,
