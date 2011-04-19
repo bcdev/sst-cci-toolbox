@@ -82,7 +82,6 @@ public class ArcPixelPosTool extends MmsTool {
         String line;
         while ((line = reader.readLine()) != null) {
             addGeoPosLine(geoCoding, line, pixelPos);
-//            break;
         }
     }
 
@@ -132,7 +131,8 @@ public class ArcPixelPosTool extends MmsTool {
         final String locationFile = getConfiguration().getProperty(LOCATIONFILE_PROPERTY);
         BufferedWriter writer = null;
         try {
-            writer = new BufferedWriter(new FileWriter(new File(locationFile + "_pixelPos")));
+            final FileWriter fileWriter = new FileWriter(new File(locationFile + "_pixelPos"));
+            writer = new BufferedWriter(fileWriter);
             writer.write(buffer.toString());
         } finally {
             if(writer != null) {

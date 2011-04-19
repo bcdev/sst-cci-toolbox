@@ -43,6 +43,8 @@ import java.io.IOException;
 public class ArcBandPartReader extends CfBandPart {
 
     private static final String LONGITUDE_BAND_NAME = "lon";
+    private static final String DIMENSION_NAME_WIDTH = "scan_elem";
+    private static final String DIMENSION_NAME_HEIGHT = "scan_line";
     private final String locationFile;
 
     public ArcBandPartReader(final String locationFile) {
@@ -55,14 +57,14 @@ public class ArcBandPartReader extends CfBandPart {
         p.removeBand(p.getBand(LONGITUDE_BAND_NAME));
         final NetcdfFile file = NetcdfFile.open(locationFile);
         final Variable variable = file.findVariable(NetcdfFile.escapeName(LONGITUDE_BAND_NAME));
-        final SourcelessOpImage image = createOpImage(variable);
+        final SourcelessOpImage image = createOpImage(file, variable);
         final Band lon = p.addBand(LONGITUDE_BAND_NAME, ProductData.TYPE_FLOAT32);
         lon.setSourceImage(image);
     }
 
-    private SourcelessOpImage createOpImage(final Variable lonVar) throws IOException {
-        int width = lonVar.getDimension(1).getLength();
-        int height = lonVar.getDimension(0).getLength();
+    private SourcelessOpImage createOpImage(final NetcdfFile file, final Variable lonVar) throws IOException {
+        int width = file.findDimension(DIMENSION_NAME_WIDTH).getLength();
+        int height = file.findDimension(DIMENSION_NAME_HEIGHT).getLength();
         final ImageLayout layout = ImageManager.createSingleBandedImageLayout(DataBuffer.TYPE_FLOAT,
                                                                               width, height, width, height);
         final SampleModel sampleModel = ImageUtils.createSingleBandedSampleModel(DataBuffer.TYPE_FLOAT, width, height);
@@ -99,9 +101,6 @@ public class ArcBandPartReader extends CfBandPart {
 
         private float computeValue(final int x, final int y) {
             float sourceSample = getSourceSample(x, y);
-            if(Float.isNaN(sourceSample)) {
-                int blah = 0;
-            }
             if (sourceSample == FILL_VALUE) {
                 return Float.NaN;
             }

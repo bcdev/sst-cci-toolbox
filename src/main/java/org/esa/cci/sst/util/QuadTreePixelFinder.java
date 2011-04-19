@@ -214,7 +214,6 @@ public class QuadTreePixelFinder implements PixelFinder {
             b4 = quadTreeSearch(depth + 1, lat, lon, i2, j2, w2r, h2r, result);
         }
 
-
         return b1 || b2 || b3 || b4;
     }
 
@@ -234,23 +233,19 @@ public class QuadTreePixelFinder implements PixelFinder {
         private int y;
         private double delta = INVALID;
 
-        public final boolean update(int x, int y, double delta) {
-            final boolean b = delta < this.delta;
-            if (b) {
+        private boolean update(int x, int y, double delta) {
+            final boolean doUpdate = delta < this.delta;
+            if (doUpdate) {
                 this.x = x;
                 this.y = y;
                 this.delta = delta;
             }
-            return b;
+            return doUpdate;
         }
 
         private static double delta(double lon, double lon0) {
             final double e = Math.abs(lon - lon0);
-            if (e < 180.0) {
-                return e;
-            } else { // the Antimeridian is crossed
-                return 360.0 - e;
-            }
+            return e < 180.0 ? e : 360.0 - e;
         }
     }
 
