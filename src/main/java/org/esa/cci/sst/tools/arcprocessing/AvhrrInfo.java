@@ -16,27 +16,38 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.List;
-
 /**
- * @author Thomas Storm
- */
-public class Arc1ProcessingToolTest {
+* Simple container class for holding infos about AVHRR GAC files. To be used by ARC1 and ARC2 processing tools.
+*
+* @author Thomas Storm
+*/
+class AvhrrInfo {
 
-    private Arc1ProcessingTool tool;
+    private String matchupId;
+    private String filename;
+    private String point;
 
-    @Before
-    public void setUp() throws Exception {
-        tool = new Arc1ProcessingTool();
-        tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
+    public String getPoint() {
+        return point;
     }
 
-    @Test
-    public void testGetCoordinates() throws Exception {
-        final List<AvhrrInfo> avhrrFilesAndPoints = tool.inquireAvhrrInfos();
-        tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
+    public void setPoint(final String point) {
+        this.point = point;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(final String filename) {
+        this.filename = filename;
+    }
+
+    public String getMatchupId() {
+        return matchupId;
+    }
+
+    public void setMatchupId(final String matchupId) {
+        this.matchupId = matchupId;
     }
 }

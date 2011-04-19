@@ -37,20 +37,21 @@ import java.util.regex.Pattern;
  * Tool responsible for extracting subscenes using the ARC1 processor.
  *
  * @author Thomas Storm
+ * @author Martin Boettcher
  */
 public class Arc1ProcessingTool extends MmsTool {
 
-    private static final String AVHRR_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
-                                                               "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
-                                                               "     mm_coincidence c, mm_observation ref " +
-                                                               "WHERE c.matchup_id = m.id " +
-                                                               "AND o.id = c.observation_id " +
-                                                               "AND df.id = o.datafile_id " +
-                                                               "AND o.sensor LIKE 'avhrr%' " +
-                                                               "AND ref.id = m.refobs_id " +
-                                                               "AND ref.time >= ? " +
-                                                               "AND ref.time < ? " +
-                                                               "ORDER BY df.path";
+    private static final String AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
+                                                                          "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
+                                                                          "     mm_coincidence c, mm_observation ref " +
+                                                                          "WHERE c.matchup_id = m.id " +
+                                                                          "AND o.id = c.observation_id " +
+                                                                          "AND df.id = o.datafile_id " +
+                                                                          "AND o.sensor LIKE 'avhrr%' " +
+                                                                          "AND ref.id = m.refobs_id " +
+                                                                          "AND ref.time >= ? " +
+                                                                          "AND ref.time < ? " +
+                                                                          "ORDER BY df.path";
 
     public Arc1ProcessingTool() {
         super("mmssubscenes.sh", "0.1");
@@ -60,7 +61,7 @@ public class Arc1ProcessingTool extends MmsTool {
         final Arc1ProcessingTool tool = new Arc1ProcessingTool();
         tool.setCommandLineArgs(args);
         tool.initialize();
-        final List<Object[]> avhrrFilesAndPoints = tool.inquireAvhrrFilesAndPoints();
+        final List<AvhrrInfo> avhrrFilesAndPoints = tool.inquireAvhrrInfos();
         try {
             tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
         } catch (IOException e) {
@@ -68,14 +69,14 @@ public class Arc1ProcessingTool extends MmsTool {
         }
     }
 
-    void prepareAndPerformArcCall(List<Object[]> avhrrFilesAndPoints) throws IOException {
+    void prepareAndPerformArcCall(List<AvhrrInfo> avhrrFilesAndPoints) throws IOException {
         final List<String> geoPositions = new ArrayList<String>();
         final List<String> matchupIds = new ArrayList<String>();
         String currentFilename = null;
-        for (Object[] result : avhrrFilesAndPoints) {
-            final String matchupId = result[0].toString();
-            final String point = result[1].toString();
-            final String filename = result[2].toString();
+        for (AvhrrInfo info : avhrrFilesAndPoints) {
+            final String matchupId = info.getMatchupId();
+            final String point = info.getPoint();
+            final String filename = info.getFilename();
             if (!filename.equals(currentFilename)) {
                 if (currentFilename != null) {
                     writeLatLonFile(matchupIds, geoPositions, currentFilename);
@@ -95,12 +96,20 @@ public class Arc1ProcessingTool extends MmsTool {
     }
 
     @SuppressWarnings({"unchecked"})
-    List<Object[]> inquireAvhrrFilesAndPoints() {
-        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_FILES_AND_POINTS_QUERY,
+    List<AvhrrInfo> inquireAvhrrInfos() {
+        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY,
                                                                                Object[].class);
         allPointsQuery.setParameter(1, getTimeProperty("mms.arcprocessing.starttime"));
         allPointsQuery.setParameter(2, getTimeProperty("mms.arcprocessing.endtime"));
-        return allPointsQuery.getResultList();
+        final List<Object[]> queryResultList = allPointsQuery.getResultList();
+        final List<AvhrrInfo> avhrrInfos = new ArrayList<AvhrrInfo>(queryResultList.size());
+        for (Object[] info : queryResultList) {
+            final AvhrrInfo avhrrInfo = new AvhrrInfo();
+            avhrrInfo.setMatchupId(info[0].toString());
+            avhrrInfo.setPoint(info[1].toString());
+            avhrrInfo.setFilename(info[2].toString());
+        }
+        return avhrrInfos;
     }
 
     private void writeLatLonFile(final List<String> matchupIds, final List<String> geoPositions,
@@ -128,7 +137,7 @@ public class Arc1ProcessingTool extends MmsTool {
 
     private void callShellScript(final String currentFilename, final File latLonFile) {
         final String latLonFileName = latLonFile.getName();
-        // todo - ts 19Apr2011 - replace by concrete call
+        // todo - ts 19Apr2011 - replace by actual call
         System.out.format("scp %s tstorm@eddie.ecdf.ed.ac.uk:tmp/\n", latLonFileName);
         System.out.format("ssh tstorm@eddie.ecdf.ed.ac.uk arc1arc2.sh %s tmp/%s\n", currentFilename, latLonFileName);
     }
