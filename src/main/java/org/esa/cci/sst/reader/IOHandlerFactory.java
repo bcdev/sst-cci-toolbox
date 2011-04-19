@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
 
 import java.text.MessageFormat;
@@ -27,15 +28,21 @@ import java.text.MessageFormat;
  */
 public class IOHandlerFactory {
 
+    private IOHandlerFactory() {
+    }
+
     /**
      * Factory method for getting the correct io handler, according to given schema and sensor names.
      *
+     *
+     * @param persistenceManager
      * @param schemaName The schema name.
      * @param sensorName The sensor name.
      *
      * @return a new instance of <code>IOHandler</code>.
      */
-    public static IOHandler createHandler(String schemaName, String sensorName) {
+    public static IOHandler createHandler(final PersistenceManager persistenceManager, String schemaName,
+                                          String sensorName) {
         if (Constants.DATA_SCHEMA_NAME_ATSR_MD.equalsIgnoreCase(schemaName)) {
             return new GzipDeflatingIOHandlerWrapper(new AtsrMdIOHandler());
         }
@@ -65,6 +72,9 @@ public class IOHandlerFactory {
         }
         if (Constants.DATA_SCHEMA_INSITU_HISTORY.equalsIgnoreCase(schemaName)) {
             return new GzipDeflatingIOHandlerWrapper(new InsituIOHandler());
+        }
+        if(Constants.DATA_SCHEMA_NAME_ATSR_SUB.equalsIgnoreCase(schemaName)) {
+            return new MmdReader(persistenceManager, sensorName, schemaName);
         }
         throw new IllegalArgumentException(
                 MessageFormat.format("No appropriate IO handler for schema {0} found.", schemaName));
