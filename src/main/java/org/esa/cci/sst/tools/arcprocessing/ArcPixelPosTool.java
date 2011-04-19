@@ -26,6 +26,7 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.reader.ArcBandPartReader;
 import org.esa.cci.sst.reader.ArcPixelGeoCodingReader;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 
@@ -48,9 +49,6 @@ import java.util.regex.Pattern;
  */
 public class ArcPixelPosTool extends MmsTool {
 
-    private static final String LOCATIONFILE_PROPERTY = "mms.arcprocessing.locationfile";
-    private static final String LATLONFILE_PROPERTY = "mms.arcprocessing.latlonfile";
-
     private StringBuilder buffer;
 
     public static void main(String[] args) throws ToolException {
@@ -71,8 +69,8 @@ public class ArcPixelPosTool extends MmsTool {
 
     void createPixelPositions() throws ToolException, IOException {
         final Properties configuration = getConfiguration();
-        final String latlonFile = configuration.getProperty(LATLONFILE_PROPERTY);
-        final String locationFile = configuration.getProperty(LOCATIONFILE_PROPERTY);
+        final String latlonFile = configuration.getProperty(Constants.LATLONFILE_PROPERTY);
+        final String locationFile = configuration.getProperty(Constants.LOCATIONFILE_PROPERTY);
         validateInput(locationFile, latlonFile);
         final Product product = readProduct(locationFile);
         final GeoCoding geoCoding = product.getGeoCoding();
@@ -128,10 +126,11 @@ public class ArcPixelPosTool extends MmsTool {
     }
 
     private void createPixelPosFile() throws IOException {
-        final String locationFile = getConfiguration().getProperty(LOCATIONFILE_PROPERTY);
+        final String locationFile = getConfiguration().getProperty(Constants.LOCATIONFILE_PROPERTY);
         BufferedWriter writer = null;
         try {
-            final FileWriter fileWriter = new FileWriter(new File(locationFile + "_pixelPos"));
+            final File pixelPosfile = new File(locationFile + Constants.PIXEL_POS_SUFFIX);
+            final FileWriter fileWriter = new FileWriter(pixelPosfile);
             writer = new BufferedWriter(fileWriter);
             writer.write(buffer.toString());
         } finally {
@@ -142,8 +141,8 @@ public class ArcPixelPosTool extends MmsTool {
     }
 
     private void validateInput(final String locationFile, final String latlonFile) {
-        Assert.notNull(locationFile, MessageFormat.format("Property ''{0}'' must not be null.", LOCATIONFILE_PROPERTY));
-        Assert.notNull(latlonFile, MessageFormat.format("Property ''{0}'' must not be null.", LOCATIONFILE_PROPERTY));
+        Assert.notNull(locationFile, MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
+        Assert.notNull(latlonFile, MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
     }
 
     private void initBuffer(final String firstLine) {
