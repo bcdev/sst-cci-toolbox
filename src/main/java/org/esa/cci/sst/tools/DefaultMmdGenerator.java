@@ -68,8 +68,6 @@ class DefaultMmdGenerator implements MmdGenerator {
     private final MmsTool tool;
     private final List<Matchup> matchupList = new ArrayList<Matchup>();
 
-    private static final String VARIABLE_NAME_MATCHUP_ID = "matchup_id";
-
     DefaultMmdGenerator(final MmsTool tool) throws IOException {
         this.tool = tool;
         final String propertiesFilePath = tool.getConfiguration().getProperty("mmd.output.variables");
@@ -89,7 +87,7 @@ class DefaultMmdGenerator implements MmdGenerator {
     @Override
     public void createMmdStructure(NetcdfFileWriteable file) throws Exception {
         addDimensions(file);
-        file.addVariable(VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
@@ -151,8 +149,8 @@ class DefaultMmdGenerator implements MmdGenerator {
                 // todo - optimize: search ref. point only once per subs-scene (rq-20110403)
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
-                writeInsitu(file, matchupIndex, referenceObservation, "reference.");
-                writeInsitu(file, matchupIndex, referenceObservation, "history.");
+//                writeInsitu(file, matchupIndex, referenceObservation, "reference.");
+//                writeInsitu(file, matchupIndex, referenceObservation, "history.");
                 writeTime(file, matchupIndex, referenceObservation);
                 writeLocation(file, matchupIndex, referenceObservation);
                 for (final Coincidence coincidence : coincidences) {
@@ -236,6 +234,8 @@ class DefaultMmdGenerator implements MmdGenerator {
                         tool.getErrorHandler().handleWarning(e, MessageFormat.format(
                                 "Unable to write data for observation ''{0}'': {1}", observation, e.getMessage()));
                     }
+                } else {
+                    tool.getLogger().fine(MessageFormat.format("Skipping variable ''{0}''.", descriptor.getName()));
                 }
             }
         } finally {
@@ -255,14 +255,14 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private IOHandler createIOHandler(Observation observation) throws IOException {
-        return IOHandlerFactory.createHandler(persistenceManager, observation.getDatafile().getDataSchema().getName(),
+        return IOHandlerFactory.createHandler(tool, observation.getDatafile().getDataSchema().getName(),
                                               observation.getSensor());
     }
 
     private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
         final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
         try {
-            file.write(VARIABLE_NAME_MATCHUP_ID, new int[]{matchupIndex}, array);
+            file.write(Constants.VARIABLE_NAME_MATCHUP_ID, new int[]{matchupIndex}, array);
         } catch (InvalidRangeException e) {
             tool.getErrorHandler().handleError(e, "Unable to write matchup id.", ToolException.TOOL_ERROR);
         }
@@ -346,7 +346,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
     }
 
-    private String createDimensionString(VariableDescriptor variableDescriptor, SensorType sensorType) {
+    static String createDimensionString(VariableDescriptor variableDescriptor, SensorType sensorType) {
         final String[] dimensionNames = variableDescriptor.getDimensions().split(" ");
         final String[] dimensionRoles = variableDescriptor.getDimensionRoles().split(" ");
         final StringBuilder sb = new StringBuilder();
@@ -360,16 +360,18 @@ class DefaultMmdGenerator implements MmdGenerator {
                 sb.append(sensorType);
                 sb.append('.');
             }
-            if (!Constants.DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
-                sb.append(dimensionRole);
-            } else {
+            if (Constants.DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
                 sb.append(dimensionName);
+            } else {
+                sb.append(dimensionRole);
             }
         }
         if (!sb.toString().contains(Constants.DIMENSION_NAME_MATCHUP)) {
             sb.insert(0, Constants.DIMENSION_NAME_MATCHUP + ' ');
         }
-        return sb.toString();
+        String dimensionString = sb.toString();
+        dimensionString = dimensionString.replace(String.format("%s.%s", sensorType, sensorType), sensorType.getSensor());
+        return dimensionString;
     }
 
     private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor, String dims) {

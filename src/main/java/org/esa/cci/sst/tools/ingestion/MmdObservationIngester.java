@@ -20,7 +20,7 @@ import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.MmdReader;
+import org.esa.cci.sst.reader.MmdIOHandler;
 import org.esa.cci.sst.tools.ErrorHandler;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
@@ -47,7 +47,7 @@ class MmdObservationIngester {
     }
 
     void ingestObservations() throws ToolException {
-        final MmdReader ioHandler = (MmdReader) ingester.getIoHandler();
+        final MmdIOHandler ioHandler = (MmdIOHandler) ingester.getIoHandler();
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
             ingester.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
@@ -55,7 +55,7 @@ class MmdObservationIngester {
         }
     }
 
-    private void persistObservation(final MmdReader ioHandler, int recordNo) throws ToolException {
+    private void persistObservation(final MmdIOHandler ioHandler, int recordNo) throws ToolException {
         final PersistenceManager persistenceManager = ingester.getPersistenceManager();
         persistenceManager.transaction();
         try {
@@ -74,7 +74,7 @@ class MmdObservationIngester {
         }
     }
 
-    private void persistCoincidence(final MmdReader ioHandler, final int recordNo, final Observation observation) throws
+    private void persistCoincidence(final MmdIOHandler ioHandler, final int recordNo, final Observation observation) throws
                                                                                                                   IOException {
         final int matchupId = ioHandler.getMatchupId(recordNo);
         final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);

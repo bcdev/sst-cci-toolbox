@@ -26,6 +26,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,16 +44,6 @@ public class Arc1ProcessingTool extends MmsTool {
 
     private static final String AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
                                                                           "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
-                                                                          "     mm_coincidence c, mm_observation ref " +
-                                                                          "WHERE c.matchup_id = m.id " +
-                                                                          "AND o.id = c.observation_id " +
-                                                                          "AND df.id = o.datafile_id " +
-                                                                          "AND o.sensor LIKE 'avhrr%' " +
-                                                                          "AND ref.id = m.refobs_id " +
-                                                                          "AND ref.time >= ? " +
-                                                                          "AND ref.time < ? " +
-                                                                          "ORDER BY df.path";
-
     public Arc1ProcessingTool() {
         super("mmssubscenes.sh", "0.1");
     }
@@ -74,9 +65,9 @@ public class Arc1ProcessingTool extends MmsTool {
         final List<String> matchupIds = new ArrayList<String>();
         String currentFilename = null;
         for (AvhrrInfo info : avhrrFilesAndPoints) {
-            final String matchupId = info.getMatchupId();
-            final String point = info.getPoint();
-            final String filename = info.getFilename();
+            final String matchupId = info.matchupId;
+            final String point = info.point;
+            final String filename = info.filename;
             if (!filename.equals(currentFilename)) {
                 if (currentFilename != null) {
                     writeLatLonFile(matchupIds, geoPositions, currentFilename);
@@ -105,9 +96,9 @@ public class Arc1ProcessingTool extends MmsTool {
         final List<AvhrrInfo> avhrrInfos = new ArrayList<AvhrrInfo>(queryResultList.size());
         for (Object[] info : queryResultList) {
             final AvhrrInfo avhrrInfo = new AvhrrInfo();
-            avhrrInfo.setMatchupId(info[0].toString());
-            avhrrInfo.setPoint(info[1].toString());
-            avhrrInfo.setFilename(info[2].toString());
+            avhrrInfo.matchupId = info[0].toString();
+            avhrrInfo.point = info[1].toString();
+            avhrrInfo.filename = info[2].toString();
             avhrrInfos.add(avhrrInfo);
         }
         return avhrrInfos;
@@ -165,9 +156,16 @@ public class Arc1ProcessingTool extends MmsTool {
         try {
             date = new Date(TimeUtil.parseCcsdsUtcFormat(time));
         } catch (ParseException e) {
-            getErrorHandler().handleError(e, "Unable to parse time parameter '" + key + "'.",
+            getErrorHandler().handleError(e, MessageFormat.format("Unable to parse time parameter ''{0}''.", key),
                                           ToolException.CONFIGURATION_FILE_IO_ERROR);
         }
         return date;
+    }
+
+    private static class AvhrrInfo {
+
+        String matchupId;
+        String filename;
+        String point;
     }
 }

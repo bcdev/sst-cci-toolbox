@@ -20,7 +20,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
-import org.esa.cci.sst.reader.MmdReader;
+import org.esa.cci.sst.reader.MmdIOHandler;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
@@ -88,7 +88,7 @@ public class MmdIngester extends MmsTool {
         } catch (IOException e) {
             throw new ToolException(
                     MessageFormat.format("Unable to persist variable descriptors for sensor ''{0}''.", sensor), e,
-                                    ToolException.TOOL_ERROR);
+                    ToolException.TOOL_ERROR);
         } finally {
             persistenceManager.commit();
         }
@@ -124,7 +124,7 @@ public class MmdIngester extends MmsTool {
     private void initIOHandler(final DataFile dataFile) throws ToolException {
         final String sensor = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
         final String schemaName = getProperty(MMS_REINGESTION_SCHEMANAME_PROPERTY);
-        ioHandler = new MmdReader(delegate.getPersistenceManager(), sensor, schemaName);
+        ioHandler = new MmdIOHandler(delegate, sensor, schemaName);
         try {
             ioHandler.init(dataFile);
         } catch (IOException e) {

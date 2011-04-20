@@ -22,6 +22,8 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.IoUtil;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
@@ -31,19 +33,22 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 /**
- * Reader for reading from an mmd file. Does not implement the <code>write</code>-method.
+ * IOHandler for reading from and writing to an mmd file.
  *
  * @author Thomas Storm
  */
-public class MmdReader implements IOHandler {
+public class MmdIOHandler implements IOHandler {
 
     private static final String DATAFILE_QUERY = "SELECT df " +
                                                  "FROM DataFile df, DataSchema ds " +
@@ -58,21 +63,33 @@ public class MmdReader implements IOHandler {
                                                "WHERE o.id = m.refobs_id " +
                                                "AND m.id = %d";
 
+    private static final String CORRESPONDING_VARIABLE_QUERY = "SELECT v " +
+                                                               "FROM VariableDescriptor v, DataSchema d " +
+                                                               "WHERE v.name = '%s' " +
+                                                               "AND v.dataSchema.id = d.id " +
+                                                               "AND NOT d.name = '%s'";
+
     private static final String VARIABLE_NAME_MATCHUP = "matchup_id";
+
     private static final String VARIABLE_NAME_SEA_SURFACE_TEMPERATURE = "atsr.3.sea_surface_temperature.ARC.N2";
 
     private NetcdfFile mmd;
     private int maxRecordNumber = -1;
 
     private final PersistenceManager persistenceManager;
+    private final MmsTool tool;
     private final String sensor;
     private final String schemaName;
     private Variable matchupIds;
+    private Properties targetVariables;
 
-    public MmdReader(final PersistenceManager persistenceManager, final String sensor, final String schemaName) {
-        this.persistenceManager = persistenceManager;
+    public MmdIOHandler(final MmsTool tool, final String sensor, final String schemaName) {
+        this.tool = tool;
+        this.persistenceManager = tool.getPersistenceManager();
         this.sensor = sensor;
         this.schemaName = schemaName;
+        final String propertiesFilePath = tool.getConfiguration().getProperty("mmd.output.variables");
+        loadTargetVariables(propertiesFilePath);
     }
 
     @Override
@@ -116,53 +133,49 @@ public class MmdReader implements IOHandler {
         return observation;
     }
 
-    private void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
-        final Date creationDate = getCreationDate(recordNo);
-        observation.setTime(creationDate);
-    }
-
-    private void setObservationRecordNo(final RelatedObservation observation) {
-        if (maxRecordNumber == -1) {
-            final Query maxRecordNumberQuery = persistenceManager.createNativeQuery(MAXIMUM_RECORD_NUMBER,
-                                                                                    Integer.class);
-            maxRecordNumber = (Integer) maxRecordNumberQuery.getSingleResult();
-        }
-
-        maxRecordNumber++;
-        observation.setRecordNo(maxRecordNumber);
-    }
-
     @Override
     public VariableDescriptor[] getVariableDescriptors() throws IOException {
         final List<VariableDescriptor> variableDescriptors = new ArrayList<VariableDescriptor>();
         final List<Variable> variables = mmd.getVariables();
         final DataFile datafile = getDatafile();
         for (Variable variable : variables) {
-            variableDescriptors.add(createVariableDescriptor(variable, datafile));
+            if (targetVariables.isEmpty() || targetVariables.containsKey(variable.getName())) {
+                final VariableDescriptor variableDescriptor = createVariableDescriptor(variable, datafile);
+                copyVariableProperties(variable, variableDescriptor);
+                if (variableDescriptor.getDimensionRoles() == null) {
+                    variableDescriptor.setDimensionRoles(variableDescriptor.getDimensions());
+                }
+                variableDescriptors.add(variableDescriptor);
+            }
         }
         return variableDescriptors.toArray(new VariableDescriptor[variableDescriptors.size()]);
     }
 
+    
+    @Override
+    public InsituRecord readInsituRecord(int recordNo) {
+        return null;
+    } 
+    
     @Override
     public void write(final NetcdfFileWriteable targetFile, final Observation sourceObservation,
                       final String sourceVariableName, final String targetVariableName, final int targetRecordNumber,
                       final PGgeometry refPoint, final Date refTime) throws IOException {
-        throw new IllegalStateException("not needed, therefore not implemented");
-    }
+    
+        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
+        final int[] origin = new int[targetVariable.getRank()];
+        origin[0] = targetRecordNumber;
 
-    @Override
-    public InsituRecord readInsituRecord(int recordNo) {
-        return null;
+        try {
+            final Array variableData = getData(sourceVariableName, sourceObservation.getRecordNo());
+            targetFile.write(NetcdfFile.escapeName(targetVariableName), origin, variableData);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
     }
 
     public int getMatchupId(final int recordNo) throws IOException {
-        final Array matchupId;
-        try {
-            matchupId = matchupIds.read(new int[]{recordNo}, new int[]{1});
-        } catch (InvalidRangeException e) {
-            throw new IOException(
-                    MessageFormat.format("Unable to read matchup_id from file ''{0}''.", mmd.getLocation()), e);
-        }
+        final Array matchupId = readData(matchupIds, new int[]{recordNo}, new int[]{1});
         return matchupId.getInt(0);
     }
 
@@ -180,12 +193,7 @@ public class MmdReader implements IOHandler {
 
     Date getCreationDate(final int matchupId) throws IOException {
         final Variable variable = mmd.findVariable(Constants.VARIABLE_NAME_TIME);
-        final Array timeArray;
-        try {
-            timeArray = variable.read(new int[]{matchupId}, new int[]{1});
-        } catch (Exception e) {
-            throw new IOException("Unable to read time.", e);
-        }
+        final Array timeArray = readData(variable, new int[]{matchupId}, new int[]{1});
         final long time = (long) timeArray.getDouble(0);
         return new Date(time);
     }
@@ -204,6 +212,69 @@ public class MmdReader implements IOHandler {
         observation.setLocation(geometry);
     }
 
+    private Array getData(final String sourceVariableName, final int recordNo) throws IOException {
+        final Variable variable = mmd.findVariable(NetcdfFile.escapeName(sourceVariableName));
+        if (recordNo >= variable.getShape()[0]) {
+            throw new IllegalArgumentException("recordNo >= variable.getShape()[0]");
+        }
+        final int[] origin = new int[variable.getRank()];
+        origin[0] = recordNo;
+        final int[] shape = variable.getShape();
+        shape[0] = 1;
+        return readData(variable, origin, shape);
+    }
+
+    private Array readData(final Variable variable, final int[] origin, final int[] shape) throws IOException {
+        try {
+            return variable.read(origin, shape);
+        } catch (InvalidRangeException e) {
+            throw new IOException(
+                    MessageFormat.format("Unable to read from file ''{0}''.", mmd.getLocation()), e);
+        }
+    }
+
+    private void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
+        final Date creationDate = getCreationDate(recordNo);
+        observation.setTime(creationDate);
+    }
+
+    private void setObservationRecordNo(final RelatedObservation observation) {
+        if (maxRecordNumber == -1) {
+            final Query maxRecordNumberQuery = persistenceManager.createNativeQuery(MAXIMUM_RECORD_NUMBER,
+                                                                                    Integer.class);
+            maxRecordNumber = (Integer) maxRecordNumberQuery.getSingleResult();
+        }
+
+        maxRecordNumber++;
+        observation.setRecordNo(maxRecordNumber);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private void copyVariableProperties(final Variable variable, final VariableDescriptor variableDescriptor) {
+        final VariableDescriptor sourceDescriptor = getSourceDescriptor(variable);
+        if (sourceDescriptor != null) {
+            variableDescriptor.setDimensionRoles(sourceDescriptor.getDimensionRoles());
+            variableDescriptor.setAddOffset(sourceDescriptor.getAddOffset());
+            variableDescriptor.setFillValue(sourceDescriptor.getFillValue());
+            variableDescriptor.setScaleFactor(sourceDescriptor.getScaleFactor());
+            variableDescriptor.setStandardName(sourceDescriptor.getStandardName());
+            variableDescriptor.setUnits(sourceDescriptor.getUnits());
+            variableDescriptor.setValidMin(sourceDescriptor.getValidMin());
+            variableDescriptor.setValidMax(sourceDescriptor.getValidMax());
+        }
+    }
+
+    private VariableDescriptor getSourceDescriptor(final Variable variable) {
+        final String schemaName = tool.getConfiguration().getProperty("mms.reingestion.schemaname");
+        final String queryString = String.format(CORRESPONDING_VARIABLE_QUERY, variable.getName(), schemaName);
+        final Query query = persistenceManager.createQuery(queryString);
+        final List<VariableDescriptor> resultList = query.getResultList();
+        if (resultList.isEmpty()) {
+            return null;
+        }
+        return resultList.get(0);
+    }
+
     private VariableDescriptor createVariableDescriptor(final Variable variable, final DataFile dataFile) {
         final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensor);
         variableDescriptor.setDataSchema(dataFile.getDataSchema());
@@ -219,6 +290,16 @@ public class MmdReader implements IOHandler {
     private void validateFileLocation(final String fileLocation) throws IOException {
         if (!NetcdfFile.canOpen(fileLocation)) {
             throw new IOException(MessageFormat.format("File ''{0}'' cannot be opened.", fileLocation));
+        }
+    }
+
+    private void loadTargetVariables(final String propertiesFilePath) {
+        try {
+            final InputStream is = new FileInputStream(propertiesFilePath);
+            targetVariables = new Properties();
+            targetVariables.load(is);
+        } catch (IOException e) {
+            tool.getErrorHandler().handleError(e, "Unable to read properties.", ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 }
