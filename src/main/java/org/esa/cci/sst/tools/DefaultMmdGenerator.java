@@ -330,7 +330,7 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private void addVariables(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
-        final Query query = createVariablesQuery(sensorName);
+        final Query query = createVariableDescriptorsQuery(sensorName);
         @SuppressWarnings({"unchecked"})
         final List<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
         Collections.sort(descriptorList, new Comparator<VariableDescriptor>() {
@@ -373,6 +373,7 @@ class DefaultMmdGenerator implements MmdGenerator {
     }
 
     private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor, String dims) {
+        // todo - apply descriptor rules here (rq-20110420)
         final DataType dataType = DataType.valueOf(descriptor.getType());
         final String targetVariableName = getTargetVariableName(descriptor.getName());
         if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
@@ -385,7 +386,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         }
     }
 
-    private Query createVariablesQuery(String sensorName) {
+    private Query createVariableDescriptorsQuery(String sensorName) {
         return persistenceManager.createQuery(String.format(
                 "select v from VariableDescriptor v where v.name like '%s.%%' order by v.name", sensorName));
     }
