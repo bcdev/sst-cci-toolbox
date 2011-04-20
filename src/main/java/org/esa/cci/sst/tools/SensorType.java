@@ -41,8 +41,7 @@ public enum SensorType {
     ATSR(RelatedObservation.class, 0x40, "atsr1", "atsr2", "aatsr"),
     AAI(Observation.class, 0x80, "aai"),
     SEAICE(RelatedObservation.class, 0x0100, "seaice"),
-    HISTORY(InsituObservation.class, 0x0200, "history"),
-    ARC(Observation.class, 0x0400, "ARC");
+    HISTORY(InsituObservation.class, 0x0200, "history");
 
     private final Class<? extends Observation> observationClass;
     private final long pattern;
