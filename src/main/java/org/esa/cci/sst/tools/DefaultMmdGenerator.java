@@ -26,8 +26,6 @@ import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
 import org.esa.cci.sst.reader.InsituRecord;
 import org.esa.cci.sst.reader.InsituVariable;
-import org.esa.cci.sst.reader.MdIOHandler;
-import org.esa.cci.sst.util.IoUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -38,6 +36,7 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import javax.naming.OperationNotSupportedException;
 import javax.persistence.Query;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -79,6 +78,12 @@ class DefaultMmdGenerator implements MmdGenerator {
         targetVariables.load(is);
         persistenceManager = tool.getPersistenceManager();
         initDimensionCountMap();
+    }
+
+    public static Array toArray2D(Number value) {
+        final Array array = Array.factory(value.getClass(), new int[]{1, 1});
+        array.setObject(0, value);
+        return array;
     }
 
     @Override
@@ -166,16 +171,21 @@ class DefaultMmdGenerator implements MmdGenerator {
 
     private void writeInsitu(NetcdfFileWriteable targetFile, int targetRecordNo,
                              ReferenceObservation referenceObservation, String prefix) throws IOException {
-        MdIOHandler handler = null;
+        IOHandler handler = null;
         try {
-            handler = (MdIOHandler) createIOHandler(referenceObservation);
-            final InsituRecord record = handler.readInsituRecord(referenceObservation.getRecordNo());
+            handler = createIOHandler(referenceObservation);
+            final InsituRecord record;
+            try {
+                record = handler.readInsituRecord(referenceObservation.getRecordNo());
+            } catch (OperationNotSupportedException e) {
+                throw new RuntimeException(e); // cannot happen
+            }
             for (final InsituVariable v : InsituVariable.values()) {
                 final String prefixedName = prefix + v.getName();
                 if (targetVariables.isEmpty() || targetVariables.containsKey(prefixedName)) {
                     final Number variableValue = record.getValue(v);
                     targetFile.write(NetcdfFile.escapeName(prefixedName), new int[]{targetRecordNo, 0},
-                                     IoUtil.toArray2D(variableValue));
+                                     toArray2D(variableValue));
                 }
             }
         } catch (InvalidRangeException e) {

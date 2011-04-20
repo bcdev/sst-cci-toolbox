@@ -6,6 +6,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +33,10 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
 
     /**
      * Maybe deflates gz files, initialises reader
-     * @param dataFile  the file to be ingested
-     * @throws IOException  if temporary decompression or opening the file with the product reader fails
+     *
+     * @param dataFile the file to be ingested
+     *
+     * @throws IOException if temporary decompression or opening the file with the product reader fails
      */
     @Override
     public final void init(DataFile dataFile) throws IOException {
@@ -63,6 +66,7 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
     public final void close() {
         delegate.close();
         if (tmpFile != null && tmpFile.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             tmpFile.delete();
         }
         tmpFile = null;
@@ -96,17 +100,28 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
      * Delegates to implementation IOHandler
      */
     @Override
-    public void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName, String targetVariableName, int targetRecordNumber, PGgeometry refPoint, Date refTime) throws IOException {
-        delegate.write(targetFile, sourceObservation, sourceVariableName, targetVariableName, targetRecordNumber, refPoint, refTime);
+    public void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
+                      String targetVariableName, int targetRecordNumber, PGgeometry refPoint, Date refTime) throws
+                                                                                                            IOException {
+        delegate.write(targetFile, sourceObservation, sourceVariableName, targetVariableName, targetRecordNumber,
+                       refPoint, refTime);
+    }
+
+    @Override
+    public InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException {
+        return delegate.readInsituRecord(recordNo);
     }
 
     /**
      * Constructs File with suffix of original file without "dotgz" in tmp dir.
      * The tmp dir can be configured with property java.io.tmpdir.
      * Else, it is a system default.
-     * @param dataFilePath  path of the .gz file
+     *
+     * @param dataFilePath path of the .gz file
+     *
      * @return File in tmp dir
-     * @throws IOException  if the tmp file could not be created
+     *
+     * @throws IOException if the tmp file could not be created
      */
     private static File tmpFileFor(String dataFilePath) throws IOException {
         // chop of path before filename and ".gz" suffix to determine filename
@@ -123,9 +138,11 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
 
     /**
      * Uncompresses a file in gzip format to a tmp file.
-     * @param gzipFile  existing file in gzip format
-     * @param tmpFile   new file for the uncompressed content
-     * @throws IOException  if reading the input, decompression, or writing the output fails
+     *
+     * @param gzipFile existing file in gzip format
+     * @param tmpFile  new file for the uncompressed content
+     *
+     * @throws IOException if reading the input, decompression, or writing the output fails
      */
     private static void decompressToTmpFile(File gzipFile, File tmpFile) throws IOException {
         InputStream in = null;

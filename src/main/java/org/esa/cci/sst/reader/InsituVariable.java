@@ -10,16 +10,16 @@ import ucar.nc2.Attribute;
  */
 public enum InsituVariable {
     TIME("insitu.time", DataType.DOUBLE,
-         new Attribute("long_name", "time of in-situ sst"),
-         new Attribute("units", "Julian data format UTC")),
+         new Attribute("long_name", "time of in situ measurement"),
+         new Attribute("units", "seconds since 1978-01-01 00:00:00")),
     LAT("insitu.latitude", DataType.FLOAT,
-        new Attribute("long_name", "latitude"),
+        new Attribute("long_name", "in situ latitude"),
         new Attribute("units", "degrees_north")),
     LON("insitu.longitude", DataType.FLOAT,
-        new Attribute("long_name", "longitude"),
+        new Attribute("long_name", "in situ longitude"),
         new Attribute("units", "degrees_east")),
     SST("insitu.sea_surface_temperature", DataType.FLOAT,
-        new Attribute("long_name", "sea surface temperature"),
+        new Attribute("long_name", "in situ sea surface temperature"),
         new Attribute("units", "kelvin"),
         new Attribute("_FillValue", -32768.0f));
 

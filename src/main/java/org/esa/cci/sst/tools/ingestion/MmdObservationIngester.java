@@ -92,7 +92,7 @@ class MmdObservationIngester {
 
     private void setCoincidenceTimeDelta(final Matchup matchup, final Observation observation,
                                          final Coincidence coincidence) {
-        final int timeDelta = TimeUtil.computeTimeDelta(matchup, observation);
+        final double timeDelta = TimeUtil.computeTimeDelta(matchup, observation);
         coincidence.setTimeDifference(timeDelta);
     }
 

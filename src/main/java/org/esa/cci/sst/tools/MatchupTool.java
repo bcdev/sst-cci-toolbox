@@ -424,8 +424,7 @@ public class MatchupTool extends MmsTool {
      * @return newly created Coincidence relating matchup and common observation
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
-
-        final int timeDifference = TimeUtil.computeTimeDelta(matchup, observation);
+        final double timeDifference = TimeUtil.computeTimeDelta(matchup, observation);
         final Coincidence coincidence = new Coincidence();
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);

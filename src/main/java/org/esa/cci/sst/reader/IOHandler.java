@@ -6,6 +6,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
 import java.util.Date;
 
@@ -72,4 +73,13 @@ public interface IOHandler {
     void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
                String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
                                                                                                                  IOException;
+
+    /**
+     * Reads a record of in-situ data.
+     *
+     * @param recordNo The record number.
+     *
+     * @return the in-situ data record with record number {@code recordNo}.
+     */
+    InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException;
 }

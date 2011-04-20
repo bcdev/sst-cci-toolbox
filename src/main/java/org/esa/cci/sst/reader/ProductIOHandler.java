@@ -35,6 +35,7 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import javax.naming.OperationNotSupportedException;
 import java.awt.Rectangle;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
@@ -184,6 +185,11 @@ public class ProductIOHandler implements IOHandler {
         } catch (Exception e) {
             throw new IOException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public InsituRecord readInsituRecord(int recordNo) throws OperationNotSupportedException {
+        throw new OperationNotSupportedException();
     }
 
     private PixelPos findPixelPos(PGgeometry refPoint) throws IOException {

@@ -150,6 +150,11 @@ public class MmdReader implements IOHandler {
         throw new IllegalStateException("not needed, therefore not implemented");
     }
 
+    @Override
+    public InsituRecord readInsituRecord(int recordNo) {
+        return null;
+    }
+
     public int getMatchupId(final int recordNo) throws IOException {
         final Array matchupId;
         try {

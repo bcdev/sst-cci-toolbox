@@ -5,10 +5,16 @@ import org.esa.cci.sst.data.Observation;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public final class TimeUtil {
+
+    public static final double MILLIS_PER_DAY = 86400000.0;
+    public static final double SECONDS_PER_DAY = 86400.0;
 
     private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -16,19 +22,13 @@ public final class TimeUtil {
             "yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss,SSS");
-    private static final double JD_EPOCH = 2440587.5;
-    private static final long MILLIS_1981;
-    public static final double MILLIS_PER_DAY = 86400000.0;
+    private static final double EPOCH_JD = 2440587.5;
+    private static final long MILLIS_1978 = createCalendar(1978, 0, 1, 0, 0, 0).getTimeInMillis();
+    private static final long MILLIS_1981 = createCalendar(1981, 0, 1, 0, 0, 0).getTimeInMillis();
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         CCSDS_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        try {
-            MILLIS_1981 = TimeUtil.parseCcsdsUtcFormat("1981-01-01T00:00:00Z");
-        } catch (ParseException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     private TimeUtil() {
@@ -42,35 +42,41 @@ public final class TimeUtil {
         return CCSDS_UTC_FORMAT.format(time);
     }
 
-    private static String formatCcsdsUtcFormat(long timeInMillis) {
-        return CCSDS_UTC_FORMAT.format(new Date(timeInMillis));
-    }
-
-    private static long parseCcsdsLocalTimeWithoutT(String timeString) throws ParseException {
-        return CCSDS_LOCAL_WITHOUT_T_FORMAT.parse(timeString).getTime();
-    }
-
     public static long parseCcsdsUtcFormat(String timeString) throws ParseException {
-        if (timeString.length() == "yyyy-MM-ddTHH:MM:ssZ".length()) {
+        if (timeString.length() == 20) {
             return CCSDS_UTC_FORMAT.parse(timeString).getTime();
         }
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString).getTime();
     }
 
-    public static Date toDate(double julianDate) {
-        return new Date((long) ((julianDate - JD_EPOCH) * MILLIS_PER_DAY));
+    public static Date julianDateToDate(double julianDate) {
+        return new Date((long) ((julianDate - EPOCH_JD) * MILLIS_PER_DAY));
+    }
+
+    public static double julianDateToSecondsSinceEpoch(double julianDate) {
+        return (julianDate - EPOCH_JD) * SECONDS_PER_DAY - MILLIS_1978 / 1000.0;
     }
 
     public static double toJulianDate(Date date) {
-        return date.getTime() / MILLIS_PER_DAY + JD_EPOCH;
+        return date.getTime() / MILLIS_PER_DAY + EPOCH_JD;
     }
 
     public static Date secondsSince1981ToDate(double secondsSince1981) {
         return new Date(MILLIS_1981 + (long) (secondsSince1981 * 1000.0));
     }
 
-    public static int computeTimeDelta(final Matchup matchup, final Observation observation) {
-        return (int) Math.abs(
-                    (matchup.getRefObs().getTime().getTime() - observation.getTime().getTime()) / 1000);
+    public static double secondsSince1981ToSecondsSinceEpoch(double secondsSince1981) {
+        return secondsSince1981 + (MILLIS_1981 - MILLIS_1978) / 1000.0;
+    }
+
+    public static double computeTimeDelta(final Matchup matchup, final Observation observation) {
+        return Math.abs(matchup.getRefObs().getTime().getTime() - observation.getTime().getTime()) / 1000.0;
+    }
+
+    private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
+        final GregorianCalendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+        c.clear();
+        c.set(year, month, date, hour, minute, second);
+        return c;
     }
 }

@@ -22,17 +22,10 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
-import ucar.ma2.Array;
-import ucar.ma2.IndexIterator;
-import ucar.ma2.InvalidRangeException;
-import ucar.ma2.Range;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Utility class for commonly used IO utility functions.
@@ -131,11 +124,5 @@ public class IoUtil {
         if (units != null && !units.isEmpty()) {
             descriptor.setUnits(units);
         }
-    }
-
-    public static Array toArray2D(Number value) {
-        final Array array = Array.factory(value.getClass(), new int[]{1, 1});
-        array.setObject(0, value);
-        return array;
     }
 }

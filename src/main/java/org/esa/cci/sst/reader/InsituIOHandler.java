@@ -85,8 +85,9 @@ class InsituIOHandler extends NetcdfIOHandler {
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 
-        final Date startTime = TimeUtil.toDate(historyTimes.getDouble(0));
-        final Date endTime = TimeUtil.toDate(historyTimes.getDouble(historyTimes.getIndexPrivate().getShape(0) - 1));
+        final Date startTime = TimeUtil.julianDateToDate(historyTimes.getDouble(0));
+        final Date endTime = TimeUtil.julianDateToDate(
+                historyTimes.getDouble(historyTimes.getIndexPrivate().getShape(0) - 1));
         observation.setTime(IoUtil.centerTime(startTime, endTime));
         observation.setTimeRadius(IoUtil.timeRadius(startTime, endTime));
 

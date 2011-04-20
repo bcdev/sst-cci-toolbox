@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
@@ -16,6 +17,7 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
+import ucar.nc2.VariableIF;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -197,10 +199,63 @@ public abstract class MdIOHandler extends NetcdfIOHandler {
      *
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
-    public int getShort(String role, int recordNo) throws IOException {
+    public short getShort(String role, int recordNo) throws IOException {
         final int offset = fetch(recordNo);
         Object variableData = data.get(role);
         return ((ArrayShort.D1) variableData).get(recordNo - offset);
+    }
+
+    /**
+     * Returns a record value contained in a numeric array.
+     *
+     * @param role     The variable name.
+     * @param recordNo The record number in range 0 .. numRecords-1.
+     *
+     * @return the record value as {@code Number}.
+     *
+     * @throws IOException if the record number is out of range 0 .. numRecords-1 or if file io fails.
+     */
+    public Number getNumber(String role, int recordNo) throws IOException {
+        final int offset = fetch(recordNo);
+        final Array variableData = data.get(role);
+        return (Number) variableData.getObject(recordNo - offset);
+    }
+
+    /**
+     * Returns a record value contained in a numeric array, which is properly scaled
+     * according to a variable' s attributes.
+     *
+     * @param role     The variable name.
+     * @param recordNo The record number in range 0 .. numRecords-1.
+     *
+     * @return the record value as {@code Number}.
+     *
+     * @throws IOException if the record number is out of range 0 .. numRecords-1 or if file io fails.
+     */
+    public Number getNumberScaled(String role, int recordNo) throws IOException {
+        return getNumberScaled(getNcFile(), role, getNumber(role, recordNo));
+    }
+
+    private static Number getNumberScaled(NetcdfFile ncFile, String variableName, Number number) throws IOException {
+        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(variableName));
+        return getNumberScaled(variable, number);
+    }
+
+    private static Number getNumberScaled(VariableIF variable, Number number) throws IOException {
+        Assert.notNull(variable);
+        Assert.notNull(number);
+        final double factor = getAttribute(variable, "scale_factor", 1.0).doubleValue();
+        final double offset = getAttribute(variable, "add_offset", 0.0).doubleValue();
+
+        return factor * number.doubleValue() + offset;
+    }
+
+    private static Number getAttribute(VariableIF variable, String attributeName, Number defaultValue) {
+        final Attribute attribute = variable.findAttribute(attributeName);
+        if (attribute == null) {
+            return defaultValue;
+        }
+        return attribute.getNumericValue();
     }
 
     /**
@@ -392,6 +447,4 @@ public abstract class MdIOHandler extends NetcdfIOHandler {
      * @return variable name
      */
     abstract protected String getSstVariableName();
-
-    abstract public InsituRecord readInsituRecord(int recordNo);
 }
