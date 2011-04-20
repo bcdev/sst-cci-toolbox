@@ -133,7 +133,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         try {
             final List<Matchup> resultList = getMatchups();
             final int matchupCount = resultList.size();
-            final LandWaterMaskWriter landWaterMaskWriter = new LandWaterMaskWriter(file);
+            final LandWaterMaskWriter landWaterMaskWriter = new LandWaterMaskWriter(file, tool);
             for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
                 final Matchup matchup = resultList.get(matchupIndex);
                 final ReferenceObservation referenceObservation = matchup.getRefObs();

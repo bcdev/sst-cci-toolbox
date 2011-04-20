@@ -27,40 +27,61 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Properties;
 
 /**
- * Writes a land water mask band to a given netcdf file. That file has to comprise the correct structure already (a
- * variable named {@code Constants.VARIABLE_NAME_WATERMASK}, dimensions named 'aatsr.latitude' and 'aatsr.longitude',
- * and their corresponding dimensions 'atsr.ni' and 'atsr.ni').
+ * Writes a land water mask band to a given netcdf file. That file has to comprise the correct structure already, that
+ * is, the given latitude and longitude variables have to exist as well as the x and y dimensions. Additionally, the
+ * lat/lon variables have to be written to the file before the land water mask is written.
  *
  * @author Thomas Storm
  */
 class LandWaterMaskWriter {
 
     private final NetcdfFileWriteable file;
+    private final MmsTool tool;
     private final Variable latitude;
     private final Variable longitude;
     private final WatermaskClassifier classifier;
 
     private int matchupIndex;
 
-    LandWaterMaskWriter(final NetcdfFileWriteable file) throws IOException {
+    LandWaterMaskWriter(final NetcdfFileWriteable file, final MmsTool tool) throws IOException {
         this.file = file;
-        latitude = file.findVariable(NetcdfFile.escapeName("aatsr.latitude"));
-        longitude = file.findVariable(NetcdfFile.escapeName("aatsr.longitude"));
+        this.tool = tool;
+        final String sourceLat = NetcdfFile.escapeName(getProperty("mmd.watermask.source.latitude"));
+        latitude = file.findVariable(sourceLat);
+        final String sourceLon = NetcdfFile.escapeName(getProperty("mmd.watermask.source.longitude"));
+        longitude = file.findVariable(sourceLon);
         classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50);
     }
 
     void writeLandWaterMask(int matchupIndex) throws IOException {
         this.matchupIndex = matchupIndex;
-        final Dimension xDimension = file.findDimension("atsr.ni");
-        final Dimension yDimension = file.findDimension("atsr.nj");
+        final Dimension xDimension = file.findDimension(getProperty("mmd.watermask.target.xdimension"));
+        final Dimension yDimension = file.findDimension(getProperty("mmd.watermask.target.ydimension"));
         for (int x = 0; x < xDimension.getLength(); x++) {
             for (int y = 0; y < yDimension.getLength(); y++) {
-                final Array value = getValue(x, y);
+                final Array value = tryAndGetValue(x, y);
+                if (value == null) {
+                    return;
+                }
                 writeValue(value, new int[]{matchupIndex, x, y});
             }
         }
+    }
+
+    private Array tryAndGetValue(final int x, final int y) {
+        Array value = null;
+        try {
+            value = getValue(x, y);
+        } catch (IOException e) {
+            final String message = MessageFormat.format(
+                    "Unable to write land/water mask for matchup with index ''{0}''. Reason: ''{1}''.",
+                    matchupIndex, e.getMessage());
+            tool.getLogger().warning(message);
+        }
+        return value;
     }
 
     private Array getValue(final int x, final int y) throws IOException {
@@ -91,4 +112,8 @@ class LandWaterMaskWriter {
         return latArray.getFloat(0);
     }
 
+    private String getProperty(final String key) {
+        final Properties configuration = tool.getConfiguration();
+        return configuration.getProperty(key);
+    }
 }
