@@ -129,6 +129,7 @@ class InsituIOHandler extends NetcdfIOHandler {
             if (range != Range.EMPTY) {
                 final List<Range> subsampling = createSubsampling(historyTimes, range, targetVariable.getShape(1));
                 final Array source = sourceVariable.read();
+                // todo - convert values here (rq-20110420)
                 final Array subset = createSubset(source, subsampling);
                 writeSubset(targetFile, targetVariable, matchupIndex, subset);
             }

@@ -70,9 +70,11 @@ public interface IOHandler {
      *
      * @throws java.io.IOException If observation data could not be written into the file.
      */
+    // todo - supply target descriptor instead of target variable name here (rq-20110420)
     void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
                String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
                                                                                                                  IOException;
+
 
     /**
      * Reads a record of in-situ data.
