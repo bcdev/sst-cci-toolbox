@@ -54,7 +54,8 @@ public class ArcPixelPosTool extends MmsTool {
     public static void main(String[] args) throws ToolException {
         final ArcPixelPosTool tool = new ArcPixelPosTool();
         tool.setCommandLineArgs(args);
-        tool.initialize();
+        // do not initialise, no connection to database required
+        // tool.initialize();
         try {
             tool.createPixelPositions();
             tool.createPixelPosFile();
@@ -89,9 +90,9 @@ public class ArcPixelPosTool extends MmsTool {
         buffer.append('\t');
         buffer.append(parseMatchupId(line));
         buffer.append('\t');
-        buffer.append(pixelPos.x);
+        buffer.append((int) pixelPos.x);
         buffer.append('\t');
-        buffer.append(pixelPos.y);
+        buffer.append((int) pixelPos.y);
         buffer.append('\n');
     }
 
@@ -119,7 +120,7 @@ public class ArcPixelPosTool extends MmsTool {
             final ProductReader reader = arcReaderPlugIn.createReaderInstance();
             product = reader.readProductNodes(locationFile, null);
         } catch (IOException e) {
-            throw new ToolException(MessageFormat.format("File ''{0}'' could not be read.", locationFile), e,
+            throw new ToolException(MessageFormat.format("File ''{0}'' could not be read: {1}", locationFile, e.toString()), e,
                                     ToolException.TOOL_ERROR);
         }
         return product;
