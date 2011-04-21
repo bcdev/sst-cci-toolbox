@@ -13,8 +13,9 @@ import javax.persistence.Table;
  * @author Martin Boettcher
  */
 @Entity
-@Table(name="mm_variable")
+@Table(name = "mm_variable")
 public class VariableDescriptor {
+
     int id;
     DataSchema dataSchema;
     String role;
@@ -30,6 +31,25 @@ public class VariableDescriptor {
     Number validMin;
     Number validMax;
     String longName;
+
+    public VariableDescriptor() {
+    }
+
+    public VariableDescriptor(VariableDescriptor descriptor) {
+        dataSchema = descriptor.dataSchema;
+        name = descriptor.name;
+        longName = descriptor.longName;
+        type = descriptor.type;
+        dimensions = descriptor.dimensions;
+        dimensionRoles = descriptor.dimensionRoles;
+        units = descriptor.units;
+        standardName = descriptor.standardName;
+        addOffset = descriptor.addOffset;
+        scaleFactor = descriptor.scaleFactor;
+        fillValue = descriptor.fillValue;
+        validMin = descriptor.validMin;
+        validMax = descriptor.validMax;
+    }
 
     @Id
     @GeneratedValue
@@ -74,6 +94,7 @@ public class VariableDescriptor {
         this.dimensions = dimensions;
     }
 
+    // todo - get rid of this method (rq-20110421)
     public String getDimensionRoles() {
         return dimensionRoles;
     }
@@ -151,12 +172,9 @@ public class VariableDescriptor {
         return this == anObject || anObject instanceof VariableDescriptor && this.getId() == ((VariableDescriptor) anObject).getId();
     }
 
-	@Override
-	public int hashCode() {
-		return 31 * getId();
-	}
-
-    public String getBasename() {
-        return getName().substring(getName().indexOf('.') + 1);
+    @Override
+    public int hashCode() {
+        return 31 * getId();
     }
+
 }

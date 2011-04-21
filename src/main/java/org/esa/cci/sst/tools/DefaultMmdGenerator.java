@@ -227,7 +227,8 @@ class DefaultMmdGenerator implements MmdGenerator {
             ioHandler.init(observation.getDatafile());
             for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
-                    final String sourceVariableName = descriptor.getBasename();
+                    final String sourceVariableName = descriptor.getName().substring(
+                            descriptor.getName().indexOf('.') + 1);
                     final String targetVariableName = getTargetVariableName(descriptor.getName());
                     try {
                         ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
