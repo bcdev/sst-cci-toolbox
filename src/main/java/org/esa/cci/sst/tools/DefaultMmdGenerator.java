@@ -149,8 +149,8 @@ class DefaultMmdGenerator implements MmdGenerator {
                 // todo - optimize: search ref. point only once per subs-scene (rq-20110403)
                 writeMatchupId(file, matchupId, matchupIndex);
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
-//                writeInsitu(file, matchupIndex, referenceObservation, "reference.");
-//                writeInsitu(file, matchupIndex, referenceObservation, "history.");
+                writeInsitu(file, matchupIndex, referenceObservation, "reference.");
+                writeInsitu(file, matchupIndex, referenceObservation, "history.");
                 writeTime(file, matchupIndex, referenceObservation);
                 writeLocation(file, matchupIndex, referenceObservation);
                 for (final Coincidence coincidence : coincidences) {
