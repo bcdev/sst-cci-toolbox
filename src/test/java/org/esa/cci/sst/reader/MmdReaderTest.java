@@ -17,25 +17,25 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.MmsTool;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 
 import static org.junit.Assert.*;
 
 /**
+ *
  * @author Thomas Storm
  */
-public class MmdIOHandlerTest {
+public class MmdReaderTest {
 
     public static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
-
+    private MmdReader mmdReader;
     private MmdIOHandler mmdIOHandler;
 
     @Before
@@ -43,43 +43,18 @@ public class MmdIOHandlerTest {
         final MmsTool tool = new MmsTool("dummy", "version");
         tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
         tool.initialize();
+        final PersistenceManager persistenceManager = tool.getPersistenceManager();
         final String sensor = tool.getConfiguration().getProperty("mms.reingestion.sensor");
         final String schemaName = tool.getConfiguration().getProperty("mms.reingestion.schemaname");
         mmdIOHandler = new MmdIOHandler(tool, sensor, schemaName);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        try {
-            mmdIOHandler.close();
-        } catch (IllegalStateException ignore) {
-            // ok
-        }
-        mmdIOHandler = null;
-    }
-
-    @Test(expected = IOException.class)
-    public void testFailingInit() throws Exception {
-        final DataFile dataFile = new DataFile();
-        dataFile.setPath("pom.xml");
-        mmdIOHandler.init(dataFile);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testFailingClose() throws Exception {
-        mmdIOHandler.close();
+        final NetcdfFile mmd = NetcdfFile.open(getClass().getResource(TEST_WITH_ACTUAL_DATA).getFile());
+        mmdReader = new MmdReader(mmdIOHandler, persistenceManager, mmd, sensor, schemaName);
     }
 
     @Test
-    public void testInit() throws Exception {
+    public void testGetNumRecords() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
-        final Field mmd = mmdIOHandler.getClass().getDeclaredField("mmd");
-        mmd.setAccessible(true);
-        final NetcdfFile mmdObj = (NetcdfFile) mmd.get(mmdIOHandler);
-
-        assertNotNull(mmdObj);
-        final String location = mmdObj.getLocation();
-        assertEquals(TEST_WITH_ACTUAL_DATA, location.substring(location.lastIndexOf("/") + 1, location.length()));
+        assertEquals(10, mmdReader.getNumRecords());
     }
 
     private void initMmdReader(final String filename) throws IOException {

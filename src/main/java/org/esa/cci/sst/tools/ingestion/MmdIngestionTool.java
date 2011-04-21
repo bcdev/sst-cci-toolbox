@@ -19,7 +19,7 @@ package org.esa.cci.sst.tools.ingestion;
 import org.esa.cci.sst.tools.ToolException;
 
 /**
- * MmsTool responsible for re-ingesting mmd files. Uses {@link IngestionTool} as delegate.
+ * MmsTool responsible for re-ingesting mmd files.
  *
  * @author Thomas Storm
  */
