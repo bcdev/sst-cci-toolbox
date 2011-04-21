@@ -44,6 +44,16 @@ public class Arc1ProcessingTool extends MmsTool {
 
     private static final String AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
                                                                           "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
+                                                                          "     mm_coincidence c, mm_observation ref " +
+                                                                          "WHERE c.matchup_id = m.id " +
+                                                                          "AND o.id = c.observation_id " +
+                                                                          "AND df.id = o.datafile_id " +
+                                                                          "AND o.sensor LIKE 'avhrr%' " +
+                                                                          "AND ref.id = m.refobs_id " +
+                                                                          "AND ref.time >= ? " +
+                                                                          "AND ref.time < ? " +
+                                                                          "ORDER BY df.path";
+
     public Arc1ProcessingTool() {
         super("mmssubscenes.sh", "0.1");
     }
