@@ -108,6 +108,7 @@ public class Arc1ProcessingTool extends MmsTool {
             avhrrInfo.setMatchupId(info[0].toString());
             avhrrInfo.setPoint(info[1].toString());
             avhrrInfo.setFilename(info[2].toString());
+            avhrrInfos.add(avhrrInfo);
         }
         return avhrrInfos;
     }
