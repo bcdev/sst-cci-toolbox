@@ -145,21 +145,22 @@ public class ProductIOHandler implements IOHandler {
     }
 
     private VariableDescriptor setUpVariableDescriptor(final RasterDataNode node) {
-        final VariableDescriptor variableDescriptor = new VariableDescriptor();
-        variableDescriptor.setName(String.format("%s.%s", sensorName, node.getName()));
-        variableDescriptor.setDataSchema(dataFile.getDataSchema());
+        final VariableDescriptor descriptor = new VariableDescriptor();
+        descriptor.setRole(node.getName());
+        descriptor.setName(String.format("%s.%s", sensorName, node.getName()));
+        descriptor.setDataSchema(dataFile.getDataSchema());
         final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
-        variableDescriptor.setType(dataType.name());
-        variableDescriptor.setDimensions("ni nj");
-        variableDescriptor.setDimensionRoles("ni nj");
+        descriptor.setType(dataType.name());
+        descriptor.setDimensions("ni nj");
+        descriptor.setDimensionRoles("ni nj");
         if (node.isScalingApplied()) {
-            variableDescriptor.setAddOffset(node.getScalingOffset());
-            variableDescriptor.setScaleFactor(node.getScalingFactor());
+            descriptor.setAddOffset(node.getScalingOffset());
+            descriptor.setScaleFactor(node.getScalingFactor());
         }
         if (node.isNoDataValueUsed()) {
-            variableDescriptor.setFillValue(node.getNoDataValue());
+            descriptor.setFillValue(node.getNoDataValue());
         }
-        return variableDescriptor;
+        return descriptor;
     }
 
     @Override

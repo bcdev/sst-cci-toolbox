@@ -14,7 +14,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_variable")
-public class VariableDescriptor {
+public final class VariableDescriptor {
 
     int id;
     DataSchema dataSchema;
@@ -22,6 +22,7 @@ public class VariableDescriptor {
     String name;
     String type;
     String dimensions;
+    // todo - get rid of this field (rq-20110421)
     String dimensionRoles;
     String units;
     String standardName;
@@ -37,8 +38,8 @@ public class VariableDescriptor {
 
     public VariableDescriptor(VariableDescriptor descriptor) {
         dataSchema = descriptor.dataSchema;
+        role = descriptor.role;
         name = descriptor.name;
-        longName = descriptor.longName;
         type = descriptor.type;
         dimensions = descriptor.dimensions;
         dimensionRoles = descriptor.dimensionRoles;
@@ -49,6 +50,7 @@ public class VariableDescriptor {
         fillValue = descriptor.fillValue;
         validMin = descriptor.validMin;
         validMax = descriptor.validMax;
+        longName = descriptor.longName;
     }
 
     @Id
@@ -68,6 +70,14 @@ public class VariableDescriptor {
 
     public void setDataSchema(DataSchema dataSchema) {
         this.dataSchema = dataSchema;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getName() {
@@ -94,13 +104,22 @@ public class VariableDescriptor {
         this.dimensions = dimensions;
     }
 
-    // todo - get rid of this method (rq-20110421)
+    @Deprecated
     public String getDimensionRoles() {
         return dimensionRoles;
     }
 
+    @Deprecated
     public void setDimensionRoles(String dimensionRoles) {
         this.dimensionRoles = dimensionRoles;
+    }
+
+    public String getUnits() {
+        return units;
+    }
+
+    public void setUnits(String units) {
+        this.units = units;
     }
 
     public Number getAddOffset() {
@@ -125,14 +144,6 @@ public class VariableDescriptor {
 
     public void setFillValue(Number fillValue) {
         this.fillValue = fillValue;
-    }
-
-    public String getUnits() {
-        return units;
-    }
-
-    public void setUnits(String units) {
-        this.units = units;
     }
 
     public String getStandardName() {

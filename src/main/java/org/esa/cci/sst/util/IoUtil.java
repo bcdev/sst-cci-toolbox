@@ -62,6 +62,7 @@ public class IoUtil {
 
     public static VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName) {
         final VariableDescriptor descriptor = new VariableDescriptor();
+        descriptor.setRole(variable.getName());
         descriptor.setName(String.format("%s.%s", sensorName, variable.getName()));
         descriptor.setType(variable.getDataType().name());
         setDimensions(variable, descriptor);
