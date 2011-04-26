@@ -23,7 +23,7 @@ public class Constants {
 
     public static final String DIMENSION_ROLE_LENGTH = "length";
 
-    public static final String DIMENSION_ROLE_MATCHUP = "match_up";
+    public static final String DIMENSION_ROLE_MATCHUP = "matchup";
 
     public static final int ATSR_MD_CS_LENGTH = 8;
     public static final int ATSR_MD_UI_LENGTH = 30;
