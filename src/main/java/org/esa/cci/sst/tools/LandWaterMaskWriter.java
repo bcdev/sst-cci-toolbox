@@ -27,6 +27,8 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -40,41 +42,71 @@ class LandWaterMaskWriter {
 
     private final NetcdfFileWriteable file;
     private final MmsTool tool;
-    private final Variable latitude;
-    private final Variable longitude;
     private final WatermaskClassifier classifier;
+    private String[] targetVariables;
+    private final List<Variable> sourceLongitudes = new ArrayList<Variable>(1);
+    private final List<Variable> sourceLatitudes = new ArrayList<Variable>(1);
+    private final List<Dimension> sourceXDimensions = new ArrayList<Dimension>(1);
+    private final List<Dimension> sourceYDimensions = new ArrayList<Dimension>(1);
 
     private int matchupIndex;
 
     LandWaterMaskWriter(final NetcdfFileWriteable file, final MmsTool tool) throws IOException {
         this.file = file;
         this.tool = tool;
-        final String sourceLat = NetcdfFile.escapeName(getProperty("mmd.watermask.source.latitude"));
-        latitude = file.findVariable(sourceLat);
-        final String sourceLon = NetcdfFile.escapeName(getProperty("mmd.watermask.source.longitude"));
-        longitude = file.findVariable(sourceLon);
+        readSourceGeoVariables("mmd.watermask.source.latitude", sourceLatitudes, file);
+        readSourceGeoVariables("mmd.watermask.source.longitude", sourceLongitudes, file);
+        readTargetDimensions("mmd.watermask.target.xdimension", sourceXDimensions, file);
+        readTargetDimensions("mmd.watermask.target.ydimension", sourceYDimensions, file);
+        setTargetVariables();
         classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50);
     }
 
     void writeLandWaterMask(int matchupIndex) throws IOException {
         this.matchupIndex = matchupIndex;
-        final Dimension xDimension = file.findDimension(getProperty("mmd.watermask.target.xdimension"));
-        final Dimension yDimension = file.findDimension(getProperty("mmd.watermask.target.ydimension"));
-        for (int x = 0; x < xDimension.getLength(); x++) {
-            for (int y = 0; y < yDimension.getLength(); y++) {
-                final Array value = tryAndGetValue(x, y);
-                if (value == null) {
-                    return;
+        for (int i = 0; i < sourceXDimensions.size(); i++) {
+            final Dimension sourceXDimension = sourceXDimensions.get(i);
+            final Dimension sourceYDimension = sourceYDimensions.get(i);
+            final Variable sourceLatitude = sourceLatitudes.get(i);
+            final Variable sourceLongitude = sourceLongitudes.get(i);
+            final String targetVariable = targetVariables[i];
+            for (int x = 0; x < sourceXDimension.getLength(); x++) {
+                for (int y = 0; y < sourceYDimension.getLength(); y++) {
+                    final Array value = tryAndGetValue(sourceLatitude, sourceLongitude, x, y);
+                    if (value == null) {
+                        return;
+                    }
+                    writeValue(targetVariable, value, new int[]{matchupIndex, x, y});
                 }
-                writeValue(value, new int[]{matchupIndex, x, y});
             }
         }
     }
 
-    private Array tryAndGetValue(final int x, final int y) {
+    private void setTargetVariables() {
+        final String variableNames = getProperty("mmd.watermask.target.variablename");
+        targetVariables = variableNames.split(" ");
+    }
+
+    private void readTargetDimensions(String key, final List<Dimension> list, final NetcdfFileWriteable file) {
+        final String propertyValue = getProperty(key);
+        final String[] sourceDimensions = propertyValue.split(" ");
+        for (final String sourceDimension : sourceDimensions) {
+            list.add(file.findDimension(sourceDimension));
+        }
+    }
+
+    private void readSourceGeoVariables(String key, final List<Variable> list, final NetcdfFileWriteable file) {
+        final String propertyValue = NetcdfFile.escapeName(getProperty(key));
+        final String[] sourceGeoVariables = propertyValue.split(" ");
+        for (final String sourceGeoVariableName : sourceGeoVariables) {
+            list.add(file.findVariable(sourceGeoVariableName));
+        }
+    }
+
+    private Array tryAndGetValue(final Variable sourceLat, final Variable sourceLon, final int x, final int y) {
         Array value = null;
         try {
-            value = getValue(x, y);
+            value = getValue(sourceLat, sourceLon, x, y);
         } catch (IOException e) {
             final String message = MessageFormat.format(
                     "Unable to write land/water mask for matchup with index ''{0}''. Reason: ''{1}''.",
@@ -84,19 +116,19 @@ class LandWaterMaskWriter {
         return value;
     }
 
-    private Array getValue(final int x, final int y) throws IOException {
-        float lat = readSingleFloat(latitude, x, y);
-        float lon = readSingleFloat(longitude, x, y);
+    private Array getValue(final Variable sourceLat, final Variable sourceLon, final int x, final int y) throws IOException {
+        float lat = readSingleFloat(sourceLat, x, y);
+        float lon = readSingleFloat(sourceLon, x, y);
         final short sample = (short) classifier.getWaterMaskSample(lat, lon);
         return Array.factory(DataType.SHORT, new int[]{1, 1, 1}, new short[]{sample});
     }
 
-    private void writeValue(final Array value, final int[] origin) throws IOException {
+    private void writeValue(final String targetVariable, final Array value, final int[] origin) throws IOException {
         try {
-            file.write(Constants.VARIABLE_NAME_WATERMASK, origin, value);
+            file.write(NetcdfFile.escapeName(targetVariable), origin, value);
         } catch (InvalidRangeException e) {
             throw new IOException(
-                    MessageFormat.format("Unable to write into variable ''{0}''.", Constants.VARIABLE_NAME_WATERMASK));
+                    MessageFormat.format("Unable to write into variable ''{0}''.", targetVariable));
         }
     }
 

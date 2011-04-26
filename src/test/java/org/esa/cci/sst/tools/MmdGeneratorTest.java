@@ -24,29 +24,29 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class DefaultMmdGeneratorTest {
+public class MmdGeneratorTest {
 
     @Test
     public void testCreateDimString() throws Exception {
         final VariableDescriptor descriptor1 = new VariableDescriptor();
         descriptor1.setDimensionRoles("match_up ni nj");
         descriptor1.setDimensions("matchup_id ni nj");
-        final String dimString1 = DefaultMmdGenerator.createDimensionString(descriptor1, SensorType.ATSR_MD);
+        final String dimString1 = MmdGenerator.createDimensionString(descriptor1, SensorType.ATSR_MD);
 
         VariableDescriptor descriptor2 = new VariableDescriptor();
         descriptor2.setDimensionRoles("match_up ni nj");
         descriptor2.setDimensions("matchup_id ni nj");
-        final String dimString2 = DefaultMmdGenerator.createDimensionString(descriptor2, SensorType.AAI);
+        final String dimString2 = MmdGenerator.createDimensionString(descriptor2, SensorType.AAI);
 
         VariableDescriptor descriptor3 = new VariableDescriptor();
         descriptor3.setDimensionRoles("match_up length");
         descriptor3.setDimensions("matchup_id kasperkopp");
-        final String dimString3 = DefaultMmdGenerator.createDimensionString(descriptor3, SensorType.ATSR_MD);
+        final String dimString3 = MmdGenerator.createDimensionString(descriptor3, SensorType.ATSR_MD);
 
         VariableDescriptor descriptor4 = new VariableDescriptor();
         descriptor4.setDimensionRoles("match_up length");
         descriptor4.setDimensions("match_up atsr_md.ui_length");
-        final String dimString4 = DefaultMmdGenerator.createDimensionString(descriptor4, SensorType.ATSR_MD);
+        final String dimString4 = MmdGenerator.createDimensionString(descriptor4, SensorType.ATSR_MD);
 
         assertEquals("match_up atsr_md.ni atsr_md.nj", dimString1);
         assertEquals("match_up aai.ni aai.nj", dimString2);
