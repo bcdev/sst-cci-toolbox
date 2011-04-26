@@ -19,7 +19,7 @@ public class Constants {
      */
     public static final String PERSISTENCE_UNIT_NAME = "matchupdb";
 
-    public static final String DIMENSION_NAME_MATCHUP = "match_up";
+    public static final String DIMENSION_NAME_MATCHUP = "matchup";
 
     public static final String DIMENSION_ROLE_LENGTH = "length";
 
@@ -58,9 +58,9 @@ public class Constants {
     public static final int INSITU_HISTORY_LENGTH = 24;
     public static final int INSITU_HISTORY_QC_LENGTH = 2;
 
-    public static final String VARIABLE_NAME_TIME = "time";
-    public static final String VARIABLE_NAME_LON = "lon";
-    public static final String VARIABLE_NAME_LAT = "lat";
+    public static final String VARIABLE_NAME_TIME = "matchup.time";
+    public static final String VARIABLE_NAME_LON = "matchup.longitude";
+    public static final String VARIABLE_NAME_LAT = "matchup.latitude";
     public static final String VARIABLE_NAME_MATCHUP_ID = "matchup_id";
 
     public static final String LOCATIONFILE_PROPERTY = "mms.arcprocessing.locationfile";
