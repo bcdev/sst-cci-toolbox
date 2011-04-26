@@ -81,7 +81,7 @@ class MmdGenerator {
         persistenceManager = tool.getPersistenceManager();
     }
 
-    public void writeMatchups(NetcdfFileWriteable file) throws IOException {
+    void writeMatchups(NetcdfFileWriteable file) throws IOException {
         persistenceManager.transaction();
         try {
             final List<Matchup> resultList = getMatchups();
