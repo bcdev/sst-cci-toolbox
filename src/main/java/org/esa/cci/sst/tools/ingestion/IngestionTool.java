@@ -245,8 +245,10 @@ public class IngestionTool extends MmsTool {
         statement.executeUpdate();
         statement = persistenceManager.createQuery("delete from Matchup m");
         statement.executeUpdate();
-        statement = persistenceManager.createNativeQuery("drop index geo");
-        statement.executeUpdate();
+        try {
+            statement = persistenceManager.createNativeQuery("drop index geo");
+            statement.executeUpdate();
+        } catch (Exception _) {}
         statement = persistenceManager.createNativeQuery("create index geo on mm_observation using gist(location)");
         statement.executeUpdate();
         persistenceManager.commit();

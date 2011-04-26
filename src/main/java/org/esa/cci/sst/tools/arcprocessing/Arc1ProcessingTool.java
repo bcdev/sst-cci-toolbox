@@ -53,6 +53,7 @@ public class Arc1ProcessingTool extends MmsTool {
                                                                           "AND ref.time >= ? " +
                                                                           "AND ref.time < ? " +
                                                                           "ORDER BY df.path";
+    public static final String LATLON_FILE_EXTENSION = ".latlon.txt";
 
     public Arc1ProcessingTool() {
         super("mmssubscenes.sh", "0.1");
@@ -140,8 +141,8 @@ public class Arc1ProcessingTool extends MmsTool {
     private void callShellScript(final String currentFilename, final File latLonFile) {
         final String latLonFileName = latLonFile.getName();
         // todo - ts 19Apr2011 - replace by actual call
-        System.out.format("scp %s tstorm@eddie.ecdf.ed.ac.uk:tmp/\n", latLonFileName);
-        System.out.format("ssh tstorm@eddie.ecdf.ed.ac.uk arc1arc2.sh %s tmp/%s\n", currentFilename, latLonFileName);
+        System.out.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFileName);
+        System.out.format("ssh eddie.ecdf.ed.ac.uk ~/mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n", currentFilename, latLonFileName);
     }
 
     private void close(final BufferedWriter writer) {
@@ -157,7 +158,7 @@ public class Arc1ProcessingTool extends MmsTool {
     private File getLatLonFile(final String currentFilename) {
         final int slashIndex = currentFilename.lastIndexOf('/');
         final String baseFilename = currentFilename.substring(slashIndex + 1);
-        return new File(baseFilename + ".latlon");
+        return new File(baseFilename + LATLON_FILE_EXTENSION);
     }
 
     private Date getTimeProperty(String key) {

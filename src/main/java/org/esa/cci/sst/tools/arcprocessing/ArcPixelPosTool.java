@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
 public class ArcPixelPosTool extends MmsTool {
 
     private StringBuilder buffer;
+    private static final String PIXELPOS_FILE_EXTENSION = ".mmm.txt";
 
     public static void main(String[] args) throws ToolException {
         final ArcPixelPosTool tool = new ArcPixelPosTool();
@@ -127,15 +128,21 @@ public class ArcPixelPosTool extends MmsTool {
     }
 
     private void createPixelPosFile() throws IOException {
-        final String locationFile = getConfiguration().getProperty(Constants.LOCATIONFILE_PROPERTY);
+        final String latlonFilename = getConfiguration().getProperty(Constants.LATLONFILE_PROPERTY);
+        final String pixelposFilename;
+        if (latlonFilename.endsWith(Arc1ProcessingTool.LATLON_FILE_EXTENSION)) {
+            pixelposFilename = latlonFilename.substring(0, latlonFilename.length() - Arc1ProcessingTool.LATLON_FILE_EXTENSION.length()) + PIXELPOS_FILE_EXTENSION;
+        } else {
+            pixelposFilename = latlonFilename + PIXELPOS_FILE_EXTENSION;
+        }
         BufferedWriter writer = null;
         try {
-            final File pixelPosfile = new File(locationFile + Constants.PIXEL_POS_SUFFIX);
-            final FileWriter fileWriter = new FileWriter(pixelPosfile);
+            final File pixelposFile = new File(pixelposFilename);
+            final FileWriter fileWriter = new FileWriter(pixelposFile);
             writer = new BufferedWriter(fileWriter);
             writer.write(buffer.toString());
         } finally {
-            if(writer != null) {
+            if (writer != null) {
                 writer.close();
             }
         }
