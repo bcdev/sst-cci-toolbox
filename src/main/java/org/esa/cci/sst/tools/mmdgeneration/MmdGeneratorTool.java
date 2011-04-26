@@ -1,7 +1,10 @@
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.ToolException;
 import ucar.nc2.NetcdfFileWriteable;
 
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -23,7 +26,6 @@ public class MmdGeneratorTool extends MmsTool {
      * @throws Exception if something goes wrong.
      */
     public static void main(String[] args) throws Exception {
-        MmdGenerator generator = null;
         NetcdfFileWriteable file = null;
 
         final MmdGeneratorTool tool = new MmdGeneratorTool();
@@ -34,11 +36,11 @@ public class MmdGeneratorTool extends MmsTool {
                 return;
             }
             tool.initialize();
-            final Properties properties = tool.getConfiguration();
-            final String mmdFileName = properties.getProperty("mmd.output.filename", "mmd.nc");
-            file = NetcdfFileWriteable.createNew(mmdFileName, false);
-            generator = new MmdGenerator(tool);
-            generator.createMmdStructure(file);
+            file = createOutputFile(tool);
+            final MmdGenerator generator = new MmdGenerator(tool);
+            final MmdStructureGenerator mmdStructureGenerator = new MmdStructureGenerator(tool, generator);
+            mmdStructureGenerator.createMmdStructure(file);
+            file.create();
             generator.writeMatchups(file);
         } catch (ToolException e) {
             tool.getErrorHandler().handleError(e, e.getMessage(), e.getExitCode());
@@ -48,10 +50,15 @@ public class MmdGeneratorTool extends MmsTool {
             if (file != null) {
                 file.close();
             }
-            if (generator != null) {
-                generator.close();
-            }
         }
+    }
+
+    private static NetcdfFileWriteable createOutputFile(final MmdGeneratorTool tool) throws IOException {
+        final Properties properties = tool.getConfiguration();
+        final String mmdFileName = properties.getProperty("mmd.output.filename", "mmd.nc");
+        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(mmdFileName, false);
+        file.setLargeFile(true);
+        return file;
     }
 
 }

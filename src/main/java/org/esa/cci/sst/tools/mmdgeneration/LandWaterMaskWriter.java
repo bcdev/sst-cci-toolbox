@@ -14,9 +14,10 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.beam.watermask.operator.WatermaskClassifier;
+import org.esa.cci.sst.tools.MmsTool;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
