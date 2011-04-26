@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -8,7 +9,7 @@ import org.postgis.Point;
 import java.io.IOException;
 import java.util.Date;
 
-import static org.esa.cci.sst.tools.SensorType.ATSR_MD;
+import static org.esa.cci.sst.tools.SensorType.*;
 
 /**
  * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.
@@ -21,8 +22,8 @@ import static org.esa.cci.sst.tools.SensorType.ATSR_MD;
  */
 class AtsrMdIOHandler extends MdIOHandler {
 
-    public AtsrMdIOHandler() {
-        super(ATSR_MD.getSensor(), "match_up");
+    AtsrMdIOHandler() {
+        super(ATSR_MD.getSensor(), Constants.DIMENSION_NAME_MATCHUP);
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -42,7 +43,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     private DataFile dataFile;
 
     static {
-        DIMENSION_ROLE_MAP.put("n", "match_up");
+        DIMENSION_ROLE_MAP.put("n", Constants.DIMENSION_NAME_MATCHUP);
         DIMENSION_ROLE_MAP.put("nx", "nj");
         DIMENSION_ROLE_MAP.put("ny", "ni");
         DIMENSION_ROLE_MAP.put("len_id", "length");
@@ -52,7 +53,7 @@ abstract class NetcdfIOHandler implements IOHandler {
         DIMENSION_ROLE_MAP.put("length", "length");
     }
 
-    public NetcdfIOHandler(String sensorName) {
+    NetcdfIOHandler(String sensorName) {
         this.sensorName = sensorName;
     }
 

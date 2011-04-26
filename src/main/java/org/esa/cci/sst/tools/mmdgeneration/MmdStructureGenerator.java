@@ -64,11 +64,11 @@ class MmdStructureGenerator {
         addMatchupVariables(file);
         addWatermaskVariables(file);
         addInsituReferenceVariables(file);
-        addInputVariables(file);
+        addAllInputVariables(file);
         addGlobalAttributes(file);
     }
 
-    private void addInputVariables(final NetcdfFileWriteable file) {
+    private void addAllInputVariables(final NetcdfFileWriteable file) {
         String sensorName;
         final Properties configuration = tool.getConfiguration();
         int i = 0;
@@ -158,7 +158,8 @@ class MmdStructureGenerator {
             final Variable mask = file.addVariable(file.getRootGroup(),
                                                    getTargetVariableName(variableName),
                                                    DataType.BYTE,
-                                                   String.format("match_up %s.ni %s.nj", sensorType, sensorType));
+                                                   String.format("%s %s.ni %s.nj", Constants.DIMENSION_NAME_MATCHUP,
+                                                                 sensorType, sensorType));
             addAttribute(mask, "_FillValue", Byte.MIN_VALUE, DataType.BYTE);
         }
     }
@@ -169,7 +170,8 @@ class MmdStructureGenerator {
             final Variable time = file.addVariable(file.getRootGroup(),
                                                    getTargetVariableName(variableName),
                                                    DataType.DOUBLE,
-                                                   String.format("match_up %s.ni", sensorType));
+                                                   String.format("%s %s.ni", Constants.DIMENSION_NAME_MATCHUP,
+                                                                 sensorType));
             addAttribute(time, "units", "Julian Date");
         }
     }
@@ -181,7 +183,7 @@ class MmdStructureGenerator {
                 final Variable variable = file.addVariable(file.getRootGroup(),
                                                            getTargetVariableName(prefixedName),
                                                            v.getDataType(),
-                                                           "match_up");
+                                                           Constants.DIMENSION_NAME_MATCHUP);
                 for (final Attribute a : v.getAttributes()) {
                     variable.addAttribute(a);
                 }

@@ -175,7 +175,7 @@ class MmdGenerator {
     private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
         final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
         try {
-            file.write(Constants.VARIABLE_NAME_MATCHUP_ID, new int[]{matchupIndex}, array);
+            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID), new int[]{matchupIndex}, array);
         } catch (InvalidRangeException e) {
             tool.getErrorHandler().handleError(e, "Unable to write matchup id.", ToolException.TOOL_ERROR);
         }
@@ -187,7 +187,7 @@ class MmdGenerator {
         final Array time = Array.factory(DataType.DOUBLE, new int[]{1},
                                          new double[]{referenceObservationTime.getTime()});
         try {
-            file.write(Constants.VARIABLE_NAME_TIME, new int[]{matchupIndex}, time);
+            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_TIME), new int[]{matchupIndex}, time);
         } catch (Exception e) {
             tool.getErrorHandler().handleError(e, "Unable to write time.", ToolException.TOOL_ERROR);
         }
@@ -201,8 +201,8 @@ class MmdGenerator {
         final Array lonArray = Array.factory(DataType.FLOAT, new int[]{1}, new float[]{lon});
         final Array latArray = Array.factory(DataType.FLOAT, new int[]{1}, new float[]{lat});
         try {
-            file.write(Constants.VARIABLE_NAME_LON, new int[]{matchupIndex}, lonArray);
-            file.write(Constants.VARIABLE_NAME_LAT, new int[]{matchupIndex}, latArray);
+            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_LON), new int[]{matchupIndex}, lonArray);
+            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_LAT), new int[]{matchupIndex}, latArray);
         } catch (Exception e) {
             tool.getErrorHandler().handleError(e, "Unable to write location.", ToolException.TOOL_ERROR);
         }
