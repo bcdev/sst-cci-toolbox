@@ -91,10 +91,7 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
-        // todo - add attributes explaining mask values
-        file.addVariable(Constants.VARIABLE_NAME_WATERMASK, DataType.SHORT,
-                         String.format("%s atsr.ni atsr.nj", Constants.DIMENSION_NAME_MATCHUP));
-
+        addWatermaskVariables(file);
         addInsituReference(file);
         for (int i = 0; i < 100; i++) {
             final String sensorName =
@@ -115,21 +112,6 @@ class DefaultMmdGenerator implements MmdGenerator {
         file.create();
     }
 
-    private void addInsituReference(NetcdfFileWriteable file) {
-        for (final InsituVariable v : InsituVariable.values()) {
-            final String prefixedName = "reference." + v.getName();
-            if (targetVariables.isEmpty() || targetVariables.containsKey(prefixedName)) {
-                final Variable variable = file.addVariable(file.getRootGroup(),
-                                                           getTargetVariableName(prefixedName),
-                                                           v.getDataType(),
-                                                           "match_up");
-                for (final Attribute a : v.getAttributes()) {
-                    variable.addAttribute(a);
-                }
-            }
-        }
-    }
-
     @Override
     public void writeMatchups(NetcdfFileWriteable file) throws IOException {
         persistenceManager.transaction();
@@ -142,7 +124,7 @@ class DefaultMmdGenerator implements MmdGenerator {
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
                 final int matchupId = matchup.getId();
                 tool.getLogger().info(
-                        MessageFormat.format("Writing matchup ''{0}'' ({1}/{2}).", matchupId, matchupIndex,
+                        MessageFormat.format("Writing matchup ''{0}'' ({1}/{2}).", matchupId, matchupIndex + 1,
                                              matchupCount));
                 final List<Coincidence> coincidences = matchup.getCoincidences();
                 final PGgeometry point = referenceObservation.getPoint();
@@ -164,6 +146,43 @@ class DefaultMmdGenerator implements MmdGenerator {
             }
         } finally {
             persistenceManager.commit();
+        }
+    }
+
+    @Override
+    public void close() {
+    }
+
+    private void addWatermaskVariables(final NetcdfFileWriteable file) {
+        // todo - add attributes explaining mask values
+        final String propertyVarNameValue = tool.getConfiguration().getProperty("mmd.watermask.target.variablename");
+        final String propertyXDimensionValue = tool.getConfiguration().getProperty("mmd.watermask.target.xdimension");
+        final String propertyYDimensionValue = tool.getConfiguration().getProperty("mmd.watermask.target.ydimension");
+        String[] variableNames = propertyVarNameValue.split(" ");
+        String[] xDimensionNames = propertyXDimensionValue.split(" ");
+        String[] yDimensionNames = propertyYDimensionValue.split(" ");
+        for (int i = 0; i < variableNames.length; i++) {
+            final String variableName = variableNames[i];
+            final String xDimension = xDimensionNames[i];
+            final String yDimension = yDimensionNames[i];
+            final String dimensions = String.format("%s %s %s", Constants.DIMENSION_NAME_MATCHUP, xDimension,
+                                                    yDimension);
+            file.addVariable(variableName, DataType.SHORT, dimensions);
+        }
+    }
+
+    private void addInsituReference(NetcdfFileWriteable file) {
+        for (final InsituVariable v : InsituVariable.values()) {
+            final String prefixedName = "reference." + v.getName();
+            if (targetVariables.isEmpty() || targetVariables.containsKey(prefixedName)) {
+                final Variable variable = file.addVariable(file.getRootGroup(),
+                                                           getTargetVariableName(prefixedName),
+                                                           v.getDataType(),
+                                                           "match_up");
+                for (final Attribute a : v.getAttributes()) {
+                    variable.addAttribute(a);
+                }
+            }
         }
     }
 
@@ -193,10 +212,6 @@ class DefaultMmdGenerator implements MmdGenerator {
                 handler.close();
             }
         }
-    }
-
-    @Override
-    public void close() {
     }
 
     @SuppressWarnings({"unchecked"})
@@ -370,7 +385,8 @@ class DefaultMmdGenerator implements MmdGenerator {
             sb.insert(0, Constants.DIMENSION_NAME_MATCHUP + ' ');
         }
         String dimensionString = sb.toString();
-        dimensionString = dimensionString.replace(String.format("%s.%s", sensorType, sensorType), sensorType.getSensor());
+        dimensionString = dimensionString.replace(String.format("%s.%s", sensorType, sensorType),
+                                                  sensorType.getSensor());
         return dimensionString;
     }
 

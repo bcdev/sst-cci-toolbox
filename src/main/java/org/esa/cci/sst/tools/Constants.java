@@ -61,7 +61,6 @@ public class Constants {
     public static final String VARIABLE_NAME_TIME = "time";
     public static final String VARIABLE_NAME_LON = "lon";
     public static final String VARIABLE_NAME_LAT = "lat";
-    public static final String VARIABLE_NAME_WATERMASK = "watermask";
     public static final String VARIABLE_NAME_MATCHUP_ID = "matchup_id";
 
     public static final String LOCATIONFILE_PROPERTY = "mms.arcprocessing.locationfile";
