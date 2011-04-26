@@ -167,7 +167,9 @@ class MmdGenerator {
     }
 
     Properties getTargetVariables() {
-        return targetVariables;
+        final Properties properties = new Properties();
+        properties.putAll(targetVariables);
+        return properties;
     }
 
     private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
