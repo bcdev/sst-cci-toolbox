@@ -56,8 +56,8 @@ class LandWaterMaskWriter {
         this.tool = tool;
         readSourceGeoVariables("mmd.watermask.source.latitude", sourceLatitudes, file);
         readSourceGeoVariables("mmd.watermask.source.longitude", sourceLongitudes, file);
-        readTargetDimensions("mmd.watermask.source.xdimension", sourceXDimensions, file);
-        readTargetDimensions("mmd.watermask.source.ydimension", sourceYDimensions, file);
+        readTargetDimensions("mmd.watermask.target.xdimension", sourceXDimensions, file);
+        readTargetDimensions("mmd.watermask.target.ydimension", sourceYDimensions, file);
         setTargetVariables();
         classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50);
     }
@@ -88,7 +88,7 @@ class LandWaterMaskWriter {
     }
 
     private void readTargetDimensions(String key, final List<Dimension> list, final NetcdfFileWriteable file) {
-        final String propertyValue = NetcdfFile.escapeName(getProperty(key));
+        final String propertyValue = getProperty(key);
         final String[] sourceDimensions = propertyValue.split(" ");
         for (final String sourceDimension : sourceDimensions) {
             list.add(file.findDimension(sourceDimension));
@@ -125,7 +125,7 @@ class LandWaterMaskWriter {
 
     private void writeValue(final String targetVariable, final Array value, final int[] origin) throws IOException {
         try {
-            file.write(targetVariable, origin, value);
+            file.write(NetcdfFile.escapeName(targetVariable), origin, value);
         } catch (InvalidRangeException e) {
             throw new IOException(
                     MessageFormat.format("Unable to write into variable ''{0}''.", targetVariable));
