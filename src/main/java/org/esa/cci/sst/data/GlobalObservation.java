@@ -31,12 +31,13 @@ import java.util.Date;
  * @author Thomas Storm
  */
 @Entity
-public class GlobalObservation extends Observation {
+public class GlobalObservation extends Observation implements Timed {
 
     Date time;
 
     @Index
     @Temporal(TemporalType.TIMESTAMP)
+    @Override
     public Date getTime() {
         return time;
     }

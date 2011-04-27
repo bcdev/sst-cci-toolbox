@@ -18,7 +18,7 @@ import java.util.Date;
  * @author Martin Boettcher
  */
 @Entity
-public class RelatedObservation extends Observation {
+public class RelatedObservation extends Observation implements Timed {
 
     Date time;
     PGgeometry location;
@@ -31,6 +31,7 @@ public class RelatedObservation extends Observation {
 
     @Index
     @Temporal(TemporalType.TIMESTAMP)
+    @Override
     public Date getTime() {
         return time;
     }
