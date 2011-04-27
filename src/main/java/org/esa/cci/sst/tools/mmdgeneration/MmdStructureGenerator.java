@@ -125,7 +125,7 @@ class MmdStructureGenerator {
 
     private void addMatchupVariables(final NetcdfFileWriteable file) {
         file.addVariable(Constants.VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
-        file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.LONG, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
     }

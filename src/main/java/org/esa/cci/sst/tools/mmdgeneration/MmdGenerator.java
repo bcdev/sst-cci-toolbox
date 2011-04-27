@@ -184,8 +184,8 @@ class MmdGenerator {
     private void writeTime(final NetcdfFileWriteable file, final int matchupIndex,
                            final ReferenceObservation referenceObservation) {
         final Date referenceObservationTime = referenceObservation.getTime();
-        final Array time = Array.factory(DataType.DOUBLE, new int[]{1},
-                                         new double[]{referenceObservationTime.getTime()});
+        final Array time = Array.factory(DataType.LONG, new int[]{1},
+                                         new long[]{referenceObservationTime.getTime()});
         try {
             file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_TIME), new int[]{matchupIndex}, time);
         } catch (Exception e) {
