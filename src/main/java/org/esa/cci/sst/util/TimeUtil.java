@@ -1,7 +1,7 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Timed;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -69,7 +69,7 @@ public final class TimeUtil {
         return secondsSince1981 + (MILLIS_1981 - MILLIS_1978) / 1000.0;
     }
 
-    public static double computeTimeDelta(final Matchup matchup, final Observation observation) {
+    public static double computeTimeDelta(final Matchup matchup, final Timed observation) {
         return Math.abs(matchup.getRefObs().getTime().getTime() - observation.getTime().getTime()) / 1000.0;
     }
 

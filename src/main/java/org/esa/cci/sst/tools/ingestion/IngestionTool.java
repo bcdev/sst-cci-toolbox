@@ -4,6 +4,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Timed;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
@@ -318,7 +319,10 @@ public class IngestionTool extends MmsTool {
         final String endTime = getConfiguration().getProperty("mms.test.endTime");
         final long start = TimeUtil.parseCcsdsUtcFormat(startTime);
         final long stop = TimeUtil.parseCcsdsUtcFormat(endTime);
-        final long time = observation.getTime().getTime();
+        if (!(observation instanceof Timed)) {
+            return true;
+        }
+        final long time = ((Timed) observation).getTime().getTime();
         final long timeRadius;
         if (observation instanceof InsituObservation) {
             timeRadius = ((InsituObservation) observation).getTimeRadius();
