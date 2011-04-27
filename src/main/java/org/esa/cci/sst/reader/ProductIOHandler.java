@@ -18,6 +18,7 @@ import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.beam.framework.datamodel.TiePointGeoCoding;
 import org.esa.beam.framework.datamodel.TiePointGrid;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
@@ -106,7 +107,9 @@ public class ProductIOHandler implements IOHandler {
     public final Observation readObservation(int recordNo) throws IOException {
         final Observation observation;
         if (bc == null) {
-            observation = new Observation();
+            final GlobalObservation globalObservation = new GlobalObservation();
+            globalObservation.setTime(getCenterTimeAsDate());
+            observation = globalObservation;
         } else {
             final RelatedObservation relatedObservation = new RelatedObservation();
             try {
@@ -114,13 +117,13 @@ public class ProductIOHandler implements IOHandler {
             } catch (Exception e) {
                 throw new IOException(e);
             }
+            relatedObservation.setTime(getCenterTimeAsDate());
             observation = relatedObservation;
         }
 
         observation.setDatafile(dataFile);
         observation.setRecordNo(0);
         observation.setSensor(sensorName);
-        observation.setTime(getCenterTimeAsDate());
 
         return observation;
     }

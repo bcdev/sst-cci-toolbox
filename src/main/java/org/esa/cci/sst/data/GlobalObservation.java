@@ -16,40 +16,38 @@
 
 package org.esa.cci.sst.data;
 
+import org.apache.openjpa.persistence.jdbc.Index;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Entity;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import java.util.Date;
 
 /**
- * Data item that represents a full history of in-situ observations with a temporal extent.
+ * Data item that represents a single global observation that is associated with a time
+ * of observation.
  *
  * @author Thomas Storm
  */
 @Entity
-public class InsituObservation extends RelatedObservation {
+public class GlobalObservation extends Observation {
 
-    long timeRadius;
+    Date time;
 
-    /**
-     * Returns the time radius (seconds) of this observation.
-     *
-     * @return the time radius (seconds).
-     */
-    public long getTimeRadius() {
-        return timeRadius;
+    @Index
+    @Temporal(TemporalType.TIMESTAMP)
+    public Date getTime() {
+        return time;
     }
 
-    /**
-     * Sets the time radius (seconds) of this observation.
-     *
-     * @param timeRadius The time radius (seconds).
-     */
-    public void setTimeRadius(long timeRadius) {
-        this.timeRadius = timeRadius;
+    public void setTime(Date time) {
+        this.time = time;
     }
 
     public String toString() {
-        return String.format("InsituObservation(%d,%s,%s,%s,%d,%s,%d)", getId(), getName(), getSensor(),
-                             TimeUtil.formatCcsdsUtcFormat(getTime()), getTimeRadius(), getDatafile(), getRecordNo());
+        return String.format("GlobalObservation(%d,%s,%s,%s,%s,%d)", getId(), getName(), getSensor(),
+                             TimeUtil.formatCcsdsUtcFormat(getTime()), getDatafile(), getRecordNo());
     }
+
 }
