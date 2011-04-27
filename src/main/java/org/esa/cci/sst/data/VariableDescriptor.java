@@ -36,6 +36,10 @@ public final class VariableDescriptor {
     public VariableDescriptor() {
     }
 
+    public VariableDescriptor(String name) {
+        this.name = name;
+    }
+
     public VariableDescriptor(VariableDescriptor descriptor) {
         dataSchema = descriptor.dataSchema;
         role = descriptor.role;
