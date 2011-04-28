@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.jai.SingleBandedOpImage;

@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
@@ -111,18 +111,18 @@ public class SeaIceProductReaderTest {
         for (Variable v : headerVariables) {
             System.out.println("v.getName() = " + v.getName());
             switch (v.getDataType()) {
-                case CHAR:
-                    System.out.println("v.value = " + v.readScalarString());
-                    break;
-                case FLOAT:
-                    System.out.println("v.value = " + v.readScalarFloat());
-                    break;
-                case INT:
-                    System.out.println("v.value = " + v.readScalarInt());
-                    break;
-                case SHORT:
-                    System.out.println("v.value = " + v.readScalarShort());
-                    break;
+            case CHAR:
+                System.out.println("v.value = " + v.readScalarString());
+                break;
+            case FLOAT:
+                System.out.println("v.value = " + v.readScalarFloat());
+                break;
+            case INT:
+                System.out.println("v.value = " + v.readScalarInt());
+                break;
+            case SHORT:
+                System.out.println("v.value = " + v.readScalarShort());
+                break;
             }
         }
         final List<Attribute> attributeList = header.getAttributes();

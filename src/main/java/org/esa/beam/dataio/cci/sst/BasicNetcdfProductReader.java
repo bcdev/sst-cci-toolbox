@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.beam.dataio.cci.sst;
 
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.framework.dataio.AbstractProductReader;

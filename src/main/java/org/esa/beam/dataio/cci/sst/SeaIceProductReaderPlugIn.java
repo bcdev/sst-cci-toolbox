@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.dataio.ProductReader;
@@ -19,7 +19,7 @@ import java.util.Locale;
  */
 public class SeaIceProductReaderPlugIn implements ProductReaderPlugIn {
 
-    private static final String FORMAT_NAME = "OSI";
+    private static final String FORMAT_NAME = "OSISAF";
     private static final String FILE_EXTENSION_HDF = ".hdf";
 
     @Override

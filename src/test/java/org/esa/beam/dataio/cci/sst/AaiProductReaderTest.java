@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;

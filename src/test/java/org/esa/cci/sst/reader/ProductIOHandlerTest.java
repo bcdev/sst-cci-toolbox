@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.dataio.cci.sst.AaiProductReaderTest;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;

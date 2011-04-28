@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;

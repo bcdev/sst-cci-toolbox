@@ -1,5 +1,6 @@
-package org.esa.cci.sst.reader;
+package org.esa.beam.dataio.cci.sst;
 
+import org.esa.beam.dataio.cci.sst.SeaIceProductReaderPlugIn;
 import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.dataio.ProductReader;
 import org.junit.Before;
@@ -46,7 +47,7 @@ public class SeaIceProductReaderPlugInTest {
     @Test
     public void testGetFormatNames() throws Exception {
         assertEquals(1, plugin.getFormatNames().length);
-        assertEquals("Ocean and Sea Ice SAF", plugin.getFormatNames()[0]);
+        assertEquals("OSISAF", plugin.getFormatNames()[0]);
     }
 
     @Test
