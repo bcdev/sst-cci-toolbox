@@ -79,49 +79,6 @@ public class VariableDescriptorRegistry {
         return nameList;
     }
 
-    private void parseIdentity(List<String> nameList, String sourceName) throws Exception {
-        ensureSourceDescriptorExists(sourceName);
-        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
-        final Rule rule = RuleFactory.getInstance().getRule("Identity");
-        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
-        nameList.add(targetDescriptor.getName());
-    }
-
-    private void parseRenaming(List<String> nameList, String targetName, String sourceName) throws Exception {
-        ensureSourceDescriptorExists(sourceName);
-        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
-        final Rule rule = RuleFactory.getInstance().getRenamingRule(targetName);
-        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
-        nameList.add(targetDescriptor.getName());
-    }
-
-    private void parseRule(List<String> nameList, String targetName, String sourceName, String spec) throws Exception {
-        ensureSourceDescriptorExists(sourceName);
-        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
-        final Rule rule;
-        if (targetName.equals(sourceName)) {
-            rule = RuleFactory.getInstance().getRule(spec);
-        } else {
-            rule = RuleFactory.getInstance().getRule(spec, targetName);
-        }
-        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
-        nameList.add(targetDescriptor.getName());
-    }
-
-    private void ensureSourceDescriptorExists(String sourceName) throws RuleException {
-        if (!hasDescriptor(sourceName)) {
-            throw new RuleException("Unknown variable '" + sourceName + "'.");
-        }
-    }
-
-    private String stripComment(String line) {
-        final int i = line.indexOf('#');
-        if (i != -1) {
-            return line.substring(0, i);
-        }
-        return line;
-    }
-
     /**
      * Registers a descriptor by name.
      *
@@ -234,4 +191,49 @@ public class VariableDescriptorRegistry {
 
         private static final VariableDescriptorRegistry uniqueInstance = new VariableDescriptorRegistry();
     }
+
+
+    private void parseIdentity(List<String> nameList, String sourceName) throws Exception {
+        ensureSourceDescriptorExists(sourceName);
+        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
+        final Rule rule = RuleFactory.getInstance().getRule("Identity");
+        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
+        nameList.add(targetDescriptor.getName());
+    }
+
+    private void parseRenaming(List<String> nameList, String targetName, String sourceName) throws Exception {
+        ensureSourceDescriptorExists(sourceName);
+        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
+        final Rule rule = RuleFactory.getInstance().getRenamingRule(targetName);
+        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
+        nameList.add(targetDescriptor.getName());
+    }
+
+    private void parseRule(List<String> nameList, String targetName, String sourceName, String spec) throws Exception {
+        ensureSourceDescriptorExists(sourceName);
+        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
+        final Rule rule;
+        if (targetName.equals(sourceName)) {
+            rule = RuleFactory.getInstance().getRule(spec);
+        } else {
+            rule = RuleFactory.getInstance().getRule(spec, targetName);
+        }
+        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
+        nameList.add(targetDescriptor.getName());
+    }
+
+    private void ensureSourceDescriptorExists(String sourceName) throws RuleException {
+        if (!hasDescriptor(sourceName)) {
+            throw new RuleException("Unknown variable '" + sourceName + "'.");
+        }
+    }
+
+    private String stripComment(String line) {
+        final int i = line.indexOf('#');
+        if (i != -1) {
+            return line.substring(0, i);
+        }
+        return line;
+    }
+
 }

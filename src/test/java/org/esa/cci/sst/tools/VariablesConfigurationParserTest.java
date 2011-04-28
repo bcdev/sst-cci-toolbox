@@ -19,13 +19,19 @@ public class VariablesConfigurationParserTest {
     @Test
     public void testParsing() throws ParseException, RuleException {
         final InputStream is = getClass().getResourceAsStream("mmd-variables.txt");
-        final List<String> nameList = VariableDescriptorRegistry.getInstance().loadDescriptors(is,
-                                                                                               new ArrayList<String>());
+        final VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
+        final List<String> nameList = registry.loadDescriptors(is, new ArrayList<String>());
 
         assertNotNull(nameList);
         assertEquals(1, nameList.size());
 
         assertEquals("metop.brightness_temperature.037", nameList.get(0));
+
+        final VariableDescriptor targetDescriptor = registry.getDescriptor("metop.brightness_temperature.037");
+
+        assertEquals("matchup metop.ni metop.nj", targetDescriptor.getDimensions());
+        assertNotNull(registry.getRule(targetDescriptor));
+        assertNotNull(registry.getSourceDescriptor(targetDescriptor));
     }
 
     @Before

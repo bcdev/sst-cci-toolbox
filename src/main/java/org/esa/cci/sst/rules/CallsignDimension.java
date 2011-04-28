@@ -10,7 +10,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 class CallsignDimension extends DescriptorModification {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) {
+    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         final String sourceDimensions = sourceDescriptor.getDimensions();
         final String targetDimensions = RuleUtil.replaceDimension(sourceDimensions, "callsign.length", 1);
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);

@@ -1,7 +1,5 @@
 package org.esa.cci.sst.rules;
 
-import com.bc.ceres.core.Assert;
-
 import java.text.MessageFormat;
 
 /**
@@ -14,10 +12,10 @@ class RuleUtil {
     private RuleUtil() {
     }
 
-    static String replaceDimension(String dimensionsString, String replacementDimension, int replacementIndex) {
+    static String replaceDimension(String dimensionsString, String replacementDimension, int replacementIndex) throws
+                                                                                                               RuleException {
         final String[] dimensions = dimensionsString.split(" ");
-        Assert.state(dimensions.length >= replacementIndex);
-
+        ensureDimensionCount(replacementIndex, dimensions);
         final StringBuilder dimensionsStringBuilder = new StringBuilder();
         for (int i = 0; i < replacementIndex; i++) {
             dimensionsStringBuilder.append(dimensions[i]);
@@ -29,6 +27,15 @@ class RuleUtil {
             dimensionsStringBuilder.append(dimensions[i]);
         }
         return dimensionsStringBuilder.toString();
+    }
+
+    private static void ensureDimensionCount(int expectedCount, String[] dimensions) throws RuleException {
+        if (dimensions.length < expectedCount) {
+            throw new RuleException(
+                    MessageFormat.format("Expected {0} dimensions, but actual number of dimensions is {1}.",
+                                         expectedCount,
+                                         dimensions.length));
+        }
     }
 
     static void ensureType(String expectedType, String actualType) throws RuleException {

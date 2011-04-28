@@ -10,7 +10,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 final class MatchupDimension extends DescriptorModification {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) {
+    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         final String sourceDimensions = sourceDescriptor.getDimensions();
         final String targetDimensions = RuleUtil.replaceDimension(sourceDimensions, "matchup", 0);
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
