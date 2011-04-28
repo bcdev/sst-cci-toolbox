@@ -152,6 +152,10 @@ public class IngestionTool extends MmsTool {
     @SuppressWarnings({"unchecked"})
     void persistVariableDescriptors(final String schemaName, final String sensorName,
                                     final IOHandler ioHandler) throws IOException {
+        // todo correct this
+        // (The original idea was to bind variables to a schema, not to a sensor.
+        // to look up the sensor in the observations is wrong since the variables are
+        // created independent of whether an observation is found in the time interval.)
         final Query query = getPersistenceManager().createNativeQuery(ALL_SENSORS_QUERY, String.class);
         final List<String> sensorList = query.getResultList();
 
