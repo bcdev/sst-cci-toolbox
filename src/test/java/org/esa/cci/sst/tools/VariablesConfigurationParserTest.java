@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -20,7 +19,7 @@ public class VariablesConfigurationParserTest {
     public void testParsing() throws ParseException, RuleException {
         final InputStream is = getClass().getResourceAsStream("mmd-variables.txt");
         final VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
-        final List<String> nameList = registry.loadDescriptors(is, new ArrayList<String>());
+        final List<String> nameList = registry.registerDescriptors(is);
 
         assertNotNull(nameList);
         assertEquals(1, nameList.size());

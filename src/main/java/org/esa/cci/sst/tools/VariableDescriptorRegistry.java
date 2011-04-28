@@ -7,6 +7,7 @@ import org.esa.cci.sst.rules.RuleFactory;
 
 import java.io.InputStream;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -42,11 +43,12 @@ public class VariableDescriptorRegistry {
         return Holder.uniqueInstance;
     }
 
-    public List<String> loadDescriptors(InputStream is, List<String> nameList) throws ParseException {
+    public List<String> registerDescriptors(InputStream is) throws ParseException {
         final Scanner scanner = new Scanner(is, "US-ASCII");
         scanner.useLocale(Locale.ENGLISH);
 
         try {
+            final ArrayList<String> nameList = new ArrayList<String>();
             for (int lineNumber = 0; scanner.hasNextLine(); lineNumber++) {
                 final String line = stripComment(scanner.nextLine()).trim();
                 final String[] tokens = line.split(" ");
@@ -72,11 +74,10 @@ public class VariableDescriptorRegistry {
                     throw new ParseException(e.getMessage(), lineNumber);
                 }
             }
+            return nameList;
         } finally {
             scanner.close();
         }
-
-        return nameList;
     }
 
     /**
