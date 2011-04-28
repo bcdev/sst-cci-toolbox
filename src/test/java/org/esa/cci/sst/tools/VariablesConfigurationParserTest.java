@@ -19,6 +19,19 @@ import static org.junit.Assert.*;
 
 public class VariablesConfigurationParserTest {
 
+    @Before
+    public void initRegistry() throws IOException {
+        final VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
+        registerSourceDescriptors(registry, "seviri.nc", "seviri");
+        registerSourceDescriptors(registry, "metop.nc", "metop");
+        registerSourceDescriptors(registry, "aatsr_md.nc", "aatsr_md");
+        registerSourceDescriptors(registry, "amsre.nc", "amsre");
+        registerSourceDescriptors(registry, "tmi.nc", "tmi");
+        registerSourceDescriptors(registry, "atsr.1.nc", "atsr1");
+        registerSourceDescriptors(registry, "atsr.2.nc", "atsr2");
+        registerSourceDescriptors(registry, "atsr.3.nc", "atsr3");
+    }
+
     @Test
     public void testParsing() throws ParseException, RuleException {
         final InputStream is = getClass().getResourceAsStream("mmd-variables.txt");
@@ -26,7 +39,7 @@ public class VariablesConfigurationParserTest {
         final List<String> nameList = registry.registerDescriptors(is);
 
         assertNotNull(nameList);
-        assertEquals(35, nameList.size());
+        assertEquals(81, nameList.size());
 
         assertEquals("metop.brightness_temperature.037", nameList.get(5));
 
@@ -35,13 +48,6 @@ public class VariablesConfigurationParserTest {
         assertEquals("matchup metop.ni metop.nj", targetDescriptor.getDimensions());
         assertNotNull(registry.getRule(targetDescriptor));
         assertNotNull(registry.getSourceDescriptor(targetDescriptor));
-    }
-
-    @Before
-    public void initRegistry() throws IOException {
-        final VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
-        registerSourceDescriptors(registry, "seviri.nc", "seviri");
-        registerSourceDescriptors(registry, "metop.nc", "metop");
     }
 
     private void registerSourceDescriptors(VariableDescriptorRegistry registry, String fileName, String sensor) throws IOException {

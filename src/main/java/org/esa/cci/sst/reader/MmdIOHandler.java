@@ -60,6 +60,10 @@ public class MmdIOHandler implements IOHandler {
         validateFileLocation(fileLocation);
         ncFile = NetcdfFile.open(fileLocation);
         matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+        // allow for matchup_id instead of matchup.id to support ARC2 output
+        if (matchupIds == null) {
+            matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
+        }
         final String property = getProperty("mms.reingestion.type", "aatsr");
         if (property.equals("arc3")) {
             reader = new Arc3Reader(this, tool.getPersistenceManager(), ncFile, sensor, schemaName);

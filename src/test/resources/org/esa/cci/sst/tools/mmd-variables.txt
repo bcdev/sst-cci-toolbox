@@ -4,45 +4,103 @@
 
 ### metop md
 
-metop.latitude                      metop.lat                   MatchupDimension,MetopImageDimensions,ScaledShortToFloat
-metop.longitude                     metop.lon                   MatchupDimension,MetopImageDimensions,ScaledShortToFloat
-metop.reflectance.006               metop.VIS006                MatchupDimension,MetopImageDimensions
-metop.reflectance.009               metop.VIS009                MatchupDimension,MetopImageDimensions
-metop.reflectance.012               metop.VIS012                MatchupDimension,MetopImageDimensions
-metop.brightness_temperature.037    metop.IR037                 MatchupDimension,MetopImageDimensions
-metop.brightness_temperature.108    metop.IR108                 MatchupDimension,MetopImageDimensions
-metop.brightness_temperature.120    metop.IR120                 MatchupDimension,MetopImageDimensions
-metop.solar.zenith                  metop.solzen                MatchupDimension,MetopImageDimensions
-metop.satellite.zenith              metop.satzen                MatchupDimension,MetopImageDimensions
-metop.relative.azimuth              metop.relazi                MatchupDimension,MetopImageDimensions
-metop.l1b_filename                  metop.box_filename          MatchupDimension,FilenameDimension
-metop.matchup.elem                  metop.box_center_x_coord    MatchupDimension
-metop.matchup.line                  metop.box_center_y_coord    MatchupDimension
-metop.cloud.strict                  metop.p_cloudmask_strict    MatchupDimension,MetopImageDimensions
-metop.cloud.relaxed                 metop.p_cloudmask_relaxed   MatchupDimension,MetopImageDimensions
-metop.cloud.quality                 metop.p_cloudmask_quality   MatchupDimension,MetopImageDimensions
+metop.latitude                      metop.lat                           MatchupDimension,MetopImageDimensions,ScaledShortToFloat
+metop.longitude                     metop.lon                           MatchupDimension,MetopImageDimensions,ScaledShortToFloat
+metop.reflectance.006               metop.VIS006                        MatchupDimension,MetopImageDimensions
+metop.reflectance.009               metop.VIS009                        MatchupDimension,MetopImageDimensions
+metop.reflectance.012               metop.VIS012                        MatchupDimension,MetopImageDimensions
+metop.brightness_temperature.037    metop.IR037                         MatchupDimension,MetopImageDimensions
+metop.brightness_temperature.108    metop.IR108                         MatchupDimension,MetopImageDimensions
+metop.brightness_temperature.120    metop.IR120                         MatchupDimension,MetopImageDimensions
+metop.solar.zenith                  metop.solzen                        MatchupDimension,MetopImageDimensions
+metop.satellite.zenith              metop.satzen                        MatchupDimension,MetopImageDimensions
+metop.relative.azimuth              metop.relazi                        MatchupDimension,MetopImageDimensions
+metop.l1b_filename                  metop.box_filename                  MatchupDimension,FilenameDimension
+metop.matchup.elem                  metop.box_center_x_coord            MatchupDimension
+metop.matchup.line                  metop.box_center_y_coord            MatchupDimension
+metop.cloud.strict                  metop.p_cloudmask_strict            MatchupDimension,MetopImageDimensions
+metop.cloud.relaxed                 metop.p_cloudmask_relaxed           MatchupDimension,MetopImageDimensions
+metop.cloud.quality                 metop.p_cloudmask_quality           MatchupDimension,MetopImageDimensions
 
 ### seviri md
 
-seviri.latitude                     seviri.lat                  MatchupDimension,SeviriImageDimensions,ScaledIntToFloat
-seviri.longitude                    seviri.lon                  MatchupDimension,SeviriImageDimensions,ScaledIntToFloat
-seviri.reflectance.006              seviri.VIS006               MatchupDimension,SeviriImageDimensions
-seviri.reflectance.008              seviri.VIS008               MatchupDimension,SeviriImageDimensions
-seviri.reflectance.016              seviri.IR_016               MatchupDimension,SeviriImageDimensions
-seviri.brightness_temperature.039   seviri.IR_039               MatchupDimension,SeviriImageDimensions
-seviri.brightness_temperature.087   seviri.IR_087               MatchupDimension,SeviriImageDimensions
-seviri.brightness_temperature.097   seviri.IR_097               MatchupDimension,SeviriImageDimensions
-seviri.brightness_temperature.108   seviri.IR_108               MatchupDimension,SeviriImageDimensions
-seviri.brightness_temperature.120   seviri.IR_120               MatchupDimension,SeviriImageDimensions
-seviri.brightness_temperature.134   seviri.IR_134               MatchupDimension,SeviriImageDimensions
-seviri.solar.zenith                 seviri.solzen               MatchupDimension,SeviriImageDimensions
-seviri.satellite.zenith             seviri.satzen               MatchupDimension,SeviriImageDimensions
-seviri.relative.azimuth             seviri.relazi               MatchupDimension,SeviriImageDimensions
-seviri.prd_filename                 seviri.box_prd_filename     MatchupDimension,FilenameDimension
-seviri.sat_filename                 seviri.box_sat_filename     MatchupDimension,FilenameDimension
-seviri.matchup.elem                 seviri.box_center_x_coord   MatchupDimension
-seviri.matchup.line                 seviri.box_center_y_coord   MatchupDimension
+seviri.latitude                     seviri.lat                          MatchupDimension,SeviriImageDimensions,ScaledIntToFloat
+seviri.longitude                    seviri.lon                          MatchupDimension,SeviriImageDimensions,ScaledIntToFloat
+seviri.reflectance.006              seviri.VIS006                       MatchupDimension,SeviriImageDimensions
+seviri.reflectance.008              seviri.VIS008                       MatchupDimension,SeviriImageDimensions
+seviri.reflectance.016              seviri.IR_016                       MatchupDimension,SeviriImageDimensions
+seviri.brightness_temperature.039   seviri.IR_039                       MatchupDimension,SeviriImageDimensions
+seviri.brightness_temperature.087   seviri.IR_087                       MatchupDimension,SeviriImageDimensions
+seviri.brightness_temperature.097   seviri.IR_097                       MatchupDimension,SeviriImageDimensions
+seviri.brightness_temperature.108   seviri.IR_108                       MatchupDimension,SeviriImageDimensions
+seviri.brightness_temperature.120   seviri.IR_120                       MatchupDimension,SeviriImageDimensions
+seviri.brightness_temperature.134   seviri.IR_134                       MatchupDimension,SeviriImageDimensions
+seviri.solar.zenith                 seviri.solzen                       MatchupDimension,SeviriImageDimensions
+seviri.satellite.zenith             seviri.satzen                       MatchupDimension,SeviriImageDimensions
+seviri.relative.azimuth             seviri.relazi                       MatchupDimension,SeviriImageDimensions
+seviri.prd_filename                 seviri.box_prd_filename             MatchupDimension,FilenameDimension
+seviri.sat_filename                 seviri.box_sat_filename             MatchupDimension,FilenameDimension
+seviri.matchup.elem                 seviri.box_center_x_coord           MatchupDimension
+seviri.matchup.line                 seviri.box_center_y_coord           MatchupDimension
+
 
 ### atsr l1b
 
 # atsr.<sen_id>.observation_time
+
+### amsre-e l2p
+
+amsre.latitude                      amsre.lat                           MatchupDimension,AmsreImageDimensions
+amsre.longitude                     amsre.lon                           MatchupDimension,AmsreImageDimensions
+amsre.sea_surface_temperature       amsre.sea_surface_temperature       MatchupDimension,AmsreImageDimensions
+amsre.SSES_bias_error               amsre.SSES_bias_error               MatchupDimension,AmsreImageDimensions
+amsre.SSES_standard_deviation_error amsre.SSES_standard_deviation_error MatchupDimension,AmsreImageDimensions
+amsre.proximity_confidence          amsre.proximity_confidence          MatchupDimension,AmsreImageDimensions
+amsre.rejection_flag                amsre.rejection_flag                MatchupDimension,AmsreImageDimensions
+amsre.confidence_flag               amsre.confidence_flag               MatchupDimension,AmsreImageDimensions
+amsre.cool_skin                     amsre.cool_skin                     MatchupDimension,AmsreImageDimensions
+amsre.diurnal_amplitude             amsre.diurnal_amplitude             MatchupDimension,AmsreImageDimensions
+amsre.wind_speed                    amsre.wind_speed                    MatchupDimension,AmsreImageDimensions
+
+### tmi l2p
+
+tmi.latitude                        tmi.lat                             MatchupDimension,AmsreImageDimensions
+tmi.longitude                       tmi.lon                             MatchupDimension,AmsreImageDimensions
+tmi.sea_surface_temperature         tmi.sea_surface_temperature         MatchupDimension,AmsreImageDimensions
+tmi.SSES_bias_error                 tmi.SSES_bias_error                 MatchupDimension,AmsreImageDimensions
+tmi.SSES_standard_deviation_error   tmi.SSES_standard_deviation_error   MatchupDimension,AmsreImageDimensions
+tmi.proximity_confidence            tmi.proximity_confidence            MatchupDimension,AmsreImageDimensions
+tmi.rejection_flag                  tmi.rejection_flag                  MatchupDimension,AmsreImageDimensions
+tmi.confidence_flag                 tmi.confidence_flag                 MatchupDimension,AmsreImageDimensions
+tmi.cool_skin                       tmi.cool_skin                       MatchupDimension,AmsreImageDimensions
+tmi.diurnal_amplitude               tmi.diurnal_amplitude               MatchupDimension,AmsreImageDimensions
+tmi.wind_speed                      tmi.wind_speed                      MatchupDimension,AmsreImageDimensions
+
+
+
+### atsr md
+
+aatsr_md.atsr.L2_confidence_word
+aatsr_md.atsr.across_track_position
+aatsr_md.atsr.along_track_position
+aatsr_md.atsr.day_night_flag
+aatsr_md.atsr.latitude
+aatsr_md.atsr.longitude
+aatsr_md.atsr.nearest_tie_point
+aatsr_md.atsr.orbit_filename
+aatsr_md.atsr.sea_surface_temperature.dual
+aatsr_md.atsr.sea_surface_temperature.nadir
+aatsr_md.atsr.three_channel_retrieval
+aatsr_md.atsr.time.julian
+aatsr_md.insitu.callsign
+aatsr_md.insitu.dataset
+aatsr_md.insitu.latitude
+aatsr_md.insitu.longitude
+aatsr_md.insitu.reference_flag
+aatsr_md.insitu.sea_surface_temperature
+aatsr_md.insitu.time.julian
+aatsr_md.insitu.unique_identifier
+aatsr_md.matchup.distance
+aatsr_md.matchup.time.difference
+aatsr_md.matchup.valid
+aatsr_md.matchup.wind_speed

@@ -142,7 +142,7 @@ public class Arc1ProcessingTool extends MmsTool {
         final String latLonFileName = latLonFile.getName();
         // todo - ts 19Apr2011 - replace by actual call
         System.out.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFileName);
-        System.out.format("ssh eddie.ecdf.ed.ac.uk ~/mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n", currentFilename, latLonFileName);
+        System.out.format("ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n", currentFilename, latLonFileName);
     }
 
     private void close(final BufferedWriter writer) {
@@ -157,7 +157,12 @@ public class Arc1ProcessingTool extends MmsTool {
 
     private File getLatLonFile(final String currentFilename) {
         final int slashIndex = currentFilename.lastIndexOf('/');
-        final String baseFilename = currentFilename.substring(slashIndex + 1);
+        final String baseFilename;
+        if (currentFilename.endsWith(".gz")) {
+            baseFilename = currentFilename.substring(slashIndex + 1, currentFilename.length() - ".gz".length());
+        } else {
+            baseFilename = currentFilename.substring(slashIndex + 1);
+        }
         return new File(baseFilename + LATLON_FILE_EXTENSION);
     }
 
