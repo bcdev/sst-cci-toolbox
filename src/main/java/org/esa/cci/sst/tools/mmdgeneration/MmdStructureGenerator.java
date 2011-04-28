@@ -255,7 +255,7 @@ class MmdStructureGenerator {
         if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
             final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType, dims);
             addAttribute(v, "standard_name", descriptor.getStandardName());
-            addAttribute(v, "units", descriptor.getUnits());
+            addAttribute(v, "units", descriptor.getUnit());
             addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
             addAttribute(v, "scale_factor", descriptor.getScaleFactor(), DataType.FLOAT);
             addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());

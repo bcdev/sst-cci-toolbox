@@ -165,7 +165,7 @@ class MmdReader {
             variableDescriptor.setFillValue(sourceDescriptor.getFillValue());
             variableDescriptor.setScaleFactor(sourceDescriptor.getScaleFactor());
             variableDescriptor.setStandardName(sourceDescriptor.getStandardName());
-            variableDescriptor.setUnits(sourceDescriptor.getUnits());
+            variableDescriptor.setUnits(sourceDescriptor.getUnit());
             variableDescriptor.setValidMin(sourceDescriptor.getValidMin());
             variableDescriptor.setValidMax(sourceDescriptor.getValidMax());
         }

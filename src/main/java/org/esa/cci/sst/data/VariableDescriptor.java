@@ -1,5 +1,6 @@
 package org.esa.cci.sst.data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -84,6 +85,7 @@ public final class VariableDescriptor {
         this.role = role;
     }
 
+    @Column(unique = true, nullable = false)
     public String getName() {
         return name;
     }
@@ -118,7 +120,7 @@ public final class VariableDescriptor {
         this.dimensionRoles = dimensionRoles;
     }
 
-    public String getUnits() {
+    public String getUnit() {
         return units;
     }
 
