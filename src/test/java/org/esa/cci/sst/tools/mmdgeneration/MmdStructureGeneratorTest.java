@@ -30,28 +30,28 @@ public class MmdStructureGeneratorTest {
     @Test
     public void testCreateDimString() throws Exception {
         final VariableDescriptor descriptor1 = new VariableDescriptor();
-        descriptor1.setDimensionRoles("match_up ni nj");
-        descriptor1.setDimensions("matchup_id ni nj");
+        descriptor1.setDimensionRoles("matchup ni nj");
+        descriptor1.setDimensions("matchup.id ni nj");
         final String dimString1 = MmdStructureGenerator.createDimensionString(descriptor1, SensorType.ATSR_MD);
 
         VariableDescriptor descriptor2 = new VariableDescriptor();
-        descriptor2.setDimensionRoles("match_up ni nj");
-        descriptor2.setDimensions("matchup_id ni nj");
+        descriptor2.setDimensionRoles("matchup ni nj");
+        descriptor2.setDimensions("matchup.id ni nj");
         final String dimString2 = MmdStructureGenerator.createDimensionString(descriptor2, SensorType.AAI);
 
         VariableDescriptor descriptor3 = new VariableDescriptor();
-        descriptor3.setDimensionRoles("match_up length");
-        descriptor3.setDimensions("matchup_id kasperkopp");
+        descriptor3.setDimensionRoles("matchup length");
+        descriptor3.setDimensions("matchup.id kasperkopp");
         final String dimString3 = MmdStructureGenerator.createDimensionString(descriptor3, SensorType.ATSR_MD);
 
         VariableDescriptor descriptor4 = new VariableDescriptor();
-        descriptor4.setDimensionRoles("match_up length");
-        descriptor4.setDimensions("match_up atsr_md.ui_length");
+        descriptor4.setDimensionRoles("matchup length");
+        descriptor4.setDimensions("match.up atsr_md.ui_length");
         final String dimString4 = MmdStructureGenerator.createDimensionString(descriptor4, SensorType.ATSR_MD);
 
-        assertEquals("match_up atsr_md.ni atsr_md.nj", dimString1);
-        assertEquals("match_up aai.ni aai.nj", dimString2);
-        assertEquals("match_up atsr_md.kasperkopp", dimString3);
-        assertEquals("match_up atsr_md.ui_length", dimString4);
+        assertEquals("matchup atsr_md.ni atsr_md.nj", dimString1);
+        assertEquals("matchup aai.ni aai.nj", dimString2);
+        assertEquals("matchup atsr_md.kasperkopp", dimString3);
+        assertEquals("matchup atsr_md.ui_length", dimString4);
     }
 }
