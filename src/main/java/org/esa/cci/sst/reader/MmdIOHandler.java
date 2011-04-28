@@ -16,9 +16,11 @@
 
 package org.esa.cci.sst.reader;
 
+import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
@@ -38,14 +40,12 @@ import java.util.Date;
  */
 public class MmdIOHandler implements IOHandler {
 
-    static final String VARIABLE_NAME_MATCHUP = "matchup_id";
-
-    private NetcdfFile mmd;
+    private NetcdfFile ncFile;
     private final MmsTool tool;
     private final String sensor;
     private final String schemaName;
     private Variable matchupIds;
-    private MmdReader reader;
+    private ObservationReader reader;
     private MmdWriter writer;
 
     public MmdIOHandler(final MmsTool tool, final String sensor, final String schemaName) {
@@ -58,9 +58,14 @@ public class MmdIOHandler implements IOHandler {
     public void init(final DataFile dataFile) throws IOException {
         final String fileLocation = dataFile.getPath();
         validateFileLocation(fileLocation);
-        mmd = NetcdfFile.open(fileLocation);
-        matchupIds = mmd.findVariable(NetcdfFile.escapeName(VARIABLE_NAME_MATCHUP));
-        reader = new MmdReader(this, tool.getPersistenceManager(), mmd, sensor, schemaName);
+        ncFile = NetcdfFile.open(fileLocation);
+        matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+        final String property = getProperty("mms.reingestion.type", "aatsr");
+        if (property.equals("arc3")) {
+            reader = new Arc3Reader(this, tool.getPersistenceManager(), ncFile, sensor, schemaName);
+        } else {
+            reader = new MmdReader(this, tool.getPersistenceManager(), ncFile, sensor, schemaName);
+        }
         writer = new MmdWriter(this);
     }
 
@@ -95,11 +100,11 @@ public class MmdIOHandler implements IOHandler {
         writer.write(targetFile, sourceObservation, sourceVariableName, targetVariableName, targetRecordNumber);
     }
 
-   @Override
+    @Override
     public void close() {
-        if (mmd != null) {
+        if (ncFile != null) {
             try {
-                mmd.close();
+                ncFile.close();
             } catch (IOException ignore) {
             }
         } else {
@@ -113,7 +118,7 @@ public class MmdIOHandler implements IOHandler {
     }
 
     Array getData(final String sourceVariableName, final int recordNo) throws IOException {
-        final Variable variable = mmd.findVariable(NetcdfFile.escapeName(sourceVariableName));
+        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(sourceVariableName));
         if (recordNo >= variable.getShape()[0]) {
             throw new IllegalArgumentException("recordNo >= variable.getShape()[0]");
         }
@@ -125,11 +130,12 @@ public class MmdIOHandler implements IOHandler {
     }
 
     Array readData(final Variable variable, final int[] origin, final int[] shape) throws IOException {
+        Assert.notNull(variable, "Trying to read from non-existing variable.");
         try {
             return variable.read(origin, shape);
         } catch (InvalidRangeException e) {
             throw new IOException(
-                    MessageFormat.format("Unable to read from file ''{0}''.", mmd.getLocation()), e);
+                    MessageFormat.format("Unable to read from file ''{0}''.", ncFile.getLocation()), e);
         }
     }
 
@@ -137,8 +143,8 @@ public class MmdIOHandler implements IOHandler {
         return tool.getConfiguration().getProperty(key);
     }
 
-    void handleError(final Throwable t, final String message, final int exitCode) {
-        tool.getErrorHandler().handleError(t, message, exitCode);
+    String getProperty(final String key, final String defaultValue) {
+        return tool.getConfiguration().getProperty(key, defaultValue);
     }
 
     private void validateFileLocation(final String fileLocation) throws IOException {

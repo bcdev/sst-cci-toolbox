@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools.ingestion;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Timed;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.MmdIOHandler;
 import org.esa.cci.sst.tools.ErrorHandler;
@@ -92,8 +93,10 @@ class MmdObservationIngester {
 
     private void setCoincidenceTimeDelta(final Matchup matchup, final Observation observation,
                                          final Coincidence coincidence) {
-        final double timeDelta = TimeUtil.computeTimeDelta(matchup, observation);
-        coincidence.setTimeDifference(timeDelta);
+        if (observation instanceof Timed) {
+            final double timeDelta = TimeUtil.computeTimeDelta(matchup, (Timed) observation);
+            coincidence.setTimeDifference(timeDelta);
+        }
     }
 
     private Object getDatabaseObjectById(final String baseQuery, final int id) {

@@ -1,9 +1,11 @@
 package org.esa.cci.sst.tools;
 
+import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.Timed;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
@@ -424,7 +426,8 @@ public class MatchupTool extends MmsTool {
      * @return newly created Coincidence relating matchup and common observation
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
-        final double timeDifference = TimeUtil.computeTimeDelta(matchup, observation);
+        Assert.argument(observation instanceof Timed, "!(observation instanceof Timed)");
+        final double timeDifference = TimeUtil.computeTimeDelta(matchup, (Timed)observation);
         final Coincidence coincidence = new Coincidence();
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);

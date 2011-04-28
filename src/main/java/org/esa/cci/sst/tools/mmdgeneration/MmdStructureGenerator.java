@@ -72,7 +72,7 @@ class MmdStructureGenerator {
         String sensorName;
         final Properties configuration = tool.getConfiguration();
         int i = 0;
-        while ((sensorName = getProperty(configuration, i)) != null) {
+        while ((sensorName = getSensor(configuration, i)) != null) {
             final SensorType sensorType = SensorType.getSensorType(sensorName);
             addInputVariables(file, sensorType, sensorName);
             if (sensorType == ATSR || sensorType == AVHRR || sensorType == AMSRE || sensorType == TMI) {
@@ -119,13 +119,13 @@ class MmdStructureGenerator {
         return dimensionString;
     }
 
-    private String getProperty(final Properties configuration, final int i) {
+    private String getSensor(final Properties configuration, final int i) {
         return configuration.getProperty(String.format("mms.test.inputSets.%d.sensor", i));
     }
 
     private void addMatchupVariables(final NetcdfFileWriteable file) {
         file.addVariable(Constants.VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
-        file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.LONG, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
         file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
     }
@@ -170,8 +170,8 @@ class MmdStructureGenerator {
             final Variable time = file.addVariable(file.getRootGroup(),
                                                    getTargetVariableName(variableName),
                                                    DataType.DOUBLE,
-                                                   String.format("%s %s.ni", Constants.DIMENSION_NAME_MATCHUP,
-                                                                 sensorType));
+                                                   String.format("%s.ni %s", sensorType,
+                                                                 Constants.DIMENSION_NAME_MATCHUP));
             addAttribute(time, "units", "Julian Date");
         }
     }

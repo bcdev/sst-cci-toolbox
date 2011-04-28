@@ -9,9 +9,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 
 /**
- * Data item that represents a single observation, either with an SST value
- * or a sub-scene or a related value for aerosol, sea ice, etc. The object
- * refers to a record in an MD file or a record in a related file.
+ * Data item that represents a single observation that refers
+ * to a record in an MD file.
  *
  * @author Martin Boettcher
  */
@@ -50,7 +49,7 @@ public class ReferenceObservation extends RelatedObservation {
     }
 
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getName(), getSensor(),
+        return String.format("ReferenceObservation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getName(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(
                                      getTime()), getPoint(), getLocation(), getDatafile(), getRecordNo(), isClearSky());
     }
