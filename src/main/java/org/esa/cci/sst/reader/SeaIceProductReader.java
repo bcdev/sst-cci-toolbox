@@ -1,8 +1,6 @@
 package org.esa.cci.sst.reader;
 
-import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
-import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.CrsGeoCoding;
 import org.esa.beam.framework.datamodel.GeoCoding;
@@ -19,8 +17,6 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
 import ucar.nc2.Variable;
 
-import java.awt.Rectangle;
-import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +27,7 @@ import java.text.ParseException;
  *
  * @author Thomas Storm
  */
-public class SeaIceProductReader extends AbstractProductReader {
+public class SeaIceProductReader extends BasicNetcdfProductReader {
 
     static final String NH_GRID = "OSISAF_NH";
     static final String SH_GRID = "OSISAF_SH";
@@ -47,7 +43,6 @@ public class SeaIceProductReader extends AbstractProductReader {
                                                            "corresponding to the quality of the calculated sea ice " +
                                                            "parameter and information on the processing conditions.";
 
-    private NetcdfFile ncFile;
     private int sceneRasterWidth;
     private int sceneRasterHeight;
 
@@ -56,11 +51,9 @@ public class SeaIceProductReader extends AbstractProductReader {
     }
 
     @Override
-    protected Product readProductNodesImpl() throws IOException {
-        final String pathname = getInput().toString();
-        final File inputFile = new File(pathname);
-        ncFile = NetcdfFile.open(inputFile.getPath());
-        final Variable header = ncFile.findVariable("Header");
+    protected Product createProduct(NetcdfFile netcdfFile) throws IOException {
+        final File inputFile = new File(netcdfFile.getLocation());
+        final Variable header = netcdfFile.findVariable("Header");
         final Structure headerStructure = (Structure) header;
 
         final String productName = headerStructure.findVariable("product").readScalarString();
@@ -77,7 +70,7 @@ public class SeaIceProductReader extends AbstractProductReader {
                                             sceneRasterHeight);
         setTimes(product, year, month, day, hour, minute);
         final Band band;
-        if (isSeaIceFile(pathname)) {
+        if (isSeaIceFile(inputFile)) {
             band = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
             band.setNoDataValue(-32767.0);
             band.setNoDataValueUsed(true);
@@ -98,25 +91,6 @@ public class SeaIceProductReader extends AbstractProductReader {
         return product;
     }
 
-    @Override
-    protected synchronized void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth,
-                                                       int sourceHeight,
-                                                       int sourceStepX, int sourceStepY, Band destBand, int destOffsetX,
-                                                       int destOffsetY, int destWidth, int destHeight,
-                                                       ProductData destBuffer,
-                                                       ProgressMonitor pm) throws IOException {
-        final RenderedImage image = destBand.getSourceImage();
-        final Raster data = image.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
-
-        data.getDataElements(destOffsetX, destOffsetY, destWidth, destHeight, destBuffer.getElems());
-    }
-
-    @Override
-    public void close() throws IOException {
-        ncFile.close();
-        super.close();
-    }
-
     MetadataElement getMetadata(Structure headerStructure) {
         final MetadataElement element = new MetadataElement("Header");
         for (Variable variable : headerStructure.getVariables()) {
@@ -124,33 +98,33 @@ public class SeaIceProductReader extends AbstractProductReader {
             ProductData productData = null;
             try {
                 switch (type) {
-                    case ProductData.TYPE_ASCII: {
-                        productData = ProductData.createInstance(variable.readScalarString());
-                        break;
-                    }
-                    case ProductData.TYPE_INT8: {
-                        productData = ProductData.createInstance(new int[]{variable.readScalarByte()});
-                        break;
-                    }
-                    case ProductData.TYPE_INT16: {
-                        productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
-                        break;
-                    }
-                    case ProductData.TYPE_INT32: {
-                        productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
-                        break;
-                    }
-                    case ProductData.TYPE_FLOAT32: {
-                        productData = ProductData.createInstance(new float[]{variable.readScalarFloat()});
-                        break;
-                    }
-                    case ProductData.TYPE_FLOAT64: {
-                        productData = ProductData.createInstance(new double[]{variable.readScalarDouble()});
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
+                case ProductData.TYPE_ASCII: {
+                    productData = ProductData.createInstance(variable.readScalarString());
+                    break;
+                }
+                case ProductData.TYPE_INT8: {
+                    productData = ProductData.createInstance(new int[]{variable.readScalarByte()});
+                    break;
+                }
+                case ProductData.TYPE_INT16: {
+                    productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
+                    break;
+                }
+                case ProductData.TYPE_INT32: {
+                    productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
+                    break;
+                }
+                case ProductData.TYPE_FLOAT32: {
+                    productData = ProductData.createInstance(new float[]{variable.readScalarFloat()});
+                    break;
+                }
+                case ProductData.TYPE_FLOAT64: {
+                    productData = ProductData.createInstance(new double[]{variable.readScalarDouble()});
+                    break;
+                }
+                default: {
+                    break;
+                }
                 }
             } catch (IOException e) {
                 Debug.trace(e.getMessage());
@@ -194,8 +168,10 @@ public class SeaIceProductReader extends AbstractProductReader {
         return null;
     }
 
-    private RenderedImage createSourceImage(Band band) {
-        final Variable variable = ncFile.findVariable(VARIABLE_NAME);
+
+    @Override
+    protected RenderedImage createSourceImage(Band band) {
+        final Variable variable = getNetcdfFile().findVariable(VARIABLE_NAME);
         final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
         return new VariableOpImage(variable, dataBufferType,
                                    band.getSceneRasterWidth(),
@@ -238,8 +214,8 @@ public class SeaIceProductReader extends AbstractProductReader {
         product.setEndTime(startTime);
     }
 
-    static boolean isSeaIceFile(String pathname) {
-        return !pathname.contains("_qual_");
+    static boolean isSeaIceFile(File file) {
+        return !file.getName().contains("_qual_");
     }
 
 }

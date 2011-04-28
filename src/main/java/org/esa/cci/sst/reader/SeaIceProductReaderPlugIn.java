@@ -19,7 +19,7 @@ import java.util.Locale;
  */
 public class SeaIceProductReaderPlugIn implements ProductReaderPlugIn {
 
-    private static final String FORMAT_NAME = "Ocean and Sea Ice SAF";
+    private static final String FORMAT_NAME = "OSI";
     private static final String FILE_EXTENSION_HDF = ".hdf";
 
     @Override

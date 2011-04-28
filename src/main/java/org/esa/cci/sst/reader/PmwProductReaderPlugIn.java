@@ -10,6 +10,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
+/**
+ * Product reader plug-in for TMI and AMSR-E products.
+ *
+ * @author Ralf Quast
+ */
 public class PmwProductReaderPlugIn implements ProductReaderPlugIn {
 
     private static final String FORMAT_NAME = "PMW";

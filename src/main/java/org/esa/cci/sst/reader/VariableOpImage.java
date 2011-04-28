@@ -5,7 +5,7 @@ import org.esa.beam.jai.SingleBandedOpImage;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Section;
-import ucar.nc2.Variable;
+import ucar.nc2.VariableIF;
 
 import javax.media.jai.PlanarImage;
 import java.awt.Dimension;
@@ -14,16 +14,17 @@ import java.awt.image.WritableRaster;
 import java.io.IOException;
 
 /**
- * Used for creating rendered images from a netCDF variable (based on BEAM
- * implementation, but specialized and simplified).
+ * Used for creating rendered images from a variable in OSI and
+ * PMW netCDF files.
  *
  * @author Ralf Quast
+ * @see org.esa.beam.dataio.netcdf.util.NetcdfOpImage
  */
 class VariableOpImage extends SingleBandedOpImage {
 
-    private final Variable variable;
+    private final VariableIF variable;
 
-    VariableOpImage(Variable variable, int dataBufferType, int sourceWidth, int sourceHeight, Dimension tileSize) {
+    VariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight, Dimension tileSize) {
         super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, ResolutionLevel.MAXRES);
         this.variable = variable;
     }
@@ -39,6 +40,7 @@ class VariableOpImage extends SingleBandedOpImage {
             origin[i] = 0;
             stride[i] = 1;
         }
+        // sequence of dimensions in OSI & PMW (..., x, y) does not comply with CF conventions
         final int xIndex = rank - 2;
         final int yIndex = rank - 1;
 
@@ -63,18 +65,18 @@ class VariableOpImage extends SingleBandedOpImage {
                 throw new IllegalArgumentException(e);
             }
         }
-        tile.setDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height, transform(array));
+        tile.setDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height, getStorage(array));
     }
 
     /**
-     * Transforms the storage of the netCDF array supplied as argument. This
-     * implementation applies the identity transformation.
+     * Returns the storage of the array supplied as argument. May
+     * be overridden in order to e.g. transpose the storage.
      *
-     * @param array The netCDF array.
+     * @param array An array.
      *
      * @return the transformed storage.
      */
-    protected Object transform(Array array) {
+    protected Object getStorage(Array array) {
         return array.getStorage();
     }
 }

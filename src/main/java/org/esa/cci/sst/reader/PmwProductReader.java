@@ -1,42 +1,35 @@
 package org.esa.cci.sst.reader;
 
-import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
-import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import ucar.ma2.Array;
+import ucar.ma2.Index;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class PmwProductReader extends AbstractProductReader {
-
-    private NetcdfFile netcdfFile;
+/**
+ * Product reader for TMI and AMSR-E products.
+ *
+ * @author Ralf Quast
+ */
+public class PmwProductReader extends BasicNetcdfProductReader {
 
     protected PmwProductReader(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
     }
 
     @Override
-    protected Product readProductNodesImpl() throws IOException {
-        final File inputFile;
-        if (getInput() instanceof File) {
-            inputFile = (File) getInput();
-        } else {
-            inputFile = new File(getInput().toString());
-        }
-        netcdfFile = NetcdfFile.open(inputFile.getPath());
+    protected Product createProduct(NetcdfFile netcdfFile) throws IOException {
+        final File inputFile = new File(netcdfFile.getLocation());
         final String productName = inputFile.getName();
         final int h = netcdfFile.findDimension("ni").getLength();
         final int w = netcdfFile.findDimension("nj").getLength();
@@ -56,53 +49,30 @@ public class PmwProductReader extends AbstractProductReader {
     }
 
     @Override
-    protected synchronized void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY, int sourceWidth,
-                                                       int sourceHeight,
-                                                       int sourceStepX, int sourceStepY, Band destBand, int destOffsetX,
-                                                       int destOffsetY, int destWidth, int destHeight,
-                                                       ProductData destBuffer,
-                                                       ProgressMonitor pm) throws IOException {
-        final RenderedImage image = destBand.getSourceImage();
-        final Raster data = image.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
-
-        data.getDataElements(destOffsetX, destOffsetY, destWidth, destHeight, destBuffer.getElems());
-    }
-
-    @Override
-    public void close() throws IOException {
-        netcdfFile.close();
-        super.close();
-    }
-
-    private RenderedImage createSourceImage(Band band) {
-        final Variable variable = netcdfFile.findVariable(NetcdfFile.escapeName(band.getName()));
+    protected RenderedImage createSourceImage(Band band) {
+        final Variable variable = getNetcdfFile().findVariable(NetcdfFile.escapeName(band.getName()));
         final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
-        return new TransposedVariableOpImage(variable, dataBufferType,
-                                             band.getSceneRasterWidth(),
-                                             band.getSceneRasterHeight(),
-                                             band.getProduct().getPreferredTileSize()
-        );
-    }
+        final int sourceWidth = band.getSceneRasterWidth();
+        final int sourceHeight = band.getSceneRasterHeight();
+        final Dimension tileSize = band.getProduct().getPreferredTileSize();
 
-    private static class TransposedVariableOpImage extends VariableOpImage {
-
-        private TransposedVariableOpImage(Variable variable, int dataBufferType, int sourceWidth, int sourceHeight,
-                                          Dimension tileSize) {
-            super(variable, dataBufferType, sourceWidth, sourceHeight, tileSize);
-        }
-
-        @Override
-        protected Object transform(Array array) {
-            final Array transposedArray = Array.factory(array.getElementType(), array.getShape());
-            final int h = array.getIndexPrivate().getShape(array.getRank() - 1);
-            final int w = array.getIndexPrivate().getShape(array.getRank() - 2);
-            for (int i = 0; i < h; i++) {
-                for (int j = 0; j < w; j++) {
-                    transposedArray.setObject(j + i * w, array.getObject(i + j * h));
+        return new VariableOpImage(variable, dataBufferType, sourceWidth, sourceHeight, tileSize) {
+            @Override
+            protected Object getStorage(Array array) {
+                final Index index = array.getIndexPrivate();
+                final int h = index.getShape(array.getRank() - 1);
+                final int w = index.getShape(array.getRank() - 2);
+                for (int j = 0, j0 = 0; j < w; j++, j0 += h) {
+                    for (int i = 0, ij = j, ji = j0; ij < ji; i++, ij += w, ji++) {
+                        final Object value1 = array.getObject(ij);
+                        final Object value2 = array.getObject(ji);
+                        array.setObject(ij, value2);
+                        array.setObject(ji, value1);
+                    }
                 }
+                return array.getStorage();
             }
-            return transposedArray.getStorage();
-        }
+        };
     }
 
 }
