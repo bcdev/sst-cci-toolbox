@@ -24,9 +24,10 @@ final class RightAssociativeComposition implements Rule {
     }
 
     @Override
-    public final Number apply(Number number) throws RuleException {
+    public final Number apply(Number number, final VariableDescriptor targetDescriptor,
+                              final VariableDescriptor sourceDescriptor) throws RuleException {
         for (int i = rules.length; i-- > 0;) {
-            number = rules[i].apply(number);
+            number = rules[i].apply(number, null, null);
         }
         return number;
     }

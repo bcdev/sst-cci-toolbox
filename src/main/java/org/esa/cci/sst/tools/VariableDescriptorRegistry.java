@@ -51,7 +51,7 @@ public class VariableDescriptorRegistry {
             final ArrayList<String> nameList = new ArrayList<String>();
             for (int lineNumber = 0; scanner.hasNextLine(); lineNumber++) {
                 final String line = stripComment(scanner.nextLine()).trim();
-                final String[] tokens = line.split(" ");
+                final String[] tokens = line.split("\\s+");
                 try {
                     switch (tokens.length) {
                         case 1:

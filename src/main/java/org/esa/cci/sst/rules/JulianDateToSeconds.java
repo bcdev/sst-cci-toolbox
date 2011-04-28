@@ -19,7 +19,8 @@ class JulianDateToSeconds implements Rule {
     }
 
     @Override
-    public final Number apply(Number number) {
+    public final Number apply(Number number, final VariableDescriptor targetDescriptor,
+                              final VariableDescriptor sourceDescriptor) {
         return (number.doubleValue() - 2443509.5) * 86400.0;
     }
 }

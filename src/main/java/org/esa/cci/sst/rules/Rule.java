@@ -25,12 +25,16 @@ public interface Rule {
     /**
      * Applies the numerical conversion rule to the number supplied as argument.
      *
+     *
+     *
      * @param number A number.
      *
-     * @return the converted number. The number returned complies with the properties
+     * @param targetDescriptor
+     *@param sourceDescriptor @return the converted number. The number returned complies with the properties
      *         of the target descriptor returned by {@link #apply(VariableDescriptor)}.
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    Number apply(Number number) throws RuleException;
+    Number apply(Number number, VariableDescriptor targetDescriptor, VariableDescriptor sourceDescriptor) throws
+                                                                                                          RuleException;
 }

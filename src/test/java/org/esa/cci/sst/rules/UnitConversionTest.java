@@ -7,8 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.DataType;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class UnitConversionTest {
 
@@ -43,8 +42,8 @@ public class UnitConversionTest {
         final Rule rule = registry.getRule(targetDescriptor);
 
         assertNotNull(rule);
-        assertEquals(0.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978));
-        assertEquals(86400.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978 + 1.0));
+        assertEquals(0.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978, null, null));
+        assertEquals(86400.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978 + 1.0, null, null));
     }
 
     @Before
