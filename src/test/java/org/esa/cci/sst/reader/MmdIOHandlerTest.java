@@ -73,7 +73,7 @@ public class MmdIOHandlerTest {
     @Test
     public void testInit() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
-        final Field mmd = mmdIOHandler.getClass().getDeclaredField("mmd");
+        final Field mmd = mmdIOHandler.getClass().getDeclaredField("ncFile");
         mmd.setAccessible(true);
         final NetcdfFile mmdObj = (NetcdfFile) mmd.get(mmdIOHandler);
 
