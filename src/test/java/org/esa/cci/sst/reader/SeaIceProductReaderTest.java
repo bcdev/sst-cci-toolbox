@@ -69,8 +69,8 @@ public class SeaIceProductReaderTest {
 
     @Test
     public void testIsSeaIceFile() throws Exception {
-        assertTrue(SeaIceProductReader.isSeaIceFile(TEST_FILE.getName()));
-        assertFalse(SeaIceProductReader.isSeaIceFile(TEST_QUALITY_FILE.getName()));
+        assertTrue(SeaIceProductReader.isSeaIceFile(TEST_FILE));
+        assertFalse(SeaIceProductReader.isSeaIceFile(TEST_QUALITY_FILE));
     }
 
     @Test
