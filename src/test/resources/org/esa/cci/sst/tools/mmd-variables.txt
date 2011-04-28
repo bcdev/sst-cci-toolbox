@@ -1,0 +1,5 @@
+# column 1: target name
+# column 2: source name
+# column 3: rule specification
+
+metop.brightness_temperature.037 metop.IR037 Renaming
