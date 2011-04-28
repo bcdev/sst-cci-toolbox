@@ -7,6 +7,7 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
@@ -20,15 +21,15 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class SeaIceProductReaderTest {
+public class OsiProductReaderTest {
 
     private static final File TEST_FILE = new File("testdata/SeaIceConc", "ice_conc_nh_201006301200.hdf");
     private static final File TEST_QUALITY_FILE = new File("testdata/SeaIceConc", "ice_conc_sh_qual_201006301200.hdf");
-    private SeaIceProductReader reader;
+    private OsiProductReader reader;
 
     @Before
     public void setUp() throws Exception {
-        reader = new SeaIceProductReader(new SeaIceProductReaderPlugIn());
+        reader = new OsiProductReader(new OsiProductReaderPlugIn());
     }
 
     @Test
@@ -64,13 +65,13 @@ public class SeaIceProductReaderTest {
         assertEquals(1120, metadata.getAttribute("Header.ih").getData().getElemInt());
         assertEquals(-3850.0, metadata.getAttribute("Header.Bx").getData().getElemFloat(), 0.0);
         assertEquals(5850, metadata.getAttribute("Header.By").getData().getElemFloat(), 0.0);
-        assertEquals(SeaIceProductReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
+        assertEquals(OsiProductReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
     }
 
     @Test
     public void testIsSeaIceFile() throws Exception {
-        assertTrue(SeaIceProductReader.isSeaIceFile(TEST_FILE));
-        assertFalse(SeaIceProductReader.isSeaIceFile(TEST_QUALITY_FILE));
+        assertTrue(OsiProductReader.isSeaIceFile(TEST_FILE));
+        assertFalse(OsiProductReader.isSeaIceFile(TEST_QUALITY_FILE));
     }
 
     @Test

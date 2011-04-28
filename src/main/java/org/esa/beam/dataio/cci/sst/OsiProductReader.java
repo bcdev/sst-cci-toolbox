@@ -27,7 +27,7 @@ import java.text.ParseException;
  *
  * @author Thomas Storm
  */
-public class SeaIceProductReader extends BasicNetcdfProductReader {
+public class OsiProductReader extends BasicNetcdfProductReader {
 
     static final String NH_GRID = "OSISAF_NH";
     static final String SH_GRID = "OSISAF_SH";
@@ -46,7 +46,7 @@ public class SeaIceProductReader extends BasicNetcdfProductReader {
     private int sceneRasterWidth;
     private int sceneRasterHeight;
 
-    SeaIceProductReader(SeaIceProductReaderPlugIn plugin) {
+    OsiProductReader(OsiProductReaderPlugIn plugin) {
         super(plugin);
     }
 

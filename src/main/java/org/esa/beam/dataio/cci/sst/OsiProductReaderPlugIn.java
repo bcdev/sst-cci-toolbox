@@ -17,7 +17,7 @@ import java.util.Locale;
  *
  * @author Thomas Storm
  */
-public class SeaIceProductReaderPlugIn implements ProductReaderPlugIn {
+public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     private static final String FORMAT_NAME = "OSISAF";
     private static final String FILE_EXTENSION_HDF = ".hdf";
@@ -69,7 +69,7 @@ public class SeaIceProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public ProductReader createReaderInstance() {
-        return new SeaIceProductReader(this);
+        return new OsiProductReader(this);
     }
 
     @Override

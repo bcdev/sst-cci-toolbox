@@ -1,6 +1,5 @@
 package org.esa.beam.dataio.cci.sst;
 
-import org.esa.beam.dataio.cci.sst.SeaIceProductReaderPlugIn;
 import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.dataio.ProductReader;
 import org.junit.Before;
@@ -13,13 +12,13 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class SeaIceProductReaderPlugInTest {
+public class OsiProductReaderPlugInTest {
 
-    private SeaIceProductReaderPlugIn plugin;
+    private OsiProductReaderPlugIn plugin;
 
     @Before
     public void setUp() throws Exception {
-        plugin = new SeaIceProductReaderPlugIn();
+        plugin = new OsiProductReaderPlugIn();
     }
 
     @Test
