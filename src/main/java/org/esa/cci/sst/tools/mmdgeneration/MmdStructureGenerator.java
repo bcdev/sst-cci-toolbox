@@ -68,22 +68,6 @@ class MmdStructureGenerator {
         addGlobalAttributes(file);
     }
 
-    private void addAllInputVariables(final NetcdfFileWriteable file) {
-        String sensorName;
-        final Properties configuration = tool.getConfiguration();
-        int i = 0;
-        while ((sensorName = getSensor(configuration, i)) != null) {
-            final SensorType sensorType = SensorType.getSensorType(sensorName);
-            addInputVariables(file, sensorType, sensorName);
-            if (sensorType == ATSR || sensorType == AVHRR || sensorType == AMSRE || sensorType == TMI) {
-                addObservationTimeVariable(file, sensorType, sensorName);
-                addLsMaskVariable(file, sensorType, sensorName);
-                addNwpData(file, sensorType, sensorName);
-            }
-            i++;
-        }
-    }
-
     void addDimensions(final NetcdfFileWriteable file) {
         for (final Map.Entry<String, Integer> stringIntegerEntry : dimensionCountMap.entrySet()) {
             file.addDimension(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
@@ -119,6 +103,22 @@ class MmdStructureGenerator {
         return dimensionString;
     }
 
+    private void addAllInputVariables(final NetcdfFileWriteable file) {
+        String sensorName;
+        final Properties configuration = tool.getConfiguration();
+        int i = 0;
+        while ((sensorName = getSensor(configuration, i)) != null) {
+            final SensorType sensorType = SensorType.getSensorType(sensorName);
+            addInputVariables(file, sensorType, sensorName);
+            if (sensorType == ATSR || sensorType == AVHRR || sensorType == AMSRE || sensorType == TMI) {
+                addObservationTimeVariable(file, sensorType, sensorName);
+                addLsMaskVariable(file, sensorType, sensorName);
+                addNwpData(file, sensorType, sensorName);
+            }
+            i++;
+        }
+    }
+
     private String getSensor(final Properties configuration, final int i) {
         return configuration.getProperty(String.format("mms.test.inputSets.%d.sensor", i));
     }
@@ -135,7 +135,6 @@ class MmdStructureGenerator {
     }
 
     private void addWatermaskVariables(final NetcdfFileWriteable file) {
-        // todo - add attributes explaining mask values
         final String propertyVarNameValue = tool.getConfiguration().getProperty("mmd.watermask.target.variablename");
         final String propertyXDimensionValue = tool.getConfiguration().getProperty("mmd.watermask.target.xdimension");
         final String propertyYDimensionValue = tool.getConfiguration().getProperty("mmd.watermask.target.ydimension");
@@ -148,7 +147,10 @@ class MmdStructureGenerator {
             final String yDimension = yDimensionNames[i];
             final String dimensions = String.format("%s %s %s", Constants.DIMENSION_NAME_MATCHUP, xDimension,
                                                     yDimension);
-            file.addVariable(variableName, DataType.SHORT, dimensions);
+            final Variable watermaskVariable = file.addVariable(variableName, DataType.SHORT, dimensions);
+            watermaskVariable.addAttribute(new Attribute("land_value", 0));
+            watermaskVariable.addAttribute(new Attribute("water_value", 1));
+            watermaskVariable.addAttribute(new Attribute("invalid_value", 2));
         }
     }
 
