@@ -167,7 +167,7 @@ class MmdStructureGenerator {
     }
 
     private void addObservationTimeVariable(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
-        final String variableName = String.format("%s.observation_time", sensorName);
+        final String variableName = String.format("%s." + Constants.VARIABLE_OBSERVATION_TIME, sensorName);
         if (targetVariables.isEmpty() || targetVariables.containsKey(variableName)) {
             final Variable time = file.addVariable(file.getRootGroup(),
                                                    getTargetVariableName(variableName),

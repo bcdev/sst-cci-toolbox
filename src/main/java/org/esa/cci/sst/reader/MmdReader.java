@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -23,14 +24,15 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
-import ucar.ma2.Array;
+import org.postgis.Point;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,8 +83,8 @@ class MmdReader implements ObservationReader {
     public Observation readObservation(final int recordNo) throws IOException {
         validateRecordNumber(recordNo);
         final RelatedObservation observation = new RelatedObservation();
-        setObservationLocation(observation, recordNo);
         setupObservation(recordNo, observation);
+        setObservationLocation(observation, recordNo);
         setObservationTime(recordNo, observation);
         return observation;
     }
@@ -103,23 +105,21 @@ class MmdReader implements ObservationReader {
         final List<Variable> variables = mmd.getVariables();
         final DataFile datafile = getDatafile();
         for (Variable variable : variables) {
-                final VariableDescriptor variableDescriptor = createVariableDescriptor(variable, datafile);
-                copyVariableProperties(variable, variableDescriptor);
-                if (variableDescriptor.getDimensionRoles() == null) {
-                    variableDescriptor.setDimensionRoles(variableDescriptor.getDimensions());
-                }
-                variableDescriptors.add(variableDescriptor);
+            final VariableDescriptor variableDescriptor = createVariableDescriptor(variable, datafile);
+            copyVariableProperties(variable, variableDescriptor);
+            if (variableDescriptor.getDimensionRoles() == null) {
+                variableDescriptor.setDimensionRoles(variableDescriptor.getDimensions());
             }
+            variableDescriptors.add(variableDescriptor);
+        }
         return variableDescriptors.toArray(new VariableDescriptor[variableDescriptors.size()]);
     }
 
-    Date getCreationDate(final int matchupId) throws IOException {
-        final Variable variable = mmd.findVariable(Constants.VARIABLE_NAME_TIME);
-        final Array timeArray = mmdIOHandler.readData(variable, new int[]{matchupId}, new int[]{1});
-        final long time = (long) timeArray.getDouble(0);
-        return new Date(time);
+    Date getCreationDate(final int recordNo, Variable variable) throws IOException {
+        // todo - mb,ts 28Apr2011 - maybe other data types
+        final Double julianDate = (Double) readCenterValue(recordNo, variable);
+        return TimeUtil.julianDateToDate(julianDate);
     }
-
 
     void setupObservation(final int recordNo, final Observation observation) throws IOException {
         observation.setDatafile(getDatafile());
@@ -135,22 +135,58 @@ class MmdReader implements ObservationReader {
     }
 
     private void setObservationLocation(final RelatedObservation observation, int recordNo) throws IOException {
-        final int matchupId = mmdIOHandler.getMatchupId(recordNo);
-        final String getLocation = String.format(GET_LOCATION, matchupId);
-        final Query query = persistenceManager.createNativeQuery(getLocation);
-        final Object result = query.getSingleResult();
-        final PGgeometry geometry;
-        try {
-            geometry = new PGgeometry(result.toString());
-        } catch (SQLException e) {
-            throw new IOException("Unable to set location", e);
-        }
+        final Variable latitudeVariable = findVariable("latitude", "lat");
+        final Variable longitudeVariable = findVariable("longitude", "lon");
+        Assert.state(latitudeVariable != null, "No latitude variable found.");
+        Assert.state(longitudeVariable != null, "No longitude variable found.");
+
+        final float centerLatitude = (Float) readCenterValue(recordNo, latitudeVariable);
+        final float centerLongitude = (Float) readCenterValue(recordNo, longitudeVariable);
+
+        final Point centerPoint = new Point(centerLongitude, centerLatitude);
+        final PGgeometry geometry = new PGgeometry(centerPoint);
         observation.setLocation(geometry);
     }
 
+    private Object readCenterValue(int recordNo, Variable variable) throws IOException {
+        final int dimCount = variable.getDimensions().size();
+        final int[] origin = new int[dimCount];
+        final int[] shape = new int[dimCount];
+
+        origin[0] = recordNo;
+        shape[0] = 1;
+        for (int i = 1; i < dimCount; i++) {
+            origin[i] = variable.getDimension(i).getLength() / 2;
+            shape[i] = 1;
+        }
+
+        final Object centerValue;
+        try {
+            centerValue = variable.read(origin, shape).getObject(0);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+        return centerValue;
+    }
+
+    private Variable findVariable(String... variableNames) {
+        for (Variable variable : mmd.getVariables()) {
+            for (String name : variableNames) {
+                if (variable.getName().endsWith(name)) {
+                    return variable;
+                }
+            }
+        }
+        return null;
+    }
+
     private void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
-        final Date creationDate = getCreationDate(recordNo);
-        observation.setTime(creationDate);
+        // todo - mb,ts 28Apr2011 - maybe other variable names
+        final Variable variable = findVariable(Constants.VARIABLE_OBSERVATION_TIME);
+        if (variable != null) {
+            final Date creationDate = getCreationDate(recordNo, variable);
+            observation.setTime(creationDate);
+        }
     }
 
     private void setObservationRecordNo(final Observation observation) {

@@ -62,6 +62,7 @@ public class Constants {
     public static final String VARIABLE_NAME_LON = "matchup.longitude";
     public static final String VARIABLE_NAME_LAT = "matchup.latitude";
     public static final String VARIABLE_NAME_MATCHUP_ID = "matchup.id";
+    public static final String VARIABLE_OBSERVATION_TIME = "observation_time";
     public static final String VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE = "matchup_id";
 
     public static final String LOCATIONFILE_PROPERTY = "mms.arcprocessing.locationfile";
