@@ -89,7 +89,11 @@ class MmdReader implements ObservationReader {
 
     @Override
     public int getNumRecords() {
-        final Variable variable = mmd.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+        Variable variable = mmd.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+        // allow for matchup_id instead of matchup.id to support ARC2 output
+        if (variable == null) {
+            variable = mmd.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
+        }
         return variable.getDimensions().get(0).getLength();
     }
 
