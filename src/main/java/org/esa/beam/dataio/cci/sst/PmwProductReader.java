@@ -63,7 +63,7 @@ public class PmwProductReader extends BasicNetcdfProductReader {
                 final int h = index.getShape(array.getRank() - 1);
                 final int w = index.getShape(array.getRank() - 2);
                 for (int j = 0, j0 = 0; j < w; j++, j0 += h) {
-                    for (int i = 0, ij = j, ji = j0; ij < ji; i++, ij += w, ji++) {
+                    for (int i = 0, ij = j, ji = j0; i < h && ij < ji; i++, ij += w, ji++) {
                         final Object value1 = array.getObject(ij);
                         final Object value2 = array.getObject(ji);
                         array.setObject(ij, value2);
