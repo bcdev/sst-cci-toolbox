@@ -1,6 +1,5 @@
 package org.esa.cci.sst;
 
-import org.junit.Ignore;
 import org.postgis.PGgeometry;
 
 import java.sql.Connection;
@@ -9,8 +8,6 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 
 /**
- * TODO add API doc
- *
  * @author Martin Boettcher
  */
 public class JdbcIntegrationTest {

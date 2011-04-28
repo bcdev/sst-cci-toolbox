@@ -4,7 +4,6 @@ import org.apache.openjpa.persistence.Extent;
 import org.apache.openjpa.persistence.OpenJPAEntityManager;
 import org.apache.openjpa.persistence.OpenJPAPersistence;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.junit.Ignore;
 import org.postgis.PGgeometry;
 
 import javax.persistence.EntityManager;
@@ -14,8 +13,6 @@ import javax.persistence.Query;
 import java.util.List;
 
 /**
- * TODO add API doc
- *
  * @author Martin Boettcher
  */
 public class ObservationDbIntegrationTest {
