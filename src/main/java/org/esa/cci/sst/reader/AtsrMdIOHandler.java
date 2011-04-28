@@ -23,7 +23,7 @@ import static org.esa.cci.sst.tools.SensorType.*;
 class AtsrMdIOHandler extends MdIOHandler {
 
     AtsrMdIOHandler() {
-        super(ATSR_MD.getSensor(), Constants.DIMENSION_NAME_MATCHUP);
+        super(ATSR_MD.getSensor(), "match_up");
     }
 
     @Override
