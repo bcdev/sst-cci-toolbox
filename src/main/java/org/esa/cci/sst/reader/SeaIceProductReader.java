@@ -11,29 +11,20 @@ import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
-import org.esa.beam.jai.ResolutionLevel;
-import org.esa.beam.jai.SingleBandedOpImage;
 import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
-import ucar.ma2.Array;
-import ucar.ma2.InvalidRangeException;
-import ucar.ma2.Section;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
 import ucar.nc2.Variable;
 
-import javax.media.jai.PlanarImage;
-import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
 
 /**
  * A BEAM reader for Ocean & Sea Ice SAF data products.
@@ -101,7 +92,7 @@ public class SeaIceProductReader extends AbstractProductReader {
         product.setProductReader(this);
         product.getMetadataRoot().addElement(getMetadata(headerStructure));
         product.setGeoCoding(createGeoCoding(headerStructure));
-        // TODO - resulting image is wrong when tile size is different from image dimension
+        // IMPORTANT - resulting image is wrong when tile size is different from image dimension
         product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
         band.setSourceImage(createSourceImage(band));
         return product;
@@ -203,14 +194,14 @@ public class SeaIceProductReader extends AbstractProductReader {
         return null;
     }
 
-    private NetcdfOpImage createSourceImage(Band band) {
+    private RenderedImage createSourceImage(Band band) {
         final Variable variable = ncFile.findVariable(VARIABLE_NAME);
         final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
-        return new NetcdfOpImage(variable, ncFile, dataBufferType, band.getSceneRasterWidth(),
-                                 band.getSceneRasterHeight(),
-        // TODO - resulting image is wrong when tile size is different from image dimension
-                                 band.getProduct().getPreferredTileSize(),
-                                 ResolutionLevel.MAXRES);
+        return new VariableOpImage(variable, dataBufferType,
+                                   band.getSceneRasterWidth(),
+                                   band.getSceneRasterHeight(),
+                                   band.getProduct().getPreferredTileSize()
+        );
     }
 
     void setTimes(Product product, int year, int month, int day, int hour, int minute) {
@@ -251,94 +242,4 @@ public class SeaIceProductReader extends AbstractProductReader {
         return !pathname.contains("_qual_");
     }
 
-    static Structure getHeaderStructure(List<Variable> variables) {
-        for (Variable variable : variables) {
-            if ("Header".equals(variable.getName()) && variable instanceof Structure) {
-                return (Structure) variable;
-            }
-        }
-        throw new IllegalStateException(
-                "HDF-File does not contain a header variable; should not have been opened using '" +
-                SeaIceProductReader.class.getSimpleName() + "'.");
-    }
-
-    private static class NetcdfOpImage extends SingleBandedOpImage {
-
-        private final Variable variable;
-        private final Object readLock;
-
-        /**
-         * Used to construct an image.
-         *
-         * @param variable       The netCDF variable
-         * @param readLock       The the lock used for reading, usually the netcdf file that contains the variable
-         * @param dataBufferType The data type.
-         * @param sourceWidth    The width of the level 0 image.
-         * @param sourceHeight   The height of the level 0 image.
-         * @param tileSize       The tile size for this image.
-         * @param level          The resolution level.
-         */
-        public NetcdfOpImage(Variable variable, Object readLock, int dataBufferType,
-                             int sourceWidth, int sourceHeight,
-                             Dimension tileSize, ResolutionLevel level) {
-            super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, level);
-            this.variable = variable;
-            this.readLock = readLock;
-        }
-
-        @Override
-        protected void computeRect(PlanarImage[] sourceImages, WritableRaster tile, Rectangle destRect) {
-            Rectangle sourceRect;
-            if (getLevel() != 0) {
-                sourceRect = getSourceRect(destRect);
-            } else {
-                sourceRect = destRect;
-            }
-
-            final int rank = variable.getRank();
-            final int[] origin = new int[rank];
-            final int[] shape = new int[rank];
-            final int[] stride = new int[rank];
-            for (int i = 0; i < rank; i++) {
-                shape[i] = 1;
-                origin[i] = 0;
-                stride[i] = 1;
-            }
-            final int xIndex = rank - 2;
-            final int yIndex = rank - 1;
-
-            shape[yIndex] = sourceRect.height;
-            shape[xIndex] = sourceRect.width;
-
-            origin[yIndex] = sourceRect.y;
-            origin[xIndex] = sourceRect.x;
-
-            double scale = getScale();
-            stride[yIndex] = (int) scale;
-            stride[xIndex] = (int) scale;
-
-            Array array;
-            synchronized (readLock) {
-                try {
-                    final Section section = new Section(origin, shape, stride);
-                    array = variable.read(section);
-                } catch (IOException e) {
-                    throw new IllegalStateException(e);
-                } catch (InvalidRangeException e) {
-                    throw new IllegalArgumentException(e);
-                }
-            }
-            tile.setDataElements(destRect.x, destRect.y,
-                                 destRect.width, destRect.height,
-                                 array.getStorage());
-        }
-
-        private Rectangle getSourceRect(Rectangle rect) {
-            int sourceX = getSourceX(rect.x);
-            int sourceY = getSourceY(rect.y);
-            int sourceWidth = getSourceWidth(rect.width);
-            int sourceHeight = getSourceHeight(rect.height);
-            return new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
-        }
-    }
 }
