@@ -106,51 +106,6 @@ public class OsiProductReaderTest {
         assertEquals(9.785294, geoPos.lon, 0.5);
     }
 
-    @Test
-    public void testFileStructure() throws IOException, URISyntaxException {
-        final File file = getIceConcentrationFile();
-        assertTrue(NetcdfFile.canOpen(file.getPath()));
-
-        final NetcdfFile ncFile = NetcdfFile.open(file.getPath());
-        assertNotNull(ncFile);
-
-        final List<Variable> variableList = ncFile.getVariables();
-        assertFalse(variableList.isEmpty());
-        for (Variable v : variableList) {
-            System.out.println("v.getName() = " + v.getName());
-        }
-
-        final Variable header = ncFile.findVariable("Header");
-        assertTrue(header instanceof Structure);
-        final List<Variable> headerVariables = ((Structure) header).getVariables();
-        for (Variable v : headerVariables) {
-            System.out.println("v.getName() = " + v.getName());
-            switch (v.getDataType()) {
-                case CHAR:
-                    System.out.println("v.value = " + v.readScalarString());
-                    break;
-                case FLOAT:
-                    System.out.println("v.value = " + v.readScalarFloat());
-                    break;
-                case INT:
-                    System.out.println("v.value = " + v.readScalarInt());
-                    break;
-                case SHORT:
-                    System.out.println("v.value = " + v.readScalarShort());
-                    break;
-            }
-        }
-        final List<Attribute> attributeList = header.getAttributes();
-        for (Attribute a : attributeList) {
-            System.out.println("a.getName() = " + a.getName());
-            System.out.println("a.getValue() = " + a.getValue(0));
-        }
-        final Variable data = ncFile.findVariable("Data/data[00]");
-        assertNotNull(data);
-
-        System.out.println(ncFile.toString());
-    }
-
     @Before
     public void initReader() throws Exception {
         reader = new OsiProductReader(new OsiProductReaderPlugIn());
@@ -161,12 +116,61 @@ public class OsiProductReaderTest {
         reader.close();
     }
 
-    private File getIceConcentrationFile() throws URISyntaxException {
-        return new File(getClass().getResource("ice_conc_nh_201006301200.hdf").toURI());
+    private static File getIceConcentrationFile() throws URISyntaxException {
+        return getResourceAsFile("ice_conc_nh_201006301200.hdf");
     }
 
     private File getIceConcentrationQualityFile() throws URISyntaxException {
-        return new File(getClass().getResource("ice_conc_sh_qual_201006301200.hdf").toURI());
+        return getResourceAsFile("ice_conc_sh_qual_201006301200.hdf");
+    }
+
+    private static File getResourceAsFile(String name) throws URISyntaxException {
+        return new File(OsiProductReaderPlugInTest.class.getResource(name).toURI());
+    }
+
+    public static void main() throws IOException, URISyntaxException {
+        final File file = getIceConcentrationFile();
+        assertTrue(NetcdfFile.canOpen(file.getPath()));
+
+        NetcdfFile netcdfFile = null;
+        try {
+            netcdfFile = NetcdfFile.open(file.getPath());
+
+            final List<Variable> variableList = netcdfFile.getVariables();
+            for (Variable v : variableList) {
+                System.out.println("v.getName() = " + v.getName());
+            }
+
+            final Structure header = (Structure) netcdfFile.findVariable("Header");
+            for (final Variable v : header.getVariables()) {
+                System.out.println("v.getName() = " + v.getName());
+                switch (v.getDataType()) {
+                    case CHAR:
+                        System.out.println("v.value = " + v.readScalarString());
+                        break;
+                    case FLOAT:
+                        System.out.println("v.value = " + v.readScalarFloat());
+                        break;
+                    case INT:
+                        System.out.println("v.value = " + v.readScalarInt());
+                        break;
+                    case SHORT:
+                        System.out.println("v.value = " + v.readScalarShort());
+                        break;
+                }
+            }
+            final List<Attribute> attributeList = header.getAttributes();
+            for (Attribute a : attributeList) {
+                System.out.println("a.getName() = " + a.getName());
+                System.out.println("a.getValue() = " + a.getValue(0));
+            }
+            final Variable data = netcdfFile.findVariable("Data/data[00]");
+            System.out.println("data.getName() = " + data.getName());
+
+            System.out.println(netcdfFile.toString());
+        } finally {
+            netcdfFile.close();
+        }
     }
 
 }

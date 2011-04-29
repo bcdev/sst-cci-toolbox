@@ -19,11 +19,11 @@ import java.io.IOException;
  *
  * @author Ralf Quast
  */
-abstract class BasicNetcdfProductReader extends AbstractProductReader {
+abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
 
     private NetcdfFile netcdfFile;
 
-    protected BasicNetcdfProductReader(ProductReaderPlugIn readerPlugIn) {
+    protected NetcdfProductReaderTemplate(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
     }
 
@@ -40,7 +40,7 @@ abstract class BasicNetcdfProductReader extends AbstractProductReader {
             inputFile = new File(getInput().toString());
         }
         netcdfFile = NetcdfFile.open(inputFile.getPath());
-        final Product product = createProduct();
+        final Product product = createPlainProduct();
         product.setProductReader(this);
         product.setFileLocation(inputFile);
         addMetadata(product);
@@ -86,7 +86,7 @@ abstract class BasicNetcdfProductReader extends AbstractProductReader {
 
     protected abstract void addMetadata(Product product);
 
-    protected abstract Product createProduct() throws IOException;
+    protected abstract Product createPlainProduct() throws IOException;
 
     protected abstract RenderedImage createSourceImage(Band band);
 

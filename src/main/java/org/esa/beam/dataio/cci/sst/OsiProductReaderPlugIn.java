@@ -4,9 +4,7 @@ import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.dataio.ProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.util.io.BeamFileFilter;
-import org.esa.beam.util.io.FileUtils;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,11 +28,13 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public DecodeQualification getDecodeQualification(Object o) {
-        if (!(o instanceof File) && !(o instanceof String)) {
-            return DecodeQualification.UNABLE;
+        final File file;
+        if (o instanceof File) {
+            file = (File) o;
+        } else {
+            file = new File(o.toString());
         }
-        final File file = new File(o.toString());
-        if (!FILE_EXTENSION_HDF.equals(FileUtils.getExtension(file))) {
+        if (!file.getName().endsWith(FILE_EXTENSION_HDF)) {
             return DecodeQualification.UNABLE;
         }
         final String fileName = file.getName();
@@ -45,16 +45,11 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
         }
         NetcdfFile netcdfFile = null;
         try {
-            if (!NetcdfFile.canOpen(file.getPath())) {
-                return DecodeQualification.UNABLE;
-            }
             netcdfFile = NetcdfFile.open(file.getAbsolutePath());
-            final Variable header = netcdfFile.findVariable("Header");
-            if (header == null) {
-                return DecodeQualification.UNABLE;
+            if (netcdfFile.findVariable("Header") != null) {
+                return DecodeQualification.INTENDED;
             }
-        } catch (Exception ignore) {
-            return DecodeQualification.UNABLE;
+        } catch (Exception ignored) {
         } finally {
             if (netcdfFile != null) {
                 try {
@@ -64,8 +59,7 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
                 }
             }
         }
-
-        return DecodeQualification.INTENDED;
+        return DecodeQualification.UNABLE;
     }
 
     @Override

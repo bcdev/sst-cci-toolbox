@@ -30,7 +30,7 @@ import java.io.IOException;
  *
  * @author Ralf Quast
  */
-public class PmwProductReader extends BasicNetcdfProductReader {
+public class PmwProductReader extends NetcdfProductReaderTemplate {
 
     private int leadLineSkip;
     private int tailLineSkip;
@@ -40,7 +40,7 @@ public class PmwProductReader extends BasicNetcdfProductReader {
     }
 
     @Override
-    protected Product createProduct() throws IOException {
+    protected Product createPlainProduct() throws IOException {
         final File inputFile = new File(getNetcdfFile().getLocation());
         final String productName = inputFile.getName();
 

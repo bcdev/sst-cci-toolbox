@@ -93,12 +93,16 @@ public class OsiProductReaderPlugInTest {
         plugin = new OsiProductReaderPlugIn();
     }
 
-    private File getIceConcentrationFile() throws URISyntaxException {
-        return new File(getClass().getResource("ice_conc_nh_201006301200.hdf").toURI());
+    private static File getIceConcentrationFile() throws URISyntaxException {
+        return getResourceAsFile("ice_conc_nh_201006301200.hdf");
     }
 
-    private File getIceConcentrationQualityFile() throws URISyntaxException {
-        return new File(getClass().getResource("ice_conc_sh_qual_201006301200.hdf").toURI());
+    private static File getIceConcentrationQualityFile() throws URISyntaxException {
+        return getResourceAsFile("ice_conc_sh_qual_201006301200.hdf");
+    }
+
+    private static File getResourceAsFile(String name) throws URISyntaxException {
+        return new File(OsiProductReaderPlugInTest.class.getResource(name).toURI());
     }
 
 }

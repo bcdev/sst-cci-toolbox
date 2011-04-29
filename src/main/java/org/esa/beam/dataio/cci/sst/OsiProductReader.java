@@ -27,7 +27,7 @@ import java.util.Calendar;
  *
  * @author Thomas Storm
  */
-public class OsiProductReader extends BasicNetcdfProductReader {
+public class OsiProductReader extends NetcdfProductReaderTemplate {
 
     static final String NH_GRID = "OSISAF_NH";
     static final String SH_GRID = "OSISAF_SH";
@@ -48,7 +48,7 @@ public class OsiProductReader extends BasicNetcdfProductReader {
     }
 
     @Override
-    protected Product createProduct() throws IOException {
+    protected Product createPlainProduct() throws IOException {
         final Structure headerStructure = getHeaderStructure();
         final String productName = headerStructure.findVariable("product").readScalarString();
         final int w = headerStructure.findVariable("iw").readScalarInt();
