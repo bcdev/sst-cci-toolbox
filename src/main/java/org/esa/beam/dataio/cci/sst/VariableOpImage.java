@@ -47,8 +47,8 @@ abstract class VariableOpImage extends SingleBandedOpImage {
         shape[indexX] = getSourceWidth(rectangle.width);
         shape[indexY] = getSourceHeight(rectangle.height);
 
-        origin[indexX] = getSourceX(rectangle.x);
-        origin[indexY] = getSourceY(rectangle.y);
+        origin[indexX] = getSourceX(rectangle.x) + getSourceOriginX();
+        origin[indexY] = getSourceY(rectangle.y) + getSourceOriginY();
 
         final double scale = getScale();
         stride[indexX] = (int) scale;
@@ -89,6 +89,26 @@ abstract class VariableOpImage extends SingleBandedOpImage {
      * @return the index of the y dimension.
      */
     protected abstract int getIndexY(int rank);
+
+    /**
+     * Returns the origin of the x dimension of the variable, which
+     * provides the image data.
+     *
+     * @return the origin of the x dimension.
+     */
+    protected int getSourceOriginX() {
+        return 0;
+    }
+
+    /**
+     * Returns the origin of the y dimension of the variable, which
+     * provides the image data.
+     *
+     * @return the origin of the y dimension.
+     */
+    protected int getSourceOriginY() {
+        return 0;
+    }
 
     /**
      * Transforms the primitive storage of the array supplied as argument.

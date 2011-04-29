@@ -19,8 +19,14 @@ import java.util.Locale;
  */
 public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
-    private static final String FORMAT_NAME = "OSI-SAF";
-    private static final String FILE_EXTENSION_HDF = ".hdf";
+    /**
+     * The format name.
+     */
+    public static final String FORMAT_NAME = "OSI-SAF";
+    /**
+     * The FIle extension.
+     */
+    public static final String FILE_EXTENSION_HDF = ".hdf";
 
     @Override
     public DecodeQualification getDecodeQualification(Object o) {

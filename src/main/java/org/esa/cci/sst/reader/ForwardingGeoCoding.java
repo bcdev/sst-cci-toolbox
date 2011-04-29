@@ -9,7 +9,7 @@ import org.opengis.referencing.operation.MathTransform;
 
 import java.awt.geom.AffineTransform;
 
-class ForwardingGeoCoding implements GeoCoding {
+public class ForwardingGeoCoding implements GeoCoding {
 
     private final GeoCoding delegate;
 

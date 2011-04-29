@@ -17,8 +17,22 @@ import java.util.Locale;
  */
 public class PmwProductReaderPlugIn implements ProductReaderPlugIn {
 
-    private static final String FORMAT_NAME = "PMW";
-    private static final String FILE_EXTENSION_NC = ".nc";
+    /**
+     * The AMSR-E product file name pattern.
+     */
+    public static final String AMS_FILE_NAME_PATTERN = "[0-9]*-AMSRE-REMSS-L2P-amsr_.*\\.nc";
+    /**
+     * The TMI product file name pattern.
+     */
+    public static final String TMI_FILE_NAME_PATTERN = "[0-9]*-TMI-REMSS-L2P-tmi_.*\\.nc";
+    /**
+     * The format name.
+     */
+    public static final String FORMAT_NAME = "PMW";
+    /**
+     * The file extension.
+     */
+    public static final String FILE_EXTENSION_NC = ".nc";
 
     @Override
     public DecodeQualification getDecodeQualification(Object o) {
@@ -28,8 +42,7 @@ public class PmwProductReaderPlugIn implements ProductReaderPlugIn {
         } else {
             file = new File(o.toString());
         }
-        if (!file.getName().matches("[0-9]*-TMI-REMSS-L2P-tmi_.*\\.nc") ||
-            !file.getName().matches("[0-9]*-AMSRE-REMSS-L2P-amsr_.*\\.nc")) {
+        if (!file.getName().matches(AMS_FILE_NAME_PATTERN) || !file.getName().matches(TMI_FILE_NAME_PATTERN)) {
             return DecodeQualification.UNABLE;
         }
         try {

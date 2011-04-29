@@ -7,11 +7,15 @@ import org.esa.beam.dataio.netcdf.util.MetadataUtils;
 import org.esa.beam.dataio.netcdf.util.TimeUtils;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
+import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
+import org.esa.cci.sst.reader.PixelGeoCodingWithFallback;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -28,6 +32,9 @@ import java.io.IOException;
  */
 public class PmwProductReader extends BasicNetcdfProductReader {
 
+    private int leadLineSkip;
+    private int tailLineSkip;
+
     protected PmwProductReader(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
     }
@@ -36,7 +43,15 @@ public class PmwProductReader extends BasicNetcdfProductReader {
     protected Product createProduct() throws IOException {
         final File inputFile = new File(getNetcdfFile().getLocation());
         final String productName = inputFile.getName();
-        final int h = getNetcdfFile().findDimension("ni").getLength();
+
+        if (inputFile.getName().matches(PmwProductReaderPlugIn.AMS_FILE_NAME_PATTERN)) {
+            leadLineSkip = 118;
+            tailLineSkip = 118;
+        } else {
+            leadLineSkip = 50;
+            tailLineSkip = 85;
+        }
+        final int h = getNetcdfFile().findDimension("ni").getLength() - leadLineSkip - tailLineSkip;
         final int w = getNetcdfFile().findDimension("nj").getLength();
 
         return new Product(productName, getReaderPlugIn().getFormatNames()[0], w, h);
@@ -57,14 +72,24 @@ public class PmwProductReader extends BasicNetcdfProductReader {
         final Band lonBand = product.getBand("lon");
         final Band latBand = product.getBand("lat");
         if (latBand != null && lonBand != null) {
-            final PixelGeoCoding geoCoding = new PixelGeoCoding(latBand, lonBand, latBand.getValidMaskExpression(), 5);
+            final GeoCoding geoCoding = new PixelGeoCodingWithFallback(
+                    new PixelGeoCoding(latBand, lonBand, latBand.getValidMaskExpression(), 5));
             product.setGeoCoding(geoCoding);
         }
     }
 
     @Override
     protected final void addMetadata(Product product) {
-        MetadataUtils.readNetcdfMetadata(getNetcdfFile(), product.getMetadataRoot());
+        final MetadataElement metadataRoot = product.getMetadataRoot();
+        metadataRoot.addElement(MetadataUtils.readAttributeList(getNetcdfFile().getGlobalAttributes(), "MPH"));
+        metadataRoot.addElement(MetadataUtils.readVariableDescriptions(getNetcdfFile().getVariables(), "DSD"));
+
+        final MetadataElement beam = new MetadataElement("reader_generated");
+        beam.addAttribute(new MetadataAttribute("reader_lead_line_skip",
+                                                ProductData.createInstance(new int[]{leadLineSkip}), true));
+        beam.addAttribute(new MetadataAttribute("reader_tail_line_skip",
+                                                ProductData.createInstance(new int[]{tailLineSkip}), true));
+        metadataRoot.addElement(beam);
     }
 
     @Override
@@ -85,6 +110,11 @@ public class PmwProductReader extends BasicNetcdfProductReader {
             @Override
             protected int getIndexY(int rank) {
                 return rank - 1;
+            }
+
+            @Override
+            protected final int getSourceOriginY() {
+                return leadLineSkip;
             }
 
             @Override

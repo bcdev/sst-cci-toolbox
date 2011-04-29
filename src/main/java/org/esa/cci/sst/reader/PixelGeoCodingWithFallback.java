@@ -20,15 +20,27 @@ import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.util.PixelFinder;
+import org.esa.cci.sst.util.QuadTreePixelFinder;
+import org.esa.cci.sst.util.RasterDataNodeSampleSource;
 
 /**
-* @author Ralf Quast
-*/
-class PixelGeoCodingWithFallback extends ForwardingGeoCoding {
+ * A pixel geo-coding, which uses a different quad-tree algorithm as fallback
+ * when a pixel position has not been found. (BEAM-1240)
+ *
+ * @author Ralf Quast
+ */
+public class PixelGeoCodingWithFallback extends ForwardingGeoCoding {
 
     private final PixelFinder pixelFinder;
 
-    PixelGeoCodingWithFallback(PixelGeoCoding pixelGeoCoding, PixelFinder pixelFinder) {
+    public PixelGeoCodingWithFallback(PixelGeoCoding pixelGeoCoding) {
+        super(pixelGeoCoding);
+        this.pixelFinder = new QuadTreePixelFinder(
+                new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand()),
+                new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand()));
+    }
+
+    public PixelGeoCodingWithFallback(PixelGeoCoding pixelGeoCoding, PixelFinder pixelFinder) {
         super(pixelGeoCoding);
         this.pixelFinder = pixelFinder;
     }
