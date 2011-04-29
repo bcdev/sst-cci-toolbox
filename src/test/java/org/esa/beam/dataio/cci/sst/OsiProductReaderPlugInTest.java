@@ -6,8 +6,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URISyntaxException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Thomas Storm
@@ -16,17 +18,38 @@ public class OsiProductReaderPlugInTest {
 
     private OsiProductReaderPlugIn plugin;
 
-    @Before
-    public void setUp() throws Exception {
-        plugin = new OsiProductReaderPlugIn();
+    @Test
+    public void testGetDecodeQualification_ForSeaIceConcentrationFile() throws Exception {
+        assertEquals(DecodeQualification.INTENDED,
+                     plugin.getDecodeQualification(getIceConcentrationFile()));
+        assertEquals(DecodeQualification.INTENDED,
+                     plugin.getDecodeQualification(getIceConcentrationFile().getPath()));
+        assertEquals(DecodeQualification.UNABLE,
+                     plugin.getDecodeQualification("ice_conc_sh_qual_201006301200.nc"));
     }
 
     @Test
-    public void testGetDecodeQualification() throws Exception {
-        assertEquals(DecodeQualification.INTENDED, plugin.getDecodeQualification("testdata/SeaIceConc/ice_conc_sh_qual_201006301200.hdf"));
-        assertEquals(DecodeQualification.INTENDED, plugin.getDecodeQualification(new File("testdata/SeaIceConc/ice_conc_sh_qual_201006301200.hdf")));
-        assertEquals(DecodeQualification.UNABLE, plugin.getDecodeQualification(new File("testdata/SeaIceConc/some_hdf_file.hdf")));
-        assertEquals(DecodeQualification.UNABLE, plugin.getDecodeQualification(new File("testdata/SeaIceConc/ice_conc_sh_qual_201006301200.nc")));
+    public void testGetDecodeQualification_ForSeaIceConcentrationQualityFile() throws Exception {
+        assertEquals(DecodeQualification.INTENDED,
+                     plugin.getDecodeQualification(getIceConcentrationQualityFile()));
+        assertEquals(DecodeQualification.INTENDED,
+                     plugin.getDecodeQualification(getIceConcentrationQualityFile().getPath()));
+        assertEquals(DecodeQualification.UNABLE,
+                     plugin.getDecodeQualification("some_file.hdf"));
+        assertEquals(DecodeQualification.UNABLE,
+                     plugin.getDecodeQualification(new File("ice_conc_sh_qual_201006301200.nc")));
+    }
+
+    @Test
+    public void testGetDecodeQualification_ForUnspecificHdfFile() throws Exception {
+        assertEquals(DecodeQualification.UNABLE,
+                     plugin.getDecodeQualification("any.hdf"));
+    }
+
+    @Test
+    public void testGetDecodeQualification_ForNetcdfFile() throws Exception {
+        assertEquals(DecodeQualification.UNABLE,
+                     plugin.getDecodeQualification(new File("ice_conc_sh_qual_201006301200.nc")));
     }
 
     @Test
@@ -46,7 +69,7 @@ public class OsiProductReaderPlugInTest {
     @Test
     public void testGetFormatNames() throws Exception {
         assertEquals(1, plugin.getFormatNames().length);
-        assertEquals("OSISAF", plugin.getFormatNames()[0]);
+        assertEquals("OSI-SAF", plugin.getFormatNames()[0]);
     }
 
     @Test
@@ -57,11 +80,25 @@ public class OsiProductReaderPlugInTest {
 
     @Test
     public void testGetDescription() throws Exception {
-        assertEquals("A BEAM reader for Ocean & Sea Ice SAF data products.", plugin.getDescription(null));
+        assertNotNull(plugin.getDescription(null));
     }
 
     @Test
     public void testGetProductFileFilter() throws Exception {
         assertNotNull(plugin.getProductFileFilter());
     }
+
+    @Before
+    public void init() throws Exception {
+        plugin = new OsiProductReaderPlugIn();
+    }
+
+    private File getIceConcentrationFile() throws URISyntaxException {
+        return new File(getClass().getResource("ice_conc_nh_201006301200.hdf").toURI());
+    }
+
+    private File getIceConcentrationQualityFile() throws URISyntaxException {
+        return new File(getClass().getResource("ice_conc_sh_qual_201006301200.hdf").toURI());
+    }
+
 }

@@ -19,7 +19,7 @@ import java.util.Locale;
  */
 public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
-    private static final String FORMAT_NAME = "OSISAF";
+    private static final String FORMAT_NAME = "OSI-SAF";
     private static final String FILE_EXTENSION_HDF = ".hdf";
 
     @Override
@@ -39,7 +39,7 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
         }
         NetcdfFile netcdfFile = null;
         try {
-            if (!NetcdfFile.canOpen(file.getAbsolutePath())) {
+            if (!NetcdfFile.canOpen(file.getPath())) {
                 return DecodeQualification.UNABLE;
             }
             netcdfFile = NetcdfFile.open(file.getAbsolutePath());
@@ -84,7 +84,7 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String getDescription(Locale locale) {
-        return "A BEAM reader for Ocean & Sea Ice SAF data products.";
+        return "A BEAM reader for Ocean & Sea Ice Science Application Facility (OSI SAF) data products.";
     }
 
     @Override

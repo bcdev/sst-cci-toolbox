@@ -6,8 +6,8 @@ import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
@@ -16,47 +16,60 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
 public class OsiProductReaderTest {
 
-    private static final File TEST_FILE = new File("testdata/SeaIceConc", "ice_conc_nh_201006301200.hdf");
-    private static final File TEST_QUALITY_FILE = new File("testdata/SeaIceConc", "ice_conc_sh_qual_201006301200.hdf");
     private OsiProductReader reader;
-
-    @Before
-    public void setUp() throws Exception {
-        reader = new OsiProductReader(new OsiProductReaderPlugIn());
-    }
 
     @Test
     public void testReadProductNodesImpl() throws Exception {
-        final Product product = reader.readProductNodes(TEST_FILE, null);
+        final File inputFile = getIceConcentrationFile();
+        final Product product = reader.readProductNodes(inputFile, null);
+
         assertNotNull(product);
-        final Calendar calendar = ProductData.UTC.parse("2010-06-30-12-00", "yyyy-MM-dd-HH-mm").getAsCalendar();
-        assertEquals(calendar.getTimeInMillis(), product.getStartTime().getAsCalendar().getTimeInMillis());
-        assertEquals(1, product.getBands().length);
+        assertTrue(product.getProductReader() == reader);
+        assertEquals(inputFile, product.getFileLocation());
+        assertEquals(1, product.getNumBands());
         assertNotNull(product.getGeoCoding());
-        assertNotNull(product.getFileLocation());
-        assertNotNull(product.getProductReader());
+        assertNotNull(product.getBandAt(0).getSourceImage());
+        assertNotNull(product.getStartTime());
+        assertNotNull(product.getEndTime());
+
+        final ProductData.UTC expectedStartTime = ProductData.UTC.parse("2010-06-30-00-00", "yyyy-MM-dd-HH-mm");
+
+        assertEquals(expectedStartTime.getMJD(), product.getStartTime().getMJD(), 0.0);
+
+        final ProductData.UTC expectedEndTime = ProductData.UTC.parse("2010-07-01-00-00", "yyyy-MM-dd-HH-mm");
+
+        assertEquals(expectedEndTime.getMJD(), product.getEndTime().getMJD(), 0.0);
+
     }
 
     @Test
-    public void testSetStartTime() throws Exception {
-        final Product dummyProduct = new Product("dummy", "dummyType", 10, 10);
-        reader.setTimes(dummyProduct, 2011, 2, 16, 11, 50);
-        final ProductData.UTC startTime = dummyProduct.getStartTime();
-        assertNotNull(startTime);
-        final Calendar calendar = ProductData.UTC.parse("2011-02-16-11-50", "yyyy-MM-dd-HH-mm").getAsCalendar();
-        assertEquals(calendar.getTimeInMillis(), startTime.getAsCalendar().getTimeInMillis());
+    public void testSetTime() throws Exception {
+        final Product product = new Product("P", "T", 10, 10);
+        reader.setTime(product, 2011, 2, 16, 12, 0);
+
+        final ProductData.UTC productStartTime = product.getStartTime();
+        final ProductData.UTC expectedStartTime = ProductData.UTC.parse("2011-02-16-00-00", "yyyy-MM-dd-HH-mm");
+
+        assertNotNull(productStartTime);
+        assertEquals(expectedStartTime.getMJD(), productStartTime.getMJD(), 0.0);
+
+        final ProductData.UTC productEndTime = product.getEndTime();
+        final ProductData.UTC expectedEndTime = ProductData.UTC.parse("2011-02-17-00-00", "yyyy-MM-dd-HH-mm");
+
+        assertNotNull(productEndTime);
+        assertEquals(expectedEndTime.getMJD(), productEndTime.getMJD(), 0.0);
     }
 
     @Test
     public void testGetMetadata() throws Exception {
-        final NetcdfFile ncFile = NetcdfFile.open(TEST_FILE.getPath());
+        final NetcdfFile ncFile = NetcdfFile.open(getIceConcentrationFile().getPath());
         final Variable header = ncFile.findVariable("Header");
         final MetadataElement metadata = reader.getMetadata((Structure) header);
         assertNotNull(metadata);
@@ -70,13 +83,13 @@ public class OsiProductReaderTest {
 
     @Test
     public void testIsSeaIceFile() throws Exception {
-        assertTrue(OsiProductReader.isSeaIceFile(TEST_FILE));
-        assertFalse(OsiProductReader.isSeaIceFile(TEST_QUALITY_FILE));
+        assertTrue(OsiProductReader.isSeaIceFile(getIceConcentrationFile()));
+        assertFalse(OsiProductReader.isSeaIceFile(getIceConcentrationQualityFile()));
     }
 
     @Test
     public void testGeoCoding() throws Exception {
-        final NetcdfFile ncFile = NetcdfFile.open(TEST_FILE.getPath());
+        final NetcdfFile ncFile = NetcdfFile.open(getIceConcentrationFile().getPath());
         final Variable header = ncFile.findVariable("Header");
         final GeoCoding geoCoding = reader.createGeoCoding((Structure) header);
         assertNotNull(geoCoding);
@@ -94,10 +107,11 @@ public class OsiProductReaderTest {
     }
 
     @Test
-    public void testFileStructure() throws IOException {
-        assertTrue(NetcdfFile.canOpen(TEST_FILE.getPath()));
+    public void testFileStructure() throws IOException, URISyntaxException {
+        final File file = getIceConcentrationFile();
+        assertTrue(NetcdfFile.canOpen(file.getPath()));
 
-        final NetcdfFile ncFile = NetcdfFile.open(TEST_FILE.getPath());
+        final NetcdfFile ncFile = NetcdfFile.open(file.getPath());
         assertNotNull(ncFile);
 
         final List<Variable> variableList = ncFile.getVariables();
@@ -112,18 +126,18 @@ public class OsiProductReaderTest {
         for (Variable v : headerVariables) {
             System.out.println("v.getName() = " + v.getName());
             switch (v.getDataType()) {
-            case CHAR:
-                System.out.println("v.value = " + v.readScalarString());
-                break;
-            case FLOAT:
-                System.out.println("v.value = " + v.readScalarFloat());
-                break;
-            case INT:
-                System.out.println("v.value = " + v.readScalarInt());
-                break;
-            case SHORT:
-                System.out.println("v.value = " + v.readScalarShort());
-                break;
+                case CHAR:
+                    System.out.println("v.value = " + v.readScalarString());
+                    break;
+                case FLOAT:
+                    System.out.println("v.value = " + v.readScalarFloat());
+                    break;
+                case INT:
+                    System.out.println("v.value = " + v.readScalarInt());
+                    break;
+                case SHORT:
+                    System.out.println("v.value = " + v.readScalarShort());
+                    break;
             }
         }
         final List<Attribute> attributeList = header.getAttributes();
@@ -136,4 +150,23 @@ public class OsiProductReaderTest {
 
         System.out.println(ncFile.toString());
     }
+
+    @Before
+    public void initReader() throws Exception {
+        reader = new OsiProductReader(new OsiProductReaderPlugIn());
+    }
+
+    @After
+    public void closeReader() throws IOException {
+        reader.close();
+    }
+
+    private File getIceConcentrationFile() throws URISyntaxException {
+        return new File(getClass().getResource("ice_conc_nh_201006301200.hdf").toURI());
+    }
+
+    private File getIceConcentrationQualityFile() throws URISyntaxException {
+        return new File(getClass().getResource("ice_conc_sh_qual_201006301200.hdf").toURI());
+    }
+
 }

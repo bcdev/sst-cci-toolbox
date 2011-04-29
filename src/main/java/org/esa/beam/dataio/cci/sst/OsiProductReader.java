@@ -9,10 +9,9 @@ import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
+import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.operation.TransformException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
 import ucar.nc2.Variable;
@@ -21,7 +20,7 @@ import java.awt.Dimension;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
+import java.util.Calendar;
 
 /**
  * A BEAM reader for Ocean & Sea Ice SAF data products.
@@ -44,52 +43,87 @@ public class OsiProductReader extends BasicNetcdfProductReader {
                                                            "corresponding to the quality of the calculated sea ice " +
                                                            "parameter and information on the processing conditions.";
 
-    private int sceneRasterWidth;
-    private int sceneRasterHeight;
-
     OsiProductReader(OsiProductReaderPlugIn plugin) {
         super(plugin);
     }
 
     @Override
-    protected Product createProduct(NetcdfFile netcdfFile) throws IOException {
-        final File inputFile = new File(netcdfFile.getLocation());
-        final Variable header = netcdfFile.findVariable("Header");
-        final Structure headerStructure = (Structure) header;
-
+    protected Product createProduct() throws IOException {
+        final Structure headerStructure = getHeaderStructure();
         final String productName = headerStructure.findVariable("product").readScalarString();
-        sceneRasterWidth = headerStructure.findVariable("iw").readScalarInt();
-        sceneRasterHeight = headerStructure.findVariable("ih").readScalarInt();
+        final int w = headerStructure.findVariable("iw").readScalarInt();
+        final int h = headerStructure.findVariable("ih").readScalarInt();
 
-        final int year = headerStructure.findVariable("year").readScalarInt();
-        final int month = headerStructure.findVariable("month").readScalarInt();
-        final int day = headerStructure.findVariable("day").readScalarInt();
-        final int hour = headerStructure.findVariable("hour").readScalarInt();
-        final int minute = headerStructure.findVariable("minute").readScalarInt();
+        final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], w, h);
+        // IMPORTANT - resulting image is wrong when tile size is different from image dimension
+        product.setPreferredTileSize(w, h);
 
-        final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], sceneRasterWidth,
-                                            sceneRasterHeight);
-        setTimes(product, year, month, day, hour, minute);
-        final Band band;
-        if (isSeaIceFile(inputFile)) {
-            band = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
+        return product;
+    }
+
+    @Override
+    protected final void addBands(Product product) {
+        if (isSeaIceFile(product.getFileLocation())) {
+            final Band band = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
             band.setNoDataValue(-32767.0);
             band.setNoDataValueUsed(true);
             product.setDescription(DESCRIPTION_SEA_ICE);
         } else {
-            band = product.addBand(QUALITY_FLAG_BANDNAME, ProductData.TYPE_INT16);
+            final Band band = product.addBand(QUALITY_FLAG_BANDNAME, ProductData.TYPE_INT16);
             band.setNoDataValue(-32767);
             band.setNoDataValueUsed(true);
             product.setDescription(DESCRIPTION_QUALITY_FLAG);
         }
-        product.setFileLocation(inputFile);
-        product.setProductReader(this);
-        product.getMetadataRoot().addElement(getMetadata(headerStructure));
-        product.setGeoCoding(createGeoCoding(headerStructure));
-        // IMPORTANT - resulting image is wrong when tile size is different from image dimension
-        product.setPreferredTileSize(sceneRasterWidth, sceneRasterHeight);
-        band.setSourceImage(createSourceImage(band));
-        return product;
+    }
+
+    @Override
+    protected final void addGeoCoding(Product product) {
+        final GeoCoding geoCoding;
+        try {
+            geoCoding = createGeoCoding(getHeaderStructure());
+            product.setGeoCoding(geoCoding);
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Override
+    protected final void addMetadata(Product product) {
+        product.getMetadataRoot().addElement(getMetadata(getHeaderStructure()));
+    }
+
+    @Override
+    protected final RenderedImage createSourceImage(Band band) {
+        final Variable variable = getNetcdfFile().findVariable(VARIABLE_NAME);
+        final int bufferType = ImageManager.getDataBufferType(band.getDataType());
+        final int sourceWidth = band.getSceneRasterWidth();
+        final int sourceHeight = band.getSceneRasterHeight();
+        final Dimension tileSize = band.getProduct().getPreferredTileSize();
+
+        return new VariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
+            @Override
+            protected final int getIndexX(int rank) {
+                return rank - 2;
+            }
+
+            @Override
+            protected final int getIndexY(int rank) {
+                return rank - 1;
+            }
+        };
+    }
+
+    @Override
+    protected final void setTime(Product product) {
+        final Structure headerStructure = getHeaderStructure();
+        try {
+            final int year = headerStructure.findVariable("year").readScalarInt();
+            final int month = headerStructure.findVariable("month").readScalarInt();
+            final int day = headerStructure.findVariable("day").readScalarInt();
+            final int hour = headerStructure.findVariable("hour").readScalarInt();
+            final int minute = headerStructure.findVariable("minute").readScalarInt();
+            setTime(product, year, month, day, hour, minute);
+        } catch (IOException ignored) {
+        }
     }
 
     MetadataElement getMetadata(Structure headerStructure) {
@@ -136,93 +170,46 @@ public class OsiProductReader extends BasicNetcdfProductReader {
         return element;
     }
 
-    GeoCoding createGeoCoding(Structure headerStructure) throws IOException {
-        try {
-            final String grid = headerStructure.findVariable("area").readScalarString();
-            String code;
-            if (NH_GRID.equals(grid)) {
-                code = "EPSG:3411";
-            } else if (SH_GRID.equals(grid)) {
-                code = "EPSG:3412";
-            } else {
-                // code for computing math transform for higher latitude grid is to be found
-                // in commit e9a32d1c6d18670c358f8e9434a7d2becb149449
-                throw new IllegalStateException(
-                        "Grid support for grids different from 'Northern Hemisphere Grid' and " +
-                        "'Southern Hemisphere Grid' not yet implemented.");
-            }
-            final double easting = headerStructure.findVariable("Bx").readScalarFloat() * 1000.0;
-            final double northing = headerStructure.findVariable("By").readScalarFloat() * 1000.0;
-            final double pixelSizeX = headerStructure.findVariable("Ax").readScalarFloat() * 1000.0;
-            final double pixelSizeY = headerStructure.findVariable("Ay").readScalarFloat() * 1000.0;
-            return new CrsGeoCoding(CRS.decode(code),
-                                    sceneRasterWidth,
-                                    sceneRasterHeight,
-                                    easting, northing,
-                                    pixelSizeX,
-                                    pixelSizeY, 0.0, 0.0);
-        } catch (FactoryException e) {
-            Debug.trace(e);
-        } catch (TransformException e) {
-            Debug.trace(e);
+    GeoCoding createGeoCoding(Structure headerStructure) throws Exception {
+        final int w = headerStructure.findVariable("iw").readScalarInt();
+        final int h = headerStructure.findVariable("ih").readScalarInt();
+        final String grid = headerStructure.findVariable("area").readScalarString();
+        String code;
+        if (NH_GRID.equals(grid)) {
+            code = "EPSG:3411";
+        } else if (SH_GRID.equals(grid)) {
+            code = "EPSG:3412";
+        } else {
+            // code for computing math transform for higher latitude grid is to be found
+            // in commit e9a32d1c6d18670c358f8e9434a7d2becb149449
+            throw new IllegalStateException(
+                    "Grid support for grids different from 'Northern Hemisphere Grid' and " +
+                    "'Southern Hemisphere Grid' not yet implemented.");
         }
-        return null;
+        final double easting = headerStructure.findVariable("Bx").readScalarFloat() * 1000.0;
+        final double northing = headerStructure.findVariable("By").readScalarFloat() * 1000.0;
+        final double pixelSizeX = headerStructure.findVariable("Ax").readScalarFloat() * 1000.0;
+        final double pixelSizeY = headerStructure.findVariable("Ay").readScalarFloat() * 1000.0;
+
+        return new CrsGeoCoding(CRS.decode(code), w, h, easting, northing, pixelSizeX, pixelSizeY, 0.0, 0.0);
     }
 
 
-    @Override
-    protected RenderedImage createSourceImage(Band band) {
-        final Variable variable = getNetcdfFile().findVariable(VARIABLE_NAME);
-        final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
-        final int sourceWidth = band.getSceneRasterWidth();
-        final int sourceHeight = band.getSceneRasterHeight();
-        final Dimension tileSize = band.getProduct().getPreferredTileSize();
-
-        return new VariableOpImage(variable, dataBufferType, sourceWidth, sourceHeight, tileSize) {
-            @Override
-            protected final int getIndexX(int rank) {
-                return rank - 2;
-            }
-
-            @Override
-            protected final int getIndexY(int rank) {
-                return rank - 1;
-            }
-        };
+    private Structure getHeaderStructure() {
+        return (Structure) getNetcdfFile().findVariable("Header");
     }
 
-    void setTimes(Product product, int year, int month, int day, int hour, int minute) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(year);
-        builder.append("-");
-        if (month < 10) {
-            builder.append("0");
-        }
-        builder.append(month);
-        builder.append("-");
-        if (day < 10) {
-            builder.append("0");
-        }
-        builder.append(day);
-        builder.append("-");
-        if (hour < 10) {
-            builder.append("0");
-        }
-        builder.append(hour);
-        builder.append("-");
-        if (minute < 10) {
-            builder.append("0");
-        }
-        builder.append(minute);
-        ProductData.UTC startTime = null;
-        try {
-            startTime = ProductData.UTC.parse(builder.toString(), "yyyy-MM-dd-HH-mm");
-        } catch (ParseException e) {
-            Debug.trace("No start time could be set due to the following exception:");
-            Debug.trace(e);
-        }
+    void setTime(Product product, int year, int month, int day, int hour, int minute) {
+        final Calendar calendar = ProductData.UTC.createCalendar();
+
+        calendar.set(year, month - 1, day, hour - 12, minute);
+        final ProductData.UTC startTime = ProductData.UTC.create(calendar.getTime(), 0);
+
+        calendar.set(year, month - 1, day, hour + 12, minute);
+        final ProductData.UTC endTime = ProductData.UTC.create(calendar.getTime(), 0);
+
         product.setStartTime(startTime);
-        product.setEndTime(startTime);
+        product.setEndTime(endTime);
     }
 
     static boolean isSeaIceFile(File file) {

@@ -27,7 +27,7 @@ abstract class BasicNetcdfProductReader extends AbstractProductReader {
         super(readerPlugIn);
     }
 
-    public NetcdfFile getNetcdfFile() {
+    protected final NetcdfFile getNetcdfFile() {
         return netcdfFile;
     }
 
@@ -40,7 +40,18 @@ abstract class BasicNetcdfProductReader extends AbstractProductReader {
             inputFile = new File(getInput().toString());
         }
         netcdfFile = NetcdfFile.open(inputFile.getPath());
-        return createProduct(netcdfFile);
+        final Product product = createProduct();
+        product.setProductReader(this);
+        product.setFileLocation(inputFile);
+        addMetadata(product);
+        addBands(product);
+        addGeoCoding(product);
+        for (final Band band : product.getBands()) {
+            band.setSourceImage(createSourceImage(band));
+        }
+        setTime(product);
+
+        return product;
     }
 
     @Override
@@ -59,11 +70,25 @@ abstract class BasicNetcdfProductReader extends AbstractProductReader {
 
     @Override
     public final void close() throws IOException {
-        netcdfFile.close();
+        if (netcdfFile != null) {
+            try {
+                netcdfFile.close();
+            } catch (IOException ignored) {
+            }
+            netcdfFile = null;
+        }
         super.close();
     }
 
-    protected abstract Product createProduct(NetcdfFile netcdfFile) throws IOException;
+    protected abstract void addBands(Product product) throws IOException;
+
+    protected abstract void addGeoCoding(Product product);
+
+    protected abstract void addMetadata(Product product);
+
+    protected abstract Product createProduct() throws IOException;
 
     protected abstract RenderedImage createSourceImage(Band band);
+
+    protected abstract void setTime(Product product);
 }

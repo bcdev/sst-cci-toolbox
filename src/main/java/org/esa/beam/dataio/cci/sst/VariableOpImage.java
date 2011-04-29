@@ -25,8 +25,8 @@ abstract class VariableOpImage extends SingleBandedOpImage {
     private final VariableIF variable;
 
     protected VariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
-                              Dimension tileSize) {
-        super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, ResolutionLevel.MAXRES);
+                              Dimension tileSize, ResolutionLevel level) {
+        super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, level);
         this.variable = variable;
     }
 
@@ -65,7 +65,7 @@ abstract class VariableOpImage extends SingleBandedOpImage {
                 throw new IllegalArgumentException(e);
             }
         }
-        tile.setDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height, getStorage(array));
+        tile.setDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height, transformStorage(array));
     }
 
     /**
@@ -91,15 +91,22 @@ abstract class VariableOpImage extends SingleBandedOpImage {
     protected abstract int getIndexY(int rank);
 
     /**
-     * Returns the primitive storage of the array supplied as argument. May
-     * be overridden in order to e.g. transpose the storage if the sequence
-     * of variable dimensions is (..., x, y) instead of (..., y, x).
+     * Transforms the primitive storage of the array supplied as argument.
+     * <p/>
+     * The default implementation merely returns the primitive storage of
+     * the array supplied as argument, which is fine when the sequence of
+     * variable dimensions is (..., y, x).
+     * <p/>
+     * Implementations have to transpose the storage when the sequence of
+     * variable dimensions is (..., x, y) instead of (..., y, x).
+     * <p/>
      *
      * @param array An array.
      *
-     * @return the array primitive storage.
+     * @return the transformed primitive storage of the array supplied as
+     *         argument.
      */
-    protected Object getStorage(Array array) {
+    protected Object transformStorage(Array array) {
         return array.getStorage();
     }
 
