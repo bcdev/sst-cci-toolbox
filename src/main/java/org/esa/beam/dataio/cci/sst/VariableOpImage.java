@@ -69,12 +69,12 @@ class VariableOpImage extends SingleBandedOpImage {
     }
 
     /**
-     * Returns the storage of the array supplied as argument. May
+     * Returns the primitive storage of the array supplied as argument. May
      * be overridden in order to e.g. transpose the storage.
      *
      * @param array An array.
      *
-     * @return the transformed storage.
+     * @return the array primitive storage.
      */
     protected Object getStorage(Array array) {
         return array.getStorage();
