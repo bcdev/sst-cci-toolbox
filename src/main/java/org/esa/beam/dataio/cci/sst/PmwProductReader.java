@@ -11,11 +11,11 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
-import org.esa.cci.sst.reader.PixelGeoCodingWithFallback;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -85,9 +85,9 @@ public class PmwProductReader extends BasicNetcdfProductReader {
         metadataRoot.addElement(MetadataUtils.readVariableDescriptions(getNetcdfFile().getVariables(), "DSD"));
 
         final MetadataElement beam = new MetadataElement("reader_generated");
-        beam.addAttribute(new MetadataAttribute("reader_lead_line_skip",
+        beam.addAttribute(new MetadataAttribute("lead_line_skip",
                                                 ProductData.createInstance(new int[]{leadLineSkip}), true));
-        beam.addAttribute(new MetadataAttribute("reader_tail_line_skip",
+        beam.addAttribute(new MetadataAttribute("tail_line_skip",
                                                 ProductData.createInstance(new int[]{tailLineSkip}), true));
         metadataRoot.addElement(beam);
     }

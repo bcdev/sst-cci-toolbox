@@ -16,15 +16,16 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
+import org.esa.beam.util.PixelFinder;
+import org.esa.beam.util.SampleSource;
 import org.esa.beam.dataio.netcdf.ProfileReadContext;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfGeocodingPart;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
-import org.esa.cci.sst.util.PixelFinder;
-import org.esa.cci.sst.util.QuadTreePixelFinder;
-import org.esa.cci.sst.util.RasterDataNodeSampleSource;
-import org.esa.cci.sst.util.SampleSource;
+import org.esa.beam.util.QuadTreePixelFinder;
+import org.esa.beam.util.RasterDataNodeSampleSource;
 
 import java.io.IOException;
 

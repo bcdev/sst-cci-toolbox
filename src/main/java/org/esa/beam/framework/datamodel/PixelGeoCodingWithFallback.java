@@ -14,18 +14,14 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.reader;
+package org.esa.beam.framework.datamodel;
 
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelGeoCoding;
-import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.cci.sst.util.PixelFinder;
-import org.esa.cci.sst.util.QuadTreePixelFinder;
-import org.esa.cci.sst.util.RasterDataNodeSampleSource;
+import org.esa.beam.util.PixelFinder;
+import org.esa.beam.util.QuadTreePixelFinder;
+import org.esa.beam.util.RasterDataNodeSampleSource;
 
 /**
- * A pixel geo-coding, which uses a different quad-tree algorithm as fallback
- * when a pixel position has not been found. (BEAM-1240)
+ * A workaround for BEAM-1240.
  *
  * @author Ralf Quast
  */

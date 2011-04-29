@@ -20,14 +20,17 @@ import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.atsr.AtsrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.OsiProductReaderPlugIn;
+import org.esa.beam.util.PixelFinder;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
+import org.esa.beam.util.QuadTreePixelFinder;
+import org.esa.beam.util.RasterDataNodeSampleSource;
+import org.esa.beam.util.SampleSource;
+import org.esa.beam.framework.datamodel.TiePointGeoCodingWithFallback;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
@@ -38,10 +41,6 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.util.PixelFinder;
-import org.esa.cci.sst.util.QuadTreePixelFinder;
-import org.esa.cci.sst.util.RasterDataNodeSampleSource;
-import org.esa.cci.sst.util.SampleSource;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -85,7 +84,6 @@ public class ProductIOHandler implements IOHandler {
             throw new IOException(
                     MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
         }
-        // workAroundBeamIssue1240(product);
         workAroundBeamIssue1241(product);
 
         this.product = product;
@@ -284,19 +282,6 @@ public class ProductIOHandler implements IOHandler {
         }
     }
 
-    static void workAroundBeamIssue1240(Product product) {
-        final GeoCoding geoCoding = product.getGeoCoding();
-        if (geoCoding instanceof PixelGeoCoding) {
-            final PixelGeoCoding pixelGeoCoding = (PixelGeoCoding) geoCoding;
-            final Band latBand = pixelGeoCoding.getLatBand();
-            final Band lonBand = pixelGeoCoding.getLonBand();
-            final SampleSource latSource = new RasterDataNodeSampleSource(latBand);
-            final SampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
-            final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
-            product.setGeoCoding(new PixelGeoCodingWithFallback(pixelGeoCoding, pixelFinder));
-        }
-    }
-
     static void workAroundBeamIssue1241(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
         if (geoCoding instanceof TiePointGeoCoding) {
@@ -307,36 +292,6 @@ public class ProductIOHandler implements IOHandler {
             final SampleSource lonSource = new RasterDataNodeSampleSource(lonGrid);
             final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
             product.setGeoCoding(new TiePointGeoCodingWithFallback(tiePointGeoCoding, pixelFinder));
-        }
-    }
-
-    static class TiePointGeoCodingWithFallback extends ForwardingGeoCoding {
-
-        private final int sceneRasterWidth;
-        private final int sceneRasterHeight;
-        private final PixelFinder pixelFinder;
-
-        TiePointGeoCodingWithFallback(TiePointGeoCoding tiePointGeoCoding, PixelFinder pixelFinder) {
-            super(tiePointGeoCoding);
-            sceneRasterWidth = tiePointGeoCoding.getLatGrid().getSceneRasterWidth();
-            sceneRasterHeight = tiePointGeoCoding.getLatGrid().getSceneRasterHeight();
-            this.pixelFinder = pixelFinder;
-        }
-
-        @Override
-        public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
-            super.getPixelPos(geoPos, pixelPos);
-            if (geoPos.isValid()) {
-                if (!pixelPos.isValid() ||
-                    pixelPos.x < 0 || pixelPos.y < 0 ||
-                    pixelPos.x > sceneRasterWidth || pixelPos.y > sceneRasterHeight) {
-                    final boolean pixelFound = pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
-                    if (!pixelFound) {
-                        pixelPos.setInvalid();
-                    }
-                }
-            }
-            return pixelPos;
         }
     }
 

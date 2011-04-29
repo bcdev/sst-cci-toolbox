@@ -1,4 +1,4 @@
-package org.esa.cci.sst.util;
+package org.esa.beam.util;
 
 import com.bc.ceres.core.Assert;
 

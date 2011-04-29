@@ -1,4 +1,4 @@
-package org.esa.cci.sst.util;
+package org.esa.beam.util;
 
 /**
  * A source of sample values indexed by (x, y) with x in {0, ..., width - 1} and y

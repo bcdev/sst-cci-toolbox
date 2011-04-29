@@ -1,10 +1,18 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
+import org.esa.beam.util.PixelFinder;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
+import org.esa.beam.util.QuadTreePixelFinder;
+import org.esa.beam.util.RasterDataNodeSampleSource;
+import org.esa.beam.util.SampleSource;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.dataio.ProductSubsetBuilder;
 import org.esa.beam.framework.dataio.ProductSubsetDef;
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
@@ -26,6 +34,19 @@ import java.util.ArrayList;
 public class SubsceneProductIOHandler extends ProductIOHandler {
 
     private final BoundaryCalculator bc;
+
+    static void workAroundBeamIssue1240(Product product) {
+        final GeoCoding geoCoding = product.getGeoCoding();
+        if (geoCoding instanceof PixelGeoCoding) {
+            final PixelGeoCoding pixelGeoCoding = (PixelGeoCoding) geoCoding;
+            final Band latBand = pixelGeoCoding.getLatBand();
+            final Band lonBand = pixelGeoCoding.getLonBand();
+            final SampleSource latSource = new RasterDataNodeSampleSource(latBand);
+            final SampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
+            final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
+            product.setGeoCoding(new PixelGeoCodingWithFallback(pixelGeoCoding, pixelFinder));
+        }
+    }
 
     Product getProduct() {
         return product;
