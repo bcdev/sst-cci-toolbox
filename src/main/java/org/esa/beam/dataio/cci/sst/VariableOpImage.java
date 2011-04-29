@@ -41,19 +41,18 @@ abstract class VariableOpImage extends SingleBandedOpImage {
             origin[i] = 0;
             stride[i] = 1;
         }
-        // sequence of dimensions in OSI & PMW (..., x, y) does not comply with CF conventions
         final int indexX = getIndexX(rank);
         final int indexY = getIndexY(rank);
 
-        shape[indexY] = rectangle.height;
-        shape[indexX] = rectangle.width;
+        shape[indexX] = getSourceWidth(rectangle.width);
+        shape[indexY] = getSourceHeight(rectangle.height);
 
-        origin[indexY] = rectangle.y;
-        origin[indexX] = rectangle.x;
+        origin[indexX] = getSourceX(rectangle.x);
+        origin[indexY] = getSourceY(rectangle.y);
 
         final double scale = getScale();
-        stride[indexY] = (int) scale;
         stride[indexX] = (int) scale;
+        stride[indexY] = (int) scale;
 
         Array array;
         synchronized (variable.getParentGroup().getNetcdfFile()) {
@@ -93,11 +92,15 @@ abstract class VariableOpImage extends SingleBandedOpImage {
 
     /**
      * Returns the primitive storage of the array supplied as argument. May
-     * be overridden in order to e.g. transpose the storage.
+     * be overridden in order to e.g. transpose the storage if the sequence
+     * of variable dimensions is (..., x, y) instead of (..., y, x).
      *
      * @param array An array.
      *
      * @return the array primitive storage.
      */
-    protected abstract Object getStorage(Array array);
+    protected Object getStorage(Array array) {
+        return array.getStorage();
+    }
+
 }

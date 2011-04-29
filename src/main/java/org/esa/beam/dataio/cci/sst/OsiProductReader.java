@@ -13,7 +13,6 @@ import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
-import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
 import ucar.nc2.Variable;
@@ -188,11 +187,6 @@ public class OsiProductReader extends BasicNetcdfProductReader {
             @Override
             protected final int getIndexY(int rank) {
                 return rank - 1;
-            }
-
-            @Override
-            protected final Object getStorage(Array array) {
-                return array.getStorage();
             }
         };
     }
