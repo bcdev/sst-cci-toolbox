@@ -20,11 +20,12 @@ import java.io.IOException;
  * @author Ralf Quast
  * @see org.esa.beam.dataio.netcdf.util.NetcdfOpImage
  */
-class VariableOpImage extends SingleBandedOpImage {
+abstract class VariableOpImage extends SingleBandedOpImage {
 
     private final VariableIF variable;
 
-    VariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight, Dimension tileSize) {
+    protected VariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
+                              Dimension tileSize) {
         super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, ResolutionLevel.MAXRES);
         this.variable = variable;
     }
@@ -41,18 +42,18 @@ class VariableOpImage extends SingleBandedOpImage {
             stride[i] = 1;
         }
         // sequence of dimensions in OSI & PMW (..., x, y) does not comply with CF conventions
-        final int xIndex = rank - 2;
-        final int yIndex = rank - 1;
+        final int indexX = getIndexX(rank);
+        final int indexY = getIndexY(rank);
 
-        shape[yIndex] = rectangle.height;
-        shape[xIndex] = rectangle.width;
+        shape[indexY] = rectangle.height;
+        shape[indexX] = rectangle.width;
 
-        origin[yIndex] = rectangle.y;
-        origin[xIndex] = rectangle.x;
+        origin[indexY] = rectangle.y;
+        origin[indexX] = rectangle.x;
 
-        double scale = getScale();
-        stride[yIndex] = (int) scale;
-        stride[xIndex] = (int) scale;
+        final double scale = getScale();
+        stride[indexY] = (int) scale;
+        stride[indexX] = (int) scale;
 
         Array array;
         synchronized (variable.getParentGroup().getNetcdfFile()) {
@@ -69,6 +70,28 @@ class VariableOpImage extends SingleBandedOpImage {
     }
 
     /**
+     * Returns the index of the x dimension of the variable, which
+     * provides the image data.
+     *
+     * @param rank The rank of the array, which contains the image
+     *             data.
+     *
+     * @return the index of the x dimension.
+     */
+    protected abstract int getIndexX(int rank);
+
+    /**
+     * Returns the index of the y dimension of the variable, which
+     * provides the image data.
+     *
+     * @param rank The rank of the array, which contains the image
+     *             data.
+     *
+     * @return the index of the y dimension.
+     */
+    protected abstract int getIndexY(int rank);
+
+    /**
      * Returns the primitive storage of the array supplied as argument. May
      * be overridden in order to e.g. transpose the storage.
      *
@@ -76,7 +99,5 @@ class VariableOpImage extends SingleBandedOpImage {
      *
      * @return the array primitive storage.
      */
-    protected Object getStorage(Array array) {
-        return array.getStorage();
-    }
+    protected abstract Object getStorage(Array array);
 }

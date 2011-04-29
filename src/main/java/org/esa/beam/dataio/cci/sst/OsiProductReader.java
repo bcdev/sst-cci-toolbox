@@ -13,10 +13,12 @@ import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
 import ucar.nc2.Variable;
 
+import java.awt.Dimension;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -98,33 +100,33 @@ public class OsiProductReader extends BasicNetcdfProductReader {
             ProductData productData = null;
             try {
                 switch (type) {
-                case ProductData.TYPE_ASCII: {
-                    productData = ProductData.createInstance(variable.readScalarString());
-                    break;
-                }
-                case ProductData.TYPE_INT8: {
-                    productData = ProductData.createInstance(new int[]{variable.readScalarByte()});
-                    break;
-                }
-                case ProductData.TYPE_INT16: {
-                    productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
-                    break;
-                }
-                case ProductData.TYPE_INT32: {
-                    productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
-                    break;
-                }
-                case ProductData.TYPE_FLOAT32: {
-                    productData = ProductData.createInstance(new float[]{variable.readScalarFloat()});
-                    break;
-                }
-                case ProductData.TYPE_FLOAT64: {
-                    productData = ProductData.createInstance(new double[]{variable.readScalarDouble()});
-                    break;
-                }
-                default: {
-                    break;
-                }
+                    case ProductData.TYPE_ASCII: {
+                        productData = ProductData.createInstance(variable.readScalarString());
+                        break;
+                    }
+                    case ProductData.TYPE_INT8: {
+                        productData = ProductData.createInstance(new int[]{variable.readScalarByte()});
+                        break;
+                    }
+                    case ProductData.TYPE_INT16: {
+                        productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
+                        break;
+                    }
+                    case ProductData.TYPE_INT32: {
+                        productData = ProductData.createInstance(new int[]{variable.readScalarInt()});
+                        break;
+                    }
+                    case ProductData.TYPE_FLOAT32: {
+                        productData = ProductData.createInstance(new float[]{variable.readScalarFloat()});
+                        break;
+                    }
+                    case ProductData.TYPE_FLOAT64: {
+                        productData = ProductData.createInstance(new double[]{variable.readScalarDouble()});
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
                 }
             } catch (IOException e) {
                 Debug.trace(e.getMessage());
@@ -173,11 +175,26 @@ public class OsiProductReader extends BasicNetcdfProductReader {
     protected RenderedImage createSourceImage(Band band) {
         final Variable variable = getNetcdfFile().findVariable(VARIABLE_NAME);
         final int dataBufferType = ImageManager.getDataBufferType(band.getDataType());
-        return new VariableOpImage(variable, dataBufferType,
-                                   band.getSceneRasterWidth(),
-                                   band.getSceneRasterHeight(),
-                                   band.getProduct().getPreferredTileSize()
-        );
+        final int sourceWidth = band.getSceneRasterWidth();
+        final int sourceHeight = band.getSceneRasterHeight();
+        final Dimension tileSize = band.getProduct().getPreferredTileSize();
+
+        return new VariableOpImage(variable, dataBufferType, sourceWidth, sourceHeight, tileSize) {
+            @Override
+            protected final int getIndexX(int rank) {
+                return rank - 2;
+            }
+
+            @Override
+            protected final int getIndexY(int rank) {
+                return rank - 1;
+            }
+
+            @Override
+            protected final Object getStorage(Array array) {
+                return array.getStorage();
+            }
+        };
     }
 
     void setTimes(Product product, int year, int month, int day, int hour, int minute) {

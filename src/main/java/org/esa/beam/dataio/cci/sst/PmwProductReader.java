@@ -56,9 +56,20 @@ public class PmwProductReader extends BasicNetcdfProductReader {
         final Dimension tileSize = band.getProduct().getPreferredTileSize();
 
         return new VariableOpImage(variable, dataBufferType, sourceWidth, sourceHeight, tileSize) {
+
+            @Override
+            protected int getIndexX(int rank) {
+                return rank - 2;
+            }
+
+            @Override
+            protected int getIndexY(int rank) {
+                return rank - 1;
+            }
+
             @Override
             protected final Object getStorage(Array array) {
-                return array.transpose(array.getRank() - 1, array.getRank() - 2).copyTo1DJavaArray();
+                return array.transpose(getIndexX(array.getRank()), getIndexY(array.getRank())).copyTo1DJavaArray();
             }
         };
     }
