@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools.arcprocessing;
 
 import com.bc.ceres.core.Assert;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
@@ -26,6 +27,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -55,6 +57,13 @@ public class Arc1ProcessingTool extends MmsTool {
                                                                           "ORDER BY df.path";
     public static final String LATLON_FILE_EXTENSION = ".latlon.txt";
 
+    private PrintWriter submitCallsWriter = null;
+    private PrintWriter collectCallsWriter = null;
+    private PrintWriter cleanupCallsWriter = null;
+    private String submitCallFilename = null;
+    private String collectCallFilename = null;
+    private String cleanupCallFilename = null;
+
     public Arc1ProcessingTool() {
         super("mmssubscenes.sh", "0.1");
     }
@@ -63,11 +72,51 @@ public class Arc1ProcessingTool extends MmsTool {
         final Arc1ProcessingTool tool = new Arc1ProcessingTool();
         tool.setCommandLineArgs(args);
         tool.initialize();
-        final List<AvhrrInfo> avhrrFilesAndPoints = tool.inquireAvhrrInfos();
         try {
+            tool.prepareCommandFiles();
+            final List<AvhrrInfo> avhrrFilesAndPoints = tool.inquireAvhrrInfos();
             tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
+            tool.closeCommandFiles();
         } catch (IOException e) {
             tool.getErrorHandler().handleError(e, "Tool failed.", ToolException.TOOL_ERROR);
+        }
+    }
+
+    private void prepareCommandFiles() throws IOException {
+        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
+        final File destDir = new File(destPath);
+        destDir.mkdirs();
+        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
+        final File tmpDir = new File(tmpPath);
+        tmpDir.mkdirs();
+        final String time = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
+
+        submitCallFilename = String.format("mms-arc1x2-%s-submit.sh", time);
+        submitCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(tmpDir, submitCallFilename))));
+        submitCallsWriter.format("#!/bin/bash\n\n");
+
+        collectCallFilename = String.format("mms-arc1x2-%s-collect.sh", time);
+        collectCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(tmpDir, collectCallFilename))));
+        collectCallsWriter.format("#!/bin/bash\n\n");
+
+        cleanupCallFilename = String.format("mms-arc1x2-%s-cleanup.sh", time);
+        cleanupCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(tmpDir, cleanupCallFilename))));
+        cleanupCallsWriter.format("#!/bin/bash\n\n");
+    }
+
+    private void closeCommandFiles() throws IOException {
+        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR);
+        cleanupCallsWriter.format("rm %s/%s\n", tmpPath, submitCallFilename);
+        cleanupCallsWriter.format("rm %s/%s\n", tmpPath, collectCallFilename);
+        cleanupCallsWriter.format("rm %s/%s\n", tmpPath, cleanupCallFilename);
+        if (submitCallsWriter != null) {
+            submitCallsWriter.close();
+        }
+        if (collectCallsWriter != null) {
+            collectCallsWriter.close();
+        }
+        if (cleanupCallsWriter != null) {
+            cleanupCallsWriter.close();
         }
     }
 
@@ -101,8 +150,8 @@ public class Arc1ProcessingTool extends MmsTool {
     List<AvhrrInfo> inquireAvhrrInfos() {
         final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY,
                                                                                Object[].class);
-        allPointsQuery.setParameter(1, getTimeProperty("mms.arcprocessing.starttime"));
-        allPointsQuery.setParameter(2, getTimeProperty("mms.arcprocessing.endtime"));
+        allPointsQuery.setParameter(1, getTimeProperty(Constants.PROPERTY_OUTPUT_START_TIME));
+        allPointsQuery.setParameter(2, getTimeProperty(Constants.PROPERTY_OUTPUT_END_TIME));
         final List<Object[]> queryResultList = allPointsQuery.getResultList();
         final List<AvhrrInfo> avhrrInfos = new ArrayList<AvhrrInfo>(queryResultList.size());
         for (Object[] info : queryResultList) {
@@ -138,11 +187,18 @@ public class Arc1ProcessingTool extends MmsTool {
         }
     }
 
+    // todo determine sensor from input, use it for the output
     private void callShellScript(final String currentFilename, final File latLonFile) {
+        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR);
+        final String basename = getBasename(currentFilename);
+        final String latLonFilePath = latLonFile.getPath();
         final String latLonFileName = latLonFile.getName();
-        // todo - ts 19Apr2011 - replace by actual call
-        System.out.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFileName);
-        System.out.format("ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n", currentFilename, latLonFileName);
+        submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
+        submitCallsWriter.format("ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n", currentFilename, latLonFileName);
+        collectCallsWriter.format("scp eddie.ecdf.ed.ak.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
+        collectCallsWriter.format("bin/mmsreingest.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n  -Dmms.reingestion.type=arc3 \\\n  -Dmms.reingestion.schema=avhrr_sub \\\n  -Dmms.reingestion.sensor=avhrr_nxx_sub \\\n  -Dmms.reingestion.sensorType=avhrr_sub \\\n  -c config/mms-config-eddie1.properties", destPath, basename);
+        cleanupCallsWriter.format("ssh eddie.ecdf.ed.ak.uk rm -r mms/task-%s\n", basename);
+        cleanupCallsWriter.format("rm %s", latLonFilePath);
     }
 
     private void close(final BufferedWriter writer) {
@@ -156,6 +212,7 @@ public class Arc1ProcessingTool extends MmsTool {
     }
 
     private File getLatLonFile(final String currentFilename) {
+        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR);
         final int slashIndex = currentFilename.lastIndexOf('/');
         final String baseFilename;
         if (currentFilename.endsWith(".gz")) {
@@ -163,7 +220,17 @@ public class Arc1ProcessingTool extends MmsTool {
         } else {
             baseFilename = currentFilename.substring(slashIndex + 1);
         }
-        return new File(baseFilename + LATLON_FILE_EXTENSION);
+        return new File(tmpPath + File.separator + baseFilename + LATLON_FILE_EXTENSION);
+    }
+
+    private String getBasename(final String currentFilename) {
+        final int slashIndex = currentFilename.lastIndexOf('/');
+        final String baseFilename;
+        if (currentFilename.endsWith(".gz")) {
+            return currentFilename.substring(slashIndex + 1, currentFilename.length() - ".gz".length());
+        } else {
+            return currentFilename.substring(slashIndex + 1);
+        }
     }
 
     private Date getTimeProperty(String key) {

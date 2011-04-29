@@ -1,11 +1,8 @@
 package org.esa.cci.sst.data;
 
-import org.esa.cci.sst.util.TimeUtil;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -21,7 +18,7 @@ public class DataFile {
 
     int id;
     String path;
-    DataSchema dataSchema;
+    Sensor sensor;
 
     @Id
     @GeneratedValue
@@ -41,18 +38,17 @@ public class DataFile {
         this.path = slashify(path);
     }
 
-    @ManyToOne
-    public DataSchema getDataSchema() {
-        return dataSchema;
+    public Sensor getSensor() {
+        return sensor;
     }
 
-    public void setDataSchema(DataSchema dataSchema) {
-        this.dataSchema = dataSchema;
+    public void setSensor(Sensor sensor) {
+        this.sensor = sensor;
     }
 
     @Override
     public String toString() {
-        return String.format("DataFile(%d,%s,%s)", getId(), getDataSchema(), getPath());
+        return String.format("DataFile(%d,%s)", getId(), getPath());
     }
 
     private static String slashify(String path) {

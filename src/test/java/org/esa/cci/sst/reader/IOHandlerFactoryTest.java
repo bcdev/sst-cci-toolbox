@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.tools.Constants;
 import org.junit.Test;
 
 import static junit.framework.Assert.*;
@@ -28,16 +27,35 @@ public class IOHandlerFactoryTest {
 
     @Test
     public void testCreateReader() throws Exception {
-        assertNotNull(IOHandlerFactory.createHandler(null, Constants.DATA_SCHEMA_NAME_ATSR_MD, null));
-        assertNotNull(IOHandlerFactory.createHandler(null, Constants.DATA_SCHEMA_NAME_METOP_MD, null));
-        assertNotNull(IOHandlerFactory.createHandler(null, Constants.DATA_SCHEMA_NAME_SEVIRI_MD, null));
+        IOHandler handler;
+        handler = IOHandlerFactory.createHandler("GzipDeflatingIOHandlerWrapper,SubsceneProductIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof GzipDeflatingIOHandlerWrapper);
 
-        try {
-            IOHandlerFactory.createHandler(null, "bogus-reader", null);
-            fail("Exception expected");
-        } catch (Exception expected) {
-            // ok
-        }
+        handler = IOHandlerFactory.createHandler("GzipDeflatingIOHandlerWrapper,ProductIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof GzipDeflatingIOHandlerWrapper);
+
+        handler = IOHandlerFactory.createHandler("SubsceneProductIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof SubsceneProductIOHandler);
+
+        handler = IOHandlerFactory.createHandler("ProductIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof ProductIOHandler);
+
+        handler = IOHandlerFactory.createHandler("MetopIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof MetopIOHandler);
+
+        handler = IOHandlerFactory.createHandler("AtsrMdIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof AtsrMdIOHandler);
+
+        handler = IOHandlerFactory.createHandler("SeviriIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof SeviriIOHandler);
+
     }
 
 }

@@ -1,16 +1,16 @@
 package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.DataSchema;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.Timed;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
-import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -33,8 +33,6 @@ import java.util.Properties;
  * @author Norman Fomferra
  */
 public class IngestionTool extends MmsTool {
-
-    public static final String ALL_SENSORS_QUERY = "select sensor from mm_observation group by sensor";
 
     public static void main(String[] args) {
         // comment out the following two lines in order to activate the tool
@@ -63,63 +61,8 @@ public class IngestionTool extends MmsTool {
         super("mmsingest.sh", "0.1");
     }
 
-    /**
-     * Ingests one input file and creates observation entries in the database
-     * for all records contained in input file. Further creates the data file
-     * entry, and the schema entry unless it exists, <p>
-     * <p/>
-     * For METOP MD files two observations are created, one reference observation
-     * with a single pixel coordinate and one common observation with a sub-scene.
-     * This is achieved by using both factory methods of the reader, readRefObs
-     * and readObservation. For other readers only one of them returns an
-     * observation. <p>
-     * <p/>
-     * In order to avoid large transactions a database checkpoint is inserted
-     * every 65536 records. If ingestion fails rollback is only performed to
-     * the respective checkpoint.
-     *
-     * @param file       The input file with records to be read and made persistent as observations.
-     * @param schemaName The name of the input file type.
-     * @param sensorType The type of sensor being the source of the the input data.
-     * @param sensorName The sensor name.
-     *
-     * @throws ToolException if ingestion fails
-     */
-    void ingest(File file, String schemaName, String sensorType, String sensorName) throws ToolException {
-        getLogger().info("ingesting file " + file.getName());
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        final IOHandler ioHandler = getIOHandler(schemaName, sensorName);
-        try {
-            // open database
-            persistenceManager.transaction();
-            DataSchema dataSchema = getDataSchema(schemaName, sensorType);
-
-            final DataFile dataFile = DataUtil.createDataFile(file, dataSchema);
-            ioHandler.init(dataFile);
-
-            persistenceManager.persist(dataFile);
-            persistVariableDescriptors(schemaName, sensorName, ioHandler);
-
-            int recordsInTimeInterval = persistObservations(schemaName, ioHandler);
-            // make changes in database
-            persistenceManager.commit();
-            getLogger().info(MessageFormat.format("{0} {1} records in time interval.", schemaName,
-                                                  recordsInTimeInterval));
-        } catch (Exception e) {
-            // do not make any change in case of errors
-            try {
-                persistenceManager.rollback();
-            } catch (Exception ignored) {
-                // ignored, because surrounding exception is propagated
-            }
-            getErrorHandler().handleWarning(e, MessageFormat.format("Failed to ingest file ''{0}''.", file));
-        } finally {
-            ioHandler.close();
-        }
-    }
-
     boolean persistObservation(final Observation observation, final int recordNo) throws IOException,
-                                                                                     ParseException {
+                                                                                         ParseException {
         boolean hasPersisted = false;
         final PersistenceManager persistenceManager = getPersistenceManager();
         if (checkTime(observation)) {
@@ -137,36 +80,99 @@ public class IngestionTool extends MmsTool {
         return hasPersisted;
     }
 
-    IOHandler getIOHandler(final String schemaName, final String sensor) throws ToolException {
+    void persistVariableDescriptors(final String sensorName, final IOHandler ioHandler) throws IOException {
+        final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+        getLogger().info(MessageFormat.format("Number of variables for sensor ''{0}'' = {1}.",
+                                              sensorName, variableDescriptors.length));
+        for (final VariableDescriptor variableDescriptor : variableDescriptors) {
+            getPersistenceManager().persist(variableDescriptor);
+        }
+    }
+
+    /**
+     * Ingests one input file and creates observation entries in the database
+     * for all records contained in input file. Further creates the data file
+     * entry, and the schema entry unless it exists, <p>
+     * <p/>
+     * For METOP MD files two observations are created, one reference observation
+     * with a single pixel coordinate and one common observation with a sub-scene.
+     * This is achieved by using both factory methods of the reader, readRefObs
+     * and readObservation. For other readers only one of them returns an
+     * observation. <p>
+     * <p/>
+     * In order to avoid large transactions a database checkpoint is inserted
+     * every 65536 records. If ingestion fails rollback is only performed to
+     * the respective checkpoint.
+     *
+     *
+     *
+     * @param file       The input file with records to be read and made persistent as observations.
+     * @param readerSpec The specification string for the reader.
+     * @param sensorName The sensor name.
+     *
+     * @param pattern
+     * @throws ToolException if ingestion fails
+     */
+    private void ingest(File file, String readerSpec, String sensorName, long pattern) throws ToolException {
+        getLogger().info("ingesting file " + file.getName());
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final IOHandler ioHandler = getIOHandler(readerSpec, sensorName);
+        try {
+            // open database
+            persistenceManager.transaction();
+
+            Sensor sensor = getSensor(sensorName);
+            boolean addVariables = false;
+            if (sensor == null) {
+                addVariables = true;
+                sensor = createSensor(sensorName, pattern);
+            }
+            final DataFile dataFile = DataUtil.createDataFile(file, sensor);
+            ioHandler.init(dataFile);
+
+            persistenceManager.persist(dataFile);
+            if(addVariables) {
+                persistVariableDescriptors(sensorName, ioHandler);
+            }
+
+            int recordsInTimeInterval = persistObservations(sensorName, ioHandler);
+            // make changes in database
+            persistenceManager.commit();
+            getLogger().info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
+                                                  recordsInTimeInterval));
+        } catch (Exception e) {
+            // do not make any change in case of errors
+            try {
+                persistenceManager.rollback();
+            } catch (Exception ignored) {
+                // ignored, because surrounding exception is propagated
+            }
+            getErrorHandler().handleWarning(e, MessageFormat.format("Failed to ingest file ''{0}''.", file));
+        } finally {
+            ioHandler.close();
+        }
+    }
+
+    Sensor getSensor(final String sensorName) {
+        return (Sensor) getPersistenceManager().pick("select s from Sensor s where s.name = ?1", sensorName);
+    }
+
+    Sensor createSensor(String sensorName, long pattern) {
+        Sensor sensor = DataUtil.createSensor(sensorName, pattern);
+        getPersistenceManager().persist(sensor);
+        return sensor;
+    }
+
+    private IOHandler getIOHandler(final String readerSpec, final String sensor) throws ToolException {
         final IOHandler ioHandler;
         try {
-            ioHandler = IOHandlerFactory.createHandler(this, schemaName, sensor);
-        } catch (IllegalArgumentException e) {
+            ioHandler = IOHandlerFactory.createHandler(readerSpec, sensor);
+        } catch (Exception e) {
             throw new ToolException(MessageFormat.format(
-                    "Cannot create IO handler for schema ''{0}''.", schemaName), e,
+                    "Cannot create IO handler for sensor ''{0}''.", sensor), e,
                                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
         return ioHandler;
-    }
-
-    @SuppressWarnings({"unchecked"})
-    void persistVariableDescriptors(final String schemaName, final String sensorName,
-                                    final IOHandler ioHandler) throws IOException {
-        // todo correct this
-        // (The original idea was to bind variables to a schema, not to a sensor.
-        // to look up the sensor in the observations is wrong since the variables are
-        // created independent of whether an observation is found in the time interval.)
-        final Query query = getPersistenceManager().createNativeQuery(ALL_SENSORS_QUERY, String.class);
-        final List<String> sensorList = query.getResultList();
-
-        if (!sensorList.contains(sensorName)) {
-            final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-            getLogger().info(MessageFormat.format("Number of variables for schema ''{0}'' = {1}.",
-                                                  schemaName, variableDescriptors.length));
-            for (final VariableDescriptor variableDescriptor : variableDescriptors) {
-                getPersistenceManager().persist(variableDescriptor);
-            }
-        }
     }
 
     /**
@@ -179,28 +185,28 @@ public class IngestionTool extends MmsTool {
         final Properties configuration = getConfiguration();
         int directoryCount = 0;
         for (int i = 0; i < 100; i++) {
-            final String schemaName = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.schemaName", i));
             final String inputDirPath = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.inputDirectory", i));
-            final String sensorType = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.sensorType", i));
+                    String.format("mms.source.%d.inputDirectory", i));
             final String sensor = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.sensor", i));
-            if (schemaName == null || inputDirPath == null || sensorType == null || sensor == null) {
+                    String.format("mms.source.%d.sensor", i));
+            final String readerSpec = configuration.getProperty(
+                    String.format("mms.source.%d.reader", i));
+            final String patternProperty = configuration.getProperty(
+                    String.format("mms.source.%d.pattern", i), "0");
+            final long pattern = Long.parseLong(patternProperty);
+            if (readerSpec == null || inputDirPath == null || sensor == null) {
                 continue;
             }
-            validateSensorType(sensorType);
             getLogger().info("looking for " + sensor + " files");
             final String filenamePattern = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.filenamePattern", i), ".*");
+                    String.format("mms.source.%d.filenamePattern", i), ".*");
             final File inputDir = new File(inputDirPath);
             final List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
             if (inputFileList.isEmpty()) {
                 getLogger().warning(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
             }
             for (final File inputFile : inputFileList) {
-                ingest(inputFile, schemaName, sensorType, sensor);
+                ingest(inputFile, readerSpec, sensor, pattern);
                 directoryCount++;
             }
         }
@@ -208,14 +214,14 @@ public class IngestionTool extends MmsTool {
         getLogger().info(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
     }
 
-    private int persistObservations(final String schemaName, final IOHandler ioHandler) {
+    private int persistObservations(final String sensorName, final IOHandler ioHandler) {
         final PersistenceManager persistenceManager = getPersistenceManager();
         int recordsInTimeInterval = 0;
 
         // loop over records
         for (int recordNo = 0; recordNo < ioHandler.getNumRecords(); ++recordNo) {
             if (recordNo % 65536 == 0 && recordNo > 0) {
-                getLogger().info(MessageFormat.format("Reading record {0} {1}.", schemaName, recordNo));
+                getLogger().info(MessageFormat.format("Reading record {0} {1}.", sensorName, recordNo));
             }
             try {
                 final Observation observation = ioHandler.readObservation(recordNo);
@@ -244,48 +250,36 @@ public class IngestionTool extends MmsTool {
         statement.executeUpdate();
         statement = persistenceManager.createQuery("delete from VariableDescriptor v");
         statement.executeUpdate();
-        statement = persistenceManager.createQuery("delete from DataSchema s");
+        statement = persistenceManager.createQuery("delete from Sensor s");
         statement.executeUpdate();
         statement = persistenceManager.createQuery("delete from Coincidence c");
         statement.executeUpdate();
         statement = persistenceManager.createQuery("delete from Matchup m");
         statement.executeUpdate();
-//        try {
-//            statement = persistenceManager.createNativeQuery("drop index geo");
-//            statement.executeUpdate();
-//        } catch (Exception e) {
-//            System.err.format("geo index dropping failed: %s\n%s\n", e.toString(), "drop index geo");
-//        }
+        try {
+            statement = persistenceManager.createNativeQuery("drop index geo");
+            statement.executeUpdate();
+        } catch (Exception e) {
+            System.err.format("geo index dropping failed: %s\n%s\n", e.toString(), "drop index geo");
+        }
         try {
             statement = persistenceManager.createNativeQuery("create index geo on mm_observation using gist(location)");
             statement.executeUpdate();
         } catch (Exception e) {
-            System.err.format("geo index creation failed: %s\n%s\n", e.toString(), "create index geo on mm_observation using gist(location)");
+            System.err.format("geo index creation failed: %s\n%s\n", e.toString(),
+                              "create index geo on mm_observation using gist(location)");
         }
         persistenceManager.commit();
-    }
-
-    private DataSchema getDataSchema(final String schemaName, final String sensorType) {
-        // lookup or create data schema and data file entry
-        DataSchema dataSchema = (DataSchema) getPersistenceManager().pick(
-                "select s from DataSchema s where s.name = ?1",
-                schemaName);
-        if (dataSchema == null) {
-            dataSchema = DataUtil.createDataSchema(schemaName, sensorType);
-            getPersistenceManager().persist(dataSchema);
-        }
-        return dataSchema;
     }
 
     private void validateInputSet(final int directoryCount) throws ToolException {
         if (directoryCount == 0) {
             throw new ToolException("No input sets given.\n" +
                                     "Input sets are specified as configuration properties as follows:\n" +
-                                    "\tmms.test.inputSets.<i>.schemaName = <schemaName>\n" +
-                                    "\tmms.test.inputSets.<i>.inputDirectory = <inputDirectory>\n" +
-                                    "\tmms.test.inputSets.<i>.filenamePattern = <filenamePattern> (opt)" +
-                                    "\tmms.test.inputSets.<i>.sensor = <sensor>\n" +
-                                    "\tmms.test.inputSets.<i>.sensorType = <sensorType>",
+                                    "\tmms.source.<i>.inputDirectory = <inputDirectory>\n" +
+                                    "\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)" +
+                                    "\tmms.source.<i>.sensor = <sensor>\n" +
+                                    "\tmms.source.<i>.reader = <ReaderClass>",
                                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
@@ -294,13 +288,6 @@ public class IngestionTool extends MmsTool {
         final List<File> inputFileList = new ArrayList<File>(0);
         collectInputFiles(inputDir, filenamePattern, inputFileList);
         return inputFileList;
-    }
-
-    private void validateSensorType(final String sensorType) throws ToolException {
-        if (!SensorType.isSensorType(sensorType)) {
-            throw new ToolException(MessageFormat.format("Unknown sensor type ''{0}''.", sensorType),
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
-        }
     }
 
     private void collectInputFiles(File inputDir, final String filenamePattern, List<File> inputFileList) {
@@ -325,8 +312,8 @@ public class IngestionTool extends MmsTool {
     }
 
     private boolean checkTime(Observation observation) throws ParseException {
-        final String startTime = getConfiguration().getProperty("mms.test.startTime");
-        final String endTime = getConfiguration().getProperty("mms.test.endTime");
+        final String startTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_START_TIME);
+        final String endTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_END_TIME);
         final long start = TimeUtil.parseCcsdsUtcFormat(startTime);
         final long stop = TimeUtil.parseCcsdsUtcFormat(endTime);
         if (!(observation instanceof Timed)) {

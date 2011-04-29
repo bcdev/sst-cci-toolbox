@@ -17,14 +17,12 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.DataSchema;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.nc2.Variable;
 
+import java.io.IOException;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
@@ -35,40 +33,27 @@ public class SeviriIOHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        ioHandler = new SeviriIOHandler();
+        ioHandler = new SeviriIOHandler("seviri");
         final DataFile dataFile = new DataFile();
         dataFile.setId(0);
         dataFile.setPath("testdata/SEVIRI_MD/sstmdb1_meteosat09_20100602.nc");
-        final DataSchema dataSchema = new DataSchema();
-        dataSchema.setId(1);
-        dataSchema.setName("dataSchema");
-        dataSchema.setSensorType("sensorType");
-        dataFile.setDataSchema(dataSchema);
         ioHandler.init(dataFile);
     }
 
     @Test
-    public void testFetch() {
-        try {
-            for (int i = 0; i < 4435; i++) {
-                ioHandler.fetch(i);
-            }
-        } catch (Exception e) {
-            fail();
+    public void testFetch() throws IOException {
+        for (int i = 0; i < 4435; i++) {
+            ioHandler.fetch(i);
         }
     }
 
     @Test
-    public void testWrite() {
-        try {
-            final List<Variable> variables = ioHandler.getNcFile().getVariables();
-            for (int i = 0; i < 5741; i++) {
-                for (Variable variable : variables) {
-                    ioHandler.getData(variable.getName(), i);
-                }
+    public void testWrite() throws IOException {
+        final List<Variable> variables = ioHandler.getNcFile().getVariables();
+        for (int i = 0; i < 5741; i++) {
+            for (Variable variable : variables) {
+                ioHandler.getData(variable.getName(), i);
             }
-        } catch (Exception e) {
-            fail();
         }
     }
 }

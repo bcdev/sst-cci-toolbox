@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.ToolException;
 
 /**
@@ -28,30 +29,27 @@ public class MmdIngestionTool {
     private MmdIngestionTool() {
     }
 
-    public static void main(String[] args) throws ToolException {
-        final MmdIngester tool = new MmdIngester();
-        final boolean performWork = tool.setCommandLineArgs(args);
-        if (!performWork) {
+    public static void main(String[] args) {
+        final MmdIngester tool;
+        try {
+            tool = new MmdIngester();
+            tool.init(args);
+            final boolean performWork = tool.setCommandLineArgs(args);
+            if (!performWork) {
+                return;
+            }
+        } catch (ToolException e) {
             return;
         }
-        tool.init(args);
-        ingestDataInfo(tool);
-        ingestVariableDescriptors(tool);
-        ingestObservations(tool);
-    }
-
-    private static void ingestDataInfo(final MmdIngester tool) {
-        final MmdDataInfoIngester mmdDataInfoIngester = new MmdDataInfoIngester(tool);
-        mmdDataInfoIngester.ingestDataInfo();
-    }
-
-    private static void ingestVariableDescriptors(final MmdIngester tool) throws ToolException {
-        tool.ingestVariableDescriptors();
-    }
-
-    private static void ingestObservations(final MmdIngester tool) throws ToolException {
-        final MmdObservationIngester observationIngester = new MmdObservationIngester(tool);
-        observationIngester.ingestObservations();
+        final PersistenceManager persistenceManager = tool.getPersistenceManager();
+        try {
+            persistenceManager.transaction();
+            tool.ingest();
+            persistenceManager.commit();
+        } catch(Exception e) {
+            persistenceManager.rollback();
+            tool.getErrorHandler().handleError(e, e.getMessage(), ToolException.TOOL_ERROR);
+        }
     }
 
 }

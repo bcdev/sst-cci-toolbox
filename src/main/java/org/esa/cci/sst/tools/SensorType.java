@@ -21,8 +21,6 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 
-import java.text.MessageFormat;
-
 /**
  * Enumeration of sensor types.
  *
@@ -97,15 +95,4 @@ public enum SensorType {
         return valueOf(name.toUpperCase());
     }
 
-    public static SensorType getSensorType(String sensorName) {
-        final SensorType[] values = SensorType.values();
-        for (final SensorType sensorType : values) {
-            for (final String sensor : sensorType.getSensors()) {
-                if (sensor.equalsIgnoreCase(sensorName)) {
-                    return sensorType;
-                }
-            }
-        }
-        throw new IllegalArgumentException(MessageFormat.format("Unknown sensor ''{0}''.", sensorName));
-    }
 }

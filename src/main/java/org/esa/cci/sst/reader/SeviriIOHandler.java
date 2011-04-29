@@ -11,8 +11,6 @@ import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 
-import static org.esa.cci.sst.tools.SensorType.SEVIRI;
-
 /**
  * Reads records from an SEVIRI MD NetCDF input file and creates Observations.
  * Defines the variables to access in the NetCDF files and implements the conversion
@@ -25,8 +23,8 @@ class SeviriIOHandler extends MdIOHandler {
     protected int noOfLines;
     protected int noOfColumns;
 
-    public SeviriIOHandler() {
-        super(SEVIRI.getSensor(), "n");
+    SeviriIOHandler(String sensorName) {
+        super(sensorName, "n");
     }
 
     @Override

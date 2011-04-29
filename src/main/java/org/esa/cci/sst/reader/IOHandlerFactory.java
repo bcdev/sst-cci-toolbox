@@ -16,10 +16,10 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 
-import java.text.MessageFormat;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Factory providing a static method for getting the correct io handler, according to given schema name.
@@ -34,49 +34,36 @@ public class IOHandlerFactory {
     /**
      * Factory method for getting the correct io handler, according to given schema and sensor names.
      *
-     *
-     * @param tool A tool.
-     * @param schemaName The schema name.
+     * @param readerSpec The reader specification, in the form <code>Reader1,Reader2</code>,
+     *                   where <code>Reader2</code> is constructor argument for <code>Reader1</code>.
      * @param sensorName The sensor name.
      *
      * @return a new instance of <code>IOHandler</code>.
      */
-    public static IOHandler createHandler(final MmsTool tool, String schemaName,
-                                          String sensorName) {
-        if (Constants.DATA_SCHEMA_NAME_ATSR_MD.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new AtsrMdIOHandler());
+    public static IOHandler createHandler(String readerSpec, String sensorName) throws ClassNotFoundException,
+                                                                                       NoSuchMethodException,
+                                                                                       InvocationTargetException,
+                                                                                       IllegalAccessException,
+                                                                                       InstantiationException {
+        final String packageName = IOHandlerFactory.class.getPackage().getName();
+        final String[] handlerClassNames = readerSpec.split(",");
+        IOHandler handler = null;
+        for (int i = handlerClassNames.length - 1; i >= 0; i--) {
+            final Class<?> handlerClass = Class.forName(packageName + '.' + handlerClassNames[i]);
+            if (handler == null) {
+                final Constructor<?> constructor = handlerClass.getDeclaredConstructor(String.class);
+                handler = (IOHandler) constructor.newInstance(sensorName);
+            } else {
+                final Constructor<?> constructor = handlerClass.getDeclaredConstructor(IOHandler.class);
+                handler = (IOHandler) constructor.newInstance(handler);
+            }
         }
-        if (Constants.DATA_SCHEMA_NAME_METOP_MD.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new MetopIOHandler());
-        }
-        if (Constants.DATA_SCHEMA_NAME_SEVIRI_MD.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new SeviriIOHandler());
-        }
-        if (Constants.DATA_SCHEMA_NAME_AMSRE.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
-        }
-        if (Constants.DATA_SCHEMA_NAME_TMI.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
-        }
-        if (Constants.DATA_SCHEMA_NAME_ATSR_L1B.equalsIgnoreCase(schemaName)) {
-            return new ProductIOHandler(sensorName, new DefaultBoundaryCalculator());  // intentionally not wrapped, can read streams
-        }
-        if (Constants.DATA_SCHEMA_NAME_AAI.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, null));
-        }
-        if (Constants.DATA_SCHEMA_NAME_AVHRR_GAC.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
-        }
-        if (Constants.DATA_SCHEMA_NAME_SEAICE.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new ProductIOHandler(sensorName, new DefaultBoundaryCalculator()));
-        }
-        if (Constants.DATA_SCHEMA_INSITU_HISTORY.equalsIgnoreCase(schemaName)) {
-            return new GzipDeflatingIOHandlerWrapper(new InsituIOHandler());
-        }
-        if(Constants.DATA_SCHEMA_NAME_ATSR_SUB.equalsIgnoreCase(schemaName)) {
-            return new MmdIOHandler(tool, sensorName, schemaName);
-        }
-        throw new IllegalArgumentException(
-                MessageFormat.format("No appropriate IO handler for schema {0} found.", schemaName));
+
+        return handler;
     }
+
+    public static IOHandler createMmdIOHandler(final MmsTool tool, String sensorName) {
+        return new MmdIOHandler(tool, sensorName);
+    }
+
 }

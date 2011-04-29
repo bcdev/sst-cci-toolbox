@@ -18,7 +18,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -26,7 +25,6 @@ import ucar.nc2.Variable;
 import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Abstract base class for all netcdf-observation readers. Provides methods to to open the file and access its
@@ -36,22 +34,10 @@ import java.util.HashMap;
  */
 abstract class NetcdfIOHandler implements IOHandler {
 
-    private static final HashMap<String, String> DIMENSION_ROLE_MAP = new HashMap<String, String>(7);
     private final String sensorName;
 
     private NetcdfFile ncFile;
     private DataFile dataFile;
-
-    static {
-        DIMENSION_ROLE_MAP.put("n", Constants.DIMENSION_NAME_MATCHUP);
-        DIMENSION_ROLE_MAP.put("nx", "nj");
-        DIMENSION_ROLE_MAP.put("ny", "ni");
-        DIMENSION_ROLE_MAP.put("len_id", "length");
-        DIMENSION_ROLE_MAP.put("len_filename", "length");
-        DIMENSION_ROLE_MAP.put("cs_length", "length");
-        DIMENSION_ROLE_MAP.put("ui_length", "length");
-        DIMENSION_ROLE_MAP.put("length", "length");
-    }
 
     NetcdfIOHandler(String sensorName) {
         this.sensorName = sensorName;
@@ -105,6 +91,11 @@ abstract class NetcdfIOHandler implements IOHandler {
         dataFile = null;
     }
 
+    @Override
+    public DataFile getDataFile() {
+        return dataFile;
+    }
+
     protected String getSensorName() {
         return sensorName;
     }
@@ -113,36 +104,11 @@ abstract class NetcdfIOHandler implements IOHandler {
         return ncFile;
     }
 
-    protected DataFile getDataFile() {
-        return dataFile;
-    }
-
     private static VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
                                                                final DataFile dataFile) {
         final VariableDescriptor descriptor = IoUtil.createVariableDescriptor(variable, sensorName);
-        setDimensionRoles(descriptor);
-        descriptor.setDataSchema(dataFile.getDataSchema());
+        descriptor.setSensor(dataFile.getSensor());
         return descriptor;
     }
 
-    private static void setDimensionRoles(final VariableDescriptor variableDescriptor) {
-        final String dimensionRoles = getDimensionRoles(variableDescriptor.getDimensions());
-        variableDescriptor.setDimensionRoles(dimensionRoles);
-    }
-
-    private static String getDimensionRoles(String dimensionsString) {
-        final StringBuilder sb = new StringBuilder();
-        for (final String dimensionString : dimensionsString.split(" ")) {
-            if (sb.length() != 0) {
-                sb.append(" ");
-            }
-            final String dimensionRole = DIMENSION_ROLE_MAP.get(dimensionString);
-            if (dimensionRole == null) {
-                sb.append(dimensionString);
-            } else {
-                sb.append(dimensionRole);
-            }
-        }
-        return sb.toString();
-    }
 }

@@ -16,9 +16,9 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.orm.PersistenceManager;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
@@ -32,9 +32,10 @@ public class Arc3Reader implements ObservationReader {
 
     private final MmdReader delegate;
 
-    public Arc3Reader(final MmdIOHandler mmdIOHandler, final PersistenceManager persistenceManager, final NetcdfFile arc3file,
-              final String sensor, final String schemaName) {
-        delegate = new MmdReader(mmdIOHandler, persistenceManager, arc3file, sensor, schemaName);
+    public Arc3Reader(final DataFile dataFile,
+                      final NetcdfFile arc3file,
+                      final String sensor) {
+        delegate = new MmdReader(dataFile, arc3file, sensor);
     }
 
     @Override

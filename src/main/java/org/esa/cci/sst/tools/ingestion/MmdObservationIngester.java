@@ -20,7 +20,6 @@ import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Timed;
-import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.MmdIOHandler;
 import org.esa.cci.sst.tools.ErrorHandler;
 import org.esa.cci.sst.tools.ToolException;
@@ -57,8 +56,6 @@ class MmdObservationIngester {
     }
 
     private void persistObservation(final MmdIOHandler ioHandler, int recordNo) throws ToolException {
-        final PersistenceManager persistenceManager = ingester.getPersistenceManager();
-        persistenceManager.transaction();
         try {
             final Observation observation = ioHandler.readObservation(recordNo);
             final IngestionTool delegate = ingester.getDelegate();
@@ -70,8 +67,6 @@ class MmdObservationIngester {
             final ErrorHandler errorHandler = ingester.getErrorHandler();
             errorHandler.handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo + 1),
                                      ToolException.TOOL_ERROR);
-        } finally {
-            persistenceManager.commit();
         }
     }
 

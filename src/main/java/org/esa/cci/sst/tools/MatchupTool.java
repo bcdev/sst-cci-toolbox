@@ -323,9 +323,9 @@ public class MatchupTool extends MmsTool {
         final Properties configuration = getConfiguration();
         for (int i = 0; i < 100; i++) {
             final String sensorTypeName = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.sensorType", i));
+                    String.format("mms.source.%d.sensorType", i));
             final String sensorName = configuration.getProperty(
-                    String.format("mms.test.inputSets.%d.sensor", i));
+                    String.format("mms.source.%d.sensor", i));
             if (sensorTypeName == null || sensorName == null) {
                 continue;
             }

@@ -9,7 +9,7 @@ import javax.persistence.Table;
 
 /**
  * Data item that represents a variable of the record structure of a source
- * file type. Variables are aggregated to DataSchema.
+ * file type. Variables are aggregated in a Sensor.
  *
  * @author Martin Boettcher
  */
@@ -18,13 +18,11 @@ import javax.persistence.Table;
 public final class VariableDescriptor {
 
     int id;
-    DataSchema dataSchema;
+    Sensor sensor;
     String role;
     String name;
     String type;
     String dimensions;
-    // todo - get rid of this field (rq-20110421)
-    String dimensionRoles;
     String units;
     String standardName;
     Number addOffset;
@@ -42,12 +40,11 @@ public final class VariableDescriptor {
     }
 
     public VariableDescriptor(VariableDescriptor descriptor) {
-        dataSchema = descriptor.dataSchema;
+        sensor = descriptor.sensor;
         role = descriptor.role;
         name = descriptor.name;
         type = descriptor.type;
         dimensions = descriptor.dimensions;
-        dimensionRoles = descriptor.dimensionRoles;
         units = descriptor.units;
         standardName = descriptor.standardName;
         addOffset = descriptor.addOffset;
@@ -69,12 +66,12 @@ public final class VariableDescriptor {
     }
 
     @ManyToOne
-    public DataSchema getDataSchema() {
-        return dataSchema;
+    public Sensor getSensor() {
+        return sensor;
     }
 
-    public void setDataSchema(DataSchema dataSchema) {
-        this.dataSchema = dataSchema;
+    public void setSensor(Sensor sensor) {
+        this.sensor = sensor;
     }
 
     public String getRole() {
@@ -108,16 +105,6 @@ public final class VariableDescriptor {
 
     public void setDimensions(String dimensions) {
         this.dimensions = dimensions;
-    }
-
-    @Deprecated
-    public String getDimensionRoles() {
-        return dimensionRoles;
-    }
-
-    @Deprecated
-    public void setDimensionRoles(String dimensionRoles) {
-        this.dimensionRoles = dimensionRoles;
     }
 
     public String getUnit() {

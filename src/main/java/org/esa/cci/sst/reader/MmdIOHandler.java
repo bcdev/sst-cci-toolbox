@@ -43,19 +43,19 @@ public class MmdIOHandler implements IOHandler {
     private NetcdfFile ncFile;
     private final MmsTool tool;
     private final String sensor;
-    private final String schemaName;
     private Variable matchupIds;
     private ObservationReader reader;
     private MmdWriter writer;
+    private DataFile dataFile;
 
-    public MmdIOHandler(final MmsTool tool, final String sensor, final String schemaName) {
+    public MmdIOHandler(final MmsTool tool, final String sensor) {
         this.tool = tool;
         this.sensor = sensor;
-        this.schemaName = schemaName;
     }
 
     @Override
     public void init(final DataFile dataFile) throws IOException {
+        this.dataFile = dataFile;
         final String fileLocation = dataFile.getPath();
         validateFileLocation(fileLocation);
         ncFile = NetcdfFile.open(fileLocation);
@@ -66,9 +66,9 @@ public class MmdIOHandler implements IOHandler {
         }
         final String property = getProperty("mms.reingestion.type", "aatsr");
         if (property.equals("arc3")) {
-            reader = new Arc3Reader(this, tool.getPersistenceManager(), ncFile, sensor, schemaName);
+            reader = new Arc3Reader(dataFile, ncFile, sensor);
         } else {
-            reader = new MmdReader(this, tool.getPersistenceManager(), ncFile, sensor, schemaName);
+            reader = new MmdReader(dataFile, ncFile, sensor);
         }
         writer = new MmdWriter(this);
     }
@@ -94,6 +94,11 @@ public class MmdIOHandler implements IOHandler {
     @Override
     public InsituRecord readInsituRecord(int recordNo) {
         return null;
+    }
+
+    @Override
+    public DataFile getDataFile() {
+        return dataFile;
     }
 
     @Override
@@ -141,10 +146,6 @@ public class MmdIOHandler implements IOHandler {
             throw new IOException(
                     MessageFormat.format("Unable to read from file ''{0}''.", ncFile.getLocation()), e);
         }
-    }
-
-    String getProperty(final String key) {
-        return tool.getConfiguration().getProperty(key);
     }
 
     String getProperty(final String key, final String defaultValue) {
