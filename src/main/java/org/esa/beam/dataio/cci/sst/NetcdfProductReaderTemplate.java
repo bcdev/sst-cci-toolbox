@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Basic reader for netCDF product files.
+ * A template for netCDF product file readers.
  *
  * @author Ralf Quast
  */
