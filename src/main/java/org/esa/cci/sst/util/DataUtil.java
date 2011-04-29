@@ -17,7 +17,7 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.DataSchema;
+import org.esa.cci.sst.data.Sensor;
 
 import java.io.File;
 
@@ -31,17 +31,17 @@ public class DataUtil {
     private DataUtil() {
     }
 
-    public static DataSchema createDataSchema(final String schemaName, final String sensorType) {
-        final DataSchema dataSchema = new DataSchema();
-        dataSchema.setName(schemaName);
-        dataSchema.setSensorType(sensorType);
-        return dataSchema;
+    public static Sensor createSensor(final String sensorName, long pattern) {
+        final Sensor sensor = new Sensor();
+        sensor.setName(sensorName);
+        sensor.setPattern(pattern);
+        return sensor;
     }
 
-    public static DataFile createDataFile(final File file, final DataSchema dataSchema) {
+    public static DataFile createDataFile(final File file, final Sensor sensor) {
         final DataFile dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        dataFile.setDataSchema(dataSchema);
+        dataFile.setSensor(sensor);
         return dataFile;
     }
 }

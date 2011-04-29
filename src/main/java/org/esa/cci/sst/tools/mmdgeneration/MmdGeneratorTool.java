@@ -4,6 +4,7 @@ import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import ucar.nc2.NetcdfFileWriteable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -55,8 +56,10 @@ public class MmdGeneratorTool extends MmsTool {
 
     private static NetcdfFileWriteable createOutputFile(final MmdGeneratorTool tool) throws IOException {
         final Properties properties = tool.getConfiguration();
+        final String mmdPath = properties.getProperty("mmd.output.destdir", ".");
         final String mmdFileName = properties.getProperty("mmd.output.filename", "mmd.nc");
-        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(mmdFileName, false);
+        final String destFile = new File(mmdPath, mmdFileName).getAbsolutePath();
+        final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(destFile, false);
         file.setLargeFile(true);
         return file;
     }

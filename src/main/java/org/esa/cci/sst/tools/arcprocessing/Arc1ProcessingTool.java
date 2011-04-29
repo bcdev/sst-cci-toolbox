@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools.arcprocessing;
 
 import com.bc.ceres.core.Assert;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
@@ -27,7 +28,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -83,13 +83,13 @@ public class Arc1ProcessingTool extends MmsTool {
     }
 
     private void prepareCommandFiles() throws IOException {
-        final String destPath = getConfiguration().getProperty("mms.arcprocessing.destdir");
+        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
         final File destDir = new File(destPath);
         destDir.mkdirs();
-        final String tmpPath = getConfiguration().getProperty("mms.arcprocessing.tmpdir");
+        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
         final File tmpDir = new File(tmpPath);
         tmpDir.mkdirs();
-        final String time = getConfiguration().getProperty("mms.arcprocessing.starttime");
+        final String time = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
 
         submitCallFilename = String.format("mms-arc1x2-%s-submit.sh", time);
         submitCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(tmpDir, submitCallFilename))));
@@ -105,7 +105,7 @@ public class Arc1ProcessingTool extends MmsTool {
     }
 
     private void closeCommandFiles() throws IOException {
-        final String tmpPath = getConfiguration().getProperty("mms.arcprocessing.tmpdir");
+        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR);
         cleanupCallsWriter.format("rm %s/%s\n", tmpPath, submitCallFilename);
         cleanupCallsWriter.format("rm %s/%s\n", tmpPath, collectCallFilename);
         cleanupCallsWriter.format("rm %s/%s\n", tmpPath, cleanupCallFilename);
@@ -150,8 +150,8 @@ public class Arc1ProcessingTool extends MmsTool {
     List<AvhrrInfo> inquireAvhrrInfos() {
         final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY,
                                                                                Object[].class);
-        allPointsQuery.setParameter(1, getTimeProperty("mms.arcprocessing.starttime"));
-        allPointsQuery.setParameter(2, getTimeProperty("mms.arcprocessing.endtime"));
+        allPointsQuery.setParameter(1, getTimeProperty(Constants.PROPERTY_OUTPUT_START_TIME));
+        allPointsQuery.setParameter(2, getTimeProperty(Constants.PROPERTY_OUTPUT_END_TIME));
         final List<Object[]> queryResultList = allPointsQuery.getResultList();
         final List<AvhrrInfo> avhrrInfos = new ArrayList<AvhrrInfo>(queryResultList.size());
         for (Object[] info : queryResultList) {
@@ -189,7 +189,7 @@ public class Arc1ProcessingTool extends MmsTool {
 
     // todo determine sensor from input, use it for the output
     private void callShellScript(final String currentFilename, final File latLonFile) {
-        final String destPath = getConfiguration().getProperty("mms.arcprocessing.destdir");
+        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR);
         final String basename = getBasename(currentFilename);
         final String latLonFilePath = latLonFile.getPath();
         final String latLonFileName = latLonFile.getName();
@@ -212,7 +212,7 @@ public class Arc1ProcessingTool extends MmsTool {
     }
 
     private File getLatLonFile(final String currentFilename) {
-        final String tmpPath = getConfiguration().getProperty("mms.arcprocessing.tmpdir");
+        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR);
         final int slashIndex = currentFilename.lastIndexOf('/');
         final String baseFilename;
         if (currentFilename.endsWith(".gz")) {

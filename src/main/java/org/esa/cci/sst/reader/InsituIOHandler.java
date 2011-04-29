@@ -19,7 +19,6 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.tools.SensorType;
 import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -55,8 +54,8 @@ class InsituIOHandler extends NetcdfIOHandler {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    public InsituIOHandler() {
-        super(SensorType.HISTORY.getSensor());
+    InsituIOHandler(String sensorName) {
+        super(sensorName);
     }
 
     @Override

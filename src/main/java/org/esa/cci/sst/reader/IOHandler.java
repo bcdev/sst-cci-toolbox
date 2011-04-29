@@ -84,4 +84,7 @@ public interface IOHandler {
      * @return the in-situ data record with record number {@code recordNo}.
      */
     InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException;
+
+    DataFile getDataFile();
+
 }

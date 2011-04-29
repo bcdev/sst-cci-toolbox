@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see http://www.gnu.org/licenses/
+ */
+
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.glevel.MultiLevelImage;
@@ -5,8 +21,6 @@ import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.dataio.ProductSubsetBuilder;
-import org.esa.beam.framework.dataio.ProductSubsetDef;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
@@ -20,16 +34,12 @@ import org.esa.beam.framework.datamodel.TiePointGrid;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.PixelFinder;
 import org.esa.cci.sst.util.QuadTreePixelFinder;
 import org.esa.cci.sst.util.RasterDataNodeSampleSource;
 import org.esa.cci.sst.util.SampleSource;
-import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
-import org.postgis.Point;
-import org.postgis.Polygon;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
@@ -48,19 +58,13 @@ import java.util.Date;
 
 public class ProductIOHandler implements IOHandler {
 
-    private final String sensorName;
-    private final BoundaryCalculator bc;
+    final String sensorName;
 
-    private DataFile dataFile;
-    private Product product;
+    DataFile dataFile;
+    Product product;
 
-    Product getProduct() {
-        return product;
-    }
-
-    public ProductIOHandler(String sensorName, BoundaryCalculator bc) {
+    public ProductIOHandler(String sensorName) {
         this.sensorName = sensorName;
-        this.bc = bc;
     }
 
     @Override
@@ -73,14 +77,6 @@ public class ProductIOHandler implements IOHandler {
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
-        }
-        if (bc != null) {
-            try {
-                product = createSubsetProductIfNecessary(product, bc);
-            } catch (Exception e) {
-                product.dispose();
-                throw new IOException(e);
-            }
         }
         workAroundBeamIssue1240(product);
         workAroundBeamIssue1241(product);
@@ -104,28 +100,14 @@ public class ProductIOHandler implements IOHandler {
     }
 
     @Override
-    public final Observation readObservation(int recordNo) throws IOException {
-        final Observation observation;
-        if (bc == null) {
-            final GlobalObservation globalObservation = new GlobalObservation();
-            globalObservation.setTime(getCenterTimeAsDate());
-            observation = globalObservation;
-        } else {
-            final RelatedObservation relatedObservation = new RelatedObservation();
-            try {
-                relatedObservation.setLocation(createGeometry(bc.getGeoBoundary(product)));
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
-            relatedObservation.setTime(getCenterTimeAsDate());
-            observation = relatedObservation;
-        }
+    public Observation readObservation(int recordNo) throws IOException {
+        final GlobalObservation globalObservation = new GlobalObservation();
+        globalObservation.setTime(getCenterTimeAsDate());
+        globalObservation.setDatafile(dataFile);
+        globalObservation.setRecordNo(0);
+        globalObservation.setSensor(sensorName);
 
-        observation.setDatafile(dataFile);
-        observation.setRecordNo(0);
-        observation.setSensor(sensorName);
-
-        return observation;
+        return globalObservation;
     }
 
     @Override
@@ -147,15 +129,18 @@ public class ProductIOHandler implements IOHandler {
         return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
     }
 
-    private VariableDescriptor setUpVariableDescriptor(final RasterDataNode node) {
+    Product getProduct() {
+        return product;
+    }
+
+    VariableDescriptor setUpVariableDescriptor(final RasterDataNode node) {
         final VariableDescriptor descriptor = new VariableDescriptor();
         descriptor.setRole(node.getName());
         descriptor.setName(String.format("%s.%s", sensorName, node.getName()));
-        descriptor.setDataSchema(dataFile.getDataSchema());
+        descriptor.setSensor(dataFile.getSensor());
         final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
         descriptor.setType(dataType.name());
         descriptor.setDimensions("ni nj");
-        descriptor.setDimensionRoles("ni nj");
         if (node.isScalingApplied()) {
             descriptor.setAddOffset(node.getScalingOffset());
             descriptor.setScaleFactor(node.getScalingFactor());
@@ -196,7 +181,12 @@ public class ProductIOHandler implements IOHandler {
         throw new OperationNotSupportedException();
     }
 
-    private PixelPos findPixelPos(PGgeometry refPoint) throws IOException {
+    @Override
+    public DataFile getDataFile() {
+        return dataFile;
+    }
+
+    PixelPos findPixelPos(PGgeometry refPoint) throws IOException {
         final float lon = (float) refPoint.getGeometry().getFirstPoint().x;
         final float lat = (float) refPoint.getGeometry().getFirstPoint().y;
         final GeoPos geoPos = new GeoPos(lat, lon);
@@ -214,7 +204,7 @@ public class ProductIOHandler implements IOHandler {
         return pixelPos;
     }
 
-    private Date getCenterTimeAsDate() throws IOException {
+    Date getCenterTimeAsDate() throws IOException {
         final ProductData.UTC startTime = product.getStartTime();
         if (startTime == null) {
             throw new IOException("Unable to get start time for product '" + product.getName() + "'.");
@@ -227,14 +217,7 @@ public class ProductIOHandler implements IOHandler {
         return centerTime.getAsDate();
     }
 
-    private static PGgeometry createGeometry(Point[] geoBoundary) throws IOException {
-        if (geoBoundary == null) {
-            return null;
-        }
-        return new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(geoBoundary)}));
-    }
-
-    private static Rectangle createSubsceneRectangle(final PixelPos subsceneCenter, final int[] subsceneShape) {
+    static Rectangle createSubsceneRectangle(final PixelPos subsceneCenter, final int[] subsceneShape) {
         final int w = subsceneShape[2];
         final int h = subsceneShape[1];
         final int x = (int) Math.floor(subsceneCenter.getX()) - w / 2;
@@ -242,25 +225,7 @@ public class ProductIOHandler implements IOHandler {
         return new Rectangle(x, y, w, h);
     }
 
-    private static Product createSubsetProductIfNecessary(Product product, BoundaryCalculator bc) throws IOException {
-        final ProductSubsetDef def = new ProductSubsetDef();
-        try {
-            def.setRegion(bc.getPixelBoundary(product));
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
-        final Rectangle subRegion = def.getRegion();
-        if (subRegion == null) {
-            return product;
-        }
-        if (product.getSceneRasterHeight() == subRegion.height && product.getSceneRasterWidth() == subRegion.width) {
-            return product;
-        }
-        return ProductSubsetBuilder.createProductSubset(product, true, def, product.getName(),
-                                                        product.getDescription());
-    }
-
-    private static Array readSubsceneData(final RasterDataNode node, final DataType type, final int[] targetShape,
+    static Array readSubsceneData(final RasterDataNode node, final DataType type, final int[] targetShape,
                                           final Rectangle rectangle) {
         final Array array = Array.factory(type, new int[]{1, targetShape[1], targetShape[2]});
 
@@ -312,7 +277,7 @@ public class ProductIOHandler implements IOHandler {
         }
     }
 
-    private static void workAroundBeamIssue1240(Product product) {
+    static void workAroundBeamIssue1240(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
         if (geoCoding instanceof PixelGeoCoding) {
             final PixelGeoCoding pixelGeoCoding = (PixelGeoCoding) geoCoding;
@@ -325,7 +290,7 @@ public class ProductIOHandler implements IOHandler {
         }
     }
 
-    private static void workAroundBeamIssue1241(Product product) {
+    static void workAroundBeamIssue1241(Product product) {
         final GeoCoding geoCoding = product.getGeoCoding();
         if (geoCoding instanceof TiePointGeoCoding) {
             final TiePointGeoCoding tiePointGeoCoding = (TiePointGeoCoding) geoCoding;
@@ -338,7 +303,7 @@ public class ProductIOHandler implements IOHandler {
         }
     }
 
-    private static class TiePointGeoCodingWithFallback extends ForwardingGeoCoding {
+    static class TiePointGeoCodingWithFallback extends ForwardingGeoCoding {
 
         private final int sceneRasterWidth;
         private final int sceneRasterHeight;
@@ -367,4 +332,5 @@ public class ProductIOHandler implements IOHandler {
             return pixelPos;
         }
     }
+
 }

@@ -46,8 +46,8 @@ public abstract class MdIOHandler extends NetcdfIOHandler {
 
     private int numRecords;
     private int sstFillValue;
-    private int bufferStart = 0;
-    private int bufferFill = 0;
+    private int bufferStart;
+    private int bufferFill;
 
     protected MdIOHandler(String sensorName, String recordDimensionName) {
         super(sensorName);
@@ -73,6 +73,8 @@ public abstract class MdIOHandler extends NetcdfIOHandler {
                 sstFillValue = attribute.getNumericValue().intValue();
             }
         }
+        bufferStart = 0;
+        bufferFill = 0;
     }
 
     /**

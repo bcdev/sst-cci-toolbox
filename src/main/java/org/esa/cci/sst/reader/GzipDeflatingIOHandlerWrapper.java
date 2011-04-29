@@ -112,6 +112,11 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
         return delegate.readInsituRecord(recordNo);
     }
 
+    @Override
+    public DataFile getDataFile() {
+        return delegate.getDataFile();
+    }
+
     /**
      * Constructs File with suffix of original file without "dotgz" in tmp dir.
      * The tmp dir can be configured with property java.io.tmpdir.

@@ -31,12 +31,12 @@ public class ProductIOHandlerTest {
     private static final String AMSR_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42970.dat-v01.nc.gz";
 
     private static DataFile dataFile;
-    private static ProductIOHandler handler;
+    private static SubsceneProductIOHandler handler;
 
     public void init(File file) throws IOException {
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        handler = new ProductIOHandler("any", new DefaultBoundaryCalculator());
+        handler = new SubsceneProductIOHandler("any");
         handler.init(dataFile);
     }
 

@@ -20,7 +20,6 @@ import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.SensorType;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
@@ -31,14 +30,10 @@ import javax.persistence.Query;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-
-import static org.esa.cci.sst.tools.SensorType.*;
 
 /**
  * Allows to create the structure for the output mmd file.
@@ -74,53 +69,26 @@ class MmdStructureGenerator {
         }
     }
 
-    static String createDimensionString(VariableDescriptor variableDescriptor, SensorType sensorType) {
-        final String[] dimensionNames = variableDescriptor.getDimensions().split(" ");
-        final String[] dimensionRoles = variableDescriptor.getDimensionRoles().split(" ");
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < dimensionRoles.length; i++) {
-            final String dimensionName = dimensionNames[i];
-            final String dimensionRole = dimensionRoles[i];
-            if (i != 0) {
-                sb.append(' ');
-            }
-            if (!Constants.DIMENSION_ROLE_MATCHUP.equals(dimensionRole)) {
-                sb.append(sensorType);
-                sb.append('.');
-            }
-            if (Constants.DIMENSION_ROLE_LENGTH.equals(dimensionRole)) {
-                sb.append(dimensionName);
-            } else {
-                sb.append(dimensionRole);
-            }
-        }
-        if (!sb.toString().contains(Constants.DIMENSION_NAME_MATCHUP)) {
-            sb.insert(0, Constants.DIMENSION_NAME_MATCHUP + ' ');
-        }
-        String dimensionString = sb.toString();
-        dimensionString = dimensionString.replace(String.format("%s.%s", sensorType, sensorType),
-                                                  sensorType.getSensor());
-        return dimensionString;
-    }
-
     private void addAllInputVariables(final NetcdfFileWriteable file) {
         String sensorName;
         final Properties configuration = tool.getConfiguration();
         int i = 0;
         while ((sensorName = getSensor(configuration, i)) != null) {
-            final SensorType sensorType = SensorType.getSensorType(sensorName);
-            addInputVariables(file, sensorType, sensorName);
-            if (sensorType == ATSR || sensorType == AVHRR || sensorType == AMSRE || sensorType == TMI) {
-                addObservationTimeVariable(file, sensorType, sensorName);
-                addLsMaskVariable(file, sensorType, sensorName);
-                addNwpData(file, sensorType, sensorName);
+            addInputVariables(file, sensorName);
+            // todo - mb ts, 29Apr2011 - replace by configuration
+            final boolean addVariables = false;
+//            final boolean addVariables = sensorName == ATSR || sensorName == AVHRR || sensorName == AMSRE || sensorName == TMI;
+            if (addVariables) {
+                addObservationTimeVariable(file, sensorName);
+                addLsMaskVariable(file, sensorName);
+                addNwpData(file, sensorName);
             }
             i++;
         }
     }
 
     private String getSensor(final Properties configuration, final int i) {
-        return configuration.getProperty(String.format("mms.test.inputSets.%d.sensor", i));
+        return configuration.getProperty(String.format("mms.source.%d.sensor", i));
     }
 
     private void addMatchupVariables(final NetcdfFileWriteable file) {
@@ -130,7 +98,7 @@ class MmdStructureGenerator {
         file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
     }
 
-    private void addNwpData(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addNwpData(NetcdfFileWriteable file, String sensorName) {
         // todo: add NWP data (rq-20110223)
     }
 
@@ -154,26 +122,26 @@ class MmdStructureGenerator {
         }
     }
 
-    private void addLsMaskVariable(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addLsMaskVariable(NetcdfFileWriteable file, String sensorName) {
         final String variableName = String.format("%s.land_sea_mask", sensorName);
         if (targetVariables.isEmpty() || targetVariables.containsKey(variableName)) {
             final Variable mask = file.addVariable(file.getRootGroup(),
                                                    getTargetVariableName(variableName),
                                                    DataType.BYTE,
                                                    String.format("%s %s.ni %s.nj", Constants.DIMENSION_NAME_MATCHUP,
-                                                                 sensorType, sensorType));
+                                                                 sensorName, sensorName));
             addAttribute(mask, "_FillValue", Byte.MIN_VALUE, DataType.BYTE);
         }
     }
 
-    private void addObservationTimeVariable(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addObservationTimeVariable(NetcdfFileWriteable file, String sensorName) {
         final String variableName = String.format("%s." + Constants.VARIABLE_OBSERVATION_TIME, sensorName);
         if (targetVariables.isEmpty() || targetVariables.containsKey(variableName)) {
             final Variable time = file.addVariable(file.getRootGroup(),
                                                    getTargetVariableName(variableName),
                                                    DataType.DOUBLE,
-                                                   String.format("%s.ni %s", sensorType,
-                                                                 Constants.DIMENSION_NAME_MATCHUP));
+                                                   String.format("%s %s.ni", Constants.DIMENSION_NAME_MATCHUP,
+                                                                 sensorName));
             addAttribute(time, "units", "Julian Date");
         }
     }
@@ -193,20 +161,14 @@ class MmdStructureGenerator {
         }
     }
 
-    private void addInputVariables(NetcdfFileWriteable file, SensorType sensorType, String sensorName) {
+    private void addInputVariables(NetcdfFileWriteable file, String sensorName) {
         final Query query = tool.getPersistenceManager().createQuery(String.format(
                 "select v from VariableDescriptor v where v.name like '%s.%%' order by v.name", sensorName));
         @SuppressWarnings({"unchecked"})
         final List<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
-        Collections.sort(descriptorList, new Comparator<VariableDescriptor>() {
-            @Override
-            public int compare(VariableDescriptor o1, VariableDescriptor o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
         for (final VariableDescriptor descriptor : descriptorList) {
             if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
-                addVariable(file, descriptor, createDimensionString(descriptor, sensorType));
+                addVariable(file, descriptor);
             }
         }
     }
@@ -250,12 +212,13 @@ class MmdStructureGenerator {
         // todo: NWP tie point dimensions for all sensors (rq-20110223)
     }
 
-    private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor, String dims) {
+    private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor) {
         // todo - apply descriptor rules here (rq-20110420)
         final DataType dataType = DataType.valueOf(descriptor.getType());
         final String targetVariableName = getTargetVariableName(descriptor.getName());
+        final String dimensions = descriptor.getDimensions();
         if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
-            final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType, dims);
+            final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType, dimensions);
             addAttribute(v, "standard_name", descriptor.getStandardName());
             addAttribute(v, "units", descriptor.getUnit());
             addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);

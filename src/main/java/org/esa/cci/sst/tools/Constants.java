@@ -2,18 +2,6 @@ package org.esa.cci.sst.tools;
 
 public class Constants {
 
-    public static final String DATA_SCHEMA_NAME_ATSR_MD = "atsr_md";
-    public static final String DATA_SCHEMA_NAME_METOP_MD = "metop_md";
-    public static final String DATA_SCHEMA_NAME_SEVIRI_MD = "seviri_md";
-
-    public static final String DATA_SCHEMA_NAME_AAI = "aai";
-    public static final String DATA_SCHEMA_NAME_ATSR_L1B = "atsr_l1b";
-    public static final String DATA_SCHEMA_NAME_AMSRE = "amsre";
-    public static final String DATA_SCHEMA_NAME_AVHRR_GAC = "avhrr_gac";
-    public static final String DATA_SCHEMA_NAME_SEAICE = "seaice";
-    public static final String DATA_SCHEMA_NAME_TMI = "tmi";
-    public static final String DATA_SCHEMA_INSITU_HISTORY = "history";
-
     /**
      * Name of persistence unit in META-INF/persistence.xml
      */
@@ -65,10 +53,15 @@ public class Constants {
     public static final String VARIABLE_OBSERVATION_TIME = "observation_time";
     public static final String VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE = "matchup_id";
 
-    public static final String LOCATIONFILE_PROPERTY = "mms.arcprocessing.locationfile";
-    public static final String LATLONFILE_PROPERTY = "mms.arcprocessing.latlonfile";
-    public static final String PIXEL_POS_SUFFIX = "_pixelPos";
-    public static final String DATA_SCHEMA_NAME_ATSR_SUB = "atsr_sub";
+    public static final String LOCATIONFILE_PROPERTY = "mms.pixelpos.locationfile";
+    public static final String LATLONFILE_PROPERTY = "mms.pixelpos.latlonfile";
+
+    public static final String PROPERTY_SOURCE_START_TIME = "mms.source.startTime";
+    public static final String PROPERTY_OUTPUT_START_TIME = "mms.output.startTime";
+    public static final String PROPERTY_SOURCE_END_TIME = "mms.source.endTime";
+    public static final String PROPERTY_OUTPUT_END_TIME = "mms.output.endTime";
+    public static final String PROPERTY_OUTPUT_TMPDIR = "mms.output.tmpdir";
+    public static final String PROPERTY_OUTPUT_DESTDIR = "mms.output.destdir";
 
     private Constants() {
     }

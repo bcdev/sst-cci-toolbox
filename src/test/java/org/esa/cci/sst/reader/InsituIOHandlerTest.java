@@ -934,7 +934,7 @@ public class InsituIOHandlerTest {
         final String path = getResourceAsFile("insitu_WMOID_11851_20071123_20080111.nc").getPath();
         dataFile.setPath(path);
 
-        final InsituIOHandler handler = new InsituIOHandler();
+        final InsituIOHandler handler = new InsituIOHandler("history");
         handler.init(dataFile);
 
         return handler;

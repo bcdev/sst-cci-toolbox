@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -46,7 +47,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.esa.cci.sst.tools.SensorType.*;
@@ -71,6 +74,7 @@ class MmdGenerator {
     private final Properties targetVariables;
     private final MmsTool tool;
     private final List<Matchup> matchupList = new ArrayList<Matchup>();
+    private Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
 
     MmdGenerator(final MmsTool tool) throws IOException {
         this.tool = tool;
@@ -101,7 +105,7 @@ class MmdGenerator {
                 writeObservation(file, referenceObservation, point, matchupIndex, referenceObservation.getTime());
                 writeInsitu(file, matchupIndex, referenceObservation, "reference.");
                 writeInsitu(file, matchupIndex, referenceObservation, "history.");
-                writeTime(file, matchupIndex, referenceObservation);
+                writeMatchupTime(file, matchupIndex, referenceObservation);
                 writeLocation(file, matchupIndex, referenceObservation);
                 for (final Coincidence coincidence : coincidences) {
                     final Observation observation = coincidence.getObservation();
@@ -122,7 +126,6 @@ class MmdGenerator {
         IOHandler ioHandler = null;
         try {
             ioHandler = createIOHandler(observation);
-            ioHandler.init(observation.getDatafile());
             for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                     final String sourceVariableName = descriptor.getRole();
@@ -149,13 +152,19 @@ class MmdGenerator {
     @SuppressWarnings({"unchecked"})
     List<Matchup> getMatchups() {
         if (matchupList.isEmpty()) {
-            final String startTime = tool.getConfiguration().getProperty("mms.test.startTime");
-            final String endTime = tool.getConfiguration().getProperty("mms.test.endTime");
+            final String startTime = tool.getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
+            final String endTime = tool.getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_END_TIME);
             final String queryString = String.format(TIME_CONSTRAINED_MATCHUPS_QUERY, startTime, endTime);
             final Query query = persistenceManager.createNativeQuery(queryString, Matchup.class);
             matchupList.addAll(query.getResultList());
         }
         return Collections.unmodifiableList(matchupList);
+
+//        final List<Matchup> matchups = new ArrayList<Matchup>();
+//        for (int i = 0; i < 10; i++) {
+//            matchups.add(matchupList.get(i));
+//        }
+//        return matchups;
     }
 
     String getTargetVariableName(String name) {
@@ -181,11 +190,10 @@ class MmdGenerator {
         }
     }
 
-    private void writeTime(final NetcdfFileWriteable file, final int matchupIndex,
-                           final ReferenceObservation referenceObservation) {
+    private void writeMatchupTime(final NetcdfFileWriteable file, final int matchupIndex,
+                                  final ReferenceObservation referenceObservation) {
         final Date referenceObservationTime = referenceObservation.getTime();
-        final Array time = Array.factory(DataType.LONG, new int[]{1},
-                                         new long[]{referenceObservationTime.getTime()});
+        final Array time = Array.factory(DataType.LONG, new int[]{1}, new long[]{referenceObservationTime.getTime()});
         try {
             file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_TIME), new int[]{matchupIndex}, time);
         } catch (Exception e) {
@@ -243,7 +251,19 @@ class MmdGenerator {
     }
 
     private IOHandler createIOHandler(Observation observation) throws IOException {
-        return IOHandlerFactory.createHandler(tool, observation.getDatafile().getDataSchema().getName(),
-                                              observation.getSensor());
+        final String sensorName = observation.getSensor();
+        IOHandler handler = ioHandlerMap.get(sensorName);
+        if (handler == null) {
+            handler = IOHandlerFactory.createMmdIOHandler(tool, sensorName);
+            ioHandlerMap.put(sensorName, handler);
+        }
+        final DataFile handlerDataFile = handler.getDataFile();
+        if(observation.getDatafile() != handlerDataFile) {
+            if(handlerDataFile != null) {
+                handler.close();
+            }
+            handler.init(observation.getDatafile());
+        }
+        return handler;
     }
 }

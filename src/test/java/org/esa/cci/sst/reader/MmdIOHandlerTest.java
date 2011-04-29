@@ -44,8 +44,7 @@ public class MmdIOHandlerTest {
         tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
         tool.initialize();
         final String sensor = tool.getConfiguration().getProperty("mms.reingestion.sensor");
-        final String schemaName = tool.getConfiguration().getProperty("mms.reingestion.schemaname");
-        mmdIOHandler = new MmdIOHandler(tool, sensor, schemaName);
+        mmdIOHandler = new MmdIOHandler(tool, sensor);
     }
 
     @After

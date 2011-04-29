@@ -1,15 +1,12 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 
 import java.io.IOException;
 import java.util.Date;
-
-import static org.esa.cci.sst.tools.SensorType.*;
 
 /**
  * Reads records from an (A)ATSR MD NetCDF input file and creates Observations.
@@ -22,8 +19,8 @@ import static org.esa.cci.sst.tools.SensorType.*;
  */
 class AtsrMdIOHandler extends MdIOHandler {
 
-    AtsrMdIOHandler() {
-        super(ATSR_MD.getSensor(), "match_up");
+    AtsrMdIOHandler(String sensorName) {
+        super(sensorName, "match_up");
     }
 
     @Override
@@ -47,7 +44,7 @@ class AtsrMdIOHandler extends MdIOHandler {
                                                              getFloat("atsr.latitude", recordNo)));
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("insitu.callsign", recordNo));
-        observation.setSensor(ATSR_MD.getSensor());
+        observation.setSensor(getDataFile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));

@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.esa.cci.sst.tools.SensorType.METOP;
-
 /**
  * Reads records from an METOP MD NetCDF input file and creates Observations.
  * Defines the variables to access in the NetCDF files and implements the conversion
@@ -32,8 +30,8 @@ public class MetopIOHandler extends MdIOHandler {
     protected int rowCount;
     protected int colCount;
 
-    public MetopIOHandler() {
-        super(METOP.getSensor(), "n");
+    public MetopIOHandler(String sensorName) {
+        super(sensorName, "n");
     }
 
     @Override
