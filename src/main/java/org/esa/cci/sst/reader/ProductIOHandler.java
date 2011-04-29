@@ -1,12 +1,13 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.glevel.MultiLevelImage;
+import org.esa.beam.dataio.atsr.AtsrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
+import org.esa.beam.dataio.cci.sst.OsiProductReaderPlugIn;
+import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.dataio.ProductSubsetBuilder;
-import org.esa.beam.framework.dataio.ProductSubsetDef;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
@@ -68,21 +69,17 @@ public class ProductIOHandler implements IOHandler {
         if (this.product != null) {
             close();
         }
-        Product product = ProductIO.readProduct(new File(dataFile.getPath()), EnvisatConstants.ENVISAT_FORMAT_NAME,
-                                                AvhrrReaderPlugIn.FORMAT_NAME, "NetCDF-CF");
+        Product product = ProductIO.readProduct(new File(dataFile.getPath()),
+                                                EnvisatConstants.ENVISAT_FORMAT_NAME,
+                                                AtsrConstants.ATSR_FORMAT_NAME,
+                                                PmwProductReaderPlugIn.FORMAT_NAME,
+                                                OsiProductReaderPlugIn.FORMAT_NAME,
+                                                AvhrrReaderPlugIn.FORMAT_NAME);
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Unable to read observation file ''{0}''.", dataFile.getPath()));
         }
-        if (bc != null) {
-            try {
-                product = createSubsetProductIfNecessary(product, bc);
-            } catch (Exception e) {
-                product.dispose();
-                throw new IOException(e);
-            }
-        }
-        workAroundBeamIssue1240(product);
+        // workAroundBeamIssue1240(product);
         workAroundBeamIssue1241(product);
 
         this.product = product;
@@ -240,24 +237,6 @@ public class ProductIOHandler implements IOHandler {
         final int x = (int) Math.floor(subsceneCenter.getX()) - w / 2;
         final int y = (int) Math.floor(subsceneCenter.getY()) - h / 2;
         return new Rectangle(x, y, w, h);
-    }
-
-    private static Product createSubsetProductIfNecessary(Product product, BoundaryCalculator bc) throws IOException {
-        final ProductSubsetDef def = new ProductSubsetDef();
-        try {
-            def.setRegion(bc.getPixelBoundary(product));
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
-        final Rectangle subRegion = def.getRegion();
-        if (subRegion == null) {
-            return product;
-        }
-        if (product.getSceneRasterHeight() == subRegion.height && product.getSceneRasterWidth() == subRegion.width) {
-            return product;
-        }
-        return ProductSubsetBuilder.createProductSubset(product, true, def, product.getName(),
-                                                        product.getDescription());
     }
 
     private static Array readSubsceneData(final RasterDataNode node, final DataType type, final int[] targetShape,
