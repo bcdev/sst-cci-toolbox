@@ -24,11 +24,11 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-class ShortToFloat implements Rule {
+final class ShortToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        RuleUtil.ensureType(DataType.SHORT.name(), sourceDescriptor.getType());
+        Assert.type(DataType.SHORT.name(), sourceDescriptor.getType());
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setScaleFactor(null);
@@ -39,7 +39,9 @@ class ShortToFloat implements Rule {
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+    public Float apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+        com.bc.ceres.core.Assert.argument(number instanceof Short);
+
         Number addOffset = sourceDescriptor.getAddOffset();
         Number scaleFactor = sourceDescriptor.getScaleFactor();
         if (scaleFactor == null) {

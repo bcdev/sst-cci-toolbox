@@ -15,8 +15,7 @@ final class Identity implements Rule {
     }
 
     @Override
-    public Number apply(final Number number,
-                        final VariableDescriptor sourceDescriptor) throws RuleException {
+    public Number apply(final Number number, final VariableDescriptor sourceDescriptor) throws RuleException {
         return number;
     }
 }

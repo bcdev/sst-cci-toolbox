@@ -1,7 +1,6 @@
 package org.esa.cci.sst;
 
 
-import org.esa.cci.sst.VariableDescriptorRegistry;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleFactory;
@@ -42,7 +41,7 @@ public class DimensionConversionTest {
     }
 
     @Before
-    public void init() throws Exception {
+    public void initRegistry() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("MatchupDimension,CallsignDimension");
         final VariableDescriptor descriptor = new VariableDescriptor();
         descriptor.setName(CALLSIGN_VARIABLE_NAME);
@@ -53,7 +52,7 @@ public class DimensionConversionTest {
     }
 
     @After
-    public void tearDown() {
+    public void clearRegistry() {
         registry.clear();
     }
 }

@@ -55,18 +55,18 @@ public class UnitConversionTest {
     }
 
     @Before
-    public void init() throws Exception {
+    public void initRegistry() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("JulianDateToSeconds");
         final VariableDescriptor descriptor = new VariableDescriptor();
         descriptor.setName(TIME_VARIABLE_NAME);
         descriptor.setType(TIME_VARIABLE_TYPE);
-        descriptor.setUnits("Julian Date");
+        descriptor.setUnit("Julian Date");
 
         registry.register(rule, descriptor);
     }
 
     @After
-    public void tearDown() {
+    public void clearRegistry() {
         registry.clear();
     }
 

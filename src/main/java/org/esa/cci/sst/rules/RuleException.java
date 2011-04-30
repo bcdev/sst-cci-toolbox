@@ -1,9 +1,11 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Rule exception.
+ * The exception thrown by rules.
+ *
+ * @author Ralf Quast
  */
-public class RuleException extends Exception {
+public final class RuleException extends Exception {
 
     RuleException(String message) {
         super(message);

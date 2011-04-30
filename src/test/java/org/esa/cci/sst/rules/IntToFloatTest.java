@@ -36,7 +36,7 @@ public class IntToFloatTest extends AbstractRuleTest {
         final Number result = rule.apply(5, sourceDescriptor);
 
         assertTrue(result instanceof Float);
-        assertEquals(10.5, result.floatValue(), 0.0);
+        assertEquals(10.5f, result.floatValue(), 0.0f);
     }
 
     @Test(expected = RuleException.class)
@@ -58,8 +58,8 @@ public class IntToFloatTest extends AbstractRuleTest {
     protected void configureSourceDescriptor() {
         final VariableDescriptor sourceDescriptor = getSourceDescriptor();
         sourceDescriptor.setType(DataType.INT.name());
-        sourceDescriptor.setAddOffset(0.5);
-        sourceDescriptor.setScaleFactor(2.0);
+        sourceDescriptor.setAddOffset(0.5f);
+        sourceDescriptor.setScaleFactor(2.0f);
     }
 
 }

@@ -23,7 +23,7 @@ public final class VariableDescriptor {
     String name;
     String type;
     String dimensions;
-    String units;
+    String unit;
     String standardName;
     Number addOffset;
     Number scaleFactor;
@@ -45,7 +45,7 @@ public final class VariableDescriptor {
         name = descriptor.name;
         type = descriptor.type;
         dimensions = descriptor.dimensions;
-        units = descriptor.units;
+        unit = descriptor.unit;
         standardName = descriptor.standardName;
         addOffset = descriptor.addOffset;
         scaleFactor = descriptor.scaleFactor;
@@ -108,11 +108,11 @@ public final class VariableDescriptor {
     }
 
     public String getUnit() {
-        return units;
+        return unit;
     }
 
-    public void setUnits(String units) {
-        this.units = units;
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public Number getAddOffset() {

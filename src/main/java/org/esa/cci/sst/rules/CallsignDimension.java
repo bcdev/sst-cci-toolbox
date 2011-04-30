@@ -1,22 +1,14 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.VariableDescriptor;
-
 /**
  * Replaces the second dimension with the 'callsign.length' dimension.
  *
  * @author Ralf Quast
  */
-class CallsignDimension extends DescriptorModification {
+final class CallsignDimension extends DimensionReplacement {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        final String sourceDimensions = sourceDescriptor.getDimensions();
-        final String targetDimensions = RuleUtil.replaceDimension(sourceDimensions, "callsign.length", 1);
-        final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        targetDescriptor.setDimensions(targetDimensions);
-
-        return targetDescriptor;
+    protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
+        replacer.replace(1, "callsign.length");
     }
-
 }

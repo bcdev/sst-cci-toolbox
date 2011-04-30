@@ -124,7 +124,7 @@ public class IoUtil {
     private static void setUnits(final Variable variable, final VariableDescriptor descriptor) {
         final String units = variable.getUnitsString();
         if (units != null && !units.isEmpty()) {
-            descriptor.setUnits(units);
+            descriptor.setUnit(units);
         }
     }
 

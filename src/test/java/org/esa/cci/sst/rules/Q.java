@@ -2,7 +2,7 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.VariableDescriptor;
 
-public class Q implements Rule {
+final class Q implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {

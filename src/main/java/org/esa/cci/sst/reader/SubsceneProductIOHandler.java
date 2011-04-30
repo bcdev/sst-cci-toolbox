@@ -114,14 +114,14 @@ public class SubsceneProductIOHandler extends ProductIOHandler {
         final ArrayList<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
         for (RasterDataNode node : product.getTiePointGrids()) {
             final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
-            variableDescriptor.setUnits(node.getUnit());
+            variableDescriptor.setUnit(node.getUnit());
             variableDescriptorList.add(variableDescriptor);
         }
         for (RasterDataNode node : product.getBands()) {
             final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
             final String units = node.getUnit();
             if (units != null && !units.isEmpty()) {
-                variableDescriptor.setUnits(units);
+                variableDescriptor.setUnit(units);
             }
             variableDescriptorList.add(variableDescriptor);
         }

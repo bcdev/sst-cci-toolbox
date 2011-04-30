@@ -24,11 +24,11 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-class IntToFloat implements Rule {
+final class IntToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        RuleUtil.ensureType(DataType.INT.name(), sourceDescriptor.getType());
+        Assert.type(DataType.INT.name(), sourceDescriptor.getType());
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setScaleFactor(null);
@@ -39,7 +39,7 @@ class IntToFloat implements Rule {
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+    public Float apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
         Number addOffset = sourceDescriptor.getAddOffset();
         Number scaleFactor = sourceDescriptor.getScaleFactor();
         if (scaleFactor == null) {
@@ -48,6 +48,6 @@ class IntToFloat implements Rule {
         if (addOffset == null) {
             addOffset = 0.0;
         }
-        return (float) number.doubleValue() * scaleFactor.doubleValue() + addOffset.doubleValue();
+        return (float) (number.doubleValue() * scaleFactor.doubleValue() + addOffset.doubleValue());
     }
 }
