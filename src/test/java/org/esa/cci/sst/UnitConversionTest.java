@@ -1,14 +1,23 @@
-package org.esa.cci.sst.rules;
+package org.esa.cci.sst;
 
+import org.esa.cci.sst.VariableDescriptorRegistry;
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.tools.VariableDescriptorRegistry;
+import org.esa.cci.sst.rules.Rule;
+import org.esa.cci.sst.rules.RuleException;
+import org.esa.cci.sst.rules.RuleFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.DataType;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+/**
+ * Illustrates how a unit conversion can be carried out.
+ *
+ * @author Ralf Quast
+ */
 public class UnitConversionTest {
 
     private static final String TIME_VARIABLE_NAME = "time";

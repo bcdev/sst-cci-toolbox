@@ -1,4 +1,4 @@
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.Rule;
