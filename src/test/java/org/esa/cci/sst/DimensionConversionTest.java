@@ -2,8 +2,9 @@ package org.esa.cci.sst;
 
 
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.rules.Rule;
+import org.esa.cci.sst.rules.DescriptorRegistry;
 import org.esa.cci.sst.rules.RuleFactory;
+import org.esa.cci.sst.rules.Rule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +23,7 @@ public class DimensionConversionTest {
     public static final String CALLSIGN_VARIABLE_TYPE = DataType.CHAR.name();
     public static final String CALLSIGN_VARIABLE_NAME = "callsign";
 
-    private VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
+    private DescriptorRegistry registry = DescriptorRegistry.getInstance();
 
     @Test
     public void testDescriptorConversion() {

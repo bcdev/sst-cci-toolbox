@@ -1,9 +1,11 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.rules.Rule;
+import org.esa.cci.sst.rules.Converter;
+import org.esa.cci.sst.rules.DescriptorRegistry;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.rules.RuleFactory;
+import org.esa.cci.sst.rules.Rule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +25,7 @@ public class UnitConversionTest {
     private static final String TIME_VARIABLE_TYPE = DataType.DOUBLE.name();
     private static final double JULIAN_DATE_OF_EPOCH_1978 = 2443509.5;
 
-    private VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
+    private DescriptorRegistry registry = DescriptorRegistry.getInstance();
 
     @Test
     public void testDescriptorConversion() {
@@ -47,11 +49,11 @@ public class UnitConversionTest {
 
         assertNotNull(targetDescriptor);
 
-        final Rule rule = registry.getRule(targetDescriptor);
+        final Converter converter = registry.getConverter(targetDescriptor);
 
-        assertNotNull(rule);
-        assertEquals(0.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978, null));
-        assertEquals(86400.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978 + 1.0, null));
+        assertNotNull(converter);
+        assertEquals(0.0, converter.apply(JULIAN_DATE_OF_EPOCH_1978));
+        assertEquals(86400.0, converter.apply(JULIAN_DATE_OF_EPOCH_1978 + 1.0));
     }
 
     @Before

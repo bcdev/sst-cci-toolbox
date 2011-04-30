@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.VariableDescriptor;
 import ucar.ma2.DataType;
 
 /**
@@ -24,37 +23,24 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-final class IntToFloat implements Rule {
+final class IntToFloat extends IntegralNumberToRealNumber {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.type(DataType.INT.name(), sourceDescriptor);
-
-        final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        targetDescriptor.setAddOffset(null);
-        targetDescriptor.setScaleFactor(null);
-        targetDescriptor.setType(DataType.FLOAT.name());
-        final Number sourceFillValue = sourceDescriptor.getFillValue();
-        if (sourceFillValue != null) {
-            targetDescriptor.setFillValue(apply(sourceFillValue.intValue(), sourceDescriptor));
-        }
-
-        return targetDescriptor;
+    protected DataType getSourceDataType() {
+        return DataType.INT;
     }
 
     @Override
-    public Float apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+    protected DataType getTargetDataType() {
+        return DataType.FLOAT;
+    }
+
+    @Override
+    protected Float computeTargetNumber(Number number,
+                                        Number sourceAddOffset,
+                                        Number sourceScaleFactor) throws RuleException {
         Assert.condition(number instanceof Integer, "number instanceof Integer");
 
-        Number addOffset = sourceDescriptor.getAddOffset();
-        Number scaleFactor = sourceDescriptor.getScaleFactor();
-        if (scaleFactor == null) {
-            scaleFactor = 1.0;
-        }
-        if (addOffset == null) {
-            addOffset = 0.0;
-        }
-
-        return (float) (number.doubleValue() * scaleFactor.doubleValue() + addOffset.doubleValue());
+        return number.floatValue() * sourceScaleFactor.floatValue() + sourceAddOffset.floatValue();
     }
 }

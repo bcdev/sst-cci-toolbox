@@ -1,6 +1,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.VariableDescriptor;
+import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
 
@@ -36,8 +37,8 @@ class Assert {
         }
     }
 
-    static void type(String expectedType, VariableDescriptor sourceDescriptor) throws RuleException {
-        if (!expectedType.equals(sourceDescriptor.getType())) {
+    static void type(DataType expectedType, VariableDescriptor sourceDescriptor) throws RuleException {
+        if (!expectedType.name().equals(sourceDescriptor.getType())) {
             throw new RuleException(
                     MessageFormat.format("Expected variable type ''{0}'', but actual type is ''{1}''.",
                                          expectedType,

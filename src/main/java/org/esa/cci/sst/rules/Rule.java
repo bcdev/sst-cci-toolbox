@@ -3,8 +3,8 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.VariableDescriptor;
 
 /**
- * A rule is used for converting {@link VariableDescriptor} properties and for carrying out
- * the corresponding numerical conversion.
+ * A rule is used for converting {@link VariableDescriptor} properties and for
+ * carrying out a corresponding numerical conversion.
  *
  * @author Ralf Quast
  */
@@ -29,10 +29,10 @@ public interface Rule {
      * @param sourceDescriptor The source descriptor describing the properties of the
      *                         number supplied as argument.
      *
-     * @return the converted number. The number returned complies with the properties
-     *         of the target descriptor returned by {@link #apply(org.esa.cci.sst.data.VariableDescriptor)}.
+     * @return the converted number.
      *
      * @throws RuleException when the rule cannot be applied.
      */
     Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException;
 }
+

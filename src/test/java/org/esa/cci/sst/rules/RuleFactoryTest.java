@@ -92,6 +92,4 @@ public class RuleFactoryTest {
 
         assertTrue(rule instanceof Renaming);
     }
-
-
 }

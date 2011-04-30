@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.VariableDescriptorRegistry;
+import org.esa.cci.sst.rules.DescriptorRegistry;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.IoUtil;
@@ -24,7 +24,7 @@ public class TargetVariableConfigurationTest {
 
     @Test
     public void testRegisterDescriptors() throws ParseException, RuleException {
-        final VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
+        final DescriptorRegistry registry = DescriptorRegistry.getInstance();
         final InputStream is = getClass().getResourceAsStream("mmd-variables.txt");
 
         assertNotNull(is);
@@ -41,11 +41,11 @@ public class TargetVariableConfigurationTest {
     }
 
     private void testMetopDescriptor() {
-        final VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
+        final DescriptorRegistry registry = DescriptorRegistry.getInstance();
         final VariableDescriptor targetDescriptor = registry.getDescriptor("metop.brightness_temperature.037");
 
         assertEquals("matchup metop.ni metop.nj", targetDescriptor.getDimensions());
-        assertNotNull(registry.getRule(targetDescriptor));
+        assertNotNull(registry.getConverter(targetDescriptor));
         assertNotNull("metop.IR037", registry.getSourceDescriptor(targetDescriptor).getName());
     }
 
@@ -63,7 +63,7 @@ public class TargetVariableConfigurationTest {
 
     @AfterClass
     public static void clearRegistry() {
-        VariableDescriptorRegistry.getInstance().clear();
+        DescriptorRegistry.getInstance().clear();
     }
 
     private static void registerSourceDescriptors(String fileName, String sensor) throws IOException,
@@ -72,7 +72,7 @@ public class TargetVariableConfigurationTest {
         try {
             final File sensorFile = new File(TargetVariableConfigurationTest.class.getResource(fileName).toURI());
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
-            final VariableDescriptorRegistry registry = VariableDescriptorRegistry.getInstance();
+            final DescriptorRegistry registry = DescriptorRegistry.getInstance();
             for (final Variable variable : netcdfFile.getVariables()) {
                 registry.register(IoUtil.createVariableDescriptor(variable, sensor));
             }

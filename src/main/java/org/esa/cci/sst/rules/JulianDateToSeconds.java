@@ -9,8 +9,8 @@ import ucar.ma2.DataType;
 final class JulianDateToSeconds implements Rule {
 
     @Override
-    public final VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.type(DataType.DOUBLE.name(), sourceDescriptor);
+    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
+        Assert.type(DataType.DOUBLE, sourceDescriptor);
         Assert.unit("Julian Date", sourceDescriptor);
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
@@ -24,7 +24,7 @@ final class JulianDateToSeconds implements Rule {
     }
 
     @Override
-    public final Double apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+    public Double apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
         Assert.condition(number instanceof Double, "number instanceof Double");
 
         return (number.doubleValue() - 2443509.5) * 86400.0;

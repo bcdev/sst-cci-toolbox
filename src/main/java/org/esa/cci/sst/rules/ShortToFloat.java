@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.VariableDescriptor;
 import ucar.ma2.DataType;
 
 /**
@@ -24,37 +23,20 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-final class ShortToFloat implements Rule {
+final class ShortToFloat extends IntegralNumberToRealNumber {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.type(DataType.SHORT.name(), sourceDescriptor);
-
-        final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        targetDescriptor.setType(DataType.FLOAT.name());
-        targetDescriptor.setAddOffset(null);
-        targetDescriptor.setScaleFactor(null);
-        final Number sourceFillValue = sourceDescriptor.getFillValue();
-        if (sourceFillValue != null) {
-            targetDescriptor.setFillValue(apply(sourceFillValue.shortValue(), sourceDescriptor));
-        }
-
-        return targetDescriptor;
+    protected DataType getSourceDataType() {
+        return DataType.SHORT;
     }
 
     @Override
-    public Float apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.condition(number instanceof Short, "number instanceof Short");
+    protected DataType getTargetDataType() {
+        return DataType.FLOAT;
+    }
 
-        Number addOffset = sourceDescriptor.getAddOffset();
-        Number scaleFactor = sourceDescriptor.getScaleFactor();
-        if (scaleFactor == null) {
-            scaleFactor = 1.0f;
-        }
-        if (addOffset == null) {
-            addOffset = 0.0f;
-        }
-
-        return number.floatValue() * scaleFactor.floatValue() + addOffset.floatValue();
+    @Override
+    protected Float computeTargetNumber(Number number, Number sourceAddOffset, Number sourceScaleFactor) {
+        return number.floatValue() * sourceScaleFactor.floatValue() + sourceAddOffset.floatValue();
     }
 }

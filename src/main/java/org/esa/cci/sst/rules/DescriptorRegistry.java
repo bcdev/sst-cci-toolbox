@@ -1,9 +1,6 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.rules.Rule;
-import org.esa.cci.sst.rules.RuleException;
-import org.esa.cci.sst.rules.RuleFactory;
 
 import java.io.InputStream;
 import java.text.ParseException;
@@ -15,20 +12,20 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * A registry of {@link VariableDescriptor}s.
+ * A registry for {@link VariableDescriptor}s.
  * <p/>
  * The registry is used as an access point for all {@link VariableDescriptor}s that describe
  * the target variables in an MMD file.
  *
  * @author Ralf Quast
  */
-public class VariableDescriptorRegistry {
+public class DescriptorRegistry {
 
     private final Map<String, VariableDescriptor> descriptorsByName;
     private final Map<VariableDescriptor, Rule> rulesByTarget;
     private final Map<VariableDescriptor, VariableDescriptor> descriptorsByTarget;
 
-    private VariableDescriptorRegistry() {
+    private DescriptorRegistry() {
         descriptorsByName = new HashMap<String, VariableDescriptor>();
         rulesByTarget = new HashMap<VariableDescriptor, Rule>();
         descriptorsByTarget = new HashMap<VariableDescriptor, VariableDescriptor>();
@@ -39,44 +36,46 @@ public class VariableDescriptorRegistry {
      *
      * @return the unique instance of this registry.
      */
-    public static VariableDescriptorRegistry getInstance() {
+    public static DescriptorRegistry getInstance() {
         return Holder.uniqueInstance;
     }
 
     public List<String> registerDescriptors(InputStream is) throws ParseException {
-        final Scanner scanner = new Scanner(is, "US-ASCII");
-        scanner.useLocale(Locale.ENGLISH);
+        synchronized (this) {
+            final Scanner scanner = new Scanner(is, "US-ASCII");
+            scanner.useLocale(Locale.ENGLISH);
 
-        try {
-            final ArrayList<String> nameList = new ArrayList<String>();
-            for (int lineNumber = 0; scanner.hasNextLine(); lineNumber++) {
-                final String line = stripComment(scanner.nextLine()).trim();
-                final String[] tokens = line.split("\\s+");
-                try {
-                    switch (tokens.length) {
-                    case 1:
-                        if (tokens[0].isEmpty()) {
+            try {
+                final ArrayList<String> nameList = new ArrayList<String>();
+                for (int lineNumber = 0; scanner.hasNextLine(); lineNumber++) {
+                    final String line = stripComment(scanner.nextLine()).trim();
+                    final String[] tokens = line.split("\\s+");
+                    try {
+                        switch (tokens.length) {
+                        case 1:
+                            if (tokens[0].isEmpty()) {
+                                break;
+                            }
+                            // identity
+                            parseIdentity(nameList, tokens[0]);
+                            break;
+                        case 2:
+                            // variable renaming
+                            parseRenaming(nameList, tokens[0], tokens[1]);
+                            break;
+                        default:
+                            // more complex rule
+                            parseRule(nameList, tokens[0], tokens[1], tokens[2]);
                             break;
                         }
-                        // identity
-                        parseIdentity(nameList, tokens[0]);
-                        break;
-                    case 2:
-                        // variable renaming
-                        parseRenaming(nameList, tokens[0], tokens[1]);
-                        break;
-                    default:
-                        // more complex rule
-                        parseRule(nameList, tokens[0], tokens[1], tokens[2]);
-                        break;
+                    } catch (Exception e) {
+                        throw new ParseException(e.getMessage(), lineNumber);
                     }
-                } catch (Exception e) {
-                    throw new ParseException(e.getMessage(), lineNumber);
                 }
+                return nameList;
+            } finally {
+                scanner.close();
             }
-            return nameList;
-        } finally {
-            scanner.close();
         }
     }
 
@@ -97,7 +96,7 @@ public class VariableDescriptorRegistry {
 
     /**
      * Registers the target descriptor, which results from applying the rule supplied
-     * as argument to the descriptor supplied as argument.
+     * as argument to the source descriptor supplied as argument.
      * <p/>
      * The target descriptor resulting from
      * <code>
@@ -106,21 +105,21 @@ public class VariableDescriptorRegistry {
      * is registered by name and associated with the rule and the descriptor supplied
      * as arguments.
      *
-     * @param rule       The rule.
-     * @param descriptor The descriptor.
+     * @param rule             The rule.
+     * @param sourceDescriptor The source descriptor.
      *
-     * @return the descriptor resulting from {@code rule.apply(descriptor)}.
+     * @return the descriptor resulting from {@code rule.apply(sourceDescriptor)}.
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    public VariableDescriptor register(Rule rule, VariableDescriptor descriptor) throws RuleException {
+    public VariableDescriptor register(Rule rule, VariableDescriptor sourceDescriptor) throws RuleException {
         synchronized (this) {
-            final VariableDescriptor result = rule.apply(descriptor);
-            descriptorsByName.put(result.getName(), result);
-            rulesByTarget.put(result, rule);
-            descriptorsByTarget.put(result, descriptor);
+            final VariableDescriptor targetDescriptor = rule.apply(sourceDescriptor);
+            descriptorsByName.put(targetDescriptor.getName(), targetDescriptor);
+            rulesByTarget.put(targetDescriptor, rule);
+            descriptorsByTarget.put(targetDescriptor, sourceDescriptor);
 
-            return result;
+            return targetDescriptor;
         }
     }
 
@@ -149,15 +148,18 @@ public class VariableDescriptorRegistry {
     }
 
     /**
-     * Returns the rule associated with the target descriptor supplied as argument.
+     * Returns a converter suitable for numeric conversions from a number complying
+     * with the source descriptor associated with the target descriptor supplied as
+     * argument into a number complying with the target descriptor.
      *
      * @param targetDescriptor The target descriptor.
      *
-     * @return the rule associated with the descriptor supplied as argument.
+     * @return a converter suitable for numeric conversions into numbers complying
+     *         with the target descriptor.
      */
-    public Rule getRule(VariableDescriptor targetDescriptor) {
-        synchronized (rulesByTarget) {
-            return rulesByTarget.get(targetDescriptor);
+    public Converter getConverter(VariableDescriptor targetDescriptor) {
+        synchronized (this) {
+            return new ConverterImpl(rulesByTarget.get(targetDescriptor), descriptorsByTarget.get(targetDescriptor));
         }
     }
 
@@ -190,12 +192,12 @@ public class VariableDescriptorRegistry {
 
     private static class Holder {
 
-        private static final VariableDescriptorRegistry uniqueInstance = new VariableDescriptorRegistry();
+        private static final DescriptorRegistry uniqueInstance = new DescriptorRegistry();
     }
 
 
     private void parseIdentity(List<String> nameList, String sourceName) throws Exception {
-        ensureSourceDescriptorExists(sourceName);
+        ensureSourceDescriptorIsRegistered(sourceName);
         final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule = RuleFactory.getInstance().getRule("Identity");
         final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
@@ -203,7 +205,7 @@ public class VariableDescriptorRegistry {
     }
 
     private void parseRenaming(List<String> nameList, String targetName, String sourceName) throws Exception {
-        ensureSourceDescriptorExists(sourceName);
+        ensureSourceDescriptorIsRegistered(sourceName);
         final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule = RuleFactory.getInstance().getRenamingRule(targetName);
         final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
@@ -211,7 +213,7 @@ public class VariableDescriptorRegistry {
     }
 
     private void parseRule(List<String> nameList, String targetName, String sourceName, String spec) throws Exception {
-        ensureSourceDescriptorExists(sourceName);
+        ensureSourceDescriptorIsRegistered(sourceName);
         final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule;
         if (targetName.equals(sourceName)) {
@@ -223,7 +225,7 @@ public class VariableDescriptorRegistry {
         nameList.add(targetDescriptor.getName());
     }
 
-    private void ensureSourceDescriptorExists(String sourceName) {
+    private void ensureSourceDescriptorIsRegistered(String sourceName) {
         if (!hasDescriptor(sourceName)) {
             throw new IllegalArgumentException("Unknown variable descriptor '" + sourceName + "'.");
         }
@@ -237,4 +239,19 @@ public class VariableDescriptorRegistry {
         return line;
     }
 
+    private static class ConverterImpl implements Converter {
+
+        private final Rule rule;
+        private final VariableDescriptor sourceDescriptor;
+
+        public ConverterImpl(Rule rule, VariableDescriptor sourceDescriptor) {
+            this.rule = rule;
+            this.sourceDescriptor = sourceDescriptor;
+        }
+
+        @Override
+        public Number apply(Number number) throws RuleException {
+            return rule.apply(number, sourceDescriptor);
+        }
+    }
 }
