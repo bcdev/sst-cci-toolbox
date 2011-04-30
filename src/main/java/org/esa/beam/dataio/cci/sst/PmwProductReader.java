@@ -17,6 +17,7 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import ucar.ma2.Array;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -24,6 +25,7 @@ import java.awt.Dimension;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Product reader for TMI and AMSR-E products.
@@ -31,6 +33,19 @@ import java.io.IOException;
  * @author Ralf Quast
  */
 public class PmwProductReader extends NetcdfProductReaderTemplate {
+
+    private static final Invalidator AMS_LAT_INVALIDATOR = new Invalidator() {
+        @Override
+        public final boolean isInvalid(double value) {
+            return Double.isNaN(value);
+        }
+    };
+    private static final Invalidator TMI_LAT_INVALIDATOR = new Invalidator() {
+        @Override
+        public final boolean isInvalid(double value) {
+            return value == 0;
+        }
+    };
 
     private int leadLineSkip;
     private int tailLineSkip;
@@ -45,11 +60,9 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         final String productName = inputFile.getName();
 
         if (inputFile.getName().matches(PmwProductReaderPlugIn.AMS_FILE_NAME_PATTERN)) {
-            leadLineSkip = 118;
-            tailLineSkip = 118;
+            invalidateLines(AMS_LAT_INVALIDATOR);
         } else {
-            leadLineSkip = 50;
-            tailLineSkip = 85;
+            invalidateLines(TMI_LAT_INVALIDATOR);
         }
         final int h = getNetcdfFile().findDimension("ni").getLength() - leadLineSkip - tailLineSkip;
         final int w = getNetcdfFile().findDimension("nj").getLength();
@@ -81,15 +94,18 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
     @Override
     protected final void addMetadata(Product product) {
         final MetadataElement metadataRoot = product.getMetadataRoot();
-        metadataRoot.addElement(MetadataUtils.readAttributeList(getNetcdfFile().getGlobalAttributes(), "MPH"));
-        metadataRoot.addElement(MetadataUtils.readVariableDescriptions(getNetcdfFile().getVariables(), "DSD"));
+        final List<Attribute> globalAttributes = getNetcdfFile().getGlobalAttributes();
+        metadataRoot.addElement(MetadataUtils.readAttributeList(globalAttributes, "Global Attributes"));
 
-        final MetadataElement beam = new MetadataElement("reader_generated");
-        beam.addAttribute(new MetadataAttribute("lead_line_skip",
-                                                ProductData.createInstance(new int[]{leadLineSkip}), true));
-        beam.addAttribute(new MetadataAttribute("tail_line_skip",
-                                                ProductData.createInstance(new int[]{tailLineSkip}), true));
-        metadataRoot.addElement(beam);
+        final List<Variable> variables = getNetcdfFile().getVariables();
+        metadataRoot.addElement(MetadataUtils.readVariableDescriptions(variables, "Variable Attributes"));
+
+        final MetadataElement generated = new MetadataElement("reader_generated");
+        generated.addAttribute(new MetadataAttribute("lead_line_skip",
+                                                     ProductData.createInstance(new int[]{leadLineSkip}), true));
+        generated.addAttribute(new MetadataAttribute("tail_line_skip",
+                                                     ProductData.createInstance(new int[]{tailLineSkip}), true));
+        metadataRoot.addElement(generated);
     }
 
     @Override
@@ -134,6 +150,32 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
                                                                      Constants.STOP_TIME_ATT_NAME);
         product.setStartTime(startTime);
         product.setEndTime(endTime);
+    }
+
+    private void invalidateLines(Invalidator invalidator) throws IOException {
+        final Variable variable = getNetcdfFile().findVariable("lat");
+        if (variable != null) {
+            final Array array = variable.read();
+            for (int i = 0, lineCount = variable.getShape(variable.getRank() - 1); i < lineCount; i++) {
+                if (invalidator.isInvalid(array.getDouble(i))) {
+                    leadLineSkip++;
+                } else {
+                    break;
+                }
+            }
+            for (int i = variable.getShape(variable.getRank() - 1); i-- > 0;) {
+                if (invalidator.isInvalid(array.getDouble(i))) {
+                    tailLineSkip++;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    private interface Invalidator {
+
+        boolean isInvalid(double value);
     }
 
 }
