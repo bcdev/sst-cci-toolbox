@@ -15,6 +15,10 @@ final class JulianDateToSeconds implements Rule {
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setUnit("seconds since 1978-01-01 00:00:00");
+        final Number sourceFillValue = sourceDescriptor.getFillValue();
+        if (sourceFillValue != null) {
+            targetDescriptor.setFillValue(apply(sourceFillValue.doubleValue(), sourceDescriptor));
+        }
 
         return targetDescriptor;
     }

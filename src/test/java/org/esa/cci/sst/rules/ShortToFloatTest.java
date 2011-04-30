@@ -52,6 +52,8 @@ public class ShortToFloatTest extends AbstractRuleTest {
         assertTrue(targetDescriptor.getScaleFactor() == null);
         assertTrue(targetDescriptor.getAddOffset() == null);
         assertTrue(DataType.FLOAT.name().equals(targetDescriptor.getType()));
+        assertTrue(targetDescriptor.getFillValue() instanceof Float);
+        assertTrue(targetDescriptor.getFillValue().floatValue() == -1.5f);
     }
 
     @Override
@@ -60,6 +62,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
         sourceDescriptor.setType(DataType.SHORT.name());
         sourceDescriptor.setAddOffset(0.5f);
         sourceDescriptor.setScaleFactor(2.0f);
+        sourceDescriptor.setFillValue(-1);
     }
 
 }
