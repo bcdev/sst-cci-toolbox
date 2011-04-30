@@ -11,13 +11,14 @@ abstract class DimensionReplacement extends DescriptorModification {
 
     @Override
     public final VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.notNull(sourceDescriptor.getDimensions(), "dimensions");
-        Assert.notEmpty(sourceDescriptor.getDimensions(), "dimensions");
+        final String sourceDimensions = sourceDescriptor.getDimensions();
+        Assert.notNull(sourceDimensions, "dimensions");
+        Assert.notEmpty(sourceDimensions, "dimensions");
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        final String sourceDimensions = sourceDescriptor.getDimensions();
         final DimensionReplacer replacer = new DimensionReplacer(sourceDimensions);
         replaceDimensions(replacer);
+
         targetDescriptor.setDimensions(replacer.toString());
 
         return targetDescriptor;

@@ -20,7 +20,9 @@ final class JulianDateToSeconds implements Rule {
     }
 
     @Override
-    public final Double apply(Number number, final VariableDescriptor sourceDescriptor) {
+    public final Double apply(Number number, final VariableDescriptor sourceDescriptor) throws RuleException {
+        Assert.condition(number instanceof Double, "number instanceof Double");
+
         return (number.doubleValue() - 2443509.5) * 86400.0;
     }
 }

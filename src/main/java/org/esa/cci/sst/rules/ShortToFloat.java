@@ -31,16 +31,20 @@ final class ShortToFloat implements Rule {
         Assert.type(DataType.SHORT.name(), sourceDescriptor);
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        targetDescriptor.setScaleFactor(null);
-        targetDescriptor.setAddOffset(null);
         targetDescriptor.setType(DataType.FLOAT.name());
+        targetDescriptor.setAddOffset(null);
+        targetDescriptor.setScaleFactor(null);
+        final Number sourceFillValue = sourceDescriptor.getFillValue();
+        if (sourceFillValue != null) {
+            targetDescriptor.setFillValue(apply(sourceFillValue.shortValue(), sourceDescriptor));
+        }
 
         return targetDescriptor;
     }
 
     @Override
     public Float apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
-        com.bc.ceres.core.Assert.argument(number instanceof Short);
+        Assert.condition(number instanceof Short, "number instanceof Short");
 
         Number addOffset = sourceDescriptor.getAddOffset();
         Number scaleFactor = sourceDescriptor.getScaleFactor();
@@ -50,6 +54,7 @@ final class ShortToFloat implements Rule {
         if (addOffset == null) {
             addOffset = 0.0f;
         }
+
         return number.floatValue() * scaleFactor.floatValue() + addOffset.floatValue();
     }
 }

@@ -31,15 +31,21 @@ final class IntToFloat implements Rule {
         Assert.type(DataType.INT.name(), sourceDescriptor);
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        targetDescriptor.setScaleFactor(null);
         targetDescriptor.setAddOffset(null);
+        targetDescriptor.setScaleFactor(null);
         targetDescriptor.setType(DataType.FLOAT.name());
+        final Number sourceFillValue = sourceDescriptor.getFillValue();
+        if (sourceFillValue != null) {
+            targetDescriptor.setFillValue(apply(sourceFillValue.intValue(), sourceDescriptor));
+        }
 
         return targetDescriptor;
     }
 
     @Override
     public Float apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+        Assert.condition(number instanceof Integer, "number instanceof Integer");
+
         Number addOffset = sourceDescriptor.getAddOffset();
         Number scaleFactor = sourceDescriptor.getScaleFactor();
         if (scaleFactor == null) {
@@ -48,6 +54,7 @@ final class IntToFloat implements Rule {
         if (addOffset == null) {
             addOffset = 0.0;
         }
+
         return (float) (number.doubleValue() * scaleFactor.doubleValue() + addOffset.doubleValue());
     }
 }

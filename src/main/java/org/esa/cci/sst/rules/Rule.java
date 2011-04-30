@@ -26,8 +26,8 @@ public interface Rule {
      * Applies the numerical conversion rule to the number supplied as argument.
      *
      * @param number           A number.
-     * @param sourceDescriptor The source descriptor describing the scaling of
-     *                         the number supplied as argument.
+     * @param sourceDescriptor The source descriptor describing the properties of the
+     *                         number supplied as argument.
      *
      * @return the converted number. The number returned complies with the properties
      *         of the target descriptor returned by {@link #apply(org.esa.cci.sst.data.VariableDescriptor)}.

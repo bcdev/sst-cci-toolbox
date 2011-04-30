@@ -3,7 +3,7 @@ package org.esa.cci.sst.rules;
 import java.text.MessageFormat;
 
 /**
- * Used in dimension replacing rules.
+ * Used for dimension replacing rules.
  *
  * @author Ralf Quast
  */

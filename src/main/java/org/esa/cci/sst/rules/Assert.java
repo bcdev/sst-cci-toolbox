@@ -14,6 +14,7 @@ class Assert {
     private Assert() {
     }
 
+
     static void notNull(String value, String name) throws RuleException {
         if (value == null) {
             throw new RuleException(
@@ -25,6 +26,13 @@ class Assert {
         if (value.isEmpty()) {
             throw new RuleException(
                     MessageFormat.format("Expected non-empty value for property ''{0}''.", name));
+        }
+    }
+
+    static void condition(boolean condition, String expression) throws RuleException {
+        if (!condition) {
+            throw new RuleException(
+                    MessageFormat.format("Expected condition ''{0}'' to be satisfied.", expression));
         }
     }
 

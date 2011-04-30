@@ -49,9 +49,11 @@ public class IntToFloatTest extends AbstractRuleTest {
 
     @Override
     public void assertTargetDescriptor(VariableDescriptor targetDescriptor) {
-        assertTrue(targetDescriptor.getScaleFactor() == null);
-        assertTrue(targetDescriptor.getAddOffset() == null);
         assertTrue(DataType.FLOAT.name().equals(targetDescriptor.getType()));
+        assertTrue(targetDescriptor.getAddOffset() == null);
+        assertTrue(targetDescriptor.getScaleFactor() == null);
+        assertTrue(targetDescriptor.getFillValue() instanceof Float);
+        assertTrue(targetDescriptor.getFillValue().floatValue() == -1.5f);
     }
 
     @Override
@@ -60,6 +62,7 @@ public class IntToFloatTest extends AbstractRuleTest {
         sourceDescriptor.setType(DataType.INT.name());
         sourceDescriptor.setAddOffset(0.5f);
         sourceDescriptor.setScaleFactor(2.0f);
+        sourceDescriptor.setFillValue(-1);
     }
 
 }
