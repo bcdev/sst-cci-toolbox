@@ -10,8 +10,9 @@ final class JulianDateToSeconds implements Rule {
 
     @Override
     public final VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.type(DataType.DOUBLE.name(), sourceDescriptor.getType());
-        Assert.unit("Julian", sourceDescriptor.getUnit());
+        Assert.type(DataType.DOUBLE.name(), sourceDescriptor);
+        Assert.unit("Julian Date", sourceDescriptor);
+
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setUnit("seconds since 1978-01-01 00:00:00");
 

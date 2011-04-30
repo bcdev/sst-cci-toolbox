@@ -28,7 +28,7 @@ final class IntToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.type(DataType.INT.name(), sourceDescriptor.getType());
+        Assert.type(DataType.INT.name(), sourceDescriptor);
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setScaleFactor(null);

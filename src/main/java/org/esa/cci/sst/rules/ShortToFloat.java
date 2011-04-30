@@ -28,7 +28,7 @@ final class ShortToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        Assert.type(DataType.SHORT.name(), sourceDescriptor.getType());
+        Assert.type(DataType.SHORT.name(), sourceDescriptor);
 
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setScaleFactor(null);
