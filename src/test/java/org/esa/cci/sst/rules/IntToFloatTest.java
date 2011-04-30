@@ -44,15 +44,14 @@ public class IntToFloatTest extends AbstractRuleTest {
         final VariableDescriptor sourceDescriptor = getSourceDescriptor();
         sourceDescriptor.setType(DataType.BYTE.name());
 
-        final Rule rule = getRule();
-        rule.apply(sourceDescriptor);
+        getRule().apply(sourceDescriptor);
     }
 
     @Override
     public void assertTargetDescriptor(VariableDescriptor targetDescriptor) {
         assertTrue(targetDescriptor.getScaleFactor() == null);
         assertTrue(targetDescriptor.getAddOffset() == null);
-        assertTrue(targetDescriptor.getType().equals(DataType.FLOAT.name()));
+        assertTrue(DataType.FLOAT.name().equals(targetDescriptor.getType()));
     }
 
     @Override
