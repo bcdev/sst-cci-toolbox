@@ -11,5 +11,4 @@ final class FilenameDimension extends DimensionReplacement {
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
         replacer.replace(1, "filename.length");
     }
-
 }

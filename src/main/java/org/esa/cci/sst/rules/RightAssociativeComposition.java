@@ -16,7 +16,7 @@ final class RightAssociativeComposition implements Rule {
     }
 
     @Override
-    public final VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
+    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         for (int i = rules.length; i-- > 0;) {
             sourceDescriptor = rules[i].apply(sourceDescriptor);
         }
@@ -24,8 +24,7 @@ final class RightAssociativeComposition implements Rule {
     }
 
     @Override
-    public final Number apply(Number number,
-                              final VariableDescriptor sourceDescriptor) throws RuleException {
+    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
         for (int i = rules.length; i-- > 0;) {
             number = rules[i].apply(number, null);
         }
