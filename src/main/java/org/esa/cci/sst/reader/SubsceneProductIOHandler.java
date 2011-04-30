@@ -1,11 +1,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
-import org.esa.beam.util.PixelFinder;
-import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
-import org.esa.beam.util.QuadTreePixelFinder;
-import org.esa.beam.util.RasterDataNodeSampleSource;
-import org.esa.beam.util.SampleSource;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.dataio.ProductSubsetBuilder;
@@ -13,13 +8,19 @@ import org.esa.beam.framework.dataio.ProductSubsetDef;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.beam.util.PixelFinder;
+import org.esa.beam.util.QuadTreePixelFinder;
+import org.esa.beam.util.RasterDataNodeSampleSource;
+import org.esa.beam.util.SampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.util.BoundaryCalculator;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -54,7 +55,7 @@ public class SubsceneProductIOHandler extends ProductIOHandler {
 
     public SubsceneProductIOHandler(String sensorName) {
         super(sensorName);
-        this.bc = new DefaultBoundaryCalculator();
+        this.bc = new BoundaryCalculator();
     }
 
     @Override

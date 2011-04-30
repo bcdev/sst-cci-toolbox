@@ -1,10 +1,9 @@
-package org.esa.cci.sst.reader;
+package org.esa.cci.sst.util;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
-import org.esa.cci.sst.util.PgUtil;
 import org.postgis.Point;
 
 import java.awt.Rectangle;
@@ -13,15 +12,24 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Default implementation of the {@link BoundaryCalculator} interface, which in particular
- * considers the case of AMSR-E and TMI products, which exhibit leading and trailing rows
- * (or columns) of pixels where the geo-location is invalid.
+ * Creates pixel and geo boundaries for a given product.  The case where a
+ * product contains leading and trailing rows (or columns) of pixels where
+ * the geo-location is invalid is handled.
  *
  * @author Ralf Quast
  */
-class DefaultBoundaryCalculator implements BoundaryCalculator {
+public class BoundaryCalculator {
 
-    @Override
+    /**
+     * Returns the pixel boundary of a product. The pixel boundary shall enclose only
+     * pixels where the geo-location is valid.
+     *
+     * @param product The product.
+     *
+     * @return the pixel boundary of the product supplied as argument.
+     *
+     * @throws Exception when the pixel boundary cannot not be calculated.
+     */
     public Rectangle getPixelBoundary(Product product) throws Exception {
         final GeoCoding geoCoding = product.getGeoCoding();
         if (geoCoding == null) {
@@ -47,7 +55,16 @@ class DefaultBoundaryCalculator implements BoundaryCalculator {
         return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
     }
 
-    @Override
+    /**
+     * Returns the geo-boundary of a product. The geo-boundary shall enclose only
+     * pixels where the geo-location is valid.
+     *
+     * @param product The product.
+     *
+     * @return the geo-boundary of the product supplied as argument.
+     *
+     * @throws Exception when the geo-boundary cannot not be calculated.
+     */
     public Point[] getGeoBoundary(Product product) throws Exception {
         final Rectangle boundary = getPixelBoundary(product);
         final int minX = boundary.x;
