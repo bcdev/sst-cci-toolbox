@@ -22,7 +22,7 @@ import ucar.ma2.DataType;
 /**
  * @author Thomas Storm
  */
-public class ScaledIntToFloat implements Rule {
+class ScaledIntToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {

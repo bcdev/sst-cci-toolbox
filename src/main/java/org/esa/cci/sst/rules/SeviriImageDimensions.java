@@ -5,7 +5,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 /**
  * Replaces the second and third dimension with 'seviri.ni' and 'seviri.nj', respectively.
  */
-public class SeviriImageDimensions extends DescriptorModification {
+class SeviriImageDimensions extends DescriptorModification {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {

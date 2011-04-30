@@ -24,7 +24,7 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-public class ScaledShortToFloat implements Rule {
+class ScaledShortToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {

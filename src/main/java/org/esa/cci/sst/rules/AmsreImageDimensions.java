@@ -5,7 +5,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 /**
  * Replaces the second and third dimension with 'amsre.ni' and 'amsre.nj', respectively.
  */
-public class AmsreImageDimensions extends DescriptorModification {
+class AmsreImageDimensions extends DescriptorModification {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {

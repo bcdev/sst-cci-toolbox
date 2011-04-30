@@ -5,7 +5,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 /**
  * Replaces the second and third dimension with 'metop.ni' and 'metop.nj', respectively.
  */
-public class MetopImageDimensions extends DescriptorModification {
+class MetopImageDimensions extends DescriptorModification {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
