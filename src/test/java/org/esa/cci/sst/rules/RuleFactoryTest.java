@@ -53,4 +53,12 @@ public class RuleFactoryTest {
         assertTrue(composition.getRule(1) instanceof RightAssociativeComposition);
     }
 
+    @Test
+    public void testGetRenamingRule() {
+        final Rule rule = RuleFactory.getInstance().getRenamingRule("R");
+
+        assertTrue(rule instanceof Renaming);
+    }
+
+
 }
