@@ -12,9 +12,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Creates pixel and geo boundaries for a given product.  The case where a
+ * Creates pixel and geo boundaries for a given product. The cases where a
  * product contains leading and trailing rows (or columns) of pixels where
- * the geo-location is invalid is handled.
+ * the geo-location is invalid are handled.
  *
  * @author Ralf Quast
  */
