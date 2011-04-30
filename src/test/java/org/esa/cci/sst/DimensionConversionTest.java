@@ -42,7 +42,7 @@ public class DimensionConversionTest {
     }
 
     @Before
-    public void setup() throws Exception {
+    public void init() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("MatchupDimension,CallsignDimension");
         final VariableDescriptor descriptor = new VariableDescriptor();
         descriptor.setName(CALLSIGN_VARIABLE_NAME);

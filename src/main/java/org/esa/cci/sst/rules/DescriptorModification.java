@@ -10,8 +10,7 @@ import org.esa.cci.sst.data.VariableDescriptor;
 abstract class DescriptorModification implements Rule {
 
     @Override
-    public final Number apply(Number number, final VariableDescriptor targetDescriptor,
-                              final VariableDescriptor sourceDescriptor) {
+    public final Number apply(Number number, final VariableDescriptor sourceDescriptor) {
         return number;
     }
 }

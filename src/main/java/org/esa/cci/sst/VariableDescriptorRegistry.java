@@ -54,21 +54,21 @@ public class VariableDescriptorRegistry {
                 final String[] tokens = line.split("\\s+");
                 try {
                     switch (tokens.length) {
-                        case 1:
-                            if (tokens[0].isEmpty()) {
-                                break;
-                            }
-                            // identity
-                            parseIdentity(nameList, tokens[0]);
+                    case 1:
+                        if (tokens[0].isEmpty()) {
                             break;
-                        case 2:
-                            // variable renaming
-                            parseRenaming(nameList, tokens[0], tokens[1]);
-                            break;
-                        default:
-                            // more complex rule
-                            parseRule(nameList, tokens[0], tokens[1], tokens[2]);
-                            break;
+                        }
+                        // identity
+                        parseIdentity(nameList, tokens[0]);
+                        break;
+                    case 2:
+                        // variable renaming
+                        parseRenaming(nameList, tokens[0], tokens[1]);
+                        break;
+                    default:
+                        // more complex rule
+                        parseRule(nameList, tokens[0], tokens[1], tokens[2]);
+                        break;
                     }
                 } catch (Exception e) {
                     throw new ParseException(e.getMessage(), lineNumber);
@@ -223,9 +223,9 @@ public class VariableDescriptorRegistry {
         nameList.add(targetDescriptor.getName());
     }
 
-    private void ensureSourceDescriptorExists(String sourceName) throws RuleException {
+    private void ensureSourceDescriptorExists(String sourceName) {
         if (!hasDescriptor(sourceName)) {
-            throw new RuleException("Unknown variable '" + sourceName + "'.");
+            throw new IllegalArgumentException("Unknown variable descriptor '" + sourceName + "'.");
         }
     }
 

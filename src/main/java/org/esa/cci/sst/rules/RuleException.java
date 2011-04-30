@@ -5,11 +5,11 @@ package org.esa.cci.sst.rules;
  */
 public class RuleException extends Exception {
 
-    public RuleException(String message) {
+    RuleException(String message) {
         super(message);
     }
 
-    public RuleException(String message, Throwable cause) {
+    RuleException(String message, Throwable cause) {
         super(message, cause);
     }
 }

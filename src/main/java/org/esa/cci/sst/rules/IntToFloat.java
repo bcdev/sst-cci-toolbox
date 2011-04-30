@@ -20,32 +20,34 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import ucar.ma2.DataType;
 
 /**
+ * Rule for converting type 'INT' into 'FLOAT'.
+ *
  * @author Thomas Storm
  */
-class ScaledIntToFloat implements Rule {
+class IntToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         RuleUtil.ensureType(DataType.INT.name(), sourceDescriptor.getType());
+
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setScaleFactor(null);
         targetDescriptor.setAddOffset(null);
         targetDescriptor.setType(DataType.FLOAT.name());
+
         return targetDescriptor;
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor targetDescriptor,
-                        VariableDescriptor sourceDescriptor) throws RuleException {
-        final Number addOffset = sourceDescriptor.getAddOffset();
-        final Number scaleFactor = sourceDescriptor.getScaleFactor();
-        double result = number.doubleValue();
-        if (scaleFactor != null) {
-            result *= scaleFactor.doubleValue();
+    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+        Number addOffset = sourceDescriptor.getAddOffset();
+        Number scaleFactor = sourceDescriptor.getScaleFactor();
+        if (scaleFactor == null) {
+            scaleFactor = 1.0;
         }
-        if (addOffset != null) {
-            result += addOffset.doubleValue();
+        if (addOffset == null) {
+            addOffset = 0.0;
         }
-        return (float)result;
+        return (float) number.doubleValue() * scaleFactor.doubleValue() + addOffset.doubleValue();
     }
 }

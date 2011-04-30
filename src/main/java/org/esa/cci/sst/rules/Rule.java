@@ -25,16 +25,14 @@ public interface Rule {
     /**
      * Applies the numerical conversion rule to the number supplied as argument.
      *
+     * @param number           A number.
+     * @param sourceDescriptor @return the converted number. The number returned complies with the properties
+     *                         of the target descriptor returned by {@link #apply(org.esa.cci.sst.data.VariableDescriptor)}.
      *
-     *
-     * @param number A number.
-     *
-     * @param targetDescriptor
-     *@param sourceDescriptor @return the converted number. The number returned complies with the properties
-     *         of the target descriptor returned by {@link #apply(VariableDescriptor)}.
+     * @return the converted number.
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    Number apply(Number number, VariableDescriptor targetDescriptor, VariableDescriptor sourceDescriptor) throws
-                                                                                                          RuleException;
+    Number apply(Number number, VariableDescriptor sourceDescriptor) throws
+                                                                     RuleException;
 }

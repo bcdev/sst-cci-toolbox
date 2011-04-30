@@ -20,34 +20,34 @@ import org.esa.cci.sst.data.VariableDescriptor;
 import ucar.ma2.DataType;
 
 /**
- * Rule for converting a scaled short into a float.
+ * Rule for converting type 'SHORT' into 'FLOAT'.
  *
  * @author Thomas Storm
  */
-class ScaledShortToFloat implements Rule {
+class ShortToFloat implements Rule {
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         RuleUtil.ensureType(DataType.SHORT.name(), sourceDescriptor.getType());
+
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setScaleFactor(null);
         targetDescriptor.setAddOffset(null);
         targetDescriptor.setType(DataType.FLOAT.name());
+
         return targetDescriptor;
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor targetDescriptor,
-                        VariableDescriptor sourceDescriptor) throws RuleException {
-        final Number addOffset = sourceDescriptor.getAddOffset();
-        final Number scaleFactor = sourceDescriptor.getScaleFactor();
-        float result = number.floatValue();
-        if (scaleFactor != null) {
-            result *= scaleFactor.floatValue();
+    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+        Number addOffset = sourceDescriptor.getAddOffset();
+        Number scaleFactor = sourceDescriptor.getScaleFactor();
+        if (scaleFactor == null) {
+            scaleFactor = 1.0f;
         }
-        if (addOffset != null) {
-            result += addOffset.floatValue();
+        if (addOffset == null) {
+            addOffset = 0.0f;
         }
-        return result;
+        return number.floatValue() * scaleFactor.floatValue() + addOffset.floatValue();
     }
 }

@@ -1,6 +1,5 @@
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.VariableDescriptorRegistry;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
@@ -51,12 +50,12 @@ public class UnitConversionTest {
         final Rule rule = registry.getRule(targetDescriptor);
 
         assertNotNull(rule);
-        assertEquals(0.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978, null, null));
-        assertEquals(86400.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978 + 1.0, null, null));
+        assertEquals(0.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978, null));
+        assertEquals(86400.0, rule.apply(JULIAN_DATE_OF_EPOCH_1978 + 1.0, null));
     }
 
     @Before
-    public void setup() throws Exception {
+    public void init() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("JulianDateToSeconds");
         final VariableDescriptor descriptor = new VariableDescriptor();
         descriptor.setName(TIME_VARIABLE_NAME);

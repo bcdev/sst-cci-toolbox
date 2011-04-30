@@ -1,5 +1,6 @@
 package org.esa.cci.sst.rules;
 
+import java.text.MessageFormat;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -77,16 +78,17 @@ public class RuleFactory {
     private Rule getRuleBySimpleName(String simpleName) {
         try {
             if (!bySimpleName.containsKey(simpleName)) {
-                final Rule rule = (Rule) Class.forName("org.esa.cci.sst.rules." + simpleName).newInstance();
-                bySimpleName.putIfAbsent(simpleName, rule);
+                final Class<? extends Rule> rule = (Class<? extends Rule>) Class.forName(
+                        getClass().getName().replace(getClass().getSimpleName(), simpleName));
+                bySimpleName.putIfAbsent(simpleName, rule.newInstance());
             }
             return bySimpleName.get(simpleName);
         } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Cannot create rule '" + simpleName + "'.", e);
+            throw new IllegalArgumentException(MessageFormat.format("Cannot create rule ''{0}''.", simpleName), e);
         } catch (IllegalAccessException e) {
-            throw new IllegalArgumentException("Cannot create rule '" + simpleName + "'.", e);
+            throw new IllegalArgumentException(MessageFormat.format("Cannot create rule ''{0}''.", simpleName), e);
         } catch (InstantiationException e) {
-            throw new IllegalArgumentException("Cannot create rule '" + simpleName + "'.", e);
+            throw new IllegalArgumentException(MessageFormat.format("Cannot create rule ''{0}''.", simpleName), e);
         }
     }
 

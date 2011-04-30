@@ -9,7 +9,7 @@ import static org.junit.Assert.assertNull;
 public class RightAssociativeCompositionTest {
 
     @Test
-    public void testRightAssociativity() throws RuleException {
+    public void testAssociativity() throws RuleException {
         final VariableDescriptor sourceDescriptor = new VariableDescriptor("s");
 
         assertNull(sourceDescriptor.getRole());
