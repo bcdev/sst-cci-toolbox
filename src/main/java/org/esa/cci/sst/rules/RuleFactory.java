@@ -48,7 +48,7 @@ public class RuleFactory {
      * @return the rule.
      */
     public Rule getRule(String specification) {
-        final String[] simpleNames = specification.split(",");
+        final String[] simpleNames = specification.split(",+");
         if (simpleNames.length == 1) {
             return getRuleBySimpleName(specification);
         }
@@ -76,10 +76,12 @@ public class RuleFactory {
     }
 
     private Rule getRuleBySimpleName(String simpleName) {
+        simpleName = simpleName.trim();
         try {
             if (!bySimpleName.containsKey(simpleName)) {
-                final Class<? extends Rule> rule = (Class<? extends Rule>) Class.forName(
-                        getClass().getName().replace(getClass().getSimpleName(), simpleName));
+                final String name = getClass().getName().replace(getClass().getSimpleName(), simpleName);
+                @SuppressWarnings({"unchecked"})
+                final Class<? extends Rule> rule = (Class<? extends Rule>) Class.forName(name);
                 bySimpleName.putIfAbsent(simpleName, rule.newInstance());
             }
             return bySimpleName.get(simpleName);

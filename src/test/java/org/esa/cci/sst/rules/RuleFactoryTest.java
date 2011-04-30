@@ -2,10 +2,33 @@ package org.esa.cci.sst.rules;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class RuleFactoryTest {
+
+    @Test
+    public void testRuleSpecifications() {
+        final RuleFactory factory = RuleFactory.getInstance();
+
+        assertNotNull(factory.getRule("P"));
+        assertNotNull(factory.getRule("P "));
+        assertNotNull(factory.getRule(" P"));
+        assertNotNull(factory.getRule("P,Q"));
+        assertNotNull(factory.getRule("P, Q"));
+        assertNotNull(factory.getRule("P,Q "));
+        assertNotNull(factory.getRule("P,,Q"));
+
+        try {
+            factory.getRule("P,");
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+        try {
+            factory.getRule(",P");
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
 
     @Test
     public void testGetSimpleRule() {
@@ -14,8 +37,13 @@ public class RuleFactoryTest {
         assertTrue(rule instanceof P);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetSimpleRule_Unknown() {
+        RuleFactory.getInstance().getRule("U");
+    }
+
     @Test
-    public void testGetSimpleRuleWithImplicitRenaming() {
+    public void testGetSimpleRule_WithImplicitRenaming() {
         final Rule rule = RuleFactory.getInstance().getRule("P", "R");
 
         assertTrue(rule instanceof RightAssociativeComposition);
@@ -29,7 +57,7 @@ public class RuleFactoryTest {
 
     @Test
     public void testGetRuleComposite() {
-        final Rule rule = RuleFactory.getInstance().getRule("Q,P");
+        final Rule rule = RuleFactory.getInstance().getRule("Q, P");
 
         assertTrue(rule instanceof RightAssociativeComposition);
 
@@ -40,8 +68,13 @@ public class RuleFactoryTest {
         assertTrue(composition.getRule(1) instanceof P);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetRuleComposite_Unknown() {
+        RuleFactory.getInstance().getRule("U,P");
+    }
+
     @Test
-    public void testGetRuleCompositeWithImplicitRenaming() {
+    public void testGetRuleComposite_WithImplicitRenaming() {
         final Rule rule = RuleFactory.getInstance().getRule("Q,P", "R");
 
         assertTrue(rule instanceof RightAssociativeComposition);
