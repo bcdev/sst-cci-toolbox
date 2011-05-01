@@ -1,7 +1,8 @@
 package org.esa.cci.sst.data;
 
 /**
- * Describes a variable.
+ * Used to describe the properties of variables, which can be included
+ * in MMD files.
  *
  * @author Ralf Quast.
  */
