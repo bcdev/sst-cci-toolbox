@@ -44,6 +44,15 @@ public class DescriptorRegistry {
         return Holder.uniqueInstance;
     }
 
+    /**
+     * Registers descriptors defined in a 'mmd-variables.cfg' configuration file.
+     *
+     * @param is The input stream associated with the configuration file.
+     *
+     * @return the list of descriptor names being registered.
+     *
+     * @throws ParseException when the configuration could not be parsed.
+     */
     public List<String> registerDescriptors(InputStream is) throws ParseException {
         synchronized (this) {
             final Scanner scanner = new Scanner(is, "US-ASCII");
@@ -114,7 +123,7 @@ public class DescriptorRegistry {
      *
      * @return the descriptor resulting from {@code rule.apply(sourceDescriptor)}.
      *
-     * @throws org.esa.cci.sst.rules.RuleException when the rule cannot be applied.
+     * @throws RuleException when the rule cannot be applied.
      */
     public Descriptor register(Rule rule, Descriptor sourceDescriptor) throws RuleException {
         synchronized (this) {
