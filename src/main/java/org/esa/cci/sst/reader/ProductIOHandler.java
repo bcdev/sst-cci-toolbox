@@ -39,9 +39,9 @@ import org.esa.beam.util.RasterDataNodeSampleSource;
 import org.esa.beam.util.SampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Descriptor;
+import org.esa.cci.sst.data.DescriptorBuilder;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -135,25 +135,25 @@ public class ProductIOHandler implements IOHandler {
     }
 
     Descriptor setUpVariableDescriptor(final RasterDataNode node) {
-        final VariableDescriptor descriptor = new VariableDescriptor();
-        descriptor.setRole(node.getName());
-        descriptor.setName(String.format("%s.%s", sensorName, node.getName()));
-        descriptor.setSensor(dataFile.getSensor());
+        final DescriptorBuilder descriptorBuilder = new DescriptorBuilder();
+        descriptorBuilder.setRole(node.getName());
+        descriptorBuilder.setName(String.format("%s.%s", sensorName, node.getName()));
+        descriptorBuilder.setSensor(dataFile.getSensor());
         final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
-        descriptor.setType(dataType.name());
+        descriptorBuilder.setType(dataType);
         final String unit = node.getUnit();
         if (unit != null && !unit.isEmpty()) {
-            descriptor.setUnit(unit);
+            descriptorBuilder.setUnit(unit);
         }
-        descriptor.setDimensions("ni nj");
+        descriptorBuilder.setDimensions("ni nj");
         if (node.isScalingApplied()) {
-            descriptor.setAddOffset(node.getScalingOffset());
-            descriptor.setScaleFactor(node.getScalingFactor());
+            descriptorBuilder.setAddOffset(node.getScalingOffset());
+            descriptorBuilder.setScaleFactor(node.getScalingFactor());
         }
         if (node.isNoDataValueUsed()) {
-            descriptor.setFillValue(node.getNoDataValue());
+            descriptorBuilder.setFillValue(node.getNoDataValue());
         }
-        return descriptor;
+        return descriptorBuilder.build();
     }
 
     @Override

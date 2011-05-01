@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.DescriptorBuilder;
 import org.postgis.LineString;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -61,17 +61,17 @@ public class IoUtil {
         }));
     }
 
-    // todo - return type shall be Descriptor (rq-20110501)
-    public static VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName) {
-        final VariableDescriptor descriptor = new VariableDescriptor();
-        descriptor.setName(String.format("%s.%s", sensorName, variable.getName()));
-        descriptor.setType(variable.getDataType().name());
-        setDimensions(variable, descriptor);
-        setUnits(variable, descriptor);
-        setAttributes(variable, descriptor);
-        descriptor.setRole(variable.getName());
 
-        return descriptor;
+    public static DescriptorBuilder createDescriptorBuilder(final Variable variable, final String sensorName) {
+        final DescriptorBuilder builder = new DescriptorBuilder();
+        builder.setName(String.format("%s.%s", sensorName, variable.getName()));
+        builder.setType(variable.getDataType());
+        setDimensions(variable, builder);
+        setUnits(variable, builder);
+        setAttributes(variable, builder);
+        builder.setRole(variable.getName());
+
+        return builder;
     }
 
     public static long timeRadius(Date startTime, Date endTime) {
@@ -91,41 +91,41 @@ public class IoUtil {
         return lon;
     }
 
-    private static void setAttributes(final Variable variable, final VariableDescriptor descriptor) {
+    private static void setAttributes(final Variable variable, final DescriptorBuilder builder) {
         for (final Attribute attribute : variable.getAttributes()) {
             if ("add_offset".equals(attribute.getName())) {
-                descriptor.setAddOffset(attribute.getNumericValue());
+                builder.setAddOffset(attribute.getNumericValue());
             }
             if ("scale_factor".equals(attribute.getName())) {
-                descriptor.setScaleFactor(attribute.getNumericValue());
+                builder.setScaleFactor(attribute.getNumericValue());
             }
             if ("_FillValue".equals(attribute.getName())) {
-                descriptor.setFillValue(attribute.getNumericValue());
+                builder.setFillValue(attribute.getNumericValue());
             }
             if ("valid_min".equals(attribute.getName())) {
-                descriptor.setValidMin(attribute.getNumericValue());
+                builder.setValidMin(attribute.getNumericValue());
             }
             if ("valid_max".equals(attribute.getName())) {
-                descriptor.setValidMax(attribute.getNumericValue());
+                builder.setValidMax(attribute.getNumericValue());
             }
             if ("long_name".equals(attribute.getName())) {
-                descriptor.setLongName(attribute.getStringValue());
+                builder.setLongName(attribute.getStringValue());
             }
             if ("standard_name".equals(attribute.getName())) {
-                descriptor.setStandardName(attribute.getStringValue());
+                builder.setStandardName(attribute.getStringValue());
             }
         }
     }
 
-    private static void setDimensions(final Variable variable, final VariableDescriptor descriptor) {
+    private static void setDimensions(final Variable variable, final DescriptorBuilder builder) {
         final String dimensions = variable.getDimensionsString();
-        descriptor.setDimensions(dimensions);
+        builder.setDimensions(dimensions);
     }
 
-    private static void setUnits(final Variable variable, final VariableDescriptor descriptor) {
+    private static void setUnits(final Variable variable, final DescriptorBuilder builder) {
         final String units = variable.getUnitsString();
         if (units != null && !units.isEmpty()) {
-            descriptor.setUnit(units);
+            builder.setUnit(units);
         }
     }
 

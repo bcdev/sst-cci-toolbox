@@ -18,7 +18,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Descriptor;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -107,9 +106,7 @@ abstract class NetcdfIOHandler implements IOHandler {
 
     private static Descriptor createVariableDescriptor(final Variable variable, final String sensorName,
                                                        final DataFile dataFile) {
-        final VariableDescriptor descriptor = IoUtil.createVariableDescriptor(variable, sensorName);
-        descriptor.setSensor(dataFile.getSensor());
-        return descriptor;
+        return IoUtil.createDescriptorBuilder(variable, sensorName).setSensor(dataFile.getSensor()).build();
     }
 
 }

@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Descriptor;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.DescriptorBuilder;
 import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
@@ -21,31 +21,31 @@ public abstract class IntegralNumberToRealNumber implements Rule {
                                               sourceDataType.name()));
         Assert.type(sourceDataType, sourceDescriptor);
 
-        final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        targetDescriptor.setAddOffset(null);
-        targetDescriptor.setScaleFactor(null);
-        targetDescriptor.setType(getTargetDataType().name());
-        targetDescriptor.setFillValue(null);
+        final DescriptorBuilder builder = new DescriptorBuilder(sourceDescriptor);
+        builder.setAddOffset(null);
+        builder.setScaleFactor(null);
+        builder.setType(getTargetDataType());
+        builder.setFillValue(null);
 
         final Number sourceFillValue = sourceDescriptor.getFillValue();
         if (sourceFillValue != null) {
             switch (sourceDataType) {
             case BYTE:
-                targetDescriptor.setFillValue(apply(sourceFillValue.byteValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.byteValue(), sourceDescriptor));
                 break;
             case SHORT:
-                targetDescriptor.setFillValue(apply(sourceFillValue.shortValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.shortValue(), sourceDescriptor));
                 break;
             case INT:
-                targetDescriptor.setFillValue(apply(sourceFillValue.intValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.intValue(), sourceDescriptor));
                 break;
             case LONG:
-                targetDescriptor.setFillValue(apply(sourceFillValue.longValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.longValue(), sourceDescriptor));
                 break;
             }
         }
 
-        return targetDescriptor;
+        return builder.build();
     }
 
     @Override

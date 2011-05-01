@@ -3,9 +3,9 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.DescriptorRegistry;
 import org.esa.cci.sst.data.Descriptor;
-import org.esa.cci.sst.data.VariableDescriptor;
-import org.esa.cci.sst.rules.RuleFactory;
+import org.esa.cci.sst.data.DescriptorBuilder;
 import org.esa.cci.sst.rules.Rule;
+import org.esa.cci.sst.rules.RuleFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class DimensionConversionTest {
 
-    public static final String CALLSIGN_VARIABLE_TYPE = DataType.CHAR.name();
+    public static final DataType CALLSIGN_VARIABLE_TYPE = DataType.CHAR;
     public static final String CALLSIGN_VARIABLE_NAME = "callsign";
 
     private DescriptorRegistry registry = DescriptorRegistry.getInstance();
@@ -31,26 +31,26 @@ public class DimensionConversionTest {
         final Descriptor targetDescriptor = registry.getDescriptor(CALLSIGN_VARIABLE_NAME);
 
         assertEquals(CALLSIGN_VARIABLE_NAME, targetDescriptor.getName());
-        assertEquals(CALLSIGN_VARIABLE_TYPE, targetDescriptor.getType());
+        assertEquals(CALLSIGN_VARIABLE_TYPE.name(), targetDescriptor.getType());
         assertEquals("matchup callsign.length", targetDescriptor.getDimensions());
 
         final Descriptor sourceDescriptor = registry.getSourceDescriptor(targetDescriptor);
 
         assertNotNull(sourceDescriptor);
         assertEquals(CALLSIGN_VARIABLE_NAME, sourceDescriptor.getName());
-        assertEquals(CALLSIGN_VARIABLE_TYPE, sourceDescriptor.getType());
+        assertEquals(CALLSIGN_VARIABLE_TYPE.name(), sourceDescriptor.getType());
         assertEquals("match_up cs_length", sourceDescriptor.getDimensions());
     }
 
     @Before
     public void initRegistry() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("MatchupDimension,CallsignDimension");
-        final VariableDescriptor descriptor = new VariableDescriptor();
-        descriptor.setName(CALLSIGN_VARIABLE_NAME);
-        descriptor.setType(CALLSIGN_VARIABLE_TYPE);
-        descriptor.setDimensions("match_up cs_length");
+        final DescriptorBuilder builder = new DescriptorBuilder();
+        builder.setName(CALLSIGN_VARIABLE_NAME);
+        builder.setType(CALLSIGN_VARIABLE_TYPE);
+        builder.setDimensions("match_up cs_length");
 
-        registry.register(rule, descriptor);
+        registry.register(rule, builder.build());
     }
 
     @After

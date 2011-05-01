@@ -22,7 +22,6 @@ import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
@@ -53,7 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.esa.cci.sst.tools.SensorType.*;
+import static org.esa.cci.sst.tools.SensorType.AVHRR;
 
 /**
  * Default implementation of <code>MmdGenerator</code>, writing all variables. This class provides some (package
@@ -259,8 +258,8 @@ class MmdGenerator {
             ioHandlerMap.put(sensorName, handler);
         }
         final DataFile handlerDataFile = handler.getDataFile();
-        if(observation.getDatafile() != handlerDataFile) {
-            if(handlerDataFile != null) {
+        if (observation.getDatafile() != handlerDataFile) {
+            if (handlerDataFile != null) {
                 handler.close();
             }
             handler.init(observation.getDatafile());

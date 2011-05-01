@@ -35,7 +35,7 @@ public final class VariableDescriptor implements Descriptor {
     public VariableDescriptor() {
     }
 
-    public VariableDescriptor(Descriptor descriptor) {
+    VariableDescriptor(Descriptor descriptor) {
         name = descriptor.getName();
         type = descriptor.getType();
         dimensions = descriptor.getDimensions();

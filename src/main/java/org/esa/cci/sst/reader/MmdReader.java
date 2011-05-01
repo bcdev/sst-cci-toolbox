@@ -21,7 +21,6 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -159,8 +158,6 @@ class MmdReader implements ObservationReader {
     }
 
     private Descriptor createVariableDescriptor(final Variable variable, final DataFile dataFile) {
-        final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensor);
-        variableDescriptor.setSensor(dataFile.getSensor());
-        return variableDescriptor;
+        return IoUtil.createDescriptorBuilder(variable, sensor).setSensor(dataFile.getSensor()).build();
     }
 }

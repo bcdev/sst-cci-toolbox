@@ -6,7 +6,6 @@ import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.Timed;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
@@ -105,13 +104,11 @@ public class IngestionTool extends MmsTool {
      * every 65536 records. If ingestion fails rollback is only performed to
      * the respective checkpoint.
      *
-     *
-     *
      * @param file       The input file with records to be read and made persistent as observations.
      * @param readerSpec The specification string for the reader.
      * @param sensorName The sensor name.
-     *
      * @param pattern
+     *
      * @throws ToolException if ingestion fails
      */
     private void ingest(File file, String readerSpec, String sensorName, long pattern) throws ToolException {
@@ -132,7 +129,7 @@ public class IngestionTool extends MmsTool {
             ioHandler.init(dataFile);
 
             persistenceManager.persist(dataFile);
-            if(addVariables) {
+            if (addVariables) {
                 persistVariableDescriptors(sensorName, ioHandler);
             }
 

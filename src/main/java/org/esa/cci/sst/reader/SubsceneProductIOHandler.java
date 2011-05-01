@@ -20,7 +20,6 @@ import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.BoundaryCalculator;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;

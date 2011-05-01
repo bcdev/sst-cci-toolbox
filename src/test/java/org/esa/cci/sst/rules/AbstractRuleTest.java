@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Descriptor;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.DescriptorBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,14 +13,12 @@ import org.junit.Test;
 public abstract class AbstractRuleTest {
 
     private Rule rule;
-    private VariableDescriptor sourceDescriptor;
+    private Descriptor sourceDescriptor;
 
     @Before
     public final void init() {
         rule = RuleFactory.getInstance().getRule(getClass().getSimpleName().replace("Test", ""));
-
-        sourceDescriptor = new VariableDescriptor();
-        configureSourceDescriptor();
+        sourceDescriptor = configureSourceDescriptorBuilder(new DescriptorBuilder()).build();
     }
 
     @Test
@@ -41,9 +39,9 @@ public abstract class AbstractRuleTest {
 
     protected abstract void assertTargetDescriptor(Descriptor targetDescriptor);
 
-    protected abstract void configureSourceDescriptor();
+    protected abstract DescriptorBuilder configureSourceDescriptorBuilder(DescriptorBuilder descriptorBuilder);
 
-    protected final VariableDescriptor getSourceDescriptor() {
+    protected final Descriptor getSourceDescriptor() {
         return sourceDescriptor;
     }
 

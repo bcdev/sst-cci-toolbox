@@ -3,7 +3,6 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 

@@ -74,7 +74,8 @@ public class TargetVariableConfigurationTest {
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
             final DescriptorRegistry registry = DescriptorRegistry.getInstance();
             for (final Variable variable : netcdfFile.getVariables()) {
-                registry.register(IoUtil.createVariableDescriptor(variable, sensor));
+                final Descriptor variableDescriptor = IoUtil.createDescriptorBuilder(variable, sensor).build();
+                registry.register(variableDescriptor);
             }
         } finally {
             if (netcdfFile != null) {

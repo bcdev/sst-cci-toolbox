@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Descriptor;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.DescriptorBuilder;
 import org.junit.Test;
 import ucar.ma2.DataType;
 
@@ -33,7 +33,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
     @Test
     public void testNumericConversion() throws RuleException {
         final Rule rule = getRule();
-        final VariableDescriptor sourceDescriptor = getSourceDescriptor();
+        final Descriptor sourceDescriptor = getSourceDescriptor();
         final Number result = rule.apply((short) 5, sourceDescriptor);
 
         assertTrue(result instanceof Float);
@@ -42,10 +42,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
 
     @Test(expected = RuleException.class)
     public void testDescriptorConversion_ImproperType() throws Exception {
-        final VariableDescriptor sourceDescriptor = getSourceDescriptor();
-        sourceDescriptor.setType(DataType.BYTE.name());
-
-        getRule().apply(sourceDescriptor);
+        getRule().apply(new DescriptorBuilder().setType(DataType.BYTE).build());
     }
 
     @Override
@@ -58,12 +55,13 @@ public class ShortToFloatTest extends AbstractRuleTest {
     }
 
     @Override
-    protected void configureSourceDescriptor() {
-        final VariableDescriptor sourceDescriptor = getSourceDescriptor();
-        sourceDescriptor.setType(DataType.SHORT.name());
-        sourceDescriptor.setAddOffset(0.5f);
-        sourceDescriptor.setScaleFactor(2.0f);
-        sourceDescriptor.setFillValue(-1);
+    protected DescriptorBuilder configureSourceDescriptorBuilder(DescriptorBuilder descriptorBuilder) {
+        descriptorBuilder.setType(DataType.SHORT);
+        descriptorBuilder.setAddOffset(0.5f);
+        descriptorBuilder.setScaleFactor(2.0f);
+        descriptorBuilder.setFillValue(-1);
+
+        return descriptorBuilder;
     }
 
 }

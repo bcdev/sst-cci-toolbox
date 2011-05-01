@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Descriptor;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.DescriptorBuilder;
 import ucar.ma2.DataType;
 
 /**
@@ -14,14 +14,14 @@ final class JulianDateToSeconds implements Rule {
         Assert.type(DataType.DOUBLE, sourceDescriptor);
         Assert.unit("Julian Date", sourceDescriptor);
 
-        final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
-        targetDescriptor.setUnit("seconds since 1978-01-01 00:00:00");
+        final DescriptorBuilder builder = new DescriptorBuilder(sourceDescriptor);
+        builder.setUnit("seconds since 1978-01-01 00:00:00");
         final Number sourceFillValue = sourceDescriptor.getFillValue();
         if (sourceFillValue != null) {
-            targetDescriptor.setFillValue(apply(sourceFillValue.doubleValue(), sourceDescriptor));
+            builder.setFillValue(apply(sourceFillValue.doubleValue(), sourceDescriptor));
         }
 
-        return targetDescriptor;
+        return builder.build();
     }
 
     @Override
