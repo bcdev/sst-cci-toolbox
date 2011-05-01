@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.junit.Test;
 import ucar.ma2.DataType;
@@ -48,7 +49,7 @@ public class IntToFloatTest extends AbstractRuleTest {
     }
 
     @Override
-    public void assertTargetDescriptor(VariableDescriptor targetDescriptor) {
+    public void assertTargetDescriptor(Descriptor targetDescriptor) {
         assertTrue(DataType.FLOAT.name().equals(targetDescriptor.getType()));
         assertTrue(targetDescriptor.getAddOffset() == null);
         assertTrue(targetDescriptor.getScaleFactor() == null);

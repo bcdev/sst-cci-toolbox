@@ -15,44 +15,40 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_variable")
-public final class VariableDescriptor {
+public final class VariableDescriptor implements Descriptor {
 
     int id;
-    Sensor sensor;
-    String role;
     String name;
     String type;
     String dimensions;
     String unit;
-    String standardName;
     Number addOffset;
     Number scaleFactor;
     Number fillValue;
     Number validMin;
     Number validMax;
+    String standardName;
     String longName;
+    String role;
+    Sensor sensor;
 
     public VariableDescriptor() {
     }
 
-    public VariableDescriptor(String name) {
-        this.name = name;
-    }
-
-    public VariableDescriptor(VariableDescriptor descriptor) {
-        sensor = descriptor.sensor;
-        role = descriptor.role;
-        name = descriptor.name;
-        type = descriptor.type;
-        dimensions = descriptor.dimensions;
-        unit = descriptor.unit;
-        standardName = descriptor.standardName;
-        addOffset = descriptor.addOffset;
-        scaleFactor = descriptor.scaleFactor;
-        fillValue = descriptor.fillValue;
-        validMin = descriptor.validMin;
-        validMax = descriptor.validMax;
-        longName = descriptor.longName;
+    public VariableDescriptor(Descriptor descriptor) {
+        name = descriptor.getName();
+        type = descriptor.getType();
+        dimensions = descriptor.getDimensions();
+        unit = descriptor.getUnit();
+        addOffset = descriptor.getAddOffset();
+        scaleFactor = descriptor.getScaleFactor();
+        fillValue = descriptor.getFillValue();
+        validMin = descriptor.getValidMin();
+        validMax = descriptor.getValidMax();
+        standardName = descriptor.getStandardName();
+        longName = descriptor.getLongName();
+        role = descriptor.getRole();
+        sensor = descriptor.getSensor();
     }
 
     @Id
@@ -65,6 +61,7 @@ public final class VariableDescriptor {
         this.id = id;
     }
 
+    @Override
     @ManyToOne
     public Sensor getSensor() {
         return sensor;
@@ -74,6 +71,7 @@ public final class VariableDescriptor {
         this.sensor = sensor;
     }
 
+    @Override
     public String getRole() {
         return role;
     }
@@ -82,6 +80,7 @@ public final class VariableDescriptor {
         this.role = role;
     }
 
+    @Override
     @Column(unique = true, nullable = false)
     public String getName() {
         return name;
@@ -91,6 +90,7 @@ public final class VariableDescriptor {
         this.name = name;
     }
 
+    @Override
     public String getType() {
         return type;
     }
@@ -99,6 +99,7 @@ public final class VariableDescriptor {
         this.type = type;
     }
 
+    @Override
     public String getDimensions() {
         return dimensions;
     }
@@ -107,6 +108,7 @@ public final class VariableDescriptor {
         this.dimensions = dimensions;
     }
 
+    @Override
     public String getUnit() {
         return unit;
     }
@@ -115,6 +117,7 @@ public final class VariableDescriptor {
         this.unit = unit;
     }
 
+    @Override
     public Number getAddOffset() {
         return addOffset;
     }
@@ -123,6 +126,7 @@ public final class VariableDescriptor {
         this.addOffset = addOffset;
     }
 
+    @Override
     public Number getScaleFactor() {
         return scaleFactor;
     }
@@ -131,6 +135,7 @@ public final class VariableDescriptor {
         this.scaleFactor = scaleFactor;
     }
 
+    @Override
     public Number getFillValue() {
         return fillValue;
     }
@@ -139,6 +144,7 @@ public final class VariableDescriptor {
         this.fillValue = fillValue;
     }
 
+    @Override
     public String getStandardName() {
         return standardName;
     }
@@ -147,6 +153,7 @@ public final class VariableDescriptor {
         this.standardName = standardName;
     }
 
+    @Override
     public Number getValidMin() {
         return validMin;
     }
@@ -155,6 +162,7 @@ public final class VariableDescriptor {
         this.validMin = validMin;
     }
 
+    @Override
     public Number getValidMax() {
         return validMax;
     }
@@ -167,6 +175,7 @@ public final class VariableDescriptor {
         this.longName = longName;
     }
 
+    @Override
     public String getLongName() {
         return longName;
     }

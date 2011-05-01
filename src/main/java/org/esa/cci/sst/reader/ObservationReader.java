@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
 
 import java.io.IOException;
 
@@ -30,6 +30,6 @@ public interface ObservationReader {
 
     Observation readObservation(int recordNo) throws IOException;
 
-    VariableDescriptor[] getVariableDescriptors() throws IOException;
+    Descriptor[] getVariableDescriptors() throws IOException;
 
 }

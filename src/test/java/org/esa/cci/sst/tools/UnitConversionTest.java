@@ -1,8 +1,9 @@
-package org.esa.cci.sst;
+package org.esa.cci.sst.tools;
 
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.Converter;
-import org.esa.cci.sst.rules.DescriptorRegistry;
+import org.esa.cci.sst.DescriptorRegistry;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.rules.RuleFactory;
 import org.esa.cci.sst.rules.Rule;
@@ -29,13 +30,13 @@ public class UnitConversionTest {
 
     @Test
     public void testDescriptorConversion() {
-        final VariableDescriptor targetDescriptor = registry.getDescriptor(TIME_VARIABLE_NAME);
+        final Descriptor targetDescriptor = registry.getDescriptor(TIME_VARIABLE_NAME);
 
         assertEquals(TIME_VARIABLE_NAME, targetDescriptor.getName());
         assertEquals(TIME_VARIABLE_TYPE, targetDescriptor.getType());
         assertEquals("seconds since 1978-01-01 00:00:00", targetDescriptor.getUnit());
 
-        final VariableDescriptor sourceDescriptor = registry.getSourceDescriptor(targetDescriptor);
+        final Descriptor sourceDescriptor = registry.getSourceDescriptor(targetDescriptor);
 
         assertNotNull(sourceDescriptor);
         assertEquals(TIME_VARIABLE_NAME, sourceDescriptor.getName());
@@ -45,7 +46,7 @@ public class UnitConversionTest {
 
     @Test
     public void testNumericConversion() throws RuleException {
-        final VariableDescriptor targetDescriptor = registry.getDescriptor(TIME_VARIABLE_NAME);
+        final Descriptor targetDescriptor = registry.getDescriptor(TIME_VARIABLE_NAME);
 
         assertNotNull(targetDescriptor);
 

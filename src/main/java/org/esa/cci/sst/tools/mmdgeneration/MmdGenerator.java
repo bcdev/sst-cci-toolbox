@@ -18,6 +18,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -126,7 +127,7 @@ class MmdGenerator {
         IOHandler ioHandler = null;
         try {
             ioHandler = createIOHandler(observation);
-            for (final VariableDescriptor descriptor : ioHandler.getVariableDescriptors()) {
+            for (final Descriptor descriptor : ioHandler.getVariableDescriptors()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                     final String sourceVariableName = descriptor.getRole();
                     final String targetVariableName = getTargetVariableName(descriptor.getName());

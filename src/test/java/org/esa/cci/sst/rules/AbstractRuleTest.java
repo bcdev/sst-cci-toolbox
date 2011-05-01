@@ -1,5 +1,6 @@
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,8 +26,8 @@ public abstract class AbstractRuleTest {
     @Test
     public final void testDescriptorConversion() throws RuleException {
         final Rule rule = getRule();
-        final VariableDescriptor sourceDescriptor = getSourceDescriptor();
-        final VariableDescriptor targetDescriptor = rule.apply(sourceDescriptor);
+        final Descriptor sourceDescriptor = getSourceDescriptor();
+        final Descriptor targetDescriptor = rule.apply(sourceDescriptor);
 
         assertTargetDescriptor(targetDescriptor);
     }
@@ -38,7 +39,7 @@ public abstract class AbstractRuleTest {
         return rule;
     }
 
-    protected abstract void assertTargetDescriptor(VariableDescriptor targetDescriptor);
+    protected abstract void assertTargetDescriptor(Descriptor targetDescriptor);
 
     protected abstract void configureSourceDescriptor();
 

@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
@@ -55,7 +56,7 @@ public interface IOHandler {
      */
     Observation readObservation(int recordNo) throws IOException;
 
-    VariableDescriptor[] getVariableDescriptors() throws IOException;
+    Descriptor[] getVariableDescriptors() throws IOException;
 
     /**
      * Writes the variable from the observation in the file.

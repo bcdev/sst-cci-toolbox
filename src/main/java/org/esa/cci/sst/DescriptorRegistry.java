@@ -1,6 +1,10 @@
-package org.esa.cci.sst.rules;
+package org.esa.cci.sst;
 
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Descriptor;
+import org.esa.cci.sst.rules.Converter;
+import org.esa.cci.sst.rules.Rule;
+import org.esa.cci.sst.rules.RuleException;
+import org.esa.cci.sst.rules.RuleFactory;
 
 import java.io.InputStream;
 import java.text.ParseException;
@@ -12,23 +16,23 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * A registry for {@link VariableDescriptor}s.
+ * A registry for {@link Descriptor}s.
  * <p/>
- * The registry is used as an access point for all {@link VariableDescriptor}s that describe
+ * The registry is used as an access point for all {@link Descriptor}s that describe
  * the target variables in an MMD file.
  *
  * @author Ralf Quast
  */
 public class DescriptorRegistry {
 
-    private final Map<String, VariableDescriptor> descriptorsByName;
-    private final Map<VariableDescriptor, Rule> rulesByTarget;
-    private final Map<VariableDescriptor, VariableDescriptor> descriptorsByTarget;
+    private final Map<String, Descriptor> descriptorsByName;
+    private final Map<Descriptor, Rule> rulesByTarget;
+    private final Map<Descriptor, Descriptor> descriptorsByTarget;
 
     private DescriptorRegistry() {
-        descriptorsByName = new HashMap<String, VariableDescriptor>();
-        rulesByTarget = new HashMap<VariableDescriptor, Rule>();
-        descriptorsByTarget = new HashMap<VariableDescriptor, VariableDescriptor>();
+        descriptorsByName = new HashMap<String, Descriptor>();
+        rulesByTarget = new HashMap<Descriptor, Rule>();
+        descriptorsByTarget = new HashMap<Descriptor, Descriptor>();
     }
 
     /**
@@ -84,9 +88,9 @@ public class DescriptorRegistry {
      *
      * @param descriptor The descriptor to be registered.
      */
-    public void register(VariableDescriptor descriptor) {
+    public void register(Descriptor descriptor) {
         synchronized (this) {
-            final VariableDescriptor previous = descriptorsByName.put(descriptor.getName(), descriptor);
+            final Descriptor previous = descriptorsByName.put(descriptor.getName(), descriptor);
             if (previous != null) {
                 descriptorsByTarget.remove(previous);
                 rulesByTarget.remove(previous);
@@ -110,11 +114,11 @@ public class DescriptorRegistry {
      *
      * @return the descriptor resulting from {@code rule.apply(sourceDescriptor)}.
      *
-     * @throws RuleException when the rule cannot be applied.
+     * @throws org.esa.cci.sst.rules.RuleException when the rule cannot be applied.
      */
-    public VariableDescriptor register(Rule rule, VariableDescriptor sourceDescriptor) throws RuleException {
+    public Descriptor register(Rule rule, Descriptor sourceDescriptor) throws RuleException {
         synchronized (this) {
-            final VariableDescriptor targetDescriptor = rule.apply(sourceDescriptor);
+            final Descriptor targetDescriptor = rule.apply(sourceDescriptor);
             descriptorsByName.put(targetDescriptor.getName(), targetDescriptor);
             rulesByTarget.put(targetDescriptor, rule);
             descriptorsByTarget.put(targetDescriptor, sourceDescriptor);
@@ -141,7 +145,7 @@ public class DescriptorRegistry {
      *
      * @return the variable descriptor associated with the name supplied as argument.
      */
-    public VariableDescriptor getDescriptor(String name) {
+    public Descriptor getDescriptor(String name) {
         synchronized (descriptorsByName) {
             return descriptorsByName.get(name);
         }
@@ -157,7 +161,7 @@ public class DescriptorRegistry {
      * @return a converter suitable for numeric conversions into numbers complying
      *         with the target descriptor.
      */
-    public Converter getConverter(VariableDescriptor targetDescriptor) {
+    public Converter getConverter(Descriptor targetDescriptor) {
         synchronized (this) {
             return new ConverterImpl(rulesByTarget.get(targetDescriptor), descriptorsByTarget.get(targetDescriptor));
         }
@@ -170,7 +174,7 @@ public class DescriptorRegistry {
      *
      * @return the source descriptor associated with the target descriptor supplied as argument.
      */
-    public VariableDescriptor getSourceDescriptor(VariableDescriptor targetDescriptor) {
+    public Descriptor getSourceDescriptor(Descriptor targetDescriptor) {
         synchronized (descriptorsByTarget) {
             return descriptorsByTarget.get(targetDescriptor);
         }
@@ -198,30 +202,30 @@ public class DescriptorRegistry {
 
     private void parseIdentity(List<String> nameList, String sourceName) throws Exception {
         ensureSourceDescriptorIsRegistered(sourceName);
-        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
+        final Descriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule = RuleFactory.getInstance().getRule("Identity");
-        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
+        final Descriptor targetDescriptor = register(rule, sourceDescriptor);
         nameList.add(targetDescriptor.getName());
     }
 
     private void parseRenaming(List<String> nameList, String targetName, String sourceName) throws Exception {
         ensureSourceDescriptorIsRegistered(sourceName);
-        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
+        final Descriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule = RuleFactory.getInstance().getRenamingRule(targetName);
-        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
+        final Descriptor targetDescriptor = register(rule, sourceDescriptor);
         nameList.add(targetDescriptor.getName());
     }
 
     private void parseRule(List<String> nameList, String targetName, String sourceName, String spec) throws Exception {
         ensureSourceDescriptorIsRegistered(sourceName);
-        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
+        final Descriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule;
         if (targetName.equals(sourceName)) {
             rule = RuleFactory.getInstance().getRule(spec);
         } else {
             rule = RuleFactory.getInstance().getRule(spec, targetName);
         }
-        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
+        final Descriptor targetDescriptor = register(rule, sourceDescriptor);
         nameList.add(targetDescriptor.getName());
     }
 
@@ -242,9 +246,9 @@ public class DescriptorRegistry {
     private static class ConverterImpl implements Converter {
 
         private final Rule rule;
-        private final VariableDescriptor sourceDescriptor;
+        private final Descriptor sourceDescriptor;
 
-        public ConverterImpl(Rule rule, VariableDescriptor sourceDescriptor) {
+        public ConverterImpl(Rule rule, Descriptor sourceDescriptor) {
             this.rule = rule;
             this.sourceDescriptor = sourceDescriptor;
         }

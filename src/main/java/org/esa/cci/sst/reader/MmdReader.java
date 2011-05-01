@@ -18,6 +18,7 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.VariableDescriptor;
@@ -73,15 +74,15 @@ class MmdReader implements ObservationReader {
     }
 
     @Override
-    public VariableDescriptor[] getVariableDescriptors() throws IOException {
-        final List<VariableDescriptor> variableDescriptors = new ArrayList<VariableDescriptor>();
+    public Descriptor[] getVariableDescriptors() throws IOException {
+        final List<Descriptor> variableDescriptors = new ArrayList<Descriptor>();
         final List<Variable> variables = mmd.getVariables();
         final DataFile datafile = dataFile;
         for (Variable variable : variables) {
-            final VariableDescriptor variableDescriptor = createVariableDescriptor(variable, datafile);
+            final Descriptor variableDescriptor = createVariableDescriptor(variable, datafile);
             variableDescriptors.add(variableDescriptor);
         }
-        return variableDescriptors.toArray(new VariableDescriptor[variableDescriptors.size()]);
+        return variableDescriptors.toArray(new Descriptor[variableDescriptors.size()]);
     }
 
     Date getCreationDate(final int recordNo, Variable variable) throws IOException {
@@ -157,7 +158,7 @@ class MmdReader implements ObservationReader {
         }
     }
 
-    private VariableDescriptor createVariableDescriptor(final Variable variable, final DataFile dataFile) {
+    private Descriptor createVariableDescriptor(final Variable variable, final DataFile dataFile) {
         final VariableDescriptor variableDescriptor = IoUtil.createVariableDescriptor(variable, sensor);
         variableDescriptor.setSensor(dataFile.getSensor());
         return variableDescriptor;

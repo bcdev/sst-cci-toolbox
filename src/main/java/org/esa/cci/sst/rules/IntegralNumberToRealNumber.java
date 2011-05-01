@@ -1,5 +1,6 @@
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.VariableDescriptor;
 import ucar.ma2.DataType;
 
@@ -13,7 +14,7 @@ import java.text.MessageFormat;
 public abstract class IntegralNumberToRealNumber implements Rule {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
+    public Descriptor apply(Descriptor sourceDescriptor) throws RuleException {
         final DataType sourceDataType = getSourceDataType();
         Assert.condition(sourceDataType.isIntegral(),
                          MessageFormat.format("Expected integral numeric type, actual type is ''{0}''.",
@@ -48,7 +49,7 @@ public abstract class IntegralNumberToRealNumber implements Rule {
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+    public Number apply(Number number, Descriptor sourceDescriptor) throws RuleException {
         Number sourceAddOffset = sourceDescriptor.getAddOffset();
         Number sourceScaleFactor = sourceDescriptor.getScaleFactor();
         if (sourceScaleFactor == null) {

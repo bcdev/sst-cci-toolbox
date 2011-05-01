@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
@@ -81,10 +82,10 @@ public class IngestionTool extends MmsTool {
     }
 
     void persistVariableDescriptors(final String sensorName, final IOHandler ioHandler) throws IOException {
-        final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
+        final Descriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
         getLogger().info(MessageFormat.format("Number of variables for sensor ''{0}'' = {1}.",
                                               sensorName, variableDescriptors.length));
-        for (final VariableDescriptor variableDescriptor : variableDescriptors) {
+        for (final Descriptor variableDescriptor : variableDescriptors) {
             getPersistenceManager().persist(variableDescriptor);
         }
     }

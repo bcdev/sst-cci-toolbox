@@ -61,14 +61,15 @@ public class IoUtil {
         }));
     }
 
+    // todo - return type shall be Descriptor (rq-20110501)
     public static VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName) {
         final VariableDescriptor descriptor = new VariableDescriptor();
-        descriptor.setRole(variable.getName());
         descriptor.setName(String.format("%s.%s", sensorName, variable.getName()));
         descriptor.setType(variable.getDataType().name());
         setDimensions(variable, descriptor);
-        setAttributes(variable, descriptor);
         setUnits(variable, descriptor);
+        setAttributes(variable, descriptor);
+        descriptor.setRole(variable.getName());
 
         return descriptor;
     }

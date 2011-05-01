@@ -1,6 +1,6 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Descriptor;
 
 /**
  * Identity.
@@ -10,12 +10,12 @@ import org.esa.cci.sst.data.VariableDescriptor;
 final class Identity implements Rule {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) {
+    public Descriptor apply(Descriptor sourceDescriptor) {
         return sourceDescriptor;
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor sourceDescriptor) {
+    public Number apply(Number number, Descriptor sourceDescriptor) {
         return number;
     }
 }

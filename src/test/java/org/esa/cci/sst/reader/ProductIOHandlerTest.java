@@ -5,9 +5,9 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.After;
 import org.junit.Test;
@@ -115,7 +115,7 @@ public class ProductIOHandlerTest {
     @Test
     public void testGetVariableDescriptors_AAI() throws URISyntaxException, IOException {
         init(getResourceAsFile(AAI_RESOURCE_NAME));
-        final VariableDescriptor[] descriptors = handler.getVariableDescriptors();
+        final Descriptor[] descriptors = handler.getVariableDescriptors();
 
         assertEquals(1, descriptors.length);
     }
@@ -123,7 +123,7 @@ public class ProductIOHandlerTest {
     @Test
     public void testGetVariableDescriptors_AMSR() throws URISyntaxException, IOException {
         init(getResourceAsFile(AMSR_RESOURCE_NAME));
-        final VariableDescriptor[] descriptors = handler.getVariableDescriptors();
+        final Descriptor[] descriptors = handler.getVariableDescriptors();
 
         assertEquals(12, descriptors.length);
     }

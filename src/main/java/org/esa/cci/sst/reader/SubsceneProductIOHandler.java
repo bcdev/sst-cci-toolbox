@@ -16,6 +16,7 @@ import org.esa.beam.util.QuadTreePixelFinder;
 import org.esa.beam.util.RasterDataNodeSampleSource;
 import org.esa.beam.util.SampleSource;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -110,22 +111,18 @@ public class SubsceneProductIOHandler extends ProductIOHandler {
     }
 
     @Override
-    public VariableDescriptor[] getVariableDescriptors() throws IOException {
-        final ArrayList<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
+    public Descriptor[] getVariableDescriptors() throws IOException {
+        final ArrayList<Descriptor> variableDescriptorList = new ArrayList<Descriptor>();
         for (RasterDataNode node : product.getTiePointGrids()) {
-            final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
-            variableDescriptor.setUnit(node.getUnit());
+            final Descriptor variableDescriptor = setUpVariableDescriptor(node);
             variableDescriptorList.add(variableDescriptor);
         }
         for (RasterDataNode node : product.getBands()) {
-            final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
+            final Descriptor variableDescriptor = setUpVariableDescriptor(node);
             final String units = node.getUnit();
-            if (units != null && !units.isEmpty()) {
-                variableDescriptor.setUnit(units);
-            }
             variableDescriptorList.add(variableDescriptor);
         }
-        return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
+        return variableDescriptorList.toArray(new Descriptor[variableDescriptorList.size()]);
     }
 
     private static PGgeometry createGeometry(Point[] geoBoundary) throws IOException {

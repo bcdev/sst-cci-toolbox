@@ -20,12 +20,7 @@ import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.atsr.AtsrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.OsiProductReaderPlugIn;
-import org.esa.beam.util.PixelFinder;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
-import org.esa.beam.util.QuadTreePixelFinder;
-import org.esa.beam.util.RasterDataNodeSampleSource;
-import org.esa.beam.util.SampleSource;
-import org.esa.beam.framework.datamodel.TiePointGeoCodingWithFallback;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
@@ -36,8 +31,14 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.beam.framework.datamodel.TiePointGeoCoding;
+import org.esa.beam.framework.datamodel.TiePointGeoCodingWithFallback;
 import org.esa.beam.framework.datamodel.TiePointGrid;
+import org.esa.beam.util.PixelFinder;
+import org.esa.beam.util.QuadTreePixelFinder;
+import org.esa.beam.util.RasterDataNodeSampleSource;
+import org.esa.beam.util.SampleSource;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.VariableDescriptor;
@@ -116,35 +117,34 @@ public class ProductIOHandler implements IOHandler {
     }
 
     @Override
-    public VariableDescriptor[] getVariableDescriptors() throws IOException {
-        final ArrayList<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
+    public Descriptor[] getVariableDescriptors() throws IOException {
+        final ArrayList<Descriptor> variableDescriptorList = new ArrayList<Descriptor>();
         for (RasterDataNode node : product.getTiePointGrids()) {
-            final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
-            variableDescriptor.setUnit(node.getUnit());
+            final Descriptor variableDescriptor = setUpVariableDescriptor(node);
             variableDescriptorList.add(variableDescriptor);
         }
         for (RasterDataNode node : product.getBands()) {
-            final VariableDescriptor variableDescriptor = setUpVariableDescriptor(node);
-            final String units = node.getUnit();
-            if (units != null && !units.isEmpty()) {
-                variableDescriptor.setUnit(units);
-            }
+            final Descriptor variableDescriptor = setUpVariableDescriptor(node);
             variableDescriptorList.add(variableDescriptor);
         }
-        return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
+        return variableDescriptorList.toArray(new Descriptor[variableDescriptorList.size()]);
     }
 
     Product getProduct() {
         return product;
     }
 
-    VariableDescriptor setUpVariableDescriptor(final RasterDataNode node) {
+    Descriptor setUpVariableDescriptor(final RasterDataNode node) {
         final VariableDescriptor descriptor = new VariableDescriptor();
         descriptor.setRole(node.getName());
         descriptor.setName(String.format("%s.%s", sensorName, node.getName()));
         descriptor.setSensor(dataFile.getSensor());
         final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
         descriptor.setType(dataType.name());
+        final String unit = node.getUnit();
+        if (unit != null && !unit.isEmpty()) {
+            descriptor.setUnit(unit);
+        }
         descriptor.setDimensions("ni nj");
         if (node.isScalingApplied()) {
             descriptor.setAddOffset(node.getScalingOffset());
@@ -268,17 +268,17 @@ public class ProductIOHandler implements IOHandler {
 
     private static Number getSample(Raster raster, int x, int y) {
         switch (raster.getTransferType()) {
-            case DataBuffer.TYPE_BYTE:
-            case DataBuffer.TYPE_SHORT:
-            case DataBuffer.TYPE_USHORT:
-            case DataBuffer.TYPE_INT:
-                return raster.getSample(x, y, 0);
-            case DataBuffer.TYPE_FLOAT:
-                return raster.getSampleFloat(x, y, 0);
-            case DataBuffer.TYPE_DOUBLE:
-                return raster.getSampleDouble(x, y, 0);
-            default:
-                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+        case DataBuffer.TYPE_BYTE:
+        case DataBuffer.TYPE_SHORT:
+        case DataBuffer.TYPE_USHORT:
+        case DataBuffer.TYPE_INT:
+            return raster.getSample(x, y, 0);
+        case DataBuffer.TYPE_FLOAT:
+            return raster.getSampleFloat(x, y, 0);
+        case DataBuffer.TYPE_DOUBLE:
+            return raster.getSampleDouble(x, y, 0);
+        default:
+            throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
 

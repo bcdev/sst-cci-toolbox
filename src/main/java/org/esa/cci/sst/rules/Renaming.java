@@ -1,5 +1,6 @@
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.VariableDescriptor;
 
 /**
@@ -16,7 +17,7 @@ final class Renaming extends DescriptorModification {
     }
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) {
+    public Descriptor apply(Descriptor sourceDescriptor) {
         final VariableDescriptor targetDescriptor = new VariableDescriptor(sourceDescriptor);
         targetDescriptor.setName(targetName);
 

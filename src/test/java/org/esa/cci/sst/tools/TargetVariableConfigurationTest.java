@@ -1,7 +1,7 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.rules.DescriptorRegistry;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.DescriptorRegistry;
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.IoUtil;
 import org.junit.AfterClass;
@@ -42,7 +42,7 @@ public class TargetVariableConfigurationTest {
 
     private void testMetopDescriptor() {
         final DescriptorRegistry registry = DescriptorRegistry.getInstance();
-        final VariableDescriptor targetDescriptor = registry.getDescriptor("metop.brightness_temperature.037");
+        final Descriptor targetDescriptor = registry.getDescriptor("metop.brightness_temperature.037");
 
         assertEquals("matchup metop.ni metop.nj", targetDescriptor.getDimensions());
         assertNotNull(registry.getConverter(targetDescriptor));

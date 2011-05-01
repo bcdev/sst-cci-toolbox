@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.DataType;
@@ -165,8 +165,8 @@ class MmdStructureGenerator {
         final Query query = tool.getPersistenceManager().createQuery(String.format(
                 "select v from VariableDescriptor v where v.name like '%s.%%' order by v.name", sensorName));
         @SuppressWarnings({"unchecked"})
-        final List<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
-        for (final VariableDescriptor descriptor : descriptorList) {
+        final List<Descriptor> descriptorList = new ArrayList<Descriptor>(query.getResultList());
+        for (final Descriptor descriptor : descriptorList) {
             if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                 addVariable(file, descriptor);
             }
@@ -212,13 +212,14 @@ class MmdStructureGenerator {
         // todo: NWP tie point dimensions for all sensors (rq-20110223)
     }
 
-    private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor) {
+    private void addVariable(NetcdfFileWriteable targetFile, Descriptor descriptor) {
         // todo - apply descriptor rules here (rq-20110420)
         final DataType dataType = DataType.valueOf(descriptor.getType());
         final String targetVariableName = getTargetVariableName(descriptor.getName());
         final String dimensions = descriptor.getDimensions();
         if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
-            final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType, dimensions);
+            final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType,
+                                                      dimensions);
             addAttribute(v, "standard_name", descriptor.getStandardName());
             addAttribute(v, "units", descriptor.getUnit());
             addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
@@ -236,24 +237,24 @@ class MmdStructureGenerator {
     private static void addAttribute(Variable v, String attrName, Number attrValue, DataType attrType) {
         if (attrValue != null) {
             switch (attrType) {
-                case BYTE:
-                    v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
-                    break;
-                case SHORT:
-                    v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
-                    break;
-                case INT:
-                    v.addAttribute(new Attribute(attrName, attrValue.intValue()));
-                    break;
-                case FLOAT:
-                    v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
-                    break;
-                case DOUBLE:
-                    v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
-                    break;
-                default:
-                    throw new IllegalArgumentException(MessageFormat.format(
-                            "Attribute type ''{0}'' is not supported", attrType.toString()));
+            case BYTE:
+                v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
+                break;
+            case SHORT:
+                v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
+                break;
+            case INT:
+                v.addAttribute(new Attribute(attrName, attrValue.intValue()));
+                break;
+            case FLOAT:
+                v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
+                break;
+            case DOUBLE:
+                v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
+                break;
+            default:
+                throw new IllegalArgumentException(MessageFormat.format(
+                        "Attribute type ''{0}'' is not supported", attrType.toString()));
             }
         }
     }
