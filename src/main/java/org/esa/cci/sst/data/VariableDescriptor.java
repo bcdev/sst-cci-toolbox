@@ -61,6 +61,7 @@ public final class VariableDescriptor implements Descriptor {
         this.id = id;
     }
 
+    @Override
     @ManyToOne
     public Sensor getSensor() {
         return sensor;
