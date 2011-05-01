@@ -2,6 +2,10 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.VariableDescriptor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A right-associative composition of rules.
  *
@@ -9,34 +13,40 @@ import org.esa.cci.sst.data.VariableDescriptor;
  */
 final class RightAssociativeComposition implements Rule {
 
-    private final Rule[] rules;
+    private final List<Rule> ruleList = new ArrayList<Rule>();
 
     RightAssociativeComposition(Rule... rules) {
-        this.rules = rules;
+        Collections.addAll(ruleList, rules);
     }
 
     @Override
     public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        for (int i = rules.length; i-- > 0;) {
-            sourceDescriptor = rules[i].apply(sourceDescriptor);
+        for (int i = ruleList.size(); i-- > 0;) {
+            sourceDescriptor = ruleList.get(i).apply(sourceDescriptor);
         }
         return sourceDescriptor;
     }
 
     @Override
     public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
-        number = rules[rules.length - 1].apply(number, sourceDescriptor);
-        for (int i = rules.length - 1; i-- > 0;) {
-            number = rules[i].apply(number, rules[i + 1].apply(sourceDescriptor));
+        for (int i = ruleList.size(); i-- > 0;) {
+            final Rule rule = ruleList.get(i);
+            number = rule.apply(number, sourceDescriptor);
+            sourceDescriptor = rule.apply(sourceDescriptor);
         }
         return number;
     }
 
+    RightAssociativeComposition prepend(Rule rule) {
+        ruleList.add(0, rule);
+        return this;
+    }
+
     Rule getRule(int i) {
-        return rules[i];
+        return ruleList.get(i);
     }
 
     int getRuleCount() {
-        return rules.length;
+        return ruleList.size();
     }
 }

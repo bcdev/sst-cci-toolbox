@@ -24,10 +24,12 @@ public interface Rule {
 
     /**
      * Applies the numerical conversion rule to the number supplied as argument.
+     * <p/>
+     * Note that the target descriptor can be obtained by applying this rule to
+     * the source descriptor applied as argument.
      *
      * @param number           A number.
-     * @param sourceDescriptor The source descriptor describing the properties of the
-     *                         number supplied as argument.
+     * @param sourceDescriptor A descriptor of the number supplied as argument.
      *
      * @return the converted number.
      *

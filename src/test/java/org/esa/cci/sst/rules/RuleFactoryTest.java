@@ -81,9 +81,10 @@ public class RuleFactoryTest {
 
         final RightAssociativeComposition composition = (RightAssociativeComposition) rule;
 
-        assertEquals(2, composition.getRuleCount());
+        assertEquals(3, composition.getRuleCount());
         assertTrue(composition.getRule(0) instanceof Renaming);
-        assertTrue(composition.getRule(1) instanceof RightAssociativeComposition);
+        assertTrue(composition.getRule(1) instanceof Q);
+        assertTrue(composition.getRule(2) instanceof P);
     }
 
     @Test

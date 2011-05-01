@@ -72,7 +72,12 @@ public class RuleFactory {
      * @return the rule.
      */
     public Rule getRule(String specification, String targetName) {
-        return new RightAssociativeComposition(new Renaming(targetName), getRule(specification));
+        final Rule r = getRenamingRule(targetName);
+        final Rule s = getRule(specification);
+        if (s instanceof RightAssociativeComposition) {
+            return ((RightAssociativeComposition) s).prepend(r);
+        }
+        return new RightAssociativeComposition(r, s);
     }
 
     private Rule getRuleBySimpleName(String simpleName) {
