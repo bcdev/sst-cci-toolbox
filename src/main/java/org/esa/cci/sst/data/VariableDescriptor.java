@@ -17,20 +17,20 @@ import javax.persistence.Table;
 @Table(name = "mm_variable")
 public final class VariableDescriptor implements Descriptor {
 
-    int id;
-    String name;
-    String type;
-    String dimensions;
-    String unit;
-    Number addOffset;
-    Number scaleFactor;
-    Number fillValue;
-    Number validMin;
-    Number validMax;
-    String standardName;
-    String longName;
-    String role;
-    Sensor sensor;
+    private int id;
+    private String name;
+    private String type;
+    private String dimensions;
+    private String unit;
+    private Number addOffset;
+    private Number scaleFactor;
+    private Number fillValue;
+    private Number validMin;
+    private Number validMax;
+    private String standardName;
+    private String longName;
+    private String role;
+    private Sensor sensor;
 
     public VariableDescriptor() {
     }
@@ -61,7 +61,6 @@ public final class VariableDescriptor implements Descriptor {
         this.id = id;
     }
 
-    @Override
     @ManyToOne
     public Sensor getSensor() {
         return sensor;
@@ -189,5 +188,4 @@ public final class VariableDescriptor implements Descriptor {
     public int hashCode() {
         return 31 * getId();
     }
-
 }
