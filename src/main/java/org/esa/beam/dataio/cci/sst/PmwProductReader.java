@@ -17,6 +17,7 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -37,13 +38,13 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
     private static final Invalidator AMS_LAT_INVALIDATOR = new Invalidator() {
         @Override
         public final boolean isInvalid(double value) {
-            return Double.isNaN(value);
+            return value > 90.0 || value < -90.0 || Double.isNaN(value);
         }
     };
     private static final Invalidator TMI_LAT_INVALIDATOR = new Invalidator() {
         @Override
         public final boolean isInvalid(double value) {
-            return value == 0;
+            return value > 90.0 || value < -90.0 || value == 0;
         }
     };
 
@@ -155,20 +156,28 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
     private void invalidateLines(Invalidator invalidator) throws IOException {
         final Variable variable = getNetcdfFile().findVariable("lat");
         if (variable != null) {
-            final Array array = variable.read();
-            for (int i = 0, lineCount = variable.getShape(variable.getRank() - 1); i < lineCount; i++) {
-                if (invalidator.isInvalid(array.getDouble(i))) {
-                    leadLineSkip++;
-                } else {
-                    break;
-                }
+            final int[] shape = variable.getShape();
+            for (int i = 0; i < shape.length - 1; i++) {
+                shape[i] = 1;
             }
-            for (int i = variable.getShape(variable.getRank() - 1); i-- > 0;) {
-                if (invalidator.isInvalid(array.getDouble(i))) {
-                    tailLineSkip++;
-                } else {
-                    break;
+            try {
+                final Array array = variable.read(new int[shape.length], shape);
+                for (int i = 0, lineCount = shape[variable.getRank() - 1]; i < lineCount; i++) {
+                    if (invalidator.isInvalid(array.getDouble(i))) {
+                        leadLineSkip++;
+                    } else {
+                        break;
+                    }
                 }
+                for (int i = variable.getShape(variable.getRank() - 1); i-- > 0;) {
+                    if (invalidator.isInvalid(array.getDouble(i))) {
+                        tailLineSkip++;
+                    } else {
+                        break;
+                    }
+                }
+            } catch (InvalidRangeException ignored) {
+                // cannot happen
             }
         }
     }
