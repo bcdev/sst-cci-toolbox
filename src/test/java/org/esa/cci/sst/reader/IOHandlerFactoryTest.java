@@ -28,21 +28,21 @@ public class IOHandlerFactoryTest {
     @Test
     public void testCreateReader() throws Exception {
         IOHandler handler;
-        handler = IOHandlerFactory.createHandler("GzipDeflatingIOHandlerWrapper,SubsceneProductIOHandler", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof GzipDeflatingIOHandlerWrapper);
-
         handler = IOHandlerFactory.createHandler("GzipDeflatingIOHandlerWrapper,ProductIOHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof GzipDeflatingIOHandlerWrapper);
 
-        handler = IOHandlerFactory.createHandler("SubsceneProductIOHandler", "");
+        handler = IOHandlerFactory.createHandler("GzipDeflatingIOHandlerWrapper,GlobalProductIOHandler", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof SubsceneProductIOHandler);
+        assertTrue(handler instanceof GzipDeflatingIOHandlerWrapper);
 
         handler = IOHandlerFactory.createHandler("ProductIOHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof ProductIOHandler);
+
+        handler = IOHandlerFactory.createHandler("GlobalProductIOHandler", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof GlobalProductIOHandler);
 
         handler = IOHandlerFactory.createHandler("MetopIOHandler", "");
         assertNotNull(handler);

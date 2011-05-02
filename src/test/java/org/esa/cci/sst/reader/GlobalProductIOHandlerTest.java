@@ -25,18 +25,18 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class ProductIOHandlerTest {
+public class GlobalProductIOHandlerTest {
 
     private static final String AAI_RESOURCE_NAME = "20100601.egr";
     private static final String AMSR_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42970.dat-v01.nc.gz";
 
     private static DataFile dataFile;
-    private static SubsceneProductIOHandler handler;
+    private static ProductIOHandler handler;
 
     public void init(File file) throws IOException {
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        handler = new SubsceneProductIOHandler("any");
+        handler = new ProductIOHandler("any");
         handler.init(dataFile);
     }
 

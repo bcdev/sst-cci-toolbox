@@ -90,12 +90,14 @@ public class MatchupTool extends MmsTool {
             + " where o1.id = ?"
             + " and o2.id = ?";
 
-    private static final Map<Class<? extends Observation>, String> OBSERVATION_QUERY_MAP =
-            new HashMap<Class<? extends Observation>, String>(12);
+    private static final String SENSOR_QUERY = "select s from Sensor s where s.name = :sensorName";
+
     private static final String ATSR_MD = "atsr_md";
     private static final String METOP = "metop";
     private static final String SEVIRI = "seviri";
-    private static final String SENSOR_QUERY = "select s from Sensor where s.name = :sensorName";
+
+    private static final Map<Class<? extends Observation>, String> OBSERVATION_QUERY_MAP =
+            new HashMap<Class<? extends Observation>, String>(12);
 
     private Query sensorQuery;
     private Sensor atsrSensor;
@@ -370,7 +372,7 @@ public class MatchupTool extends MmsTool {
     }
 
     private Sensor getSensor(String sensorName) throws ToolException {
-        sensorQuery.setParameter(sensorName, ATSR_MD);
+        sensorQuery.setParameter("sensorName", sensorName);
         final Sensor sensor = (Sensor) sensorQuery.getSingleResult();
         if (sensor == null) {
             throw new ToolException(MessageFormat.format("Unknown sensor ''{0}''.", sensorName),

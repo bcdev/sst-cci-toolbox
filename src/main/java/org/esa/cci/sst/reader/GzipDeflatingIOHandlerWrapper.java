@@ -18,9 +18,9 @@ import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 /**
- * ProductIOHandler that temporarily deflates a gz file to a tmp dir for the reader.
+ * GlobalProductIOHandler that temporarily deflates a gz file to a tmp dir for the reader.
  * Distinguishes gz files by their extension ".gz". Gracefully handles non-gz files
- * like the normal ProductIOHandler.
+ * like the normal GlobalProductIOHandler.
  */
 public class GzipDeflatingIOHandlerWrapper implements IOHandler {
 
