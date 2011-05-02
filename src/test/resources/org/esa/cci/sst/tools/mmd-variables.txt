@@ -38,8 +38,8 @@ aatsr_md.matchup.wind_speed
 
 ### metop md
 
-metop.latitude                      metop.lat                           MatchupDimension,MetopImageDimensions,ScaledShortToFloat
-metop.longitude                     metop.lon                           MatchupDimension,MetopImageDimensions,ScaledShortToFloat
+metop.latitude                      metop.lat                           MatchupDimension,MetopImageDimensions,ShortToFloat
+metop.longitude                     metop.lon                           MatchupDimension,MetopImageDimensions,ShortToFloat
 metop.reflectance.006               metop.VIS006                        MatchupDimension,MetopImageDimensions
 metop.reflectance.009               metop.VIS009                        MatchupDimension,MetopImageDimensions
 metop.reflectance.012               metop.VIS012                        MatchupDimension,MetopImageDimensions
@@ -59,8 +59,8 @@ metop.cloud.quality                 metop.p_cloudmask_quality           MatchupD
 
 ### seviri md
 
-seviri.latitude                     seviri.lat                          MatchupDimension,SeviriImageDimensions,ScaledIntToFloat
-seviri.longitude                    seviri.lon                          MatchupDimension,SeviriImageDimensions,ScaledIntToFloat
+seviri.latitude                     seviri.lat                          MatchupDimension,SeviriImageDimensions,IntToFloat
+seviri.longitude                    seviri.lon                          MatchupDimension,SeviriImageDimensions,IntToFloat
 seviri.reflectance.006              seviri.VIS006                       MatchupDimension,SeviriImageDimensions
 seviri.reflectance.008              seviri.VIS008                       MatchupDimension,SeviriImageDimensions
 seviri.reflectance.016              seviri.IR_016                       MatchupDimension,SeviriImageDimensions

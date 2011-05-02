@@ -54,7 +54,7 @@ public class TargetVariableConfigurationTest {
         registerSourceDescriptors("seviri.nc", "seviri");
         registerSourceDescriptors("metop.nc", "metop");
         registerSourceDescriptors("aatsr_md.nc", "aatsr_md");
-        registerSourceDescriptors("amsre.nc", "amsre");
+        registerSourceDescriptors("ams.nc", "amsre");
         registerSourceDescriptors("tmi.nc", "tmi");
         registerSourceDescriptors("atsr.1.nc", "atsr1");
         registerSourceDescriptors("atsr.2.nc", "atsr2");
