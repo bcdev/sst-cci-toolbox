@@ -20,6 +20,7 @@ public class Sensor {
     int id;
     String name;
     long pattern;
+    String observationType;
 
     @Id
     @GeneratedValue
@@ -46,5 +47,24 @@ public class Sensor {
 
     public void setPattern(long pattern) {
         this.pattern = pattern;
+    }
+
+    @Column(nullable = false)
+    public String getObservationType() {
+        return observationType;
+    }
+
+    public void setObservationType(String observationType) {
+        try {
+            // todo - move code to builder
+            @SuppressWarnings({"unchecked", "UnusedDeclaration"})
+            final Class<? extends Observation> observationClass = (Class<? extends Observation>) Class.forName(
+                    String.format("%s.%s", getClass().getPackage().getName(), observationType));
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException(e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException(e);
+        }
+        this.observationType = observationType;
     }
 }

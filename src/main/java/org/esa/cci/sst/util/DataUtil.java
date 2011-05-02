@@ -31,10 +31,11 @@ public class DataUtil {
     private DataUtil() {
     }
 
-    public static Sensor createSensor(final String sensorName, long pattern) {
+    public static Sensor createSensor(final String sensorName, String observationType, long pattern) {
         final Sensor sensor = new Sensor();
         sensor.setName(sensorName);
         sensor.setPattern(pattern);
+        sensor.setObservationType(observationType);
         return sensor;
     }
 

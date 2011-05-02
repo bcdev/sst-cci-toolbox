@@ -65,11 +65,12 @@ public class MmdIngester extends MmsTool {
     void ingest() throws ToolException {
         final String sensorName = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
         final String patternProperty = getConfiguration().getProperty(MMS_REINGESTION_PATTERN_PROPERTY, "0");
-        final long pattern = Long.parseLong(patternProperty);
+        final long pattern = Long.parseLong(patternProperty, 16);
+        final boolean located = "yes".equals(getConfiguration().getProperty("mms.reingestion.located", "no"));
         Sensor sensor = delegate.getSensor(sensorName);
-        boolean persistVariables = sensor == null;
+        final boolean persistVariables = (sensor == null);
         if (persistVariables) {
-            sensor = delegate.createSensor(sensorName, pattern);
+            sensor = delegate.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
         }
         DataFile dataFile = createDataFile(sensor);
         initIOHandler(dataFile);

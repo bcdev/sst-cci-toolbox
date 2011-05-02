@@ -107,11 +107,12 @@ public class IngestionTool extends MmsTool {
      * @param file       The input file with records to be read and made persistent as observations.
      * @param readerSpec The specification string for the reader.
      * @param sensorName The sensor name.
-     * @param pattern
+     * @param pattern    The sensor pattern.
      *
      * @throws ToolException if ingestion fails
      */
-    private void ingest(File file, String readerSpec, String sensorName, long pattern) throws ToolException {
+    private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) throws
+                                                                                                               ToolException {
         getLogger().info("ingesting file " + file.getName());
         final PersistenceManager persistenceManager = getPersistenceManager();
         final IOHandler ioHandler = getIOHandler(readerSpec, sensorName);
@@ -123,7 +124,7 @@ public class IngestionTool extends MmsTool {
             boolean addVariables = false;
             if (sensor == null) {
                 addVariables = true;
-                sensor = createSensor(sensorName, pattern);
+                sensor = createSensor(sensorName, observationType, pattern);
             }
             final DataFile dataFile = DataUtil.createDataFile(file, sensor);
             ioHandler.init(dataFile);
@@ -155,8 +156,8 @@ public class IngestionTool extends MmsTool {
         return (Sensor) getPersistenceManager().pick("select s from Sensor s where s.name = ?1", sensorName);
     }
 
-    Sensor createSensor(String sensorName, long pattern) {
-        Sensor sensor = DataUtil.createSensor(sensorName, pattern);
+    Sensor createSensor(String sensorName, String observationType, long pattern) {
+        Sensor sensor = DataUtil.createSensor(sensorName, observationType, pattern);
         getPersistenceManager().persist(sensor);
         return sensor;
     }
@@ -189,9 +190,11 @@ public class IngestionTool extends MmsTool {
                     String.format("mms.source.%d.sensor", i));
             final String readerSpec = configuration.getProperty(
                     String.format("mms.source.%d.reader", i));
-            final String patternProperty = configuration.getProperty(
+            final String patternString = configuration.getProperty(
                     String.format("mms.source.%d.pattern", i), "0");
-            final long pattern = Long.parseLong(patternProperty);
+            final String observationType = configuration.getProperty(
+                    String.format("mms.source.%d.observationType", i), "RelatedObservation");
+            final long pattern = Long.parseLong(patternString, 16);
             if (readerSpec == null || inputDirPath == null || sensor == null) {
                 continue;
             }
@@ -204,7 +207,7 @@ public class IngestionTool extends MmsTool {
                 getLogger().warning(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
             }
             for (final File inputFile : inputFileList) {
-                ingest(inputFile, readerSpec, sensor, pattern);
+                ingest(inputFile, readerSpec, sensor, observationType, pattern);
                 directoryCount++;
             }
         }
@@ -254,19 +257,19 @@ public class IngestionTool extends MmsTool {
         statement.executeUpdate();
         statement = persistenceManager.createQuery("delete from Matchup m");
         statement.executeUpdate();
-        try {
-            statement = persistenceManager.createNativeQuery("drop index geo");
-            statement.executeUpdate();
-        } catch (Exception e) {
-            System.err.format("geo index dropping failed: %s\n%s\n", e.toString(), "drop index geo");
-        }
-        try {
-            statement = persistenceManager.createNativeQuery("create index geo on mm_observation using gist(location)");
-            statement.executeUpdate();
-        } catch (Exception e) {
-            System.err.format("geo index creation failed: %s\n%s\n", e.toString(),
-                              "create index geo on mm_observation using gist(location)");
-        }
+//        try {
+//            statement = persistenceManager.createNativeQuery("drop index geo");
+//            statement.executeUpdate();
+//        } catch (Exception e) {
+//            System.err.format("geo index dropping failed: %s\n%s\n", e.toString(), "drop index geo");
+//        }
+//        try {
+//            statement = persistenceManager.createNativeQuery("create index geo on mm_observation using gist(location)");
+//            statement.executeUpdate();
+//        } catch (Exception e) {
+//            System.err.format("geo index creation failed: %s\n%s\n", e.toString(),
+//                              "create index geo on mm_observation using gist(location)");
+//        }
         persistenceManager.commit();
     }
 

@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.esa.cci.sst.tools.SensorType.AVHRR;
 
 /**
  * Default implementation of <code>MmdGenerator</code>, writing all variables. This class provides some (package
@@ -109,9 +108,7 @@ class MmdGenerator {
                 writeLocation(file, matchupIndex, referenceObservation);
                 for (final Coincidence coincidence : coincidences) {
                     final Observation observation = coincidence.getObservation();
-                    if (!AVHRR.isSensor(observation.getSensor())) {
-                        writeObservation(file, observation, point, matchupIndex, referenceObservation.getTime());
-                    }
+                    writeObservation(file, observation, point, matchupIndex, referenceObservation.getTime());
                 }
                 landWaterMaskWriter.writeLandWaterMask(matchupIndex);
                 persistenceManager.detach(coincidences);

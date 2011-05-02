@@ -42,15 +42,15 @@ public class MmdIOHandler implements IOHandler {
 
     private NetcdfFile ncFile;
     private final MmsTool tool;
-    private final String sensor;
+    private final String sensorName;
     private Variable matchupIds;
     private ObservationReader reader;
     private MmdWriter writer;
     private DataFile dataFile;
 
-    public MmdIOHandler(final MmsTool tool, final String sensor) {
+    public MmdIOHandler(final MmsTool tool, final String sensorName) {
         this.tool = tool;
-        this.sensor = sensor;
+        this.sensorName = sensorName;
     }
 
     @Override
@@ -64,11 +64,11 @@ public class MmdIOHandler implements IOHandler {
         if (matchupIds == null) {
             matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
         }
-        final String property = getProperty("mms.reingestion.type", "aatsr");
-        if (property.equals("arc3")) {
-            reader = new Arc3Reader(dataFile, ncFile, sensor);
+        final String property = getProperty("mms.reingestion.located", "no");
+        if ("yes".equals(property)) {
+            reader = new MmdReader(dataFile, ncFile, sensorName);
         } else {
-            reader = new MmdReader(dataFile, ncFile, sensor);
+            reader = new Arc3Reader(dataFile, ncFile, sensorName);
         }
         writer = new MmdWriter(this);
     }

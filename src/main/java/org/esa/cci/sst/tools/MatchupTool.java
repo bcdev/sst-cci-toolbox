@@ -2,9 +2,13 @@ package org.esa.cci.sst.tools;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.GlobalObservation;
+import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.Timed;
 import org.esa.cci.sst.util.TimeUtil;
 
@@ -14,8 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import static org.esa.cci.sst.tools.SensorType.*;
 
 /**
  * Tool to compute multi-sensor match-ups from the MMS database.
@@ -88,16 +90,23 @@ public class MatchupTool extends MmsTool {
             + " where o1.id = ?"
             + " and o2.id = ?";
 
-    private static final Map<SensorType, String> QUERY_MAP = new HashMap<SensorType, String>(12);
+    private static final Map<Class<? extends Observation>, String> OBSERVATION_QUERY_MAP =
+            new HashMap<Class<? extends Observation>, String>(12);
+    private static final String ATSR_MD = "atsr_md";
+    private static final String METOP = "metop";
+    private static final String SEVIRI = "seviri";
+    private static final String SENSOR_QUERY = "select s from Sensor where s.name = :sensorName";
+
+    private Query sensorQuery;
+    private Sensor atsrSensor;
+    private Sensor metopSensor;
+    private Sensor seviriSensor;
 
     static {
-        QUERY_MAP.put(ATSR, COINCIDING_OBSERVATION_QUERY);
-        QUERY_MAP.put(AVHRR, COINCIDING_OBSERVATION_QUERY);
-        QUERY_MAP.put(AMSRE, COINCIDING_OBSERVATION_QUERY);
-        QUERY_MAP.put(TMI, COINCIDING_OBSERVATION_QUERY);
-        QUERY_MAP.put(SEAICE, COINCIDING_OBSERVATION_QUERY);
-        QUERY_MAP.put(AAI, COINCIDING_GLOBALOBS_QUERY);
-        QUERY_MAP.put(HISTORY, COINCIDING_INSITUOBS_QUERY);
+        OBSERVATION_QUERY_MAP.put(ReferenceObservation.class, COINCIDING_OBSERVATION_QUERY);
+        OBSERVATION_QUERY_MAP.put(RelatedObservation.class, COINCIDING_OBSERVATION_QUERY);
+        OBSERVATION_QUERY_MAP.put(GlobalObservation.class, COINCIDING_GLOBALOBS_QUERY);
+        OBSERVATION_QUERY_MAP.put(InsituObservation.class, COINCIDING_INSITUOBS_QUERY);
     }
 
     public static void main(String[] args) {
@@ -128,6 +137,14 @@ public class MatchupTool extends MmsTool {
         super("mmsmatchup.sh", "0.1");
     }
 
+    @Override
+    public void initialize() throws ToolException {
+        super.initialize();
+        sensorQuery = getPersistenceManager().createQuery(SENSOR_QUERY);
+        atsrSensor = getSensor(ATSR_MD);
+        metopSensor = getSensor(METOP);
+        seviriSensor = getSensor(SEVIRI);
+    }
 
     /**
      * Loops over (A)ATSR reference observations and inquires METOP and SEVIRI
@@ -146,31 +163,32 @@ public class MatchupTool extends MmsTool {
             int count = 0;
             long time = System.currentTimeMillis();
             final List<ReferenceObservation> atsrObservations =
-                    inquireReferenceObservations(SENSOR_OBSERVATION_QUERY, ATSR_MD);
+                    getReferenceObservations(SENSOR_OBSERVATION_QUERY, ATSR_MD);
+
             for (final ReferenceObservation atsrObservation : atsrObservations) {
                 Matchup matchup = null;
 
                 // determine corresponding metop observation if any
-                final Observation metopObservation = findCoincidingObservation(atsrObservation, METOP);
+                final Observation metopObservation = findCoincidingObservation(atsrObservation, metopSensor);
                 if (metopObservation != null) {
                     matchup = createMatchup(atsrObservation);
                     getPersistenceManager().persist(matchup);
                     Coincidence metopCoincidence = createCoincidence(matchup, metopObservation);
                     getPersistenceManager().persist(metopCoincidence);
-                    matchup.setPattern(ATSR_MD.getPattern() | METOP.getPattern());
+                    matchup.setPattern(atsrSensor.getPattern() | metopSensor.getPattern());
                 }
 
                 // determine corresponding seviri observation if any
-                final Observation seviriObservation = findCoincidingObservation(atsrObservation, SEVIRI);
+                final Observation seviriObservation = findCoincidingObservation(atsrObservation, seviriSensor);
                 if (seviriObservation != null) {
                     if (matchup == null) {
                         matchup = createMatchup(atsrObservation);
                         getPersistenceManager().persist(matchup);
-                        matchup.setPattern(ATSR_MD.getPattern());
+                        matchup.setPattern(atsrSensor.getPattern());
                     }
                     Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
                     getPersistenceManager().persist(seviriCoincidence);
-                    matchup.setPattern(matchup.getPattern() | SEVIRI.getPattern());
+                    matchup.setPattern(matchup.getPattern() | seviriSensor.getPattern());
                 }
                 if (matchup != null) {
                     findRelatedObservations(matchup);
@@ -183,7 +201,7 @@ public class MatchupTool extends MmsTool {
                     getLogger().info(MessageFormat.format("{0}/{1} {2} processed in {3} ms.",
                                                           count,
                                                           atsrObservations.size(),
-                                                          ATSR_MD.getSensor(),
+                                                          atsrSensor.getName(),
                                                           System.currentTimeMillis() - time));
                     time = System.currentTimeMillis();
                 }
@@ -196,16 +214,16 @@ public class MatchupTool extends MmsTool {
             count = 0;
             time = System.currentTimeMillis();
             final List<ReferenceObservation> metopObservations =
-                    inquireReferenceObservations(SECONDARY_OBSERVATION_QUERY, METOP);
+                    getReferenceObservations(SECONDARY_OBSERVATION_QUERY, METOP);
             for (final ReferenceObservation metopObservation : metopObservations) {
                 // determine corresponding seviri observation if any
-                final Observation seviriObservation = findCoincidingObservation(metopObservation, SEVIRI);
+                final Observation seviriObservation = findCoincidingObservation(metopObservation, seviriSensor);
                 if (seviriObservation != null) {
                     final Matchup matchup = createMatchup(metopObservation);
                     getPersistenceManager().persist(matchup);
                     final Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
                     getPersistenceManager().persist(seviriCoincidence);
-                    matchup.setPattern(METOP.getPattern() | SEVIRI.getPattern());
+                    matchup.setPattern(metopSensor.getPattern() | seviriSensor.getPattern());
                     findRelatedObservations(matchup);
                 }
 
@@ -216,7 +234,7 @@ public class MatchupTool extends MmsTool {
                     getLogger().info(MessageFormat.format("{0}/{1} {2} processed in {3} ms.",
                                                           count,
                                                           metopObservations.size(),
-                                                          METOP.getSensor(),
+                                                          metopSensor.getName(),
                                                           System.currentTimeMillis() - time));
                     time = System.currentTimeMillis();
                 }
@@ -239,12 +257,13 @@ public class MatchupTool extends MmsTool {
             // loop over aatsr observations
             int count = 0;
             long time = System.currentTimeMillis();
-            final List<ReferenceObservation> atsrObservations = inquireReferenceObservations(
-                    SINGLE_SENSOR_OBSERVATION_QUERY, ATSR_MD);
+            final List<ReferenceObservation> atsrObservations =
+                    getReferenceObservations(SINGLE_SENSOR_OBSERVATION_QUERY, ATSR_MD);
+
             for (final ReferenceObservation aatsrObservation : atsrObservations) {
                 Matchup matchup = createMatchup(aatsrObservation);
                 getPersistenceManager().persist(matchup);
-                matchup.setPattern(ATSR_MD.getPattern());
+                matchup.setPattern(atsrSensor.getPattern());
                 findRelatedObservations(matchup);
                 ++count;
                 if (count % 1024 == 0) {
@@ -253,7 +272,7 @@ public class MatchupTool extends MmsTool {
                     getLogger().info(MessageFormat.format("{0}/{1} {2} processed in {3} ms.",
                                                           count,
                                                           atsrObservations.size(),
-                                                          ATSR_MD.getSensor(),
+                                                          atsrSensor.getName(),
                                                           System.currentTimeMillis() - time));
                     time = System.currentTimeMillis();
                 }
@@ -265,12 +284,12 @@ public class MatchupTool extends MmsTool {
             // loop over metop observations not yet included in aatsr coincidences
             count = 0;
             time = System.currentTimeMillis();
-            final List<ReferenceObservation> metopObservations = inquireReferenceObservations(
+            final List<ReferenceObservation> metopObservations = getReferenceObservations(
                     SINGLE_SENSOR_OBSERVATION_QUERY, METOP);
             for (final ReferenceObservation metopObservation : metopObservations) {
                 Matchup matchup = createMatchup(metopObservation);
                 getPersistenceManager().persist(matchup);
-                matchup.setPattern(METOP.getPattern());
+                matchup.setPattern(metopSensor.getPattern());
                 findRelatedObservations(matchup);
                 ++count;
                 if (count % 1024 == 0) {
@@ -279,7 +298,7 @@ public class MatchupTool extends MmsTool {
                     getLogger().info(MessageFormat.format("{0}/{1} {2} processed in {3} ms.",
                                                           count,
                                                           metopObservations.size(),
-                                                          METOP.getSensor(),
+                                                          metopSensor.getName(),
                                                           System.currentTimeMillis() - time));
                     time = System.currentTimeMillis();
                 }
@@ -290,12 +309,12 @@ public class MatchupTool extends MmsTool {
 
             count = 0;
             time = System.currentTimeMillis();
-            final List<ReferenceObservation> seviriObservations = inquireReferenceObservations(
+            final List<ReferenceObservation> seviriObservations = getReferenceObservations(
                     SINGLE_SENSOR_OBSERVATION_QUERY, SEVIRI);
             for (final ReferenceObservation seviriObservation : seviriObservations) {
                 final Matchup matchup = createMatchup(seviriObservation);
                 getPersistenceManager().persist(matchup);
-                matchup.setPattern(SEVIRI.getPattern());
+                matchup.setPattern(seviriSensor.getPattern());
                 findRelatedObservations(matchup);
                 ++count;
                 if (count % 1024 == 0) {
@@ -304,7 +323,7 @@ public class MatchupTool extends MmsTool {
                     getLogger().info(MessageFormat.format("{0}/{1} {2} processed in {3} ms.",
                                                           count,
                                                           seviriObservations.size(),
-                                                          SEVIRI.getSensor(),
+                                                          seviriSensor.getName(),
                                                           System.currentTimeMillis() - time));
                     time = System.currentTimeMillis();
                 }
@@ -322,33 +341,53 @@ public class MatchupTool extends MmsTool {
     private void findRelatedObservations(Matchup matchup) throws ToolException {
         final Properties configuration = getConfiguration();
         for (int i = 0; i < 100; i++) {
-            final String sensorTypeName = configuration.getProperty(
-                    String.format("mms.source.%d.sensorType", i));
-            final String sensorName = configuration.getProperty(
-                    String.format("mms.source.%d.sensor", i));
-            if (sensorTypeName == null || sensorName == null) {
+            final String sensorName = configuration.getProperty(String.format("mms.source.%d.sensor", i));
+            if (sensorName == null) {
                 continue;
             }
-            if (!SensorType.isSensorType(sensorTypeName)) {
-                throw new ToolException(MessageFormat.format("Unknown sensor type ''{0}''.", sensorTypeName),
+            final Sensor sensor = getSensor(sensorName);
+            final Class<? extends Observation> observationClass = getObservationClass(sensor);
+            final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
+            if (queryString == null) {
+                throw new ToolException(MessageFormat.format("No query found for observation type ''{0}''",
+                                                             observationClass.getSimpleName()),
                                         ToolException.TOOL_CONFIGURATION_ERROR);
             }
-            final SensorType sensorType = SensorType.valueOfIgnoreCase(sensorTypeName);
-            final String queryString = QUERY_MAP.get(sensorType);
-            if (queryString != null) {
-                addCoincidence(matchup, sensorName, queryString, sensorType);
-            }
+            addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
         }
     }
 
-    private void addCoincidence(Matchup matchup, String sensorName, String queryString, SensorType sensorType) {
+    @SuppressWarnings({"unchecked"})
+    private static Class<? extends Observation> getObservationClass(Sensor sensor) {
+        try {
+            return (Class<? extends Observation>) Class.forName(
+                    String.format("%s.%s", Sensor.class.getPackage().getName(), sensor.getObservationType()));
+        } catch (ClassCastException e) {
+            throw new IllegalStateException(e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private Sensor getSensor(String sensorName) throws ToolException {
+        sensorQuery.setParameter(sensorName, ATSR_MD);
+        final Sensor sensor = (Sensor) sensorQuery.getSingleResult();
+        if (sensor == null) {
+            throw new ToolException(MessageFormat.format("Unknown sensor ''{0}''.", sensorName),
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        return sensor;
+    }
+
+    private void addCoincidence(Matchup matchup, String sensorName, String queryString,
+                                long pattern, Class<? extends Observation> observationClass) {
         final ReferenceObservation refObs = matchup.getRefObs();
-        final Query query = createObservationQuery(queryString, sensorType.getObservationClass());
+        final Query query = createObservationQuery(queryString, observationClass);
         final Observation sensorObs = findCoincidingObservation(refObs, query, sensorName);
         if (sensorObs != null) {
             final Coincidence coincidence = createCoincidence(matchup, sensorObs);
             getPersistenceManager().persist(coincidence);
-            matchup.setPattern(matchup.getPattern() | sensorType.getPattern());
+            matchup.setPattern(matchup.getPattern() | pattern);
         }
     }
 
@@ -356,14 +395,14 @@ public class MatchupTool extends MmsTool {
      * Inquires observations of a certain sensor.
      *
      * @param queryString The JPA query with one numbered variable.
-     * @param sensorType  The sensor type.
+     * @param sensorName  The sensor name.
      *
      * @return list of observations of this sensor that fulfils the query
      */
     @SuppressWarnings({"unchecked"})
-    private List<ReferenceObservation> inquireReferenceObservations(String queryString, SensorType sensorType) {
+    private List<ReferenceObservation> getReferenceObservations(String queryString, String sensorName) {
         final Query query = getPersistenceManager().createQuery(queryString);
-        query.setParameter(1, sensorType.getSensor());
+        query.setParameter(1, sensorName);
         return query.getResultList();
     }
 
@@ -371,26 +410,28 @@ public class MatchupTool extends MmsTool {
      * Determines temporally nearest common observation of a specific sensor
      * for a reference observation.
      *
-     * @param refObs     The reference observation.
-     * @param sensorType The sensor type.
+     * @param refObs The reference observation.
+     * @param sensor The sensor.
      *
      * @return common observation of sensor with coincidence to reference observation
      *         that is temporally closest to reference observation, null if no
      *         observation of the specified sensor has a coincidence with the
      *         reference observation
      */
-    private Observation findCoincidingObservation(ReferenceObservation refObs, SensorType sensorType) {
-        final Query query = createObservationQuery(COINCIDING_OBSERVATION_QUERY, sensorType.getObservationClass());
-        return findCoincidingObservation(refObs, query, sensorType.getSensor());
+    private Observation findCoincidingObservation(ReferenceObservation refObs, Sensor sensor) {
+        final Class<? extends Observation> observationClass = getObservationClass(sensor);
+
+        final Query query = createObservationQuery(COINCIDING_OBSERVATION_QUERY, observationClass);
+        return findCoincidingObservation(refObs, query, sensor.getName());
     }
 
     private Query createObservationQuery(String queryString, Class<? extends Observation> resultClass) {
         return getPersistenceManager().createNativeQuery(queryString, resultClass);
     }
 
-    private Observation findCoincidingObservation(ReferenceObservation refObs, Query query, String sensor) {
+    private Observation findCoincidingObservation(ReferenceObservation refObs, Query query, String sensorName) {
         query.setParameter(1, refObs.getId());
-        query.setParameter(2, sensor);
+        query.setParameter(2, sensorName);
         @SuppressWarnings({"unchecked"})
         final List<? extends Observation> observations = query.getResultList();
         if (observations.size() > 0) {
@@ -427,7 +468,7 @@ public class MatchupTool extends MmsTool {
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
         Assert.argument(observation instanceof Timed, "!(observation instanceof Timed)");
-        final double timeDifference = TimeUtil.computeTimeDelta(matchup, (Timed)observation);
+        final double timeDifference = TimeUtil.computeTimeDelta(matchup, (Timed) observation);
         final Coincidence coincidence = new Coincidence();
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);

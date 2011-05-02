@@ -52,7 +52,7 @@ class MmdReader implements ObservationReader {
     }
 
     @Override
-    public Observation readObservation(final int recordNo) throws IOException {
+    public RelatedObservation readObservation(final int recordNo) throws IOException {
         validateRecordNumber(recordNo);
         final RelatedObservation observation = new RelatedObservation();
         setupObservation(recordNo, observation);

@@ -49,6 +49,7 @@ public class SubsceneProductIOHandler extends ProductIOHandler {
         }
     }
 
+    @Override
     Product getProduct() {
         return product;
     }
