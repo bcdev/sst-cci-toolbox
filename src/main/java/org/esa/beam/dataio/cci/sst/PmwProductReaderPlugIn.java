@@ -42,7 +42,7 @@ public class PmwProductReaderPlugIn implements ProductReaderPlugIn {
         } else {
             file = new File(o.toString());
         }
-        if (!file.getName().matches(AMS_FILE_NAME_PATTERN) || !file.getName().matches(TMI_FILE_NAME_PATTERN)) {
+        if (!file.getName().matches(AMS_FILE_NAME_PATTERN) && !file.getName().matches(TMI_FILE_NAME_PATTERN)) {
             return DecodeQualification.UNABLE;
         }
         try {
