@@ -108,7 +108,7 @@ public class IngestionTool extends MmsTool {
      * @param pattern         The sensor pattern.
      */
     private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) {
-        getLogger().info("ingesting file " + file.getPath());
+        getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", file.getPath()));
         final PersistenceManager persistenceManager = getPersistenceManager();
         final IOHandler ioHandler = getIOHandler(readerSpec, sensorName);
         try {
@@ -147,11 +147,11 @@ public class IngestionTool extends MmsTool {
         }
     }
 
-    Sensor getSensor(final String sensorName) {
+    public final Sensor getSensor(final String sensorName) {
         return (Sensor) getPersistenceManager().pick("select s from Sensor s where s.name = ?1", sensorName);
     }
 
-    Sensor createSensor(String sensorName, String observationType, long pattern) {
+    public final Sensor createSensor(String sensorName, String observationType, long pattern) {
         Sensor sensor = DataUtil.createSensor(sensorName, observationType, pattern);
         getPersistenceManager().persist(sensor);
         return sensor;
@@ -191,13 +191,13 @@ public class IngestionTool extends MmsTool {
             if (readerSpec == null || inputDirPath == null || sensor == null) {
                 continue;
             }
-            getLogger().info("looking for " + sensor + " files");
+            getLogger().info("Looking for " + sensor + " files");
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.source.%d.filenamePattern", i), ".*");
             final File inputDir = new File(inputDirPath);
             final List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
             if (inputFileList.isEmpty()) {
-                getLogger().warning(MessageFormat.format("Missing directory ''{0}''.", inputDirPath));
+                getLogger().warning(MessageFormat.format("No input files found for directory ''{0}''.", inputDirPath));
             }
             for (final File inputFile : inputFileList) {
                 ingest(inputFile, readerSpec, sensor, observationType, pattern);
@@ -235,7 +235,7 @@ public class IngestionTool extends MmsTool {
     }
 
     private void cleanup() {
-        getLogger().info("cleaning up database");
+        getLogger().info("Cleaning up database.");
         final PersistenceManager persistenceManager = getPersistenceManager();
         persistenceManager.transaction();
         Query statement = persistenceManager.createQuery("delete from DataFile f");
