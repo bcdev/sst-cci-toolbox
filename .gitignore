@@ -8,3 +8,4 @@ testdata/
 /*.log
 /*.nc
 /*.properties
+/testdata
