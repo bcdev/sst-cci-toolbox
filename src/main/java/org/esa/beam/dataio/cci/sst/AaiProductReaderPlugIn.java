@@ -9,6 +9,8 @@ import java.util.Locale;
 
 public class AaiProductReaderPlugIn implements ProductReaderPlugIn {
 
+    public static final String FORMAT_NAME = "AAI-EGR";
+
     @Override
     public AaiProductReader createReaderInstance() {
         return new AaiProductReader(this);
@@ -40,7 +42,7 @@ public class AaiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String[] getFormatNames() {
-        return new String[]{"AAI-EGR"};
+        return new String[]{FORMAT_NAME};
     }
 
     @Override

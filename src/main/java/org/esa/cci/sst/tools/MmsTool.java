@@ -89,11 +89,11 @@ public class MmsTool {
                         public void terminate(ToolException e) {
                             getLogger().log(Level.SEVERE, e.getMessage(), e);
                             if (getLogger().isLoggable(Level.FINEST)) {
-                                for (final StackTraceElement element : e.getStackTrace()) {
+                                for (final StackTraceElement element : e.getCause().getStackTrace()) {
                                     getLogger().log(Level.FINEST, element.toString());
                                 }
                             }
-                            System.err.println(MessageFormat.format("Error: {0}", e.getMessage()));
+                            e.getCause().printStackTrace(System.err);
                             System.exit(e.getExitCode());
                         }
 

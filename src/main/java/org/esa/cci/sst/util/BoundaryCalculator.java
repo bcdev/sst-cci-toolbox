@@ -4,7 +4,10 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
+import org.postgis.LinearRing;
+import org.postgis.PGgeometry;
 import org.postgis.Point;
+import org.postgis.Polygon;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -65,7 +68,7 @@ public class BoundaryCalculator {
      *
      * @throws Exception when the geo-boundary cannot not be calculated.
      */
-    public Point[] getGeoBoundary(Product product) throws Exception {
+    public PGgeometry getGeoBoundary(Product product) throws Exception {
         final Rectangle boundary = getPixelBoundary(product);
         final int minX = boundary.x;
         final int minY = boundary.y;
@@ -118,7 +121,11 @@ public class BoundaryCalculator {
             Collections.reverse(geoBoundary);
         }
 
-        return geoBoundary.toArray(new Point[geoBoundary.size()]);
+        return createGeometry(geoBoundary.toArray(new Point[geoBoundary.size()]));
+    }
+
+    private static PGgeometry createGeometry(Point[] points) {
+        return new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(points)}));
     }
 
     private static int getMinX(Product product) {
