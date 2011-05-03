@@ -8,9 +8,7 @@ import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.PgUtil;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.postgis.Geometry;
@@ -32,7 +30,7 @@ public class ProductHandlerTest {
     private static final String AMSR_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42970.dat-v01.nc.gz";
 
     private static DataFile dataFile;
-    private static GzipDeflatingIOHandlerWrapper handler;
+    private static GunzipDecorator handler;
     private static AbstractProductHandler productHandler;
 
     @BeforeClass
@@ -44,7 +42,7 @@ public class ProductHandlerTest {
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
         productHandler = new ProductHandler("amsre");
-        handler = new GzipDeflatingIOHandlerWrapper(productHandler);
+        handler = new GunzipDecorator(productHandler);
         handler.init(dataFile);
     }
 

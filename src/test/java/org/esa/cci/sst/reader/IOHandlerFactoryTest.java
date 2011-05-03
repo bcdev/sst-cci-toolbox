@@ -28,13 +28,13 @@ public class IOHandlerFactoryTest {
     @Test
     public void testCreateReader() throws Exception {
         IOHandler handler;
-        handler = IOHandlerFactory.createHandler("GzipDeflatingIOHandlerWrapper,ProductHandler", "");
+        handler = IOHandlerFactory.createHandler("GunzipDecorator,ProductHandler", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof GzipDeflatingIOHandlerWrapper);
+        assertTrue(handler instanceof GunzipDecorator);
 
-        handler = IOHandlerFactory.createHandler("GzipDeflatingIOHandlerWrapper,AaiProductHandler", "");
+        handler = IOHandlerFactory.createHandler("GunzipDecorator,AaiProductHandler", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof GzipDeflatingIOHandlerWrapper);
+        assertTrue(handler instanceof GunzipDecorator);
 
         handler = IOHandlerFactory.createHandler("ProductHandler", "");
         assertNotNull(handler);
