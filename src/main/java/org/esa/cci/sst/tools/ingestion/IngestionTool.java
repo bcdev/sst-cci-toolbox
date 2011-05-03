@@ -35,9 +35,6 @@ import java.util.Properties;
 public class IngestionTool extends MmsTool {
 
     public static void main(String[] args) {
-        // comment out the following two lines in order to activate the tool
-        //System.out.println("The ingestion tool is deactivated in order to preserve the state of the database.");
-        //System.exit(0);
         final IngestionTool tool = new IngestionTool();
         try {
             final boolean performWork = tool.setCommandLineArgs(args);
@@ -111,7 +108,7 @@ public class IngestionTool extends MmsTool {
      * @param pattern         The sensor pattern.
      */
     private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) {
-        getLogger().info("ingesting file " + file.getName());
+        getLogger().info("ingesting file " + file.getPath());
         final PersistenceManager persistenceManager = getPersistenceManager();
         final IOHandler ioHandler = getIOHandler(readerSpec, sensorName);
         try {
