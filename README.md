@@ -86,21 +86,20 @@ Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal typ
     brew install postgis  
     mkdir -p /any/path/postgres 
     cd /any/path/postgres  
-    initdb mygisdb 
-    createdb mygisdb  
-    createlang -d mygisdb plpgsql  
-    psql -d mygisdb -f /usr/local/share/postgis/postgis.sql  
-    psql -d mygisdb -f /usr/local/share/postgis/spatial_ref_sys.sql
-    psql -d mygisdb 
-    # ALTER USER <user> RENAME TO mms ;    
-    # \q
+    initdb mydb 
+    postgres -D mydb
+    createdb mydb  
+    createlang -d mydb plpgsql  
+    psql -d mydb -f /usr/local/share/postgis/postgis.sql  
+    psql -d mydb -f /usr/local/share/postgis/spatial_ref_sys.sql
+    psql -d mydb 
 
-In order to automatically start the database on log-in, type
+In order to automatically start your database on log-in, type
 
-    cp /usr/local/Cellar/postgresql/9.0.2/org.postgresql.postgres.plist ~/Library/LaunchAgents
+    cp /usr/local/Cellar/postgresql/9.0.4/org.postgresql.postgres.plist ~/Library/LaunchAgents
     launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
 
-Then open `~/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to the database.
+Then open `~/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to your database.
 
 ## Installation and database server startup on Eddie VM
 
