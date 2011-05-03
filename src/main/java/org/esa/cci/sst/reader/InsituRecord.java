@@ -9,6 +9,9 @@ public class InsituRecord {
 
     final Number[] values = new Number[InsituVariable.values().length];
 
+    InsituRecord() {
+    }
+
     /**
      * Returns the value of a given in-situ variable.
      *

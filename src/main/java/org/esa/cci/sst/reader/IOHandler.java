@@ -55,6 +55,14 @@ public interface IOHandler {
      */
     Observation readObservation(int recordNo) throws IOException;
 
+    /**
+     * Returns an array of descriptors for the variables that are used by the
+     * files suppoted by this IO handler.
+     *
+     * @return an array of descriptors.
+     *
+     * @throws IOException when an error occurred.
+     */
     Descriptor[] getVariableDescriptors() throws IOException;
 
     /**
@@ -78,13 +86,22 @@ public interface IOHandler {
 
     /**
      * Reads a record of in-situ data.
+     * <p/>
+     * todo - get rid of this method (rq-20100503)
      *
      * @param recordNo The record number.
      *
      * @return the in-situ data record with record number {@code recordNo}.
+     *
+     * @throws IOException                    when an error occurred.
+     * @throws OperationNotSupportedException when the implementing class does not support this operation.
      */
     InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException;
 
+    /**
+     * Returns the data file.
+     *
+     * @return the data file.
+     */
     DataFile getDataFile();
-
 }

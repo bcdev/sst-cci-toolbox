@@ -28,12 +28,12 @@ import java.util.zip.GZIPInputStream;
  *
  * @author Martin Boettcher
  */
-public class GzipDeflatingIOHandlerWrapper implements IOHandler {
+class GzipDeflatingIOHandlerWrapper implements IOHandler {
 
     private final IOHandler delegate;
     private File tmpFile;
 
-    public GzipDeflatingIOHandlerWrapper(IOHandler delegate) {
+    GzipDeflatingIOHandlerWrapper(IOHandler delegate) {
         this.delegate = delegate;
     }
 

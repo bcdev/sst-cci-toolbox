@@ -35,11 +35,11 @@ import java.io.IOException;
  *
  * @author Ralf Quast
  */
-public class ProductHandler extends AbstractProductHandler {
+class ProductHandler extends AbstractProductHandler {
 
     private final BoundaryCalculator bc;
 
-    public ProductHandler(String sensorName) {
+    ProductHandler(String sensorName) {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
               AtsrConstants.ATSR_FORMAT_NAME,

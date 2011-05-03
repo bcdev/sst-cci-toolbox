@@ -37,7 +37,7 @@ import java.util.Map;
  *
  * @author Martin Boettcher
  */
-public abstract class MdIOHandler extends NetcdfIOHandler {
+abstract class MdIOHandler extends NetcdfIOHandler {
 
     private final String recordDimensionName;
     private final Map<String, Array> data = new HashMap<String, Array>();
