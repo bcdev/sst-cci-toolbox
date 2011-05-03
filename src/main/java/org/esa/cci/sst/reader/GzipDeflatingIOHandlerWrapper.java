@@ -18,35 +18,41 @@ import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 /**
- * GlobalProductIOHandler that temporarily deflates a gz file to a tmp dir for the reader.
- * Distinguishes gz files by their extension ".gz". Gracefully handles non-gz files
- * like the normal GlobalProductIOHandler.
+ * A decorator for IO handlers that deflates a gzip-compressed input file into
+ * a temporary directory but otherwise forwards IO operations to the decorated
+ * handler.
+ * <p/>
+ * Compressed input file are recognized due to the ".gz" file extension. The
+ * decorator gracefully handles non-compressed files by simply delegating to
+ * the decorated IO handler.
+ *
+ * @author Martin Boettcher
  */
 public class GzipDeflatingIOHandlerWrapper implements IOHandler {
 
     private final IOHandler delegate;
-    private File tmpFile = null;
+    private File tmpFile;
 
     public GzipDeflatingIOHandlerWrapper(IOHandler delegate) {
         this.delegate = delegate;
     }
 
     /**
-     * Maybe deflates gz files, initialises reader
+     * Maybe deflates gz files, initialises reader.
      *
-     * @param dataFile the file to be ingested
+     * @param dataFile The file to be ingested.
      *
-     * @throws IOException if temporary decompression or opening the file with the product reader fails
+     * @throws IOException if decompressing or opening the file with the decorated reader fails.
      */
     @Override
     public final void init(DataFile dataFile) throws IOException {
         if (dataFile.getPath().endsWith(".gz")) {
             // deflate product to tmp file in tmp dir
             tmpFile = tmpFileFor(dataFile.getPath());
-            decompressToTmpFile(new File(dataFile.getPath()), tmpFile);
+            decompress(new File(dataFile.getPath()), tmpFile);
 
             // temporarily read from tmp path
-            String origPath = dataFile.getPath();
+            final String origPath = dataFile.getPath();
             try {
                 dataFile.setPath(tmpFile.getPath());
                 delegate.init(dataFile);
@@ -60,7 +66,7 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
     }
 
     /**
-     * Closes the product and deletes the tmp file
+     * Closes the product and deletes the tmp file.
      */
     @Override
     public final void close() {
@@ -73,47 +79,58 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
     }
 
     /**
-     * Delegates to implementation IOHandler
+     * Delegates to decorated IO handler.
      */
     @Override
-    public int getNumRecords() {
+    public final int getNumRecords() {
         return delegate.getNumRecords();
     }
 
     /**
-     * Delegates to implementation IOHandler
+     * Delegates to decorated IO handler.
      */
     @Override
-    public Observation readObservation(int recordNo) throws IOException {
+    public final Observation readObservation(int recordNo) throws IOException {
         return delegate.readObservation(recordNo);
     }
 
     /**
-     * Delegates to implementation IOHandler
+     * Delegates to decorated IO handler.
      */
     @Override
-    public Descriptor[] getVariableDescriptors() throws IOException {
+    public final Descriptor[] getVariableDescriptors() throws IOException {
         return delegate.getVariableDescriptors();
     }
 
     /**
-     * Delegates to implementation IOHandler
+     * Delegates to decorated IO handler.
      */
     @Override
-    public void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
-                      String targetVariableName, int targetRecordNumber, PGgeometry refPoint, Date refTime) throws
-                                                                                                            IOException {
+    public void write(NetcdfFileWriteable targetFile,
+                      Observation sourceObservation,
+                      String sourceVariableName,
+                      String targetVariableName,
+                      int targetRecordNumber,
+                      PGgeometry refPoint,
+                      Date refTime) throws IOException {
         delegate.write(targetFile, sourceObservation, sourceVariableName, targetVariableName, targetRecordNumber,
                        refPoint, refTime);
     }
 
+
+    /**
+     * Delegates to decorated IO handler.
+     */
     @Override
-    public InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException {
+    public final InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException {
         return delegate.readInsituRecord(recordNo);
     }
 
+    /**
+     * Delegates to decorated IO handler.
+     */
     @Override
-    public DataFile getDataFile() {
+    public final DataFile getDataFile() {
         return delegate.getDataFile();
     }
 
@@ -132,11 +149,11 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
         // chop of path before filename and ".gz" suffix to determine filename
         final int slashPosition = dataFilePath.lastIndexOf(File.separator);
         final int dotGzPosition = dataFilePath.length() - ".gz".length();
-        String fileName = dataFilePath.substring(slashPosition + 1, dotGzPosition);
+        final String fileName = dataFilePath.substring(slashPosition + 1, dotGzPosition);
         // use filename without suffix as prefix and "." + suffix as suffix
         final int dotPosition = fileName.lastIndexOf('.');
-        String prefix = (dotPosition > -1) ? fileName.substring(0, dotPosition) : fileName;
-        String suffix = (dotPosition > -1) ? fileName.substring(dotPosition) : null;
+        final String prefix = (dotPosition > -1) ? fileName.substring(0, dotPosition) : fileName;
+        final String suffix = (dotPosition > -1) ? fileName.substring(dotPosition) : null;
         // create temporary file in tmp dir, either property java.io.tmpdir or system default
         return File.createTempFile(prefix, suffix);
     }
@@ -149,23 +166,30 @@ public class GzipDeflatingIOHandlerWrapper implements IOHandler {
      *
      * @throws IOException if reading the input, decompression, or writing the output fails
      */
-    private static void decompressToTmpFile(File gzipFile, File tmpFile) throws IOException {
+    private static void decompress(File gzipFile, File tmpFile) throws IOException {
+        final byte[] buffer = new byte[8192];
+
         InputStream in = null;
         OutputStream out = null;
         try {
             in = new GZIPInputStream(new FileInputStream(gzipFile), 8192);
             out = new BufferedOutputStream(new FileOutputStream(tmpFile));
-            byte[] buffer = new byte[8192];
             int noOfBytesRead;
             while ((noOfBytesRead = in.read(buffer)) > 0) {
                 out.write(buffer, 0, noOfBytesRead);
             }
         } finally {
             if (in != null) {
-                in.close();
+                try {
+                    in.close();
+                } catch (IOException ignored) {
+                }
             }
             if (out != null) {
-                out.close();
+                try {
+                    out.close();
+                } catch (IOException ignored) {
+                }
             }
         }
     }
