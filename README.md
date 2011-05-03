@@ -88,11 +88,9 @@ Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal typ
     cd /any/path/postgres  
     initdb mydb 
     postgres -D mydb
-    createdb mydb  
-    createlang -d mydb plpgsql  
+    createdb mydb   
     psql -d mydb -f /usr/local/share/postgis/postgis.sql  
     psql -d mydb -f /usr/local/share/postgis/spatial_ref_sys.sql
-    psql -d mydb 
 
 In order to automatically start your database on log-in, type
 
