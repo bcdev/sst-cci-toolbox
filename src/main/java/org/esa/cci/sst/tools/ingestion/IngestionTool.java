@@ -5,6 +5,7 @@ import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.data.Timed;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
@@ -147,12 +148,12 @@ public class IngestionTool extends MmsTool {
         }
     }
 
-    public final Sensor getSensor(final String sensorName) {
-        return (Sensor) getPersistenceManager().pick("select s from Sensor s where s.name = ?1", sensorName);
-    }
-
     public final Sensor createSensor(String sensorName, String observationType, long pattern) {
-        Sensor sensor = DataUtil.createSensor(sensorName, observationType, pattern);
+        final SensorBuilder builder = new SensorBuilder();
+        builder.setName(sensorName);
+        builder.setObservationType(observationType);
+        builder.setPattern(pattern).build();
+        final Sensor sensor = builder.build();
         getPersistenceManager().persist(sensor);
         return sensor;
     }
@@ -162,9 +163,8 @@ public class IngestionTool extends MmsTool {
         try {
             ioHandler = IOHandlerFactory.createHandler(readerSpec, sensor);
         } catch (Exception e) {
-            throw new ToolException(MessageFormat.format(
-                    "Cannot create IO handler for sensor ''{0}''.", sensor), e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
+            final String message = MessageFormat.format("Cannot create IO handler for sensor ''{0}''.", sensor);
+            throw new ToolException(message, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         return ioHandler;
     }
@@ -195,9 +195,13 @@ public class IngestionTool extends MmsTool {
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.source.%d.filenamePattern", i), ".*");
             final File inputDir = new File(inputDirPath);
-            final List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
+            List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
             if (inputFileList.isEmpty()) {
-                getLogger().warning(MessageFormat.format("No input files found for directory ''{0}''.", inputDirPath));
+                inputFileList = getInputFiles(filenamePattern + "\\.gz", inputDir);
+                if (inputFileList.isEmpty()) {
+                    getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}''.",
+                                                             inputDirPath));
+                }
             }
             for (final File inputFile : inputFileList) {
                 ingest(inputFile, readerSpec, sensor, observationType, pattern);

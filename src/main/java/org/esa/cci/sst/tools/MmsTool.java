@@ -7,6 +7,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 
 import java.io.File;
@@ -187,6 +188,10 @@ public class MmsTool {
         return true;
     }
 
+    public final Sensor getSensor(final String sensorName) {
+        return (Sensor) getPersistenceManager().pick("select s from Sensor s where s.name = ?1", sensorName);
+    }
+
     public void initialize() {
         if (initialised) {
             return;
@@ -197,7 +202,7 @@ public class MmsTool {
         initialised = true;
     }
 
-    public String getCommandLineSyntax() {
+    protected String getCommandLineSyntax() {
         return getName();
     }
 
@@ -271,5 +276,4 @@ public class MmsTool {
 
         return options;
     }
-
 }

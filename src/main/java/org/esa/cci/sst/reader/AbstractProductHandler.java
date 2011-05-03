@@ -217,26 +217,27 @@ abstract class AbstractProductHandler implements IOHandler {
     }
 
     protected final Descriptor createDescriptor(final RasterDataNode node) {
-        final DescriptorBuilder descriptorBuilder = new DescriptorBuilder();
-        descriptorBuilder.setName(getSensorName() + "." + node.getName());
+        final String name = getSensorName() + "." + node.getName();
         final DataType type = DataTypeUtils.getNetcdfDataType(node);
-        descriptorBuilder.setType(type);
-        descriptorBuilder.setDimensions("record ni nj");
+        final DescriptorBuilder builder = new DescriptorBuilder();
+        builder.setName(name);
+        builder.setType(type);
+        builder.setDimensions("record ni nj");
         final String unit = node.getUnit();
         if (unit != null && !unit.isEmpty()) {
-            descriptorBuilder.setUnit(unit);
+            builder.setUnit(unit);
         }
         if (node.isScalingApplied()) {
-            descriptorBuilder.setAddOffset(node.getScalingOffset());
-            descriptorBuilder.setScaleFactor(node.getScalingFactor());
+            builder.setAddOffset(node.getScalingOffset());
+            builder.setScaleFactor(node.getScalingFactor());
         }
         if (node.isNoDataValueUsed()) {
-            descriptorBuilder.setFillValue(node.getNoDataValue());
+            builder.setFillValue(node.getNoDataValue());
         }
-        descriptorBuilder.setRole(node.getName());
-        descriptorBuilder.setSensor(getDataFile().getSensor());
+        builder.setRole(node.getName());
+        builder.setSensor(getDataFile().getSensor());
 
-        return descriptorBuilder.build();
+        return builder.build();
     }
 
     protected final Date getCenterTimeAsDate() throws IOException {

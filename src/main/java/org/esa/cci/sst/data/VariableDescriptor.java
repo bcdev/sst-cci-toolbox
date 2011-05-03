@@ -32,23 +32,20 @@ public final class VariableDescriptor implements Descriptor {
     private String role;
     private Sensor sensor;
 
-    public VariableDescriptor() {
-    }
-
-    VariableDescriptor(Descriptor descriptor) {
-        name = descriptor.getName();
-        type = descriptor.getType();
-        dimensions = descriptor.getDimensions();
-        unit = descriptor.getUnit();
-        addOffset = descriptor.getAddOffset();
-        scaleFactor = descriptor.getScaleFactor();
-        fillValue = descriptor.getFillValue();
-        validMin = descriptor.getValidMin();
-        validMax = descriptor.getValidMax();
-        standardName = descriptor.getStandardName();
-        longName = descriptor.getLongName();
-        role = descriptor.getRole();
-        sensor = descriptor.getSensor();
+    VariableDescriptor(DescriptorBuilder builder) {
+        name = builder.getName();
+        type = builder.getType().name();
+        dimensions = builder.getDimensions();
+        unit = builder.getUnit();
+        addOffset = builder.getAddOffset();
+        scaleFactor = builder.getScaleFactor();
+        fillValue = builder.getFillValue();
+        validMin = builder.getValidMin();
+        validMax = builder.getValidMax();
+        standardName = builder.getStandardName();
+        longName = builder.getLongName();
+        role = builder.getRole();
+        sensor = builder.getSensor();
     }
 
     @Id
@@ -62,25 +59,6 @@ public final class VariableDescriptor implements Descriptor {
     }
 
     @Override
-    @ManyToOne
-    public Sensor getSensor() {
-        return sensor;
-    }
-
-    public void setSensor(Sensor sensor) {
-        this.sensor = sensor;
-    }
-
-    @Override
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    @Override
     @Column(unique = true, nullable = false)
     public String getName() {
         return name;
@@ -91,6 +69,7 @@ public final class VariableDescriptor implements Descriptor {
     }
 
     @Override
+    @Column(nullable = false)
     public String getType() {
         return type;
     }
@@ -100,6 +79,7 @@ public final class VariableDescriptor implements Descriptor {
     }
 
     @Override
+    @Column(nullable = false)
     public String getDimensions() {
         return dimensions;
     }
@@ -178,6 +158,26 @@ public final class VariableDescriptor implements Descriptor {
     @Override
     public String getLongName() {
         return longName;
+    }
+
+    @Override
+    @ManyToOne
+    @Column(nullable = false)
+    public Sensor getSensor() {
+        return sensor;
+    }
+
+    public void setSensor(Sensor sensor) {
+        this.sensor = sensor;
+    }
+
+    @Override
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     @Override

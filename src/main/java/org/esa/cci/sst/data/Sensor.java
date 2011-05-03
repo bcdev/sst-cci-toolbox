@@ -15,12 +15,18 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_sensor")
-public class Sensor {
+public final class Sensor {
 
-    int id;
-    String name;
-    long pattern;
-    String observationType;
+    private int id;
+    private String name;
+    private long pattern;
+    private String observationType;
+
+    Sensor(SensorBuilder builder) {
+        this.name = builder.getName();
+        this.pattern = builder.getPattern();
+        this.observationType = builder.getObservationType();
+    }
 
     @Id
     @GeneratedValue
@@ -55,16 +61,6 @@ public class Sensor {
     }
 
     public void setObservationType(String observationType) {
-        try {
-            // todo - move code to builder
-            @SuppressWarnings({"unchecked", "UnusedDeclaration"})
-            final Class<? extends Observation> observationClass = (Class<? extends Observation>) Class.forName(
-                    String.format("%s.%s", getClass().getPackage().getName(), observationType));
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException(e);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException(e);
-        }
         this.observationType = observationType;
     }
 }

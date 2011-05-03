@@ -41,10 +41,10 @@ public class IOHandlerFactory {
      * @return a new instance of <code>IOHandler</code>.
      */
     public static IOHandler createHandler(String readerSpec, String sensorName) throws ClassNotFoundException,
-                                                                                       NoSuchMethodException,
-                                                                                       InvocationTargetException,
                                                                                        IllegalAccessException,
-                                                                                       InstantiationException {
+                                                                                       InstantiationException,
+                                                                                       InvocationTargetException,
+                                                                                       NoSuchMethodException {
         final String packageName = IOHandlerFactory.class.getPackage().getName();
         final String[] handlerClassNames = readerSpec.split(",");
         IOHandler handler = null;

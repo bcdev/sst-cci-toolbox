@@ -22,7 +22,6 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
-import ucar.ma2.Array;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
@@ -64,9 +63,9 @@ public class IoUtil {
 
     public static DescriptorBuilder createDescriptorBuilder(final Variable variable, final String sensorName) {
         final DescriptorBuilder builder = new DescriptorBuilder();
-        builder.setName(String.format("%s.%s", sensorName, variable.getName()));
+        builder.setName(sensorName + "." + variable.getName());
         builder.setType(variable.getDataType());
-        setDimensions(variable, builder);
+        builder.setDimensions(variable.getDimensionsString());
         setUnits(variable, builder);
         setAttributes(variable, builder);
         builder.setRole(variable.getName());
@@ -117,21 +116,10 @@ public class IoUtil {
         }
     }
 
-    private static void setDimensions(final Variable variable, final DescriptorBuilder builder) {
-        final String dimensions = variable.getDimensionsString();
-        builder.setDimensions(dimensions);
-    }
-
     private static void setUnits(final Variable variable, final DescriptorBuilder builder) {
         final String units = variable.getUnitsString();
         if (units != null && !units.isEmpty()) {
             builder.setUnit(units);
         }
-    }
-
-    public static Array toArray2D(Number value) {
-        final Array array = Array.factory(value.getClass(), new int[]{1, 1});
-        array.setObject(0, value);
-        return array;
     }
 }

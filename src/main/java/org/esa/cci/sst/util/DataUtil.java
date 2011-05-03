@@ -31,14 +31,6 @@ public class DataUtil {
     private DataUtil() {
     }
 
-    public static Sensor createSensor(final String sensorName, String observationType, long pattern) {
-        final Sensor sensor = new Sensor();
-        sensor.setName(sensorName);
-        sensor.setPattern(pattern);
-        sensor.setObservationType(observationType);
-        return sensor;
-    }
-
     public static DataFile createDataFile(final File file, final Sensor sensor) {
         final DataFile dataFile = new DataFile();
         dataFile.setPath(file.getPath());
