@@ -1,7 +1,6 @@
 package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.tools.MmsTool;
-import org.esa.cci.sst.tools.ToolException;
 import org.junit.Test;
 
 import java.io.File;
@@ -13,7 +12,7 @@ import static junit.framework.Assert.*;
 public class IngestionToolTest {
 
     @Test
-    public void testCommandLineArgs() throws ToolException, URISyntaxException {
+    public void testCommandLineArgs() throws URISyntaxException {
         IngestionTool noArgs = new IngestionTool();
         assertTrue(noArgs.setCommandLineArgs(new String[]{}));
         assertEquals(false, noArgs.isDebug());

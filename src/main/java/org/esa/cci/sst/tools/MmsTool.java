@@ -86,21 +86,24 @@ public class MmsTool {
                 if (errorHandler == null) {
                     errorHandler = new ErrorHandler() {
                         @Override
-                        public void handleError(Throwable t, String message, int exitCode) {
-                            getLogger().log(Level.SEVERE, message, t);
-                            for (final StackTraceElement element : t.getStackTrace()) {
-                                getLogger().log(Level.FINEST, element.toString());
+                        public void terminate(ToolException e) {
+                            getLogger().log(Level.SEVERE, e.getMessage(), e);
+                            if (getLogger().isLoggable(Level.FINEST)) {
+                                for (final StackTraceElement element : e.getStackTrace()) {
+                                    getLogger().log(Level.FINEST, element.toString());
+                                }
                             }
-                            System.err.println(MessageFormat.format("Error: {0}", message));
-                            // todo - ts,mb 13Apr2011 - replace by raising exception
-                            System.exit(exitCode);
+                            System.err.println(MessageFormat.format("Error: {0}", e.getMessage()));
+                            System.exit(e.getExitCode());
                         }
 
                         @Override
-                        public void handleWarning(Throwable t, String message) {
+                        public void warn(Throwable t, String message) {
                             Logger.getLogger("org.esa.cci.sst").log(Level.WARNING, message, t);
-                            for (final StackTraceElement element : t.getStackTrace()) {
-                                getLogger().log(Level.FINEST, element.toString());
+                            if (getLogger().isLoggable(Level.FINEST)) {
+                                for (final StackTraceElement element : t.getStackTrace()) {
+                                    getLogger().log(Level.FINEST, element.toString());
+                                }
                             }
                         }
                     };
@@ -144,7 +147,7 @@ public class MmsTool {
         return persistenceManager;
     }
 
-    public final boolean setCommandLineArgs(String[] args) throws ToolException {
+    public final boolean setCommandLineArgs(String[] args) {
         getLogger().info("parsing command line and setting parameters");
         final CommandLineParser parser = new PosixParser();
         try {
@@ -184,7 +187,7 @@ public class MmsTool {
         return true;
     }
 
-    public void initialize() throws ToolException {
+    public void initialize() {
         if (initialised) {
             return;
         }
@@ -205,7 +208,7 @@ public class MmsTool {
         new HelpFormatter().printHelp(getCommandLineSyntax(), "Valid options are", getOptions(), footer, true);
     }
 
-    private void addConfigurationProperties(File configurationFile) throws ToolException {
+    private void addConfigurationProperties(File configurationFile) {
         FileReader reader = null;
         try {
             reader = new FileReader(configurationFile);

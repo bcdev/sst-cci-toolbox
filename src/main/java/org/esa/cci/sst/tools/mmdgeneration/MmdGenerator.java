@@ -131,7 +131,7 @@ class MmdGenerator {
                         ioHandler.write(file, observation, sourceVariableName, targetVariableName, matchupIndex, point,
                                         refTime);
                     } catch (Exception e) {
-                        tool.getErrorHandler().handleWarning(e, MessageFormat.format(
+                        tool.getErrorHandler().warn(e, MessageFormat.format(
                                 "Unable to write data for observation ''{0}'': {1}", observation, e.getMessage()));
                     }
                 } else {
@@ -183,7 +183,7 @@ class MmdGenerator {
         try {
             file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID), new int[]{matchupIndex}, array);
         } catch (InvalidRangeException e) {
-            tool.getErrorHandler().handleError(e, "Unable to write matchup id.", ToolException.TOOL_ERROR);
+            throw new ToolException("Unable to write matchup id.", e, ToolException.TOOL_ERROR);
         }
     }
 
@@ -194,7 +194,7 @@ class MmdGenerator {
         try {
             file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_TIME), new int[]{matchupIndex}, time);
         } catch (Exception e) {
-            tool.getErrorHandler().handleError(e, "Unable to write time.", ToolException.TOOL_ERROR);
+            throw new ToolException("Unable to write time.", e, ToolException.TOOL_ERROR);
         }
     }
 
@@ -209,7 +209,7 @@ class MmdGenerator {
             file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_LON), new int[]{matchupIndex}, lonArray);
             file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_LAT), new int[]{matchupIndex}, latArray);
         } catch (Exception e) {
-            tool.getErrorHandler().handleError(e, "Unable to write location.", ToolException.TOOL_ERROR);
+            throw new ToolException("Unable to write location.", e, ToolException.TOOL_ERROR);
         }
     }
 

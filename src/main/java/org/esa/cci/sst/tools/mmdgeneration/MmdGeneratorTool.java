@@ -44,9 +44,9 @@ public class MmdGeneratorTool extends MmsTool {
             file.create();
             generator.writeMatchups(file);
         } catch (ToolException e) {
-            tool.getErrorHandler().handleError(e, e.getMessage(), e.getExitCode());
+            tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
-            tool.getErrorHandler().handleError(t, t.getMessage(), 1);
+            tool.getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
             if (file != null) {
                 file.close();

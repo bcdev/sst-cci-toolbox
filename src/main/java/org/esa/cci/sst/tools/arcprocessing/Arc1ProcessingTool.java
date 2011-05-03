@@ -68,7 +68,7 @@ public class Arc1ProcessingTool extends MmsTool {
         super("mmssubscenes.sh", "0.1");
     }
 
-    public static void main(String[] args) throws ToolException {
+    public static void main(String[] args) {
         final Arc1ProcessingTool tool = new Arc1ProcessingTool();
         tool.setCommandLineArgs(args);
         tool.initialize();
@@ -78,7 +78,7 @@ public class Arc1ProcessingTool extends MmsTool {
             tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
             tool.closeCommandFiles();
         } catch (IOException e) {
-            tool.getErrorHandler().handleError(e, "Tool failed.", ToolException.TOOL_ERROR);
+            tool.getErrorHandler().terminate(new ToolException("Tool failed.", e, ToolException.TOOL_ERROR));
         }
     }
 
@@ -194,9 +194,13 @@ public class Arc1ProcessingTool extends MmsTool {
         final String latLonFilePath = latLonFile.getPath();
         final String latLonFileName = latLonFile.getName();
         submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
-        submitCallsWriter.format("ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n", currentFilename, latLonFileName);
+        submitCallsWriter.format(
+                "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n",
+                currentFilename, latLonFileName);
         collectCallsWriter.format("scp eddie.ecdf.ed.ak.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
-        collectCallsWriter.format("bin/mmsreingest.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n  -Dmms.reingestion.type=arc3 \\\n  -Dmms.reingestion.schema=avhrr_sub \\\n  -Dmms.reingestion.sensor=avhrr_nxx_sub \\\n  -Dmms.reingestion.sensorType=avhrr_sub \\\n  -c config/mms-config-eddie1.properties", destPath, basename);
+        collectCallsWriter.format(
+                "bin/mmsreingest.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n  -Dmms.reingestion.type=arc3 \\\n  -Dmms.reingestion.schema=avhrr_sub \\\n  -Dmms.reingestion.sensor=avhrr_nxx_sub \\\n  -Dmms.reingestion.sensorType=avhrr_sub \\\n  -c config/mms-config-eddie1.properties",
+                destPath, basename);
         cleanupCallsWriter.format("ssh eddie.ecdf.ed.ak.uk rm -r mms/task-%s\n", basename);
         cleanupCallsWriter.format("rm %s", latLonFilePath);
     }
@@ -235,12 +239,12 @@ public class Arc1ProcessingTool extends MmsTool {
 
     private Date getTimeProperty(String key) {
         final String time = getConfiguration().getProperty(key);
-        Date date = null;
+        final Date date;
         try {
             date = new Date(TimeUtil.parseCcsdsUtcFormat(time));
         } catch (ParseException e) {
-            getErrorHandler().handleError(e, MessageFormat.format("Unable to parse time parameter ''{0}''.", key),
-                                          ToolException.CONFIGURATION_FILE_IO_ERROR);
+            final String message = MessageFormat.format("Unable to parse time parameter ''{0}''.", key);
+            throw new ToolException(message, e, ToolException.CONFIGURATION_FILE_IO_ERROR);
         }
         return date;
     }

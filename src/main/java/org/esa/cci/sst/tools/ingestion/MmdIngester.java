@@ -47,7 +47,7 @@ public class MmdIngester extends MmsTool {
     private IOHandler ioHandler;
     private DataFile dataFile;
 
-    MmdIngester() throws ToolException {
+    MmdIngester() {
         super("mmdingest.sh", "0.1");
     }
 
@@ -56,13 +56,13 @@ public class MmdIngester extends MmsTool {
         return delegate.getPersistenceManager();
     }
 
-    void init(String[] args) throws ToolException {
+    void init(String[] args) {
         delegate = new IngestionTool();
         delegate.setCommandLineArgs(args);
         delegate.initialize();
     }
 
-    void ingest() throws ToolException {
+    void ingest() {
         final String sensorName = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
         final String patternProperty = getConfiguration().getProperty(MMS_REINGESTION_PATTERN_PROPERTY, "0");
         final long pattern = Long.parseLong(patternProperty, 16);
@@ -88,12 +88,12 @@ public class MmdIngester extends MmsTool {
         return ioHandler;
     }
 
-    private void ingestObservations() throws ToolException {
+    private void ingestObservations() {
         final MmdObservationIngester observationIngester = new MmdObservationIngester(this);
         observationIngester.ingestObservations();
     }
 
-    private void persistVariables(String sensorName) throws ToolException {
+    private void persistVariables(String sensorName) {
         try {
             delegate.persistVariableDescriptors(sensorName, ioHandler);
         } catch (IOException e) {
@@ -133,13 +133,13 @@ public class MmdIngester extends MmsTool {
         return new File(filename);
     }
 
-    private void initIOHandler(final DataFile dataFile) throws ToolException {
+    private void initIOHandler(final DataFile dataFile) {
         final String sensor = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
         ioHandler = new MmdIOHandler(delegate, sensor);
         try {
             ioHandler.init(dataFile);
         } catch (IOException e) {
-            getErrorHandler().handleError(e, "Error initializing IOHandler for mmd file.", ToolException.TOOL_ERROR);
+            throw new ToolException("Error initializing IOHandler for mmd file.", e, ToolException.TOOL_ERROR);
         }
     }
 

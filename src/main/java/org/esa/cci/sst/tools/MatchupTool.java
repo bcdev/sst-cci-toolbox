@@ -126,9 +126,9 @@ public class MatchupTool extends MmsTool {
             tool.findMultiSensorMatchups();
             tool.findSingleSensorMatchups();
         } catch (ToolException e) {
-            tool.getErrorHandler().handleError(e, e.getMessage(), e.getExitCode());
+            tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
-            tool.getErrorHandler().handleError(t, t.getMessage(), 1);
+            tool.getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         }
     }
 
@@ -140,7 +140,7 @@ public class MatchupTool extends MmsTool {
     }
 
     @Override
-    public void initialize() throws ToolException {
+    public void initialize() {
         super.initialize();
         sensorQuery = getPersistenceManager().createQuery(SENSOR_QUERY);
         atsrSensor = getSensor(ATSR_MD);
@@ -153,10 +153,8 @@ public class MatchupTool extends MmsTool {
      * fulfilling the coincidence criterion by a spatio-temporal database query.
      * Creates matchups for the temporally nearest coincidences. Does the same
      * for METOP as reference and SEVIRI as inquired coincidence.
-     *
-     * @throws ToolException when an error has occurred.
      */
-    public void findMultiSensorMatchups() throws ToolException {
+    public void findMultiSensorMatchups() {
         try {
             // open database
             getPersistenceManager().transaction();
@@ -251,7 +249,7 @@ public class MatchupTool extends MmsTool {
         }
     }
 
-    public void findSingleSensorMatchups() throws ToolException {
+    public void findSingleSensorMatchups() {
         try {
             // open database
             getPersistenceManager().transaction();
@@ -340,7 +338,7 @@ public class MatchupTool extends MmsTool {
         }
     }
 
-    private void findRelatedObservations(Matchup matchup) throws ToolException {
+    private void findRelatedObservations(Matchup matchup) {
         final Properties configuration = getConfiguration();
         for (int i = 0; i < 100; i++) {
             final String sensorName = configuration.getProperty(String.format("mms.source.%d.sensor", i));
@@ -371,7 +369,7 @@ public class MatchupTool extends MmsTool {
         }
     }
 
-    private Sensor getSensor(String sensorName) throws ToolException {
+    private Sensor getSensor(String sensorName) {
         sensorQuery.setParameter("sensorName", sensorName);
         final Sensor sensor = (Sensor) sensorQuery.getSingleResult();
         if (sensor == null) {
@@ -479,7 +477,7 @@ public class MatchupTool extends MmsTool {
         return coincidence;
     }
 
-    private void cleanup() throws ToolException {
+    private void cleanup() {
         getPersistenceManager().transaction();
 
         // clear coincidences as they are computed from scratch

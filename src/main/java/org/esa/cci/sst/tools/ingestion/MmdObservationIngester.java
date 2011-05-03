@@ -21,7 +21,6 @@ import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Timed;
 import org.esa.cci.sst.reader.MmdIOHandler;
-import org.esa.cci.sst.tools.ErrorHandler;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
@@ -46,7 +45,7 @@ class MmdObservationIngester {
         this.ingester = ingester;
     }
 
-    void ingestObservations() throws ToolException {
+    void ingestObservations() {
         final MmdIOHandler ioHandler = (MmdIOHandler) ingester.getIoHandler();
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
@@ -55,23 +54,22 @@ class MmdObservationIngester {
         }
     }
 
-    private void persistObservation(final MmdIOHandler ioHandler, int recordNo) throws ToolException {
+    private void persistObservation(final MmdIOHandler ioHandler, int recordNo) {
         try {
             final Observation observation = ioHandler.readObservation(recordNo);
             final IngestionTool delegate = ingester.getDelegate();
             final boolean hasPersisted = delegate.persistObservation(observation, recordNo);
-            if(hasPersisted) {
+            if (hasPersisted) {
                 persistCoincidence(ioHandler, recordNo, observation);
             }
         } catch (Exception e) {
-            final ErrorHandler errorHandler = ingester.getErrorHandler();
-            errorHandler.handleError(e, MessageFormat.format("Error persisting observation ''{0}''.", recordNo + 1),
-                                     ToolException.TOOL_ERROR);
+            final String message = MessageFormat.format("Error persisting observation ''{0}''.", recordNo + 1);
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
 
-    private void persistCoincidence(final MmdIOHandler ioHandler, final int recordNo, final Observation observation) throws
-                                                                                                                  IOException {
+    private void persistCoincidence(final MmdIOHandler ioHandler, final int recordNo,
+                                    final Observation observation) throws  IOException {
         final int matchupId = ioHandler.getMatchupId(recordNo);
         final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
         final Coincidence coincidence = createCoincidence(matchup, observation);

@@ -6,14 +6,12 @@ package org.esa.cci.sst.tools;
 public interface ErrorHandler {
 
     /**
-     * Treats the occurrence of a {@link Throwable} as an error, which terminates
-     * the executable.
+     * Handles the occurrence of a {@link ToolException}, which eventually shall
+     * always terminate the executable.
      *
-     * @param t        The throwable.
-     * @param message  The error message.
-     * @param exitCode The exit code.
+     * @param e The tool exception.
      */
-    public void handleError(Throwable t, String message, int exitCode);
+    public void terminate(ToolException e);
 
     /**
      * Treats the occurrence of a {@link Throwable} as a warning, which must not
@@ -22,5 +20,5 @@ public interface ErrorHandler {
      * @param t       The throwable.
      * @param message The warning message.
      */
-    public void handleWarning(Throwable t, String message);
+    public void warn(Throwable t, String message);
 }

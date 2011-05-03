@@ -46,9 +46,9 @@ public class MmdIngestionTool {
             persistenceManager.transaction();
             tool.ingest();
             persistenceManager.commit();
-        } catch(Exception e) {
+        } catch (Exception e) {
             persistenceManager.rollback();
-            tool.getErrorHandler().handleError(e, e.getMessage(), ToolException.TOOL_ERROR);
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
 

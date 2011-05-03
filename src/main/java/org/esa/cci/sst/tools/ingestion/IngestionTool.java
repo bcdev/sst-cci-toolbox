@@ -51,9 +51,9 @@ public class IngestionTool extends MmsTool {
             }
             tool.ingest();
         } catch (ToolException e) {
-            tool.getErrorHandler().handleError(e, e.getMessage(), e.getExitCode());
+            tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
-            tool.getErrorHandler().handleError(t, t.getMessage(), 1);
+            tool.getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         }
     }
 
@@ -74,7 +74,7 @@ public class IngestionTool extends MmsTool {
                                                             observation.getName(),
                                                             recordNo,
                                                             e.getMessage());
-                getErrorHandler().handleWarning(e, message);
+                getErrorHandler().warn(e, message);
             }
         }
         return hasPersisted;
@@ -104,15 +104,13 @@ public class IngestionTool extends MmsTool {
      * every 65536 records. If ingestion fails rollback is only performed to
      * the respective checkpoint.
      *
-     * @param file       The input file with records to be read and made persistent as observations.
-     * @param readerSpec The specification string for the reader.
-     * @param sensorName The sensor name.
-     * @param pattern    The sensor pattern.
-     *
-     * @throws ToolException if ingestion fails
+     * @param file            The input file with records to be read and made persistent as observations.
+     * @param readerSpec      The specification string for the reader.
+     * @param sensorName      The sensor name.
+     * @param observationType The observation type (simple name of observation class)
+     * @param pattern         The sensor pattern.
      */
-    private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) throws
-                                                                                                               ToolException {
+    private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) {
         getLogger().info("ingesting file " + file.getName());
         final PersistenceManager persistenceManager = getPersistenceManager();
         final IOHandler ioHandler = getIOHandler(readerSpec, sensorName);
@@ -146,7 +144,7 @@ public class IngestionTool extends MmsTool {
             } catch (Exception ignored) {
                 // ignored, because surrounding exception is propagated
             }
-            getErrorHandler().handleWarning(e, MessageFormat.format("Failed to ingest file ''{0}''.", file));
+            getErrorHandler().warn(e, MessageFormat.format("Failed to ingest file ''{0}''.", file));
         } finally {
             ioHandler.close();
         }
@@ -162,7 +160,7 @@ public class IngestionTool extends MmsTool {
         return sensor;
     }
 
-    private IOHandler getIOHandler(final String readerSpec, final String sensor) throws ToolException {
+    private IOHandler getIOHandler(final String readerSpec, final String sensor) {
         final IOHandler ioHandler;
         try {
             ioHandler = IOHandlerFactory.createHandler(readerSpec, sensor);
@@ -177,10 +175,8 @@ public class IngestionTool extends MmsTool {
     /**
      * Ingests all input files and creates observation entries in the database
      * for all records contained in input file.
-     *
-     * @throws ToolException if an error occurs.
      */
-    private void ingest() throws ToolException {
+    private void ingest() {
         final Properties configuration = getConfiguration();
         int directoryCount = 0;
         for (int i = 0; i < 100; i++) {
@@ -241,7 +237,7 @@ public class IngestionTool extends MmsTool {
         return recordsInTimeInterval;
     }
 
-    private void cleanup() throws ToolException {
+    private void cleanup() {
         getLogger().info("cleaning up database");
         final PersistenceManager persistenceManager = getPersistenceManager();
         persistenceManager.transaction();
@@ -273,7 +269,7 @@ public class IngestionTool extends MmsTool {
         persistenceManager.commit();
     }
 
-    private void validateInputSet(final int directoryCount) throws ToolException {
+    private void validateInputSet(final int directoryCount) {
         if (directoryCount == 0) {
             throw new ToolException("No input sets given.\n" +
                                     "Input sets are specified as configuration properties as follows:\n" +

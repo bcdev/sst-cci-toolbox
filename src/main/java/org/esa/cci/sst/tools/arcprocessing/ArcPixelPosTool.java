@@ -52,7 +52,7 @@ public class ArcPixelPosTool extends MmsTool {
     private StringBuilder buffer;
     private static final String PIXELPOS_FILE_EXTENSION = ".mmm.txt";
 
-    public static void main(String[] args) throws ToolException {
+    public static void main(String[] args) {
         final ArcPixelPosTool tool = new ArcPixelPosTool();
         tool.setCommandLineArgs(args);
         // do not initialise, no connection to database required
@@ -69,7 +69,7 @@ public class ArcPixelPosTool extends MmsTool {
         super("arcpixelpos.sh", "0.1");
     }
 
-    void createPixelPositions() throws ToolException, IOException {
+    void createPixelPositions() throws IOException {
         final Properties configuration = getConfiguration();
         final String latlonFile = configuration.getProperty(Constants.LATLONFILE_PROPERTY);
         final String locationFile = configuration.getProperty(Constants.LOCATIONFILE_PROPERTY);
@@ -114,15 +114,16 @@ public class ArcPixelPosTool extends MmsTool {
         return new GeoPos(Float.parseFloat(lat), Float.parseFloat(lon));
     }
 
-    Product readProduct(final String locationFile) throws ToolException {
+    Product readProduct(final String locationFile) {
         final Product product;
         try {
             final ArcReaderPlugIn arcReaderPlugIn = new ArcReaderPlugIn(locationFile);
             final ProductReader reader = arcReaderPlugIn.createReaderInstance();
             product = reader.readProductNodes(locationFile, null);
         } catch (IOException e) {
-            throw new ToolException(MessageFormat.format("File ''{0}'' could not be read: {1}", locationFile, e.toString()), e,
-                                    ToolException.TOOL_ERROR);
+            throw new ToolException(
+                    MessageFormat.format("File ''{0}'' could not be read: {1}", locationFile, e.toString()), e,
+                    ToolException.TOOL_ERROR);
         }
         return product;
     }
@@ -131,7 +132,8 @@ public class ArcPixelPosTool extends MmsTool {
         final String latlonFilename = getConfiguration().getProperty(Constants.LATLONFILE_PROPERTY);
         final String pixelposFilename;
         if (latlonFilename.endsWith(Arc1ProcessingTool.LATLON_FILE_EXTENSION)) {
-            pixelposFilename = latlonFilename.substring(0, latlonFilename.length() - Arc1ProcessingTool.LATLON_FILE_EXTENSION.length()) + PIXELPOS_FILE_EXTENSION;
+            pixelposFilename = latlonFilename.substring(0,
+                                                        latlonFilename.length() - Arc1ProcessingTool.LATLON_FILE_EXTENSION.length()) + PIXELPOS_FILE_EXTENSION;
         } else {
             pixelposFilename = latlonFilename + PIXELPOS_FILE_EXTENSION;
         }
@@ -149,8 +151,10 @@ public class ArcPixelPosTool extends MmsTool {
     }
 
     private void validateInput(final String locationFile, final String latlonFile) {
-        Assert.notNull(locationFile, MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
-        Assert.notNull(latlonFile, MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
+        Assert.notNull(locationFile,
+                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
+        Assert.notNull(latlonFile,
+                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
     }
 
     private void initBuffer(final String firstLine) {
