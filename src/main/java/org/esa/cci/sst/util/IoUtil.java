@@ -25,20 +25,14 @@ import org.postgis.Polygon;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
-import java.util.Date;
-
 /**
- * Utility class for commonly used IO utility functions.
+ * Utility class for commonly used functions.
  *
  * @author Thomas Storm
  */
 public class IoUtil {
 
     private IoUtil() {
-    }
-
-    public static Date centerTime(Date startTime, Date endTime) {
-        return new Date((startTime.getTime() + endTime.getTime()) / 2);
     }
 
     public static PGgeometry createLineGeometry(double startLon, double startLat, double endLon, double endLat) {
@@ -73,19 +67,15 @@ public class IoUtil {
         return builder;
     }
 
-    public static long timeRadius(Date startTime, Date endTime) {
-        return Math.abs(endTime.getTime() - startTime.getTime()) / 2000;
-    }
-
     // this is a copy of {@code GeoPos.normalizeLon()} using {@code double} instead of {@code float} as argument
-    private static double normalizeLon(double lon) {
-        if (lon < -360f || lon > 360f) {
-            lon %= 360f;
+    public static double normalizeLon(double lon) {
+        if (lon < -360.0 || lon > 360.0) {
+            lon %= 360.0;
         }
-        if (lon < -180f) {
-            lon += 360f;
-        } else if (lon > 180.0f) {
-            lon -= 360f;
+        if (lon < -180.0) {
+            lon += 360.0;
+        } else if (lon > 180.0) {
+            lon -= 360.0;
         }
         return lon;
     }
