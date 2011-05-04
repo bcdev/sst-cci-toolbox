@@ -13,7 +13,25 @@ import java.util.TimeZone;
 
 public final class TimeUtil {
 
+    /**
+     * The Julian Date of 1978-01-01 00:00:00Z.
+     */
+    public static final double EPOCH_JD = 2440587.5;
+    /**
+     * The number of milliseconds per day.
+     */
     public static final double MILLIS_PER_DAY = 86400000.0;
+    /**
+     * The number of milliseconds from 1970-01-01 00:00:00Z to 1978-01-01 00:00:00Z
+     */
+    public static final long MILLIS_1978 = createCalendar(1978, 0, 1, 0, 0, 0).getTimeInMillis();
+    /**
+     * The number of milliseconds from 1970-01-01 00:00:00Z to 1981-01-01 00:00:00Z
+     */
+    public static final long MILLIS_1981 = createCalendar(1981, 0, 1, 0, 0, 0).getTimeInMillis();
+    /**
+     * The number of seconds per day.
+     */
     public static final double SECONDS_PER_DAY = 86400.0;
 
     private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat(
@@ -22,9 +40,6 @@ public final class TimeUtil {
             "yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss,SSS");
-    private static final double EPOCH_JD = 2440587.5;
-    private static final long MILLIS_1978 = createCalendar(1978, 0, 1, 0, 0, 0).getTimeInMillis();
-    private static final long MILLIS_1981 = createCalendar(1981, 0, 1, 0, 0, 0).getTimeInMillis();
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -47,10 +62,6 @@ public final class TimeUtil {
             return CCSDS_UTC_FORMAT.parse(timeString);
         }
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString);
-    }
-
-    public static long parseCcsdsUtcFormatAsMillis(String timeString) throws ParseException {
-        return parseCcsdsUtcFormat(timeString).getTime();
     }
 
     public static Date julianDateToDate(double julianDate) {
@@ -91,12 +102,20 @@ public final class TimeUtil {
                time.getTime() - deltaInMillis < end.getTime();
     }
 
-    public static double timeDeltaInSeconds(Matchup m, Timeable t) {
-        return timeDeltaInSeconds(m.getRefObs().getTime(), t.getTime());
+    public static double timeDifferenceInSeconds(Matchup m, Timeable t) {
+        return timeDifferenceInSeconds(m.getRefObs().getTime(), t.getTime());
     }
 
-    public static double timeDeltaInSeconds(Date d, Date d2) {
+    public static double timeDifferenceInSeconds(Date d, Date d2) {
         return Math.abs(d.getTime() - d2.getTime()) / 1000.0;
+    }
+
+    public static Date centerTime(Date startTime, Date endTime) {
+        return new Date((startTime.getTime() + endTime.getTime()) / 2);
+    }
+
+    public static double timeRadius(Date startTime, Date endTime) {
+        return Math.abs(endTime.getTime() - startTime.getTime()) / 2000.0;
     }
 
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
