@@ -14,6 +14,7 @@ import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,12 +29,14 @@ public class MatchupTool extends MmsTool {
             "select o"
             + " from ReferenceObservation o"
             + " where o.sensor = ?1"
+            + " and o.time >= ?2 and o.time < ?3"
             + " order by o.time";
 
     private static final String SINGLE_SENSOR_OBSERVATION_QUERY =
             "select o"
             + " from ReferenceObservation o"
             + " where o.sensor = ?1"
+            + " and o.time >= ?2 and o.time < ?3"
             + " and not exists (select m from Matchup m"
             + "                 where m.refObs = o)"
             + " and not exists (select c from Coincidence c"
@@ -48,6 +51,7 @@ public class MatchupTool extends MmsTool {
     private static final String SECONDARY_OBSERVATION_QUERY =
             "select o from ReferenceObservation o"
             + " where o.sensor = ?1"
+            + " and o.time >= ?2 and o.time < ?3"
             + " and not exists (select c from Coincidence c"
             + "                 where c.observation = o)"
             + " order by o.time";
@@ -213,28 +217,30 @@ public class MatchupTool extends MmsTool {
             time = System.currentTimeMillis();
             final List<ReferenceObservation> metopObservations =
                     getReferenceObservations(SECONDARY_OBSERVATION_QUERY, METOP);
-            for (final ReferenceObservation metopObservation : metopObservations) {
-                // determine corresponding seviri observation if any
-                final Observation seviriObservation = findCoincidingObservation(metopObservation, seviriSensor);
-                if (seviriObservation != null) {
-                    final Matchup matchup = createMatchup(metopObservation);
-                    getPersistenceManager().persist(matchup);
-                    final Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
-                    getPersistenceManager().persist(seviriCoincidence);
-                    matchup.setPattern(metopSensor.getPattern() | seviriSensor.getPattern());
-                    findRelatedObservations(matchup);
-                }
+            if (seviriSensor != null) {
+                for (final ReferenceObservation metopObservation : metopObservations) {
+                    // determine corresponding seviri observation if any
+                    final Observation seviriObservation = findCoincidingObservation(metopObservation, seviriSensor);
+                    if (seviriObservation != null) {
+                        final Matchup matchup = createMatchup(metopObservation);
+                        getPersistenceManager().persist(matchup);
+                        final Coincidence seviriCoincidence = createCoincidence(matchup, seviriObservation);
+                        getPersistenceManager().persist(seviriCoincidence);
+                        matchup.setPattern(metopSensor.getPattern() | seviriSensor.getPattern());
+                        findRelatedObservations(matchup);
+                    }
 
-                ++count;
-                if (count % 1024 == 0) {
-                    getPersistenceManager().commit();
-                    getPersistenceManager().transaction();
-                    getLogger().info(MessageFormat.format("{0}/{1} {2} processed in {3} ms.",
-                                                          count,
-                                                          metopObservations.size(),
-                                                          metopSensor.getName(),
-                                                          System.currentTimeMillis() - time));
-                    time = System.currentTimeMillis();
+                    ++count;
+                    if (count % 1024 == 0) {
+                        getPersistenceManager().commit();
+                        getPersistenceManager().transaction();
+                        getLogger().info(MessageFormat.format("{0}/{1} {2} processed in {3} ms.",
+                                                              count,
+                                                              metopObservations.size(),
+                                                              metopSensor.getName(),
+                                                              System.currentTimeMillis() - time));
+                        time = System.currentTimeMillis();
+                    }
                 }
             }
 
@@ -395,6 +401,14 @@ public class MatchupTool extends MmsTool {
     private List<ReferenceObservation> getReferenceObservations(String queryString, String sensorName) {
         final Query query = getPersistenceManager().createQuery(queryString);
         query.setParameter(1, sensorName);
+        final String startTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_START_TIME, "1978-01-01T00:00:00Z");
+        final String endTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_END_TIME, "2100-01-01T00:00:00Z");
+        try {
+            query.setParameter(2, TimeUtil.parseCcsdsUtcFormatAsDate(startTime));
+            query.setParameter(3, TimeUtil.parseCcsdsUtcFormatAsDate(endTime));
+        } catch (ParseException e) {
+            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
         return query.getResultList();
     }
 

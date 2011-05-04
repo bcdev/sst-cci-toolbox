@@ -319,7 +319,7 @@ public class IngestionTool extends MmsTool {
         final Properties configuration = getConfiguration();
         final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
                                                            "1978-01-01T00:00:00Z");
-        final String endTime = configuration.getProperty(Constants.PROPERTY_SOURCE_END_TIME, "2011-01-01T00:00:00Z");
+        final String endTime = configuration.getProperty(Constants.PROPERTY_SOURCE_END_TIME, "2100-01-01T00:00:00Z");
         final long start;
         try {
             start = TimeUtil.parseCcsdsUtcFormat(startTime);

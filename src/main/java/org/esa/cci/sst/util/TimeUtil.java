@@ -49,6 +49,13 @@ public final class TimeUtil {
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString).getTime();
     }
 
+    public static Date parseCcsdsUtcFormatAsDate(String timeString) throws ParseException {
+        if (timeString.length() == 20) {
+            return CCSDS_UTC_FORMAT.parse(timeString);
+        }
+        return CCSDS_UTC_MILLIS_FORMAT.parse(timeString);
+    }
+
     public static Date julianDateToDate(double julianDate) {
         return new Date((long) ((julianDate - EPOCH_JD) * MILLIS_PER_DAY));
     }
