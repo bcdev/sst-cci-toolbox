@@ -17,7 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.tools.MmsTool;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,8 +25,10 @@ import ucar.nc2.NetcdfFile;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Thomas Storm
@@ -40,11 +41,12 @@ public class MmdIOHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        final MmsTool tool = new MmsTool("dummy", "version");
-        tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
-        tool.initialize();
-        final String sensor = tool.getConfiguration().getProperty("mms.reingestion.sensor");
-        mmdIOHandler = new MmdIOHandler(tool, sensor);
+        final Properties configuration = new Properties();
+        configuration.setProperty("mms.reingestion.sensor", "avhrr.n15");
+        configuration.setProperty("mms.reingestion.pattern", "10000");
+        configuration.setProperty("mms.reingestion.located", "yes");
+
+        mmdIOHandler = new MmdIOHandler(configuration);
     }
 
     @After
