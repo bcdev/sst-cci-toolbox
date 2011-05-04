@@ -6,7 +6,7 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -101,10 +101,10 @@ public class ProductHandlerTest {
     }
 
     @Test
-    public void testGetVariableDescriptors() throws URISyntaxException, IOException {
-        final VariableDescriptor[] descriptors = handler.getVariableDescriptors();
+    public void testGetColumns() throws URISyntaxException, IOException {
+        final Column[] columns = handler.getColumns();
 
-        assertEquals(12, descriptors.length);
+        assertEquals(12, columns.length);
     }
 
     private static float delta(float wantedLat, float wantedLon, float lat, float lon) {

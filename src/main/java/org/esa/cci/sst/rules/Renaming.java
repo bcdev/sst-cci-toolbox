@@ -1,14 +1,14 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 
 /**
- * Modifies the name of a descriptor.
+ * Modifies the name of a column.
  *
  * @author Ralf Quast
  */
-final class Renaming extends DescriptorModification {
+final class Renaming extends ColumnModification {
 
     private final String targetName;
 
@@ -17,7 +17,7 @@ final class Renaming extends DescriptorModification {
     }
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) {
-        return new DescriptorBuilder(sourceDescriptor).setName(targetName).build();
+    public Column apply(Column sourceColumn) {
+        return new ColumnBuilder(sourceColumn).setName(targetName).build();
     }
 }

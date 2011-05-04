@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.junit.Test;
 import ucar.ma2.DataType;
 
@@ -33,35 +33,35 @@ public class ShortToFloatTest extends AbstractRuleTest {
     @Test
     public void testNumericConversion() throws RuleException {
         final Rule rule = getRule();
-        final VariableDescriptor sourceDescriptor = getSourceDescriptor();
-        final Number result = rule.apply((short) 5, sourceDescriptor);
+        final Column sourceColumn = getSourceColumn();
+        final Number result = rule.apply((short) 5, sourceColumn);
 
         assertTrue(result instanceof Float);
         assertEquals(10.5f, result.floatValue(), 0.0f);
     }
 
     @Test(expected = RuleException.class)
-    public void testDescriptorConversion_ImproperType() throws Exception {
-        getRule().apply(new DescriptorBuilder().setType(DataType.BYTE).build());
+    public void testColumnConversion_ImproperType() throws Exception {
+        getRule().apply(new ColumnBuilder().setType(DataType.BYTE).build());
     }
 
     @Override
-    protected void assertTargetDescriptor(VariableDescriptor targetDescriptor) {
-        assertTrue(targetDescriptor.getScaleFactor() == null);
-        assertTrue(targetDescriptor.getAddOffset() == null);
-        assertTrue(DataType.FLOAT.name().equals(targetDescriptor.getType()));
-        assertTrue(targetDescriptor.getFillValue() instanceof Float);
-        assertTrue(targetDescriptor.getFillValue().floatValue() == -1.5f);
+    protected void assertTargetColumn(Column targetColumn) {
+        assertTrue(targetColumn.getScaleFactor() == null);
+        assertTrue(targetColumn.getAddOffset() == null);
+        assertTrue(DataType.FLOAT.name().equals(targetColumn.getType()));
+        assertTrue(targetColumn.getFillValue() instanceof Float);
+        assertTrue(targetColumn.getFillValue().floatValue() == -1.5f);
     }
 
     @Override
-    protected DescriptorBuilder configureSourceDescriptorBuilder(DescriptorBuilder descriptorBuilder) {
-        descriptorBuilder.setType(DataType.SHORT);
-        descriptorBuilder.setAddOffset(0.5f);
-        descriptorBuilder.setScaleFactor(2.0f);
-        descriptorBuilder.setFillValue(-1);
+    protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
+        columnBuilder.setType(DataType.SHORT);
+        columnBuilder.setAddOffset(0.5f);
+        columnBuilder.setScaleFactor(2.0f);
+        columnBuilder.setFillValue(-1);
 
-        return descriptorBuilder;
+        return columnBuilder;
     }
 
 }

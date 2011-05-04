@@ -1,8 +1,8 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
@@ -56,14 +56,14 @@ public interface IOHandler {
     Observation readObservation(int recordNo) throws IOException;
 
     /**
-     * Returns an array of descriptors for the variables that are used by the
-     * files suppoted by this IO handler.
+     * Returns an array of columns for the variables that are used by the
+     * files supported by this IO handler.
      *
-     * @return an array of descriptors.
+     * @return an array of columns.
      *
      * @throws IOException when an error occurred.
      */
-    VariableDescriptor[] getVariableDescriptors() throws IOException;
+    Column[] getColumns() throws IOException;
 
     /**
      * Writes the variable from the observation in the file.
@@ -78,7 +78,7 @@ public interface IOHandler {
      *
      * @throws java.io.IOException If observation data could not be written into the file.
      */
-    // todo - supply target descriptor instead of target variable name here (rq-20110420)
+    // todo - supply target column instead of target variable name here (rq-20110420)
     void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
                String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
                                                                                                                  IOException;

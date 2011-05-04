@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Column;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,12 +13,12 @@ public class MetopImageDimensionsTest extends AbstractRuleTest {
     }
 
     @Override
-    protected void assertTargetDescriptor(VariableDescriptor targetDescriptor) {
-        assertEquals("n metop.ni metop.nj", targetDescriptor.getDimensions());
+    protected void assertTargetColumn(Column targetColumn) {
+        assertEquals("n metop.ni metop.nj", targetColumn.getDimensions());
     }
 
     @Override
-    protected DescriptorBuilder configureSourceDescriptorBuilder(DescriptorBuilder descriptorBuilder) {
-        return descriptorBuilder.setDimensions("n ny nx");
+    protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
+        return columnBuilder.setDimensions("n ny nx");
     }
 }

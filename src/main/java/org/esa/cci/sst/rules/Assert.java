@@ -1,6 +1,6 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
 import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
@@ -37,21 +37,21 @@ class Assert {
         }
     }
 
-    static void type(DataType expectedType, VariableDescriptor sourceDescriptor) throws RuleException {
-        if (!expectedType.name().equals(sourceDescriptor.getType())) {
+    static void type(DataType expectedType, Column column) throws RuleException {
+        if (!expectedType.name().equals(column.getType())) {
             throw new RuleException(
                     MessageFormat.format("Expected variable type ''{0}'', but actual type is ''{1}''.",
                                          expectedType,
-                                         sourceDescriptor.getType()));
+                                         column.getType()));
         }
     }
 
-    static void unit(String expectedUnit, VariableDescriptor sourceDescriptor) throws RuleException {
-        if (!expectedUnit.equals(sourceDescriptor.getUnit())) {
+    static void unit(String expectedUnit, Column column) throws RuleException {
+        if (!expectedUnit.equals(column.getUnit())) {
             throw new RuleException(
                     MessageFormat.format("Expected unit ''{0}'', but actual unit is ''{1}''.",
                                          expectedUnit,
-                                         sourceDescriptor.getUnit()));
+                                         column.getUnit()));
         }
     }
 }

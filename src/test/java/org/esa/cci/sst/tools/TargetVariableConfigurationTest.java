@@ -1,7 +1,7 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.DescriptorRegistry;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.ColumnRegistry;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.IoUtil;
 import org.junit.AfterClass;
@@ -23,13 +23,13 @@ import static org.junit.Assert.assertNotNull;
 public class TargetVariableConfigurationTest {
 
     @Test
-    public void testRegisterDescriptors() throws ParseException, RuleException {
-        final DescriptorRegistry registry = DescriptorRegistry.getInstance();
+    public void testRegisterColumns() throws ParseException, RuleException {
+        final ColumnRegistry registry = ColumnRegistry.getInstance();
         final InputStream is = getClass().getResourceAsStream("mmd-variables.txt");
 
         assertNotNull(is);
 
-        final List<String> nameList = registry.registerDescriptors(is);
+        final List<String> nameList = registry.registerColumns(is);
 
         assertNotNull(nameList);
         assertEquals(81, nameList.size());
@@ -37,45 +37,45 @@ public class TargetVariableConfigurationTest {
         assertEquals("aatsr_md.atsr.L2_confidence_word", nameList.get(0));
         assertEquals("tmi.wind_speed", nameList.get(nameList.size() - 1));
 
-        testMetopDescriptor();
+        testMetopColumn();
     }
 
-    private void testMetopDescriptor() {
-        final DescriptorRegistry registry = DescriptorRegistry.getInstance();
-        final VariableDescriptor targetDescriptor = registry.getDescriptor("metop.brightness_temperature.037");
+    private void testMetopColumn() {
+        final ColumnRegistry registry = ColumnRegistry.getInstance();
+        final Column targetColumn = registry.getColumn("metop.brightness_temperature.037");
 
-        assertEquals("matchup metop.ni metop.nj", targetDescriptor.getDimensions());
-        assertNotNull(registry.getConverter(targetDescriptor));
-        assertNotNull("metop.IR037", registry.getSourceDescriptor(targetDescriptor).getName());
+        assertEquals("matchup metop.ni metop.nj", targetColumn.getDimensions());
+        assertNotNull(registry.getConverter(targetColumn));
+        assertNotNull("metop.IR037", registry.getSourceColumn(targetColumn).getName());
     }
 
     @BeforeClass
     public static void initRegistry() throws IOException, URISyntaxException {
-        registerSourceDescriptors("seviri.nc", "seviri");
-        registerSourceDescriptors("metop.nc", "metop");
-        registerSourceDescriptors("aatsr_md.nc", "aatsr_md");
-        registerSourceDescriptors("ams.nc", "amsre");
-        registerSourceDescriptors("tmi.nc", "tmi");
-        registerSourceDescriptors("atsr.1.nc", "atsr1");
-        registerSourceDescriptors("atsr.2.nc", "atsr2");
-        registerSourceDescriptors("atsr.3.nc", "atsr3");
+        registerSourceColumns("seviri.nc", "seviri");
+        registerSourceColumns("metop.nc", "metop");
+        registerSourceColumns("aatsr_md.nc", "aatsr_md");
+        registerSourceColumns("ams.nc", "amsre");
+        registerSourceColumns("tmi.nc", "tmi");
+        registerSourceColumns("atsr.1.nc", "atsr1");
+        registerSourceColumns("atsr.2.nc", "atsr2");
+        registerSourceColumns("atsr.3.nc", "atsr3");
     }
 
     @AfterClass
     public static void clearRegistry() {
-        DescriptorRegistry.getInstance().clear();
+        ColumnRegistry.getInstance().clear();
     }
 
-    private static void registerSourceDescriptors(String fileName, String sensor) throws IOException,
-                                                                                         URISyntaxException {
+    private static void registerSourceColumns(String fileName, String sensor) throws IOException,
+                                                                                     URISyntaxException {
         NetcdfFile netcdfFile = null;
         try {
             final File sensorFile = new File(TargetVariableConfigurationTest.class.getResource(fileName).toURI());
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
-            final DescriptorRegistry registry = DescriptorRegistry.getInstance();
+            final ColumnRegistry registry = ColumnRegistry.getInstance();
             for (final Variable variable : netcdfFile.getVariables()) {
-                final VariableDescriptor variableDescriptor = IoUtil.createDescriptorBuilder(variable, sensor).build();
-                registry.register(variableDescriptor);
+                final Column column = IoUtil.createColumnBuilder(variable, sensor).build();
+                registry.register(column);
             }
         } finally {
             if (netcdfFile != null) {

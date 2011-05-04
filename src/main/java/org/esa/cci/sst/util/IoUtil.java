@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.postgis.LineString;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -61,8 +61,8 @@ public class IoUtil {
     }
 
 
-    public static DescriptorBuilder createDescriptorBuilder(final Variable variable, final String sensorName) {
-        final DescriptorBuilder builder = new DescriptorBuilder();
+    public static ColumnBuilder createColumnBuilder(final Variable variable, final String sensorName) {
+        final ColumnBuilder builder = new ColumnBuilder();
         builder.setName(sensorName + "." + variable.getName());
         builder.setType(variable.getDataType());
         builder.setDimensions(variable.getDimensionsString());
@@ -90,7 +90,7 @@ public class IoUtil {
         return lon;
     }
 
-    private static void setAttributes(final Variable variable, final DescriptorBuilder builder) {
+    private static void setAttributes(final Variable variable, final ColumnBuilder builder) {
         for (final Attribute attribute : variable.getAttributes()) {
             if ("add_offset".equals(attribute.getName())) {
                 builder.setAddOffset(attribute.getNumericValue());
@@ -116,7 +116,7 @@ public class IoUtil {
         }
     }
 
-    private static void setUnits(final Variable variable, final DescriptorBuilder builder) {
+    private static void setUnits(final Variable variable, final ColumnBuilder builder) {
         final String units = variable.getUnitsString();
         if (units != null && !units.isEmpty()) {
             builder.setUnit(units);

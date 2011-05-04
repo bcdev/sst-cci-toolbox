@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,21 +13,21 @@ import org.junit.Test;
 public abstract class AbstractRuleTest {
 
     private Rule rule;
-    private VariableDescriptor sourceDescriptor;
+    private Column sourceColumn;
 
     @Before
     public final void init() {
         rule = RuleFactory.getInstance().getRule(getClass().getSimpleName().replace("Test", ""));
-        sourceDescriptor = configureSourceDescriptorBuilder(new DescriptorBuilder()).build();
+        sourceColumn = configureSourceColumnBuilder(new ColumnBuilder()).build();
     }
 
     @Test
-    public final void testDescriptorConversion() throws RuleException {
+    public final void testColumnConversion() throws RuleException {
         final Rule rule = getRule();
-        final VariableDescriptor sourceDescriptor = getSourceDescriptor();
-        final VariableDescriptor targetDescriptor = rule.apply(sourceDescriptor);
+        final Column sourceColumn = getSourceColumn();
+        final Column targetColumn = rule.apply(sourceColumn);
 
-        assertTargetDescriptor(targetDescriptor);
+        assertTargetColumn(targetColumn);
     }
 
     @Test
@@ -37,12 +37,12 @@ public abstract class AbstractRuleTest {
         return rule;
     }
 
-    protected abstract void assertTargetDescriptor(VariableDescriptor targetDescriptor);
+    protected abstract void assertTargetColumn(Column targetColumn);
 
-    protected abstract DescriptorBuilder configureSourceDescriptorBuilder(DescriptorBuilder descriptorBuilder);
+    protected abstract ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder);
 
-    protected final VariableDescriptor getSourceDescriptor() {
-        return sourceDescriptor;
+    protected final Column getSourceColumn() {
+        return sourceColumn;
     }
 
 }

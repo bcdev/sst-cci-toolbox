@@ -1,6 +1,5 @@
 package org.esa.cci.sst.data;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -15,7 +14,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_variable")
-public final class VariableDescriptor {
+public final class Column {
 
     private int id;
     private String name;
@@ -32,7 +31,7 @@ public final class VariableDescriptor {
     private String role;
     private Sensor sensor;
 
-    VariableDescriptor() {
+    Column() {
     }
 
     @Id
@@ -45,7 +44,7 @@ public final class VariableDescriptor {
         this.id = id;
     }
 
-    @Column(unique = true, nullable = false)
+    @javax.persistence.Column(unique = true, nullable = false)
     public String getName() {
         return name;
     }
@@ -54,7 +53,7 @@ public final class VariableDescriptor {
         this.name = name;
     }
 
-    @Column(nullable = false)
+    @javax.persistence.Column(nullable = false)
     public String getType() {
         return type;
     }
@@ -63,7 +62,7 @@ public final class VariableDescriptor {
         this.type = type;
     }
 
-    @Column(nullable = false)
+    @javax.persistence.Column(nullable = false)
     public String getDimensions() {
         return dimensions;
     }
@@ -137,7 +136,7 @@ public final class VariableDescriptor {
     }
 
     @ManyToOne
-    @Column(nullable = false)
+    @javax.persistence.Column(nullable = false)
     public Sensor getSensor() {
         return sensor;
     }
@@ -156,7 +155,7 @@ public final class VariableDescriptor {
 
     @Override
     public boolean equals(Object anObject) {
-        return this == anObject || anObject instanceof VariableDescriptor && this.getId() == ((VariableDescriptor) anObject).getId();
+        return this == anObject || anObject instanceof Column && this.getId() == ((Column) anObject).getId();
     }
 
     @Override

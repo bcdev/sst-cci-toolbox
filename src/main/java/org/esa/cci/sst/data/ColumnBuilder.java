@@ -4,11 +4,11 @@ import com.bc.ceres.core.Assert;
 import ucar.ma2.DataType;
 
 /**
- * Used for building variable descriptors.
+ * Public API used for building columns.
  *
  * @author Ralf Quast
  */
-public final class DescriptorBuilder {
+public final class ColumnBuilder {
 
     private static final Sensor INTERNAL_SENSOR = new SensorBuilder().build();
 
@@ -26,23 +26,23 @@ public final class DescriptorBuilder {
     private String role;
     private Sensor sensor;
 
-    public DescriptorBuilder(VariableDescriptor descriptor) {
-        setName(descriptor.getName());
-        setType(DataType.valueOf(descriptor.getType()));
-        setDimensions(descriptor.getDimensions());
-        setUnit(descriptor.getUnit());
-        setAddOffset(descriptor.getAddOffset());
-        setScaleFactor(descriptor.getScaleFactor());
-        setFillValue(descriptor.getFillValue());
-        setValidMin(descriptor.getValidMin());
-        setValidMax(descriptor.getValidMax());
-        setStandardName(descriptor.getStandardName());
-        setLongName(descriptor.getLongName());
-        setRole(descriptor.getRole());
-        setSensor(descriptor.getSensor());
+    public ColumnBuilder(Column column) {
+        setName(column.getName());
+        setType(DataType.valueOf(column.getType()));
+        setDimensions(column.getDimensions());
+        setUnit(column.getUnit());
+        setAddOffset(column.getAddOffset());
+        setScaleFactor(column.getScaleFactor());
+        setFillValue(column.getFillValue());
+        setValidMin(column.getValidMin());
+        setValidMax(column.getValidMax());
+        setStandardName(column.getStandardName());
+        setLongName(column.getLongName());
+        setRole(column.getRole());
+        setSensor(column.getSensor());
     }
 
-    public DescriptorBuilder() {
+    public ColumnBuilder() {
         setName("untitled");
         setType(DataType.INT);
         setDimensions("");
@@ -53,7 +53,7 @@ public final class DescriptorBuilder {
         return name;
     }
 
-    public DescriptorBuilder setName(String name) {
+    public ColumnBuilder setName(String name) {
         Assert.argument(name != null, "name == null");
         this.name = name;
         return this;
@@ -63,7 +63,7 @@ public final class DescriptorBuilder {
         return type;
     }
 
-    public DescriptorBuilder setType(DataType type) {
+    public ColumnBuilder setType(DataType type) {
         this.type = type;
         return this;
     }
@@ -72,7 +72,7 @@ public final class DescriptorBuilder {
         return dimensions;
     }
 
-    public DescriptorBuilder setDimensions(String dimensions) {
+    public ColumnBuilder setDimensions(String dimensions) {
         Assert.argument(dimensions != null, "dimensions == null");
         this.dimensions = dimensions;
         return this;
@@ -82,7 +82,7 @@ public final class DescriptorBuilder {
         return unit;
     }
 
-    public DescriptorBuilder setUnit(String unit) {
+    public ColumnBuilder setUnit(String unit) {
         this.unit = unit;
         return this;
     }
@@ -91,7 +91,7 @@ public final class DescriptorBuilder {
         return addOffset;
     }
 
-    public DescriptorBuilder setAddOffset(Number addOffset) {
+    public ColumnBuilder setAddOffset(Number addOffset) {
         this.addOffset = addOffset;
         return this;
     }
@@ -100,7 +100,7 @@ public final class DescriptorBuilder {
         return scaleFactor;
     }
 
-    public DescriptorBuilder setScaleFactor(Number scaleFactor) {
+    public ColumnBuilder setScaleFactor(Number scaleFactor) {
         this.scaleFactor = scaleFactor;
         return this;
     }
@@ -109,7 +109,7 @@ public final class DescriptorBuilder {
         return fillValue;
     }
 
-    public DescriptorBuilder setFillValue(Number fillValue) {
+    public ColumnBuilder setFillValue(Number fillValue) {
         this.fillValue = fillValue;
         return this;
     }
@@ -118,7 +118,7 @@ public final class DescriptorBuilder {
         return validMin;
     }
 
-    public DescriptorBuilder setValidMin(Number validMin) {
+    public ColumnBuilder setValidMin(Number validMin) {
         this.validMin = validMin;
         return this;
     }
@@ -127,7 +127,7 @@ public final class DescriptorBuilder {
         return validMax;
     }
 
-    public DescriptorBuilder setValidMax(Number validMax) {
+    public ColumnBuilder setValidMax(Number validMax) {
         this.validMax = validMax;
         return this;
     }
@@ -136,7 +136,7 @@ public final class DescriptorBuilder {
         return standardName;
     }
 
-    public DescriptorBuilder setStandardName(String standardName) {
+    public ColumnBuilder setStandardName(String standardName) {
         this.standardName = standardName;
         return this;
     }
@@ -145,7 +145,7 @@ public final class DescriptorBuilder {
         return longName;
     }
 
-    public DescriptorBuilder setLongName(String longName) {
+    public ColumnBuilder setLongName(String longName) {
         this.longName = longName;
         return this;
     }
@@ -154,7 +154,7 @@ public final class DescriptorBuilder {
         return role;
     }
 
-    public DescriptorBuilder setRole(String role) {
+    public ColumnBuilder setRole(String role) {
         this.role = role;
         return this;
     }
@@ -163,27 +163,27 @@ public final class DescriptorBuilder {
         return sensor;
     }
 
-    public DescriptorBuilder setSensor(Sensor sensor) {
+    public ColumnBuilder setSensor(Sensor sensor) {
         this.sensor = sensor;
         return this;
     }
 
-    public VariableDescriptor build() {
-        final VariableDescriptor descriptor = new VariableDescriptor();
-        descriptor.setName(name);
-        descriptor.setType(type.name());
-        descriptor.setDimensions(dimensions);
-        descriptor.setUnit(unit);
-        descriptor.setAddOffset(addOffset);
-        descriptor.setScaleFactor(scaleFactor);
-        descriptor.setFillValue(fillValue);
-        descriptor.setValidMin(validMin);
-        descriptor.setValidMax(validMax);
-        descriptor.setStandardName(standardName);
-        descriptor.setLongName(longName);
-        descriptor.setRole(role);
-        descriptor.setSensor(sensor);
+    public Column build() {
+        final Column column = new Column();
+        column.setName(name);
+        column.setType(type.name());
+        column.setDimensions(dimensions);
+        column.setUnit(unit);
+        column.setAddOffset(addOffset);
+        column.setScaleFactor(scaleFactor);
+        column.setFillValue(fillValue);
+        column.setValidMin(validMin);
+        column.setValidMax(validMax);
+        column.setStandardName(standardName);
+        column.setLongName(longName);
+        column.setRole(role);
+        column.setSensor(sensor);
 
-        return descriptor;
+        return column;
     }
 }

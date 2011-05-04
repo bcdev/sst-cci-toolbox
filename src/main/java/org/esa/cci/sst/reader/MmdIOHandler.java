@@ -19,7 +19,7 @@ package org.esa.cci.sst.reader;
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.postgis.PGgeometry;
@@ -86,9 +86,9 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
-    public VariableDescriptor[] getVariableDescriptors() throws IOException {
+    public Column[] getColumns() throws IOException {
         validateDelegate(reader);
-        return reader.getVariableDescriptors();
+        return reader.getColumns();
     }
 
     @Override

@@ -7,15 +7,15 @@
             org.apache.openjpa.persistence.PersistenceProviderImpl
         </provider>
         <class>org.esa.cci.sst.data.Coincidence</class>
+        <class>org.esa.cci.sst.data.Column</class>
         <class>org.esa.cci.sst.data.DataFile</class>
+        <class>org.esa.cci.sst.data.GlobalObservation</class>
         <class>org.esa.cci.sst.data.InsituObservation</class>
         <class>org.esa.cci.sst.data.Matchup</class>
         <class>org.esa.cci.sst.data.Observation</class>
-        <class>org.esa.cci.sst.data.GlobalObservation</class>
         <class>org.esa.cci.sst.data.ReferenceObservation</class>
         <class>org.esa.cci.sst.data.RelatedObservation</class>
         <class>org.esa.cci.sst.data.Sensor</class>
-        <class>org.esa.cci.sst.data.VariableDescriptor</class>
 
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>

@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
@@ -14,33 +14,33 @@ import java.text.MessageFormat;
 public abstract class IntegralNumberToRealNumber implements Rule {
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
+    public Column apply(Column sourceColumn) throws RuleException {
         final DataType sourceDataType = getSourceDataType();
         Assert.condition(sourceDataType.isIntegral(),
                          MessageFormat.format("Expected integral numeric type, actual type is ''{0}''.",
                                               sourceDataType.name()));
-        Assert.type(sourceDataType, sourceDescriptor);
+        Assert.type(sourceDataType, sourceColumn);
 
-        final DescriptorBuilder builder = new DescriptorBuilder(sourceDescriptor);
+        final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
         builder.setAddOffset(null);
         builder.setScaleFactor(null);
         builder.setType(getTargetDataType());
         builder.setFillValue(null);
 
-        final Number sourceFillValue = sourceDescriptor.getFillValue();
+        final Number sourceFillValue = sourceColumn.getFillValue();
         if (sourceFillValue != null) {
             switch (sourceDataType) {
             case BYTE:
-                builder.setFillValue(apply(sourceFillValue.byteValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.byteValue(), sourceColumn));
                 break;
             case SHORT:
-                builder.setFillValue(apply(sourceFillValue.shortValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.shortValue(), sourceColumn));
                 break;
             case INT:
-                builder.setFillValue(apply(sourceFillValue.intValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.intValue(), sourceColumn));
                 break;
             case LONG:
-                builder.setFillValue(apply(sourceFillValue.longValue(), sourceDescriptor));
+                builder.setFillValue(apply(sourceFillValue.longValue(), sourceColumn));
                 break;
             }
         }
@@ -49,9 +49,9 @@ public abstract class IntegralNumberToRealNumber implements Rule {
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
-        Number sourceAddOffset = sourceDescriptor.getAddOffset();
-        Number sourceScaleFactor = sourceDescriptor.getScaleFactor();
+    public Number apply(Number number, Column sourceColumn) throws RuleException {
+        Number sourceAddOffset = sourceColumn.getAddOffset();
+        Number sourceScaleFactor = sourceColumn.getScaleFactor();
         if (sourceScaleFactor == null) {
             sourceScaleFactor = 1.0;
         }

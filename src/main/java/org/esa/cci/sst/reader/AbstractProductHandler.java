@@ -25,10 +25,10 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.DescriptorBuilder;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -169,17 +169,17 @@ abstract class AbstractProductHandler implements IOHandler {
     public abstract Observation readObservation(int recordNo) throws IOException;
 
     @Override
-    public final VariableDescriptor[] getVariableDescriptors() throws IOException {
-        final List<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
+    public final Column[] getColumns() throws IOException {
+        final List<Column> columnList = new ArrayList<Column>();
         for (final RasterDataNode node : product.getTiePointGrids()) {
-            final VariableDescriptor variableDescriptor = createDescriptor(node);
-            variableDescriptorList.add(variableDescriptor);
+            final Column column = createColumn(node);
+            columnList.add(column);
         }
         for (final RasterDataNode node : product.getBands()) {
-            final VariableDescriptor variableDescriptor = createDescriptor(node);
-            variableDescriptorList.add(variableDescriptor);
+            final Column column = createColumn(node);
+            columnList.add(column);
         }
-        return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
+        return columnList.toArray(new Column[columnList.size()]);
     }
 
     @Override
@@ -216,10 +216,10 @@ abstract class AbstractProductHandler implements IOHandler {
         throw new OperationNotSupportedException();
     }
 
-    protected final VariableDescriptor createDescriptor(final RasterDataNode node) {
+    protected final Column createColumn(final RasterDataNode node) {
         final String name = getSensorName() + "." + node.getName();
         final DataType type = DataTypeUtils.getNetcdfDataType(node);
-        final DescriptorBuilder builder = new DescriptorBuilder();
+        final ColumnBuilder builder = new ColumnBuilder();
         builder.setName(name);
         builder.setType(type);
         builder.setDimensions("record ni nj");

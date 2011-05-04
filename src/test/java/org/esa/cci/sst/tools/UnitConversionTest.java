@@ -1,8 +1,8 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.DescriptorRegistry;
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.ColumnRegistry;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
@@ -26,31 +26,31 @@ public class UnitConversionTest {
     private static final DataType TIME_VARIABLE_TYPE = DataType.DOUBLE;
     private static final double JULIAN_DATE_OF_EPOCH_1978 = 2443509.5;
 
-    private DescriptorRegistry registry = DescriptorRegistry.getInstance();
+    private ColumnRegistry registry = ColumnRegistry.getInstance();
 
     @Test
-    public void testDescriptorConversion() {
-        final VariableDescriptor targetDescriptor = registry.getDescriptor(TIME_VARIABLE_NAME);
+    public void testColumnConversion() {
+        final Column targetColumn = registry.getColumn(TIME_VARIABLE_NAME);
 
-        assertEquals(TIME_VARIABLE_NAME, targetDescriptor.getName());
-        assertEquals(TIME_VARIABLE_TYPE.name(), targetDescriptor.getType());
-        assertEquals("seconds since 1978-01-01 00:00:00", targetDescriptor.getUnit());
+        assertEquals(TIME_VARIABLE_NAME, targetColumn.getName());
+        assertEquals(TIME_VARIABLE_TYPE.name(), targetColumn.getType());
+        assertEquals("seconds since 1978-01-01 00:00:00", targetColumn.getUnit());
 
-        final VariableDescriptor sourceDescriptor = registry.getSourceDescriptor(targetDescriptor);
+        final Column sourceColumn = registry.getSourceColumn(targetColumn);
 
-        assertNotNull(sourceDescriptor);
-        assertEquals(TIME_VARIABLE_NAME, sourceDescriptor.getName());
-        assertEquals(TIME_VARIABLE_TYPE.name(), sourceDescriptor.getType());
-        assertEquals("Julian Date", sourceDescriptor.getUnit());
+        assertNotNull(sourceColumn);
+        assertEquals(TIME_VARIABLE_NAME, sourceColumn.getName());
+        assertEquals(TIME_VARIABLE_TYPE.name(), sourceColumn.getType());
+        assertEquals("Julian Date", sourceColumn.getUnit());
     }
 
     @Test
     public void testNumericConversion() throws RuleException {
-        final VariableDescriptor targetDescriptor = registry.getDescriptor(TIME_VARIABLE_NAME);
+        final Column targetColumn = registry.getColumn(TIME_VARIABLE_NAME);
 
-        assertNotNull(targetDescriptor);
+        assertNotNull(targetColumn);
 
-        final Converter converter = registry.getConverter(targetDescriptor);
+        final Converter converter = registry.getConverter(targetColumn);
 
         assertNotNull(converter);
         assertEquals(0.0, converter.apply(JULIAN_DATE_OF_EPOCH_1978));
@@ -60,7 +60,7 @@ public class UnitConversionTest {
     @Before
     public void initRegistry() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("JulianDateToSeconds");
-        final DescriptorBuilder builder = new DescriptorBuilder();
+        final ColumnBuilder builder = new ColumnBuilder();
         builder.setName(TIME_VARIABLE_NAME);
         builder.setType(TIME_VARIABLE_TYPE);
         builder.setUnit("Julian Date");

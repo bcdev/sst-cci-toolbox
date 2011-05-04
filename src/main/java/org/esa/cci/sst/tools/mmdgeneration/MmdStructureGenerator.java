@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.DataType;
@@ -163,12 +163,12 @@ class MmdStructureGenerator {
 
     private void addInputVariables(NetcdfFileWriteable file, String sensorName) {
         final Query query = tool.getPersistenceManager().createQuery(String.format(
-                "select v from VariableDescriptor v where v.name like '%s.%%' order by v.name", sensorName));
+                "select v from Column v where v.name like '%s.%%' order by v.name", sensorName));
         @SuppressWarnings({"unchecked"})
-        final List<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
-        for (final VariableDescriptor descriptor : descriptorList) {
-            if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
-                addVariable(file, descriptor);
+        final List<Column> columnList = new ArrayList<Column>(query.getResultList());
+        for (final Column column : columnList) {
+            if (targetVariables.isEmpty() || targetVariables.containsKey(column.getName())) {
+                addVariable(file, column);
             }
         }
     }
@@ -212,19 +212,19 @@ class MmdStructureGenerator {
         // todo: NWP tie point dimensions for all sensors (rq-20110223)
     }
 
-    private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor) {
-        // todo - apply descriptor rules here (rq-20110420)
-        final DataType dataType = DataType.valueOf(descriptor.getType());
-        final String targetVariableName = getTargetVariableName(descriptor.getName());
-        final String dimensions = descriptor.getDimensions();
+    private void addVariable(NetcdfFileWriteable targetFile, Column column) {
+        // todo - apply column rules here (rq-20110420)
+        final DataType dataType = DataType.valueOf(column.getType());
+        final String targetVariableName = getTargetVariableName(column.getName());
+        final String dimensions = column.getDimensions();
         if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
             final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType,
                                                       dimensions);
-            addAttribute(v, "standard_name", descriptor.getStandardName());
-            addAttribute(v, "units", descriptor.getUnit());
-            addAttribute(v, "add_offset", descriptor.getAddOffset(), DataType.FLOAT);
-            addAttribute(v, "scale_factor", descriptor.getScaleFactor(), DataType.FLOAT);
-            addAttribute(v, "_FillValue", descriptor.getFillValue(), v.getDataType());
+            addAttribute(v, "standard_name", column.getStandardName());
+            addAttribute(v, "units", column.getUnit());
+            addAttribute(v, "add_offset", column.getAddOffset(), DataType.FLOAT);
+            addAttribute(v, "scale_factor", column.getScaleFactor(), DataType.FLOAT);
+            addAttribute(v, "_FillValue", column.getFillValue(), v.getDataType());
         }
     }
 

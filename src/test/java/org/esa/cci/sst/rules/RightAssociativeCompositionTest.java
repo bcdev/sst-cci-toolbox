@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Column;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -10,26 +10,26 @@ public class RightAssociativeCompositionTest {
 
     @Test
     public void testAssociativity() throws RuleException {
-        final Rule a = new DescriptorModification() {
+        final Rule a = new ColumnModification() {
 
             @Override
-            public VariableDescriptor apply(VariableDescriptor sourceDescriptor) {
-                return new DescriptorBuilder(sourceDescriptor).setName("a").build();
+            public Column apply(Column sourceColumn) {
+                return new ColumnBuilder(sourceColumn).setName("a").build();
             }
         };
-        final Rule b = new DescriptorModification() {
+        final Rule b = new ColumnModification() {
 
             @Override
-            public VariableDescriptor apply(VariableDescriptor sourceDescriptor) {
-                return new DescriptorBuilder(sourceDescriptor).setName("b").setRole("b").build();
+            public Column apply(Column sourceColumn) {
+                return new ColumnBuilder(sourceColumn).setName("b").setRole("b").build();
             }
         };
         final Rule ab = new RightAssociativeComposition(a, b);
-        final DescriptorBuilder descriptorBuilder = new DescriptorBuilder();
-        final VariableDescriptor sourceDescriptor = descriptorBuilder.build();
-        final VariableDescriptor targetDescriptor = ab.apply(sourceDescriptor);
+        final ColumnBuilder columnBuilder = new ColumnBuilder();
+        final Column sourceColumn = columnBuilder.build();
+        final Column targetColumn = ab.apply(sourceColumn);
 
-        assertEquals("a", targetDescriptor.getName());
-        assertEquals("b", targetDescriptor.getRole());
+        assertEquals("a", targetColumn.getName());
+        assertEquals("b", targetColumn.getRole());
     }
 }

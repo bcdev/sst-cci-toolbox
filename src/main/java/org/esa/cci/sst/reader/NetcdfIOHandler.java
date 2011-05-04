@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -62,13 +62,13 @@ abstract class NetcdfIOHandler implements IOHandler {
     }
 
     @Override
-    public VariableDescriptor[] getVariableDescriptors() throws IOException {
-        final ArrayList<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
+    public Column[] getColumns() throws IOException {
+        final ArrayList<Column> columnList = new ArrayList<Column>();
         for (final Variable variable : ncFile.getVariables()) {
-            final VariableDescriptor variableDescriptor = createVariableDescriptor(variable, sensorName, dataFile);
-            variableDescriptorList.add(variableDescriptor);
+            final Column column = createColumn(variable, sensorName, dataFile);
+            columnList.add(column);
         }
-        return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
+        return columnList.toArray(new Column[columnList.size()]);
     }
 
     @Override
@@ -104,9 +104,8 @@ abstract class NetcdfIOHandler implements IOHandler {
         return ncFile;
     }
 
-    private static VariableDescriptor createVariableDescriptor(final Variable variable, final String sensorName,
-                                                               final DataFile dataFile) {
-        return IoUtil.createDescriptorBuilder(variable, sensorName).setSensor(dataFile.getSensor()).build();
+    private static Column createColumn(final Variable variable, final String sensorName, final DataFile dataFile) {
+        return IoUtil.createColumnBuilder(variable, sensorName).setSensor(dataFile.getSensor()).build();
     }
 
 }

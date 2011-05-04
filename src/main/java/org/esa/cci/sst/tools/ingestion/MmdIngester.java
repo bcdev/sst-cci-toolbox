@@ -95,10 +95,10 @@ public class MmdIngester extends MmsTool {
 
     private void persistVariables(String sensorName) {
         try {
-            delegate.persistVariableDescriptors(sensorName, ioHandler);
+            delegate.persistColumns(sensorName, ioHandler);
         } catch (IOException e) {
             throw new ToolException(
-                    MessageFormat.format("Unable to persist variable descriptors for sensor ''{0}''.", sensorName),
+                    MessageFormat.format("Unable to persist columns for sensor ''{0}''.", sensorName),
                     e,
                     ToolException.TOOL_ERROR);
         }

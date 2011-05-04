@@ -1,22 +1,22 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 
 /**
  * Abstract base class for dimension replacement rules.
  *
  * @author Ralf Quast
  */
-abstract class DimensionReplacement extends DescriptorModification {
+abstract class DimensionReplacement extends ColumnModification {
 
     @Override
-    public final VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
-        final String sourceDimensions = sourceDescriptor.getDimensions();
+    public final Column apply(Column sourceColumn) throws RuleException {
+        final String sourceDimensions = sourceColumn.getDimensions();
         Assert.notNull(sourceDimensions, "dimensions");
         Assert.notEmpty(sourceDimensions, "dimensions");
 
-        final DescriptorBuilder builder = new DescriptorBuilder(sourceDescriptor);
+        final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
         final DimensionReplacer replacer = new DimensionReplacer(sourceDimensions);
 
         replaceDimensions(replacer);

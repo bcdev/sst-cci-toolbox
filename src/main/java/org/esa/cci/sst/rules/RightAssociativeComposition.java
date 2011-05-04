@@ -1,6 +1,6 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,19 +20,19 @@ final class RightAssociativeComposition implements Rule {
     }
 
     @Override
-    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
+    public Column apply(Column sourceColumn) throws RuleException {
         for (int i = ruleList.size(); i-- > 0;) {
-            sourceDescriptor = ruleList.get(i).apply(sourceDescriptor);
+            sourceColumn = ruleList.get(i).apply(sourceColumn);
         }
-        return sourceDescriptor;
+        return sourceColumn;
     }
 
     @Override
-    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
+    public Number apply(Number number, Column sourceColumn) throws RuleException {
         for (int i = ruleList.size(); i-- > 0;) {
             final Rule rule = ruleList.get(i);
-            number = rule.apply(number, sourceDescriptor);
-            sourceDescriptor = rule.apply(sourceDescriptor);
+            number = rule.apply(number, sourceColumn);
+            sourceColumn = rule.apply(sourceColumn);
         }
         return number;
     }

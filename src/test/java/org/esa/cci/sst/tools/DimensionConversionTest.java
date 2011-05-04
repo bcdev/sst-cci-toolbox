@@ -1,9 +1,9 @@
 package org.esa.cci.sst.tools;
 
 
-import org.esa.cci.sst.DescriptorRegistry;
-import org.esa.cci.sst.data.DescriptorBuilder;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.ColumnRegistry;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleFactory;
 import org.junit.After;
@@ -24,28 +24,28 @@ public class DimensionConversionTest {
     public static final DataType CALLSIGN_VARIABLE_TYPE = DataType.CHAR;
     public static final String CALLSIGN_VARIABLE_NAME = "callsign";
 
-    private DescriptorRegistry registry = DescriptorRegistry.getInstance();
+    private ColumnRegistry registry = ColumnRegistry.getInstance();
 
     @Test
-    public void testDescriptorConversion() {
-        final VariableDescriptor targetDescriptor = registry.getDescriptor(CALLSIGN_VARIABLE_NAME);
+    public void testColumnConversion() {
+        final Column targetColumn = registry.getColumn(CALLSIGN_VARIABLE_NAME);
 
-        assertEquals(CALLSIGN_VARIABLE_NAME, targetDescriptor.getName());
-        assertEquals(CALLSIGN_VARIABLE_TYPE.name(), targetDescriptor.getType());
-        assertEquals("matchup callsign.length", targetDescriptor.getDimensions());
+        assertEquals(CALLSIGN_VARIABLE_NAME, targetColumn.getName());
+        assertEquals(CALLSIGN_VARIABLE_TYPE.name(), targetColumn.getType());
+        assertEquals("matchup callsign.length", targetColumn.getDimensions());
 
-        final VariableDescriptor sourceDescriptor = registry.getSourceDescriptor(targetDescriptor);
+        final Column sourceColumn = registry.getSourceColumn(targetColumn);
 
-        assertNotNull(sourceDescriptor);
-        assertEquals(CALLSIGN_VARIABLE_NAME, sourceDescriptor.getName());
-        assertEquals(CALLSIGN_VARIABLE_TYPE.name(), sourceDescriptor.getType());
-        assertEquals("match_up cs_length", sourceDescriptor.getDimensions());
+        assertNotNull(sourceColumn);
+        assertEquals(CALLSIGN_VARIABLE_NAME, sourceColumn.getName());
+        assertEquals(CALLSIGN_VARIABLE_TYPE.name(), sourceColumn.getType());
+        assertEquals("match_up cs_length", sourceColumn.getDimensions());
     }
 
     @Before
     public void initRegistry() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("MatchupDimension,CallsignDimension");
-        final DescriptorBuilder builder = new DescriptorBuilder();
+        final ColumnBuilder builder = new ColumnBuilder();
         builder.setName(CALLSIGN_VARIABLE_NAME);
         builder.setType(CALLSIGN_VARIABLE_TYPE);
         builder.setDimensions("match_up cs_length");

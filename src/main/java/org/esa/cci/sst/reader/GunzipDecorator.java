@@ -1,8 +1,8 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
 
@@ -98,8 +98,8 @@ class GunzipDecorator implements IOHandler {
      * Delegates to decorated IO handler.
      */
     @Override
-    public final VariableDescriptor[] getVariableDescriptors() throws IOException {
-        return delegate.getVariableDescriptors();
+    public final Column[] getColumns() throws IOException {
+        return delegate.getColumns();
     }
 
     /**

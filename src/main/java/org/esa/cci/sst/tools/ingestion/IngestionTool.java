@@ -6,7 +6,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.data.Timed;
-import org.esa.cci.sst.data.VariableDescriptor;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
@@ -77,12 +77,12 @@ public class IngestionTool extends MmsTool {
         return hasPersisted;
     }
 
-    void persistVariableDescriptors(final String sensorName, final IOHandler ioHandler) throws IOException {
-        final VariableDescriptor[] variableDescriptors = ioHandler.getVariableDescriptors();
-        getLogger().info(MessageFormat.format("Number of variables for sensor ''{0}'' = {1}.",
-                                              sensorName, variableDescriptors.length));
-        for (final VariableDescriptor variableDescriptor : variableDescriptors) {
-            getPersistenceManager().persist(variableDescriptor);
+    void persistColumns(final String sensorName, final IOHandler ioHandler) throws IOException {
+        final Column[] columns = ioHandler.getColumns();
+        getLogger().info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
+                                              sensorName, columns.length));
+        for (final Column column : columns) {
+            getPersistenceManager().persist(column);
         }
     }
 
@@ -126,7 +126,7 @@ public class IngestionTool extends MmsTool {
 
             persistenceManager.persist(dataFile);
             if (addVariables) {
-                persistVariableDescriptors(sensorName, ioHandler);
+                persistColumns(sensorName, ioHandler);
             }
 
             int recordsInTimeInterval = persistObservations(sensorName, ioHandler);
@@ -249,7 +249,7 @@ public class IngestionTool extends MmsTool {
         statement.executeUpdate();
         statement = persistenceManager.createQuery("delete from Observation o");
         statement.executeUpdate();
-        statement = persistenceManager.createQuery("delete from VariableDescriptor v");
+        statement = persistenceManager.createQuery("delete from Column c");
         statement.executeUpdate();
         statement = persistenceManager.createQuery("delete from Sensor s");
         statement.executeUpdate();
