@@ -62,7 +62,7 @@ public class InsituIOHandlerTest {
         assertEquals(11, calendar.get(Calendar.MONTH));
         assertEquals(18, calendar.get(Calendar.DATE));
 
-        assertEquals(2125828, observation.getTimeRadius());
+        assertEquals(2125828.8, observation.getTimeRadius(), 0.0);
 
         final PGgeometry location = observation.getLocation();
         assertNotNull(location);
