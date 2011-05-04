@@ -21,21 +21,22 @@ import org.esa.cci.sst.util.TimeUtil;
 import javax.persistence.Entity;
 
 /**
- * Data item that represents a full history of in-situ observations with a temporal extent.
+ * Data item that represents a time series of in-situ observations.
  *
  * @author Thomas Storm
  */
 @Entity
-public class InsituObservation extends RelatedObservation {
+public final class InsituObservation extends RelatedObservation {
 
-    long timeRadius;
+    // important: double precision is used to preserve precision
+    private double timeRadius;
 
     /**
      * Returns the time radius (seconds) of this observation.
      *
      * @return the time radius (seconds).
      */
-    public long getTimeRadius() {
+    public double getTimeRadius() {
         return timeRadius;
     }
 
@@ -44,12 +45,13 @@ public class InsituObservation extends RelatedObservation {
      *
      * @param timeRadius The time radius (seconds).
      */
-    public void setTimeRadius(long timeRadius) {
+    public void setTimeRadius(double timeRadius) {
         this.timeRadius = timeRadius;
     }
 
+    @Override
     public String toString() {
-        return String.format("InsituObservation(%d,%s,%s,%s,%d,%s,%d)", getId(), getName(), getSensor(),
+        return String.format("InsituObservation(%d,%s,%s,%s,%f,%s,%d)", getId(), getName(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getTimeRadius(), getDatafile(), getRecordNo());
     }
 }
