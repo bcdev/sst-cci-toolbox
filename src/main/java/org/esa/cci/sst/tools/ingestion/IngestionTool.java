@@ -59,8 +59,7 @@ public class IngestionTool extends MmsTool {
         super("mmsingest.sh", "0.1");
     }
 
-    boolean persistObservation(final Observation observation, final int recordNo) throws IOException,
-                                                                                         ParseException {
+    boolean persistObservation(final Observation observation, final int recordNo) throws IOException {
         boolean hasPersisted = false;
         final PersistenceManager persistenceManager = getPersistenceManager();
         if (checkTime(observation)) {
@@ -226,6 +225,10 @@ public class IngestionTool extends MmsTool {
                 if (persistObservation(observation, recordNo)) {
                     recordsInTimeInterval++;
                 }
+            } catch (ToolException e) {
+                throw e;
+            } catch (IOException e) {
+                throw new ToolException(e.getMessage(), e, ToolException.TOOL_IO_ERROR);
             } catch (Exception e) {
                 getLogger().warning(MessageFormat.format("Ignoring observation for record number {0}: {1}",
                                                          recordNo, e.getMessage()));
@@ -309,13 +312,29 @@ public class IngestionTool extends MmsTool {
         }
     }
 
-    private boolean checkTime(Observation observation) throws ParseException {
-        final String startTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_START_TIME);
-        final String endTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_END_TIME);
-        final long start = TimeUtil.parseCcsdsUtcFormat(startTime);
-        final long stop = TimeUtil.parseCcsdsUtcFormat(endTime);
+    private boolean checkTime(Observation observation) {
         if (!(observation instanceof Timed)) {
             return true;
+        }
+        final Properties configuration = getConfiguration();
+        final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
+                                                           "1978-01-01T00:00:00Z");
+        final String endTime = configuration.getProperty(Constants.PROPERTY_SOURCE_END_TIME, "2011-01-01T00:00:00Z");
+        final long start;
+        try {
+            start = TimeUtil.parseCcsdsUtcFormat(startTime);
+        } catch (ParseException e) {
+            final String message = MessageFormat.format("Cannot parse property ''{0}''.",
+                                                        Constants.PROPERTY_SOURCE_START_TIME);
+            throw new ToolException(message, e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        final long stop;
+        try {
+            stop = TimeUtil.parseCcsdsUtcFormat(endTime);
+        } catch (ParseException e) {
+            final String message = MessageFormat.format("Cannot parse property ''{0}''.",
+                                                        Constants.PROPERTY_SOURCE_END_TIME);
+            throw new ToolException(message, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         final long time = ((Timed) observation).getTime().getTime();
         final long timeRadius;
