@@ -51,12 +51,8 @@ public class MmdIngester extends MmsTool {
         super("mmdingest.sh", "0.1");
     }
 
-    @Override
-    public PersistenceManager getPersistenceManager() {
-        return delegate.getPersistenceManager();
-    }
-
     void init(String[] args) {
+        super.initialize();
         delegate = new IngestionTool();
         delegate.setCommandLineArgs(args);
         delegate.initialize();
@@ -135,7 +131,7 @@ public class MmdIngester extends MmsTool {
 
     private void initIOHandler(final DataFile dataFile) {
         final String sensor = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
-        ioHandler = new MmdIOHandler(delegate, sensor);
+        ioHandler = new MmdIOHandler(delegate.getConfiguration());
         try {
             ioHandler.init(dataFile);
         } catch (IOException e) {

@@ -1,16 +1,15 @@
 package org.esa.cci.sst.tools.ingestion;
 
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
-import org.esa.cci.sst.data.Timed;
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
@@ -21,9 +20,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -313,36 +312,17 @@ public class IngestionTool extends MmsTool {
     }
 
     private boolean checkTime(Observation observation) {
-        if (!(observation instanceof Timed)) {
-            return true;
+        if (observation instanceof Timeable) {
+            final Date time = ((Timeable) observation).getTime();
+            final double timeRadius;
+            if (observation instanceof InsituObservation) {
+                timeRadius = ((InsituObservation) observation).getTimeRadius();
+            } else {
+                timeRadius = 0.0;
+            }
+            return TimeUtil.checkTimeOverlap(time, getSourceStartTime(), getSourceStopTime(), timeRadius);
         }
-        final Properties configuration = getConfiguration();
-        final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
-                                                           "1978-01-01T00:00:00Z");
-        final String endTime = configuration.getProperty(Constants.PROPERTY_SOURCE_END_TIME, "2100-01-01T00:00:00Z");
-        final long start;
-        try {
-            start = TimeUtil.parseCcsdsUtcFormat(startTime);
-        } catch (ParseException e) {
-            final String message = MessageFormat.format("Cannot parse property ''{0}''.",
-                                                        Constants.PROPERTY_SOURCE_START_TIME);
-            throw new ToolException(message, e, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-        final long stop;
-        try {
-            stop = TimeUtil.parseCcsdsUtcFormat(endTime);
-        } catch (ParseException e) {
-            final String message = MessageFormat.format("Cannot parse property ''{0}''.",
-                                                        Constants.PROPERTY_SOURCE_END_TIME);
-            throw new ToolException(message, e, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-        final long time = ((Timed) observation).getTime().getTime();
-        final long timeRadius;
-        if (observation instanceof InsituObservation) {
-            timeRadius = ((InsituObservation) observation).getTimeRadius();
-        } else {
-            timeRadius = 0;
-        }
-        return time + timeRadius * 1000 >= start && time - timeRadius * 1000 < stop;
+        throw new ToolException("Expected observation with time stamp.", ToolException.TOOL_CONFIGURATION_ERROR);
     }
+
 }

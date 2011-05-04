@@ -9,12 +9,14 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
@@ -47,7 +49,10 @@ public class MmsTool {
     private boolean initialised;
     private PersistenceManager persistenceManager;
 
-    public MmsTool(String name, String version) {
+    private Date sourceStartTime;
+    private Date sourceStopTime;
+
+    protected MmsTool(String name, String version) {
         this.name = name;
         this.version = version;
         configuration = new Properties();
@@ -55,7 +60,7 @@ public class MmsTool {
 
         for (final Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
             if (entry.getKey().toString().startsWith("mms.")) {
-                getConfiguration().put(entry.getKey(), entry.getValue());
+                configuration.put(entry.getKey(), entry.getValue());
             }
         }
     }
@@ -144,8 +149,16 @@ public class MmsTool {
         return options;
     }
 
-    public PersistenceManager getPersistenceManager() {
+    public final PersistenceManager getPersistenceManager() {
         return persistenceManager;
+    }
+
+    public final Date getSourceStartTime() {
+        return sourceStartTime;
+    }
+
+    public final Date getSourceStopTime() {
+        return sourceStopTime;
     }
 
     public final boolean setCommandLineArgs(String[] args) {
@@ -199,6 +212,18 @@ public class MmsTool {
 
         getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, getConfiguration());
+
+        final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
+                                                           "1978-01-01T00:00:00Z");
+        final String endTime = configuration.getProperty(Constants.PROPERTY_SOURCE_END_TIME,
+                                                         "2100-01-01T00:00:00Z");
+        try {
+            sourceStartTime = TimeUtil.parseCcsdsUtcFormat(startTime);
+            sourceStopTime = TimeUtil.parseCcsdsUtcFormat(endTime);
+        } catch (java.text.ParseException e) {
+            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+
         initialised = true;
     }
 

@@ -87,8 +87,8 @@ class InsituIOHandler extends NetcdfIOHandler {
         final Date startTime = TimeUtil.julianDateToDate(historyTimes.getDouble(0));
         final Date endTime = TimeUtil.julianDateToDate(
                 historyTimes.getDouble(historyTimes.getIndexPrivate().getShape(0) - 1));
-        observation.setTime(IoUtil.centerTime(startTime, endTime));
-        observation.setTimeRadius(IoUtil.timeRadius(startTime, endTime));
+        observation.setTime(TimeUtil.centerTime(startTime, endTime));
+        observation.setTimeRadius(TimeUtil.timeRadius(startTime, endTime));
 
         try {
             final double startLon = parseDouble("start_lon");

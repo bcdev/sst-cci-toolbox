@@ -24,9 +24,9 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
-import org.esa.cci.sst.reader.IOHandlerFactory;
 import org.esa.cci.sst.reader.InsituRecord;
 import org.esa.cci.sst.reader.InsituVariable;
+import org.esa.cci.sst.reader.MmdIOHandler;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
@@ -251,7 +251,7 @@ class MmdGenerator {
         final String sensorName = observation.getSensor();
         IOHandler handler = ioHandlerMap.get(sensorName);
         if (handler == null) {
-            handler = IOHandlerFactory.createMmdIOHandler(tool, sensorName);
+            handler = new MmdIOHandler(tool.getConfiguration());
             ioHandlerMap.put(sensorName, handler);
         }
         final DataFile handlerDataFile = handler.getDataFile();

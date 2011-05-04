@@ -9,12 +9,11 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.Timed;
+import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -401,14 +400,9 @@ public class MatchupTool extends MmsTool {
     private List<ReferenceObservation> getReferenceObservations(String queryString, String sensorName) {
         final Query query = getPersistenceManager().createQuery(queryString);
         query.setParameter(1, sensorName);
-        final String startTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_START_TIME, "1978-01-01T00:00:00Z");
-        final String endTime = getConfiguration().getProperty(Constants.PROPERTY_SOURCE_END_TIME, "2100-01-01T00:00:00Z");
-        try {
-            query.setParameter(2, TimeUtil.parseCcsdsUtcFormatAsDate(startTime));
-            query.setParameter(3, TimeUtil.parseCcsdsUtcFormatAsDate(endTime));
-        } catch (ParseException e) {
-            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
+        query.setParameter(2, getSourceStartTime());
+        query.setParameter(3, getSourceStopTime());
+
         return query.getResultList();
     }
 
@@ -472,8 +466,8 @@ public class MatchupTool extends MmsTool {
      * @return newly created Coincidence relating matchup and common observation
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
-        Assert.argument(observation instanceof Timed, "!(observation instanceof Timed)");
-        final double timeDifference = TimeUtil.computeTimeDelta(matchup, (Timed) observation);
+        Assert.argument(observation instanceof Timeable, "!(observation instanceof Timeable)");
+        final double timeDifference = TimeUtil.timeDifferenceInSeconds(matchup, (Timeable) observation);
         final Coincidence coincidence = new Coincidence();
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);

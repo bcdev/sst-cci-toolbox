@@ -229,7 +229,6 @@ public class Arc1ProcessingTool extends MmsTool {
 
     private String getBasename(final String currentFilename) {
         final int slashIndex = currentFilename.lastIndexOf('/');
-        final String baseFilename;
         if (currentFilename.endsWith(".gz")) {
             return currentFilename.substring(slashIndex + 1, currentFilename.length() - ".gz".length());
         } else {
@@ -241,7 +240,7 @@ public class Arc1ProcessingTool extends MmsTool {
         final String time = getConfiguration().getProperty(key);
         final Date date;
         try {
-            date = new Date(TimeUtil.parseCcsdsUtcFormat(time));
+            date = TimeUtil.parseCcsdsUtcFormat(time);
         } catch (ParseException e) {
             final String message = MessageFormat.format("Unable to parse time parameter ''{0}''.", key);
             throw new ToolException(message, e, ToolException.CONFIGURATION_FILE_IO_ERROR);

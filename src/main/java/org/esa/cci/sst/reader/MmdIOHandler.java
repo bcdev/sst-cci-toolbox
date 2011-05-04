@@ -32,6 +32,7 @@ import ucar.nc2.Variable;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.Properties;
 
 /**
  * IOHandler for reading from and writing to an mmd file.
@@ -41,16 +42,16 @@ import java.util.Date;
 public class MmdIOHandler implements IOHandler {
 
     private NetcdfFile ncFile;
-    private final MmsTool tool;
     private final String sensorName;
     private Variable matchupIds;
     private ObservationReader reader;
     private MmdWriter writer;
     private DataFile dataFile;
+    private Properties configuration;
 
-    public MmdIOHandler(final MmsTool tool, final String sensorName) {
-        this.tool = tool;
-        this.sensorName = sensorName;
+    public MmdIOHandler(Properties configuration) {
+        this.sensorName = configuration.getProperty("mms.reingestion.sensor");
+        this.configuration = configuration;
     }
 
     @Override
@@ -149,7 +150,7 @@ public class MmdIOHandler implements IOHandler {
     }
 
     String getProperty(final String key, final String defaultValue) {
-        return tool.getConfiguration().getProperty(key, defaultValue);
+        return configuration.getProperty(key, defaultValue);
     }
 
     private void validateFileLocation(final String fileLocation) throws IOException {

@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.tools.MmsTool;
+import com.bc.ceres.core.Assert;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -28,42 +28,56 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class IOHandlerFactory {
 
+    private static final String PACKAGE_NAME = IOHandlerFactory.class.getPackage().getName();
+
     private IOHandlerFactory() {
     }
 
     /**
      * Factory method for getting the correct io handler, according to given schema and sensor names.
      *
-     * @param readerSpec The reader specification, in the form <code>Reader1,Reader2</code>,
-     *                   where <code>Reader2</code> is constructor argument for <code>Reader1</code>.
+     * @param readerSpec The reader specification, in the form <code>Reader2,Reader1</code>,
+     *                   where <code>Reader1</code> is constructor argument for <code>Reader2</code>.
      * @param sensorName The sensor name.
      *
      * @return a new instance of <code>IOHandler</code>.
+     *
+     * @throws IllegalArgumentException when the reader specification is incorrect.
      */
-    public static IOHandler createHandler(String readerSpec, String sensorName) throws ClassNotFoundException,
-                                                                                       IllegalAccessException,
-                                                                                       InstantiationException,
-                                                                                       InvocationTargetException,
-                                                                                       NoSuchMethodException {
-        final String packageName = IOHandlerFactory.class.getPackage().getName();
+    public static IOHandler createHandler(String readerSpec, String sensorName) throws IllegalArgumentException {
+        Assert.argument(readerSpec != null, "readerSpec == null");
+        Assert.argument(sensorName != null, "sensorName == null");
         final String[] handlerClassNames = readerSpec.split(",");
         IOHandler handler = null;
-        for (int i = handlerClassNames.length - 1; i >= 0; i--) {
-            final Class<?> handlerClass = Class.forName(packageName + '.' + handlerClassNames[i]);
-            if (handler == null) {
-                final Constructor<?> constructor = handlerClass.getDeclaredConstructor(String.class);
-                handler = (IOHandler) constructor.newInstance(sensorName);
-            } else {
-                final Constructor<?> constructor = handlerClass.getDeclaredConstructor(IOHandler.class);
-                handler = (IOHandler) constructor.newInstance(handler);
+        try {
+            for (int i = handlerClassNames.length - 1; i >= 0; i--) {
+                @SuppressWarnings({"unchecked"})
+                final Class<? extends IOHandler> handlerClass =
+                        (Class<? extends IOHandler>) Class.forName(PACKAGE_NAME + '.' + handlerClassNames[i]);
+                if (handler == null) {
+                    final Constructor<? extends IOHandler> constructor =
+                            handlerClass.getDeclaredConstructor(String.class);
+                    handler = constructor.newInstance(sensorName);
+                } else {
+                    final Constructor<? extends IOHandler> constructor =
+                            handlerClass.getDeclaredConstructor(IOHandler.class);
+                    handler = constructor.newInstance(handler);
+                }
             }
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException(e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException(e);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        } catch (InstantiationException e) {
+            throw new IllegalStateException(e);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        } catch (InvocationTargetException e) {
+            throw new IllegalStateException(e);
         }
 
         return handler;
     }
-
-    public static IOHandler createMmdIOHandler(final MmsTool tool, String sensorName) {
-        return new MmdIOHandler(tool, sensorName);
-    }
-
 }
