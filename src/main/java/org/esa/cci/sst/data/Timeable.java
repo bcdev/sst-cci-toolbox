@@ -23,7 +23,9 @@ import java.util.Date;
  *
  * @author Thomas Storm
  */
-public interface Timed {
+public interface Timeable {
 
     Date getTime();
+
+    void setTime(Date date);
 }
