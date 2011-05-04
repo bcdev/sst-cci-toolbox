@@ -1,7 +1,7 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Timed;
+import org.esa.cci.sst.data.Timeable;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,18 +42,15 @@ public final class TimeUtil {
         return CCSDS_UTC_FORMAT.format(time);
     }
 
-    public static long parseCcsdsUtcFormat(String timeString) throws ParseException {
-        if (timeString.length() == 20) {
-            return CCSDS_UTC_FORMAT.parse(timeString).getTime();
-        }
-        return CCSDS_UTC_MILLIS_FORMAT.parse(timeString).getTime();
-    }
-
-    public static Date parseCcsdsUtcFormatAsDate(String timeString) throws ParseException {
+    public static Date parseCcsdsUtcFormat(String timeString) throws ParseException {
         if (timeString.length() == 20) {
             return CCSDS_UTC_FORMAT.parse(timeString);
         }
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString);
+    }
+
+    public static long parseCcsdsUtcFormatAsMillis(String timeString) throws ParseException {
+        return parseCcsdsUtcFormat(timeString).getTime();
     }
 
     public static Date julianDateToDate(double julianDate) {
@@ -76,8 +73,30 @@ public final class TimeUtil {
         return secondsSince1981 + (MILLIS_1981 - MILLIS_1978) / 1000.0;
     }
 
-    public static double computeTimeDelta(final Matchup matchup, final Timed observation) {
-        return Math.abs(matchup.getRefObs().getTime().getTime() - observation.getTime().getTime()) / 1000.0;
+    /**
+     * Checks if an objective time falls inside a time interval, while taking into account
+     * a certain tolerance.
+     *
+     * @param time      The objective time.
+     * @param start     The start of the time interval.
+     * @param end       The end of the time interval.
+     * @param timeDelta The tolerance (seconds).
+     *
+     * @return {@code true} if the objective time falls within the time interval (taking into
+     *         account the tolerance), {@code false} otherwise.
+     */
+    public static boolean checkTimeOverlap(Date time, Date start, Date end, double timeDelta) {
+        final double deltaInMillis = timeDelta * 1000.0;
+        return time.getTime() + deltaInMillis >= start.getTime() &&
+               time.getTime() - deltaInMillis < end.getTime();
+    }
+
+    public static double timeDeltaInSeconds(Matchup m, Timeable t) {
+        return timeDeltaInSeconds(m.getRefObs().getTime(), t.getTime());
+    }
+
+    public static double timeDeltaInSeconds(Date d, Date d2) {
+        return Math.abs(d.getTime() - d2.getTime()) / 1000.0;
     }
 
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
