@@ -31,9 +31,9 @@ import java.util.Date;
  * @author Thomas Storm
  */
 @Entity
-public class GlobalObservation extends Observation implements Timed {
+public final class GlobalObservation extends Observation implements Timeable {
 
-    Date time;
+    private Date time;
 
     @Index
     @Temporal(TemporalType.TIMESTAMP)
@@ -42,10 +42,12 @@ public class GlobalObservation extends Observation implements Timed {
         return time;
     }
 
+    @Override
     public void setTime(Date time) {
         this.time = time;
     }
 
+    @Override
     public String toString() {
         return String.format("GlobalObservation(%d,%s,%s,%s,%s,%d)", getId(), getName(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getDatafile(), getRecordNo());

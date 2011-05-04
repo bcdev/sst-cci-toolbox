@@ -7,8 +7,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * Data item that represents a variable of the record structure of a source
- * file type. Variables are aggregated in a Sensor.
+ * Data item that represents a column in the record structure of a source
+ * file type. Columns are aggregated in a Sensor.
  *
  * @author Martin Boettcher
  */
@@ -36,10 +36,11 @@ public final class Column {
 
     @Id
     @GeneratedValue
-    int getId() {
+    public int getId() {
         return id;
     }
 
+    // important: this is not public API
     void setId(int id) {
         this.id = id;
     }
@@ -49,6 +50,7 @@ public final class Column {
         return name;
     }
 
+    // important: this is not public API
     void setName(String name) {
         this.name = name;
     }
@@ -58,6 +60,7 @@ public final class Column {
         return type;
     }
 
+    // important: this is not public API
     void setType(String type) {
         this.type = type;
     }
@@ -67,6 +70,7 @@ public final class Column {
         return dimensions;
     }
 
+    // important: this is not public API
     void setDimensions(String dimensions) {
         this.dimensions = dimensions;
     }
@@ -75,6 +79,7 @@ public final class Column {
         return unit;
     }
 
+    // important: this is not public API
     void setUnit(String unit) {
         this.unit = unit;
     }
@@ -83,6 +88,7 @@ public final class Column {
         return addOffset;
     }
 
+    // important: this is not public API
     void setAddOffset(Number addOffset) {
         this.addOffset = addOffset;
     }
@@ -91,6 +97,7 @@ public final class Column {
         return scaleFactor;
     }
 
+    // important: this is not public API
     void setScaleFactor(Number scaleFactor) {
         this.scaleFactor = scaleFactor;
     }
@@ -99,6 +106,7 @@ public final class Column {
         return fillValue;
     }
 
+    // important: this is not public API
     void setFillValue(Number fillValue) {
         this.fillValue = fillValue;
     }
@@ -107,6 +115,7 @@ public final class Column {
         return standardName;
     }
 
+    // important: this is not public API
     void setStandardName(String standardName) {
         this.standardName = standardName;
     }
@@ -115,6 +124,7 @@ public final class Column {
         return validMin;
     }
 
+    // important: this is not public API
     void setValidMin(Number validMin) {
         this.validMin = validMin;
     }
@@ -123,6 +133,7 @@ public final class Column {
         return validMax;
     }
 
+    // important: this is not public API
     void setValidMax(Number validMax) {
         this.validMax = validMax;
     }
@@ -131,6 +142,7 @@ public final class Column {
         return longName;
     }
 
+    // important: this is not public API
     void setLongName(String longName) {
         this.longName = longName;
     }
@@ -141,6 +153,7 @@ public final class Column {
         return sensor;
     }
 
+    // important: this is not public API
     void setSensor(Sensor sensor) {
         this.sensor = sensor;
     }
@@ -149,6 +162,7 @@ public final class Column {
         return role;
     }
 
+    // important: this is not public API
     void setRole(String role) {
         this.role = role;
     }

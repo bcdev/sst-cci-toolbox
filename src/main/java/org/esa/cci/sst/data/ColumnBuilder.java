@@ -4,7 +4,7 @@ import com.bc.ceres.core.Assert;
 import ucar.ma2.DataType;
 
 /**
- * Public API used for building columns.
+ * Public API for building immutable {@link Column} instances.
  *
  * @author Ralf Quast
  */
@@ -26,6 +26,13 @@ public final class ColumnBuilder {
     private String role;
     private Sensor sensor;
 
+    public ColumnBuilder() {
+        setName("untitled");
+        setType(DataType.INT);
+        setDimensions("");
+        setSensor(INTERNAL_SENSOR);
+    }
+
     public ColumnBuilder(Column column) {
         setName(column.getName());
         setType(DataType.valueOf(column.getType()));
@@ -42,34 +49,22 @@ public final class ColumnBuilder {
         setSensor(column.getSensor());
     }
 
-    public ColumnBuilder() {
-        setName("untitled");
-        setType(DataType.INT);
-        setDimensions("");
-        setSensor(INTERNAL_SENSOR);
-    }
-
-    public String getName() {
-        return name;
-    }
-
     public ColumnBuilder setName(String name) {
         Assert.argument(name != null, "name == null");
         this.name = name;
         return this;
     }
 
-    public DataType getType() {
-        return type;
-    }
-
     public ColumnBuilder setType(DataType type) {
+        Assert.argument(type != null, "type == null");
         this.type = type;
         return this;
     }
 
-    public String getDimensions() {
-        return dimensions;
+    public ColumnBuilder setType(String type) {
+        Assert.argument(type != null, "type == null");
+        final DataType dataType = DataType.valueOf(type);
+        return setType(dataType);
     }
 
     public ColumnBuilder setDimensions(String dimensions) {
@@ -78,17 +73,9 @@ public final class ColumnBuilder {
         return this;
     }
 
-    public String getUnit() {
-        return unit;
-    }
-
     public ColumnBuilder setUnit(String unit) {
         this.unit = unit;
         return this;
-    }
-
-    public Number getAddOffset() {
-        return addOffset;
     }
 
     public ColumnBuilder setAddOffset(Number addOffset) {
@@ -96,17 +83,9 @@ public final class ColumnBuilder {
         return this;
     }
 
-    public Number getScaleFactor() {
-        return scaleFactor;
-    }
-
     public ColumnBuilder setScaleFactor(Number scaleFactor) {
         this.scaleFactor = scaleFactor;
         return this;
-    }
-
-    public Number getFillValue() {
-        return fillValue;
     }
 
     public ColumnBuilder setFillValue(Number fillValue) {
@@ -114,17 +93,9 @@ public final class ColumnBuilder {
         return this;
     }
 
-    public Number getValidMin() {
-        return validMin;
-    }
-
     public ColumnBuilder setValidMin(Number validMin) {
         this.validMin = validMin;
         return this;
-    }
-
-    public Number getValidMax() {
-        return validMax;
     }
 
     public ColumnBuilder setValidMax(Number validMax) {
@@ -132,26 +103,14 @@ public final class ColumnBuilder {
         return this;
     }
 
-    public String getStandardName() {
-        return standardName;
-    }
-
     public ColumnBuilder setStandardName(String standardName) {
         this.standardName = standardName;
         return this;
     }
 
-    public String getLongName() {
-        return longName;
-    }
-
     public ColumnBuilder setLongName(String longName) {
         this.longName = longName;
         return this;
-    }
-
-    public String getRole() {
-        return role;
     }
 
     public ColumnBuilder setRole(String role) {
@@ -164,6 +123,7 @@ public final class ColumnBuilder {
     }
 
     public ColumnBuilder setSensor(Sensor sensor) {
+        Assert.argument(sensor != null, "sensor == null");
         this.sensor = sensor;
         return this;
     }

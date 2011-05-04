@@ -13,12 +13,13 @@ import javax.persistence.Table;
  * @author Martin Boettcher
  */
 @Entity
-@Table(name="mm_coincidence")
-public class Coincidence {
-    int id;
-    Matchup matchup;
-    Observation observation;
-    double timeDifference;
+@Table(name = "mm_coincidence")
+public final class Coincidence {
+
+    private int id;
+    private Matchup matchup;
+    private Observation observation;
+    private double timeDifference;
 
     @Id
     @GeneratedValue
@@ -26,7 +27,8 @@ public class Coincidence {
         return id;
     }
 
-    public void setId(int id) {
+    // important: this is not public API
+    void setId(int id) {
         this.id = id;
     }
 

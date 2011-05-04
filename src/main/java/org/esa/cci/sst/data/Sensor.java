@@ -9,7 +9,7 @@ import javax.persistence.Table;
 /**
  * Data item that represents the file type of a source file. The source
  * files have a record structure where each record describes an observation.
- * Each data file refers to one data schema.
+ * Each file type refers to one Sensor.
  *
  * @author Martin Boettcher
  */
@@ -22,10 +22,7 @@ public final class Sensor {
     private long pattern;
     private String observationType;
 
-    Sensor(SensorBuilder builder) {
-        this.name = builder.getName();
-        this.pattern = builder.getPattern();
-        this.observationType = builder.getObservationType();
+    Sensor() {
     }
 
     @Id
@@ -34,7 +31,8 @@ public final class Sensor {
         return id;
     }
 
-    public void setId(int id) {
+    // important: this is not public API
+    void setId(int id) {
         this.id = id;
     }
 
@@ -43,7 +41,8 @@ public final class Sensor {
         return name;
     }
 
-    public void setName(String name) {
+    // important: this is not public API
+    void setName(String name) {
         this.name = name;
     }
 
@@ -51,7 +50,8 @@ public final class Sensor {
         return pattern;
     }
 
-    public void setPattern(long pattern) {
+    // important: this is not public API
+    void setPattern(long pattern) {
         this.pattern = pattern;
     }
 
@@ -60,7 +60,8 @@ public final class Sensor {
         return observationType;
     }
 
-    public void setObservationType(String observationType) {
+    // important: this is not public API
+    void setObservationType(String observationType) {
         this.observationType = observationType;
     }
 }

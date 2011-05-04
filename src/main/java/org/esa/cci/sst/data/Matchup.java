@@ -17,12 +17,12 @@ import java.util.List;
  */
 @Entity
 @Table(name = "mm_matchup")
-public class Matchup {
+public final class Matchup {
 
-    int id;
-    ReferenceObservation refObs;
-    List<Coincidence> coincidences;
-    long pattern;
+    private int id;
+    private ReferenceObservation refObs;
+    private List<Coincidence> coincidences;
+    private long pattern;
 
     @Id
     @GeneratedValue
@@ -30,7 +30,8 @@ public class Matchup {
         return id;
     }
 
-    public void setId(int id) {
+    // important: this is not public API
+    void setId(int id) {
         this.id = id;
     }
 

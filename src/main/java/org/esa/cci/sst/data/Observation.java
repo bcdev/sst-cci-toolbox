@@ -17,11 +17,12 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "mm_observation")
 public class Observation {
-    int id;
-    String name;
-    String sensor;
-    DataFile datafile;
-    int recordNo;
+
+    private int id;
+    private String name;
+    private String sensor;
+    private DataFile datafile;
+    private int recordNo;
 
     @Id
     @GeneratedValue
@@ -29,7 +30,7 @@ public class Observation {
         return id;
     }
 
-    public void setId(int id) {
+    void setId(int id) {
         this.id = id;
     }
 
@@ -67,8 +68,10 @@ public class Observation {
         this.recordNo = recordNo;
     }
 
+    @Override
     public String toString() {
-        return String.format("Observation(%d,%s,%s,%s,%d)", getId(), getName(), getSensor(), getDatafile(), getRecordNo());
+        return String.format("Observation(%d,%s,%s,%s,%d)", getId(), getName(), getSensor(), getDatafile(),
+                             getRecordNo());
     }
 }
 

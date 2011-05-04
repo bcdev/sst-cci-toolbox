@@ -18,10 +18,10 @@ import java.util.Date;
  * @author Martin Boettcher
  */
 @Entity
-public class RelatedObservation extends Observation implements Timed {
+public class RelatedObservation extends Observation implements Timeable {
 
-    Date time;
-    PGgeometry location;
+    private Date time;
+    private PGgeometry location;
 
     @Column(columnDefinition = "GEOGRAPHY(GEOMETRY,4326)")
     @Strategy("org.esa.cci.sst.orm.GeographyValueHandler")
@@ -36,6 +36,7 @@ public class RelatedObservation extends Observation implements Timed {
         return time;
     }
 
+    @Override
     public void setTime(Date time) {
         this.time = time;
     }
@@ -44,6 +45,7 @@ public class RelatedObservation extends Observation implements Timed {
         this.location = location;
     }
 
+    @Override
     public String toString() {
         return String.format("RelatedObservation(%d,%s,%s,%s,%s,%s,%d)", getId(), getName(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo());

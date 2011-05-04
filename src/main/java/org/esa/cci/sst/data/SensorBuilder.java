@@ -4,7 +4,7 @@ package org.esa.cci.sst.data;
 import com.bc.ceres.core.Assert;
 
 /**
- * Used for building {@link Sensor}s.
+ * Public API for building immutable {@link Sensor} instances.
  *
  * @author Ralf Quast
  */
@@ -17,12 +17,8 @@ public final class SensorBuilder {
     private String observationType;
 
     public SensorBuilder() {
-        setName("internal");
+        setName("untitled");
         setObservationType(Observation.class.getSimpleName());
-    }
-
-    public String getName() {
-        return name;
     }
 
     public SensorBuilder setName(String name) {
@@ -31,35 +27,38 @@ public final class SensorBuilder {
         return this;
     }
 
-    public long getPattern() {
-        return pattern;
-    }
-
     public SensorBuilder setPattern(long pattern) {
         this.pattern = pattern;
         return this;
     }
 
-    public String getObservationType() {
-        return observationType;
+    public SensorBuilder setObservationType(Class<? extends Observation> observationType) {
+        Assert.argument(observationType != null, "observationType == null");
+        //noinspection ConstantConditions
+        this.observationType = observationType.getSimpleName();
+        return this;
     }
 
-    @SuppressWarnings({"UnusedDeclaration", "UnusedAssignment", "unchecked"})
     public SensorBuilder setObservationType(String observationType) {
         Assert.argument(observationType != null, "observationType == null");
         final Class<? extends Observation> observationClass;
         try {
+            //noinspection unchecked
             observationClass = (Class<? extends Observation>) Class.forName(PACKAGE_NAME + "." + observationType);
         } catch (ClassCastException e) {
             throw new IllegalArgumentException(e);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(e);
         }
-        this.observationType = observationType;
-        return this;
+        return setObservationType(observationClass);
     }
 
     public Sensor build() {
-        return new Sensor(this);
+        final Sensor sensor = new Sensor();
+        sensor.setName(name);
+        sensor.setPattern(pattern);
+        sensor.setObservationType(observationType);
+
+        return sensor;
     }
 }

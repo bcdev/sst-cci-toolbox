@@ -15,11 +15,11 @@ import javax.persistence.Entity;
  * @author Martin Boettcher
  */
 @Entity
-public class ReferenceObservation extends RelatedObservation {
+public final class ReferenceObservation extends RelatedObservation {
 
-    PGgeometry point;
-    byte classification;
-    boolean clearSky;
+    private PGgeometry point;
+    private byte classification;
+    private boolean clearSky;
 
     @Column(columnDefinition = "GEOGRAPHY(POINT,4326)")
     @Strategy("org.esa.cci.sst.orm.PointValueHandler")
@@ -48,10 +48,11 @@ public class ReferenceObservation extends RelatedObservation {
         this.clearSky = clearSky;
     }
 
+    @Override
     public String toString() {
         return String.format("ReferenceObservation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getName(), getSensor(),
-                             TimeUtil.formatCcsdsUtcFormat(
-                                     getTime()), getPoint(), getLocation(), getDatafile(), getRecordNo(), isClearSky());
+                             TimeUtil.formatCcsdsUtcFormat(getTime()), getPoint(), getLocation(), getDatafile(),
+                             getRecordNo(), isClearSky());
     }
 }
 

@@ -14,11 +14,11 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_datafile")
-public class DataFile {
+public final class DataFile {
 
-    int id;
-    String path;
-    Sensor sensor;
+    private int id;
+    private String path;
+    private Sensor sensor;
 
     @Id
     @GeneratedValue
@@ -26,7 +26,8 @@ public class DataFile {
         return id;
     }
 
-    public void setId(int id) {
+    // important: this is not public API
+    void setId(int id) {
         this.id = id;
     }
 
