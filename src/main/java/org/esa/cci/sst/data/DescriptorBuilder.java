@@ -26,7 +26,7 @@ public final class DescriptorBuilder {
     private String role;
     private Sensor sensor;
 
-    public DescriptorBuilder(Descriptor descriptor) {
+    public DescriptorBuilder(VariableDescriptor descriptor) {
         setName(descriptor.getName());
         setType(DataType.valueOf(descriptor.getType()));
         setDimensions(descriptor.getDimensions());
@@ -168,7 +168,22 @@ public final class DescriptorBuilder {
         return this;
     }
 
-    public Descriptor build() {
-        return new VariableDescriptor(this);
+    public VariableDescriptor build() {
+        final VariableDescriptor descriptor = new VariableDescriptor();
+        descriptor.setName(name);
+        descriptor.setType(type.name());
+        descriptor.setDimensions(dimensions);
+        descriptor.setUnit(unit);
+        descriptor.setAddOffset(addOffset);
+        descriptor.setScaleFactor(scaleFactor);
+        descriptor.setFillValue(fillValue);
+        descriptor.setValidMin(validMin);
+        descriptor.setValidMax(validMax);
+        descriptor.setStandardName(standardName);
+        descriptor.setLongName(longName);
+        descriptor.setRole(role);
+        descriptor.setSensor(sensor);
+
+        return descriptor;
     }
 }

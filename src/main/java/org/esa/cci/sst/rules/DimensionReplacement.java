@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.DescriptorBuilder;
+import org.esa.cci.sst.data.VariableDescriptor;
 
 /**
  * Abstract base class for dimension replacement rules.
@@ -11,7 +11,7 @@ import org.esa.cci.sst.data.DescriptorBuilder;
 abstract class DimensionReplacement extends DescriptorModification {
 
     @Override
-    public final Descriptor apply(Descriptor sourceDescriptor) throws RuleException {
+    public final VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         final String sourceDimensions = sourceDescriptor.getDimensions();
         Assert.notNull(sourceDimensions, "dimensions");
         Assert.notEmpty(sourceDimensions, "dimensions");

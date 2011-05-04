@@ -4,9 +4,9 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -102,7 +102,7 @@ public class ProductHandlerTest {
 
     @Test
     public void testGetVariableDescriptors() throws URISyntaxException, IOException {
-        final Descriptor[] descriptors = handler.getVariableDescriptors();
+        final VariableDescriptor[] descriptors = handler.getVariableDescriptors();
 
         assertEquals(12, descriptors.length);
     }

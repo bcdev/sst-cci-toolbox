@@ -26,9 +26,9 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.DescriptorBuilder;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -169,17 +169,17 @@ abstract class AbstractProductHandler implements IOHandler {
     public abstract Observation readObservation(int recordNo) throws IOException;
 
     @Override
-    public final Descriptor[] getVariableDescriptors() throws IOException {
-        final List<Descriptor> variableDescriptorList = new ArrayList<Descriptor>();
+    public final VariableDescriptor[] getVariableDescriptors() throws IOException {
+        final List<VariableDescriptor> variableDescriptorList = new ArrayList<VariableDescriptor>();
         for (final RasterDataNode node : product.getTiePointGrids()) {
-            final Descriptor variableDescriptor = createDescriptor(node);
+            final VariableDescriptor variableDescriptor = createDescriptor(node);
             variableDescriptorList.add(variableDescriptor);
         }
         for (final RasterDataNode node : product.getBands()) {
-            final Descriptor variableDescriptor = createDescriptor(node);
+            final VariableDescriptor variableDescriptor = createDescriptor(node);
             variableDescriptorList.add(variableDescriptor);
         }
-        return variableDescriptorList.toArray(new Descriptor[variableDescriptorList.size()]);
+        return variableDescriptorList.toArray(new VariableDescriptor[variableDescriptorList.size()]);
     }
 
     @Override
@@ -216,7 +216,7 @@ abstract class AbstractProductHandler implements IOHandler {
         throw new OperationNotSupportedException();
     }
 
-    protected final Descriptor createDescriptor(final RasterDataNode node) {
+    protected final VariableDescriptor createDescriptor(final RasterDataNode node) {
         final String name = getSensorName() + "." + node.getName();
         final DataType type = DataTypeUtils.getNetcdfDataType(node);
         final DescriptorBuilder builder = new DescriptorBuilder();

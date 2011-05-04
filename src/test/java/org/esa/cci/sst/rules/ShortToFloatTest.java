@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.DescriptorBuilder;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.junit.Test;
 import ucar.ma2.DataType;
 
@@ -33,7 +33,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
     @Test
     public void testNumericConversion() throws RuleException {
         final Rule rule = getRule();
-        final Descriptor sourceDescriptor = getSourceDescriptor();
+        final VariableDescriptor sourceDescriptor = getSourceDescriptor();
         final Number result = rule.apply((short) 5, sourceDescriptor);
 
         assertTrue(result instanceof Float);
@@ -46,7 +46,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
     }
 
     @Override
-    protected void assertTargetDescriptor(Descriptor targetDescriptor) {
+    protected void assertTargetDescriptor(VariableDescriptor targetDescriptor) {
         assertTrue(targetDescriptor.getScaleFactor() == null);
         assertTrue(targetDescriptor.getAddOffset() == null);
         assertTrue(DataType.FLOAT.name().equals(targetDescriptor.getType()));

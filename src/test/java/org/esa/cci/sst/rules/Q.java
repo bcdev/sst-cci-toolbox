@@ -1,16 +1,16 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Descriptor;
+import org.esa.cci.sst.data.VariableDescriptor;
 
 final class Q implements Rule {
 
     @Override
-    public Descriptor apply(Descriptor sourceDescriptor) throws RuleException {
+    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         return null;
     }
 
     @Override
-    public Number apply(Number number, Descriptor sourceDescriptor) throws RuleException {
+    public Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
         return null;
     }
 }

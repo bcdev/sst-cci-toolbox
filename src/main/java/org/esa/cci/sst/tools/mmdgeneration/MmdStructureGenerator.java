@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.DataType;
@@ -165,8 +165,8 @@ class MmdStructureGenerator {
         final Query query = tool.getPersistenceManager().createQuery(String.format(
                 "select v from VariableDescriptor v where v.name like '%s.%%' order by v.name", sensorName));
         @SuppressWarnings({"unchecked"})
-        final List<Descriptor> descriptorList = new ArrayList<Descriptor>(query.getResultList());
-        for (final Descriptor descriptor : descriptorList) {
+        final List<VariableDescriptor> descriptorList = new ArrayList<VariableDescriptor>(query.getResultList());
+        for (final VariableDescriptor descriptor : descriptorList) {
             if (targetVariables.isEmpty() || targetVariables.containsKey(descriptor.getName())) {
                 addVariable(file, descriptor);
             }
@@ -212,7 +212,7 @@ class MmdStructureGenerator {
         // todo: NWP tie point dimensions for all sensors (rq-20110223)
     }
 
-    private void addVariable(NetcdfFileWriteable targetFile, Descriptor descriptor) {
+    private void addVariable(NetcdfFileWriteable targetFile, VariableDescriptor descriptor) {
         // todo - apply descriptor rules here (rq-20110420)
         final DataType dataType = DataType.valueOf(descriptor.getType());
         final String targetVariableName = getTargetVariableName(descriptor.getName());

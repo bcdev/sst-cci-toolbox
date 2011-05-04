@@ -17,8 +17,8 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.VariableDescriptor;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class Arc3Reader implements ObservationReader {
     }
 
     @Override
-    public Descriptor[] getVariableDescriptors() throws IOException {
+    public VariableDescriptor[] getVariableDescriptors() throws IOException {
         return delegate.getVariableDescriptors();
     }
 }

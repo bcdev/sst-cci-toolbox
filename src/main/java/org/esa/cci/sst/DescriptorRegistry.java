@@ -1,6 +1,6 @@
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.data.Descriptor;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
@@ -25,14 +25,14 @@ import java.util.Scanner;
  */
 public class DescriptorRegistry {
 
-    private final Map<String, Descriptor> descriptorsByName;
-    private final Map<Descriptor, Rule> rulesByTarget;
-    private final Map<Descriptor, Descriptor> descriptorsByTarget;
+    private final Map<String, VariableDescriptor> descriptorsByName;
+    private final Map<VariableDescriptor, Rule> rulesByTarget;
+    private final Map<VariableDescriptor, VariableDescriptor> descriptorsByTarget;
 
     private DescriptorRegistry() {
-        descriptorsByName = new HashMap<String, Descriptor>();
-        rulesByTarget = new HashMap<Descriptor, Rule>();
-        descriptorsByTarget = new HashMap<Descriptor, Descriptor>();
+        descriptorsByName = new HashMap<String, VariableDescriptor>();
+        rulesByTarget = new HashMap<VariableDescriptor, Rule>();
+        descriptorsByTarget = new HashMap<VariableDescriptor, VariableDescriptor>();
     }
 
     /**
@@ -97,9 +97,9 @@ public class DescriptorRegistry {
      *
      * @param descriptor The descriptor to be registered.
      */
-    public void register(Descriptor descriptor) {
+    public void register(VariableDescriptor descriptor) {
         synchronized (this) {
-            final Descriptor previous = descriptorsByName.put(descriptor.getName(), descriptor);
+            final VariableDescriptor previous = descriptorsByName.put(descriptor.getName(), descriptor);
             if (previous != null) {
                 descriptorsByTarget.remove(previous);
                 rulesByTarget.remove(previous);
@@ -125,9 +125,9 @@ public class DescriptorRegistry {
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    public Descriptor register(Rule rule, Descriptor sourceDescriptor) throws RuleException {
+    public VariableDescriptor register(Rule rule, VariableDescriptor sourceDescriptor) throws RuleException {
         synchronized (this) {
-            final Descriptor targetDescriptor = rule.apply(sourceDescriptor);
+            final VariableDescriptor targetDescriptor = rule.apply(sourceDescriptor);
             descriptorsByName.put(targetDescriptor.getName(), targetDescriptor);
             rulesByTarget.put(targetDescriptor, rule);
             descriptorsByTarget.put(targetDescriptor, sourceDescriptor);
@@ -154,7 +154,7 @@ public class DescriptorRegistry {
      *
      * @return the variable descriptor associated with the name supplied as argument.
      */
-    public Descriptor getDescriptor(String name) {
+    public VariableDescriptor getDescriptor(String name) {
         synchronized (descriptorsByName) {
             return descriptorsByName.get(name);
         }
@@ -170,7 +170,7 @@ public class DescriptorRegistry {
      * @return a converter suitable for numeric conversions into numbers complying
      *         with the target descriptor.
      */
-    public Converter getConverter(Descriptor targetDescriptor) {
+    public Converter getConverter(VariableDescriptor targetDescriptor) {
         synchronized (this) {
             return new ConverterImpl(rulesByTarget.get(targetDescriptor), descriptorsByTarget.get(targetDescriptor));
         }
@@ -183,7 +183,7 @@ public class DescriptorRegistry {
      *
      * @return the source descriptor associated with the target descriptor supplied as argument.
      */
-    public Descriptor getSourceDescriptor(Descriptor targetDescriptor) {
+    public VariableDescriptor getSourceDescriptor(VariableDescriptor targetDescriptor) {
         synchronized (descriptorsByTarget) {
             return descriptorsByTarget.get(targetDescriptor);
         }
@@ -211,30 +211,30 @@ public class DescriptorRegistry {
 
     private void parseIdentity(List<String> nameList, String sourceName) throws Exception {
         ensureSourceDescriptorIsRegistered(sourceName);
-        final Descriptor sourceDescriptor = getDescriptor(sourceName);
+        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule = RuleFactory.getInstance().getRule("Identity");
-        final Descriptor targetDescriptor = register(rule, sourceDescriptor);
+        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
         nameList.add(targetDescriptor.getName());
     }
 
     private void parseRenaming(List<String> nameList, String targetName, String sourceName) throws Exception {
         ensureSourceDescriptorIsRegistered(sourceName);
-        final Descriptor sourceDescriptor = getDescriptor(sourceName);
+        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule = RuleFactory.getInstance().getRenamingRule(targetName);
-        final Descriptor targetDescriptor = register(rule, sourceDescriptor);
+        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
         nameList.add(targetDescriptor.getName());
     }
 
     private void parseRule(List<String> nameList, String targetName, String sourceName, String spec) throws Exception {
         ensureSourceDescriptorIsRegistered(sourceName);
-        final Descriptor sourceDescriptor = getDescriptor(sourceName);
+        final VariableDescriptor sourceDescriptor = getDescriptor(sourceName);
         final Rule rule;
         if (targetName.equals(sourceName)) {
             rule = RuleFactory.getInstance().getRule(spec);
         } else {
             rule = RuleFactory.getInstance().getRule(spec, targetName);
         }
-        final Descriptor targetDescriptor = register(rule, sourceDescriptor);
+        final VariableDescriptor targetDescriptor = register(rule, sourceDescriptor);
         nameList.add(targetDescriptor.getName());
     }
 
@@ -255,9 +255,9 @@ public class DescriptorRegistry {
     private static class ConverterImpl implements Converter {
 
         private final Rule rule;
-        private final Descriptor sourceDescriptor;
+        private final VariableDescriptor sourceDescriptor;
 
-        public ConverterImpl(Rule rule, Descriptor sourceDescriptor) {
+        public ConverterImpl(Rule rule, VariableDescriptor sourceDescriptor) {
             this.rule = rule;
             this.sourceDescriptor = sourceDescriptor;
         }

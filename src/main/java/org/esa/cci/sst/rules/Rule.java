@@ -1,6 +1,6 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Descriptor;
+import org.esa.cci.sst.data.VariableDescriptor;
 
 /**
  * A rule is used for converting {@link Descriptor} properties and for
@@ -20,7 +20,7 @@ public interface Rule {
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    Descriptor apply(Descriptor sourceDescriptor) throws RuleException;
+    VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException;
 
     /**
      * Applies the numerical conversion rule to the number supplied as argument.
@@ -35,6 +35,6 @@ public interface Rule {
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    Number apply(Number number, Descriptor sourceDescriptor) throws RuleException;
+    Number apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException;
 }
 

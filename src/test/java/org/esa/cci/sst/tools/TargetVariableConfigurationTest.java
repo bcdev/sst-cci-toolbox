@@ -1,7 +1,7 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.DescriptorRegistry;
-import org.esa.cci.sst.data.Descriptor;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.IoUtil;
 import org.junit.AfterClass;
@@ -42,7 +42,7 @@ public class TargetVariableConfigurationTest {
 
     private void testMetopDescriptor() {
         final DescriptorRegistry registry = DescriptorRegistry.getInstance();
-        final Descriptor targetDescriptor = registry.getDescriptor("metop.brightness_temperature.037");
+        final VariableDescriptor targetDescriptor = registry.getDescriptor("metop.brightness_temperature.037");
 
         assertEquals("matchup metop.ni metop.nj", targetDescriptor.getDimensions());
         assertNotNull(registry.getConverter(targetDescriptor));
@@ -74,7 +74,7 @@ public class TargetVariableConfigurationTest {
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
             final DescriptorRegistry registry = DescriptorRegistry.getInstance();
             for (final Variable variable : netcdfFile.getVariables()) {
-                final Descriptor variableDescriptor = IoUtil.createDescriptorBuilder(variable, sensor).build();
+                final VariableDescriptor variableDescriptor = IoUtil.createDescriptorBuilder(variable, sensor).build();
                 registry.register(variableDescriptor);
             }
         } finally {

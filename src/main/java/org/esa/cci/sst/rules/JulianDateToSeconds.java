@@ -1,7 +1,7 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.DescriptorBuilder;
+import org.esa.cci.sst.data.VariableDescriptor;
 import ucar.ma2.DataType;
 
 /**
@@ -10,7 +10,7 @@ import ucar.ma2.DataType;
 final class JulianDateToSeconds implements Rule {
 
     @Override
-    public Descriptor apply(Descriptor sourceDescriptor) throws RuleException {
+    public VariableDescriptor apply(VariableDescriptor sourceDescriptor) throws RuleException {
         Assert.type(DataType.DOUBLE, sourceDescriptor);
         Assert.unit("Julian Date", sourceDescriptor);
 
@@ -25,7 +25,7 @@ final class JulianDateToSeconds implements Rule {
     }
 
     @Override
-    public Double apply(Number number, Descriptor sourceDescriptor) throws RuleException {
+    public Double apply(Number number, VariableDescriptor sourceDescriptor) throws RuleException {
         Assert.condition(number instanceof Double, "number instanceof Double");
 
         return (number.doubleValue() - 2443509.5) * 86400.0;

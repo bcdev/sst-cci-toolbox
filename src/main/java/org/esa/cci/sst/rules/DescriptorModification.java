@@ -1,6 +1,6 @@
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Descriptor;
+import org.esa.cci.sst.data.VariableDescriptor;
 
 /**
  * Base class for rules that modify the descriptor only.
@@ -10,7 +10,7 @@ import org.esa.cci.sst.data.Descriptor;
 abstract class DescriptorModification implements Rule {
 
     @Override
-    public final Number apply(Number number, Descriptor sourceDescriptor) {
+    public final Number apply(Number number, VariableDescriptor sourceDescriptor) {
         return number;
     }
 }

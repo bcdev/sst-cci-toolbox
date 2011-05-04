@@ -2,8 +2,8 @@ package org.esa.cci.sst.tools;
 
 
 import org.esa.cci.sst.DescriptorRegistry;
-import org.esa.cci.sst.data.Descriptor;
 import org.esa.cci.sst.data.DescriptorBuilder;
+import org.esa.cci.sst.data.VariableDescriptor;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleFactory;
 import org.junit.After;
@@ -28,13 +28,13 @@ public class DimensionConversionTest {
 
     @Test
     public void testDescriptorConversion() {
-        final Descriptor targetDescriptor = registry.getDescriptor(CALLSIGN_VARIABLE_NAME);
+        final VariableDescriptor targetDescriptor = registry.getDescriptor(CALLSIGN_VARIABLE_NAME);
 
         assertEquals(CALLSIGN_VARIABLE_NAME, targetDescriptor.getName());
         assertEquals(CALLSIGN_VARIABLE_TYPE.name(), targetDescriptor.getType());
         assertEquals("matchup callsign.length", targetDescriptor.getDimensions());
 
-        final Descriptor sourceDescriptor = registry.getSourceDescriptor(targetDescriptor);
+        final VariableDescriptor sourceDescriptor = registry.getSourceDescriptor(targetDescriptor);
 
         assertNotNull(sourceDescriptor);
         assertEquals(CALLSIGN_VARIABLE_NAME, sourceDescriptor.getName());
