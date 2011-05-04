@@ -21,7 +21,7 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.MmdIOHandler;
-import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
 
@@ -36,7 +36,7 @@ import java.util.Properties;
  *
  * @author Thomas Storm
  */
-public class MmdIngester extends MmsTool {
+public class MmdIngester extends BasicTool {
 
     private static final String MMS_REINGESTION_SENSOR_PROPERTY = "mms.reingestion.sensor";
     private static final String MMS_REINGESTION_PATTERN_PROPERTY = "mms.reingestion.pattern";

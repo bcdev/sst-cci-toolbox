@@ -26,8 +26,8 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.reader.ArcBandPartReader;
 import org.esa.cci.sst.reader.ArcPixelGeoCodingReader;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 
 import java.io.BufferedReader;
@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
  *
  * @author Thomas Storm
  */
-public class ArcPixelPosTool extends MmsTool {
+public class ArcPixelPosTool extends BasicTool {
 
     private StringBuilder buffer;
     private static final String PIXELPOS_FILE_EXTENSION = ".mmm.txt";

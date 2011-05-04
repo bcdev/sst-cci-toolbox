@@ -22,7 +22,7 @@ import java.util.Properties;
 /**
  * Tool to compute multi-sensor match-ups from the MMS database.
  */
-public class MatchupTool extends MmsTool {
+public class MatchupTool extends BasicTool {
 
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o"

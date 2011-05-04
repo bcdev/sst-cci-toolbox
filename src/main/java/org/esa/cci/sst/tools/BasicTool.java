@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  * @author Norman Fomferra
  * @author Ralf Quast
  */
-public class MmsTool {
+public class BasicTool {
 
     public static final String CONFIG_FILE_OPTION_NAME = "c";
     public static final String DEFAULT_CONFIGURATION_FILE_NAME = "mms-config.properties";
@@ -52,7 +52,7 @@ public class MmsTool {
     private Date sourceStartTime;
     private Date sourceStopTime;
 
-    protected MmsTool(String name, String version) {
+    protected BasicTool(String name, String version) {
         this.name = name;
         this.version = version;
         configuration = new Properties();

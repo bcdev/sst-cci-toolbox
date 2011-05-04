@@ -17,8 +17,8 @@
 package org.esa.cci.sst.tools.arcprocessing;
 
 import com.bc.ceres.core.Assert;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
  * @author Thomas Storm
  * @author Martin Boettcher
  */
-public class Arc1ProcessingTool extends MmsTool {
+public class Arc1ProcessingTool extends BasicTool {
 
     private static final String AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
                                                                           "FROM mm_datafile df, mm_observation o, mm_matchup m, " +

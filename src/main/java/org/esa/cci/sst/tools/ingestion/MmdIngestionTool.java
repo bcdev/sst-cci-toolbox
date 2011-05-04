@@ -20,7 +20,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.ToolException;
 
 /**
- * MmsTool responsible for re-ingesting mmd files.
+ * Tool responsible for re-ingesting mmd files.
  *
  * @author Thomas Storm
  */

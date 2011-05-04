@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.BasicTool;
 import org.junit.Test;
 
 import java.io.File;
@@ -17,7 +17,7 @@ public class IngestionToolTest {
         assertTrue(noArgs.setCommandLineArgs(new String[]{}));
         assertEquals(false, noArgs.isDebug());
         assertEquals(false, noArgs.isVerbose());
-        if (new File(MmsTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
+        if (new File(BasicTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
             assertNotNull(noArgs.getConfiguration().getProperty("openjpa.ConnectionURL"));
         }
 
@@ -26,7 +26,7 @@ public class IngestionToolTest {
         final File configFile = new File(url.toURI());
         assertTrue(configOnly.setCommandLineArgs(new String[]{"-c", configFile.getPath()}));
         assertEquals("value1", configOnly.getConfiguration().getProperty("mms.name1"));
-        if (new File(MmsTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
+        if (new File(BasicTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
             assertNull(configOnly.getConfiguration().getProperty("openjpa.ConnectionURL"));
         }
 

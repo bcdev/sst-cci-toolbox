@@ -17,7 +17,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.beam.watermask.operator.WatermaskClassifier;
-import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.BasicTool;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -42,7 +42,7 @@ import java.util.Properties;
 class LandWaterMaskWriter {
 
     private final NetcdfFileWriteable file;
-    private final MmsTool tool;
+    private final BasicTool tool;
     private final WatermaskClassifier classifier;
     private String[] targetVariables;
     private final List<Variable> sourceLongitudes = new ArrayList<Variable>(1);
@@ -52,7 +52,7 @@ class LandWaterMaskWriter {
 
     private int matchupIndex;
 
-    LandWaterMaskWriter(final NetcdfFileWriteable file, final MmsTool tool) throws IOException {
+    LandWaterMaskWriter(final NetcdfFileWriteable file, final BasicTool tool) throws IOException {
         this.file = file;
         this.tool = tool;
         readSourceGeoVariables("mmd.watermask.source.latitude", sourceLatitudes, file);

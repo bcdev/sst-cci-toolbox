@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 import ucar.nc2.NetcdfFileWriteable;
 
@@ -12,7 +12,7 @@ import java.util.Properties;
  * Tool for writing the matchup data file. Comprises a main method, and is configured by the file
  * <code>mms-config.properties</code>, which has to be provided in the working directory.
  */
-public class MmdGeneratorTool extends MmsTool {
+public class MmdGeneratorTool extends BasicTool {
 
     public MmdGeneratorTool() {
         super("mmscreatemmd.sh", "0.1");

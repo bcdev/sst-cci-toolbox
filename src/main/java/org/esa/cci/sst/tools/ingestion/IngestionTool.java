@@ -10,7 +10,7 @@ import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
-import org.esa.cci.sst.tools.MmsTool;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -32,7 +32,7 @@ import java.util.Properties;
  * @author Martin Boettcher
  * @author Norman Fomferra
  */
-public class IngestionTool extends MmsTool {
+public class IngestionTool extends BasicTool {
 
     public static void main(String[] args) {
         final IngestionTool tool = new IngestionTool();

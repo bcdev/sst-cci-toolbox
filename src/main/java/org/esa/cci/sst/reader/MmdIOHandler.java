@@ -21,7 +21,6 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.MmsTool;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;

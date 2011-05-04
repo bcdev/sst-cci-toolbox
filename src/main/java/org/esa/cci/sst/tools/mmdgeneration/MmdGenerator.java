@@ -27,8 +27,8 @@ import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.InsituRecord;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.reader.MmdIOHandler;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.MmsTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -71,11 +71,11 @@ class MmdGenerator {
 
     private final PersistenceManager persistenceManager;
     private final Properties targetVariables;
-    private final MmsTool tool;
+    private final BasicTool tool;
     private final List<Matchup> matchupList = new ArrayList<Matchup>();
     private Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
 
-    MmdGenerator(final MmsTool tool) throws IOException {
+    MmdGenerator(final BasicTool tool) throws IOException {
         this.tool = tool;
         final String propertiesFilePath = tool.getConfiguration().getProperty("mmd.output.variables");
         final InputStream is = new FileInputStream(propertiesFilePath);
