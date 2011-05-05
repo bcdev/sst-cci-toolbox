@@ -14,7 +14,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_coincidence")
-public final class Coincidence {
+public class Coincidence {
 
     private int id;
     private Matchup matchup;

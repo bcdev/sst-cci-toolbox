@@ -93,6 +93,7 @@ class MmdReader implements ObservationReader {
     void setupObservation(final int recordNo, final Observation observation) throws IOException {
         observation.setDatafile(dataFile);
         observation.setName(String.format("observation_%d", recordNo));
+        observation.setRecordNo(recordNo);
         observation.setSensor(sensor);
     }
 

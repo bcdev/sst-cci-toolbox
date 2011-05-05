@@ -26,7 +26,7 @@ import javax.persistence.Entity;
  * @author Thomas Storm
  */
 @Entity
-public final class InsituObservation extends RelatedObservation {
+public class InsituObservation extends RelatedObservation {
 
     // important: double precision is used to preserve precision
     private double timeRadius;

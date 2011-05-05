@@ -15,14 +15,14 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_sensor")
-public final class Sensor {
+public class Sensor {
 
     private int id;
     private String name;
     private long pattern;
     private String observationType;
 
-    Sensor() {
+    public Sensor() {
     }
 
     @Id

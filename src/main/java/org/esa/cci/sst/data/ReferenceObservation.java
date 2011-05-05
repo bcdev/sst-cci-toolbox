@@ -15,7 +15,7 @@ import javax.persistence.Entity;
  * @author Martin Boettcher
  */
 @Entity
-public final class ReferenceObservation extends RelatedObservation {
+public class ReferenceObservation extends RelatedObservation {
 
     private PGgeometry point;
     private byte classification;

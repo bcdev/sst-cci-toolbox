@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "mm_matchup")
-public final class Matchup {
+public class Matchup {
 
     private int id;
     private ReferenceObservation refObs;

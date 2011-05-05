@@ -31,7 +31,7 @@ import java.util.Date;
  * @author Thomas Storm
  */
 @Entity
-public final class GlobalObservation extends Observation implements Timeable {
+public class GlobalObservation extends Observation implements Timeable {
 
     private Date time;
 

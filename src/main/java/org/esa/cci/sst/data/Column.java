@@ -14,7 +14,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_variable")
-public final class Column {
+public class Column {
 
     private int id;
     private String name;
