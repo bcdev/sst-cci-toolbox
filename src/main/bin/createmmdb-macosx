@@ -1,0 +1,18 @@
+#! /bin/sh
+# 
+# Create a new MMDB on Mac OS X
+#
+# usage: createmmdb DBPATH DBNAME
+
+DBPATH = $1
+DBNAME = $2
+
+# brew install postgres
+# brew install postgis
+
+cd ${DBPATH}
+
+initdb ${DBNAME}
+# pg_ctl -D ${DBNAME} -l logfile startcreatedb mydb
+psql -d ${DBNAME} -f /usr/local/share/postgis/postgis.sql
+psql -d ${DBNAME} -f /usr/local/share/postgis/spatial_ref_sys.sql
