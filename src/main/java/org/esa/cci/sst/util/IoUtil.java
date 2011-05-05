@@ -17,11 +17,6 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.postgis.LineString;
-import org.postgis.LinearRing;
-import org.postgis.PGgeometry;
-import org.postgis.Point;
-import org.postgis.Polygon;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
@@ -35,29 +30,9 @@ public class IoUtil {
     private IoUtil() {
     }
 
-    public static PGgeometry createLineGeometry(double startLon, double startLat, double endLon, double endLat) {
-        startLon = normalizeLon(startLon);
-        endLon = normalizeLon(endLon);
-
-        return new PGgeometry(new LineString(new Point[]{new Point(startLon, startLat), new Point(endLon, endLat)}));
-    }
-
-    public static PGgeometry createPolygonGeometry(double startLon, double startLat, double endLon, double endLat) {
-        startLon = normalizeLon(startLon);
-        endLon = normalizeLon(endLon);
-
-        return new PGgeometry(new Polygon(new LinearRing[]{
-                new LinearRing(new Point[]{
-                        new Point(startLon, startLat),
-                        new Point(endLon, endLat)
-                })
-        }));
-    }
-
-
     public static ColumnBuilder createColumnBuilder(final Variable variable, final String sensorName) {
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.setName(sensorName + "." + variable.getName());
+        builder.setName(sensorName + '.' + variable.getName());
         builder.setType(variable.getDataType());
         builder.setUnsigned(variable.isUnsigned());
         builder.setRank(variable.getRank());
@@ -67,19 +42,6 @@ public class IoUtil {
         builder.setRole(variable.getName());
 
         return builder;
-    }
-
-    // this is a copy of {@code GeoPos.normalizeLon()} using {@code double} instead of {@code float} as argument
-    public static double normalizeLon(double lon) {
-        if (lon < -360.0 || lon > 360.0) {
-            lon %= 360.0;
-        }
-        if (lon < -180.0) {
-            lon += 360.0;
-        } else if (lon > 180.0) {
-            lon -= 360.0;
-        }
-        return lon;
     }
 
     private static void setAttributes(final Variable variable, final ColumnBuilder builder) {

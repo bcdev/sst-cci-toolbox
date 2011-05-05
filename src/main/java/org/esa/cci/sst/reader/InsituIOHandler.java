@@ -19,9 +19,10 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.TimeUtil;
+import org.postgis.LineString;
 import org.postgis.PGgeometry;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
@@ -95,7 +96,7 @@ class InsituIOHandler extends NetcdfIOHandler {
             final double startLat = parseDouble("start_lat");
             final double endLon = parseDouble("end_lon");
             final double endLat = parseDouble("end_lat");
-            observation.setLocation(IoUtil.createLineGeometry(startLon, startLat, endLon, endLat));
+            observation.setLocation(createLineGeometry(startLon, startLat, endLon, endLat));
         } catch (ParseException e) {
             throw new IOException("Unable to set location.", e);
         }
@@ -255,5 +256,26 @@ class InsituIOHandler extends NetcdfIOHandler {
         shape[0] = 1;
         shape[1] = subset.getIndexPrivate().getShape(0);
         targetFile.write(NetcdfFile.escapeName(targetVariable.getName()), origin, subset.reshape(shape));
+    }
+
+    private static PGgeometry createLineGeometry(double startLon, double startLat, double endLon, double endLat) {
+        double startLon1 = normalizeLon(startLon);
+        double endLon1 = normalizeLon(endLon);
+
+        return new PGgeometry(new LineString(new Point[]{new Point(startLon1, startLat), new Point(endLon1, endLat)}));
+    }
+
+    // this is a copy of {@code GeoPos.normalizeLon()} using {@code double} instead of {@code float} as argument
+    private static double normalizeLon(double lon) {
+        double lon1 = lon;
+        if (lon1 < -360.0 || lon1 > 360.0) {
+            lon1 %= 360.0;
+        }
+        if (lon1 < -180.0) {
+            lon1 += 360.0;
+        } else if (lon1 > 180.0) {
+            lon1 -= 360.0;
+        }
+        return lon1;
     }
 }
