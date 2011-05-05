@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * Abstract base class for observation readers reading from mmd files.
+ *
  * @author Thomas Storm
  */
 abstract class AbstractMmdReader implements ObservationReader {
