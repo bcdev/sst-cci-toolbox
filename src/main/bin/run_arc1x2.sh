@@ -102,7 +102,7 @@ chgrp geos_gc_sst_cci $l1b.LOC.nc
 chmod g+rw $l1b.LOC.nc
 
 # convert latlon center positions into x/y using geo-locations
-$mmsDir/sst-cci-toolbox-0.1-SNAPSHOT/bin/arcpixelpos.sh -Dmms.arcprocessing.latlonfile=$l1b.latlon.txt -Dmms.arcprocessing.locationfile=$l1b.LOC.nc
+$mmsDir/sst-cci-toolbox-0.1-SNAPSHOT/bin/arcpixelpos.sh -Dmms.pixelpos.latlonfile=$l1b.latlon.txt -Dmms.pixelpos.locationfile=$l1b.LOC.nc
 chgrp geos_gc_sst_cci $l1b.mmm.txt
 chmod g+rw $l1b.mmm.txt
 rm arcpixelpos.log

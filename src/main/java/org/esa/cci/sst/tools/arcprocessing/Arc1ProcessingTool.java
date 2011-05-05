@@ -44,17 +44,19 @@ import java.util.regex.Pattern;
  */
 public class Arc1ProcessingTool extends BasicTool {
 
-    private static final String AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY = "SELECT m.id, ST_astext(ref.point), df.path " +
-                                                                          "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
-                                                                          "     mm_coincidence c, mm_observation ref " +
-                                                                          "WHERE c.matchup_id = m.id " +
-                                                                          "AND o.id = c.observation_id " +
-                                                                          "AND df.id = o.datafile_id " +
-                                                                          "AND o.sensor LIKE 'avhrr%' " +
-                                                                          "AND ref.id = m.refobs_id " +
-                                                                          "AND ref.time >= ? " +
-                                                                          "AND ref.time < ? " +
-                                                                          "ORDER BY df.path";
+    private static final String AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY =
+            "SELECT m.id, ST_astext(ref.point), df.path, s.name, s.pattern " +
+                    "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
+                    "     mm_coincidence c, mm_sensor s, mm_observation ref " +
+                    "WHERE c.matchup_id = m.id " +
+                    "AND o.id = c.observation_id " +
+                    "AND o.sensor LIKE 'avhrr%' " +
+                    "AND df.id = o.datafile_id " +
+                    "AND df.sensor_id = s.id " +
+                    "AND ref.id = m.refobs_id " +
+                    "AND ref.time >= ? " +
+                    "AND ref.time < ? " +
+                    "ORDER BY df.path";
     public static final String LATLON_FILE_EXTENSION = ".latlon.txt";
 
     private PrintWriter submitCallsWriter = null;
@@ -124,6 +126,7 @@ public class Arc1ProcessingTool extends BasicTool {
         final List<String> geoPositions = new ArrayList<String>();
         final List<String> matchupIds = new ArrayList<String>();
         String currentFilename = null;
+        AvhrrInfo currentInfo = null;
         for (AvhrrInfo info : avhrrFilesAndPoints) {
             final String matchupId = info.matchupId;
             final String point = info.point;
@@ -131,19 +134,24 @@ public class Arc1ProcessingTool extends BasicTool {
             if (!filename.equals(currentFilename)) {
                 if (currentFilename != null) {
                     writeLatLonFile(matchupIds, geoPositions, currentFilename);
-                    callShellScript(currentFilename, getLatLonFile(currentFilename));
+                    callShellScript(currentFilename, getLatLonFile(currentFilename), targetSensorName(info.sensor), info.pattern);
                     geoPositions.clear();
                     matchupIds.clear();
                 }
                 currentFilename = filename;
+                currentInfo = info;
             }
             geoPositions.add(point);
             matchupIds.add(matchupId);
         }
         if (!geoPositions.isEmpty()) {
             writeLatLonFile(matchupIds, geoPositions, currentFilename);
-            callShellScript(currentFilename, getLatLonFile(currentFilename));
+            callShellScript(currentFilename, getLatLonFile(currentFilename), targetSensorName(currentInfo.sensor), currentInfo.pattern);
         }
+    }
+
+    private String targetSensorName(String sensor) {
+        return sensor.replaceAll("_sub", "");
     }
 
     @SuppressWarnings({"unchecked"})
@@ -159,6 +167,8 @@ public class Arc1ProcessingTool extends BasicTool {
             avhrrInfo.matchupId = info[0].toString();
             avhrrInfo.point = info[1].toString();
             avhrrInfo.filename = info[2].toString();
+            avhrrInfo.sensor = info[3].toString();
+            avhrrInfo.pattern = info[4].toString();
             avhrrInfos.add(avhrrInfo);
         }
         return avhrrInfos;
@@ -188,7 +198,7 @@ public class Arc1ProcessingTool extends BasicTool {
     }
 
     // todo determine sensor from input, use it for the output
-    private void callShellScript(final String currentFilename, final File latLonFile) {
+    private void callShellScript(final String currentFilename, final File latLonFile, String sensor, String pattern) {
         final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR);
         final String basename = getBasename(currentFilename);
         final String latLonFilePath = latLonFile.getPath();
@@ -199,8 +209,12 @@ public class Arc1ProcessingTool extends BasicTool {
                 currentFilename, latLonFileName);
         collectCallsWriter.format("scp eddie.ecdf.ed.ak.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
         collectCallsWriter.format(
-                "bin/mmsreingest.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n  -Dmms.reingestion.type=arc3 \\\n  -Dmms.reingestion.schema=avhrr_sub \\\n  -Dmms.reingestion.sensor=avhrr_nxx_sub \\\n  -Dmms.reingestion.sensorType=avhrr_sub \\\n  -c config/mms-config-eddie1.properties",
-                destPath, basename);
+                "bin/mmsreingest.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
+                        + "  -Dmms.reingestion.located=no \\\n"
+                        + "  -Dmms.reingestion.sensor=%s \\\n"
+                        + "  -Dmms.reingestion.pattern=%s \\\n"
+                        + "  -c config/mms-config-eddie1.properties\n",
+                destPath, basename, sensor, pattern);
         cleanupCallsWriter.format("ssh eddie.ecdf.ed.ak.uk rm -r mms/task-%s\n", basename);
         cleanupCallsWriter.format("rm %s", latLonFilePath);
     }
@@ -253,5 +267,7 @@ public class Arc1ProcessingTool extends BasicTool {
         String matchupId;
         String filename;
         String point;
+        String sensor;
+        String pattern;
     }
 }

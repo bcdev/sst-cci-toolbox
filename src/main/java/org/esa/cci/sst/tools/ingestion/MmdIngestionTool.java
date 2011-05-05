@@ -33,11 +33,11 @@ public class MmdIngestionTool {
         final MmdIngester tool;
         try {
             tool = new MmdIngester();
-            tool.init(args);
             final boolean performWork = tool.setCommandLineArgs(args);
             if (!performWork) {
                 return;
             }
+            tool.init(args);
         } catch (ToolException e) {
             return;
         }

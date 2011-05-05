@@ -322,7 +322,11 @@ public class IngestionTool extends BasicTool {
             }
             return TimeUtil.checkTimeOverlap(time, getSourceStartTime(), getSourceStopTime(), timeRadius);
         }
-        throw new ToolException("Expected observation with time stamp.", ToolException.TOOL_CONFIGURATION_ERROR);
+        // for MMD' ingestion no time is required if located=no.
+        // This is represented by an observation of type Observation, not of RelatedObservation.
+        // So, do not throw an exception here.
+        //throw new ToolException("Expected observation with time stamp.", ToolException.TOOL_CONFIGURATION_ERROR);
+        return true;
     }
 
 }
