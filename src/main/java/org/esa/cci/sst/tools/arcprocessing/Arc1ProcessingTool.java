@@ -50,7 +50,7 @@ public class Arc1ProcessingTool extends BasicTool {
                     "     mm_coincidence c, mm_sensor s, mm_observation ref " +
                     "WHERE c.matchup_id = m.id " +
                     "AND o.id = c.observation_id " +
-                    "AND o.sensor LIKE 'avhrr%' " +
+                    "AND o.sensor LIKE 'avhrr_orb.%' " +
                     "AND df.id = o.datafile_id " +
                     "AND df.sensor_id = s.id " +
                     "AND ref.id = m.refobs_id " +
@@ -94,15 +94,21 @@ public class Arc1ProcessingTool extends BasicTool {
         final String time = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
 
         submitCallFilename = String.format("mms-arc1x2-%s-submit.sh", time);
-        submitCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(tmpDir, submitCallFilename))));
+        final File submitCallFile = new File(tmpDir, submitCallFilename);
+        submitCallFile.setExecutable(true);
+        submitCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(submitCallFile)));
         submitCallsWriter.format("#!/bin/bash\n\n");
 
         collectCallFilename = String.format("mms-arc1x2-%s-collect.sh", time);
-        collectCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(tmpDir, collectCallFilename))));
+        final File collectCallFile = new File(tmpDir, collectCallFilename);
+        collectCallFile.setExecutable(true);
+        collectCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(collectCallFile)));
         collectCallsWriter.format("#!/bin/bash\n\n");
 
         cleanupCallFilename = String.format("mms-arc1x2-%s-cleanup.sh", time);
-        cleanupCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(tmpDir, cleanupCallFilename))));
+        final File cleanupCallFile = new File(tmpDir, cleanupCallFilename);
+        cleanupCallFile.setExecutable(true);
+        cleanupCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(cleanupCallFile)));
         cleanupCallsWriter.format("#!/bin/bash\n\n");
     }
 
@@ -207,7 +213,7 @@ public class Arc1ProcessingTool extends BasicTool {
         submitCallsWriter.format(
                 "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n",
                 currentFilename, latLonFileName);
-        collectCallsWriter.format("scp eddie.ecdf.ed.ak.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
+        collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
         collectCallsWriter.format(
                 "bin/mmsreingest.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
                         + "  -Dmms.reingestion.located=no \\\n"
@@ -215,8 +221,8 @@ public class Arc1ProcessingTool extends BasicTool {
                         + "  -Dmms.reingestion.pattern=%s \\\n"
                         + "  -c config/mms-config-eddie1.properties\n",
                 destPath, basename, sensor, pattern);
-        cleanupCallsWriter.format("ssh eddie.ecdf.ed.ak.uk rm -r mms/task-%s\n", basename);
-        cleanupCallsWriter.format("rm %s", latLonFilePath);
+        cleanupCallsWriter.format("ssh eddie.ecdf.ed.ac.uk rm -r mms/task-%s tmp/%s.latlon.txt\n", basename, basename);
+        cleanupCallsWriter.format("rm %s\n", latLonFilePath);
     }
 
     private void close(final BufferedWriter writer) {
