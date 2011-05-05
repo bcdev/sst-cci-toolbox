@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import ucar.nc2.NetcdfFile;
@@ -28,31 +27,17 @@ import java.io.IOException;
  *
  * @author Thomas Storm
  */
-public class Arc3Reader implements ObservationReader {
+public class Arc3Reader extends AbstractMmdReader {
 
-    private final MmdReader delegate;
-
-    public Arc3Reader(final DataFile dataFile,
-                      final NetcdfFile arc3file,
-                      final String sensor) {
-        delegate = new MmdReader(dataFile, arc3file, sensor);
+    public Arc3Reader(final DataFile dataFile, final NetcdfFile arc3file, final String sensor) {
+        super(dataFile, arc3file, sensor);
     }
 
     @Override
     public Observation readObservation(final int recordNo) throws IOException {
-        delegate.validateRecordNumber(recordNo);
+        validateRecordNumber(recordNo);
         final Observation observation = new Observation();
-        delegate.setupObservation(recordNo, observation);
+        setupObservation(recordNo, observation);
         return observation;
-    }
-
-    @Override
-    public int getNumRecords() {
-        return delegate.getNumRecords();
-    }
-
-    @Override
-    public Item[] getColumns() throws IOException {
-        return delegate.getColumns();
     }
 }

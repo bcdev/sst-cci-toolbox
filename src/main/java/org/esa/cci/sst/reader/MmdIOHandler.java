@@ -46,7 +46,7 @@ public class MmdIOHandler implements IOHandler {
     private ObservationReader reader;
     private MmdWriter writer;
     private DataFile dataFile;
-    private Properties configuration;
+    private final Properties configuration;
 
     public MmdIOHandler(Properties configuration) {
         this.sensorName = configuration.getProperty("mms.reingestion.sensor");
