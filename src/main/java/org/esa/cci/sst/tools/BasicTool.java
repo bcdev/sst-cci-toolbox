@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  * @author Norman Fomferra
  * @author Ralf Quast
  */
-public class BasicTool {
+public abstract class BasicTool {
 
     public static final String CONFIG_FILE_OPTION_NAME = "c";
     public static final String DEFAULT_CONFIGURATION_FILE_NAME = "mms-config.properties";

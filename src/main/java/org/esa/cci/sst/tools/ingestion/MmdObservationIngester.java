@@ -21,6 +21,7 @@ import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.reader.MmdIOHandler;
+import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
@@ -35,21 +36,23 @@ import java.text.MessageFormat;
  */
 class MmdObservationIngester {
 
-    private final MmdIngester ingester;
-
+    private final BasicTool tool;
+    private final Ingester ingester;
+    private final MmdIOHandler ioHandler;
     static final String GET_MATCHUP = "SELECT m " +
                                       "FROM Matchup m " +
                                       "WHERE m.id = %d";
 
-    MmdObservationIngester(final MmdIngester ingester) {
+    MmdObservationIngester(BasicTool tool, Ingester ingester, MmdIOHandler ioHandler) {
+        this.tool = tool;
         this.ingester = ingester;
+        this.ioHandler = ioHandler;
     }
 
     void ingestObservations() {
-        final MmdIOHandler ioHandler = (MmdIOHandler) ingester.getIoHandler();
         final int numRecords = ioHandler.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
-            ingester.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
+            tool.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
             persistObservation(ioHandler, i);
         }
     }
@@ -57,8 +60,7 @@ class MmdObservationIngester {
     private void persistObservation(final MmdIOHandler ioHandler, int recordNo) {
         try {
             final Observation observation = ioHandler.readObservation(recordNo);
-            final IngestionTool delegate = ingester.getDelegate();
-            final boolean hasPersisted = delegate.persistObservation(observation, recordNo);
+            final boolean hasPersisted = ingester.persistObservation(observation, recordNo);
             if (hasPersisted) {
                 persistCoincidence(ioHandler, recordNo, observation);
             }
@@ -73,7 +75,7 @@ class MmdObservationIngester {
         final int matchupId = ioHandler.getMatchupId(recordNo);
         final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
         final Coincidence coincidence = createCoincidence(matchup, observation);
-        ingester.getPersistenceManager().persist(coincidence);
+        tool.getPersistenceManager().persist(coincidence);
     }
 
     private Coincidence createCoincidence(final Matchup matchup, final Observation observation) {
@@ -94,7 +96,7 @@ class MmdObservationIngester {
 
     private Object getDatabaseObjectById(final String baseQuery, final int id) {
         final String queryString = String.format(baseQuery, id);
-        final Query query = ingester.getPersistenceManager().createQuery(queryString);
+        final Query query = tool.getPersistenceManager().createQuery(queryString);
         return query.getSingleResult();
     }
 

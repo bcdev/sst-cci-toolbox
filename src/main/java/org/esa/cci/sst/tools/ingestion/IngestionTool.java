@@ -1,19 +1,14 @@
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.SensorBuilder;
-import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.DataUtil;
-import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.io.File;
@@ -22,7 +17,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,6 +27,8 @@ import java.util.Properties;
  * @author Norman Fomferra
  */
 public class IngestionTool extends BasicTool {
+
+    private final Ingester ingester = new Ingester(this);
 
     public static void main(String[] args) {
         final IngestionTool tool = new IngestionTool();
@@ -56,33 +52,6 @@ public class IngestionTool extends BasicTool {
 
     IngestionTool() {
         super("mmsingest.sh", "0.1");
-    }
-
-    boolean persistObservation(final Observation observation, final int recordNo) throws IOException {
-        boolean hasPersisted = false;
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        if (checkTime(observation)) {
-            try {
-                persistenceManager.persist(observation);
-                hasPersisted = true;
-            } catch (IllegalArgumentException e) {
-                final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
-                                                            observation.getName(),
-                                                            recordNo,
-                                                            e.getMessage());
-                getErrorHandler().warn(e, message);
-            }
-        }
-        return hasPersisted;
-    }
-
-    void persistColumns(final String sensorName, final IOHandler ioHandler) throws IOException {
-        final Column[] columns = ioHandler.getColumns();
-        getLogger().info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
-                                              sensorName, columns.length));
-        for (final Column column : columns) {
-            getPersistenceManager().persist(column);
-        }
     }
 
     /**
@@ -118,14 +87,14 @@ public class IngestionTool extends BasicTool {
             boolean addVariables = false;
             if (sensor == null) {
                 addVariables = true;
-                sensor = createSensor(sensorName, observationType, pattern);
+                sensor = ingester.createSensor(sensorName, observationType, pattern);
             }
             final DataFile dataFile = DataUtil.createDataFile(file, sensor);
             ioHandler.init(dataFile);
 
             persistenceManager.persist(dataFile);
             if (addVariables) {
-                persistColumns(sensorName, ioHandler);
+                ingester.persistColumns(sensorName, ioHandler);
             }
 
             int recordsInTimeInterval = persistObservations(sensorName, ioHandler);
@@ -144,16 +113,6 @@ public class IngestionTool extends BasicTool {
         } finally {
             ioHandler.close();
         }
-    }
-
-    public final Sensor createSensor(String sensorName, String observationType, long pattern) {
-        final SensorBuilder builder = new SensorBuilder();
-        builder.setName(sensorName);
-        builder.setObservationType(observationType);
-        builder.setPattern(pattern).build();
-        final Sensor sensor = builder.build();
-        getPersistenceManager().persist(sensor);
-        return sensor;
     }
 
     private IOHandler getIOHandler(final String readerSpec, final String sensor) {
@@ -221,7 +180,7 @@ public class IngestionTool extends BasicTool {
             }
             try {
                 final Observation observation = ioHandler.readObservation(recordNo);
-                if (persistObservation(observation, recordNo)) {
+                if (ingester.persistObservation(observation, recordNo)) {
                     recordsInTimeInterval++;
                 }
             } catch (ToolException e) {
@@ -309,24 +268,6 @@ public class IngestionTool extends BasicTool {
                 collectInputFiles(subDir, filenamePattern, inputFileList);
             }
         }
-    }
-
-    private boolean checkTime(Observation observation) {
-        if (observation instanceof Timeable) {
-            final Date time = ((Timeable) observation).getTime();
-            final double timeRadius;
-            if (observation instanceof InsituObservation) {
-                timeRadius = ((InsituObservation) observation).getTimeRadius();
-            } else {
-                timeRadius = 0.0;
-            }
-            return TimeUtil.checkTimeOverlap(time, getSourceStartTime(), getSourceStopTime(), timeRadius);
-        }
-        // for MMD' ingestion no time is required if located=no.
-        // This is represented by an observation of type Observation, not of RelatedObservation.
-        // So, do not throw an exception here.
-        //throw new ToolException("Expected observation with time stamp.", ToolException.TOOL_CONFIGURATION_ERROR);
-        return true;
     }
 
 }
