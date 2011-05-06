@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
- * 
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,14 +9,14 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnI;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.tools.Constants;
@@ -165,8 +165,8 @@ class MmdStructureGenerator {
         final Query query = tool.getPersistenceManager().createQuery(String.format(
                 "select v from Column v where v.name like '%s.%%' order by v.name", sensorName));
         @SuppressWarnings({"unchecked"})
-        final List<Column> columnList = new ArrayList<Column>(query.getResultList());
-        for (final Column column : columnList) {
+        final List<ColumnI> columnList = new ArrayList<ColumnI>(query.getResultList());
+        for (final ColumnI column : columnList) {
             if (targetVariables.isEmpty() || targetVariables.containsKey(column.getName())) {
                 addVariable(file, column);
             }
@@ -212,7 +212,7 @@ class MmdStructureGenerator {
         // todo: NWP tie point dimensions for all sensors (rq-20110223)
     }
 
-    private void addVariable(NetcdfFileWriteable targetFile, Column column) {
+    private void addVariable(NetcdfFileWriteable targetFile, ColumnI column) {
         // todo - apply column rules here (rq-20110420)
         final DataType dataType = DataType.valueOf(column.getType());
         final String targetVariableName = getTargetVariableName(column.getName());

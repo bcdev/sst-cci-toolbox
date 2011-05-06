@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
- * 
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,14 +9,14 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnI;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.NetcdfFile;
@@ -62,13 +62,13 @@ abstract class NetcdfIOHandler implements IOHandler {
     }
 
     @Override
-    public Column[] getColumns() throws IOException {
-        final ArrayList<Column> columnList = new ArrayList<Column>();
+    public ColumnI[] getColumns() throws IOException {
+        final ArrayList<ColumnI> columnList = new ArrayList<ColumnI>();
         for (final Variable variable : ncFile.getVariables()) {
-            final Column column = createColumn(variable, sensorName, dataFile);
+            final ColumnI column = createColumn(variable, sensorName, dataFile);
             columnList.add(column);
         }
-        return columnList.toArray(new Column[columnList.size()]);
+        return columnList.toArray(new ColumnI[columnList.size()]);
     }
 
     @Override
@@ -104,7 +104,7 @@ abstract class NetcdfIOHandler implements IOHandler {
         return ncFile;
     }
 
-    private static Column createColumn(final Variable variable, final String sensorName, final DataFile dataFile) {
+    private static ColumnI createColumn(final Variable variable, final String sensorName, final DataFile dataFile) {
         return IoUtil.createColumnBuilder(variable, sensorName).setSensor(dataFile.getSensor()).build();
     }
 

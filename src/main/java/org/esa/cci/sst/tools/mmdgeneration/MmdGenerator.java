@@ -1,23 +1,23 @@
 /*
-* Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
-*
-* This program is free software; you can redistribute it and/or modify it
-* under the terms of the GNU General Public License as published by the Free
-* Software Foundation; either version 3 of the License, or (at your option)
-* any later version.
-* This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-*
-* You should have received a copy of the GNU General Public License along
-* with this program; if not, see http://www.gnu.org/licenses/
-*/
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see http://www.gnu.org/licenses/
+ */
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnI;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
@@ -123,7 +123,7 @@ class MmdGenerator {
         IOHandler ioHandler = null;
         try {
             ioHandler = createIOHandler(observation);
-            for (final Column column : ioHandler.getColumns()) {
+            for (final ColumnI column : ioHandler.getColumns()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(column.getName())) {
                     final String sourceVariableName = column.getRole();
                     final String targetVariableName = getTargetVariableName(column.getName());

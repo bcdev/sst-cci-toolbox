@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
- * 
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,16 +9,16 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.data.ColumnI;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.Column;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class Arc3Reader implements ObservationReader {
     }
 
     @Override
-    public Column[] getColumns() throws IOException {
+    public ColumnI[] getColumns() throws IOException {
         return delegate.getColumns();
     }
 }

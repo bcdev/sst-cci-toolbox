@@ -1,9 +1,25 @@
+/*
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see http://www.gnu.org/licenses/
+ */
+
 package org.esa.cci.sst.tools;
 
 
 import org.esa.cci.sst.ColumnRegistry;
-import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.ColumnI;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleFactory;
 import org.junit.After;
@@ -28,13 +44,13 @@ public class DimensionConversionTest {
 
     @Test
     public void testColumnConversion() {
-        final Column targetColumn = registry.getColumn(CALLSIGN_VARIABLE_NAME);
+        final ColumnI targetColumn = registry.getColumn(CALLSIGN_VARIABLE_NAME);
 
         assertEquals(CALLSIGN_VARIABLE_NAME, targetColumn.getName());
         assertEquals(CALLSIGN_VARIABLE_TYPE.name(), targetColumn.getType());
         assertEquals("matchup callsign.length", targetColumn.getDimensions());
 
-        final Column sourceColumn = registry.getSourceColumn(targetColumn);
+        final ColumnI sourceColumn = registry.getSourceColumn(targetColumn);
 
         assertNotNull(sourceColumn);
         assertEquals(CALLSIGN_VARIABLE_NAME, sourceColumn.getName());

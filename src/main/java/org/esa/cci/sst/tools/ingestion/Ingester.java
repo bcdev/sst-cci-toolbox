@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
- * 
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,14 +9,14 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnI;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
@@ -63,10 +63,10 @@ class Ingester {
     }
 
     void persistColumns(final String sensorName, final IOHandler ioHandler) throws IOException {
-        final Column[] columns = ioHandler.getColumns();
+        final ColumnI[] columns = ioHandler.getColumns();
         tool.getLogger().info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
                                               sensorName, columns.length));
-        for (final Column column : columns) {
+        for (final ColumnI column : columns) {
             tool.getPersistenceManager().persist(column);
         }
     }

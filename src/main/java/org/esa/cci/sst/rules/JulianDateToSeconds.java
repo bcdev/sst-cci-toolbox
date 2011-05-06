@@ -1,7 +1,23 @@
+/*
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see http://www.gnu.org/licenses/
+ */
+
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnI;
 import ucar.ma2.DataType;
 
 /**
@@ -10,7 +26,7 @@ import ucar.ma2.DataType;
 final class JulianDateToSeconds implements Rule {
 
     @Override
-    public Column apply(Column sourceColumn) throws RuleException {
+    public ColumnI apply(ColumnI sourceColumn) throws RuleException {
         Assert.type(DataType.DOUBLE, sourceColumn);
         Assert.unit("Julian Date", sourceColumn);
 
@@ -25,7 +41,7 @@ final class JulianDateToSeconds implements Rule {
     }
 
     @Override
-    public Double apply(Number number, Column sourceColumn) throws RuleException {
+    public Double apply(Number number, ColumnI sourceColumn) throws RuleException {
         Assert.condition(number instanceof Double, "number instanceof Double");
 
         return (number.doubleValue() - 2443509.5) * 86400.0;

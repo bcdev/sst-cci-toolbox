@@ -1,6 +1,22 @@
+/*
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see http://www.gnu.org/licenses/
+ */
+
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnI;
 import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
@@ -37,7 +53,7 @@ class Assert {
         }
     }
 
-    static void type(DataType expectedType, Column column) throws RuleException {
+    static void type(DataType expectedType, ColumnI column) throws RuleException {
         if (!expectedType.name().equals(column.getType())) {
             throw new RuleException(
                     MessageFormat.format("Expected variable type ''{0}'', but actual type is ''{1}''.",
@@ -46,7 +62,7 @@ class Assert {
         }
     }
 
-    static void unit(String expectedUnit, Column column) throws RuleException {
+    static void unit(String expectedUnit, ColumnI column) throws RuleException {
         if (!expectedUnit.equals(column.getUnit())) {
             throw new RuleException(
                     MessageFormat.format("Expected unit ''{0}'', but actual unit is ''{1}''.",

@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see http://www.gnu.org/licenses/
+ */
+
 package org.esa.cci.sst.data;
 
 import com.bc.ceres.core.Assert;
@@ -10,7 +26,7 @@ import ucar.ma2.DataType;
  */
 public final class ColumnBuilder {
 
-    private static final Sensor INTERNAL_SENSOR = new SensorBuilder().build();
+    private static final Sensor UNKNOWN_SENSOR = new SensorBuilder().build();
 
     private String name;
     private DataType type;
@@ -30,10 +46,10 @@ public final class ColumnBuilder {
         setName("untitled");
         setType(DataType.INT);
         setDimensions("");
-        setSensor(INTERNAL_SENSOR);
+        setSensor(UNKNOWN_SENSOR);
     }
 
-    public ColumnBuilder(Column column) {
+    public ColumnBuilder(ColumnI column) {
         setName(column.getName());
         setType(DataType.valueOf(column.getType()));
         setDimensions(column.getDimensions());
@@ -118,17 +134,14 @@ public final class ColumnBuilder {
         return this;
     }
 
-    public Sensor getSensor() {
-        return sensor;
-    }
-
     public ColumnBuilder setSensor(Sensor sensor) {
         Assert.argument(sensor != null, "sensor == null");
         this.sensor = sensor;
         return this;
     }
 
-    public Column build() {
+    @SuppressWarnings({"deprecation"})
+    public ColumnI build() {
         final Column column = new Column();
         column.setName(name);
         column.setType(type.name());

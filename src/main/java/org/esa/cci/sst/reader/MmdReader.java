@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
- * 
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,7 +9,7 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
@@ -17,7 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnI;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -73,15 +73,15 @@ class MmdReader implements ObservationReader {
     }
 
     @Override
-    public Column[] getColumns() throws IOException {
-        final List<Column> columns = new ArrayList<Column>();
+    public ColumnI[] getColumns() throws IOException {
+        final List<ColumnI> columns = new ArrayList<ColumnI>();
         final List<Variable> variables = mmd.getVariables();
         final DataFile datafile = dataFile;
         for (Variable variable : variables) {
-            final Column column = createColumn(variable, datafile);
+            final ColumnI column = createColumn(variable, datafile);
             columns.add(column);
         }
-        return columns.toArray(new Column[columns.size()]);
+        return columns.toArray(new ColumnI[columns.size()]);
     }
 
     Date getCreationDate(final int recordNo, Variable variable) throws IOException {
@@ -158,7 +158,7 @@ class MmdReader implements ObservationReader {
         }
     }
 
-    private Column createColumn(final Variable variable, final DataFile dataFile) {
+    private ColumnI createColumn(final Variable variable, final DataFile dataFile) {
         return IoUtil.createColumnBuilder(variable, sensor).setSensor(dataFile.getSensor()).build();
     }
 }
