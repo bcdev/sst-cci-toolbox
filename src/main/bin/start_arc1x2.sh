@@ -97,7 +97,7 @@ cp -f $l1bgzpath $wd
 echo 'copy latlon'
 cp -f $latlonpath $wd/$l1b.latlon.txt
 
-# clavr-x time-corrected lon/lat (may not exist)
+# find and copy clavr-x time-corrected lon/lat (may not exist)
 navDir=$nas/clavr-nav/$satDir/$year
 navFilename=$l1b.nav.h5
 if [[ -s $navDir/$navFilename ]]; then
@@ -105,13 +105,13 @@ if [[ -s $navDir/$navFilename ]]; then
     cp -f $navDir/$navFilename $wd
 fi
 
-# clavr-x cloud mask (must exist)
+# find and copy clavr-x cloud mask (must exist)
 cldDir=$nas/clavr-cld/$satDir/$year
 cldFilename=$l1b.cmr.h5
 echo 'copy clavr-cld'
 cp -f $cldDir/$cldFilename $wd
 
-# clavr-x cloud probability (must exist)
+# find and copy clavr-x cloud probability (must exist)
 prbDir=$nas/clavr-prb/$satDir/$year
 prbFilename=$l1b.prb.h5
 echo 'copy clavr-prb'

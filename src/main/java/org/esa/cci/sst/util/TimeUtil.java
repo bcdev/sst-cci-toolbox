@@ -38,16 +38,26 @@ public final class TimeUtil {
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final SimpleDateFormat COMPACT_UTC_FORMAT = new SimpleDateFormat(
+            "yyyyMMddHHmmss");
     private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss,SSS");
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         CCSDS_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        COMPACT_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private TimeUtil() {
         // prevent instantiation
+    }
+
+    public static String formatCompactUtcFormat(Date time) {
+        if (time == null) {
+            return "";
+        }
+        return COMPACT_UTC_FORMAT.format(time);
     }
 
     public static String formatCcsdsUtcFormat(Date time) {

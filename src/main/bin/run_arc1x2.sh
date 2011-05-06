@@ -92,11 +92,9 @@ year=${l1b:13:2}
 # need the 10# to make 08,09 be interpreted as decimal not octal
 year=$((10#${year}<78?20:19))$year
 
-# uncompress l1b for ARC1
 cd $wd
-#gunzip -fc $l1b.gz > $l1b
 
-# create the geo-locations from the L1B file
+# create geo-locations from the L1B file
 $avhrrDir/GBCS/bin/AVHRR_LOC_Linux $wd $l1b.gz
 chgrp geos_gc_sst_cci $l1b.LOC.nc
 chmod g+rw $l1b.LOC.nc
