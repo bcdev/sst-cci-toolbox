@@ -19,7 +19,7 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleFactory;
 import org.junit.After;
@@ -44,13 +44,13 @@ public class DimensionConversionTest {
 
     @Test
     public void testColumnConversion() {
-        final ColumnI targetColumn = registry.getColumn(CALLSIGN_VARIABLE_NAME);
+        final Item targetColumn = registry.getColumn(CALLSIGN_VARIABLE_NAME);
 
         assertEquals(CALLSIGN_VARIABLE_NAME, targetColumn.getName());
         assertEquals(CALLSIGN_VARIABLE_TYPE.name(), targetColumn.getType());
         assertEquals("matchup callsign.length", targetColumn.getDimensions());
 
-        final ColumnI sourceColumn = registry.getSourceColumn(targetColumn);
+        final Item sourceColumn = registry.getSourceColumn(targetColumn);
 
         assertNotNull(sourceColumn);
         assertEquals(CALLSIGN_VARIABLE_NAME, sourceColumn.getName());

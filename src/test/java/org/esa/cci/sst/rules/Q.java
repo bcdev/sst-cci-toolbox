@@ -16,17 +16,17 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 
 final class Q implements Rule {
 
     @Override
-    public ColumnI apply(ColumnI sourceColumn) throws RuleException {
+    public Item apply(Item sourceColumn) throws RuleException {
         return null;
     }
 
     @Override
-    public Number apply(Number number, ColumnI sourceColumn) throws RuleException {
+    public Number apply(Number number, Item sourceColumn) throws RuleException {
         return null;
     }
 }

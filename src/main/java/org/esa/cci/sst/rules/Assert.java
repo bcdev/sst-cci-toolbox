@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
@@ -53,7 +53,7 @@ class Assert {
         }
     }
 
-    static void type(DataType expectedType, ColumnI column) throws RuleException {
+    static void type(DataType expectedType, Item column) throws RuleException {
         if (!expectedType.name().equals(column.getType())) {
             throw new RuleException(
                     MessageFormat.format("Expected variable type ''{0}'', but actual type is ''{1}''.",
@@ -62,7 +62,7 @@ class Assert {
         }
     }
 
-    static void unit(String expectedUnit, ColumnI column) throws RuleException {
+    static void unit(String expectedUnit, Item column) throws RuleException {
         if (!expectedUnit.equals(column.getUnit())) {
             throw new RuleException(
                     MessageFormat.format("Expected unit ''{0}'', but actual unit is ''{1}''.",

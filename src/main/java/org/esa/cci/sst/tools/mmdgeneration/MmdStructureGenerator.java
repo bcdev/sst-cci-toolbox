@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.tools.Constants;
@@ -165,8 +165,8 @@ class MmdStructureGenerator {
         final Query query = tool.getPersistenceManager().createQuery(String.format(
                 "select v from Column v where v.name like '%s.%%' order by v.name", sensorName));
         @SuppressWarnings({"unchecked"})
-        final List<ColumnI> columnList = new ArrayList<ColumnI>(query.getResultList());
-        for (final ColumnI column : columnList) {
+        final List<Item> columnList = new ArrayList<Item>(query.getResultList());
+        for (final Item column : columnList) {
             if (targetVariables.isEmpty() || targetVariables.containsKey(column.getName())) {
                 addVariable(file, column);
             }
@@ -212,7 +212,7 @@ class MmdStructureGenerator {
         // todo: NWP tie point dimensions for all sensors (rq-20110223)
     }
 
-    private void addVariable(NetcdfFileWriteable targetFile, ColumnI column) {
+    private void addVariable(NetcdfFileWriteable targetFile, Item column) {
         // todo - apply column rules here (rq-20110420)
         final DataType dataType = DataType.valueOf(column.getType());
         final String targetVariableName = getTargetVariableName(column.getName());

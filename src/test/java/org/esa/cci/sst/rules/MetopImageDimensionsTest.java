@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,7 +29,7 @@ public class MetopImageDimensionsTest extends AbstractRuleTest {
     }
 
     @Override
-    protected void assertTargetColumn(ColumnI targetColumn) {
+    protected void assertTargetColumn(Item targetColumn) {
         assertEquals("n metop.ni metop.nj", targetColumn.getDimensions());
     }
 

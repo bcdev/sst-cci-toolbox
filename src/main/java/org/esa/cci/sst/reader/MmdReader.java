@@ -17,7 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -73,15 +73,15 @@ class MmdReader implements ObservationReader {
     }
 
     @Override
-    public ColumnI[] getColumns() throws IOException {
-        final List<ColumnI> columns = new ArrayList<ColumnI>();
+    public Item[] getColumns() throws IOException {
+        final List<Item> columns = new ArrayList<Item>();
         final List<Variable> variables = mmd.getVariables();
         final DataFile datafile = dataFile;
         for (Variable variable : variables) {
-            final ColumnI column = createColumn(variable, datafile);
+            final Item column = createColumn(variable, datafile);
             columns.add(column);
         }
-        return columns.toArray(new ColumnI[columns.size()]);
+        return columns.toArray(new Item[columns.size()]);
     }
 
     Date getCreationDate(final int recordNo, Variable variable) throws IOException {
@@ -158,7 +158,7 @@ class MmdReader implements ObservationReader {
         }
     }
 
-    private ColumnI createColumn(final Variable variable, final DataFile dataFile) {
+    private Item createColumn(final Variable variable, final DataFile dataFile) {
         return IoUtil.createColumnBuilder(variable, sensor).setSensor(dataFile.getSensor()).build();
     }
 }

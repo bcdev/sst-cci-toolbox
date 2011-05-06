@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
@@ -79,7 +79,7 @@ public interface IOHandler {
      *
      * @throws IOException when an error occurred.
      */
-    ColumnI[] getColumns() throws IOException;
+    Item[] getColumns() throws IOException;
 
     /**
      * Writes the variable from the observation in the file.

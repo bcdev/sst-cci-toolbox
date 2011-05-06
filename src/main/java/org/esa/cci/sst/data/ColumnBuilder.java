@@ -49,7 +49,7 @@ public final class ColumnBuilder {
         setSensor(UNKNOWN_SENSOR);
     }
 
-    public ColumnBuilder(ColumnI column) {
+    public ColumnBuilder(Item column) {
         setName(column.getName());
         setType(DataType.valueOf(column.getType()));
         setDimensions(column.getDimensions());
@@ -141,7 +141,7 @@ public final class ColumnBuilder {
     }
 
     @SuppressWarnings({"deprecation"})
-    public ColumnI build() {
+    public Item build() {
         final Column column = new Column();
         column.setName(name);
         column.setType(type.name());

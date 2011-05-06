@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
@@ -30,7 +30,7 @@ import java.text.MessageFormat;
 public abstract class IntegralNumberToRealNumber implements Rule {
 
     @Override
-    public ColumnI apply(ColumnI sourceColumn) throws RuleException {
+    public Item apply(Item sourceColumn) throws RuleException {
         final DataType sourceDataType = getSourceDataType();
         Assert.condition(sourceDataType.isIntegral(),
                          MessageFormat.format("Expected integral numeric type, actual type is ''{0}''.",
@@ -65,7 +65,7 @@ public abstract class IntegralNumberToRealNumber implements Rule {
     }
 
     @Override
-    public Number apply(Number number, ColumnI sourceColumn) throws RuleException {
+    public Number apply(Number number, Item sourceColumn) throws RuleException {
         Number sourceAddOffset = sourceColumn.getAddOffset();
         Number sourceScaleFactor = sourceColumn.getScaleFactor();
         if (sourceScaleFactor == null) {

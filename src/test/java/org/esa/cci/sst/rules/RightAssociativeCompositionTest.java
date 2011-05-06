@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -29,21 +29,21 @@ public class RightAssociativeCompositionTest {
         final Rule a = new ColumnModification() {
 
             @Override
-            public ColumnI apply(ColumnI sourceColumn) {
+            public Item apply(Item sourceColumn) {
                 return new ColumnBuilder(sourceColumn).setName("a").build();
             }
         };
         final Rule b = new ColumnModification() {
 
             @Override
-            public ColumnI apply(ColumnI sourceColumn) {
+            public Item apply(Item sourceColumn) {
                 return new ColumnBuilder(sourceColumn).setName("b").setRole("b").build();
             }
         };
         final Rule ab = new RightAssociativeComposition(a, b);
         final ColumnBuilder columnBuilder = new ColumnBuilder();
-        final ColumnI sourceColumn = columnBuilder.build();
-        final ColumnI targetColumn = ab.apply(sourceColumn);
+        final Item sourceColumn = columnBuilder.build();
+        final Item targetColumn = ab.apply(sourceColumn);
 
         assertEquals("a", targetColumn.getName());
         assertEquals("b", targetColumn.getRole());

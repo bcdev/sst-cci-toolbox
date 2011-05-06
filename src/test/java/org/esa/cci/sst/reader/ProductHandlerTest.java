@@ -19,7 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
@@ -118,7 +118,7 @@ public class ProductHandlerTest {
 
     @Test
     public void testGetColumns() throws URISyntaxException, IOException {
-        final ColumnI[] columns = handler.getColumns();
+        final Item[] columns = handler.getColumns();
 
         assertEquals(12, columns.length);
     }

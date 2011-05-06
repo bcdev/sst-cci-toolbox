@@ -17,7 +17,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
@@ -123,7 +123,7 @@ class MmdGenerator {
         IOHandler ioHandler = null;
         try {
             ioHandler = createIOHandler(observation);
-            for (final ColumnI column : ioHandler.getColumns()) {
+            for (final Item column : ioHandler.getColumns()) {
                 if (targetVariables.isEmpty() || targetVariables.containsKey(column.getName())) {
                     final String sourceVariableName = column.getRole();
                     final String targetVariableName = getTargetVariableName(column.getName());

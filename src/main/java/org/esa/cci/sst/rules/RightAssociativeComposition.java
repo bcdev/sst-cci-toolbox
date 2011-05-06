@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +36,7 @@ final class RightAssociativeComposition implements Rule {
     }
 
     @Override
-    public ColumnI apply(ColumnI sourceColumn) throws RuleException {
+    public Item apply(Item sourceColumn) throws RuleException {
         for (int i = ruleList.size(); i-- > 0;) {
             sourceColumn = ruleList.get(i).apply(sourceColumn);
         }
@@ -44,7 +44,7 @@ final class RightAssociativeComposition implements Rule {
     }
 
     @Override
-    public Number apply(Number number, ColumnI sourceColumn) throws RuleException {
+    public Number apply(Number number, Item sourceColumn) throws RuleException {
         for (int i = ruleList.size(); i-- > 0;) {
             final Rule rule = ruleList.get(i);
             number = rule.apply(number, sourceColumn);

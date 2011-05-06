@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
@@ -32,23 +32,23 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * A registry for {@link ColumnI}s.
+ * A registry for column {@link Item}s.
  * <p/>
- * The registry is used as an access point for all {@link ColumnI}s that describe
- * the target variables in an MMD file.
+ * The registry is used as an access point for all {@link Item}s that describe
+ * the target columns in an MMD file.
  *
  * @author Ralf Quast
  */
 public class ColumnRegistry {
 
-    private final Map<String, ColumnI> columnsByName;
-    private final Map<ColumnI, Rule> rulesByTarget;
-    private final Map<ColumnI, ColumnI> columnsByTarget;
+    private final Map<String, Item> columnsByName;
+    private final Map<Item, Rule> rulesByTarget;
+    private final Map<Item, Item> columnsByTarget;
 
     private ColumnRegistry() {
-        columnsByName = new HashMap<String, ColumnI>();
-        rulesByTarget = new HashMap<ColumnI, Rule>();
-        columnsByTarget = new HashMap<ColumnI, ColumnI>();
+        columnsByName = new HashMap<String, Item>();
+        rulesByTarget = new HashMap<Item, Rule>();
+        columnsByTarget = new HashMap<Item, Item>();
     }
 
     /**
@@ -113,9 +113,9 @@ public class ColumnRegistry {
      *
      * @param column The column to be registered.
      */
-    public void register(ColumnI column) {
+    public void register(Item column) {
         synchronized (this) {
-            final ColumnI previous = columnsByName.put(column.getName(), column);
+            final Item previous = columnsByName.put(column.getName(), column);
             if (previous != null) {
                 columnsByTarget.remove(previous);
                 rulesByTarget.remove(previous);
@@ -141,9 +141,9 @@ public class ColumnRegistry {
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    public ColumnI register(Rule rule, ColumnI sourceColumn) throws RuleException {
+    public Item register(Rule rule, Item sourceColumn) throws RuleException {
         synchronized (this) {
-            final ColumnI targetColumn = rule.apply(sourceColumn);
+            final Item targetColumn = rule.apply(sourceColumn);
             columnsByName.put(targetColumn.getName(), targetColumn);
             rulesByTarget.put(targetColumn, rule);
             columnsByTarget.put(targetColumn, sourceColumn);
@@ -170,7 +170,7 @@ public class ColumnRegistry {
      *
      * @return the variable column associated with the name supplied as argument.
      */
-    public ColumnI getColumn(String name) {
+    public Item getColumn(String name) {
         synchronized (columnsByName) {
             return columnsByName.get(name);
         }
@@ -186,7 +186,7 @@ public class ColumnRegistry {
      * @return a converter suitable for numeric conversions into numbers complying
      *         with the target column.
      */
-    public Converter getConverter(ColumnI targetColumn) {
+    public Converter getConverter(Item targetColumn) {
         synchronized (this) {
             return new ConverterImpl(rulesByTarget.get(targetColumn), columnsByTarget.get(targetColumn));
         }
@@ -199,7 +199,7 @@ public class ColumnRegistry {
      *
      * @return the source column associated with the target column supplied as argument.
      */
-    public ColumnI getSourceColumn(ColumnI targetColumn) {
+    public Item getSourceColumn(Item targetColumn) {
         synchronized (columnsByTarget) {
             return columnsByTarget.get(targetColumn);
         }
@@ -227,30 +227,30 @@ public class ColumnRegistry {
 
     private void parseIdentity(List<String> nameList, String sourceName) throws Exception {
         ensureSourceColumnIsRegistered(sourceName);
-        final ColumnI sourceColumn = getColumn(sourceName);
+        final Item sourceColumn = getColumn(sourceName);
         final Rule rule = RuleFactory.getInstance().getRule("Identity");
-        final ColumnI targetColumn = register(rule, sourceColumn);
+        final Item targetColumn = register(rule, sourceColumn);
         nameList.add(targetColumn.getName());
     }
 
     private void parseRenaming(List<String> nameList, String targetName, String sourceName) throws Exception {
         ensureSourceColumnIsRegistered(sourceName);
-        final ColumnI sourceColumn = getColumn(sourceName);
+        final Item sourceColumn = getColumn(sourceName);
         final Rule rule = RuleFactory.getInstance().getRenamingRule(targetName);
-        final ColumnI targetColumn = register(rule, sourceColumn);
+        final Item targetColumn = register(rule, sourceColumn);
         nameList.add(targetColumn.getName());
     }
 
     private void parseRule(List<String> nameList, String targetName, String sourceName, String spec) throws Exception {
         ensureSourceColumnIsRegistered(sourceName);
-        final ColumnI sourceColumn = getColumn(sourceName);
+        final Item sourceColumn = getColumn(sourceName);
         final Rule rule;
         if (targetName.equals(sourceName)) {
             rule = RuleFactory.getInstance().getRule(spec);
         } else {
             rule = RuleFactory.getInstance().getRule(spec, targetName);
         }
-        final ColumnI targetColumn = register(rule, sourceColumn);
+        final Item targetColumn = register(rule, sourceColumn);
         nameList.add(targetColumn.getName());
     }
 
@@ -271,9 +271,9 @@ public class ColumnRegistry {
     private static class ConverterImpl implements Converter {
 
         private final Rule rule;
-        private final ColumnI sourceColumn;
+        private final Item sourceColumn;
 
-        public ConverterImpl(Rule rule, ColumnI sourceColumn) {
+        public ConverterImpl(Rule rule, Item sourceColumn) {
             this.rule = rule;
             this.sourceColumn = sourceColumn;
         }

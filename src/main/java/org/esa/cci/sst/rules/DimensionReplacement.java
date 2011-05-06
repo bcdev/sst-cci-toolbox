@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 
 /**
  * Abstract base class for dimension replacement rules.
@@ -27,7 +27,7 @@ import org.esa.cci.sst.data.ColumnI;
 abstract class DimensionReplacement extends ColumnModification {
 
     @Override
-    public final ColumnI apply(ColumnI sourceColumn) throws RuleException {
+    public final Item apply(Item sourceColumn) throws RuleException {
         final String sourceDimensions = sourceColumn.getDimensions();
         Assert.notNull(sourceDimensions, "dimensions");
         Assert.notEmpty(sourceDimensions, "dimensions");

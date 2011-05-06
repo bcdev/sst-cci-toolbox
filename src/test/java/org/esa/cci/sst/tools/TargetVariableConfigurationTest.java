@@ -17,7 +17,7 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.ColumnRegistry;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.IoUtil;
 import org.junit.AfterClass;
@@ -58,7 +58,7 @@ public class TargetVariableConfigurationTest {
 
     private void testMetopColumn() {
         final ColumnRegistry registry = ColumnRegistry.getInstance();
-        final ColumnI targetColumn = registry.getColumn("metop.brightness_temperature.037");
+        final Item targetColumn = registry.getColumn("metop.brightness_temperature.037");
 
         assertEquals("matchup metop.ni metop.nj", targetColumn.getDimensions());
         assertNotNull(registry.getConverter(targetColumn));
@@ -90,7 +90,7 @@ public class TargetVariableConfigurationTest {
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
             final ColumnRegistry registry = ColumnRegistry.getInstance();
             for (final Variable variable : netcdfFile.getVariables()) {
-                final ColumnI column = IoUtil.createColumnBuilder(variable, sensor).build();
+                final Item column = IoUtil.createColumnBuilder(variable, sensor).build();
                 registry.register(column);
             }
         } finally {

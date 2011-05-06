@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ import org.junit.Test;
 public abstract class AbstractRuleTest {
 
     private Rule rule;
-    private ColumnI sourceColumn;
+    private Item sourceColumn;
 
     @Before
     public final void init() {
@@ -40,8 +40,8 @@ public abstract class AbstractRuleTest {
     @Test
     public final void testColumnConversion() throws RuleException {
         final Rule rule = getRule();
-        final ColumnI sourceColumn = getSourceColumn();
-        final ColumnI targetColumn = rule.apply(sourceColumn);
+        final Item sourceColumn = getSourceColumn();
+        final Item targetColumn = rule.apply(sourceColumn);
 
         assertTargetColumn(targetColumn);
     }
@@ -53,11 +53,11 @@ public abstract class AbstractRuleTest {
         return rule;
     }
 
-    protected abstract void assertTargetColumn(ColumnI targetColumn);
+    protected abstract void assertTargetColumn(Item targetColumn);
 
     protected abstract ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder);
 
-    protected final ColumnI getSourceColumn() {
+    protected final Item getSourceColumn() {
         return sourceColumn;
     }
 

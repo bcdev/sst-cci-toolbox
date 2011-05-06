@@ -25,7 +25,7 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Observation;
@@ -169,17 +169,17 @@ abstract class AbstractProductHandler implements IOHandler {
     public abstract Observation readObservation(int recordNo) throws IOException;
 
     @Override
-    public final ColumnI[] getColumns() throws IOException {
-        final List<ColumnI> columnList = new ArrayList<ColumnI>();
+    public final Item[] getColumns() throws IOException {
+        final List<Item> columnList = new ArrayList<Item>();
         for (final RasterDataNode node : product.getTiePointGrids()) {
-            final ColumnI column = createColumn(node);
+            final Item column = createColumn(node);
             columnList.add(column);
         }
         for (final RasterDataNode node : product.getBands()) {
-            final ColumnI column = createColumn(node);
+            final Item column = createColumn(node);
             columnList.add(column);
         }
-        return columnList.toArray(new ColumnI[columnList.size()]);
+        return columnList.toArray(new Item[columnList.size()]);
     }
 
     @Override
@@ -216,7 +216,7 @@ abstract class AbstractProductHandler implements IOHandler {
         throw new OperationNotSupportedException();
     }
 
-    protected final ColumnI createColumn(final RasterDataNode node) {
+    protected final Item createColumn(final RasterDataNode node) {
         final String name = getSensorName() + "." + node.getName();
         final DataType type = DataTypeUtils.getNetcdfDataType(node);
         final ColumnBuilder builder = new ColumnBuilder();

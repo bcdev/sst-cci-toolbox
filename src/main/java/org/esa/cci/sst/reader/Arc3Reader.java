@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import ucar.nc2.NetcdfFile;
@@ -52,7 +52,7 @@ public class Arc3Reader implements ObservationReader {
     }
 
     @Override
-    public ColumnI[] getColumns() throws IOException {
+    public Item[] getColumns() throws IOException {
         return delegate.getColumns();
     }
 }

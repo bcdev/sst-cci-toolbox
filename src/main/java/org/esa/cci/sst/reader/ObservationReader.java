@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 
 import java.io.IOException;
@@ -30,6 +30,6 @@ public interface ObservationReader {
 
     Observation readObservation(int recordNo) throws IOException;
 
-    ColumnI[] getColumns() throws IOException;
+    Item[] getColumns() throws IOException;
 
 }

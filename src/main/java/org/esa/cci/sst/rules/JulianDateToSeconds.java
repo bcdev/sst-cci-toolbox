@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import ucar.ma2.DataType;
 
 /**
@@ -26,7 +26,7 @@ import ucar.ma2.DataType;
 final class JulianDateToSeconds implements Rule {
 
     @Override
-    public ColumnI apply(ColumnI sourceColumn) throws RuleException {
+    public Item apply(Item sourceColumn) throws RuleException {
         Assert.type(DataType.DOUBLE, sourceColumn);
         Assert.unit("Julian Date", sourceColumn);
 
@@ -41,7 +41,7 @@ final class JulianDateToSeconds implements Rule {
     }
 
     @Override
-    public Double apply(Number number, ColumnI sourceColumn) throws RuleException {
+    public Double apply(Number number, Item sourceColumn) throws RuleException {
         Assert.condition(number instanceof Double, "number instanceof Double");
 
         return (number.doubleValue() - 2443509.5) * 86400.0;

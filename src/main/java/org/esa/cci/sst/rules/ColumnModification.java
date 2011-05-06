@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 
 /**
  * Base class for rules that modify the column only.
@@ -26,7 +26,7 @@ import org.esa.cci.sst.data.ColumnI;
 abstract class ColumnModification implements Rule {
 
     @Override
-    public final Number apply(Number number, ColumnI sourceColumn) {
+    public final Number apply(Number number, Item sourceColumn) {
         return number;
     }
 }

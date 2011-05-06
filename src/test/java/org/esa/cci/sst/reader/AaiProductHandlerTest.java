@@ -17,7 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.cci.sst.AaiProductReaderTest;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Observation;
@@ -75,7 +75,7 @@ public class AaiProductHandlerTest {
 
     @Test
     public void testGetColumns() throws URISyntaxException, IOException {
-        final ColumnI[] columns = handler.getColumns();
+        final Item[] columns = handler.getColumns();
 
         assertEquals(1, columns.length);
     }

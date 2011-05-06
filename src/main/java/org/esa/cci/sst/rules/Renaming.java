@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 
 /**
  * Modifies the name of a column.
@@ -33,7 +33,7 @@ final class Renaming extends ColumnModification {
     }
 
     @Override
-    public ColumnI apply(ColumnI sourceColumn) {
+    public Item apply(Item sourceColumn) {
         return new ColumnBuilder(sourceColumn).setName(targetName).build();
     }
 }

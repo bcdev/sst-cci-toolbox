@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 
 /**
  * Identity.
@@ -26,12 +26,12 @@ import org.esa.cci.sst.data.ColumnI;
 final class Identity implements Rule {
 
     @Override
-    public ColumnI apply(ColumnI sourceColumn) {
+    public Item apply(Item sourceColumn) {
         return sourceColumn;
     }
 
     @Override
-    public Number apply(Number number, ColumnI sourceColumn) {
+    public Number apply(Number number, Item sourceColumn) {
         return number;
     }
 }

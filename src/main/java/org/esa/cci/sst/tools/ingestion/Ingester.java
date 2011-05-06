@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
@@ -63,10 +63,10 @@ class Ingester {
     }
 
     void persistColumns(final String sensorName, final IOHandler ioHandler) throws IOException {
-        final ColumnI[] columns = ioHandler.getColumns();
+        final Item[] columns = ioHandler.getColumns();
         tool.getLogger().info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
                                               sensorName, columns.length));
-        for (final ColumnI column : columns) {
+        for (final Item column : columns) {
             tool.getPersistenceManager().persist(column);
         }
     }

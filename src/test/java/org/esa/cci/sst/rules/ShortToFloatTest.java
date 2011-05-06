@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.junit.Test;
 import ucar.ma2.DataType;
 
@@ -33,7 +33,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
     @Test
     public void testNumericConversion() throws RuleException {
         final Rule rule = getRule();
-        final ColumnI sourceColumn = getSourceColumn();
+        final Item sourceColumn = getSourceColumn();
         final Number result = rule.apply((short) 5, sourceColumn);
 
         assertTrue(result instanceof Float);
@@ -46,7 +46,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
     }
 
     @Override
-    protected void assertTargetColumn(ColumnI targetColumn) {
+    protected void assertTargetColumn(Item targetColumn) {
         assertTrue(targetColumn.getScaleFactor() == null);
         assertTrue(targetColumn.getAddOffset() == null);
         assertTrue(DataType.FLOAT.name().equals(targetColumn.getType()));

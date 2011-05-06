@@ -18,7 +18,7 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
@@ -46,13 +46,13 @@ public class UnitConversionTest {
 
     @Test
     public void testColumnConversion() {
-        final ColumnI targetColumn = registry.getColumn(TIME_VARIABLE_NAME);
+        final Item targetColumn = registry.getColumn(TIME_VARIABLE_NAME);
 
         assertEquals(TIME_VARIABLE_NAME, targetColumn.getName());
         assertEquals(TIME_VARIABLE_TYPE.name(), targetColumn.getType());
         assertEquals("seconds since 1978-01-01 00:00:00", targetColumn.getUnit());
 
-        final ColumnI sourceColumn = registry.getSourceColumn(targetColumn);
+        final Item sourceColumn = registry.getSourceColumn(targetColumn);
 
         assertNotNull(sourceColumn);
         assertEquals(TIME_VARIABLE_NAME, sourceColumn.getName());
@@ -62,7 +62,7 @@ public class UnitConversionTest {
 
     @Test
     public void testNumericConversion() throws RuleException {
-        final ColumnI targetColumn = registry.getColumn(TIME_VARIABLE_NAME);
+        final Item targetColumn = registry.getColumn(TIME_VARIABLE_NAME);
 
         assertNotNull(targetColumn);
 

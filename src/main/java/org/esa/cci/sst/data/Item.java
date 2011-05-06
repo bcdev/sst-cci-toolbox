@@ -21,7 +21,7 @@ package org.esa.cci.sst.data;
  *
  * @author Ralf Quast.
  */
-public interface ColumnI {
+public interface Item {
 
     String getName();
 

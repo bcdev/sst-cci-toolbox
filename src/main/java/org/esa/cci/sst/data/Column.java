@@ -30,7 +30,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "mm_variable")
-public class Column implements ColumnI {
+public class Column implements Item {
 
     private int id;
     private String name;
@@ -220,7 +220,7 @@ public class Column implements ColumnI {
 
     @Override
     public boolean equals(Object anObject) {
-        return this == anObject || anObject instanceof ColumnI && this.getId() == ((Column) anObject).getId();
+        return this == anObject || anObject instanceof Item && this.getId() == ((Column) anObject).getId();
     }
 
     @Override

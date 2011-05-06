@@ -17,7 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.Constants;
@@ -86,7 +86,7 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
-    public ColumnI[] getColumns() throws IOException {
+    public Item[] getColumns() throws IOException {
         validateDelegate(reader);
         return reader.getColumns();
     }

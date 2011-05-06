@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.ColumnI;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
@@ -114,7 +114,7 @@ class GunzipDecorator implements IOHandler {
      * Delegates to decorated IO handler.
      */
     @Override
-    public final ColumnI[] getColumns() throws IOException {
+    public final Item[] getColumns() throws IOException {
         return delegate.getColumns();
     }
 
