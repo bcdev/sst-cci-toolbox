@@ -28,7 +28,7 @@ public class DataFile {
     }
 
     // important: this is not public API
-    void setId(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 

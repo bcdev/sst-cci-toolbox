@@ -52,5 +52,4 @@ public class GlobalObservation extends Observation implements Timeable {
         return String.format("GlobalObservation(%d,%s,%s,%s,%s,%d)", getId(), getName(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getDatafile(), getRecordNo());
     }
-
 }

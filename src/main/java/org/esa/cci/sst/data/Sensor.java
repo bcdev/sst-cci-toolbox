@@ -22,7 +22,7 @@ public class Sensor {
     private long pattern;
     private String observationType;
 
-    public Sensor() {
+    Sensor() {
     }
 
     @Id
@@ -32,7 +32,7 @@ public class Sensor {
     }
 
     // important: this is not public API
-    void setId(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -42,7 +42,7 @@ public class Sensor {
     }
 
     // important: this is not public API
-    void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -51,7 +51,7 @@ public class Sensor {
     }
 
     // important: this is not public API
-    void setPattern(long pattern) {
+    public void setPattern(long pattern) {
         this.pattern = pattern;
     }
 

@@ -41,7 +41,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setId(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -51,7 +51,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -61,7 +61,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setType(String type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -71,7 +71,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setDimensions(String dimensions) {
+    public void setDimensions(String dimensions) {
         this.dimensions = dimensions;
     }
 
@@ -80,7 +80,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setUnit(String unit) {
+    public void setUnit(String unit) {
         this.unit = unit;
     }
 
@@ -89,7 +89,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setAddOffset(Number addOffset) {
+    public void setAddOffset(Number addOffset) {
         this.addOffset = addOffset;
     }
 
@@ -98,7 +98,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setScaleFactor(Number scaleFactor) {
+    public void setScaleFactor(Number scaleFactor) {
         this.scaleFactor = scaleFactor;
     }
 
@@ -107,7 +107,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setFillValue(Number fillValue) {
+    public void setFillValue(Number fillValue) {
         this.fillValue = fillValue;
     }
 
@@ -116,7 +116,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setStandardName(String standardName) {
+    public void setStandardName(String standardName) {
         this.standardName = standardName;
     }
 
@@ -125,7 +125,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setValidMin(Number validMin) {
+    public void setValidMin(Number validMin) {
         this.validMin = validMin;
     }
 
@@ -134,7 +134,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setValidMax(Number validMax) {
+    public void setValidMax(Number validMax) {
         this.validMax = validMax;
     }
 
@@ -143,7 +143,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setLongName(String longName) {
+    public void setLongName(String longName) {
         this.longName = longName;
     }
 
@@ -154,7 +154,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setSensor(Sensor sensor) {
+    public void setSensor(Sensor sensor) {
         this.sensor = sensor;
     }
 
@@ -163,7 +163,7 @@ public class Column {
     }
 
     // important: this is not public API
-    void setRole(String role) {
+    public void setRole(String role) {
         this.role = role;
     }
 

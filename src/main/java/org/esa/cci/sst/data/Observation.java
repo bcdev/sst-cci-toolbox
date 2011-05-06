@@ -30,7 +30,8 @@ public class Observation {
         return id;
     }
 
-    void setId(int id) {
+    // important: this is not public API
+    public void setId(int id) {
         this.id = id;
     }
 
