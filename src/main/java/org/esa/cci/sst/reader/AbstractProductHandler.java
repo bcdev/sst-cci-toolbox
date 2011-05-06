@@ -17,7 +17,9 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.glevel.MultiLevelImage;
+import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
+import org.esa.beam.framework.dataio.ProductFlipper;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
@@ -25,9 +27,9 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
@@ -109,17 +111,17 @@ abstract class AbstractProductHandler implements IOHandler {
 
     private static Number getSample(Raster raster, int x, int y) {
         switch (raster.getTransferType()) {
-        case DataBuffer.TYPE_BYTE:
-        case DataBuffer.TYPE_SHORT:
-        case DataBuffer.TYPE_USHORT:
-        case DataBuffer.TYPE_INT:
-            return raster.getSample(x, y, 0);
-        case DataBuffer.TYPE_FLOAT:
-            return raster.getSampleFloat(x, y, 0);
-        case DataBuffer.TYPE_DOUBLE:
-            return raster.getSampleDouble(x, y, 0);
-        default:
-            throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+            case DataBuffer.TYPE_BYTE:
+            case DataBuffer.TYPE_SHORT:
+            case DataBuffer.TYPE_USHORT:
+            case DataBuffer.TYPE_INT:
+                return raster.getSample(x, y, 0);
+            case DataBuffer.TYPE_FLOAT:
+                return raster.getSampleFloat(x, y, 0);
+            case DataBuffer.TYPE_DOUBLE:
+                return raster.getSampleDouble(x, y, 0);
+            default:
+                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
 
@@ -128,12 +130,23 @@ abstract class AbstractProductHandler implements IOHandler {
         if (getProduct() != null) {
             close();
         }
-        final Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
+        Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Cannot read product file ''{0}''.", dataFile.getPath()));
         }
-
+        if (product.getProductReader() instanceof EnvisatProductReader && product.getName().startsWith("ATS")) {
+            // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
+            final ProductData.UTC startTime = product.getStartTime();
+            final ProductData.UTC endTime = product.getEndTime();
+            product = ProductFlipper.createFlippedProduct(product,
+                                                          true,
+                                                          ProductFlipper.FLIP_HORIZONTAL,
+                                                          product.getName(),
+                                                          product.getDescription());
+            product.setStartTime(startTime);
+            product.setEndTime(endTime);
+        }
         this.product = product;
         this.dataFile = dataFile;
     }
