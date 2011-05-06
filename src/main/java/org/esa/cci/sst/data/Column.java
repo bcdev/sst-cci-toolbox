@@ -25,6 +25,8 @@ import javax.persistence.Table;
 /**
  * Data item that represents a column in the record structure of a source
  * file type. Columns are aggregated in a Sensor.
+ * <p/>
+ * This class is used by JPA but does not belong to the public API.
  *
  * @author Martin Boettcher
  */
