@@ -37,83 +37,111 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Tool responsible for extracting subscenes using the ARC1 processor.
+ * Tool responsible for extracting subscenes using the ARC1 and ARC2 processor.
+ * Preconditions:
+ * <ul>
+ *     <li>thetis:mms/sst-cci-toolbox-0.1-SNAPSHOT/ installed</li>
+ *     <li>configured tmp dir and output dir on thetis exist</li>
+ *     <li>eddie:mms linked to /exports/work/geos_gc_sst_cci/mms/ visible from eddie nodes</li>
+ *     <li>eddie:mms/sst-cci-toolbox-0.1-SNAPSHOT/ installed</li>
+ *     <li>eddie:mms/ dir writable for temporary subdirectories</li>
+ *     <li>eddie:tmp/ exists</li>
+ *     <li>ssh key for login from thetis to eddie installed
+ * </ul>
  *
  * @author Thomas Storm
  * @author Martin Boettcher
  */
 public class Arc1ProcessingTool extends BasicTool {
 
-    private static final String AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY =
-            "SELECT m.id, ST_astext(ref.point), df.path, s.name, s.pattern " +
-                    "FROM mm_datafile df, mm_observation o, mm_matchup m, " +
-                    "     mm_coincidence c, mm_sensor s, mm_observation ref " +
-                    "WHERE c.matchup_id = m.id " +
-                    "AND o.id = c.observation_id " +
-                    "AND o.sensor LIKE 'avhrr_orb.%' " +
-                    "AND df.id = o.datafile_id " +
-                    "AND df.sensor_id = s.id " +
+    private static final String AVHRR_MATCHING_OBSERVARTIONS_QUERY =
+            "SELECT m.id, ST_astext(ref.point), f.path, s.name, s.pattern " +
+                    "FROM mm_observation o, mm_coincidence c, mm_matchup m, " +
+                    "     mm_observation ref, mm_datafile f, mm_sensor s " +
+                    "WHERE o.sensor LIKE 'avhrr_orb.%' " +
+                    "AND c.observation_id = o.id " +
+                    "AND m.id = c.matchup_id " +
                     "AND ref.id = m.refobs_id " +
                     "AND ref.time >= ? " +
                     "AND ref.time < ? " +
-                    "ORDER BY df.path";
+                    "AND f.id = o.datafile_id " +
+                    "AND s.id = f.sensor_id " +
+                    "ORDER BY f.path";
     public static final String LATLON_FILE_EXTENSION = ".latlon.txt";
 
-    private PrintWriter submitCallsWriter = null;
-    private PrintWriter collectCallsWriter = null;
-    private PrintWriter cleanupCallsWriter = null;
+    private static class MatchingObservationInfo {
+        String matchupId;
+        String filename;
+        String point;
+        String sensor;
+        long pattern;
+    }
+
     private String submitCallFilename = null;
     private String collectCallFilename = null;
     private String cleanupCallFilename = null;
+    private PrintWriter submitCallsWriter = null;
+    private PrintWriter collectCallsWriter = null;
+    private PrintWriter cleanupCallsWriter = null;
 
     public Arc1ProcessingTool() {
-        super("mmssubscenes.sh", "0.1");
+        super("mmsarc1x2calls.sh", "0.1");
     }
 
     public static void main(String[] args) {
         final Arc1ProcessingTool tool = new Arc1ProcessingTool();
-        tool.setCommandLineArgs(args);
-        tool.initialize();
         try {
-            tool.prepareCommandFiles();
-            final List<AvhrrInfo> avhrrFilesAndPoints = tool.inquireAvhrrInfos();
-            tool.prepareAndPerformArcCall(avhrrFilesAndPoints);
-            tool.closeCommandFiles();
-        } catch (IOException e) {
+            tool.setCommandLineArgs(args);
+            tool.initialize();
+            tool.run();
+        } catch (ToolException e) {
+            tool.getErrorHandler().terminate(e);
+        } catch (Exception e) {
             tool.getErrorHandler().terminate(new ToolException("Tool failed.", e, ToolException.TOOL_ERROR));
         }
     }
 
-    private void prepareCommandFiles() throws IOException {
+    private void run() throws IOException {
         final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
-        final File destDir = new File(destPath);
-        destDir.mkdirs();
         final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
+        final Date startTime = getConfiguredTimeOf(Constants.PROPERTY_OUTPUT_START_TIME);
+        final Date endTime = getConfiguredTimeOf(Constants.PROPERTY_OUTPUT_END_TIME);
+
+        prepareCommandFiles(tmpPath, destPath, TimeUtil.formatCompactUtcFormat(startTime));
+
+        final List<MatchingObservationInfo> avhrrObservationInfos = inquireMatchingAvhrrObservations(startTime, endTime);
+        generateCallsAndLatlonFiles(avhrrObservationInfos, destPath, tmpPath);
+
+        closeCommandFiles(tmpPath);
+    }
+
+    private void prepareCommandFiles(String tmpPath, String destPath, String outputStartTime) throws IOException {
+        getLogger().info(String.format("generating scripts in tmp dir '%s'", tmpPath));
         final File tmpDir = new File(tmpPath);
         tmpDir.mkdirs();
-        final String time = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
+        final File destDir = new File(destPath);
+        destDir.mkdirs();
 
-        submitCallFilename = String.format("mms-arc1x2-%s-submit.sh", time);
+        submitCallFilename = String.format("mms-arc1x2-%s-submit.sh", outputStartTime);
         final File submitCallFile = new File(tmpDir, submitCallFilename);
         submitCallFile.setExecutable(true);
         submitCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(submitCallFile)));
         submitCallsWriter.format("#!/bin/bash\n\n");
 
-        collectCallFilename = String.format("mms-arc1x2-%s-collect.sh", time);
+        collectCallFilename = String.format("mms-arc1x2-%s-collect.sh", outputStartTime);
         final File collectCallFile = new File(tmpDir, collectCallFilename);
         collectCallFile.setExecutable(true);
         collectCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(collectCallFile)));
         collectCallsWriter.format("#!/bin/bash\n\n");
 
-        cleanupCallFilename = String.format("mms-arc1x2-%s-cleanup.sh", time);
+        cleanupCallFilename = String.format("mms-arc1x2-%s-cleanup.sh", outputStartTime);
         final File cleanupCallFile = new File(tmpDir, cleanupCallFilename);
         cleanupCallFile.setExecutable(true);
         cleanupCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(cleanupCallFile)));
         cleanupCallsWriter.format("#!/bin/bash\n\n");
     }
 
-    private void closeCommandFiles() throws IOException {
-        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR);
+    private void closeCommandFiles(String tmpPath) throws IOException {
         cleanupCallsWriter.format("rm %s/%s\n", tmpPath, submitCallFilename);
         cleanupCallsWriter.format("rm %s/%s\n", tmpPath, collectCallFilename);
         cleanupCallsWriter.format("rm %s/%s\n", tmpPath, cleanupCallFilename);
@@ -128,135 +156,107 @@ public class Arc1ProcessingTool extends BasicTool {
         }
     }
 
-    void prepareAndPerformArcCall(List<AvhrrInfo> avhrrFilesAndPoints) throws IOException {
+    @SuppressWarnings({"unchecked"})
+    private List<MatchingObservationInfo> inquireMatchingAvhrrObservations(Date startTime, Date endTime) {
+        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHING_OBSERVARTIONS_QUERY,
+                                                                               Object[].class);
+        allPointsQuery.setParameter(1, startTime);
+        allPointsQuery.setParameter(2, endTime);
+        final List<Object[]> queryResults = allPointsQuery.getResultList();
+        final List<MatchingObservationInfo> matchingObservationInfos =
+                new ArrayList<MatchingObservationInfo>(queryResults.size());
+        for (Object[] info : queryResults) {
+            final MatchingObservationInfo matchingObservationInfo = new MatchingObservationInfo();
+            matchingObservationInfo.matchupId = info[0].toString();
+            matchingObservationInfo.point = info[1].toString();
+            matchingObservationInfo.filename = info[2].toString();
+            matchingObservationInfo.sensor = info[3].toString();
+            matchingObservationInfo.pattern = (Long) info[4];
+            matchingObservationInfos.add(matchingObservationInfo);
+        }
+        getLogger().info(String.format("%d matching observations found in time interval", matchingObservationInfos.size()));
+        return matchingObservationInfos;
+    }
+
+    private void generateCallsAndLatlonFiles(List<MatchingObservationInfo> observationInfos,
+                                             String destPath, String tmpPath) throws IOException {
         final List<String> geoPositions = new ArrayList<String>();
         final List<String> matchupIds = new ArrayList<String>();
         String currentFilename = null;
-        AvhrrInfo currentInfo = null;
-        for (AvhrrInfo info : avhrrFilesAndPoints) {
-            final String matchupId = info.matchupId;
-            final String point = info.point;
-            final String filename = info.filename;
-            if (!filename.equals(currentFilename)) {
+        String currentSensor = null;
+        long currentPattern = 0;
+        // loop over matching observations in sets of orbit file names (uses ordering of observationInfos)
+        for (MatchingObservationInfo info : observationInfos) {
+            // write previous latlon file and script entry on change of orbit file name
+            if (!info.filename.equals(currentFilename)) {
                 if (currentFilename != null) {
-                    writeLatLonFile(matchupIds, geoPositions, currentFilename);
-                    callShellScript(currentFilename, getLatLonFile(currentFilename), targetSensorName(info.sensor), info.pattern);
+                    final File latLonFile = latLonFileOf(currentFilename, tmpPath);
+                    writeLatLonFile(matchupIds, geoPositions, currentFilename, latLonFile);
+                    generateCalls(currentFilename, latLonFile, destPath,
+                                  targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern));
+                    // clear for next set of matching observations
                     geoPositions.clear();
                     matchupIds.clear();
                 }
-                currentFilename = filename;
-                currentInfo = info;
+                // memorise next orbit file name, sensor and pattern
+                currentFilename = info.filename;
+                currentSensor = info.sensor;
+                currentPattern = info.pattern;
             }
-            geoPositions.add(point);
-            matchupIds.add(matchupId);
+            geoPositions.add(info.point);
+            matchupIds.add(info.matchupId);
         }
+        // write latlon file and script entry for last orbit file name encountered
         if (!geoPositions.isEmpty()) {
-            writeLatLonFile(matchupIds, geoPositions, currentFilename);
-            callShellScript(currentFilename, getLatLonFile(currentFilename), targetSensorName(currentInfo.sensor), currentInfo.pattern);
+            final File latLonFile = latLonFileOf(currentFilename, tmpPath);
+            writeLatLonFile(matchupIds, geoPositions, currentFilename, latLonFile);
+            generateCalls(currentFilename, latLonFile, destPath,
+                          targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern));
         }
-    }
-
-    private String targetSensorName(String sensor) {
-        return sensor.replaceAll("_sub", "");
-    }
-
-    @SuppressWarnings({"unchecked"})
-    List<AvhrrInfo> inquireAvhrrInfos() {
-        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHUPIDS_FILES_AND_POINTS_QUERY,
-                                                                               Object[].class);
-        allPointsQuery.setParameter(1, getTimeProperty(Constants.PROPERTY_OUTPUT_START_TIME));
-        allPointsQuery.setParameter(2, getTimeProperty(Constants.PROPERTY_OUTPUT_END_TIME));
-        final List<Object[]> queryResultList = allPointsQuery.getResultList();
-        final List<AvhrrInfo> avhrrInfos = new ArrayList<AvhrrInfo>(queryResultList.size());
-        for (Object[] info : queryResultList) {
-            final AvhrrInfo avhrrInfo = new AvhrrInfo();
-            avhrrInfo.matchupId = info[0].toString();
-            avhrrInfo.point = info[1].toString();
-            avhrrInfo.filename = info[2].toString();
-            avhrrInfo.sensor = info[3].toString();
-            avhrrInfo.pattern = info[4].toString();
-            avhrrInfos.add(avhrrInfo);
-        }
-        return avhrrInfos;
     }
 
     private void writeLatLonFile(final List<String> matchupIds, final List<String> geoPositions,
-                                 final String currentFilename) throws IOException {
+                                 final String currentFilename, final File latLonFile) throws IOException {
         Assert.argument(matchupIds.size() == geoPositions.size(), "Same number of matchups and points expected.");
-        final File latLonFile = getLatLonFile(currentFilename);
-        BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(latLonFile));
-            writer.write(String.format("%d\n", geoPositions.size()));
-            for (int i = 0; i < geoPositions.size(); i++) {
-                final String geoPosition = geoPositions.get(i);
-                final String matchupId = matchupIds.get(i);
-                final Pattern pattern = Pattern.compile("POINT\\(([0-9.-]*) ([0-9.-]*)\\)");
-                final Matcher matcher = pattern.matcher(geoPosition);
-                matcher.matches();
-                final String lon = matcher.group(1);
-                final String lat = matcher.group(2);
-                writer.write(String.format("\t%s\t%s\t%s\n", matchupId, lon, lat));
-            }
-        } finally {
-            close(writer);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(latLonFile));
+        writer.write(String.format("%d\n", geoPositions.size()));
+        for (int i = 0; i < geoPositions.size(); i++) {
+            final String geoPosition = geoPositions.get(i);
+            final String matchupId = matchupIds.get(i);
+            final Pattern pattern = Pattern.compile("POINT\\(([0-9.-]*) ([0-9.-]*)\\)");
+            final Matcher matcher = pattern.matcher(geoPosition);
+            matcher.matches();
+            final String lon = matcher.group(1);
+            final String lat = matcher.group(2);
+            writer.write(String.format("\t%s\t%s\t%s\n", matchupId, lon, lat));
         }
+        writer.close();
     }
 
-    // todo determine sensor from input, use it for the output
-    private void callShellScript(final String currentFilename, final File latLonFile, String sensor, String pattern) {
-        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR);
-        final String basename = getBasename(currentFilename);
-        final String latLonFilePath = latLonFile.getPath();
-        final String latLonFileName = latLonFile.getName();
+    private void generateCalls(final String l1bPath, final File latlonFile, final String destPath,
+                               String sensor, long pattern) {
+        final String basename = basenameOf(l1bPath);
+        final String latLonFilePath = latlonFile.getPath();
+        final String latLonFileName = latlonFile.getName();
         submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
         submitCallsWriter.format(
                 "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n",
-                currentFilename, latLonFileName);
+                l1bPath, latLonFileName);
         collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
         collectCallsWriter.format(
-                "bin/mmsreingest.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
+                "bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
                         + "  -Dmms.reingestion.located=no \\\n"
                         + "  -Dmms.reingestion.sensor=%s \\\n"
                         + "  -Dmms.reingestion.pattern=%s \\\n"
                         + "  -c config/mms-config-eddie1.properties\n",
-                destPath, basename, sensor, pattern);
+                destPath, basename, sensor, Long.toString(pattern, 16));
         cleanupCallsWriter.format("ssh eddie.ecdf.ed.ac.uk rm -r mms/task-%s tmp/%s.latlon.txt\n", basename, basename);
         cleanupCallsWriter.format("rm %s\n", latLonFilePath);
+        getLogger().info(String.format("call for avhrr orbit %s added", basename));
     }
 
-    private void close(final BufferedWriter writer) {
-        try {
-            if (writer != null) {
-                writer.close();
-            }
-        } catch (IOException ignore) {
-            // ok
-        }
-    }
 
-    private File getLatLonFile(final String currentFilename) {
-        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR);
-        final int slashIndex = currentFilename.lastIndexOf('/');
-        final String baseFilename;
-        if (currentFilename.endsWith(".gz")) {
-            baseFilename = currentFilename.substring(slashIndex + 1, currentFilename.length() - ".gz".length());
-        } else {
-            baseFilename = currentFilename.substring(slashIndex + 1);
-        }
-        return new File(tmpPath + File.separator + baseFilename + LATLON_FILE_EXTENSION);
-    }
-
-    private String getBasename(final String currentFilename) {
-        final int slashIndex = currentFilename.lastIndexOf('/');
-        if (currentFilename.endsWith(".gz")) {
-            return currentFilename.substring(slashIndex + 1, currentFilename.length() - ".gz".length());
-        } else {
-            return currentFilename.substring(slashIndex + 1);
-        }
-    }
-
-    private Date getTimeProperty(String key) {
+    private Date getConfiguredTimeOf(String key) {
         final String time = getConfiguration().getProperty(key);
         final Date date;
         try {
@@ -268,12 +268,31 @@ public class Arc1ProcessingTool extends BasicTool {
         return date;
     }
 
-    private static class AvhrrInfo {
+    private static File latLonFileOf(final String currentFilename, final String tmpPath) {
+        final int slashIndex = currentFilename.lastIndexOf('/');
+        final String baseFilename;
+        if (currentFilename.endsWith(".gz")) {
+            baseFilename = currentFilename.substring(slashIndex + 1, currentFilename.length() - ".gz".length());
+        } else {
+            baseFilename = currentFilename.substring(slashIndex + 1);
+        }
+        return new File(tmpPath + File.separator + baseFilename + LATLON_FILE_EXTENSION);
+    }
 
-        String matchupId;
-        String filename;
-        String point;
-        String sensor;
-        String pattern;
+    private static String basenameOf(final String currentFilename) {
+        final int slashIndex = currentFilename.lastIndexOf('/');
+        if (currentFilename.endsWith(".gz")) {
+            return currentFilename.substring(slashIndex + 1, currentFilename.length() - ".gz".length());
+        } else {
+            return currentFilename.substring(slashIndex + 1);
+        }
+    }
+
+    private static String targetSensorNameOf(String sensor) {
+        return sensor.replaceAll("_orb", "");
+    }
+
+    private static long nonOrbPatternOf(long pattern) {
+        return pattern >> 32;
     }
 }

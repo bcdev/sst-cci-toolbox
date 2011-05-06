@@ -50,7 +50,11 @@ public class MmdIngestionTool extends BasicTool {
             tool.ingest();
             persistenceManager.commit();
         } catch (Exception e) {
-            persistenceManager.rollback();
+            try {
+                persistenceManager.rollback();
+            } catch (Exception _) {
+                // ignore
+            }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
