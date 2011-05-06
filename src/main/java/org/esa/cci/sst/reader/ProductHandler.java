@@ -21,6 +21,11 @@ import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.OsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
+import org.esa.beam.dataio.envisat.EnvisatProductReader;
+import org.esa.beam.framework.dataio.ProductFlipper;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.BoundaryCalculator;
 
@@ -50,6 +55,16 @@ class ProductHandler extends AbstractProductHandler {
     }
 
     @Override
+    protected final Product readProduct(DataFile dataFile) throws IOException {
+        Product product = super.readProduct(dataFile);
+        if (product.getProductReader() instanceof EnvisatProductReader && product.getName().startsWith("ATS")) {
+            // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
+            product = createHorizontallyFlippedProduct(product);
+        }
+        return product;
+    }
+
+    @Override
     public final RelatedObservation readObservation(int recordNo) throws IOException {
         final RelatedObservation observation = new RelatedObservation();
         try {
@@ -64,5 +79,18 @@ class ProductHandler extends AbstractProductHandler {
         observation.setSensor(getSensorName());
 
         return observation;
+    }
+
+    private Product createHorizontallyFlippedProduct(Product product) throws IOException {
+        final ProductData.UTC startTime = product.getStartTime();
+        final ProductData.UTC endTime = product.getEndTime();
+        product = ProductFlipper.createFlippedProduct(product,
+                                                      true,
+                                                      ProductFlipper.FLIP_HORIZONTAL,
+                                                      product.getName(),
+                                                      product.getDescription());
+        product.setStartTime(startTime);
+        product.setEndTime(endTime);
+        return product;
     }
 }

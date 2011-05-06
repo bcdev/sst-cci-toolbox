@@ -17,9 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.glevel.MultiLevelImage;
-import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
-import org.esa.beam.framework.dataio.ProductFlipper;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
@@ -130,25 +128,17 @@ abstract class AbstractProductHandler implements IOHandler {
         if (getProduct() != null) {
             close();
         }
+        this.product = readProduct(dataFile);
+        this.dataFile = dataFile;
+    }
+
+    protected Product readProduct(DataFile dataFile) throws IOException {
         Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Cannot read product file ''{0}''.", dataFile.getPath()));
         }
-        if (product.getProductReader() instanceof EnvisatProductReader && product.getName().startsWith("ATS")) {
-            // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
-            final ProductData.UTC startTime = product.getStartTime();
-            final ProductData.UTC endTime = product.getEndTime();
-            product = ProductFlipper.createFlippedProduct(product,
-                                                          true,
-                                                          ProductFlipper.FLIP_HORIZONTAL,
-                                                          product.getName(),
-                                                          product.getDescription());
-            product.setStartTime(startTime);
-            product.setEndTime(endTime);
-        }
-        this.product = product;
-        this.dataFile = dataFile;
+        return product;
     }
 
     @Override
