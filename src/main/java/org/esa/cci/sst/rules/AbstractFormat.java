@@ -28,7 +28,7 @@ import java.text.MessageFormat;
  *
  * @author Ralf Quast
  */
-public abstract class AbstractFormat<S extends Number, T extends Number> implements Rule {
+abstract class AbstractFormat<S extends Number, T extends Number> implements Rule {
 
     private final DataType sourceDataType;
     private final DataType targetDataType;

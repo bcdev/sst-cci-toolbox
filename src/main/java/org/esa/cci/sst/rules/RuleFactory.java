@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Ralf Quast
  */
-public class RuleFactory {
+public final class RuleFactory {
 
     private final ConcurrentMap<String, Rule> bySimpleName;
 

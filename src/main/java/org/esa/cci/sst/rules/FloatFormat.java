@@ -3,11 +3,11 @@ package org.esa.cci.sst.rules;
 import ucar.ma2.Array;
 
 /**
- * Abstract rule for converting number types to 'FLOAT'.
+ * Rule for converting number types to 'FLOAT'.
  *
  * @author Ralf Quast
  */
-public class FloatFormat<S extends Number> extends AbstractFormat<S, Float> {
+class FloatFormat<S extends Number> extends AbstractFormat<S, Float> {
 
     protected FloatFormat(Class<S> sourceType) {
         super(sourceType, Float.class);
