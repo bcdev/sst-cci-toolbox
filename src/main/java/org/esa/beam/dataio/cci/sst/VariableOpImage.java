@@ -76,9 +76,9 @@ abstract class VariableOpImage extends SingleBandedOpImage {
                 final Section section = new Section(origin, shape, stride);
                 array = variable.read(section);
             } catch (IOException e) {
-                throw new IllegalStateException(e);
+                throw new RuntimeException(e);
             } catch (InvalidRangeException e) {
-                throw new IllegalArgumentException(e);
+                throw new RuntimeException(e);
             }
         }
         tile.setDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height, transformStorage(array));
