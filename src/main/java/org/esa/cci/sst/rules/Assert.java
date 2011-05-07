@@ -17,6 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 import java.text.MessageFormat;
@@ -30,7 +31,6 @@ class Assert {
 
     private Assert() {
     }
-
 
     static void notNull(String value, String name) throws RuleException {
         if (value == null) {
@@ -56,9 +56,18 @@ class Assert {
     static void type(DataType expectedType, Item column) throws RuleException {
         if (!expectedType.name().equals(column.getType())) {
             throw new RuleException(
-                    MessageFormat.format("Expected variable type ''{0}'', but actual type is ''{1}''.",
-                                         expectedType,
+                    MessageFormat.format("Expected data type ''{0}'', but actual type is ''{1}''.",
+                                         expectedType.name(),
                                          column.getType()));
+        }
+    }
+
+    static void type(DataType expectedType, Array array) throws RuleException {
+        if (array.getElementType() != expectedType.getPrimitiveClassType()) {
+            throw new RuleException(
+                    MessageFormat.format("Expected data type ''{0}'', but actual type is ''{1}''.",
+                                         expectedType,
+                                         array.getElementType().getSimpleName()));
         }
     }
 

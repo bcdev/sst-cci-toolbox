@@ -17,6 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 
 /**
  * Identity.
@@ -31,7 +32,7 @@ final class Identity implements Rule {
     }
 
     @Override
-    public Number apply(Number number, Item sourceColumn) {
-        return number;
+    public Array apply(Array numbers, Item sourceColumn) {
+        return numbers;
     }
 }

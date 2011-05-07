@@ -17,6 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 
 final class P implements Rule {
 
@@ -26,7 +27,7 @@ final class P implements Rule {
     }
 
     @Override
-    public Number apply(Number number, Item sourceColumn) throws RuleException {
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         return null;
     }
 }

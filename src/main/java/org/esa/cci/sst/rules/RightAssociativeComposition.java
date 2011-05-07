@@ -17,6 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,16 +45,16 @@ final class RightAssociativeComposition implements Rule {
     }
 
     @Override
-    public Number apply(Number number, Item sourceColumn) throws RuleException {
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         for (int i = ruleList.size(); i-- > 0;) {
             final Rule rule = ruleList.get(i);
-            number = rule.apply(number, sourceColumn);
+            sourceArray = rule.apply(sourceArray, sourceColumn);
             sourceColumn = rule.apply(sourceColumn);
         }
-        return number;
+        return sourceArray;
     }
 
-    RightAssociativeComposition prepend(Rule rule) {
+    RightAssociativeComposition append(Rule rule) {
         ruleList.add(0, rule);
         return this;
     }

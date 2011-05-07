@@ -17,6 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 
 /**
  * Base class for rules that modify the column only.
@@ -25,8 +26,11 @@ import org.esa.cci.sst.data.Item;
  */
 abstract class ColumnModification implements Rule {
 
+    protected ColumnModification() {
+    }
+
     @Override
-    public final Number apply(Number number, Item sourceColumn) {
-        return number;
+    public final Array apply(Array numbers, Item sourceColumn) {
+        return numbers;
     }
 }

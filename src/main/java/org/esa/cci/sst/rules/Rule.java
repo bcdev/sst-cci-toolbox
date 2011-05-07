@@ -17,6 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 
 /**
  * A rule is used for converting {@link Item} properties and for
@@ -39,18 +40,16 @@ public interface Rule {
     Item apply(Item sourceColumn) throws RuleException;
 
     /**
-     * Applies the numerical conversion rule to the number supplied as argument.
-     * <p/>
-     * Note that the target column can be obtained by applying this rule to the
-     * source column applied as argument.
+     * Applies the numerical conversion rule to the numbers supplied as argument.
      *
-     * @param number       A number.
-     * @param sourceColumn A column of the number supplied as argument.
+     * @param sourceArray  The numbers to be converted.
+     * @param sourceColumn The column associated with the numbers supplied as
+     *                     argument.
      *
-     * @return the converted number.
+     * @return the converted numbers.
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    Number apply(Number number, Item sourceColumn) throws RuleException;
+    Array apply(Array sourceArray, Item sourceColumn) throws RuleException;
 }
 

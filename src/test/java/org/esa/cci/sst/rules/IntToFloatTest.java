@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.junit.Test;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 import static org.junit.Assert.assertEquals;
@@ -34,10 +35,14 @@ public class IntToFloatTest extends AbstractRuleTest {
     public void testNumericConversion() throws RuleException {
         final Rule rule = getRule();
         final Item sourceColumn = getSourceColumn();
-        final Number result = rule.apply(5, sourceColumn);
+        final Array sourceArray = Array.factory(DataType.INT, new int[]{2});
+        sourceArray.setInt(0, 5);
+        sourceArray.setInt(1, 7);
+        final Array targetArray = rule.apply(sourceArray, sourceColumn);
 
-        assertTrue(result instanceof Float);
-        assertEquals(10.5f, result.floatValue(), 0.0f);
+        assertTrue(targetArray.getElementType() == float.class);
+        assertEquals(10.5f, targetArray.getFloat(0), 0.0f);
+        assertEquals(14.5f, targetArray.getFloat(1), 0.0f);
     }
 
     @Test(expected = RuleException.class)

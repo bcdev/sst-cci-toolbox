@@ -16,31 +16,14 @@
 
 package org.esa.cci.sst.rules;
 
-import ucar.ma2.DataType;
-
 /**
  * Rule for converting type 'INT' into 'FLOAT'.
  *
  * @author Thomas Storm
  */
-final class IntToFloat extends IntegralNumberToRealNumber {
+final class IntToFloat extends FloatFormat<Integer> {
 
-    @Override
-    protected DataType getSourceDataType() {
-        return DataType.INT;
-    }
-
-    @Override
-    protected DataType getTargetDataType() {
-        return DataType.FLOAT;
-    }
-
-    @Override
-    protected Float computeTargetNumber(Number number,
-                                        Number sourceAddOffset,
-                                        Number sourceScaleFactor) throws RuleException {
-        Assert.condition(number instanceof Integer, "number instanceof Integer");
-
-        return number.floatValue() * sourceScaleFactor.floatValue() + sourceAddOffset.floatValue();
+    IntToFloat() {
+        super(Integer.class);
     }
 }

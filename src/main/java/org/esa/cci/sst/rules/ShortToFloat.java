@@ -16,27 +16,14 @@
 
 package org.esa.cci.sst.rules;
 
-import ucar.ma2.DataType;
-
 /**
  * Rule for converting type 'SHORT' into 'FLOAT'.
  *
  * @author Thomas Storm
  */
-final class ShortToFloat extends IntegralNumberToRealNumber {
+final class ShortToFloat extends FloatFormat<Short> {
 
-    @Override
-    protected DataType getSourceDataType() {
-        return DataType.SHORT;
-    }
-
-    @Override
-    protected DataType getTargetDataType() {
-        return DataType.FLOAT;
-    }
-
-    @Override
-    protected Float computeTargetNumber(Number number, Number sourceAddOffset, Number sourceScaleFactor) {
-        return number.floatValue() * sourceScaleFactor.floatValue() + sourceAddOffset.floatValue();
+    ShortToFloat() {
+        super(Short.class);
     }
 }

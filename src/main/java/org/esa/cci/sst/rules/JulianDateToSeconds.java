@@ -18,6 +18,7 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
@@ -34,16 +35,24 @@ final class JulianDateToSeconds implements Rule {
         builder.setUnit("seconds since 1978-01-01 00:00:00");
         final Number sourceFillValue = sourceColumn.getFillValue();
         if (sourceFillValue != null) {
-            builder.setFillValue(apply(sourceFillValue.doubleValue(), sourceColumn));
+            builder.setFillValue(convert(sourceFillValue.doubleValue()));
         }
 
         return builder.build();
     }
 
     @Override
-    public Double apply(Number number, Item sourceColumn) throws RuleException {
-        Assert.condition(number instanceof Double, "number instanceof Double");
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        Assert.condition(sourceArray.getElementType() == double.class, "elementType == double.class");
 
-        return (number.doubleValue() - 2443509.5) * 86400.0;
+        for (int i = 0; i < sourceArray.getSize(); i++) {
+            sourceArray.setDouble(i, convert(sourceArray.getDouble(i)));
+
+        }
+        return sourceArray;
+    }
+
+    private double convert(double number) {
+        return (number - 2443509.5) * 86400.0;
     }
 }

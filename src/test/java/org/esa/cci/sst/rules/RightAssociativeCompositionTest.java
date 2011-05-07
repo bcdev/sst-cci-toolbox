@@ -30,14 +30,14 @@ public class RightAssociativeCompositionTest {
 
             @Override
             public Item apply(Item sourceColumn) {
-                return new ColumnBuilder(sourceColumn).setName("a").build();
+                return new ColumnBuilder(sourceColumn).setName("L").build();
             }
         };
         final Rule b = new ColumnModification() {
 
             @Override
             public Item apply(Item sourceColumn) {
-                return new ColumnBuilder(sourceColumn).setName("b").setRole("b").build();
+                return new ColumnBuilder(sourceColumn).setName("R").setRole("R").build();
             }
         };
         final Rule ab = new RightAssociativeComposition(a, b);
@@ -45,7 +45,7 @@ public class RightAssociativeCompositionTest {
         final Item sourceColumn = columnBuilder.build();
         final Item targetColumn = ab.apply(sourceColumn);
 
-        assertEquals("a", targetColumn.getName());
-        assertEquals("b", targetColumn.getRole());
+        assertEquals("L", targetColumn.getName());
+        assertEquals("R", targetColumn.getRole());
     }
 }

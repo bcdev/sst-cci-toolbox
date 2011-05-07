@@ -21,6 +21,7 @@ import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.rules.RuleFactory;
+import ucar.ma2.Array;
 
 import java.io.InputStream;
 import java.text.ParseException;
@@ -81,21 +82,21 @@ public class ColumnRegistry {
                     final String[] tokens = line.split("\\s+");
                     try {
                         switch (tokens.length) {
-                            case 1:
-                                if (tokens[0].isEmpty()) {
-                                    break;
-                                }
-                                // identity
-                                parseIdentity(nameList, tokens[0]);
+                        case 1:
+                            if (tokens[0].isEmpty()) {
                                 break;
-                            case 2:
-                                // variable renaming
-                                parseRenaming(nameList, tokens[0], tokens[1]);
-                                break;
-                            default:
-                                // more complex rule
-                                parseRule(nameList, tokens[0], tokens[1], tokens[2]);
-                                break;
+                            }
+                            // identity
+                            parseIdentity(nameList, tokens[0]);
+                            break;
+                        case 2:
+                            // variable renaming
+                            parseRenaming(nameList, tokens[0], tokens[1]);
+                            break;
+                        default:
+                            // more complex rule
+                            parseRule(nameList, tokens[0], tokens[1], tokens[2]);
+                            break;
                         }
                     } catch (Exception e) {
                         throw new ParseException(e.getMessage(), lineNumber);
@@ -279,8 +280,8 @@ public class ColumnRegistry {
         }
 
         @Override
-        public Number apply(Number number) throws RuleException {
-            return rule.apply(number, sourceColumn);
+        public Array apply(Array numbers) throws RuleException {
+            return rule.apply(numbers, sourceColumn);
         }
     }
 }

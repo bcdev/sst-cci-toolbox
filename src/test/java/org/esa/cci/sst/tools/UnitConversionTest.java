@@ -26,10 +26,10 @@ import org.esa.cci.sst.rules.RuleFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Illustrates how a unit conversion can be carried out.
@@ -63,14 +63,21 @@ public class UnitConversionTest {
     @Test
     public void testNumericConversion() throws RuleException {
         final Item targetColumn = registry.getColumn(TIME_VARIABLE_NAME);
-
-        assertNotNull(targetColumn);
-
+        final Item sourceColumn = registry.getSourceColumn(targetColumn);
         final Converter converter = registry.getConverter(targetColumn);
 
+        assertNotNull(targetColumn);
+        assertNotNull(sourceColumn);
+        assertNotSame(targetColumn, sourceColumn);
         assertNotNull(converter);
-        assertEquals(0.0, converter.apply(JULIAN_DATE_OF_EPOCH_1978));
-        assertEquals(86400.0, converter.apply(JULIAN_DATE_OF_EPOCH_1978 + 1.0));
+
+        final Array sourceArray = Array.factory(DataType.valueOf(sourceColumn.getType()), new int[]{2});
+        sourceArray.setDouble(0, JULIAN_DATE_OF_EPOCH_1978);
+        sourceArray.setDouble(1, JULIAN_DATE_OF_EPOCH_1978 + 1.0);
+        final Array targetArray = converter.apply(sourceArray);
+
+        assertEquals(0.0, targetArray.getDouble(0), 0.0);
+        assertEquals(86400.0, targetArray.getDouble(1), 0.0);
     }
 
     @Before

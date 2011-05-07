@@ -91,7 +91,7 @@ public class RuleFactory {
         final Rule r = getRenamingRule(targetName);
         final Rule s = getRule(specification);
         if (s instanceof RightAssociativeComposition) {
-            return ((RightAssociativeComposition) s).prepend(r);
+            return ((RightAssociativeComposition) s).append(r);
         }
         return new RightAssociativeComposition(r, s);
     }
@@ -106,6 +106,8 @@ public class RuleFactory {
                 bySimpleName.putIfAbsent(simpleName, rule.newInstance());
             }
             return bySimpleName.get(simpleName);
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException(MessageFormat.format("Cannot create rule ''{0}''.", simpleName), e);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(MessageFormat.format("Cannot create rule ''{0}''.", simpleName), e);
         } catch (IllegalAccessException e) {

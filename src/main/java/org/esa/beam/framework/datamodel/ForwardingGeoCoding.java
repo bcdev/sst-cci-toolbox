@@ -16,14 +16,9 @@
 
 package org.esa.beam.framework.datamodel;
 
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.dataop.maptransf.Datum;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
-
-import java.awt.geom.AffineTransform;
 
 public class ForwardingGeoCoding implements GeoCoding {
 

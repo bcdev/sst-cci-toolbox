@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
+import ucar.ma2.Array;
+
 /**
  * Used for for carrying out numerical conversions.
  *
@@ -24,13 +26,13 @@ package org.esa.cci.sst.rules;
 public interface Converter {
 
     /**
-     * Applies the numerical conversion rule to the number supplied as argument.
+     * Applies the numerical conversion rule to the numbery supplied as argument.
      *
-     * @param number A number.
+     * @param number The numbers to be converted.
      *
-     * @return the converted number.
+     * @return the converted numbers.
      *
      * @throws RuleException when the conversion rule cannot be applied.
      */
-    Number apply(Number number) throws RuleException;
+    Array apply(Array number) throws RuleException;
 }

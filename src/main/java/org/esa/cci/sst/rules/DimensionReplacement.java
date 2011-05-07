@@ -26,6 +26,9 @@ import org.esa.cci.sst.data.Item;
  */
 abstract class DimensionReplacement extends ColumnModification {
 
+    protected DimensionReplacement() {
+    }
+
     @Override
     public final Item apply(Item sourceColumn) throws RuleException {
         final String sourceDimensions = sourceColumn.getDimensions();
