@@ -29,6 +29,8 @@ public interface Item {
 
     boolean isUnsigned();
 
+    int getRank();
+
     String getDimensions();
 
     String getUnit();

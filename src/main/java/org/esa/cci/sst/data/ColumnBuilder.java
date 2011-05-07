@@ -26,11 +26,12 @@ import ucar.ma2.DataType;
  */
 public final class ColumnBuilder {
 
-    private static final Sensor UNKNOWN_SENSOR = new SensorBuilder().build();
+    private static final String DIMENSIONS_PATTERN = "([a-zA-Z0-9_\\.]+){1}(\\s[a-zA-Z0-9_\\.]+)*";
 
     private String name;
     private DataType type;
     private boolean unsigned;
+    private int rank;
     private String dimensions;
     private String unit;
     private Number addOffset;
@@ -47,13 +48,14 @@ public final class ColumnBuilder {
         setName("untitled");
         setType(DataType.INT);
         setDimensions("");
-        setSensor(UNKNOWN_SENSOR);
+        setSensor(new SensorBuilder().build());
     }
 
     public ColumnBuilder(Item column) {
         setName(column.getName());
         setType(DataType.valueOf(column.getType()));
         setUnsigned(column.isUnsigned());
+        setRank(column.getRank());
         setDimensions(column.getDimensions());
         setUnit(column.getUnit());
         setAddOffset(column.getAddOffset());
@@ -90,8 +92,26 @@ public final class ColumnBuilder {
         return this;
     }
 
+    public ColumnBuilder setRank(int rank) {
+        Assert.argument(rank >= 0, "rank < 0");
+        this.rank = rank;
+        return this;
+    }
+
+    /**
+     * Sets the dimensions string.
+     *
+     * @param dimensions The dimensions string, must either be empty or match the regular
+     *                   expression {@code "([a-zA-Z0-9_\\.]+){1}(\\s[a-zA-Z0-9_\\.]+)*"}.
+     *
+     * @return {@code this}.
+     */
     public ColumnBuilder setDimensions(String dimensions) {
         Assert.argument(dimensions != null, "dimensions == null");
+        //noinspection ConstantConditions
+        Assert.argument(dimensions.isEmpty() ||
+                        dimensions.matches(DIMENSIONS_PATTERN),
+                        "Illegal dimensions string '" + dimensions + "'.");
         this.dimensions = dimensions;
         return this;
     }
@@ -149,10 +169,19 @@ public final class ColumnBuilder {
 
     @SuppressWarnings({"deprecation"})
     public Item build() {
+        if (rank == 0) {
+            Assert.state(dimensions.isEmpty(),
+                         "Number of dimensions does not match rank.");
+        } else {
+            Assert.state(rank == dimensions.split("\\s").length,
+                         "Number of dimensions does not match rank.");
+        }
+
         final Column column = new Column();
         column.setName(name);
         column.setType(type.name());
         column.setUnsigned(unsigned);
+        column.setRank(rank);
         column.setDimensions(dimensions);
         column.setUnit(unit);
         column.setAddOffset(addOffset);

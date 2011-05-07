@@ -28,7 +28,7 @@ final class DimensionReplacer {
     private final String[] dimensions;
 
     DimensionReplacer(String dimensionsString) {
-        dimensions = dimensionsString.split("\\s+");
+        dimensions = dimensionsString.split("\\s");
     }
 
     DimensionReplacer replace(int i, String dimension) throws RuleException {

@@ -60,6 +60,7 @@ public class IoUtil {
         builder.setName(sensorName + "." + variable.getName());
         builder.setType(variable.getDataType());
         builder.setUnsigned(variable.isUnsigned());
+        builder.setRank(variable.getRank());
         builder.setDimensions(variable.getDimensionsString());
         setUnits(variable, builder);
         setAttributes(variable, builder);

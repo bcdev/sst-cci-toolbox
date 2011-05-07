@@ -38,6 +38,7 @@ public class Column implements Item {
     private String name;
     private String type;
     private boolean unsigned;
+    private int rank;
     private String dimensions;
     private String unit;
     private Number addOffset;
@@ -95,6 +96,17 @@ public class Column implements Item {
     @Deprecated
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Override
+    public int getRank() {
+        return rank;
+    }
+
+    // important: this is not public API
+    @Deprecated
+    public void setRank(int rank) {
+        this.rank = rank;
     }
 
     @Override

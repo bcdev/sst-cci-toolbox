@@ -109,17 +109,17 @@ abstract class AbstractProductHandler implements IOHandler {
 
     private static Number getSample(Raster raster, int x, int y) {
         switch (raster.getTransferType()) {
-            case DataBuffer.TYPE_BYTE:
-            case DataBuffer.TYPE_SHORT:
-            case DataBuffer.TYPE_USHORT:
-            case DataBuffer.TYPE_INT:
-                return raster.getSample(x, y, 0);
-            case DataBuffer.TYPE_FLOAT:
-                return raster.getSampleFloat(x, y, 0);
-            case DataBuffer.TYPE_DOUBLE:
-                return raster.getSampleDouble(x, y, 0);
-            default:
-                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+        case DataBuffer.TYPE_BYTE:
+        case DataBuffer.TYPE_SHORT:
+        case DataBuffer.TYPE_USHORT:
+        case DataBuffer.TYPE_INT:
+            return raster.getSample(x, y, 0);
+        case DataBuffer.TYPE_FLOAT:
+            return raster.getSampleFloat(x, y, 0);
+        case DataBuffer.TYPE_DOUBLE:
+            return raster.getSampleDouble(x, y, 0);
+        default:
+            throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
 
@@ -226,6 +226,7 @@ abstract class AbstractProductHandler implements IOHandler {
         builder.setName(name);
         builder.setType(type);
         builder.setUnsigned(ProductData.isUIntType(node.getDataType()));
+        builder.setRank(3);
         builder.setDimensions("record ni nj");
         final String unit = node.getUnit();
         if (unit != null && !unit.isEmpty()) {

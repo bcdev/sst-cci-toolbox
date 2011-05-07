@@ -64,6 +64,7 @@ public class DimensionConversionTest {
         final ColumnBuilder builder = new ColumnBuilder();
         builder.setName(CALLSIGN_VARIABLE_NAME);
         builder.setType(CALLSIGN_VARIABLE_TYPE);
+        builder.setRank(2);
         builder.setDimensions("match_up cs_length");
 
         registry.register(rule, builder.build());
