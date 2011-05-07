@@ -32,7 +32,7 @@ final class Identity implements Rule {
     }
 
     @Override
-    public Array apply(Array numbers, Item sourceColumn) {
-        return numbers;
+    public Array apply(Array sourceArray, Item sourceColumn) {
+        return sourceArray;
     }
 }

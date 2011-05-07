@@ -28,7 +28,7 @@ final class ShortToFloat extends AbstractFloatFormat<Short> {
     }
 
     @Override
-    protected final float apply(float number, float scaleFactor, float addOffset) {
+    protected float apply(float number, float scaleFactor, float addOffset) {
         return scaleFactor * number + addOffset;
     }
 }

@@ -30,7 +30,7 @@ abstract class AbstractPropertyChange implements Rule {
     }
 
     @Override
-    public final Array apply(Array numbers, Item sourceColumn) {
-        return numbers;
+    public final Array apply(Array sourceArray, Item sourceColumn) {
+        return sourceArray;
     }
 }
