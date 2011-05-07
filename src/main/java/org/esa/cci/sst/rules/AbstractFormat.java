@@ -60,9 +60,7 @@ abstract class AbstractFormat<S extends Number, T extends Number> implements Rul
 
     @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        Assert.type(sourceDataType, sourceColumn);
         Assert.type(sourceDataType, sourceArray);
-
         final Array targetArray = Array.factory(targetDataType, sourceArray.getShape());
         apply(sourceArray, targetArray, sourceColumn.getAddOffset(), sourceColumn.getScaleFactor());
 
