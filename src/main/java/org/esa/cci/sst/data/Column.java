@@ -227,6 +227,12 @@ public class Column implements Item {
         return role;
     }
 
+    // important: this is not public API
+    @Deprecated
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     @Override
     public boolean isUnsigned() {
         return unsigned;
@@ -236,12 +242,6 @@ public class Column implements Item {
     @Deprecated
     public void setUnsigned(boolean unsigned) {
         this.unsigned = unsigned;
-    }
-
-    // important: this is not public API
-    @Deprecated
-    public void setRole(String role) {
-        this.role = role;
     }
 
     @Override
