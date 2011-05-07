@@ -43,6 +43,9 @@ import java.util.Properties;
  */
 public class IngestionTool extends BasicTool {
 
+    // todo - anti-pattern: *never* escape an object while it is being constructed (rq-20110507)
+    // todo - invert dependency: the ingester uses the tool as strategy for persistence, logging etc. (rq-20110507)
+    // todo - strategy pattern: the tool shall use the ingester as strategy for ingesting (rq-20110507)
     private final Ingester ingester = new Ingester(this);
 
     public static void main(String[] args) {
