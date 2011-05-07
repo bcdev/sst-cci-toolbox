@@ -21,9 +21,14 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
-final class IntToFloat extends FloatFormat<Integer> {
+final class IntToFloat extends AbstractFloatFormat<Integer> {
 
     IntToFloat() {
         super(Integer.class);
+    }
+
+    @Override
+    protected float apply(float number, float scaleFactor, float addOffset) {
+        return scaleFactor * number + addOffset;
     }
 }

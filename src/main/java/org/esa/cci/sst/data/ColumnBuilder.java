@@ -30,6 +30,7 @@ public final class ColumnBuilder {
 
     private String name;
     private DataType type;
+    private boolean unsigned;
     private String dimensions;
     private String unit;
     private Number addOffset;
@@ -52,6 +53,7 @@ public final class ColumnBuilder {
     public ColumnBuilder(Item column) {
         setName(column.getName());
         setType(DataType.valueOf(column.getType()));
+        setUnsigned(column.isUnsigned());
         setDimensions(column.getDimensions());
         setUnit(column.getUnit());
         setAddOffset(column.getAddOffset());
@@ -81,6 +83,11 @@ public final class ColumnBuilder {
         Assert.argument(type != null, "type == null");
         final DataType dataType = DataType.valueOf(type);
         return setType(dataType);
+    }
+
+    public ColumnBuilder setUnsigned(boolean unsigned) {
+        this.unsigned = unsigned;
+        return this;
     }
 
     public ColumnBuilder setDimensions(String dimensions) {
@@ -145,6 +152,7 @@ public final class ColumnBuilder {
         final Column column = new Column();
         column.setName(name);
         column.setType(type.name());
+        column.setUnsigned(unsigned);
         column.setDimensions(dimensions);
         column.setUnit(unit);
         column.setAddOffset(addOffset);

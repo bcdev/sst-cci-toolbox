@@ -21,9 +21,14 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
-final class ShortToFloat extends FloatFormat<Short> {
+final class ShortToFloat extends AbstractFloatFormat<Short> {
 
     ShortToFloat() {
         super(Short.class);
+    }
+
+    @Override
+    protected final float apply(float number, float scaleFactor, float addOffset) {
+        return scaleFactor * number + addOffset;
     }
 }

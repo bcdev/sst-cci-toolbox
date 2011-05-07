@@ -19,7 +19,7 @@ package org.esa.cci.sst.rules;
 /**
  * Replaces the second and third dimension with 'seviri.ni' and 'seviri.nj', respectively.
  */
-final class SeviriImageDimensions extends DimensionReplacement {
+final class SeviriImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {

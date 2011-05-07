@@ -19,7 +19,7 @@ package org.esa.cci.sst.rules;
 /**
  * Replaces the second and third dimension with 'amsre.ni' and 'amsre.nj', respectively.
  */
-final class AmsreImageDimensions extends DimensionReplacement {
+final class AmsreImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {

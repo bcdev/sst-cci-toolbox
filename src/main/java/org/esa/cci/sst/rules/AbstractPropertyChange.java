@@ -16,33 +16,21 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 
 /**
- * Abstract base class for dimension replacement rules.
+ * Base class for rules that modify the column properties only.
  *
  * @author Ralf Quast
  */
-abstract class DimensionReplacement extends ColumnModification {
+abstract class AbstractPropertyChange implements Rule {
 
-    protected DimensionReplacement() {
+    protected AbstractPropertyChange() {
     }
 
     @Override
-    public final Item apply(Item sourceColumn) throws RuleException {
-        final String sourceDimensions = sourceColumn.getDimensions();
-        Assert.notNull(sourceDimensions, "dimensions");
-        Assert.notEmpty(sourceDimensions, "dimensions");
-
-        final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
-        final DimensionReplacer replacer = new DimensionReplacer(sourceDimensions);
-
-        replaceDimensions(replacer);
-        builder.setDimensions(replacer.toString());
-
-        return builder.build();
+    public final Array apply(Array numbers, Item sourceColumn) {
+        return numbers;
     }
-
-    protected abstract void replaceDimensions(DimensionReplacer replacer) throws RuleException;
 }

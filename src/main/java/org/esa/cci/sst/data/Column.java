@@ -37,6 +37,7 @@ public class Column implements Item {
     private int id;
     private String name;
     private String type;
+    private boolean unsigned;
     private String dimensions;
     private String unit;
     private Number addOffset;
@@ -212,6 +213,17 @@ public class Column implements Item {
     @Override
     public String getRole() {
         return role;
+    }
+
+    @Override
+    public boolean isUnsigned() {
+        return unsigned;
+    }
+
+    // important: this is not public API
+    @Deprecated
+    public void setUnsigned(boolean unsigned) {
+        this.unsigned = unsigned;
     }
 
     // important: this is not public API

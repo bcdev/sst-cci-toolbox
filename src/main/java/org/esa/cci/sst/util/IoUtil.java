@@ -59,6 +59,7 @@ public class IoUtil {
         final ColumnBuilder builder = new ColumnBuilder();
         builder.setName(sensorName + "." + variable.getName());
         builder.setType(variable.getDataType());
+        builder.setUnsigned(variable.isUnsigned());
         builder.setDimensions(variable.getDimensionsString());
         setUnits(variable, builder);
         setAttributes(variable, builder);

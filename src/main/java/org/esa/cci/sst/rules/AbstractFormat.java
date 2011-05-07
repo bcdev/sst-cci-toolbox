@@ -48,11 +48,22 @@ abstract class AbstractFormat<S extends Number, T extends Number> implements Rul
         builder.setType(targetDataType);
         builder.setFillValue(null);
 
-        final Number sourceFillValue = sourceColumn.getFillValue();
+        Number sourceFillValue = sourceColumn.getFillValue();
         if (sourceFillValue != null) {
+            if (sourceColumn.isUnsigned()) {
+                switch (sourceDataType) {
+                case BYTE:
+                    sourceFillValue = DataType.unsignedByteToShort(sourceFillValue.byteValue());
+                    break;
+                case SHORT:
+                    sourceFillValue = DataType.unsignedShortToInt(sourceFillValue.shortValue());
+                    break;
+                case INT:
+                    sourceFillValue = DataType.unsignedIntToLong(sourceFillValue.intValue());
+                }
+            }
             builder.setFillValue(getTargetFillValue(sourceFillValue,
-                                                    sourceColumn.getAddOffset(),
-                                                    sourceColumn.getScaleFactor()));
+                                                    sourceColumn.getScaleFactor(), sourceColumn.getAddOffset()));
         }
 
         return builder.build();
@@ -62,14 +73,14 @@ abstract class AbstractFormat<S extends Number, T extends Number> implements Rul
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         Assert.type(sourceDataType, sourceArray);
         final Array targetArray = Array.factory(targetDataType, sourceArray.getShape());
-        apply(sourceArray, targetArray, sourceColumn.getAddOffset(), sourceColumn.getScaleFactor());
+        apply(sourceArray, targetArray, sourceColumn.getScaleFactor(), sourceColumn.getAddOffset());
 
         return targetArray;
     }
 
-    protected abstract void apply(Array sourceArray, Array targetArray, Number addOffset, Number scaleFactor);
+    protected abstract void apply(Array sourceArray, Array targetArray, Number scaleFactor, Number addOffset);
 
-    protected abstract Number getTargetFillValue(Number sourceFillValue, Number addOffset, Number scaleFactor);
+    protected abstract Number getTargetFillValue(Number sourceFillValue, Number scaleFactor, Number addOffset);
 
     private DataType getDataType(Class<? extends Number> type) {
         if (type == Byte.class) {

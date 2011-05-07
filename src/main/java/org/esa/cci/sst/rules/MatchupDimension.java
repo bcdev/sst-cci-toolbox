@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Ralf Quast
  */
-final class MatchupDimension extends DimensionReplacement {
+final class MatchupDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {

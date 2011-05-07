@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Ralf Quast
  */
-final class CallsignDimension extends DimensionReplacement {
+final class CallsignDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {

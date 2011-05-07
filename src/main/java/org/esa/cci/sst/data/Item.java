@@ -27,6 +27,8 @@ public interface Item {
 
     String getType();
 
+    boolean isUnsigned();
+
     String getDimensions();
 
     String getUnit();
