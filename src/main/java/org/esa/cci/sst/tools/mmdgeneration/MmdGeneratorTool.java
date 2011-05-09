@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 import ucar.nc2.NetcdfFileWriteable;
 
@@ -53,7 +54,7 @@ public class MmdGeneratorTool extends BasicTool {
                 return;
             }
             tool.initialize();
-            file = createOutputFile(tool);
+            file = createOutputFile(tool.getConfiguration());
             final MmdGenerator generator = new MmdGenerator(tool);
             final MmdStructureGenerator mmdStructureGenerator = new MmdStructureGenerator(tool, generator);
             mmdStructureGenerator.createMmdStructure(file);
@@ -70,10 +71,9 @@ public class MmdGeneratorTool extends BasicTool {
         }
     }
 
-    private static NetcdfFileWriteable createOutputFile(final MmdGeneratorTool tool) throws IOException {
-        final Properties properties = tool.getConfiguration();
-        final String mmdPath = properties.getProperty("mmd.output.destdir", ".");
-        final String mmdFileName = properties.getProperty("mmd.output.filename", "mmd.nc");
+    private static NetcdfFileWriteable createOutputFile(final Properties properties) throws IOException {
+        final String mmdPath = properties.getProperty(Constants.PROPERTY_MMD_OUTPUT_DESTDIR, ".");
+        final String mmdFileName = properties.getProperty(Constants.PROPERTY_MMD_OUTPUT_FILENAME, "mmd.nc");
         final String destFile = new File(mmdPath, mmdFileName).getAbsolutePath();
         final NetcdfFileWriteable file = NetcdfFileWriteable.createNew(destFile, false);
         file.setLargeFile(true);

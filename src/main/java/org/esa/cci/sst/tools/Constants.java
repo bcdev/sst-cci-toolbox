@@ -74,6 +74,16 @@ public class Constants {
     public static final String PROPERTY_OUTPUT_END_TIME = "mms.output.endTime";
     public static final String PROPERTY_OUTPUT_TMPDIR = "mms.output.tmpdir";
     public static final String PROPERTY_OUTPUT_DESTDIR = "mms.output.destdir";
+    public static final String PROPERTY_MMD_OUTPUT_DESTDIR = "mmd.output.destdir";
+    public static final String PROPERTY_MMD_OUTPUT_FILENAME = "mmd.output.filename";
+    public static final String PROPERTY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
+    public static final String PROPERTY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
+    public static final String PROPERTY_MMS_ARC3_EXECUTABLE = "mms.arc3.executable";
+    public static final String PROPERTY_MMS_ARC3_SOURCEFILE = "mms.arc3.sourcefile";
+    public static final String PROPERTY_MMS_ARC3_CUT_SUBSCENES = "mms.arc3.cutSubscenes";
+    public static final String PROPERTY_MMS_ARC3_TARGETFILE = "mms.arc3.targetfile";
+    public static final String PROPERTY_MMS_ARC3_NWPFILE = "mms.arc3.nwpfile";
+    public static final String PROPERTY_MMS_ARC3_PATTERN = "mms.arc3.pattern";
 
     private Constants() {
     }

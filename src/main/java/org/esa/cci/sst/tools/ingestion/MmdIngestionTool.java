@@ -21,6 +21,7 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.MmdIOHandler;
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 
 import javax.persistence.Query;
@@ -133,7 +134,7 @@ public class MmdIngestionTool extends BasicTool {
 
     private File getMmdFile() {
         final Properties configuration = getConfiguration();
-        final String filename = configuration.getProperty("mms.reingestion.filename");
+        final String filename = configuration.getProperty(Constants.PROPERTY_MMS_REINGESTION_FILENAME);
         return new File(filename);
     }
 

@@ -17,8 +17,8 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.Constants;
 import org.postgis.PGgeometry;
@@ -48,6 +48,7 @@ public class MmdIOHandler implements IOHandler {
     private DataFile dataFile;
     private final Properties configuration;
 
+    @SuppressWarnings({"AssignmentToCollectionOrArrayFieldFromParameter"})
     public MmdIOHandler(Properties configuration) {
         this.sensorName = configuration.getProperty("mms.reingestion.sensor");
         this.configuration = configuration;
@@ -64,7 +65,7 @@ public class MmdIOHandler implements IOHandler {
         if (matchupIds == null) {
             matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
         }
-        final String property = getProperty("mms.reingestion.located", "no");
+        final String property = getProperty(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "no");
         if ("yes".equals(property)) {
             reader = new MmdReader(dataFile, ncFile, sensorName);
         } else {
@@ -88,7 +89,7 @@ public class MmdIOHandler implements IOHandler {
     @Override
     public Item[] getColumns() throws IOException {
         validateDelegate(reader);
-        return reader.getColumns();
+        return reader.getItems();
     }
 
     @Override

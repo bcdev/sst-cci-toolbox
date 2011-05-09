@@ -17,10 +17,12 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.TimeUtil;
@@ -64,15 +66,15 @@ abstract class AbstractMmdReader implements ObservationReader {
     }
 
     @Override
-    public Column[] getColumns() throws IOException {
-        final List<Column> columns = new ArrayList<Column>();
+    public Item[] getItems() throws IOException {
+        final List<Item> items = new ArrayList<Item>();
         final List<Variable> variables = mmd.getVariables();
         final DataFile datafile = dataFile;
         for (Variable variable : variables) {
-            final Column column = createColumn(variable, datafile);
-            columns.add(column);
+            final Item item = createItem(variable, datafile);
+            items.add(item);
         }
-        return columns.toArray(new Column[columns.size()]);
+        return items.toArray(new Item[items.size()]);
     }
 
     Date getCreationDate(final int recordNo, Variable variable) throws IOException {
@@ -148,7 +150,10 @@ abstract class AbstractMmdReader implements ObservationReader {
         }
     }
 
-    private Column createColumn(final Variable variable, final DataFile dataFile) {
-        return IoUtil.createColumnBuilder(variable, sensor).setSensor(dataFile.getSensor()).build();
+    private Item createItem(final Variable variable, final DataFile dataFile) {
+        final Sensor dataFileSensor = dataFile.getSensor();
+        final ColumnBuilder columnBuilder = IoUtil.createColumnBuilder(variable, sensor);
+        columnBuilder.setSensor(dataFileSensor);
+        return columnBuilder.build();
     }
 }

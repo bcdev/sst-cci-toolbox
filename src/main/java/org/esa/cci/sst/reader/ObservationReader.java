@@ -30,6 +30,6 @@ public interface ObservationReader {
 
     Observation readObservation(int recordNo) throws IOException;
 
-    Item[] getColumns() throws IOException;
+    Item[] getItems() throws IOException;
 
 }
