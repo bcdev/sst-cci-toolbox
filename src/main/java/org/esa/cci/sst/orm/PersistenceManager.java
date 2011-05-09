@@ -32,16 +32,11 @@ import java.util.Map;
  */
 public class PersistenceManager {
 
-    private EntityManagerFactory emFactory = null;
     private EntityManager entityManager = null;
 
     public PersistenceManager(String persistenceUnitName, Map conf) {
+        final EntityManagerFactory emFactory;
         emFactory = Persistence.createEntityManagerFactory(persistenceUnitName, conf);
-        entityManager = emFactory.createEntityManager();
-    }
-
-    public void init(String persistenceUnitName) {
-        emFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
         entityManager = emFactory.createEntityManager();
     }
 
