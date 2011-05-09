@@ -18,7 +18,9 @@ package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Timeable;
+import org.esa.cci.sst.tools.ToolException;
 
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -149,5 +151,16 @@ public final class TimeUtil {
         c.clear();
         c.set(year, month, date, hour, minute, second);
         return c;
+    }
+
+    public static Date getConfiguredTimeOf(String time) {
+        final Date date;
+        try {
+            date = parseCcsdsUtcFormat(time);
+        } catch (ParseException e) {
+            final String message = MessageFormat.format("Unable to parse time string ''{0}''.", time);
+            throw new ToolException(message, e, ToolException.CONFIGURATION_FILE_IO_ERROR);
+        }
+        return date;
     }
 }

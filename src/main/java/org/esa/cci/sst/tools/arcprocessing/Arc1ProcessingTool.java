@@ -28,8 +28,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -104,8 +102,10 @@ public class Arc1ProcessingTool extends BasicTool {
     private void run() throws IOException {
         final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
         final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
-        final Date startTime = getConfiguredTimeOf(Constants.PROPERTY_OUTPUT_START_TIME);
-        final Date endTime = getConfiguredTimeOf(Constants.PROPERTY_OUTPUT_END_TIME);
+        final String startTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
+        final String endTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_END_TIME);
+        final Date startTime = TimeUtil.getConfiguredTimeOf(startTimeProperty);
+        final Date endTime = TimeUtil.getConfiguredTimeOf(endTimeProperty);
 
         prepareCommandFiles(tmpPath, destPath, TimeUtil.formatCompactUtcFormat(startTime));
 
@@ -255,18 +255,6 @@ public class Arc1ProcessingTool extends BasicTool {
         getLogger().info(String.format("call for avhrr orbit %s added", basename));
     }
 
-
-    private Date getConfiguredTimeOf(String key) {
-        final String time = getConfiguration().getProperty(key);
-        final Date date;
-        try {
-            date = TimeUtil.parseCcsdsUtcFormat(time);
-        } catch (ParseException e) {
-            final String message = MessageFormat.format("Unable to parse time parameter ''{0}''.", key);
-            throw new ToolException(message, e, ToolException.CONFIGURATION_FILE_IO_ERROR);
-        }
-        return date;
-    }
 
     private static File latLonFileOf(final String currentFilename, final String tmpPath) {
         final int slashIndex = currentFilename.lastIndexOf('/');
