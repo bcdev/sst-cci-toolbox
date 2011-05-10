@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.orm.PersistenceManager;
@@ -35,40 +34,57 @@ public class Queries {
     private Queries() {
     }
 
-    public static final String SELECT_ALL_COLUMNS_QUERY_STRING =
+    public static final String QUERY_STRING_SELECT_ALL_COLUMNS =
             "select c" +
             " from Column c" +
             " order by c.name";
 
-    public static final String COUNT_MATCHUPS_QUERY_STRING =
+    public static final String QUERY_STRING_COUNT_MATCHUPS =
             "select count(m)" +
-            " from Matchup m"
-            + " where m.refObs.time >= ?1 and m.refObs.time < ?2";
+            " from Matchup m" +
+            " where m.refObs.time >= ?1 and m.refObs.time < ?2";
 
-    public static final String SELECT_MATCHUPS_QUERY_STRING =
+    public static final String QUERY_STRING_SELECT_MATCHUPS =
             "select m" +
-            " from Matchup m"
-            + " where m.refObs.time >= ?1 and m.refObs.time < ?2"
-            + " order by m.refObs.time";
+            " from Matchup m" +
+            " where m.refObs.time >= ?1 and m.refObs.time < ?2" +
+            " order by m.refObs.time";
+
+    public static final String QUERY_STRING_SELECT_MATCHUPS_FOR_SENSOR =
+            "select m.id" +
+            " from mm_matchup m, mm_observation o" +
+            " where o.id = m.refobs_id" +
+            " and o.time >= ?1 and o.time < ?2" +
+            " and m.pattern & ?3 = ?3" +
+            " order by o.time";
 
     public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate) {
-        final Query query = pm.createQuery(COUNT_MATCHUPS_QUERY_STRING);
+        final Query query = pm.createQuery(QUERY_STRING_COUNT_MATCHUPS);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
         final Number matchupCount = (Number) query.getSingleResult();
-        return matchupCount == null ? 0 : matchupCount.intValue();
+        return matchupCount.intValue();
     }
 
+    @SuppressWarnings({"unchecked"})
     public static List<? extends Item> getAllColumns(PersistenceManager pm) {
-        //noinspection unchecked
-        return pm.createQuery(SELECT_ALL_COLUMNS_QUERY_STRING).getResultList();
+        return pm.createQuery(QUERY_STRING_SELECT_ALL_COLUMNS).getResultList();
     }
 
+    @SuppressWarnings({"unchecked"})
     public static List<Matchup> getMatchups(PersistenceManager pm, Date startDate, Date stopDate) {
-        final Query query = pm.createQuery(SELECT_MATCHUPS_QUERY_STRING);
+        final Query query = pm.createQuery(QUERY_STRING_SELECT_MATCHUPS);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
-        //noinspection unchecked
+        return query.getResultList();
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public static List<Matchup> getMatchups(PersistenceManager pm, Date startDate, Date stopDate, long pattern) {
+        final Query query = pm.createNativeQuery(QUERY_STRING_SELECT_MATCHUPS_FOR_SENSOR, Matchup.class);
+        query.setParameter(1, startDate);
+        query.setParameter(2, stopDate);
+        query.setParameter(3, pattern);
         return query.getResultList();
     }
 }

@@ -32,8 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(QueriesTestRunner.class)
 public class QueriesTest {
@@ -41,7 +41,7 @@ public class QueriesTest {
     private PersistenceManager pm;
 
     @Before
-    public void setUp() throws IOException {
+    public void initPersistence() throws IOException {
         final Properties configuration = new Properties();
         configuration.load(new FileInputStream("mms-config.properties"));
 
@@ -55,7 +55,7 @@ public class QueriesTest {
         @SuppressWarnings({"unchecked"})
         final int matchupCount = Queries.getMatchupCount(pm, startDate, stopDate);
 
-        assertTrue(matchupCount >= 0);
+        assertEquals(14488, matchupCount);
     }
 
     @Test
@@ -64,6 +64,7 @@ public class QueriesTest {
         final List<? extends Item> columnList = Queries.getAllColumns(pm);
 
         assertNotNull(columnList);
+        assertEquals(353, columnList.size());
     }
 
     @Test
@@ -71,9 +72,21 @@ public class QueriesTest {
         final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
         final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
         @SuppressWarnings({"unchecked"})
-        final List<Matchup> columnList = Queries.getMatchups(pm, startDate, stopDate);
+        final List<Matchup> matchupList = Queries.getMatchups(pm, startDate, stopDate);
 
-        assertNotNull(columnList);
+        assertNotNull(matchupList);
+        assertEquals(14488, matchupList.size());
+    }
+
+    @Test
+    public void testGetMatchupsForSensor() throws ParseException {
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
+        @SuppressWarnings({"unchecked"})
+        final List<Matchup> matchupList = Queries.getMatchups(pm, startDate, stopDate, 1);
+
+        assertNotNull(matchupList);
+        assertEquals(1966, matchupList.size());
     }
 
 }
