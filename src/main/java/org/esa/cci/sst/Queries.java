@@ -17,6 +17,7 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.orm.PersistenceManager;
 
@@ -58,7 +59,7 @@ public class Queries {
         return matchupCount == null ? 0 : matchupCount.intValue();
     }
 
-    public static List<Column> getAllColumns(PersistenceManager pm) {
+    public static List<? extends Item> getAllColumns(PersistenceManager pm) {
         //noinspection unchecked
         return pm.createQuery(SELECT_ALL_COLUMNS_QUERY_STRING).getResultList();
     }

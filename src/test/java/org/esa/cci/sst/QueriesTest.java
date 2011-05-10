@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
@@ -61,7 +61,7 @@ public class QueriesTest {
     @Test
     public void testGetAllColumns() {
         @SuppressWarnings({"unchecked"})
-        final List<Column> columnList = Queries.getAllColumns(pm);
+        final List<? extends Item> columnList = Queries.getAllColumns(pm);
 
         assertNotNull(columnList);
     }
