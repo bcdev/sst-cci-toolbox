@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
@@ -32,8 +32,6 @@ import java.text.MessageFormat;
 import java.util.Date;
 
 /**
- * TODO fill out or delete
- *
  * @author Thomas Storm
  */
 class Ingester {

@@ -59,62 +59,14 @@ public class Arc3ProcessingTool extends BasicTool {
         super("arc3processing.sh", "0.1");
     }
 
-    String createArc3Call() {
-        final Properties configuration = getConfiguration();
-        String sourceFilename = getSourceFilename();
-        String executableName = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_EXECUTABLE, "MMD_SCREEN_Linux");
-        String targetFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE,
-                                                          getDefaultTargetFileName(sourceFilename));
-        String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
-
-        final StringBuilder arc3Call = new StringBuilder();
-        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", sourceFilename));
-        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk ./%s MDB.INP %s %s %s", executableName, sourceFilename,
-                                      nwpFilename, targetFilename));
-        return arc3Call.toString();
-    }
-
-    String createReingestionCall() {
-        final String sourceFilename = getSourceFilename();
-        final Properties configuration = getConfiguration();
-        final String targetFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE,
-                                                          getDefaultTargetFileName(sourceFilename));
-        final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "20000");
-
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ssh eddie.ecdf.ed.ac.uk ");
-        builder.append(String.format("bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s\n" +
-                                      " -Dmms.reingestion.located=no \\\n" +
-                                      " -Dmms.reingestion.sensor=ARC3 \\\n" +
-                                      " -Dmms.reingestion.pattern=%s \\\n" +
-                                      " -c config/mms-config-eddie1.properties", targetFilename, pattern));
-        return builder.toString();
-    }
-
-    String createCleanupCall() {
-        final String sourceFilename = getSourceFilename();
-        return String.format("ssh eddie.ecdf.ed.ac.uk rm %s", sourceFilename);
-    }
-
-    String getDefaultTargetFileName(String sourceFilename) {
-        final int extensionIndex = sourceFilename.lastIndexOf(".nc");
-        return String.format("%s_ARC3.nc", sourceFilename.substring(0, extensionIndex));
-    }
-
-    private void writeCalls() {
-        final String arc3Call = createArc3Call();
-        final String reingestionCall = createReingestionCall();
-        final String cleanupCall = createCleanupCall();
+    private void writeCalls() throws IOException {
+        final Arc3CallBuilder arc3Caller = new Arc3CallBuilderFactory().createArc3CallBuilder();
+        final String arc3Call = arc3Caller.createArc3Call();
+        final String reingestionCall = arc3Caller.createReingestionCall();
+        final String cleanupCall = arc3Caller.createCleanupCall();
         arc3CallWriter.write(arc3Call);
         reingestionCallWriter.write(reingestionCall);
         cleanupCallWriter.write(cleanupCall);
-    }
-
-    private String getSourceFilename() {
-        Properties configuration = getConfiguration();
-        String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
-        validateSourceFilename(sourceFilename);
-        return sourceFilename;
     }
 
     private void setupWriters() throws IOException {
@@ -149,14 +101,14 @@ public class Arc3ProcessingTool extends BasicTool {
 
     private void setFileExecutable(File file) throws IOException {
         final boolean success = file.setExecutable(true);
-        if(!success) {
+        if (!success) {
             throw new IOException(
                     MessageFormat.format("Could not set file ''{0}'' executable.", file.getAbsolutePath()));
         }
     }
 
     private void createDirectory(File dir) throws IOException {
-        if(dir.exists()) {
+        if (dir.exists()) {
             return;
         }
         final boolean success = dir.mkdirs();
@@ -178,10 +130,17 @@ public class Arc3ProcessingTool extends BasicTool {
         }
     }
 
-    private void validateSourceFilename(String sourceFilename) {
-        if (sourceFilename == null) {
-            throw new IllegalStateException(
-                    MessageFormat.format("Property ''{0}'' must be set.", Constants.PROPERTY_MMS_ARC3_SOURCEFILE));
+    class Arc3CallBuilderFactory {
+
+        private Arc3CallBuilder createArc3CallBuilder() {
+            final Properties configuration = getConfiguration();
+            final String cutSubscenes = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_CUT_SUBSCENES, "false");
+            if (Boolean.parseBoolean(cutSubscenes)) {
+                return new SubsceneArc3CallBuilder(configuration, getPersistenceManager());
+            } else {
+                return new SimpleArc3CallBuilder(configuration);
+            }
         }
     }
+
 }

@@ -58,6 +58,11 @@ public class Queries {
             " and m.pattern & ?3 = ?3" +
             " order by o.time";
 
+    public static final String REF_OBSERVATION_POINT_FOR_MATCHUP =
+            "select o" +
+            "from ReferenceObservation o, Matchup m " +
+            "where o.id = m.refobs.id and m.id = ?";    
+    
     public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate) {
         final Query query = pm.createQuery(QUERY_STRING_COUNT_MATCHUPS);
         query.setParameter(1, startDate);
