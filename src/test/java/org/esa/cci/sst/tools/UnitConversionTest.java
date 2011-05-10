@@ -42,7 +42,7 @@ public class UnitConversionTest {
     private static final DataType TIME_VARIABLE_TYPE = DataType.DOUBLE;
     private static final double JULIAN_DATE_OF_EPOCH_1978 = 2443509.5;
 
-    private ColumnRegistry registry = ColumnRegistry.getInstance();
+    private ColumnRegistry registry = new ColumnRegistry();
 
     @Test
     public void testColumnConversion() {

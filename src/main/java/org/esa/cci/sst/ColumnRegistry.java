@@ -46,19 +46,13 @@ public class ColumnRegistry {
     private final Map<Item, Rule> rulesByTarget;
     private final Map<Item, Item> columnsByTarget;
 
-    private ColumnRegistry() {
+    /**
+     * Creates a new instance of this class.
+     */
+    public ColumnRegistry() {
         columnsByName = new HashMap<String, Item>();
         rulesByTarget = new HashMap<Item, Rule>();
         columnsByTarget = new HashMap<Item, Item>();
-    }
-
-    /**
-     * Returns the unique instance of this registry.
-     *
-     * @return the unique instance of this registry.
-     */
-    public static ColumnRegistry getInstance() {
-        return Holder.UNIQUE_INSTANCE;
     }
 
     /**
@@ -82,21 +76,21 @@ public class ColumnRegistry {
                     final String[] tokens = line.split("\\s+");
                     try {
                         switch (tokens.length) {
-                        case 1:
-                            if (tokens[0].isEmpty()) {
+                            case 1:
+                                if (tokens[0].isEmpty()) {
+                                    break;
+                                }
+                                // identity
+                                parseIdentity(nameList, tokens[0]);
                                 break;
-                            }
-                            // identity
-                            parseIdentity(nameList, tokens[0]);
-                            break;
-                        case 2:
-                            // variable renaming
-                            parseRenaming(nameList, tokens[0], tokens[1]);
-                            break;
-                        default:
-                            // more complex rule
-                            parseRule(nameList, tokens[0], tokens[1], tokens[2]);
-                            break;
+                            case 2:
+                                // variable renaming
+                                parseRenaming(nameList, tokens[0], tokens[1]);
+                                break;
+                            default:
+                                // more complex rule
+                                parseRule(nameList, tokens[0], tokens[1], tokens[2]);
+                                break;
                         }
                     } catch (Exception e) {
                         throw new ParseException(e.getMessage(), lineNumber);
@@ -219,12 +213,6 @@ public class ColumnRegistry {
             return columnsByName.containsKey(name);
         }
     }
-
-    private static class Holder {
-
-        private static final ColumnRegistry UNIQUE_INSTANCE = new ColumnRegistry();
-    }
-
 
     private void parseIdentity(List<String> nameList, String sourceName) throws Exception {
         ensureSourceColumnIsRegistered(sourceName);

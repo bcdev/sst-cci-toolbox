@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.tools.Constants;
+
 /**
  * Replaces the first dimension with the 'matchup' dimension.
  *
@@ -25,6 +27,6 @@ final class MatchupDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(0, "matchup");
+        replacer.replace(0, Constants.DIMENSION_NAME_MATCHUP);
     }
 }

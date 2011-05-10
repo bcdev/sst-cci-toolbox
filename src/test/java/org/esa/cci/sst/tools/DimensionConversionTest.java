@@ -40,7 +40,7 @@ public class DimensionConversionTest {
     public static final DataType CALLSIGN_VARIABLE_TYPE = DataType.CHAR;
     public static final String CALLSIGN_VARIABLE_NAME = "callsign";
 
-    private ColumnRegistry registry = ColumnRegistry.getInstance();
+    private ColumnRegistry registry = new ColumnRegistry();
 
     @Test
     public void testColumnConversion() {

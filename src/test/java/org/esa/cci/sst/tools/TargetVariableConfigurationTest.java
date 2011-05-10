@@ -20,8 +20,8 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.IoUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -38,9 +38,27 @@ import static org.junit.Assert.assertNotNull;
 
 public class TargetVariableConfigurationTest {
 
+    private final ColumnRegistry registry = new ColumnRegistry();
+
+    @Before
+    public void initRegistry() throws IOException, URISyntaxException {
+        registerSourceColumns("seviri.nc", "seviri");
+        registerSourceColumns("metop.nc", "metop");
+        registerSourceColumns("aatsr_md.nc", "aatsr_md");
+        registerSourceColumns("ams.nc", "amsre");
+        registerSourceColumns("tmi.nc", "tmi");
+        registerSourceColumns("atsr.1.nc", "atsr1");
+        registerSourceColumns("atsr.2.nc", "atsr2");
+        registerSourceColumns("atsr.3.nc", "atsr3");
+    }
+
+    @After
+    public void clearRegistry() {
+        registry.clear();
+    }
+
     @Test
     public void testRegisterColumns() throws ParseException, RuleException {
-        final ColumnRegistry registry = ColumnRegistry.getInstance();
         final InputStream is = getClass().getResourceAsStream("mmd-variables.txt");
 
         assertNotNull(is);
@@ -57,7 +75,6 @@ public class TargetVariableConfigurationTest {
     }
 
     private void testMetopColumn() {
-        final ColumnRegistry registry = ColumnRegistry.getInstance();
         final Item targetColumn = registry.getColumn("metop.brightness_temperature.037");
 
         assertEquals("matchup metop.ni metop.nj", targetColumn.getDimensions());
@@ -65,30 +82,12 @@ public class TargetVariableConfigurationTest {
         assertNotNull("metop.IR037", registry.getSourceColumn(targetColumn).getName());
     }
 
-    @BeforeClass
-    public static void initRegistry() throws IOException, URISyntaxException {
-        registerSourceColumns("seviri.nc", "seviri");
-        registerSourceColumns("metop.nc", "metop");
-        registerSourceColumns("aatsr_md.nc", "aatsr_md");
-        registerSourceColumns("ams.nc", "amsre");
-        registerSourceColumns("tmi.nc", "tmi");
-        registerSourceColumns("atsr.1.nc", "atsr1");
-        registerSourceColumns("atsr.2.nc", "atsr2");
-        registerSourceColumns("atsr.3.nc", "atsr3");
-    }
-
-    @AfterClass
-    public static void clearRegistry() {
-        ColumnRegistry.getInstance().clear();
-    }
-
-    private static void registerSourceColumns(String fileName, String sensor) throws IOException,
-                                                                                     URISyntaxException {
+    private void registerSourceColumns(String fileName, String sensor) throws IOException,
+                                                                              URISyntaxException {
         NetcdfFile netcdfFile = null;
         try {
             final File sensorFile = new File(TargetVariableConfigurationTest.class.getResource(fileName).toURI());
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
-            final ColumnRegistry registry = ColumnRegistry.getInstance();
             for (final Variable variable : netcdfFile.getVariables()) {
                 final Item column = IoUtil.createColumnBuilder(variable, sensor).build();
                 registry.register(column);
