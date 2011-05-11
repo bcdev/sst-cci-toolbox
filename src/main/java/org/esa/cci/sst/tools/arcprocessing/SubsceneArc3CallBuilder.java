@@ -67,12 +67,13 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         validateSourceFilename(sourceFilename);
 
         final NetcdfFile source = NetcdfFile.open(sourceFilename);
-        final NetcdfFileWriteable target = NetcdfFileWriteable.createNew(targetFilename);
         final List<Variable> atsrSourceVars = getAtsrSourceVariables(source);
         validateSourceVariables(atsrSourceVars);
 
+        final NetcdfFileWriteable target = NetcdfFileWriteable.createNew(targetFilename);
         addSubsceneDimensions(target, atsrSourceVars.get(0));
-        addSubsceneVariables(target, atsrSourceVars);
+        addVariables(source, target);
+        addNonSubsceneDimensions(source, target);
 
         target.create();
 
@@ -92,6 +93,14 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return null;
     }
 
+    void addNonSubsceneDimensions(NetcdfFile source, NetcdfFileWriteable target) {
+        for (Dimension dimension : source.getDimensions()) {
+            if (!isSubsceneDimension(target, dimension)) {
+                target.addDimension(dimension.getName(), dimension.getLength());
+            }
+        }
+    }
+
     void writeSubscene(NetcdfFile source, NetcdfFileWriteable target, List<Variable> atsrSourceVars) throws
                                                                                                      IOException {
         final Variable latitude = getAtsrSourceVar(atsrSourceVars, "latitude");
@@ -102,7 +111,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
                 final Integer matchupId = entry.getKey();
                 final int[] coords = findCentralNetcdfCoords(latitude, longitude, matchupId, entry.getValue());
                 for (Variable atsrSourceVar : atsrSourceVars) {
-                    final Array sourceValues = readSubscene(matchupId, coords, atsrSourceVar, getWidth());
+                    final Array sourceValues = readSubscene(matchupId, coords, atsrSourceVar, getSubsceneWidth());
                     target.write(atsrSourceVar.getNameEscaped(), sourceValues);
                 }
             }
@@ -175,16 +184,15 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return map;
     }
 
-    void addSubsceneVariables(NetcdfFileWriteable target, List<Variable> atsrSourceVars) {
-        for (Variable atsrSourceVar : atsrSourceVars) {
-            target.addVariable(atsrSourceVar.getName(), atsrSourceVar.getDataType(),
-                               atsrSourceVar.getDimensionsString());
+    void addVariables(NetcdfFile source, NetcdfFileWriteable target) {
+        for (Variable sourceVar : source.getVariables()) {
+            target.addVariable(sourceVar.getName(), sourceVar.getDataType(), sourceVar.getDimensionsString());
         }
     }
 
     void addSubsceneDimensions(NetcdfFileWriteable target, Variable atsrSourceVar) {
         for (Dimension dimension : atsrSourceVar.getDimensions()) {
-            int length = getWidth();
+            int length = getSubsceneWidth();
             if (dimension.getName().equalsIgnoreCase("record")) {
                 length = dimension.getLength();
             }
@@ -217,7 +225,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return builder.insert(extensionStart, "_subscenes").toString();
     }
 
-    int getWidth() {
+    int getSubsceneWidth() {
         return Constants.ATSR_SUBSCENE_WIDTH;
     }
 
@@ -227,7 +235,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
                 coords[0] - (width / 2),
                 coords[1] - (width / 2)
         };
-        int[] offsets = new int[]{0,0,0};
+        int[] offsets = new int[]{0, 0, 0};
         for (int i = 0; i < origin.length; i++) {
             if (origin[i] < 0) {
                 offsets[i] = 0 - origin[i];
@@ -239,6 +247,16 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
             shape[i] -= offsets[i];
         }
         return new Section(origin, shape);
+    }
+
+    boolean isSubsceneDimension(NetcdfFileWriteable target, Dimension dimension) {
+        // there's no other possible method to inquire if netcdf file has dimensions
+        try {
+            target.getRootGroup().getDimensions();
+        } catch (NullPointerException e) {
+            return true;
+        }
+        return target.getRootGroup().findDimension(dimension.getName()) != null;
     }
 
     private List<Variable> getAtsrSourceVariables(NetcdfFile source) {

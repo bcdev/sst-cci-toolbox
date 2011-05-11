@@ -27,15 +27,12 @@ import org.mockito.Matchers;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
-import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,16 +44,15 @@ import static org.mockito.Mockito.*;
 /**
  * @author Thomas Storm
  */
-@SuppressWarnings({"InstanceMethodNamingConvention"})
+@SuppressWarnings({"InstanceMethodNamingConvention", "OverlyLongMethod"})
 public class SubsceneArc3CallBuilderTest {
 
     private NetcdfFileWriteable target;
-    private String someNetcdfResource;
     private String netcdfResourceWithMatchupVariable;
 
     @Before
     public void setUp() throws Exception {
-        someNetcdfResource = getClass().getResource("empty_test.nc").getFile();
+        final String someNetcdfResource = getClass().getResource("empty_test.nc").getFile();
         netcdfResourceWithMatchupVariable = getClass().getResource("test.nc").getFile();
         final File file = new File(new File(someNetcdfResource).getParent(), "test_writable.nc");
         target = NetcdfFileWriteable.createNew(file.getAbsolutePath());
@@ -78,39 +74,49 @@ public class SubsceneArc3CallBuilderTest {
     }
 
     @Test
-    public void testAddSubsceneDimensions() throws Exception {
+    public void testAddDimensionsAndVariables() throws Exception {
         final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(null, null);
-        final NetcdfFile file = NetcdfFile.open(someNetcdfResource);
-        file.addDimension(null, new Dimension("record", 572));
-        file.addDimension(null, new Dimension("ni", 18938));
-        file.addDimension(null, new Dimension("nj", 562));
-        final Variable var1 = new Variable(file, null, null,
-                                           "atsr_orb.5.reflec_nadir_1600", DataType.BYTE, "record ni nj");
-        subsceneArc3CallBuilder.addSubsceneDimensions(target, var1);
+        final NetcdfFile source = NetcdfFile.open(getClass().getResource("test_with_mixed_variables.nc").getFile());
 
-        final List<Dimension> dimensions = target.getRootGroup().getDimensions();
+        final Variable someSubsceneVariable = source.findVariable(NetcdfFile.escapeName("atsr_orb.someVariable"));
+        subsceneArc3CallBuilder.addSubsceneDimensions(target, someSubsceneVariable);
 
-        assertEquals(3, dimensions.size());
-        assertEquals("record", dimensions.get(0).getName());
-        assertEquals("ni", dimensions.get(1).getName());
-        assertEquals("nj", dimensions.get(2).getName());
+        assertEquals(3, target.getRootGroup().getDimensions().size());
+        assertNotNull(target.getRootGroup().findDimension("record"));
+        assertNotNull(target.getRootGroup().findDimension("ni"));
+        assertNotNull(target.getRootGroup().findDimension("nj"));
+        assertEquals(2, target.getRootGroup().findDimension("record").getLength());
+        assertEquals(101, target.getRootGroup().findDimension("ni").getLength());
+        assertEquals(101, target.getRootGroup().findDimension("nj").getLength());
 
-        assertEquals(572, dimensions.get(0).getLength());
-        assertEquals(Constants.ATSR_SUBSCENE_HEIGHT, dimensions.get(1).getLength());
-        assertEquals(Constants.ATSR_SUBSCENE_HEIGHT, dimensions.get(2).getLength());
+        subsceneArc3CallBuilder.addNonSubsceneDimensions(source, target);
 
-        final Variable var2 = new Variable(file, null, null,
-                                           "atsr_orb.5.reflec_nadir_1200", DataType.BYTE, "record ni nj");
-        final List<Variable> list = new ArrayList<Variable>();
-        list.add(var1);
-        list.add(var2);
+        assertEquals(5, target.getRootGroup().getDimensions().size());
+        assertNotNull(target.getRootGroup().findDimension("someOther"));
+        assertNotNull(target.getRootGroup().findDimension("someOtherAgain"));
+        assertEquals(5, target.getRootGroup().findDimension("someOther").getLength());
+        assertEquals(5, target.getRootGroup().findDimension("someOtherAgain").getLength());
 
-        subsceneArc3CallBuilder.addSubsceneVariables(target, list);
+        assertTrue(target.getVariables() == null || target.getVariables().isEmpty());
 
-        final List<Variable> variables = target.getRootGroup().getVariables();
-        assertEquals(2, variables.size());
-        assertEquals("record ni nj", variables.get(0).getDimensionsString());
-        assertEquals("record ni nj", variables.get(1).getDimensionsString());
+        subsceneArc3CallBuilder.addVariables(source, target);
+
+        assertEquals(5, target.getRootGroup().getVariables().size());
+        final Variable matchupVar = target.getRootGroup().findVariable("matchup.id");
+        assertNotNull(matchupVar);
+        assertEquals("record", matchupVar.getDimensionsString());
+        final Variable latitudeVar = target.getRootGroup().findVariable("atsr_orb.latitude");
+        assertNotNull(latitudeVar);
+        assertEquals("record ni nj", latitudeVar.getDimensionsString());
+        final Variable longitudeVar = target.getRootGroup().findVariable("atsr_orb.longitude");
+        assertNotNull(longitudeVar);
+        assertEquals("record ni nj", longitudeVar.getDimensionsString());
+        final Variable someAtsrVariable = target.getRootGroup().findVariable("atsr_orb.someVariable");
+        assertNotNull(someAtsrVariable);
+        assertEquals("record ni nj", someAtsrVariable.getDimensionsString());
+        final Variable someVariable = target.getRootGroup().findVariable("someVariable");
+        assertNotNull(someVariable);
+        assertEquals("record someOther someOtherAgain", someVariable.getDimensionsString());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -277,7 +283,7 @@ public class SubsceneArc3CallBuilderTest {
         final SubsceneArc3CallBuilder subsceneArc3CallBuilderMock = setupMock(source);
 
         subsceneArc3CallBuilderMock.addSubsceneDimensions(target, source.findVariable("latitude"));
-        subsceneArc3CallBuilderMock.addSubsceneVariables(target, variables);
+        subsceneArc3CallBuilderMock.addVariables(source, target);
         target.create();
         variables.remove(0);
         subsceneArc3CallBuilderMock.writeSubscene(source, target, variables);
@@ -296,11 +302,11 @@ public class SubsceneArc3CallBuilderTest {
         map.put(0, new Point(80.0, 10.0));
         map.put(1, new Point(105.0, 60.0));
         when(subsceneArc3CallBuilderMock.getMatchupLocations(source)).thenReturn(map);
-        when(subsceneArc3CallBuilderMock.getWidth()).thenReturn(2);
+        when(subsceneArc3CallBuilderMock.getSubsceneWidth()).thenReturn(2);
         doCallRealMethod().when(subsceneArc3CallBuilderMock).addSubsceneDimensions(Matchers.<NetcdfFileWriteable>any(),
                                                                                    Matchers.<Variable>any());
-        doCallRealMethod().when(subsceneArc3CallBuilderMock).addSubsceneVariables(Matchers.<NetcdfFileWriteable>any(),
-                                                                                  Matchers.<List<Variable>>any());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).addVariables(Matchers.<NetcdfFile>any(),
+                                                                          Matchers.<NetcdfFileWriteable>any());
         doCallRealMethod().when(subsceneArc3CallBuilderMock).writeSubscene(Matchers.<NetcdfFile>any(),
                                                                            Matchers.<NetcdfFileWriteable>any(),
                                                                            Matchers.<List<Variable>>any());
