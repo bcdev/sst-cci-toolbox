@@ -39,7 +39,7 @@ abstract class AbstractDimensionReplacement extends AbstractPropertyChange {
         final DimensionReplacer replacer = new DimensionReplacer(sourceDimensions);
 
         replaceDimensions(replacer);
-        builder.setDimensions(replacer.toString());
+        builder.dimensions(replacer.toString());
 
         return builder.build();
     }

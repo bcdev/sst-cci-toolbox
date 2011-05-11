@@ -33,29 +33,29 @@ public final class SensorBuilder {
     private String observationType;
 
     public SensorBuilder() {
-        setName("unknown");
-        setObservationType(Observation.class.getSimpleName());
+        name("unknown");
+        observationType(Observation.class.getSimpleName());
     }
 
-    public SensorBuilder setName(String name) {
+    public SensorBuilder name(String name) {
         Assert.argument(name != null, "name == null");
         this.name = name;
         return this;
     }
 
-    public SensorBuilder setPattern(long pattern) {
+    public SensorBuilder pattern(long pattern) {
         this.pattern = pattern;
         return this;
     }
 
-    public SensorBuilder setObservationType(Class<? extends Observation> observationType) {
+    public SensorBuilder observationType(Class<? extends Observation> observationType) {
         Assert.argument(observationType != null, "observationType == null");
         //noinspection ConstantConditions
         this.observationType = observationType.getSimpleName();
         return this;
     }
 
-    public SensorBuilder setObservationType(String observationType) {
+    public SensorBuilder observationType(String observationType) {
         Assert.argument(observationType != null, "observationType == null");
         final Class<? extends Observation> observationClass;
         try {
@@ -66,7 +66,7 @@ public final class SensorBuilder {
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(e);
         }
-        return setObservationType(observationClass);
+        return observationType(observationClass);
     }
 
     @SuppressWarnings({"deprecation"})

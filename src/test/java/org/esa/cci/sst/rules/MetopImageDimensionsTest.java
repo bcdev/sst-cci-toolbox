@@ -35,6 +35,6 @@ public class MetopImageDimensionsTest extends AbstractRuleTest {
 
     @Override
     protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
-        return columnBuilder.setRank(3).setDimensions("n ny nx");
+        return columnBuilder.rank(3).dimensions("n ny nx");
     }
 }

@@ -231,20 +231,20 @@ public class MmdGeneratorTool extends BasicTool {
 
     private void registerImplicitColumns() {
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.setDimensions(Constants.DIMENSION_NAME_MATCHUP);
+        builder.dimensions(Constants.DIMENSION_NAME_MATCHUP);
 
         final List<Item> implicitColumns = new ArrayList<Item>(6);
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_ID).setType(DataType.INT).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_TIME).setType(DataType.INT).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_LON).setType(DataType.FLOAT).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_LAT).setType(DataType.FLOAT).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_INSITU_CALLSIGN).setType(DataType.CHAR).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_INSITU_DATASET).setType(DataType.BYTE).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_REFERENCE_FLAG).setType(DataType.BYTE).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_VALID).setType(DataType.BYTE).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_PRIMARY_SENSOR).setType(DataType.BYTE).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_PRIMARY_FILENAME).setType(DataType.CHAR).build());
-        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_SENSOR_LIST).setType(DataType.CHAR).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_ID).type(DataType.INT).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_TIME).type(DataType.INT).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_LON).type(DataType.FLOAT).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_LAT).type(DataType.FLOAT).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_INSITU_CALLSIGN).type(DataType.CHAR).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_INSITU_DATASET).type(DataType.BYTE).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_REFERENCE_FLAG).type(DataType.BYTE).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_VALID).type(DataType.BYTE).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_PRIMARY_SENSOR).type(DataType.BYTE).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_PRIMARY_FILENAME).type(DataType.CHAR).build());
+        implicitColumns.add(builder.name(Constants.COLUMN_NAME_MATCHUP_SENSOR_LIST).type(DataType.CHAR).build());
 
         // todo - add NWP
 

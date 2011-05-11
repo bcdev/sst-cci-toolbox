@@ -47,7 +47,7 @@ public class ShortToFloatTest extends AbstractRuleTest {
 
     @Test(expected = RuleException.class)
     public void testColumnConversion_ImproperType() throws Exception {
-        getRule().apply(new ColumnBuilder().setType(DataType.BYTE).build());
+        getRule().apply(new ColumnBuilder().type(DataType.BYTE).build());
     }
 
     @Override
@@ -61,10 +61,10 @@ public class ShortToFloatTest extends AbstractRuleTest {
 
     @Override
     protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
-        columnBuilder.setType(DataType.SHORT);
-        columnBuilder.setAddOffset(0.5f);
-        columnBuilder.setScaleFactor(2.0f);
-        columnBuilder.setFillValue((short) -1);
+        columnBuilder.type(DataType.SHORT);
+        columnBuilder.addOffset(0.5f);
+        columnBuilder.scaleFactor(2.0f);
+        columnBuilder.fillValue((short) -1);
 
         return columnBuilder;
     }

@@ -34,6 +34,6 @@ final class Renaming extends AbstractPropertyChange {
 
     @Override
     public Item apply(Item sourceColumn) {
-        return new ColumnBuilder(sourceColumn).setName(targetName).build();
+        return new ColumnBuilder(sourceColumn).name(targetName).build();
     }
 }

@@ -43,10 +43,10 @@ abstract class AbstractFormat<S extends Number, T extends Number> implements Rul
         Assert.type(sourceDataType, sourceColumn);
 
         final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
-        builder.setAddOffset(null);
-        builder.setScaleFactor(null);
-        builder.setType(targetDataType);
-        builder.setFillValue(null);
+        builder.addOffset(null);
+        builder.scaleFactor(null);
+        builder.type(targetDataType);
+        builder.fillValue(null);
 
         Number sourceFillValue = sourceColumn.getFillValue();
         if (sourceFillValue != null) {
@@ -62,8 +62,8 @@ abstract class AbstractFormat<S extends Number, T extends Number> implements Rul
                     sourceFillValue = DataType.unsignedIntToLong(sourceFillValue.intValue());
                 }
             }
-            builder.setFillValue(getTargetFillValue(sourceFillValue,
-                                                    sourceColumn.getScaleFactor(), sourceColumn.getAddOffset()));
+            builder.fillValue(getTargetFillValue(sourceFillValue,
+                                                 sourceColumn.getScaleFactor(), sourceColumn.getAddOffset()));
         }
 
         return builder.build();

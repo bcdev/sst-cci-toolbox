@@ -71,9 +71,9 @@ class Ingester {
 
     Sensor createSensor(String sensorName, String observationType, long pattern) {
         final SensorBuilder builder = new SensorBuilder();
-        builder.setName(sensorName);
-        builder.setObservationType(observationType);
-        builder.setPattern(pattern).build();
+        builder.name(sensorName);
+        builder.observationType(observationType);
+        builder.pattern(pattern).build();
         final Sensor sensor = builder.build();
         tool.getPersistenceManager().persist(sensor);
         return sensor;

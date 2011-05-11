@@ -62,10 +62,10 @@ public class DimensionConversionTest {
     public void initRegistry() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("MatchupDimension,CallsignDimension");
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.setName(CALLSIGN_VARIABLE_NAME);
-        builder.setType(CALLSIGN_VARIABLE_TYPE);
-        builder.setRank(2);
-        builder.setDimensions("match_up cs_length");
+        builder.name(CALLSIGN_VARIABLE_NAME);
+        builder.type(CALLSIGN_VARIABLE_TYPE);
+        builder.rank(2);
+        builder.dimensions("match_up cs_length");
 
         registry.register(rule, builder.build());
     }

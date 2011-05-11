@@ -84,9 +84,9 @@ public class UnitConversionTest {
     public void initRegistry() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("JulianDateToSeconds");
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.setName(TIME_VARIABLE_NAME);
-        builder.setType(TIME_VARIABLE_TYPE);
-        builder.setUnit("Julian Date");
+        builder.name(TIME_VARIABLE_NAME);
+        builder.type(TIME_VARIABLE_TYPE);
+        builder.unit("Julian Date");
 
         registry.register(rule, builder.build());
     }

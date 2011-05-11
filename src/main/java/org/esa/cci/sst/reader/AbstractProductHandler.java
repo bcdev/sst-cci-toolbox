@@ -223,24 +223,24 @@ abstract class AbstractProductHandler implements IOHandler {
         final String name = getSensorName() + "." + node.getName();
         final DataType type = DataTypeUtils.getNetcdfDataType(node);
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.setName(name);
-        builder.setType(type);
-        builder.setUnsigned(ProductData.isUIntType(node.getDataType()));
-        builder.setRank(3);
-        builder.setDimensions("record ny nx");
+        builder.name(name);
+        builder.type(type);
+        builder.unsigned(ProductData.isUIntType(node.getDataType()));
+        builder.rank(3);
+        builder.dimensions("record ny nx");
         final String unit = node.getUnit();
         if (unit != null && !unit.isEmpty()) {
-            builder.setUnit(unit);
+            builder.unit(unit);
         }
         if (node.isScalingApplied()) {
-            builder.setAddOffset(node.getScalingOffset());
-            builder.setScaleFactor(node.getScalingFactor());
+            builder.addOffset(node.getScalingOffset());
+            builder.scaleFactor(node.getScalingFactor());
         }
         if (node.isNoDataValueUsed()) {
-            builder.setFillValue(node.getNoDataValue());
+            builder.fillValue(node.getNoDataValue());
         }
-        builder.setRole(node.getName());
-        builder.setSensor(getDataFile().getSensor());
+        builder.role(node.getName());
+        builder.sensor(getDataFile().getSensor());
 
         return builder.build();
     }

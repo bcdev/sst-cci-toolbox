@@ -32,10 +32,10 @@ final class JulianDateToSeconds implements Rule {
         Assert.unit("Julian Date", sourceColumn);
 
         final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
-        builder.setUnit("seconds since 1978-01-01 00:00:00");
+        builder.unit("seconds since 1978-01-01 00:00:00");
         final Number sourceFillValue = sourceColumn.getFillValue();
         if (sourceFillValue != null) {
-            builder.setFillValue((sourceFillValue.doubleValue() - 2443509.5) * 86400.0);
+            builder.fillValue((sourceFillValue.doubleValue() - 2443509.5) * 86400.0);
         }
 
         return builder.build();

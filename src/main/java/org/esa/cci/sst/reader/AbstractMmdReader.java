@@ -153,7 +153,7 @@ abstract class AbstractMmdReader implements ObservationReader {
     private Item createItem(final Variable variable, final DataFile dataFile) {
         final Sensor dataFileSensor = dataFile.getSensor();
         final ColumnBuilder columnBuilder = IoUtil.createColumnBuilder(variable, sensor);
-        columnBuilder.setSensor(dataFileSensor);
+        columnBuilder.sensor(dataFileSensor);
         return columnBuilder.build();
     }
 }

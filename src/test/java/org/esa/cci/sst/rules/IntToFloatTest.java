@@ -47,7 +47,7 @@ public class IntToFloatTest extends AbstractRuleTest {
 
     @Test(expected = RuleException.class)
     public void testColumnConversion_ImproperType() throws RuleException {
-        getRule().apply(new ColumnBuilder().setType(DataType.BYTE).build());
+        getRule().apply(new ColumnBuilder().type(DataType.BYTE).build());
     }
 
     @Override
@@ -61,10 +61,10 @@ public class IntToFloatTest extends AbstractRuleTest {
 
     @Override
     protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
-        columnBuilder.setType(DataType.INT);
-        columnBuilder.setAddOffset(0.5f);
-        columnBuilder.setScaleFactor(2.0f);
-        columnBuilder.setFillValue(-1);
+        columnBuilder.type(DataType.INT);
+        columnBuilder.addOffset(0.5f);
+        columnBuilder.scaleFactor(2.0f);
+        columnBuilder.fillValue(-1);
 
         return columnBuilder;
     }

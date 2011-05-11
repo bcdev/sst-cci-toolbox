@@ -39,14 +39,14 @@ public class IoUtil {
 
     public static ColumnBuilder createColumnBuilder(final Variable variable, final String sensorName) {
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.setName(sensorName + '.' + variable.getName());
-        builder.setType(variable.getDataType());
-        builder.setUnsigned(variable.isUnsigned());
-        builder.setRank(variable.getRank());
-        builder.setDimensions(variable.getDimensionsString());
+        builder.name(sensorName + '.' + variable.getName());
+        builder.type(variable.getDataType());
+        builder.unsigned(variable.isUnsigned());
+        builder.rank(variable.getRank());
+        builder.dimensions(variable.getDimensionsString());
         setUnit(variable, builder);
         setAttributes(variable, builder);
-        builder.setRole(variable.getName());
+        builder.role(variable.getName());
 
         return builder;
     }
@@ -54,32 +54,32 @@ public class IoUtil {
     private static void setUnit(final Variable variable, final ColumnBuilder builder) {
         final String unit = variable.getUnitsString();
         if (unit != null && !unit.isEmpty()) {
-            builder.setUnit(unit);
+            builder.unit(unit);
         }
     }
 
     private static void setAttributes(final Variable variable, final ColumnBuilder builder) {
         for (final Attribute attribute : variable.getAttributes()) {
             if ("add_offset".equals(attribute.getName())) {
-                builder.setAddOffset(attribute.getNumericValue());
+                builder.addOffset(attribute.getNumericValue());
             }
             if ("scale_factor".equals(attribute.getName())) {
-                builder.setScaleFactor(attribute.getNumericValue());
+                builder.scaleFactor(attribute.getNumericValue());
             }
             if ("_FillValue".equals(attribute.getName())) {
-                builder.setFillValue(attribute.getNumericValue());
+                builder.fillValue(attribute.getNumericValue());
             }
             if ("valid_min".equals(attribute.getName())) {
-                builder.setValidMin(attribute.getNumericValue());
+                builder.validMin(attribute.getNumericValue());
             }
             if ("valid_max".equals(attribute.getName())) {
-                builder.setValidMax(attribute.getNumericValue());
+                builder.validMax(attribute.getNumericValue());
             }
             if ("long_name".equals(attribute.getName())) {
-                builder.setLongName(attribute.getStringValue());
+                builder.longName(attribute.getStringValue());
             }
             if ("standard_name".equals(attribute.getName())) {
-                builder.setStandardName(attribute.getStringValue());
+                builder.standardName(attribute.getStringValue());
             }
         }
     }

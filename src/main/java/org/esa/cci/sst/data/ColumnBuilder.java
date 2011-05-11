@@ -45,54 +45,54 @@ public final class ColumnBuilder {
     private Sensor sensor;
 
     public ColumnBuilder() {
-        setName("untitled");
-        setType(DataType.INT);
-        setDimensions("");
-        setSensor(new SensorBuilder().build());
+        name("untitled");
+        type(DataType.INT);
+        dimensions("");
+        sensor(new SensorBuilder().build());
     }
 
     public ColumnBuilder(Item column) {
-        setName(column.getName());
-        setType(DataType.valueOf(column.getType()));
-        setUnsigned(column.isUnsigned());
-        setRank(column.getRank());
-        setDimensions(column.getDimensions());
-        setUnit(column.getUnit());
-        setAddOffset(column.getAddOffset());
-        setScaleFactor(column.getScaleFactor());
-        setFillValue(column.getFillValue());
-        setValidMin(column.getValidMin());
-        setValidMax(column.getValidMax());
-        setStandardName(column.getStandardName());
-        setLongName(column.getLongName());
-        setRole(column.getRole());
-        setSensor(column.getSensor());
+        name(column.getName());
+        type(DataType.valueOf(column.getType()));
+        unsigned(column.isUnsigned());
+        rank(column.getRank());
+        dimensions(column.getDimensions());
+        unit(column.getUnit());
+        addOffset(column.getAddOffset());
+        scaleFactor(column.getScaleFactor());
+        fillValue(column.getFillValue());
+        validMin(column.getValidMin());
+        validMax(column.getValidMax());
+        standardName(column.getStandardName());
+        longName(column.getLongName());
+        role(column.getRole());
+        sensor(column.getSensor());
     }
 
-    public ColumnBuilder setName(String name) {
+    public ColumnBuilder name(String name) {
         Assert.argument(name != null, "name == null");
         this.name = name;
         return this;
     }
 
-    public ColumnBuilder setType(DataType type) {
+    public ColumnBuilder type(DataType type) {
         Assert.argument(type != null, "type == null");
         this.type = type;
         return this;
     }
 
-    public ColumnBuilder setType(String type) {
+    public ColumnBuilder type(String type) {
         Assert.argument(type != null, "type == null");
         final DataType dataType = DataType.valueOf(type);
-        return setType(dataType);
+        return type(dataType);
     }
 
-    public ColumnBuilder setUnsigned(boolean unsigned) {
+    public ColumnBuilder unsigned(boolean unsigned) {
         this.unsigned = unsigned;
         return this;
     }
 
-    public ColumnBuilder setRank(int rank) {
+    public ColumnBuilder rank(int rank) {
         Assert.argument(rank >= 0, "rank < 0");
         this.rank = rank;
         return this;
@@ -106,7 +106,7 @@ public final class ColumnBuilder {
      *
      * @return {@code this}.
      */
-    public ColumnBuilder setDimensions(String dimensions) {
+    public ColumnBuilder dimensions(String dimensions) {
         Assert.argument(dimensions != null, "dimensions == null");
         //noinspection ConstantConditions
         Assert.argument(dimensions.isEmpty() ||
@@ -116,52 +116,52 @@ public final class ColumnBuilder {
         return this;
     }
 
-    public ColumnBuilder setUnit(String unit) {
+    public ColumnBuilder unit(String unit) {
         this.unit = unit;
         return this;
     }
 
-    public ColumnBuilder setAddOffset(Number addOffset) {
+    public ColumnBuilder addOffset(Number addOffset) {
         this.addOffset = addOffset;
         return this;
     }
 
-    public ColumnBuilder setScaleFactor(Number scaleFactor) {
+    public ColumnBuilder scaleFactor(Number scaleFactor) {
         this.scaleFactor = scaleFactor;
         return this;
     }
 
-    public ColumnBuilder setFillValue(Number fillValue) {
+    public ColumnBuilder fillValue(Number fillValue) {
         this.fillValue = fillValue;
         return this;
     }
 
-    public ColumnBuilder setValidMin(Number validMin) {
+    public ColumnBuilder validMin(Number validMin) {
         this.validMin = validMin;
         return this;
     }
 
-    public ColumnBuilder setValidMax(Number validMax) {
+    public ColumnBuilder validMax(Number validMax) {
         this.validMax = validMax;
         return this;
     }
 
-    public ColumnBuilder setStandardName(String standardName) {
+    public ColumnBuilder standardName(String standardName) {
         this.standardName = standardName;
         return this;
     }
 
-    public ColumnBuilder setLongName(String longName) {
+    public ColumnBuilder longName(String longName) {
         this.longName = longName;
         return this;
     }
 
-    public ColumnBuilder setRole(String role) {
+    public ColumnBuilder role(String role) {
         this.role = role;
         return this;
     }
 
-    public ColumnBuilder setSensor(Sensor sensor) {
+    public ColumnBuilder sensor(Sensor sensor) {
         Assert.argument(sensor != null, "sensor == null");
         this.sensor = sensor;
         return this;

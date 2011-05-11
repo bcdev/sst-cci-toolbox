@@ -105,7 +105,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     }
 
     private static Item createColumn(final Variable variable, final String sensorName, final DataFile dataFile) {
-        return IoUtil.createColumnBuilder(variable, sensorName).setSensor(dataFile.getSensor()).build();
+        return IoUtil.createColumnBuilder(variable, sensorName).sensor(dataFile.getSensor()).build();
     }
 
 }
