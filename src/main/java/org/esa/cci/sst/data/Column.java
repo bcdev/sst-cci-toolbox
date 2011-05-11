@@ -51,6 +51,8 @@ public class Column implements Item {
     private String role;
     private Sensor sensor;
 
+    // todo - flag meanings, flag values
+
     /**
      * Creates a new instance of this class.
      * <p/>
