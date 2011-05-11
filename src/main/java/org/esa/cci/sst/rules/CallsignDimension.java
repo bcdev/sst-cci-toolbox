@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.tools.Constants;
+
 /**
  * Replaces the second dimension with the 'callsign_length' dimension.
  *
@@ -25,6 +27,6 @@ final class CallsignDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, "callsign_length");
+        replacer.replace(1, Constants.DIMENSION_NAME_CALLSIGN_LENGTH);
     }
 }

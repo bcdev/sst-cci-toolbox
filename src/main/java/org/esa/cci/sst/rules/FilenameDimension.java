@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.tools.Constants;
+
 /**
  * Replaces the second dimension with the 'filename_length' dimension.
  *
@@ -25,6 +27,6 @@ final class FilenameDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, "filename_length");
+        replacer.replace(1, Constants.DIMENSION_NAME_FILENAME_LENGTH);
     }
 }

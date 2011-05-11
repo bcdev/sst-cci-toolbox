@@ -18,6 +18,7 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -32,7 +33,7 @@ final class JulianDateToSeconds implements Rule {
         Assert.unit("Julian Date", sourceColumn);
 
         final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
-        builder.unit("seconds since 1978-01-01 00:00:00");
+        builder.unit(Constants.UNIT_TIME);
         final Number sourceFillValue = sourceColumn.getFillValue();
         if (sourceFillValue != null) {
             builder.fillValue((sourceFillValue.doubleValue() - 2443509.5) * 86400.0);
