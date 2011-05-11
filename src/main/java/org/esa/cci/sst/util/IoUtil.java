@@ -75,6 +75,10 @@ public class IoUtil {
             if ("valid_max".equals(attribute.getName())) {
                 builder.validMax(attribute.getNumericValue());
             }
+            if ("valid_range".equals(attribute.getName())) {
+                builder.validMin(attribute.getNumericValue(0));
+                builder.validMax(attribute.getNumericValue(1));
+            }
             if ("long_name".equals(attribute.getName())) {
                 builder.longName(attribute.getStringValue());
             }
@@ -85,6 +89,14 @@ public class IoUtil {
     }
 
     public static Attribute addAttribute(Variable v, String name, String value) {
+        Assert.notNull(v, "v == null");
+        Assert.notNull(name, "name == null");
+        Assert.notNull(value, "value == null");
+
+        return v.addAttribute(new Attribute(name, value));
+    }
+
+    public static Attribute addAttribute(Variable v, String name, Number value) {
         Assert.notNull(v, "v == null");
         Assert.notNull(name, "name == null");
         Assert.notNull(value, "value == null");
@@ -130,15 +142,23 @@ public class IoUtil {
         }
         final Number addOffset = column.getAddOffset();
         if (addOffset != null) {
-            addAttribute(v, "add_offset", addOffset, DataType.FLOAT);
+            addAttribute(v, "add_offset", addOffset);
         }
         final Number scaleFactor = column.getScaleFactor();
         if (scaleFactor != null) {
-            addAttribute(v, "scale_factor", scaleFactor, DataType.FLOAT);
+            addAttribute(v, "scale_factor", scaleFactor);
         }
         final Number fillValue = column.getFillValue();
         if (fillValue != null) {
             addAttribute(v, "_FillValue", fillValue, dataType);
+        }
+        final Number validMin = column.getValidMin();
+        if (fillValue != null) {
+            addAttribute(v, "validMin", validMin, dataType);
+        }
+        final Number validMax = column.getValidMax();
+        if (fillValue != null) {
+            addAttribute(v, "validMax", validMax, dataType);
         }
     }
 }
