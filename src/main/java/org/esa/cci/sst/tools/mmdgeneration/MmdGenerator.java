@@ -59,6 +59,7 @@ import java.util.Properties;
  *
  * @author Thomas Storm
  */
+@Deprecated
 class MmdGenerator {
 
     static final String TIME_CONSTRAINED_MATCHUPS_QUERY =
@@ -75,10 +76,12 @@ class MmdGenerator {
     private final List<Matchup> matchupList = new ArrayList<Matchup>();
     private Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
 
+    @Deprecated
     MmdGenerator(final BasicTool tool) throws IOException {
         this.tool = tool;
         final String propertiesFilePath = tool.getConfiguration().getProperty("mmd.output.variables");
         final InputStream is = new FileInputStream(propertiesFilePath);
+
         this.targetVariables = new Properties();
         targetVariables.load(is);
         persistenceManager = tool.getPersistenceManager();
