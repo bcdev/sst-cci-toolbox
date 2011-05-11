@@ -16,9 +16,16 @@
 
 package org.esa.cci.sst.util;
 
+import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
+import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
+import ucar.nc2.Group;
+import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
+
+import java.text.MessageFormat;
 
 /**
  * Utility class for commonly used functions.
@@ -37,11 +44,18 @@ public class IoUtil {
         builder.setUnsigned(variable.isUnsigned());
         builder.setRank(variable.getRank());
         builder.setDimensions(variable.getDimensionsString());
-        setUnits(variable, builder);
+        setUnit(variable, builder);
         setAttributes(variable, builder);
         builder.setRole(variable.getName());
 
         return builder;
+    }
+
+    private static void setUnit(final Variable variable, final ColumnBuilder builder) {
+        final String unit = variable.getUnitsString();
+        if (unit != null && !unit.isEmpty()) {
+            builder.setUnit(unit);
+        }
     }
 
     private static void setAttributes(final Variable variable, final ColumnBuilder builder) {
@@ -70,10 +84,61 @@ public class IoUtil {
         }
     }
 
-    private static void setUnits(final Variable variable, final ColumnBuilder builder) {
-        final String units = variable.getUnitsString();
-        if (units != null && !units.isEmpty()) {
-            builder.setUnit(units);
+    public static Attribute addAttribute(Variable v, String name, String value) {
+        Assert.notNull(v, "v == null");
+        Assert.notNull(name, "name == null");
+        Assert.notNull(value, "value == null");
+
+        return v.addAttribute(new Attribute(name, value));
+    }
+
+    public static Attribute addAttribute(Variable v, String name, Number value, DataType type) {
+        Assert.notNull(v, "v == null");
+        Assert.notNull(name, "name == null");
+        Assert.notNull(value, "value == null");
+        Assert.notNull(type, "type == null");
+
+        switch (type) {
+            case BYTE:
+                return v.addAttribute(new Attribute(name, value.byteValue()));
+            case SHORT:
+                return v.addAttribute(new Attribute(name, value.shortValue()));
+            case INT:
+                return v.addAttribute(new Attribute(name, value.intValue()));
+            case FLOAT:
+                return v.addAttribute(new Attribute(name, value.floatValue()));
+            case DOUBLE:
+                return v.addAttribute(new Attribute(name, value.doubleValue()));
+            default:
+                throw new IllegalArgumentException(MessageFormat.format(
+                        "Attribute type ''{0}'' is not supported", type.toString()));
+        }
+    }
+
+    public static void addVariable(NetcdfFileWriteable targetFile, Item column) {
+        final Group rootGroup = targetFile.getRootGroup();
+        final DataType dataType = DataType.valueOf(column.getType());
+        final Variable v = targetFile.addVariable(rootGroup, column.getName(), dataType, column.getDimensions());
+
+        final String standardName = column.getStandardName();
+        if (standardName != null) {
+            addAttribute(v, "standard_name", standardName);
+        }
+        final String unit = column.getUnit();
+        if (unit != null) {
+            addAttribute(v, "units", unit);
+        }
+        final Number addOffset = column.getAddOffset();
+        if (addOffset != null) {
+            addAttribute(v, "add_offset", addOffset, DataType.FLOAT);
+        }
+        final Number scaleFactor = column.getScaleFactor();
+        if (scaleFactor != null) {
+            addAttribute(v, "scale_factor", scaleFactor, DataType.FLOAT);
+        }
+        final Number fillValue = column.getFillValue();
+        if (fillValue != null) {
+            addAttribute(v, "_FillValue", fillValue, dataType);
         }
     }
 }
