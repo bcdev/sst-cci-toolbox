@@ -94,10 +94,10 @@ class MmdStructureGenerator {
     }
 
     private void addMatchupVariables(final NetcdfFileWriteable file) {
-        file.addVariable(Constants.VARIABLE_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
-        file.addVariable(Constants.VARIABLE_NAME_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
-        file.addVariable(Constants.VARIABLE_NAME_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
-        file.addVariable(Constants.VARIABLE_NAME_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.COLUMN_NAME_MATCHUP_ID, DataType.INT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.COLUMN_NAME_MATCHUP_TIME, DataType.DOUBLE, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.COLUMN_NAME_MATCHUP_LON, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
+        file.addVariable(Constants.COLUMN_NAME_MATCHUP_LAT, DataType.FLOAT, Constants.DIMENSION_NAME_MATCHUP);
     }
 
     private void addNwpData(NetcdfFileWriteable file, String sensorName) {

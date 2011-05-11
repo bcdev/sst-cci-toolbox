@@ -82,8 +82,7 @@ public class MmdGeneratorTool extends BasicTool {
             mmdFile = tool.newMmdFile();
             mmdFile = tool.defineContents(mmdFile);
 
-            final MmdGenerator generator = new MmdGenerator(tool);
-            generator.writeMatchups(mmdFile);
+            writeMatchups(mmdFile);
         } catch (ToolException e) {
             tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -96,6 +95,10 @@ public class MmdGeneratorTool extends BasicTool {
                 }
             }
         }
+    }
+
+    private static void writeMatchups(NetcdfFileWriteable mmdFile) {
+        // todo - implement
     }
 
     @Override
@@ -230,16 +233,22 @@ public class MmdGeneratorTool extends BasicTool {
         final ColumnBuilder builder = new ColumnBuilder();
         builder.setDimensions(Constants.DIMENSION_NAME_MATCHUP);
 
-        final List<Item> internalColumns = new ArrayList<Item>(6);
-        internalColumns.add(builder.setName(Constants.VARIABLE_NAME_MATCHUP_ID).setType(DataType.INT).build());
-        internalColumns.add(builder.setName(Constants.VARIABLE_NAME_TIME).setType(DataType.INT).build());
-        internalColumns.add(builder.setName(Constants.VARIABLE_NAME_LON).setType(DataType.FLOAT).build());
-        internalColumns.add(builder.setName(Constants.VARIABLE_NAME_LAT).setType(DataType.FLOAT).build());
+        final List<Item> implicitColumns = new ArrayList<Item>(6);
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_ID).setType(DataType.INT).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_TIME).setType(DataType.INT).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_LON).setType(DataType.FLOAT).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_LAT).setType(DataType.FLOAT).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_INSITU_CALLSIGN).setType(DataType.CHAR).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_INSITU_DATASET).setType(DataType.BYTE).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_REFERENCE_FLAG).setType(DataType.BYTE).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_VALID).setType(DataType.BYTE).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_PRIMARY_SENSOR).setType(DataType.BYTE).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_PRIMARY_FILENAME).setType(DataType.CHAR).build());
+        implicitColumns.add(builder.setName(Constants.COLUMN_NAME_MATCHUP_SENSOR_LIST).setType(DataType.CHAR).build());
 
-        // todo - add land/water mask (?)
-        // todo - add NWP (?)
+        // todo - add NWP
 
-        for (final Item column : internalColumns) {
+        for (final Item column : implicitColumns) {
             if (columnRegistry.hasColumn(column.getName())) {
                 final String message = MessageFormat.format("Internal column ''{0}'' is already defined.",
                                                             column.getName());

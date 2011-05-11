@@ -184,7 +184,7 @@ class MmdGenerator {
     private void writeMatchupId(NetcdfFileWriteable file, int matchupId, int matchupIndex) throws IOException {
         final Array array = Array.factory(DataType.INT, new int[]{1}, new int[]{matchupId});
         try {
-            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID), new int[]{matchupIndex}, array);
+            file.write(NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_ID), new int[]{matchupIndex}, array);
         } catch (InvalidRangeException e) {
             throw new ToolException("Unable to write matchup id.", e, ToolException.TOOL_ERROR);
         }
@@ -195,7 +195,7 @@ class MmdGenerator {
         final Date referenceObservationTime = referenceObservation.getTime();
         final Array time = Array.factory(DataType.LONG, new int[]{1}, new long[]{referenceObservationTime.getTime()});
         try {
-            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_TIME), new int[]{matchupIndex}, time);
+            file.write(NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_TIME), new int[]{matchupIndex}, time);
         } catch (Exception e) {
             throw new ToolException("Unable to write time.", e, ToolException.TOOL_ERROR);
         }
@@ -209,8 +209,8 @@ class MmdGenerator {
         final Array lonArray = Array.factory(DataType.FLOAT, new int[]{1}, new float[]{lon});
         final Array latArray = Array.factory(DataType.FLOAT, new int[]{1}, new float[]{lat});
         try {
-            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_LON), new int[]{matchupIndex}, lonArray);
-            file.write(NetcdfFile.escapeName(Constants.VARIABLE_NAME_LAT), new int[]{matchupIndex}, latArray);
+            file.write(NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_LON), new int[]{matchupIndex}, lonArray);
+            file.write(NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_LAT), new int[]{matchupIndex}, latArray);
         } catch (Exception e) {
             throw new ToolException("Unable to write location.", e, ToolException.TOOL_ERROR);
         }

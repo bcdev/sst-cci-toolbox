@@ -60,7 +60,7 @@ public class MmdIOHandler implements IOHandler {
         final String fileLocation = dataFile.getPath();
         validateFileLocation(fileLocation);
         ncFile = NetcdfFile.open(fileLocation);
-        matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+        matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_ID));
         // allow for matchup_id instead of matchup.id to support ARC2 output
         if (matchupIds == null) {
             matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));

@@ -187,7 +187,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     }
 
     Variable getMatchupVariable(NetcdfFile source) {
-        String matchupNameEscaped = NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID);
+        String matchupNameEscaped = NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_ID);
         Variable matchupVariable = source.findVariable(matchupNameEscaped);
         if (matchupVariable == null) {
             String matchupNameAlternativeEscaped = NetcdfFile.escapeName(
@@ -198,7 +198,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
             throw new IllegalStateException(
                     MessageFormat.format("File ''{0}'' does neither contain the variable ''{1}'' nor ''{2}''.",
                                          source.getLocation(),
-                                         Constants.VARIABLE_NAME_MATCHUP_ID,
+                                         Constants.COLUMN_NAME_MATCHUP_ID,
                                          Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
         }
         return matchupVariable;
