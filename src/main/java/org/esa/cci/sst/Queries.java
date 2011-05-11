@@ -64,17 +64,17 @@ public class Queries {
             " from Matchup m" +
             " where m.id = ?1";
 
+    @SuppressWarnings({"unchecked"})
+    public static List<? extends Item> getAllColumns(PersistenceManager pm) {
+        return pm.createQuery(QUERY_STRING_SELECT_ALL_COLUMNS).getResultList();
+    }
+
     public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate) {
         final Query query = pm.createQuery(QUERY_STRING_COUNT_MATCHUPS);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
         final Number matchupCount = (Number) query.getSingleResult();
         return matchupCount.intValue();
-    }
-
-    @SuppressWarnings({"unchecked"})
-    public static List<? extends Item> getAllColumns(PersistenceManager pm) {
-        return pm.createQuery(QUERY_STRING_SELECT_ALL_COLUMNS).getResultList();
     }
 
     @SuppressWarnings({"unchecked"})
