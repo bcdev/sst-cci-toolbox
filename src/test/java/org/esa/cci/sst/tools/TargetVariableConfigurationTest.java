@@ -59,7 +59,7 @@ public class TargetVariableConfigurationTest {
 
     @Test
     public void testRegisterColumns() throws ParseException, RuleException {
-        final InputStream is = getClass().getResourceAsStream("mmd-variables.txt");
+        final InputStream is = getClass().getResourceAsStream("mmd-variables.config");
 
         assertNotNull(is);
 
@@ -85,7 +85,7 @@ public class TargetVariableConfigurationTest {
     private void testMetopColumn() {
         final Item targetColumn = registry.getColumn("metop.brightness_temperature.037");
 
-        assertEquals("matchup metop.ni metop.nj", targetColumn.getDimensions());
+        assertEquals("matchup metop.ny metop.nx", targetColumn.getDimensions());
         assertNotNull(registry.getConverter(targetColumn));
         assertNotNull("metop.IR037", registry.getSourceColumn(targetColumn).getName());
     }
