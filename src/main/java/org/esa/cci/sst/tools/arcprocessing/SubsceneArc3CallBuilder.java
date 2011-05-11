@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
- * 
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,7 +9,7 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
@@ -29,7 +29,6 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
-import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -163,9 +162,8 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         final HashMap<Integer, Point> map = new HashMap<Integer, Point>();
         while (indexIterator.hasNext()) {
             final Integer currentMatchupId = (Integer) indexIterator.next();
-            final Query query = persistenceManager.createQuery(Queries.REF_OBSERVATION_POINT_FOR_MATCHUP);
-            query.setParameter(1, currentMatchupId);
-            final ReferenceObservation observation = (ReferenceObservation) query.getSingleResult();
+            final ReferenceObservation observation = Queries.getReferenceObservationForMatchup(persistenceManager,
+                                                                                               currentMatchupId);
             map.put(currentMatchupId, observation.getPoint().getGeometry().getFirstPoint());
         }
         return map;

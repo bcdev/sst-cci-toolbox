@@ -18,6 +18,7 @@ package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 
 import javax.persistence.Query;
@@ -58,11 +59,11 @@ public class Queries {
             " and m.pattern & ?3 = ?3" +
             " order by o.time";
 
-    public static final String REF_OBSERVATION_POINT_FOR_MATCHUP =
-            "select o" +
-            "from ReferenceObservation o, Matchup m " +
-            "where o.id = m.refobs.id and m.id = ?";    
-    
+    public static final String QUERY_STRING_SELECT_REFERENCE_OBSERVATION_FOR_MATCHUP =
+            "select m.refObs" +
+            " from Matchup m" +
+            " where m.id = ?1";
+
     public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate) {
         final Query query = pm.createQuery(QUERY_STRING_COUNT_MATCHUPS);
         query.setParameter(1, startDate);
@@ -91,5 +92,12 @@ public class Queries {
         query.setParameter(2, stopDate);
         query.setParameter(3, pattern);
         return query.getResultList();
+    }
+
+    public static ReferenceObservation getReferenceObservationForMatchup(PersistenceManager pm, int matchupId) {
+        final Query query = pm.createQuery(QUERY_STRING_SELECT_REFERENCE_OBSERVATION_FOR_MATCHUP);
+        query.setParameter(1, matchupId);
+
+        return (ReferenceObservation) query.getSingleResult();
     }
 }

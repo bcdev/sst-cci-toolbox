@@ -24,6 +24,8 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 /**
@@ -33,11 +35,11 @@ import java.util.Properties;
  */
 public class QueriesTestRunner extends BlockJUnit4ClassRunner {
 
-    private boolean canPersist;
+    private static boolean canPersist;
 
     public QueriesTestRunner(Class<?> klass) throws InitializationError {
         super(klass);
-        checkPersistenceIsAvailable(klass);
+        checkIfPersistenceIsAvailable(klass);
     }
 
 
@@ -50,15 +52,31 @@ public class QueriesTestRunner extends BlockJUnit4ClassRunner {
         }
     }
 
-    private void checkPersistenceIsAvailable(Class<?> klass) {
+    private static void checkIfPersistenceIsAvailable(Class<?> klass) {
+        final Properties configuration = new Properties();
+
+        InputStream is = null;
         try {
-            final Properties configuration = new Properties();
-            configuration.load(new FileInputStream("mms-config.properties"));
+            is = new FileInputStream("mms-config.properties");
+            configuration.load(is);
+        } catch (IOException e) {
+            System.out.println("Test" + klass.getName() + " suppressed - no configuration file found.");
+            e.printStackTrace();
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        try {
             @SuppressWarnings({"UnusedDeclaration"})
             final PersistenceManager pm = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, configuration);
             canPersist = true;
         } catch (Throwable t) {
             System.out.println("Test" + klass.getName() + " suppressed - JPA persistence not available.");
+            t.printStackTrace();
         }
     }
 }

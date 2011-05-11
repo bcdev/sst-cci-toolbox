@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
- * 
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,7 +9,7 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
@@ -147,7 +147,7 @@ public class SubsceneArc3CallBuilderTest {
     public void testGetMatchupLocations() throws Exception {
         final PersistenceManager persistenceManager = mock(PersistenceManager.class);
         final Query query = mock(Query.class);
-        when(persistenceManager.createQuery(Queries.REF_OBSERVATION_POINT_FOR_MATCHUP)).thenReturn(query);
+        when(persistenceManager.createQuery(Queries.QUERY_STRING_SELECT_REFERENCE_OBSERVATION_FOR_MATCHUP)).thenReturn(query);
         final ReferenceObservation singleResult = new ReferenceObservation();
         singleResult.setPoint(new PGgeometry(new Point(10.0, 20.0)));
         when(query.getSingleResult()).thenReturn(singleResult);

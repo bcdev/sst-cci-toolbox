@@ -18,6 +18,7 @@ package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
@@ -27,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -43,7 +45,19 @@ public class QueriesTest {
     @Before
     public void initPersistence() throws IOException {
         final Properties configuration = new Properties();
-        configuration.load(new FileInputStream("mms-config.properties"));
+
+        InputStream is = null;
+        try {
+            is = new FileInputStream("mms-config.properties");
+            configuration.load(is);
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
 
         pm = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, configuration);
     }
@@ -89,4 +103,19 @@ public class QueriesTest {
         assertEquals(1966, matchupList.size());
     }
 
+    @Test
+    public void testGetReferenceObservation() throws ParseException {
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
+        @SuppressWarnings({"unchecked"})
+        final List<Matchup> matchupList = Queries.getMatchups(pm, startDate, stopDate);
+
+        final Matchup matchup = matchupList.get(0);
+        final ReferenceObservation expectedReferenceObservation = matchup.getRefObs();
+        final int matchupId = matchup.getId();
+
+        final ReferenceObservation referenceObservation = Queries.getReferenceObservationForMatchup(pm, matchupId);
+
+        assertEquals(expectedReferenceObservation.getId(), referenceObservation.getId());
+    }
 }
