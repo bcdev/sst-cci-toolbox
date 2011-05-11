@@ -104,7 +104,7 @@ public class QueriesTest {
     }
 
     @Test
-    public void testGetReferenceObservation() throws ParseException {
+    public void testGetReferenceObservationForMatchup() throws ParseException {
         final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
         final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
         @SuppressWarnings({"unchecked"})
