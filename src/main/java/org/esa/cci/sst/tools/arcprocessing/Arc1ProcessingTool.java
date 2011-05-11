@@ -191,7 +191,7 @@ public class Arc1ProcessingTool extends BasicTool {
             if (!info.filename.equals(currentFilename)) {
                 if (currentFilename != null) {
                     final File latLonFile = latLonFileOf(currentFilename, tmpPath);
-                    writeLatLonFile(matchupIds, geoPositions, currentFilename, latLonFile);
+                    writeLatLonFile(matchupIds, geoPositions, latLonFile);
                     generateCalls(currentFilename, latLonFile, destPath,
                                   targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern));
                     // clear for next set of matching observations
@@ -209,14 +209,14 @@ public class Arc1ProcessingTool extends BasicTool {
         // write latlon file and script entry for last orbit file name encountered
         if (!geoPositions.isEmpty()) {
             final File latLonFile = latLonFileOf(currentFilename, tmpPath);
-            writeLatLonFile(matchupIds, geoPositions, currentFilename, latLonFile);
+            writeLatLonFile(matchupIds, geoPositions, latLonFile);
             generateCalls(currentFilename, latLonFile, destPath,
                           targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern));
         }
     }
 
     private void writeLatLonFile(final List<String> matchupIds, final List<String> geoPositions,
-                                 final String currentFilename, final File latLonFile) throws IOException {
+                                 final File latLonFile) throws IOException {
         Assert.argument(matchupIds.size() == geoPositions.size(), "Same number of matchups and points expected.");
         BufferedWriter writer = new BufferedWriter(new FileWriter(latLonFile));
         writer.write(String.format("%d\n", geoPositions.size()));
