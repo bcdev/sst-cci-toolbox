@@ -23,6 +23,7 @@ import org.esa.cci.sst.tools.Constants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -35,6 +36,7 @@ import ucar.nc2.Variable;
 import javax.persistence.Query;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -147,7 +149,8 @@ public class SubsceneArc3CallBuilderTest {
     public void testGetMatchupLocations() throws Exception {
         final PersistenceManager persistenceManager = mock(PersistenceManager.class);
         final Query query = mock(Query.class);
-        when(persistenceManager.createQuery(Queries.QUERY_STRING_SELECT_REFERENCE_OBSERVATION_FOR_MATCHUP)).thenReturn(query);
+        when(persistenceManager.createQuery(Queries.QUERY_STRING_SELECT_REFERENCE_OBSERVATION_FOR_MATCHUP)).thenReturn(
+                query);
         final ReferenceObservation singleResult = new ReferenceObservation();
         singleResult.setPoint(new PGgeometry(new Point(10.0, 20.0)));
         when(query.getSingleResult()).thenReturn(singleResult);
@@ -245,7 +248,7 @@ public class SubsceneArc3CallBuilderTest {
         assertEquals(50, array3.getDouble(6), 0.001);
         assertEquals(60, array3.getDouble(7), 0.001);
         assertEquals(1003, array3.getDouble(8), 0.001);
-        
+
         assertEquals(1, array4.getSize());
         assertEquals(95, array4.getDouble(0), 0.001);
 
@@ -265,5 +268,65 @@ public class SubsceneArc3CallBuilderTest {
         assertEquals(100, array6.getDouble(6), 0.001);
         assertEquals(105, array6.getDouble(7), 0.001);
         assertEquals(1003, array6.getDouble(8), 0.001);
+    }
+
+    @Test
+    public void testWriteSubscene() throws Exception {
+        final NetcdfFile source = NetcdfFile.open(getClass().getResource("test_with_latlon.nc").getFile());
+        final List<Variable> variables = source.getVariables();
+        final SubsceneArc3CallBuilder subsceneArc3CallBuilderMock = setupMock(source);
+
+        subsceneArc3CallBuilderMock.addSubsceneDimensions(target, source.findVariable("latitude"));
+        subsceneArc3CallBuilderMock.addSubsceneVariables(target, variables);
+        target.create();
+        variables.remove(0);
+        subsceneArc3CallBuilderMock.writeSubscene(source, target, variables);
+        final List<Variable> targetVariables = target.getVariables();
+
+        assertEquals(3, targetVariables.size());
+        assertEquals("record", targetVariables.get(0).getDimensionsString());
+        assertEquals("record ni nj", targetVariables.get(1).getDimensionsString());
+        assertEquals("record ni nj", targetVariables.get(2).getDimensionsString());
+    }
+
+    private SubsceneArc3CallBuilder setupMock(NetcdfFile source) throws Exception {
+        final SubsceneArc3CallBuilder subsceneArc3CallBuilderMock = mock(SubsceneArc3CallBuilder.class);
+
+        final Map<Integer, Point> map = new HashMap<Integer, Point>();
+        map.put(0, new Point(80.0, 10.0));
+        map.put(1, new Point(105.0, 60.0));
+        when(subsceneArc3CallBuilderMock.getMatchupLocations(source)).thenReturn(map);
+        when(subsceneArc3CallBuilderMock.getWidth()).thenReturn(2);
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).addSubsceneDimensions(Matchers.<NetcdfFileWriteable>any(),
+                                                                                   Matchers.<Variable>any());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).addSubsceneVariables(Matchers.<NetcdfFileWriteable>any(),
+                                                                                  Matchers.<List<Variable>>any());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).writeSubscene(Matchers.<NetcdfFile>any(),
+                                                                           Matchers.<NetcdfFileWriteable>any(),
+                                                                           Matchers.<List<Variable>>any());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).readSubscene(anyInt(),
+                                                                          Matchers.<int[]>anyObject(),
+                                                                          Matchers.<Variable>anyObject(),
+                                                                          anyInt());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).findCentralNetcdfCoords(Matchers.<Variable>any(),
+                                                                                     Matchers.<Variable>any(),
+                                                                                     anyInt(),
+                                                                                     Matchers.<Point>any());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).getAtsrSourceVar(Matchers.<List<Variable>>any(),
+                                                                              Matchers.<String>any());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).createSection(anyInt(),
+                                                                           Matchers.<int[]>any(),
+                                                                           anyInt());
+
+        return subsceneArc3CallBuilderMock;
+    }
+
+    @Test
+    public void testCreateSection() throws Exception {
+        final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(null, null);
+        final SubsceneArc3CallBuilder.Section section = subsceneArc3CallBuilder.createSection(3, new int[]{30, 28}, 5);
+
+        assertArrayEquals(new int[]{3, 28, 26}, section.origin);
+        assertArrayEquals(new int[]{1, 5, 5}, section.shape);
     }
 }

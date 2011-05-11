@@ -74,17 +74,9 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         addSubsceneDimensions(target, atsrSourceVars.get(0));
         addSubsceneVariables(target, atsrSourceVars);
 
-        final Variable latitude = getAtsrSourceVar(atsrSourceVars, "latitude");
-        final Variable longitude = getAtsrSourceVar(atsrSourceVars, "longitude");
-        final Map<Integer, Point> matchupLocations = getMatchupLocations(source);
-        for (Map.Entry<Integer, Point> entry : matchupLocations.entrySet()) {
-            final Integer matchupId = entry.getKey();
-            final int[] coords = findCentralNetcdfCoords(latitude, longitude, matchupId, entry.getValue());
-            for (Variable atsrSourceVar : atsrSourceVars) {
-                final Array sourceValues = readSubscene(matchupId, coords, atsrSourceVar, Constants.ATSR_SUBSCENE_WIDTH);
-//                target.write(atsrSourceVar.getNameEscaped(), sourceValues);
-            }
-        }
+        target.create();
+
+        writeSubscene(source, target, atsrSourceVars);
 
         final StringBuilder builder = new StringBuilder();
         return builder.toString();
@@ -100,16 +92,30 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return null;
     }
 
+    void writeSubscene(NetcdfFile source, NetcdfFileWriteable target, List<Variable> atsrSourceVars) throws
+                                                                                                     IOException {
+        final Variable latitude = getAtsrSourceVar(atsrSourceVars, "latitude");
+        final Variable longitude = getAtsrSourceVar(atsrSourceVars, "longitude");
+        final Map<Integer, Point> matchupLocations = getMatchupLocations(source);
+        try {
+            for (Map.Entry<Integer, Point> entry : matchupLocations.entrySet()) {
+                final Integer matchupId = entry.getKey();
+                final int[] coords = findCentralNetcdfCoords(latitude, longitude, matchupId, entry.getValue());
+                for (Variable atsrSourceVar : atsrSourceVars) {
+                    final Array sourceValues = readSubscene(matchupId, coords, atsrSourceVar, getWidth());
+                    target.write(atsrSourceVar.getNameEscaped(), sourceValues);
+                }
+            }
+        } catch (InvalidRangeException e) {
+            throw new IOException("Could not write subscene.", e);
+        }
+    }
+
     Array readSubscene(int matchupId, int[] coords, Variable atsrSourceVar, int width) throws IOException {
-        final int[] origin = {
-                matchupId,
-                coords[0] - (width / 2),
-                coords[1] - (width / 2)
-        };
-        final int[] shape = {1, width, width};
+        final Section section = createSection(matchupId, coords, width);
         final Array values;
         try {
-            values = atsrSourceVar.read(origin, shape);
+            values = atsrSourceVar.read(section.origin, section.shape);
         } catch (InvalidRangeException e) {
             throw new IOException("Unable to read from variable '" + atsrSourceVar.getName() + "'.", e);
         }
@@ -137,7 +143,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
             final double currentLon = longitudeIterator.getDoubleNext();
             final double currentLat = latitudeIterator.getDoubleNext();
             final double currentDelta = Math.abs(currentLon - point.getX()) + Math.abs(currentLat - point.getY());
-            if(currentDelta < delta) {
+            if (currentDelta < delta) {
                 delta = currentDelta;
                 centralPoint[0] = longitudeIterator.getCurrentCounter()[1];
                 centralPoint[1] = longitudeIterator.getCurrentCounter()[2];
@@ -178,7 +184,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
 
     void addSubsceneDimensions(NetcdfFileWriteable target, Variable atsrSourceVar) {
         for (Dimension dimension : atsrSourceVar.getDimensions()) {
-            int length = Constants.ATSR_SUBSCENE_WIDTH;
+            int length = getWidth();
             if (dimension.getName().equalsIgnoreCase("record")) {
                 length = dimension.getLength();
             }
@@ -211,6 +217,30 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return builder.insert(extensionStart, "_subscenes").toString();
     }
 
+    int getWidth() {
+        return Constants.ATSR_SUBSCENE_WIDTH;
+    }
+
+    Section createSection(int matchupId, int[] coords, int width) {
+        final int[] origin = {
+                matchupId,
+                coords[0] - (width / 2),
+                coords[1] - (width / 2)
+        };
+        int[] offsets = new int[]{0,0,0};
+        for (int i = 0; i < origin.length; i++) {
+            if (origin[i] < 0) {
+                offsets[i] = 0 - origin[i];
+                origin[i] = 0;
+            }
+        }
+        final int[] shape = {1, width, width};
+        for (int i = 0; i < shape.length; i++) {
+            shape[i] -= offsets[i];
+        }
+        return new Section(origin, shape);
+    }
+
     private List<Variable> getAtsrSourceVariables(NetcdfFile source) {
         final List<Variable> atsrVars = new ArrayList<Variable>();
         for (Variable variable : source.getVariables()) {
@@ -226,4 +256,16 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
             throw new IllegalStateException("No variables of type 'atsr_orb' within source file.");
         }
     }
+
+    static class Section {
+
+        int[] origin;
+        int[] shape;
+
+        private Section(int[] origin, int[] shape) {
+            this.origin = origin;
+            this.shape = shape;
+        }
+    }
+
 }
