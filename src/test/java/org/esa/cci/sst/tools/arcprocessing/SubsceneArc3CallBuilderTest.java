@@ -27,12 +27,14 @@ import org.mockito.Matchers;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +50,12 @@ import static org.mockito.Mockito.*;
 public class SubsceneArc3CallBuilderTest {
 
     private NetcdfFileWriteable target;
-    private String netcdfResourceWithMatchupVariable;
+    private String netcdfResource;
 
     @Before
     public void setUp() throws Exception {
         final String someNetcdfResource = getClass().getResource("empty_test.nc").getFile();
-        netcdfResourceWithMatchupVariable = getClass().getResource("test.nc").getFile();
+        netcdfResource = getClass().getResource("test_with_mixed_variables.nc").getFile();
         final File file = new File(new File(someNetcdfResource).getParent(), "test_writable.nc");
         target = NetcdfFileWriteable.createNew(file.getAbsolutePath());
     }
@@ -76,7 +78,7 @@ public class SubsceneArc3CallBuilderTest {
     @Test
     public void testAddDimensionsAndVariables() throws Exception {
         final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(null, null);
-        final NetcdfFile source = NetcdfFile.open(getClass().getResource("test_with_mixed_variables.nc").getFile());
+        final NetcdfFile source = NetcdfFile.open(netcdfResource);
 
         final Variable someSubsceneVariable = source.findVariable(NetcdfFile.escapeName("atsr_orb.someVariable"));
         subsceneArc3CallBuilder.addSubsceneDimensions(target, someSubsceneVariable);
@@ -161,10 +163,10 @@ public class SubsceneArc3CallBuilderTest {
         singleResult.setPoint(new PGgeometry(new Point(10.0, 20.0)));
         when(query.getSingleResult()).thenReturn(singleResult);
         final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(null, persistenceManager);
-        final NetcdfFile file = NetcdfFile.open(netcdfResourceWithMatchupVariable);
+        final NetcdfFile file = NetcdfFile.open(netcdfResource);
         final Map<Integer, Point> matchupLocations = subsceneArc3CallBuilder.getMatchupLocations(file);
 
-        assertEquals(10, matchupLocations.size());
+        assertEquals(2, matchupLocations.size());
         for (Point point : matchupLocations.values()) {
             assertEquals(10.0, point.getX(), 0.0001);
             assertEquals(20.0, point.getY(), 0.0001);
@@ -173,9 +175,9 @@ public class SubsceneArc3CallBuilderTest {
 
     @Test
     public void testFindCentralPoint() throws Exception {
-        final NetcdfFile file = NetcdfFile.open(getClass().getResource("test_with_latlon.nc").getFile());
-        final Variable latitude = file.findVariable("latitude");
-        final Variable longitude = file.findVariable("longitude");
+        final NetcdfFile file = NetcdfFile.open(netcdfResource);
+        final Variable latitude = file.findVariable(NetcdfFile.escapeName("atsr_orb.latitude"));
+        final Variable longitude = file.findVariable(NetcdfFile.escapeName("atsr_orb.longitude"));
 
         final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(null, null);
         final int[] centralPoint1 = subsceneArc3CallBuilder.findCentralNetcdfCoords(latitude, longitude, 0,
@@ -223,9 +225,9 @@ public class SubsceneArc3CallBuilderTest {
     @Test
     public void testReadSubscene() throws Exception {
         final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(null, null);
-        final NetcdfFile file = NetcdfFile.open(getClass().getResource("test_with_latlon.nc").getFile());
-        final Variable latitude = file.findVariable("latitude");
-        final Variable longitude = file.findVariable("longitude");
+        final NetcdfFile file = NetcdfFile.open(netcdfResource);
+        final Variable latitude = file.findVariable(NetcdfFile.escapeName("atsr_orb.latitude"));
+        final Variable longitude = file.findVariable(NetcdfFile.escapeName("atsr_orb.longitude"));
 
         final Array array1 = subsceneArc3CallBuilder.readSubscene(0, new int[]{1, 1}, latitude, 1);
         final Array array2 = subsceneArc3CallBuilder.readSubscene(0, new int[]{1, 1}, latitude, 2);
@@ -278,18 +280,19 @@ public class SubsceneArc3CallBuilderTest {
 
     @Test
     public void testWriteSubscene() throws Exception {
-        final NetcdfFile source = NetcdfFile.open(getClass().getResource("test_with_latlon.nc").getFile());
+        final NetcdfFile source = NetcdfFile.open(netcdfResource);
         final List<Variable> variables = source.getVariables();
         final SubsceneArc3CallBuilder subsceneArc3CallBuilderMock = setupMock(source);
 
-        subsceneArc3CallBuilderMock.addSubsceneDimensions(target, source.findVariable("latitude"));
+        subsceneArc3CallBuilderMock.addSubsceneDimensions(target, source.findVariable(NetcdfFile.escapeName("atsr_orb.latitude")));
+        subsceneArc3CallBuilderMock.addNonSubsceneDimensions(source, target);
         subsceneArc3CallBuilderMock.addVariables(source, target);
         target.create();
         variables.remove(0);
         subsceneArc3CallBuilderMock.writeSubscene(source, target, variables);
         final List<Variable> targetVariables = target.getVariables();
 
-        assertEquals(3, targetVariables.size());
+        assertEquals(5, targetVariables.size());
         assertEquals("record", targetVariables.get(0).getDimensionsString());
         assertEquals("record ni nj", targetVariables.get(1).getDimensionsString());
         assertEquals("record ni nj", targetVariables.get(2).getDimensionsString());
@@ -305,6 +308,8 @@ public class SubsceneArc3CallBuilderTest {
         when(subsceneArc3CallBuilderMock.getSubsceneWidth()).thenReturn(2);
         doCallRealMethod().when(subsceneArc3CallBuilderMock).addSubsceneDimensions(Matchers.<NetcdfFileWriteable>any(),
                                                                                    Matchers.<Variable>any());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).addNonSubsceneDimensions(Matchers.<NetcdfFileWriteable>any(),
+                                                                                      Matchers.<NetcdfFileWriteable>any());
         doCallRealMethod().when(subsceneArc3CallBuilderMock).addVariables(Matchers.<NetcdfFile>any(),
                                                                           Matchers.<NetcdfFileWriteable>any());
         doCallRealMethod().when(subsceneArc3CallBuilderMock).writeSubscene(Matchers.<NetcdfFile>any(),
@@ -323,6 +328,8 @@ public class SubsceneArc3CallBuilderTest {
         doCallRealMethod().when(subsceneArc3CallBuilderMock).createSection(anyInt(),
                                                                            Matchers.<int[]>any(),
                                                                            anyInt());
+        doCallRealMethod().when(subsceneArc3CallBuilderMock).isSubsceneDimension(Matchers.<NetcdfFileWriteable>any(),
+                                                                                 Matchers.<Dimension>any());
 
         return subsceneArc3CallBuilderMock;
     }
@@ -334,5 +341,29 @@ public class SubsceneArc3CallBuilderTest {
 
         assertArrayEquals(new int[]{3, 28, 26}, section.origin);
         assertArrayEquals(new int[]{1, 5, 5}, section.shape);
+    }
+
+    @Test
+    public void testCopyNonSubsceneValues() throws Exception {
+        final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(null, null);
+        final NetcdfFile source = NetcdfFile.open(netcdfResource);
+
+        subsceneArc3CallBuilder.addSubsceneDimensions(target, source.findVariable(NetcdfFile.escapeName("atsr_orb.someVariable")));
+        subsceneArc3CallBuilder.addNonSubsceneDimensions(source, target);
+        subsceneArc3CallBuilder.addVariables(source, target);
+
+        final List<String> subsceneNames = new ArrayList<String>();
+        subsceneNames.add("atsr_orb.someVariable");
+        subsceneNames.add("atsr_orb.latitude");
+        subsceneNames.add("atsr_orb.longitude");
+        subsceneArc3CallBuilder.copyNonSubsceneValues(source, target, subsceneNames);
+
+        final Array values = target.findVariable("someVariable").read();
+        assertEquals(1, values.getFloat(0), 0.00001);
+        assertEquals(25, values.getFloat(24), 0.00001);
+        assertEquals(101, values.getFloat(25), 0.00001);
+        assertEquals(111, values.getFloat(35), 0.00001);
+        assertEquals(120, values.getFloat(44), 0.00001);
+        assertEquals(125, values.getFloat(49), 0.00001);
     }
 }

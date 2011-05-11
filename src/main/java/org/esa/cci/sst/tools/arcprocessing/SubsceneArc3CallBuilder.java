@@ -22,8 +22,10 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
 import org.postgis.Point;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -75,12 +77,19 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         addVariables(source, target);
         addNonSubsceneDimensions(source, target);
 
-        target.create();
-
         writeSubscene(source, target, atsrSourceVars);
+        copyNonSubsceneValues(source, target, getVarNames(atsrSourceVars));
 
-        final StringBuilder builder = new StringBuilder();
-        return builder.toString();
+        String executableName = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_EXECUTABLE, "MMD_SCREEN_Linux");
+        String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
+
+
+        final StringBuilder arc3Call = new StringBuilder();
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", sourceFilename));
+        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk ./%s MDB.INP %s %s %s", executableName, sourceFilename,
+                                      nwpFilename, targetFilename));
+
+        return arc3Call.toString();
     }
 
     @Override
@@ -101,8 +110,8 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         }
     }
 
-    void writeSubscene(NetcdfFile source, NetcdfFileWriteable target, List<Variable> atsrSourceVars) throws
-                                                                                                     IOException {
+    void writeSubscene(NetcdfFile source, NetcdfFileWriteable target, List<Variable> atsrSourceVars) throws IOException {
+        ensureWriteMode(target);
         final Variable latitude = getAtsrSourceVar(atsrSourceVars, "latitude");
         final Variable longitude = getAtsrSourceVar(atsrSourceVars, "longitude");
         final Map<Integer, Point> matchupLocations = getMatchupLocations(source);
@@ -120,18 +129,31 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         }
     }
 
+    void copyNonSubsceneValues(NetcdfFile source, NetcdfFileWriteable target, List<String> subsceneNames) throws IOException {
+        ensureWriteMode(target);
+        for (Variable variable : source.getVariables()) {
+            final String variableName = variable.getName();
+            final boolean isSubsceneVariable = subsceneNames.contains(variableName);
+            if (!isSubsceneVariable) {
+                write(target, variable, variableName);
+            }
+        }
+    }
+
     Array readSubscene(int matchupId, int[] coords, Variable atsrSourceVar, int width) throws IOException {
         final Section section = createSection(matchupId, coords, width);
         final Array values;
         try {
             values = atsrSourceVar.read(section.origin, section.shape);
         } catch (InvalidRangeException e) {
-            throw new IOException("Unable to read from variable '" + atsrSourceVar.getName() + "'.", e);
+            throw new IOException(
+                    MessageFormat.format("Unable to read from variable ''{0}''.", atsrSourceVar.getName()), e);
         }
         return values;
     }
 
-    int[] findCentralNetcdfCoords(Variable latitude, Variable longitude, int matchupId, Point point) throws IOException {
+    int[] findCentralNetcdfCoords(Variable latitude, Variable longitude, int matchupId, Point point) throws
+                                                                                                     IOException {
         final int[] latOrigin = {matchupId, 0, 0};
         final int[] latShape = {1, latitude.getDimension(1).getLength(), latitude.getDimension(2).getLength()};
         final int[] lonOrigin = {matchupId, 0, 0};
@@ -186,7 +208,11 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
 
     void addVariables(NetcdfFile source, NetcdfFileWriteable target) {
         for (Variable sourceVar : source.getVariables()) {
-            target.addVariable(sourceVar.getName(), sourceVar.getDataType(), sourceVar.getDimensionsString());
+            final String varName = sourceVar.getName();
+            final DataType dataType = sourceVar.getDataType();
+            final String dimensionsString = sourceVar.getDimensionsString();
+            final Variable variable = target.addVariable(varName, dataType, dimensionsString);
+            addAttributes(sourceVar, variable);
         }
     }
 
@@ -259,6 +285,12 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return target.getRootGroup().findDimension(dimension.getName()) != null;
     }
 
+    static void ensureWriteMode(NetcdfFileWriteable target) throws IOException {
+        if (target.isDefineMode()) {
+            target.create();
+        }
+    }
+
     private List<Variable> getAtsrSourceVariables(NetcdfFile source) {
         final List<Variable> atsrVars = new ArrayList<Variable>();
         for (Variable variable : source.getVariables()) {
@@ -267,6 +299,28 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
             }
         }
         return atsrVars;
+    }
+
+    private void addAttributes(Variable sourceVar, Variable variable) {
+        for (Attribute attribute : sourceVar.getAttributes()) {
+            variable.addAttribute(attribute);
+        }
+    }
+
+    private List<String> getVarNames(List<Variable> atsrSourceVars) {
+        List<String> subsceneNames = new ArrayList<String>();
+        for (Variable atsrSourceVar : atsrSourceVars) {
+            subsceneNames.add(atsrSourceVar.getName());
+        }
+        return subsceneNames;
+    }
+
+    private void write(NetcdfFileWriteable target, Variable variable, String variableName) throws IOException {
+        try {
+            target.write(NetcdfFile.escapeName(variableName), variable.read());
+        } catch (InvalidRangeException e) {
+            throw new IOException(MessageFormat.format("Unable to read from variable ''{0}''.", variableName), e);
+        }
     }
 
     private static void validateSourceVariables(List<Variable> sourceVars) {
