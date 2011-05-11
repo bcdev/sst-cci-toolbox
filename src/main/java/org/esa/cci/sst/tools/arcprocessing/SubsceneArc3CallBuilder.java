@@ -57,7 +57,6 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     private final PersistenceManager persistenceManager;
 
     SubsceneArc3CallBuilder(Properties configuration, PersistenceManager persistenceManager) {
-        super(configuration);
         this.configuration = new Properties(configuration);
         this.persistenceManager = persistenceManager;
     }
@@ -65,8 +64,8 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     @Override
     public String createArc3Call() throws IOException {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
-        final String targetFilename = createSubsceneMmdFilename();
         validateSourceFilename(sourceFilename);
+        final String targetFilename = createSubsceneMmdFilename();
 
         final NetcdfFile source = NetcdfFile.open(sourceFilename);
         final List<Variable> atsrSourceVars = getAtsrSourceVariables(source);
@@ -94,12 +93,17 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
 
     @Override
     String createReingestionCall() {
-        return null;
-    }
+        final String targetFilename = createSubsceneMmdFilename();
+        final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "20000");
 
-    @Override
-    String createCleanupCall() {
-        return null;
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ssh eddie.ecdf.ed.ac.uk ");
+        builder.append(String.format("bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s\n" +
+                                     " -Dmms.reingestion.located=no \\\n" +
+                                     " -Dmms.reingestion.sensor=ARC3 \\\n" +
+                                     " -Dmms.reingestion.pattern=%s \\\n" +
+                                     " -c config/mms-config-eddie1.properties", targetFilename, pattern));
+        return builder.toString();
     }
 
     void addNonSubsceneDimensions(NetcdfFile source, NetcdfFileWriteable target) {
