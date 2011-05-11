@@ -60,6 +60,16 @@ public class ColumnRegistry {
     }
 
 
+    /**
+     * Registers columns defined in a 'mmd-variables.cfg' configuration file.
+     *
+     * @param file The configuration file.
+     *
+     * @return the list of column names being registered.
+     *
+     * @throws FileNotFoundException if the configuration file could not be found.
+     * @throws ParseException        if the configuration could not be parsed.
+     */
     public List<String> registerColumns(File file) throws FileNotFoundException, ParseException {
         InputStream is = null;
         try {
@@ -82,7 +92,7 @@ public class ColumnRegistry {
      *
      * @return the list of column names being registered.
      *
-     * @throws ParseException when the configuration could not be parsed.
+     * @throws ParseException if the configuration could not be parsed.
      */
     public List<String> registerColumns(InputStream is) throws ParseException {
         synchronized (this) {
