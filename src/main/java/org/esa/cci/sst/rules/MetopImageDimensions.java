@@ -23,7 +23,7 @@ final class MetopImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, "metop.ni");
-        replacer.replace(2, "metop.nj");
+        replacer.replace(1, "metop.ny");
+        replacer.replace(2, "metop.nx");
     }
 }

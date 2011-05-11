@@ -227,7 +227,7 @@ abstract class AbstractProductHandler implements IOHandler {
         builder.setType(type);
         builder.setUnsigned(ProductData.isUIntType(node.getDataType()));
         builder.setRank(3);
-        builder.setDimensions("record ni nj");
+        builder.setDimensions("record ny nx");
         final String unit = node.getUnit();
         if (unit != null && !unit.isEmpty()) {
             builder.setUnit(unit);

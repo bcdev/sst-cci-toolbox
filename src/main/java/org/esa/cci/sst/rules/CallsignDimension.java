@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Replaces the second dimension with the 'callsign.length' dimension.
+ * Replaces the second dimension with the 'callsign_length' dimension.
  *
  * @author Ralf Quast
  */
@@ -25,6 +25,6 @@ final class CallsignDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, "callsign.length");
+        replacer.replace(1, "callsign_length");
     }
 }

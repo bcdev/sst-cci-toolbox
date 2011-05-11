@@ -23,7 +23,7 @@ final class SeviriImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, "seviri.ni");
-        replacer.replace(2, "seviri.nj");
+        replacer.replace(1, "seviri.ny");
+        replacer.replace(2, "seviri.nx");
     }
 }
