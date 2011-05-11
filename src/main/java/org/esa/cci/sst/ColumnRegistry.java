@@ -23,6 +23,10 @@ import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.rules.RuleFactory;
 import ucar.ma2.Array;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -53,6 +57,22 @@ public class ColumnRegistry {
         columnsByName = new HashMap<String, Item>();
         rulesByTarget = new HashMap<Item, Rule>();
         columnsByTarget = new HashMap<Item, Item>();
+    }
+
+
+    public List<String> registerColumns(File file) throws FileNotFoundException, ParseException {
+        InputStream is = null;
+        try {
+            is = new FileInputStream(file);
+            return registerColumns(is);
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
     }
 
     /**

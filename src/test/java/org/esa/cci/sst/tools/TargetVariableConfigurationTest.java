@@ -63,7 +63,15 @@ public class TargetVariableConfigurationTest {
 
         assertNotNull(is);
 
-        final List<String> nameList = registry.registerColumns(is);
+        final List<String> nameList;
+        try {
+            nameList = registry.registerColumns(is);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException ignored) {
+            }
+        }
 
         assertNotNull(nameList);
         assertEquals(81, nameList.size());
