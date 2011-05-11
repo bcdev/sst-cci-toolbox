@@ -22,21 +22,10 @@ public class Constants {
      * Name of persistence unit in META-INF/persistence.xml
      */
     public static final String PERSISTENCE_UNIT_NAME = "matchupdb";
-    /**
-     * Name of the matchup dimension in an MMD file.
-     */
+
     public static final String DIMENSION_NAME_MATCHUP = "matchup";
-
-    /**
-     * Name of the callsign length dimension in an MMD file.
-     */
     public static final String DIMENSION_NAME_CALLSIGN_LENGTH = "callsign_length";
-
-    /**
-     * Name of the filename length dimension in an MMD file.
-     */
     public static final String DIMENSION_NAME_FILENAME_LENGTH = "filename_length";
-
     public static final String DIMENSION_NAME_INSITU_TIME = "insitu.time";
 
     public static final String UNIT_LAT = "degrees north";
@@ -81,8 +70,6 @@ public class Constants {
     public static final String COLUMN_NAME_MATCHUP_NWP_TURBULENT_STRESS_NORTH = "matchup.nwp.turbulent_stress_north";
     public static final String COLUMN_NAME_MATCHUP_NWP_EVAPORATION = "matchup.nwp.evaporation";
     public static final String COLUMN_NAME_MATCHUP_NWP_TOTAL_PRECIPITATION = "matchup.nwp.total_precipitation";
-
-    public static final String VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE = "matchup_id";
 
     public static final String LOCATIONFILE_PROPERTY = "mms.pixelpos.locationfile";
     public static final String LATLONFILE_PROPERTY = "mms.pixelpos.latlonfile";
@@ -168,6 +155,9 @@ public class Constants {
     public static final int INSITU_HISTORY_LENGTH = 24;
     @Deprecated
     public static final int INSITU_HISTORY_QC_LENGTH = 2;
+
+    @Deprecated
+    public static final String VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE = "matchup_id";
 
     private Constants() {
     }
