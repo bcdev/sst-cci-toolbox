@@ -102,18 +102,17 @@ public class SimpleArc3CallBuilderTest {
         assertEquals(builder.toString(), reingestCall);
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testFailingCleanupCall() throws Exception {
-        new SimpleArc3CallBuilder(null).createCleanupCall();
-    }
-
     @Test
     public void testCleanupCall() throws Exception {
         final Properties configuration = new Properties();
         final String sourceFile = getClass().getResource("empty_test.nc").getFile();
         configuration.setProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE, sourceFile);
         final SimpleArc3CallBuilder simpleArc3CallBuilder = new SimpleArc3CallBuilder(configuration);
-        final String cleanupCall = simpleArc3CallBuilder.createCleanupCall();
-        assertEquals("ssh eddie.ecdf.ed.ac.uk rm " + sourceFile, cleanupCall);
+        final String cleanupCall = simpleArc3CallBuilder.createCleanupCall("arc3CallScript", "reingestionCallScript", "cleanupScript");
+        StringBuilder resultBuilder = new StringBuilder();
+        resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm arc3CallScript");
+        resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm reingestionCallScript");
+        resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm cleanupScript");
+        assertEquals(resultBuilder.toString(), cleanupCall);
     }
 }

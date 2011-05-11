@@ -21,31 +21,24 @@ import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Properties;
 
 /**
- * The interface the different strategies to create an ARC3 call need to implement.
+ * Different strategies to create an ARC3 call need to extend this class.
  *
  * @author Thomas Storm
  */
 abstract class Arc3CallBuilder {
 
-    private final Properties configuration;
-
-    protected Arc3CallBuilder(Properties configuration) {
-        this.configuration = new Properties(configuration);
-    }
-
     abstract String createArc3Call() throws IOException;
 
     abstract String createReingestionCall();
 
-    abstract String createCleanupCall();
-
-    String getSourceFilename() {
-        String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
-        validateSourceFilename(sourceFilename);
-        return sourceFilename;
+    String createCleanupCall(String arc3CallScript, String reingestionCallScript, String cleanupScript) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", arc3CallScript));
+        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", reingestionCallScript));
+        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", cleanupScript));
+        return builder.toString();
     }
 
     static String getDefaultTargetFileName(String sourceFilename) {

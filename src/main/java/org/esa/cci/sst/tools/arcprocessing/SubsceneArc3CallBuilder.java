@@ -22,8 +22,10 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
 import org.postgis.Point;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -55,7 +57,6 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     private final PersistenceManager persistenceManager;
 
     SubsceneArc3CallBuilder(Properties configuration, PersistenceManager persistenceManager) {
-        super(configuration);
         this.configuration = new Properties(configuration);
         this.persistenceManager = persistenceManager;
     }
@@ -63,60 +64,100 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     @Override
     public String createArc3Call() throws IOException {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
-        final String targetFilename = createSubsceneMmdFilename();
         validateSourceFilename(sourceFilename);
+        final String targetFilename = createSubsceneMmdFilename();
 
         final NetcdfFile source = NetcdfFile.open(sourceFilename);
-        final NetcdfFileWriteable target = NetcdfFileWriteable.createNew(targetFilename);
         final List<Variable> atsrSourceVars = getAtsrSourceVariables(source);
         validateSourceVariables(atsrSourceVars);
 
+        final NetcdfFileWriteable target = NetcdfFileWriteable.createNew(targetFilename);
         addSubsceneDimensions(target, atsrSourceVars.get(0));
-        addSubsceneVariables(target, atsrSourceVars);
+        addVariables(source, target);
+        addNonSubsceneDimensions(source, target);
 
-        final Variable latitude = getAtsrSourceVar(atsrSourceVars, "latitude");
-        final Variable longitude = getAtsrSourceVar(atsrSourceVars, "longitude");
-        final Map<Integer, Point> matchupLocations = getMatchupLocations(source);
-        for (Map.Entry<Integer, Point> entry : matchupLocations.entrySet()) {
-            final Integer matchupId = entry.getKey();
-            final int[] coords = findCentralNetcdfCoords(latitude, longitude, matchupId, entry.getValue());
-            for (Variable atsrSourceVar : atsrSourceVars) {
-                final Array sourceValues = readSubscene(matchupId, coords, atsrSourceVar, Constants.ATSR_SUBSCENE_WIDTH);
-//                target.write(atsrSourceVar.getNameEscaped(), sourceValues);
-            }
-        }
+        writeSubscene(source, target, atsrSourceVars);
+        copyNonSubsceneValues(source, target, getVarNames(atsrSourceVars));
 
-        final StringBuilder builder = new StringBuilder();
-        return builder.toString();
+        String executableName = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_EXECUTABLE, "MMD_SCREEN_Linux");
+        String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
+
+
+        final StringBuilder arc3Call = new StringBuilder();
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", sourceFilename));
+        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk ./%s MDB.INP %s %s %s", executableName, sourceFilename,
+                                      nwpFilename, targetFilename));
+
+        return arc3Call.toString();
     }
 
     @Override
     String createReingestionCall() {
-        return null;
+        final String targetFilename = createSubsceneMmdFilename();
+        final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "20000");
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ssh eddie.ecdf.ed.ac.uk ");
+        builder.append(String.format("bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s\n" +
+                                     " -Dmms.reingestion.located=no \\\n" +
+                                     " -Dmms.reingestion.sensor=ARC3 \\\n" +
+                                     " -Dmms.reingestion.pattern=%s \\\n" +
+                                     " -c config/mms-config-eddie1.properties", targetFilename, pattern));
+        return builder.toString();
     }
 
-    @Override
-    String createCleanupCall() {
-        return null;
+    void addNonSubsceneDimensions(NetcdfFile source, NetcdfFileWriteable target) {
+        for (Dimension dimension : source.getDimensions()) {
+            if (!isSubsceneDimension(target, dimension)) {
+                target.addDimension(dimension.getName(), dimension.getLength());
+            }
+        }
+    }
+
+    void writeSubscene(NetcdfFile source, NetcdfFileWriteable target, List<Variable> atsrSourceVars) throws IOException {
+        ensureWriteMode(target);
+        final Variable latitude = getAtsrSourceVar(atsrSourceVars, "latitude");
+        final Variable longitude = getAtsrSourceVar(atsrSourceVars, "longitude");
+        final Map<Integer, Point> matchupLocations = getMatchupLocations(source);
+        try {
+            for (Map.Entry<Integer, Point> entry : matchupLocations.entrySet()) {
+                final Integer matchupId = entry.getKey();
+                final int[] coords = findCentralNetcdfCoords(latitude, longitude, matchupId, entry.getValue());
+                for (Variable atsrSourceVar : atsrSourceVars) {
+                    final Array sourceValues = readSubscene(matchupId, coords, atsrSourceVar, getSubsceneWidth());
+                    target.write(atsrSourceVar.getNameEscaped(), sourceValues);
+                }
+            }
+        } catch (InvalidRangeException e) {
+            throw new IOException("Could not write subscene.", e);
+        }
+    }
+
+    void copyNonSubsceneValues(NetcdfFile source, NetcdfFileWriteable target, List<String> subsceneNames) throws IOException {
+        ensureWriteMode(target);
+        for (Variable variable : source.getVariables()) {
+            final String variableName = variable.getName();
+            final boolean isSubsceneVariable = subsceneNames.contains(variableName);
+            if (!isSubsceneVariable) {
+                write(target, variable, variableName);
+            }
+        }
     }
 
     Array readSubscene(int matchupId, int[] coords, Variable atsrSourceVar, int width) throws IOException {
-        final int[] origin = {
-                matchupId,
-                coords[0] - (width / 2),
-                coords[1] - (width / 2)
-        };
-        final int[] shape = {1, width, width};
+        final Section section = createSection(matchupId, coords, width);
         final Array values;
         try {
-            values = atsrSourceVar.read(origin, shape);
+            values = atsrSourceVar.read(section.origin, section.shape);
         } catch (InvalidRangeException e) {
-            throw new IOException("Unable to read from variable '" + atsrSourceVar.getName() + "'.", e);
+            throw new IOException(
+                    MessageFormat.format("Unable to read from variable ''{0}''.", atsrSourceVar.getName()), e);
         }
         return values;
     }
 
-    int[] findCentralNetcdfCoords(Variable latitude, Variable longitude, int matchupId, Point point) throws IOException {
+    int[] findCentralNetcdfCoords(Variable latitude, Variable longitude, int matchupId, Point point) throws
+                                                                                                     IOException {
         final int[] latOrigin = {matchupId, 0, 0};
         final int[] latShape = {1, latitude.getDimension(1).getLength(), latitude.getDimension(2).getLength()};
         final int[] lonOrigin = {matchupId, 0, 0};
@@ -137,7 +178,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
             final double currentLon = longitudeIterator.getDoubleNext();
             final double currentLat = latitudeIterator.getDoubleNext();
             final double currentDelta = Math.abs(currentLon - point.getX()) + Math.abs(currentLat - point.getY());
-            if(currentDelta < delta) {
+            if (currentDelta < delta) {
                 delta = currentDelta;
                 centralPoint[0] = longitudeIterator.getCurrentCounter()[1];
                 centralPoint[1] = longitudeIterator.getCurrentCounter()[2];
@@ -169,16 +210,19 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return map;
     }
 
-    void addSubsceneVariables(NetcdfFileWriteable target, List<Variable> atsrSourceVars) {
-        for (Variable atsrSourceVar : atsrSourceVars) {
-            target.addVariable(atsrSourceVar.getName(), atsrSourceVar.getDataType(),
-                               atsrSourceVar.getDimensionsString());
+    void addVariables(NetcdfFile source, NetcdfFileWriteable target) {
+        for (Variable sourceVar : source.getVariables()) {
+            final String varName = sourceVar.getName();
+            final DataType dataType = sourceVar.getDataType();
+            final String dimensionsString = sourceVar.getDimensionsString();
+            final Variable variable = target.addVariable(varName, dataType, dimensionsString);
+            addAttributes(sourceVar, variable);
         }
     }
 
     void addSubsceneDimensions(NetcdfFileWriteable target, Variable atsrSourceVar) {
         for (Dimension dimension : atsrSourceVar.getDimensions()) {
-            int length = Constants.ATSR_SUBSCENE_WIDTH;
+            int length = getSubsceneWidth();
             if (dimension.getName().equalsIgnoreCase("record")) {
                 length = dimension.getLength();
             }
@@ -211,6 +255,46 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return builder.insert(extensionStart, "_subscenes").toString();
     }
 
+    int getSubsceneWidth() {
+        return Constants.ATSR_SUBSCENE_WIDTH;
+    }
+
+    Section createSection(int matchupId, int[] coords, int width) {
+        final int[] origin = {
+                matchupId,
+                coords[0] - (width / 2),
+                coords[1] - (width / 2)
+        };
+        int[] offsets = new int[]{0, 0, 0};
+        for (int i = 0; i < origin.length; i++) {
+            if (origin[i] < 0) {
+                offsets[i] = 0 - origin[i];
+                origin[i] = 0;
+            }
+        }
+        final int[] shape = {1, width, width};
+        for (int i = 0; i < shape.length; i++) {
+            shape[i] -= offsets[i];
+        }
+        return new Section(origin, shape);
+    }
+
+    boolean isSubsceneDimension(NetcdfFileWriteable target, Dimension dimension) {
+        // there's no other possible method to inquire if netcdf file has dimensions
+        try {
+            target.getRootGroup().getDimensions();
+        } catch (NullPointerException e) {
+            return true;
+        }
+        return target.getRootGroup().findDimension(dimension.getName()) != null;
+    }
+
+    static void ensureWriteMode(NetcdfFileWriteable target) throws IOException {
+        if (target.isDefineMode()) {
+            target.create();
+        }
+    }
+
     private List<Variable> getAtsrSourceVariables(NetcdfFile source) {
         final List<Variable> atsrVars = new ArrayList<Variable>();
         for (Variable variable : source.getVariables()) {
@@ -221,9 +305,43 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return atsrVars;
     }
 
+    private void addAttributes(Variable sourceVar, Variable variable) {
+        for (Attribute attribute : sourceVar.getAttributes()) {
+            variable.addAttribute(attribute);
+        }
+    }
+
+    private List<String> getVarNames(List<Variable> atsrSourceVars) {
+        List<String> subsceneNames = new ArrayList<String>();
+        for (Variable atsrSourceVar : atsrSourceVars) {
+            subsceneNames.add(atsrSourceVar.getName());
+        }
+        return subsceneNames;
+    }
+
+    private void write(NetcdfFileWriteable target, Variable variable, String variableName) throws IOException {
+        try {
+            target.write(NetcdfFile.escapeName(variableName), variable.read());
+        } catch (InvalidRangeException e) {
+            throw new IOException(MessageFormat.format("Unable to read from variable ''{0}''.", variableName), e);
+        }
+    }
+
     private static void validateSourceVariables(List<Variable> sourceVars) {
         if (sourceVars == null || sourceVars.isEmpty()) {
             throw new IllegalStateException("No variables of type 'atsr_orb' within source file.");
         }
     }
+
+    static class Section {
+
+        int[] origin;
+        int[] shape;
+
+        private Section(int[] origin, int[] shape) {
+            this.origin = origin;
+            this.shape = shape;
+        }
+    }
+
 }

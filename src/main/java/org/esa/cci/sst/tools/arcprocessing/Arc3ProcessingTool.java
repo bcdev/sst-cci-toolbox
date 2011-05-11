@@ -40,6 +40,9 @@ public class Arc3ProcessingTool extends BasicTool {
     private PrintWriter arc3CallWriter;
     private PrintWriter reingestionCallWriter;
     private PrintWriter cleanupCallWriter;
+    private String arc3CallScript;
+    private String reingestionCallScript;
+    private String cleanupScript;
 
     public static void main(String[] args) {
         final Arc3ProcessingTool tool = new Arc3ProcessingTool();
@@ -63,7 +66,8 @@ public class Arc3ProcessingTool extends BasicTool {
         final Arc3CallBuilder arc3Caller = new Arc3CallBuilderFactory().createArc3CallBuilder();
         final String arc3Call = arc3Caller.createArc3Call();
         final String reingestionCall = arc3Caller.createReingestionCall();
-        final String cleanupCall = arc3Caller.createCleanupCall();
+        final String cleanupCall = arc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
+
         arc3CallWriter.write(arc3Call);
         reingestionCallWriter.write(reingestionCall);
         cleanupCallWriter.write(cleanupCall);
@@ -83,18 +87,21 @@ public class Arc3ProcessingTool extends BasicTool {
         String arc3CallFilename = String.format("mms-arc3-%s-submit.sh", time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);
         setFileExecutable(arc3CallFile);
+        arc3CallScript = arc3CallFile.getAbsolutePath();
         arc3CallWriter = new PrintWriter(arc3CallFile);
         arc3CallWriter.format("#!/bin/bash\n\n");
 
         String reingestionCallFilename = String.format("mms-arc3-%s-reingest.sh", time);
         final File reingestionFile = new File(tmpDir, reingestionCallFilename);
         setFileExecutable(reingestionFile);
+        reingestionCallScript = reingestionFile.getAbsolutePath();
         reingestionCallWriter = new PrintWriter(new BufferedWriter(new FileWriter(reingestionFile)));
         reingestionCallWriter.format("#!/bin/bash\n\n");
 
         String cleanupCallFilename = String.format("mms-arc3-%s-cleanup.sh", time);
         final File cleanupFile = new File(tmpDir, cleanupCallFilename);
         setFileExecutable(cleanupFile);
+        cleanupScript = cleanupFile.getAbsolutePath();
         cleanupCallWriter = new PrintWriter(new BufferedWriter(new FileWriter(cleanupFile)));
         cleanupCallWriter.format("#!/bin/bash\n\n");
     }

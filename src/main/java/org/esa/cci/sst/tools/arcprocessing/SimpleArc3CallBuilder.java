@@ -28,7 +28,6 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
     private final Properties configuration;
 
     SimpleArc3CallBuilder(Properties configuration) {
-        super(configuration);
         this.configuration = new Properties(configuration);
     }
 
@@ -65,9 +64,9 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
         return builder.toString();
     }
 
-    @Override
-    public String createCleanupCall() {
-        final String sourceFilename = getSourceFilename();
-        return String.format("ssh eddie.ecdf.ed.ac.uk rm %s", sourceFilename);
+    private String getSourceFilename() {
+        String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
+        validateSourceFilename(sourceFilename);
+        return sourceFilename;
     }
 }
