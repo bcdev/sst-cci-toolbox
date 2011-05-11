@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.IoUtil;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
@@ -27,7 +28,6 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -40,6 +40,7 @@ import java.util.TreeMap;
  *
  * @author Thomas Storm
  */
+@Deprecated
 class MmdStructureGenerator {
 
     private final MmdGeneratorTool tool;
@@ -47,6 +48,7 @@ class MmdStructureGenerator {
     private final Map<String, Integer> dimensionCountMap = new TreeMap<String, Integer>();
     private final Properties targetVariables;
 
+    @Deprecated
     MmdStructureGenerator(final MmdGeneratorTool tool, final MmdGenerator generator) {
         this.tool = tool;
         this.generator = generator;
@@ -130,7 +132,7 @@ class MmdStructureGenerator {
                                                    DataType.BYTE,
                                                    String.format("%s %s.ni %s.nj", Constants.DIMENSION_NAME_MATCHUP,
                                                                  sensorName, sensorName));
-            addAttribute(mask, "_FillValue", Byte.MIN_VALUE, DataType.BYTE);
+            IoUtil.addAttribute(mask, "_FillValue", Byte.MIN_VALUE, DataType.BYTE);
         }
     }
 
@@ -142,7 +144,7 @@ class MmdStructureGenerator {
                                                    DataType.DOUBLE,
                                                    String.format("%s %s.ni", Constants.DIMENSION_NAME_MATCHUP,
                                                                  sensorName));
-            addAttribute(time, "units", "Julian Date");
+            IoUtil.addAttribute(time, "units", "Julian Date");
         }
     }
 
@@ -220,42 +222,11 @@ class MmdStructureGenerator {
         if (targetFile.findVariable(NetcdfFile.escapeName(targetVariableName)) == null) {
             final Variable v = targetFile.addVariable(targetFile.getRootGroup(), targetVariableName, dataType,
                                                       dimensions);
-            addAttribute(v, "standard_name", column.getStandardName());
-            addAttribute(v, "units", column.getUnit());
-            addAttribute(v, "add_offset", column.getAddOffset(), DataType.FLOAT);
-            addAttribute(v, "scale_factor", column.getScaleFactor(), DataType.FLOAT);
-            addAttribute(v, "_FillValue", column.getFillValue(), v.getDataType());
-        }
-    }
-
-    private static void addAttribute(Variable v, String attrName, String attrValue) {
-        if (attrValue != null) {
-            v.addAttribute(new Attribute(attrName, attrValue));
-        }
-    }
-
-    private static void addAttribute(Variable v, String attrName, Number attrValue, DataType attrType) {
-        if (attrValue != null) {
-            switch (attrType) {
-            case BYTE:
-                v.addAttribute(new Attribute(attrName, attrValue.byteValue()));
-                break;
-            case SHORT:
-                v.addAttribute(new Attribute(attrName, attrValue.shortValue()));
-                break;
-            case INT:
-                v.addAttribute(new Attribute(attrName, attrValue.intValue()));
-                break;
-            case FLOAT:
-                v.addAttribute(new Attribute(attrName, attrValue.floatValue()));
-                break;
-            case DOUBLE:
-                v.addAttribute(new Attribute(attrName, attrValue.doubleValue()));
-                break;
-            default:
-                throw new IllegalArgumentException(MessageFormat.format(
-                        "Attribute type ''{0}'' is not supported", attrType.toString()));
-            }
+            IoUtil.addAttribute(v, "standard_name", column.getStandardName());
+            IoUtil.addAttribute(v, "units", column.getUnit());
+            IoUtil.addAttribute(v, "add_offset", column.getAddOffset(), DataType.FLOAT);
+            IoUtil.addAttribute(v, "scale_factor", column.getScaleFactor(), DataType.FLOAT);
+            IoUtil.addAttribute(v, "_FillValue", column.getFillValue(), v.getDataType());
         }
     }
 
