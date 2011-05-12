@@ -33,8 +33,13 @@ abstract class Arc3CallBuilder {
 
     abstract String createReingestionCall();
 
-    String createCleanupCall(String arc3CallScript, String reingestionCallScript, String cleanupScript) {
+    String createSubsceneCall() {
+        return "";
+    }
+
+    String createCleanupCall(String subsceneScript, String arc3CallScript, String reingestionCallScript, String cleanupScript) {
         final StringBuilder builder = new StringBuilder();
+        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", subsceneScript));
         builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", arc3CallScript));
         builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", reingestionCallScript));
         builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", cleanupScript));
@@ -57,5 +62,4 @@ abstract class Arc3CallBuilder {
                                          Constants.PROPERTY_MMS_ARC3_SOURCEFILE));
         }
     }
-
 }

@@ -108,7 +108,7 @@ public class SimpleArc3CallBuilderTest {
         final String sourceFile = getClass().getResource("empty_test.nc").getFile();
         configuration.setProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE, sourceFile);
         final SimpleArc3CallBuilder simpleArc3CallBuilder = new SimpleArc3CallBuilder(configuration);
-        final String cleanupCall = simpleArc3CallBuilder.createCleanupCall("arc3CallScript", "reingestionCallScript", "cleanupScript");
+        final String cleanupCall = simpleArc3CallBuilder.createCleanupCall("", "arc3CallScript", "reingestionCallScript", "cleanupScript");
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm arc3CallScript");
         resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm reingestionCallScript");
