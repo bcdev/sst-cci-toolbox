@@ -39,9 +39,9 @@ abstract class Arc3CallBuilder {
 
     String createCleanupCall(String subsceneScript, String arc3CallScript, String reingestionCallScript, String cleanupScript) {
         final StringBuilder builder = new StringBuilder();
-        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", subsceneScript));
-        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", arc3CallScript));
-        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", reingestionCallScript));
+        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s\n", subsceneScript));
+        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s\n", arc3CallScript));
+        builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s\n", reingestionCallScript));
         builder.append(String.format("ssh eddie.ecdf.ed.ac.uk rm %s", cleanupScript));
         return builder.toString();
     }

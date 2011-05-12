@@ -46,20 +46,22 @@ import java.util.Map;
 public class Arc3SubsceneCutter extends BasicTool {
 
     public static void main(String[] args) throws IOException {
-        String sourceFilename = args[0];
-        String targetFilename = args[1];
-
-        new Arc3SubsceneCutter().cutSubscene(sourceFilename, targetFilename);
+        final Arc3SubsceneCutter arc3SubsceneCutter = new Arc3SubsceneCutter();
+        arc3SubsceneCutter.setCommandLineArgs(args);
+        arc3SubsceneCutter.initialize();
+        arc3SubsceneCutter.cutSubscene();
     }
 
     Arc3SubsceneCutter() {
         super("mms-subscene-%s-submit.sh", "0.1");
     }
 
-    private void cutSubscene(String sourceFilename, String targetFilename) throws IOException {
+    private void cutSubscene() throws IOException {
+        final String sourceFilename = getConfiguration().getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         final NetcdfFile source = NetcdfFile.open(sourceFilename);
         final List<Variable> atsrSourceVars = getAtsrSourceVariables(source);
         validateSourceVariables(atsrSourceVars);
+        final String targetFilename = SubsceneArc3CallBuilder.createSubsceneMmdFilename(sourceFilename);
 
         final NetcdfFileWriteable target = NetcdfFileWriteable.createNew(targetFilename);
         addSubsceneDimensions(target, atsrSourceVars.get(0));
@@ -283,7 +285,7 @@ public class Arc3SubsceneCutter extends BasicTool {
         return subsceneNames;
     }
 
-        private static void validateSourceVariables(List<Variable> sourceVars) {
+    private static void validateSourceVariables(List<Variable> sourceVars) {
         if (sourceVars == null || sourceVars.isEmpty()) {
             throw new IllegalStateException("No variables of type 'atsr_orb' within source file.");
         }

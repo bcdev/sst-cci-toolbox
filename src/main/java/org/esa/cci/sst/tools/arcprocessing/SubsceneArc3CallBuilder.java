@@ -56,7 +56,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     public String createArc3Call() throws IOException {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         validateSourceFilename(sourceFilename);
-        final String targetFilename = createSubsceneMmdFilename();
+        final String targetFilename = createSubsceneMmdFilename(sourceFilename);
 
         String executableName = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_EXECUTABLE, "MMD_SCREEN_Linux");
         String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
@@ -71,7 +71,9 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
 
     @Override
     String createReingestionCall() {
-        final String targetFilename = createSubsceneMmdFilename();
+        final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
+        validateSourceFilename(sourceFilename);
+        final String targetFilename = createSubsceneMmdFilename(sourceFilename);
         final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "20000");
 
         final StringBuilder builder = new StringBuilder();
@@ -84,8 +86,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         return builder.toString();
     }
 
-    String createSubsceneMmdFilename() {
-        final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
+    static String createSubsceneMmdFilename(String sourceFilename) {
         final int extensionStart = sourceFilename.lastIndexOf('.');
         final StringBuilder builder = new StringBuilder(sourceFilename);
         return builder.insert(extensionStart, "_subscenes").toString();

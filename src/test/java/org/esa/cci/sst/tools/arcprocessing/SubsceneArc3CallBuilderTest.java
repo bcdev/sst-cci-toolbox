@@ -16,14 +16,12 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
-import org.esa.cci.sst.tools.Constants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.File;
-import java.util.Properties;
 
 import static org.junit.Assert.*;
 
@@ -49,10 +47,7 @@ public class SubsceneArc3CallBuilderTest {
 
     @Test
     public void testCreateSubsceneMmdFilename() throws Exception {
-        final Properties config = new Properties();
-        config.setProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE, "mmd.nc");
-        final SubsceneArc3CallBuilder subsceneArc3CallBuilder = new SubsceneArc3CallBuilder(config);
-        final String subsceneMmdFilename = subsceneArc3CallBuilder.createSubsceneMmdFilename();
+        final String subsceneMmdFilename = SubsceneArc3CallBuilder.createSubsceneMmdFilename("mmd.nc");
         assertEquals("mmd_subscenes.nc", subsceneMmdFilename);
     }
 }
