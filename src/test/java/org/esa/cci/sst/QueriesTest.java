@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -34,16 +35,27 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @RunWith(QueriesTestRunner.class)
 public class QueriesTest {
 
+    private static final Date START_DATE;
+    private static final Date STOP_DATE;
+
+    static {
+        try {
+            START_DATE = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
+            STOP_DATE = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
+        } catch (ParseException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private PersistenceManager pm;
 
     @Before
-    public void initPersistence() throws IOException {
+    public void setUp() throws IOException {
         final Properties configuration = new Properties();
 
         InputStream is = null;
@@ -63,16 +75,6 @@ public class QueriesTest {
     }
 
     @Test
-    public void testGetMatchupCount() throws ParseException {
-        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
-        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
-        @SuppressWarnings({"unchecked"})
-        final int matchupCount = Queries.getMatchupCount(pm, startDate, stopDate);
-
-        assertEquals(14483, matchupCount);
-    }
-
-    @Test
     public void testGetAllColumns() {
         @SuppressWarnings({"unchecked"})
         final List<? extends Item> columnList = Queries.getAllColumns(pm);
@@ -82,11 +84,30 @@ public class QueriesTest {
     }
 
     @Test
-    public void testGetMatchups() throws ParseException {
-        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
-        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
+    public void testGetCoincidences() throws ParseException {
         @SuppressWarnings({"unchecked"})
-        final List<Matchup> matchupList = Queries.getMatchups(pm, startDate, stopDate);
+        final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE);
+
+        final Matchup matchup = matchupList.get(0);
+        final int matchupId = matchup.getId();
+        final List<Coincidence> coincidences = Queries.getCoincidences(pm, matchupId);
+
+        assertNotNull(coincidences);
+        assertFalse(coincidences.isEmpty());
+    }
+
+    @Test
+    public void testGetMatchupCount() throws ParseException {
+        @SuppressWarnings({"unchecked"})
+        final int matchupCount = Queries.getMatchupCount(pm, START_DATE, STOP_DATE);
+
+        assertEquals(14483, matchupCount);
+    }
+
+    @Test
+    public void testGetMatchups() throws ParseException {
+        @SuppressWarnings({"unchecked"})
+        final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE);
 
         assertNotNull(matchupList);
         assertEquals(14483, matchupList.size());
@@ -94,21 +115,25 @@ public class QueriesTest {
 
     @Test
     public void testGetMatchupsForSensor() throws ParseException {
-        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
-        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
         @SuppressWarnings({"unchecked"})
-        final List<Matchup> matchupList = Queries.getMatchups(pm, startDate, stopDate, 1);
+        final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE, 1);
 
         assertNotNull(matchupList);
         assertEquals(1966, matchupList.size());
     }
 
     @Test
-    public void testGetReferenceObservationForMatchup() throws ParseException {
-        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-06-02T00:00:00Z");
-        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2010-06-03T00:00:00Z");
+    public void testGetObservationCount() throws ParseException {
         @SuppressWarnings({"unchecked"})
-        final List<Matchup> matchupList = Queries.getMatchups(pm, startDate, stopDate);
+        final int matchupCount = Queries.getObservationCount(pm);
+
+        assertEquals(16269, matchupCount);
+    }
+
+    @Test
+    public void testGetReferenceObservationForMatchup() throws ParseException {
+        @SuppressWarnings({"unchecked"})
+        final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE);
 
         final Matchup matchup = matchupList.get(0);
         final ReferenceObservation expectedReferenceObservation = matchup.getRefObs();

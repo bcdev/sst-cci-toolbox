@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst;
 
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -45,6 +46,10 @@ public class Queries {
             " from Matchup m" +
             " where m.refObs.time >= ?1 and m.refObs.time < ?2";
 
+    public static final String QUERY_STRING_COUNT_OBSERVATIONS =
+            "select count(o)" +
+            " from Observation o";
+
     public static final String QUERY_STRING_SELECT_MATCHUPS =
             "select m" +
             " from Matchup m" +
@@ -64,15 +69,30 @@ public class Queries {
             " from Matchup m" +
             " where m.id = ?1";
 
+    public static final String QUERY_STRING_SELECT_MATCHUP =
+            "select m" +
+            " from Matchup m" +
+            " where m.id = ?1";
+
     @SuppressWarnings({"unchecked"})
     public static List<? extends Item> getAllColumns(PersistenceManager pm) {
         return pm.createQuery(QUERY_STRING_SELECT_ALL_COLUMNS).getResultList();
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public static List<Coincidence> getCoincidences(PersistenceManager pm, int matchupId) {
+        final Query query = pm.createQuery(QUERY_STRING_SELECT_MATCHUP);
+        query.setParameter(1, matchupId);
+
+        final Matchup matchup = (Matchup) query.getSingleResult();
+        return matchup.getCoincidences();
     }
 
     public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate) {
         final Query query = pm.createQuery(QUERY_STRING_COUNT_MATCHUPS);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
+
         final Number matchupCount = (Number) query.getSingleResult();
         return matchupCount.intValue();
     }
@@ -82,6 +102,7 @@ public class Queries {
         final Query query = pm.createQuery(QUERY_STRING_SELECT_MATCHUPS);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
+
         return query.getResultList();
     }
 
@@ -91,7 +112,15 @@ public class Queries {
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
         query.setParameter(3, pattern);
+
         return query.getResultList();
+    }
+
+    public static int getObservationCount(PersistenceManager pm) {
+        final Query query = pm.createQuery(QUERY_STRING_COUNT_OBSERVATIONS);
+        final Number observationCount = (Number) query.getSingleResult();
+
+        return observationCount.intValue();
     }
 
     public static ReferenceObservation getReferenceObservationForMatchup(PersistenceManager pm, int matchupId) {
