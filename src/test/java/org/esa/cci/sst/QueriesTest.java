@@ -69,7 +69,7 @@ public class QueriesTest {
         @SuppressWarnings({"unchecked"})
         final int matchupCount = Queries.getMatchupCount(pm, startDate, stopDate);
 
-        assertEquals(14488, matchupCount);
+        assertEquals(14483, matchupCount);
     }
 
     @Test
@@ -89,7 +89,7 @@ public class QueriesTest {
         final List<Matchup> matchupList = Queries.getMatchups(pm, startDate, stopDate);
 
         assertNotNull(matchupList);
-        assertEquals(14488, matchupList.size());
+        assertEquals(14483, matchupList.size());
     }
 
     @Test
