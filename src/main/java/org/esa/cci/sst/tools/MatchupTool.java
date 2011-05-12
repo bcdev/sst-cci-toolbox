@@ -76,7 +76,7 @@ public class MatchupTool extends BasicTool {
             + " from mm_observation o, mm_observation oref"
             + " where oref.id = ?"
             + " and o.sensor = ?"
-            + " and o.time >= oref.time - '12:00:00' and o.time < oref.time + '12:00:00'"
+            + " and o.time >= oref.time - interval '12:00:00' and o.time < oref.time + interval '12:00:00'"
             + " and st_intersects(o.location, oref.point)"
             + " order by abs(extract(epoch from o.time) - extract(epoch from oref.time))";
 
@@ -85,7 +85,7 @@ public class MatchupTool extends BasicTool {
             + " from mm_observation o, mm_observation oref"
             + " where oref.id = ?"
             + " and o.sensor = ?"
-            + " and o.time >= oref.time - '12:00:00' and o.time < oref.time + '12:00:00'"
+            + " and o.time >= oref.time - interval '12:00:00' and o.time < oref.time + interval '12:00:00'"
             + " order by abs(extract(epoch from o.time) - extract(epoch from oref.time))";
 
     private static final String COINCIDING_INSITUOBS_QUERY =
@@ -449,7 +449,7 @@ public class MatchupTool extends BasicTool {
         query.setParameter(2, sensorName);
         @SuppressWarnings({"unchecked"})
         final List<? extends Observation> observations = query.getResultList();
-        if (observations.size() > 0) {
+        if (!observations.isEmpty()) {
             // select temporally nearest common observation
             return observations.get(0);
         } else {
