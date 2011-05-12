@@ -42,7 +42,7 @@ public class TargetVariableConfigurationTest {
     private final ColumnRegistry registry = new ColumnRegistry();
 
     @Before
-    public void initRegistry() throws IOException, URISyntaxException {
+    public void setUp() throws IOException, URISyntaxException {
         final Item implicitColumn = new ColumnBuilder().build();
         registry.register(implicitColumn);
 
