@@ -62,22 +62,22 @@ public class RuleFactoryTest {
     public void testGetSimpleRule_WithImplicitRenaming() {
         final Rule rule = RuleFactory.getInstance().getRule("P", "R");
 
-        assertTrue(rule instanceof RightAssociativeComposition);
+        assertTrue(rule instanceof LeftAssociativeComposition);
 
-        final RightAssociativeComposition composition = (RightAssociativeComposition) rule;
+        final CompositeRule composition = (CompositeRule) rule;
 
         assertEquals(2, composition.getRuleCount());
-        assertTrue(composition.getRule(0) instanceof Renaming);
-        assertTrue(composition.getRule(1) instanceof P);
+        assertTrue(composition.getRule(0) instanceof P);
+        assertTrue(composition.getRule(1) instanceof Renaming);
     }
 
     @Test
     public void testGetRuleComposite() {
         final Rule rule = RuleFactory.getInstance().getRule("Q, P");
 
-        assertTrue(rule instanceof RightAssociativeComposition);
+        assertTrue(rule instanceof LeftAssociativeComposition);
 
-        final RightAssociativeComposition composition = (RightAssociativeComposition) rule;
+        final CompositeRule composition = (CompositeRule) rule;
 
         assertEquals(2, composition.getRuleCount());
         assertTrue(composition.getRule(0) instanceof Q);
@@ -93,14 +93,14 @@ public class RuleFactoryTest {
     public void testGetRuleComposite_WithImplicitRenaming() {
         final Rule rule = RuleFactory.getInstance().getRule("Q,P", "R");
 
-        assertTrue(rule instanceof RightAssociativeComposition);
+        assertTrue(rule instanceof LeftAssociativeComposition);
 
-        final RightAssociativeComposition composition = (RightAssociativeComposition) rule;
+        final CompositeRule composition = (CompositeRule) rule;
 
         assertEquals(3, composition.getRuleCount());
-        assertTrue(composition.getRule(0) instanceof Renaming);
-        assertTrue(composition.getRule(1) instanceof Q);
-        assertTrue(composition.getRule(2) instanceof P);
+        assertTrue(composition.getRule(0) instanceof Q);
+        assertTrue(composition.getRule(1) instanceof P);
+        assertTrue(composition.getRule(2) instanceof Renaming);
     }
 
     @Test

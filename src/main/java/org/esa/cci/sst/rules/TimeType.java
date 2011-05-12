@@ -18,28 +18,18 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.Constants;
+import ucar.ma2.DataType;
 
 /**
- * Abstract base class for dimension replacement rules.
+ * Time type.
  *
  * @author Ralf Quast
  */
-abstract class AbstractDimensionReplacement extends AbstractAttributeModification {
-
-    protected AbstractDimensionReplacement() {
-    }
+public final class TimeType extends AbstractAttributeModification {
 
     @Override
-    public final Item apply(Item sourceColumn) throws RuleException {
-        final ColumnBuilder cb = new ColumnBuilder(sourceColumn);
-        final DimensionStringBuilder sb = new DimensionStringBuilder(sourceColumn.getDimensions());
-
-        replaceDimensions(sb);
-        cb.rank(sb.getDimensionCount());
-        cb.dimensions(sb.toString());
-
-        return cb.build();
+    public Item apply(Item sourceColumn) throws RuleException {
+        return new ColumnBuilder(sourceColumn).type(DataType.INT).unit(Constants.UNIT_TIME).build();
     }
-
-    protected abstract void replaceDimensions(DimensionStringBuilder builder) throws RuleException;
 }

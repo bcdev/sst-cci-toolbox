@@ -22,8 +22,8 @@ package org.esa.cci.sst.rules;
 final class MetopImageDimensions extends AbstractDimensionReplacement {
 
     @Override
-    protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, "metop.ny");
-        replacer.replace(2, "metop.nx");
+    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
+        builder.replace(1, "metop.ny");
+        builder.replace(2, "metop.nx");
     }
 }

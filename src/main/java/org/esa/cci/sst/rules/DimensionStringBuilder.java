@@ -17,29 +17,41 @@
 package org.esa.cci.sst.rules;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Used for dimension replacing rules.
+ * Used for dimension-modifying rules.
  *
  * @author Ralf Quast
  */
-final class DimensionReplacer {
+final class DimensionStringBuilder {
 
-    private final String[] dimensions;
+    private final List<String> dimensions;
 
-    DimensionReplacer(String dimensionsString) {
-        dimensions = dimensionsString.split("\\s");
+    DimensionStringBuilder(String dimensionsString) {
+        dimensions = new ArrayList<String>(7);
+        dimensions.addAll(Arrays.asList(dimensionsString.split("\\s")));
     }
 
-    DimensionReplacer replace(int i, String dimension) throws RuleException {
-        if (dimensions.length < i + 1) {
+    DimensionStringBuilder replace(int i, String dimension) throws RuleException {
+        if (i > dimensions.size()) {
             throw new RuleException(
                     MessageFormat.format("Expected {0} or more dimensions, but actual number of dimensions is {1}.",
-                                         i + 1,
-                                         dimensions.length));
+                                         i, dimensions.size()));
         }
-        dimensions[i] = dimension;
+        if (i == dimensions.size()) {
+            dimensions.add(i, dimension);
+        } else {
+            dimensions.set(i, dimension);
+        }
         return this;
+    }
+
+    int getDimensionCount() {
+        return dimensions.size();
+
     }
 
     @Override

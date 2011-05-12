@@ -22,8 +22,8 @@ package org.esa.cci.sst.rules;
 final class SeviriImageDimensions extends AbstractDimensionReplacement {
 
     @Override
-    protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, "seviri.ny");
-        replacer.replace(2, "seviri.nx");
+    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
+        builder.replace(1, "seviri.ny");
+        builder.replace(2, "seviri.nx");
     }
 }

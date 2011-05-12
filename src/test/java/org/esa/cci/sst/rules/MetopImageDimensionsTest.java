@@ -30,11 +30,12 @@ public class MetopImageDimensionsTest extends AbstractRuleTest {
 
     @Override
     protected void assertTargetColumn(Item targetColumn) {
+        assertEquals(3, targetColumn.getRank());
         assertEquals("n metop.ny metop.nx", targetColumn.getDimensions());
     }
 
     @Override
     protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
-        return columnBuilder.rank(3).dimensions("n ny nx");
+        return columnBuilder.rank(1).dimensions("n");
     }
 }

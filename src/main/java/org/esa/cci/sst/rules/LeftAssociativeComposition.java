@@ -24,22 +24,22 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A right-associative composition of rules.
+ * A left-associative composition of rules.
  *
  * @author Ralf Quast
  */
-final class RightAssociativeComposition implements CompositeRule {
+public class LeftAssociativeComposition implements CompositeRule {
 
     private final List<Rule> ruleList = new ArrayList<Rule>();
 
-    RightAssociativeComposition(Rule... rules) {
+    LeftAssociativeComposition(Rule... rules) {
         Collections.addAll(ruleList, rules);
     }
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
-        for (int i = ruleList.size(); i-- > 0;) {
-            sourceColumn = ruleList.get(i).apply(sourceColumn);
+        for (final Rule rule : ruleList) {
+            sourceColumn = rule.apply(sourceColumn);
         }
         return sourceColumn;
     }
@@ -47,8 +47,7 @@ final class RightAssociativeComposition implements CompositeRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         // todo - optimize computation by skipping non-numeric rules
-        for (int i = ruleList.size(); i-- > 0;) {
-            final Rule rule = ruleList.get(i);
+        for (final Rule rule : ruleList) {
             sourceArray = rule.apply(sourceArray, sourceColumn);
             sourceColumn = rule.apply(sourceColumn);
         }
@@ -56,8 +55,8 @@ final class RightAssociativeComposition implements CompositeRule {
     }
 
     @Override
-    public RightAssociativeComposition append(Rule rule) {
-        ruleList.add(0, rule);
+    public LeftAssociativeComposition append(Rule rule) {
+        ruleList.add(rule);
         return this;
     }
 

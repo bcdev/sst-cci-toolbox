@@ -16,30 +16,16 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.Item;
-
 /**
- * Abstract base class for dimension replacement rules.
+ * A composition of rules.
  *
  * @author Ralf Quast
  */
-abstract class AbstractDimensionReplacement extends AbstractAttributeModification {
+public interface CompositeRule extends Rule {
 
-    protected AbstractDimensionReplacement() {
-    }
+    CompositeRule append(Rule rule);
 
-    @Override
-    public final Item apply(Item sourceColumn) throws RuleException {
-        final ColumnBuilder cb = new ColumnBuilder(sourceColumn);
-        final DimensionStringBuilder sb = new DimensionStringBuilder(sourceColumn.getDimensions());
+    Rule getRule(int i);
 
-        replaceDimensions(sb);
-        cb.rank(sb.getDimensionCount());
-        cb.dimensions(sb.toString());
-
-        return cb.build();
-    }
-
-    protected abstract void replaceDimensions(DimensionStringBuilder builder) throws RuleException;
+    int getRuleCount();
 }

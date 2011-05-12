@@ -26,7 +26,7 @@ import org.esa.cci.sst.tools.Constants;
 final class MatchupDimension extends AbstractDimensionReplacement {
 
     @Override
-    protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(0, Constants.DIMENSION_NAME_MATCHUP);
+    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
+        builder.replace(0, Constants.DIMENSION_NAME_MATCHUP);
     }
 }

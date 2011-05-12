@@ -72,7 +72,7 @@ public final class RuleFactory {
         for (int i = 0; i < simpleNames.length; i++) {
             rules[i] = getRuleBySimpleName(simpleNames[i]);
         }
-        return new RightAssociativeComposition(rules);
+        return new LeftAssociativeComposition(rules);
     }
 
     /**
@@ -90,10 +90,10 @@ public final class RuleFactory {
     public Rule getRule(String specification, String targetName) {
         final Rule r = getRenamingRule(targetName);
         final Rule s = getRule(specification);
-        if (s instanceof RightAssociativeComposition) {
-            return ((RightAssociativeComposition) s).append(r);
+        if (s instanceof CompositeRule) {
+            return ((CompositeRule) s).append(r);
         }
-        return new RightAssociativeComposition(r, s);
+        return new LeftAssociativeComposition(s, r);
     }
 
     private Rule getRuleBySimpleName(String simpleName) {

@@ -26,7 +26,7 @@ import org.esa.cci.sst.tools.Constants;
 final class FilenameDimension extends AbstractDimensionReplacement {
 
     @Override
-    protected void replaceDimensions(DimensionReplacer replacer) throws RuleException {
-        replacer.replace(1, Constants.DIMENSION_NAME_FILENAME_LENGTH);
+    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
+        builder.replace(1, Constants.DIMENSION_NAME_FILENAME_LENGTH);
     }
 }
