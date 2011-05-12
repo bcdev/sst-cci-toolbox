@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.ColumnRegistry;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.IoUtil;
@@ -42,6 +43,9 @@ public class TargetVariableConfigurationTest {
 
     @Before
     public void initRegistry() throws IOException, URISyntaxException {
+        final Item implicitColumn = new ColumnBuilder().build();
+        registry.register(implicitColumn);
+
         registerSourceColumns("seviri.nc", "seviri");
         registerSourceColumns("metop.nc", "metop");
         registerSourceColumns("aatsr_md.nc", "aatsr_md");
