@@ -33,7 +33,7 @@ public final class SensorBuilder {
     private String observationType;
 
     public SensorBuilder() {
-        name("unknown");
+        name("Implicit");
         observationType(Observation.class.getSimpleName());
     }
 
