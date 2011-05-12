@@ -46,6 +46,7 @@ final class RightAssociativeComposition implements Rule {
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        // todo - optimize computation by skipping non-numeric rules
         for (int i = ruleList.size(); i-- > 0;) {
             final Rule rule = ruleList.get(i);
             sourceArray = rule.apply(sourceArray, sourceColumn);
