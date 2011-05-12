@@ -59,7 +59,7 @@ public class DimensionConversionTest {
     }
 
     @Before
-    public void initRegistry() throws Exception {
+    public void setUp() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("MatchupDimension,CallsignDimension");
         final ColumnBuilder builder = new ColumnBuilder();
         builder.name(CALLSIGN_VARIABLE_NAME);

@@ -123,7 +123,7 @@ public class OsiProductReaderTest {
     }
 
     @Before
-    public void initReader() throws Exception {
+    public void setUp() throws Exception {
         reader = new OsiProductReader(new OsiProductReaderPlugIn());
     }
 

@@ -32,7 +32,7 @@ public abstract class AbstractRuleTest {
     private Item sourceColumn;
 
     @Before
-    public final void init() {
+    public final void setUp() {
         rule = RuleFactory.getInstance().getRule(getClass().getSimpleName().replace("Test", ""));
         sourceColumn = configureSourceColumnBuilder(new ColumnBuilder()).build();
     }

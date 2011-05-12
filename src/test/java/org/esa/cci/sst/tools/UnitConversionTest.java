@@ -81,7 +81,7 @@ public class UnitConversionTest {
     }
 
     @Before
-    public void initRegistry() throws Exception {
+    public void setUp() throws Exception {
         final Rule rule = RuleFactory.getInstance().getRule("JulianDateToSeconds");
         final ColumnBuilder builder = new ColumnBuilder();
         builder.name(TIME_VARIABLE_NAME);

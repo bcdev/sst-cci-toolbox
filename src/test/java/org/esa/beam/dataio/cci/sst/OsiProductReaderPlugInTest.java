@@ -105,7 +105,7 @@ public class OsiProductReaderPlugInTest {
     }
 
     @Before
-    public void init() throws Exception {
+    public void setUp() throws Exception {
         plugin = new OsiProductReaderPlugIn();
     }
 
