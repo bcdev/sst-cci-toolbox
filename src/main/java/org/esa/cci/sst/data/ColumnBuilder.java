@@ -45,7 +45,7 @@ public final class ColumnBuilder {
     private Sensor sensor;
 
     public ColumnBuilder() {
-        name("untitled");
+        name("Implicit");
         type(DataType.INT);
         dimensions("");
         sensor(new SensorBuilder().build());
