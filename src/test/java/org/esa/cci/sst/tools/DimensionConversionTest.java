@@ -48,7 +48,7 @@ public class DimensionConversionTest {
 
         assertEquals(CALLSIGN_VARIABLE_NAME, targetColumn.getName());
         assertEquals(CALLSIGN_VARIABLE_TYPE.name(), targetColumn.getType());
-        assertEquals("matchup callsign.length", targetColumn.getDimensions());
+        assertEquals("matchup callsign_length", targetColumn.getDimensions());
 
         final Item sourceColumn = registry.getSourceColumn(targetColumn);
 

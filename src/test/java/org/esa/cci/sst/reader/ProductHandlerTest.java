@@ -19,10 +19,13 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -55,9 +58,14 @@ public class ProductHandlerTest {
         final URI uri = url.toURI();
         final File file = new File(uri);
 
+        productHandler = new ProductHandler("amsre");
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        productHandler = new ProductHandler("amsre");
+        final Sensor sensor = new SensorBuilder().
+                name(productHandler.getSensorName()).
+                observationType(GlobalObservation.class).
+                build();
+        dataFile.setSensor(sensor);
         handler = new GunzipDecorator(productHandler);
         handler.init(dataFile);
     }

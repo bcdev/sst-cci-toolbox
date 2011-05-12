@@ -17,10 +17,12 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.cci.sst.AaiProductReaderTest;
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.SensorBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,9 +49,14 @@ public class AaiProductHandlerTest {
         final URI uri = url.toURI();
         final File file = new File(uri);
 
+        handler = new AaiProductHandler("aai");
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
-        handler = new AaiProductHandler("aai");
+        final Sensor sensor = new SensorBuilder().
+                name(handler.getSensorName()).
+                observationType(GlobalObservation.class).
+                build();
+        dataFile.setSensor(sensor);
         handler.init(dataFile);
     }
 
