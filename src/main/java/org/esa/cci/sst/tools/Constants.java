@@ -30,7 +30,7 @@ public class Constants {
 
     public static final String UNIT_LAT = "degrees north";
     public static final String UNIT_LON = "degrees east";
-    public static final String UNIT_SST = "Kelvin";
+    public static final String UNIT_SST = "kelvin";
     public static final String UNIT_TIME = "seconds since 1978-01-01 00:00:00";
     public static final String UNITLESS = null;
 
