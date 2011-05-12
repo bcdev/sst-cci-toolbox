@@ -39,6 +39,7 @@ public class Matchup {
     private ReferenceObservation refObs;
     private List<Coincidence> coincidences;
     private long pattern;
+    private boolean invalid;
 
     @Id
     @GeneratedValue
@@ -76,5 +77,13 @@ public class Matchup {
 
     public void setPattern(long pattern) {
         this.pattern = pattern;
+    }
+
+    public boolean isInvalid() {
+        return invalid;
+    }
+
+    public void setInvalid(boolean invalid) {
+        this.invalid = invalid;
     }
 }
