@@ -20,13 +20,13 @@ import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 
 /**
- * Base class for rules that modify the column properties only.
+ * Base class for rules that modify the column attributes only.
  *
  * @author Ralf Quast
  */
-abstract class AbstractPropertyChange implements Rule {
+abstract class AbstractAttributeModification implements Rule {
 
-    protected AbstractPropertyChange() {
+    protected AbstractAttributeModification() {
     }
 
     @Override

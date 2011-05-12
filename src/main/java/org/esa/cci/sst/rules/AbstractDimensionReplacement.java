@@ -24,7 +24,7 @@ import org.esa.cci.sst.data.Item;
  *
  * @author Ralf Quast
  */
-abstract class AbstractDimensionReplacement extends AbstractPropertyChange {
+abstract class AbstractDimensionReplacement extends AbstractAttributeModification {
 
     protected AbstractDimensionReplacement() {
     }

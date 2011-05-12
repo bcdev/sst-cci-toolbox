@@ -26,14 +26,14 @@ public class RightAssociativeCompositionTest {
 
     @Test
     public void testAssociativity() throws RuleException {
-        final Rule a = new AbstractPropertyChange() {
+        final Rule a = new AbstractAttributeModification() {
 
             @Override
             public Item apply(Item sourceColumn) {
                 return new ColumnBuilder(sourceColumn).name("L").build();
             }
         };
-        final Rule b = new AbstractPropertyChange() {
+        final Rule b = new AbstractAttributeModification() {
 
             @Override
             public Item apply(Item sourceColumn) {

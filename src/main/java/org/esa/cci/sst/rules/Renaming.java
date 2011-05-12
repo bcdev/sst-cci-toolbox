@@ -24,7 +24,7 @@ import org.esa.cci.sst.data.Item;
  *
  * @author Ralf Quast
  */
-final class Renaming extends AbstractPropertyChange {
+final class Renaming extends AbstractAttributeModification {
 
     private final String targetName;
 
