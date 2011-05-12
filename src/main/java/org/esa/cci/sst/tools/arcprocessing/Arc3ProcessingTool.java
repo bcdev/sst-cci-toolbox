@@ -38,11 +38,13 @@ import java.util.Properties;
 public class Arc3ProcessingTool extends BasicTool {
 
     private PrintWriter arc3CallWriter;
+    private PrintWriter subsceneWriter;
     private PrintWriter reingestionCallWriter;
     private PrintWriter cleanupCallWriter;
     private String arc3CallScript;
     private String reingestionCallScript;
     private String cleanupScript;
+    private String subsceneScript;
 
     public static void main(String[] args) {
         final Arc3ProcessingTool tool = new Arc3ProcessingTool();
@@ -64,10 +66,12 @@ public class Arc3ProcessingTool extends BasicTool {
 
     private void writeCalls() throws IOException {
         final Arc3CallBuilder arc3Caller = new Arc3CallBuilderFactory().createArc3CallBuilder();
+        final String subsceneCall = arc3Caller.createSubsceneCall();
         final String arc3Call = arc3Caller.createArc3Call();
         final String reingestionCall = arc3Caller.createReingestionCall();
-        final String cleanupCall = arc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
+        final String cleanupCall = arc3Caller.createCleanupCall(subsceneScript, arc3CallScript, reingestionCallScript, cleanupScript);
 
+        subsceneWriter.write(subsceneCall);
         arc3CallWriter.write(arc3Call);
         reingestionCallWriter.write(reingestionCall);
         cleanupCallWriter.write(cleanupCall);
@@ -83,6 +87,13 @@ public class Arc3ProcessingTool extends BasicTool {
         final String timeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
         final Date timeAsDate = TimeUtil.getConfiguredTimeOf(timeProperty);
         final String time = TimeUtil.formatCompactUtcFormat(timeAsDate);
+
+        String subsceneFilename = String.format("mms-subscene-%s-submit.sh", time);
+        final File subsceneFile = new File(tmpDir, subsceneFilename);
+        setFileExecutable(subsceneFile);
+        subsceneScript = subsceneFile.getAbsolutePath();
+        subsceneWriter = new PrintWriter(subsceneFile);
+        subsceneWriter.format("#!/bin/bash\n\n");
 
         String arc3CallFilename = String.format("mms-arc3-%s-submit.sh", time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);
@@ -126,24 +137,25 @@ public class Arc3ProcessingTool extends BasicTool {
     }
 
     private void close() {
-        if (arc3CallWriter != null) {
-            arc3CallWriter.close();
-        }
-        if (reingestionCallWriter != null) {
-            reingestionCallWriter.close();
-        }
-        if (cleanupCallWriter != null) {
-            cleanupCallWriter.close();
+        closeWriter(subsceneWriter);
+        closeWriter(arc3CallWriter);
+        closeWriter(reingestionCallWriter);
+        closeWriter(cleanupCallWriter);
+    }
+
+    private void closeWriter(PrintWriter writer) {
+        if(writer != null) {
+            writer.close();
         }
     }
 
-    class Arc3CallBuilderFactory {
+    private class Arc3CallBuilderFactory {
 
         private Arc3CallBuilder createArc3CallBuilder() {
             final Properties configuration = getConfiguration();
             final String cutSubscenes = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_CUT_SUBSCENES, "false");
             if (Boolean.parseBoolean(cutSubscenes)) {
-                return new SubsceneArc3CallBuilder(configuration, getPersistenceManager());
+                return new SubsceneArc3CallBuilder(configuration);
             } else {
                 return new SimpleArc3CallBuilder(configuration);
             }
