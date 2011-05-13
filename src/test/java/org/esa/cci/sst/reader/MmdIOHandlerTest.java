@@ -27,8 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
@@ -80,7 +79,11 @@ public class MmdIOHandlerTest {
 
         assertNotNull(mmdObj);
         final String location = mmdObj.getLocation();
-        assertEquals(TEST_WITH_ACTUAL_DATA, location.substring(location.lastIndexOf("/") + 1, location.length()));
+        int index = location.lastIndexOf('/');
+        if(index == -1) {
+            index = location.lastIndexOf('\\');
+        }
+        assertEquals(TEST_WITH_ACTUAL_DATA, location.substring(index + 1, location.length()));
     }
 
     private void initMmdReader(final String filename) throws IOException {
