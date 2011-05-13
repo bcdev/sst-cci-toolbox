@@ -17,13 +17,14 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.IOHandler;
+import org.esa.cci.sst.reader.IOHandlerFactory;
 import org.esa.cci.sst.reader.InsituRecord;
 import org.esa.cci.sst.reader.InsituVariable;
 import org.esa.cci.sst.reader.MmdIOHandler;
@@ -74,7 +75,7 @@ class MmdGenerator {
     private final Properties targetVariables;
     private final BasicTool tool;
     private final List<Matchup> matchupList = new ArrayList<Matchup>();
-    private Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
+    private final Map<String, IOHandler> ioHandlerMap = new HashMap<String, IOHandler>();
 
     @Deprecated
     MmdGenerator(final BasicTool tool) throws IOException {
@@ -113,7 +114,9 @@ class MmdGenerator {
                     final Observation observation = coincidence.getObservation();
                     writeObservation(file, observation, point, matchupIndex, referenceObservation.getTime());
                 }
-                landWaterMaskWriter.writeLandWaterMask(matchupIndex);
+                if(targetVariables.contains("watermask")) {
+                    landWaterMaskWriter.writeLandWaterMask(matchupIndex);
+                }
                 persistenceManager.detach(coincidences);
             }
         } finally {
@@ -252,18 +255,47 @@ class MmdGenerator {
 
     private IOHandler createIOHandler(Observation observation) throws IOException {
         final String sensorName = observation.getSensor();
-        IOHandler handler = ioHandlerMap.get(sensorName);
-        if (handler == null) {
-            handler = new MmdIOHandler(tool.getConfiguration());
-            ioHandlerMap.put(sensorName, handler);
+        IOHandler ioHandler = ioHandlerMap.get(sensorName);
+
+        if(ioHandler == null) {
+            final String readerSpec = getReaderSpec(sensorName);
+            if(readerSpec != null) {
+                ioHandler = IOHandlerFactory.createHandler(readerSpec, sensorName);
+            } else {
+                ioHandler = new MmdIOHandler(tool.getConfiguration());
+            }
+            ioHandlerMap.put(sensorName, ioHandler);
         }
-        final DataFile handlerDataFile = handler.getDataFile();
+
+        final DataFile handlerDataFile = ioHandler.getDataFile();
         if (observation.getDatafile() != handlerDataFile) {
             if (handlerDataFile != null) {
-                handler.close();
+                ioHandler.close();
             }
-            handler.init(observation.getDatafile());
+            ioHandler.init(observation.getDatafile());
         }
-        return handler;
+        return ioHandler;
     }
+
+    /**
+     * Returns the configured reader specification for a given sensor.
+     *
+     * @param sensorName The sensor name to get the reader specification for.
+     * @return The reader specification, or <code>null</code> if it doesn't exist.
+     */
+    String getReaderSpec(String sensorName) {
+        final Properties configuration = tool.getConfiguration();
+        for(int i = 0; i < 100; i++) {
+            String configSensorName = getSensor(configuration, i);
+            if(configSensorName != null && configSensorName.equalsIgnoreCase(sensorName)) {
+                return configuration.getProperty(String.format("mms.source.%d.reader", i));
+            }
+        }
+        return null;
+    }
+
+    private String getSensor(final Properties configuration, final int i) {
+        return configuration.getProperty(String.format("mms.source.%d.sensor", i));
+    }
+
 }
