@@ -41,7 +41,7 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
         String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
 
         final StringBuilder arc3Call = new StringBuilder();
-        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", sourceFilename));
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:/tmp\n", sourceFilename));
         arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk ./%s MDB.INP %s %s %s", executableName, sourceFilename,
                                       nwpFilename, targetFilename));
         return arc3Call.toString();
@@ -55,12 +55,21 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
         final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "20000");
 
         final StringBuilder builder = new StringBuilder();
-        builder.append("ssh eddie.ecdf.ed.ac.uk ");
-        builder.append(String.format("bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s\n" +
+        builder.append(String.format("scp eddie.ecdf.ed.ac.uk:%s . \n", targetFilename));
+        builder.append("if [ -z \"$CCI_SST_HOME\" ]; then \n");
+        builder.append("    echo \n");
+        builder.append("    echo Error:\n");
+        builder.append("    echo CCI_SST_HOME does not exists in your environment. Please\n");
+        builder.append("    echo set the CCI_SST_HOME variable in your environment to the\n");
+        builder.append("    echo location of your CCI SST installation.\n");
+        builder.append("    echo\n");
+        builder.append("    exit 2\n");
+        builder.append("fi\n");
+        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s \\\n" +
                                      " -Dmms.reingestion.located=no \\\n" +
                                      " -Dmms.reingestion.sensor=ARC3 \\\n" +
                                      " -Dmms.reingestion.pattern=%s \\\n" +
-                                     " -c config/mms-config-eddie1.properties", targetFilename, pattern));
+                                     " -c $CCI_SST_HOME/config/mms-config.properties", targetFilename, pattern));
         return builder.toString();
     }
 

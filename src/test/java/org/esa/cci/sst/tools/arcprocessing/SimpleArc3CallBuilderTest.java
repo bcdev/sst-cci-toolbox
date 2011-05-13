@@ -42,7 +42,7 @@ public class SimpleArc3CallBuilderTest {
         final StringBuilder builder = new StringBuilder();
         builder.append("scp ");
         builder.append(sourceFile);
-        builder.append(" eddie.ecdf.ed.ac.uk:tmp/\n");
+        builder.append(" eddie.ecdf.ed.ac.uk:/tmp\n");
         builder.append("ssh eddie.ecdf.ed.ac.uk ");
         builder.append("./ARC3_FOR_AVHRR MDB.INP ");
         builder.append(sourceFile);
@@ -66,7 +66,7 @@ public class SimpleArc3CallBuilderTest {
         final StringBuilder builder = new StringBuilder();
         builder.append("scp ");
         builder.append(sourceFile);
-        builder.append(" eddie.ecdf.ed.ac.uk:tmp/\n");
+        builder.append(" eddie.ecdf.ed.ac.uk:/tmp\n");
         builder.append("ssh eddie.ecdf.ed.ac.uk ");
         builder.append("./MMD_SCREEN_Linux MDB.INP ");
         builder.append(sourceFile);
@@ -90,13 +90,22 @@ public class SimpleArc3CallBuilderTest {
         final SimpleArc3CallBuilder simpleArc3CallBuilder = new SimpleArc3CallBuilder(configuration);
         final String reingestCall = simpleArc3CallBuilder.createReingestionCall();
         final StringBuilder builder = new StringBuilder();
-        builder.append("ssh eddie.ecdf.ed.ac.uk ");
         final String targetFileName = Arc3CallBuilder.getDefaultTargetFileName(sourceFile);
-        builder.append(String.format("bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s\n" +
+        builder.append("scp eddie.ecdf.ed.ac.uk:/C:/dev/projects/sst-cci-toolbox/target/test-classes/org/esa/cci/sst/tools/arcprocessing/empty_test_ARC3.nc . \n" +
+                       "if [ -z \"$CCI_SST_HOME\" ]; then \n" +
+                       "    echo \n" +
+                       "    echo Error:\n" +
+                       "    echo CCI_SST_HOME does not exists in your environment. Please\n" +
+                       "    echo set the CCI_SST_HOME variable in your environment to the\n" +
+                       "    echo location of your CCI SST installation.\n" +
+                       "    echo\n" +
+                       "    exit 2\n" +
+                       "fi\n");
+        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s \\\n" +
                                      " -Dmms.reingestion.located=no \\\n" +
                                      " -Dmms.reingestion.sensor=ARC3 \\\n" +
                                      " -Dmms.reingestion.pattern=20000 \\\n" +
-                                     " -c config/mms-config-eddie1.properties", targetFileName));
+                                     " -c $CCI_SST_HOME/config/mms-config.properties", targetFileName));
 
 
         assertEquals(builder.toString(), reingestCall);
@@ -110,10 +119,10 @@ public class SimpleArc3CallBuilderTest {
         final SimpleArc3CallBuilder simpleArc3CallBuilder = new SimpleArc3CallBuilder(configuration);
         final String cleanupCall = simpleArc3CallBuilder.createCleanupCall("subsceneScript", "arc3CallScript", "reingestionCallScript", "cleanupScript");
         StringBuilder resultBuilder = new StringBuilder();
-        resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm subsceneScript\n");
-        resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm arc3CallScript\n");
-        resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm reingestionCallScript\n");
-        resultBuilder.append("ssh eddie.ecdf.ed.ac.uk rm cleanupScript");
+        resultBuilder.append("rm subsceneScript\n");
+        resultBuilder.append("rm arc3CallScript\n");
+        resultBuilder.append("rm reingestionCallScript\n");
+        resultBuilder.append("rm cleanupScript");
         assertEquals(resultBuilder.toString(), cleanupCall);
     }
 }

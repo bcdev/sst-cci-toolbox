@@ -88,36 +88,39 @@ public class Arc3ProcessingTool extends BasicTool {
         final Date timeAsDate = TimeUtil.getConfiguredTimeOf(timeProperty);
         final String time = TimeUtil.formatCompactUtcFormat(timeAsDate);
 
-        String subsceneFilename = String.format("mms-subscene-%s-submit.sh", time);
+        String subsceneFilename = String.format("mms-arc3-%s-subscene.sh", time);
         final File subsceneFile = new File(tmpDir, subsceneFilename);
-        setFileExecutable(subsceneFile);
+//        setFileExecutable(subsceneFile);
         subsceneScript = subsceneFile.getAbsolutePath();
         subsceneWriter = new PrintWriter(subsceneFile);
         subsceneWriter.format("#!/bin/bash\n\n");
 
         String arc3CallFilename = String.format("mms-arc3-%s-submit.sh", time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);
-        setFileExecutable(arc3CallFile);
+//        setFileExecutable(arc3CallFile);
         arc3CallScript = arc3CallFile.getAbsolutePath();
         arc3CallWriter = new PrintWriter(arc3CallFile);
         arc3CallWriter.format("#!/bin/bash\n\n");
 
         String reingestionCallFilename = String.format("mms-arc3-%s-reingest.sh", time);
         final File reingestionFile = new File(tmpDir, reingestionCallFilename);
-        setFileExecutable(reingestionFile);
+//        setFileExecutable(reingestionFile);
         reingestionCallScript = reingestionFile.getAbsolutePath();
         reingestionCallWriter = new PrintWriter(new BufferedWriter(new FileWriter(reingestionFile)));
         reingestionCallWriter.format("#!/bin/bash\n\n");
 
         String cleanupCallFilename = String.format("mms-arc3-%s-cleanup.sh", time);
         final File cleanupFile = new File(tmpDir, cleanupCallFilename);
-        setFileExecutable(cleanupFile);
+//        setFileExecutable(cleanupFile);
         cleanupScript = cleanupFile.getAbsolutePath();
         cleanupCallWriter = new PrintWriter(new BufferedWriter(new FileWriter(cleanupFile)));
         cleanupCallWriter.format("#!/bin/bash\n\n");
     }
 
     private void setFileExecutable(File file) throws IOException {
+        if(file.canExecute()) {
+            return;
+        }
         final boolean success = file.setExecutable(true);
         if (!success) {
             throw new IOException(

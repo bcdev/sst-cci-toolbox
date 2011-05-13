@@ -47,8 +47,16 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         validateSourceFilename(sourceFilename);
 
         final StringBuilder subsceneCall = new StringBuilder();
-        subsceneCall.append(String.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", sourceFilename));
-        subsceneCall.append(String.format("ssh eddie.ecdf.ed.ac.uk qsub run_subscene.sh %s", sourceFilename));
+        subsceneCall.append("if [ -z \"$CCI_SST_HOME\" ]; then\n" +
+                            "    echo\n" +
+                            "    echo Error:\n" +
+                            "    echo CCI_SST_HOME does not exists in your environment. Please\n" +
+                            "    echo set the CCI_SST_HOME variable in your environment to the\n" +
+                            "    echo location of your CCI SST installation.\n" +
+                            "    echo\n" +
+                            "    exit 2\n" +
+                            "fi\n");
+        subsceneCall.append(String.format("$CCI_SST_HOME/bin/run_subscene.sh %s \"$@\"", sourceFilename));
         return subsceneCall.toString();
     }
 
@@ -62,7 +70,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
         String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
 
         final StringBuilder arc3Call = new StringBuilder();
-        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", sourceFilename));
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:/tmp\n", sourceFilename));
         arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk ./%s MDB.INP %s %s %s", executableName, targetFilename,
                                       nwpFilename, getDefaultTargetFileName(targetFilename)));
 
@@ -73,17 +81,28 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     String createReingestionCall() {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         validateSourceFilename(sourceFilename);
-        final String targetFilename = createSubsceneMmdFilename(sourceFilename);
+        final String subsceneMmdFilename = createSubsceneMmdFilename(sourceFilename);
         final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "20000");
 
         final StringBuilder builder = new StringBuilder();
-        builder.append("ssh eddie.ecdf.ed.ac.uk ");
-        builder.append(String.format("bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s\n" +
+        builder.append(String.format("scp eddie.ecdf.ed.ac.uk:%s . \n", subsceneMmdFilename));
+        builder.append("if [ -z \"$CCI_SST_HOME\" ]; then ");
+        builder.append("    echo ");
+        builder.append("    echo Error:\n");
+        builder.append("    echo CCI_SST_HOME does not exists in your environment. Please\n");
+        builder.append("    echo set the CCI_SST_HOME variable in your environment to the\n");
+        builder.append("    echo location of your CCI SST installation.\n");
+        builder.append("    echo\n");
+        builder.append("    exit 2\n");
+        builder.append("fi\n");
+        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s \\\n" +
                                      " -Dmms.reingestion.located=no \\\n" +
                                      " -Dmms.reingestion.sensor=ARC3 \\\n" +
                                      " -Dmms.reingestion.pattern=%s \\\n" +
-                                     " -c config/mms-config-eddie1.properties", targetFilename, pattern));
+                                     " -c $CCI_SST_HOME/config/mms-config.properties", subsceneMmdFilename, pattern));
         return builder.toString();
+
+
     }
 
     static String createSubsceneMmdFilename(String sourceFilename) {
