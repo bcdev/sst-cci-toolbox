@@ -36,6 +36,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             </includes>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0775</fileMode>
+            <filtered>true</filtered>
         </fileSet>
 
         <fileSet>
@@ -63,7 +64,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             <useTransitiveFiltering>false</useTransitiveFiltering>
             <outputDirectory>lib</outputDirectory>
             <outputFileNameMapping>
-                ${artifact.artifactId}.${artifact.extension}
+                ${artifact.artifactId}-${artifact.version}.${artifact.extension}
             </outputFileNameMapping>
             <fileMode>0664</fileMode>
         </dependencySet>
@@ -95,7 +96,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             <useTransitiveFiltering>false</useTransitiveFiltering>
             <outputDirectory>lib</outputDirectory>
             <outputFileNameMapping>
-                ${artifact.artifactId}.${artifact.extension}
+                ${artifact.artifactId}-${artifact.version}.${artifact.extension}
             </outputFileNameMapping>
             <fileMode>0664</fileMode>
         </dependencySet>

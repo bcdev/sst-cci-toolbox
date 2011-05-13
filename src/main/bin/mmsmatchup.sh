@@ -23,6 +23,6 @@ fi
 
 java \
     -Xmx1024M $MMS_OPTIONS \
-    -javaagent:"$CCI_SST_HOME/lib/openjpa-all.jar" \
+    -javaagent:"$CCI_SST_HOME/lib/openjpa-all-${openjpa.version}.jar" \
     -classpath "$CCI_SST_HOME/lib/*" \
     org.esa.cci.sst.tools.MatchupTool "$@"

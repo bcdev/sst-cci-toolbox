@@ -24,6 +24,12 @@
     <artifactId>sst-cci-toolbox</artifactId>
     <version>0.1-SNAPSHOT</version>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <beam.version>4.9</beam.version>
+        <openjpa.version>2.1.0</openjpa.version>
+    </properties>
+
     <dependencies>
 
         <!--
@@ -32,13 +38,13 @@
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-bootstrap</artifactId>
-            <version>4.9-SNAPSHOT</version>
+            <version>${beam.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-core</artifactId>
-            <version>4.9-SNAPSHOT</version>
+            <version>${beam.version}</version>
         </dependency>
 
         <dependency>
@@ -50,19 +56,19 @@
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-envisat-reader</artifactId>
-            <version>1.4-SNAPSHOT</version>
+            <version>1.4</version>
         </dependency>
 
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-avhrr-reader</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-netcdf</artifactId>
-            <version>1.0.101-SNAPSHOT</version>
+            <version>1.0.101</version>
         </dependency>
 
         <!--
@@ -82,7 +88,7 @@
         <dependency>
             <groupId>org.apache.openjpa</groupId>
             <artifactId>openjpa-all</artifactId>
-            <version>2.1.0</version>
+            <version>${openjpa.version}</version>
         </dependency>
 
         <!--
