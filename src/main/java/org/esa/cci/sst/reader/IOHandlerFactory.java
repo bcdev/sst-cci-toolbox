@@ -44,14 +44,14 @@ public class IOHandlerFactory {
      *
      * @throws IllegalArgumentException when the reader specification is incorrect.
      */
-    public static IOHandler createHandler(String readerSpec, String sensorName) throws IllegalArgumentException {
+    @SuppressWarnings({"unchecked"})
+    public static IOHandler createHandler(String readerSpec, String sensorName) {
         Assert.argument(readerSpec != null, "readerSpec == null");
         Assert.argument(sensorName != null, "sensorName == null");
         final String[] handlerClassNames = readerSpec.split(",");
         IOHandler handler = null;
         try {
             for (int i = handlerClassNames.length - 1; i >= 0; i--) {
-                @SuppressWarnings({"unchecked"})
                 final Class<? extends IOHandler> handlerClass =
                         (Class<? extends IOHandler>) Class.forName(PACKAGE_NAME + '.' + handlerClassNames[i]);
                 if (handler == null) {
