@@ -205,7 +205,7 @@ abstract class AbstractProductHandler implements IOHandler {
         final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
         final int[] targetShape = targetVariable.getShape();
         final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
-        final DataType dataType = DataTypeUtils.getNetcdfDataType(node);
+        final DataType dataType = DataTypeUtils.getNetcdfDataType(node.getDataType());
         final Array array = readSubsceneData(node, dataType, targetShape, rectangle);
         try {
             targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
@@ -221,7 +221,7 @@ abstract class AbstractProductHandler implements IOHandler {
 
     protected final Item createColumn(final RasterDataNode node) {
         final String name = getSensorName() + "." + node.getName();
-        final DataType type = DataTypeUtils.getNetcdfDataType(node);
+        final DataType type = DataTypeUtils.getNetcdfDataType(node.getDataType());
         final ColumnBuilder builder = new ColumnBuilder();
         builder.name(name);
         builder.type(type);

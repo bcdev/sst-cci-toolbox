@@ -34,7 +34,6 @@ import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -42,7 +41,6 @@ import java.awt.Dimension;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Product reader for TMI and AMSR-E products.
@@ -111,11 +109,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
     @Override
     protected final void addMetadata(Product product) {
         final MetadataElement metadataRoot = product.getMetadataRoot();
-        final List<Attribute> globalAttributes = getNetcdfFile().getGlobalAttributes();
-        metadataRoot.addElement(MetadataUtils.readAttributeList(globalAttributes, "Global Attributes"));
-
-        final List<Variable> variables = getNetcdfFile().getVariables();
-        metadataRoot.addElement(MetadataUtils.readVariableDescriptions(variables, "Variable Attributes"));
+        MetadataUtils.readNetcdfMetadata(getNetcdfFile(), metadataRoot);
 
         final MetadataElement generated = new MetadataElement("reader_generated");
         generated.addAttribute(new MetadataAttribute("lead_line_skip",
