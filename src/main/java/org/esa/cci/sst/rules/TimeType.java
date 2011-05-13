@@ -26,7 +26,7 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-public final class TimeType extends AbstractAttributeModification {
+final class TimeType extends AbstractAttributeModification {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {

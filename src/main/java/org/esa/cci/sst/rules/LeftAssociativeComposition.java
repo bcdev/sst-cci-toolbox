@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author Ralf Quast
  */
-public class LeftAssociativeComposition implements CompositeRule {
+final class LeftAssociativeComposition implements CompositeRule {
 
     private final List<Rule> ruleList = new ArrayList<Rule>();
 

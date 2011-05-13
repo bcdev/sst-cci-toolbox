@@ -26,13 +26,13 @@ import ucar.ma2.Array;
 public interface Converter {
 
     /**
-     * Applies the numerical conversion rule to the numbery supplied as argument.
+     * Applies the numerical conversion rule to the numbers supplied as argument.
      *
-     * @param number The numbers to be converted.
+     * @param numbers The numbers to be converted.
      *
      * @return the converted numbers.
      *
      * @throws RuleException when the conversion rule cannot be applied.
      */
-    Array apply(Array number) throws RuleException;
+    Array apply(Array numbers) throws RuleException;
 }

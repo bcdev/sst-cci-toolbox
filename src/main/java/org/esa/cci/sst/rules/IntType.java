@@ -22,8 +22,10 @@ import ucar.ma2.DataType;
 
 /**
  * IntType (int) type.
+ *
+ * @author Ralf Quast
  */
-public class IntType extends AbstractAttributeModification {
+final class IntType extends AbstractAttributeModification {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
