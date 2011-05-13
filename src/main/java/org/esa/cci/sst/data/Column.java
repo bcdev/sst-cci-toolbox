@@ -41,6 +41,9 @@ public class Column implements Item {
     private int rank;
     private String dimensions;
     private String unit;
+    private String flagMasks;
+    private String flagMeanings;
+    private String flagValues;
     private Number addOffset;
     private Number scaleFactor;
     private Number fillValue;
@@ -126,6 +129,39 @@ public class Column implements Item {
     @Override
     public String getUnit() {
         return unit;
+    }
+
+    @Override
+    public String getFlagMasks() {
+        return flagMasks;
+    }
+
+    // important: this is not public API
+    @Deprecated
+    public void setFlagMasks(String flagMasks) {
+        this.flagMasks = flagMasks;
+    }
+
+    @Override
+    public String getFlagMeanings() {
+        return flagMeanings;
+    }
+
+    // important: this is not public API
+    @Deprecated
+    public void setFlagMeanings(String flagMeanings) {
+        this.flagMeanings = flagMeanings;
+    }
+
+    @Override
+    public String getFlagValues() {
+        return flagValues;
+    }
+
+    // important: this is not public API
+    @Deprecated
+    public void setFlagValues(String flagValues) {
+        this.flagValues = flagValues;
     }
 
     // important: this is not public API

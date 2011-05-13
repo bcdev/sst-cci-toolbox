@@ -27,6 +27,7 @@ import ucar.ma2.DataType;
 public final class ColumnBuilder {
 
     private static final String DIMENSIONS_PATTERN = "([a-zA-Z0-9_\\.]+){1}(\\s[a-zA-Z0-9_\\.]+)*";
+    private static final String FLAG_MASKS_PATTERN = "(\\-?[0-9]+){1}(\\s\\-?[0-9]+)*";
 
     private String name;
     private DataType type;
@@ -34,6 +35,9 @@ public final class ColumnBuilder {
     private int rank;
     private String dimensions;
     private String unit;
+    private String flagMasks;
+    private String flagMeanings;
+    private String flagValues;
     private Number addOffset;
     private Number scaleFactor;
     private Number fillValue;
@@ -58,6 +62,9 @@ public final class ColumnBuilder {
         rank(column.getRank());
         dimensions(column.getDimensions());
         unit(column.getUnit());
+        flagMasks(column.getFlagMasks());
+        flagMeanings(column.getFlagMeanings());
+        flagValues(column.getFlagValues());
         addOffset(column.getAddOffset());
         scaleFactor(column.getScaleFactor());
         fillValue(column.getFillValue());
@@ -118,6 +125,30 @@ public final class ColumnBuilder {
 
     public ColumnBuilder unit(String unit) {
         this.unit = unit;
+        return this;
+    }
+
+    public ColumnBuilder flagMasks(String flagMasks) {
+        Assert.argument(flagMasks == null ||
+                        flagMasks.matches(FLAG_MASKS_PATTERN),
+                        "Illegal flag masks string '" + flagMasks + "'.");
+        this.flagMasks = flagMasks;
+        return this;
+    }
+
+    public ColumnBuilder flagMeanings(String flagMeanings) {
+        Assert.argument(flagMasks == null ||
+                        flagMeanings.matches(DIMENSIONS_PATTERN),
+                        "Illegal flag meanings '" + flagMeanings + "'.");
+        this.flagMeanings = flagMeanings;
+        return this;
+    }
+
+    public ColumnBuilder flagValues(String flagValues) {
+        Assert.argument(flagValues == null ||
+                        flagValues.matches(FLAG_MASKS_PATTERN),
+                        "Illegal flag values string '" + flagValues + "'.");
+        this.flagValues = flagValues;
         return this;
     }
 
@@ -184,6 +215,9 @@ public final class ColumnBuilder {
         column.setRank(rank);
         column.setDimensions(dimensions);
         column.setUnit(unit);
+        column.setFlagMasks(flagMasks);
+        column.setFlagMeanings(flagMeanings);
+        column.setFlagValues(flagValues);
         column.setAddOffset(addOffset);
         column.setScaleFactor(scaleFactor);
         column.setFillValue(fillValue);

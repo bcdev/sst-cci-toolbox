@@ -35,6 +35,12 @@ public interface Item {
 
     String getUnit();
 
+    String getFlagMasks();
+
+    String getFlagMeanings();
+
+    String getFlagValues();
+
     Number getAddOffset();
 
     Number getScaleFactor();

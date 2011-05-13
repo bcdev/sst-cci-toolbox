@@ -19,6 +19,7 @@ package org.esa.cci.sst.util;
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.Group;
@@ -45,6 +46,9 @@ public class IoUtil {
         builder.rank(variable.getRank());
         builder.dimensions(variable.getDimensionsString());
         setUnit(variable, builder);
+        setFlagMasks(variable, builder);
+        setFlagMeanings(variable, builder);
+        setFlagValues(variable, builder);
         setAttributes(variable, builder);
         builder.role(variable.getName());
 
@@ -55,6 +59,41 @@ public class IoUtil {
         final String unit = variable.getUnitsString();
         if (unit != null && !unit.isEmpty()) {
             builder.unit(unit);
+        }
+    }
+
+    private static void setFlagMasks(final Variable variable, final ColumnBuilder cb) {
+        final Attribute attribute = variable.findAttribute("flag_masks");
+        if (attribute != null) {
+            final StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < attribute.getLength(); i++) {
+                if (i > 0) {
+                    sb.append(" ");
+                }
+                sb.append(attribute.getNumericValue(i));
+            }
+            cb.flagMasks(sb.toString());
+        }
+    }
+
+    private static void setFlagMeanings(final Variable variable, final ColumnBuilder builder) {
+        final Attribute attribute = variable.findAttribute("flag_meanings");
+        if (attribute != null) {
+            builder.flagMeanings(attribute.getStringValue());
+        }
+    }
+
+    private static void setFlagValues(final Variable variable, final ColumnBuilder cb) {
+        final Attribute attribute = variable.findAttribute("flag_values");
+        if (attribute != null) {
+            final StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < attribute.getLength(); i++) {
+                if (i > 0) {
+                    sb.append(" ");
+                }
+                sb.append(attribute.getNumericValue(i));
+            }
+            cb.flagValues(sb.toString());
         }
     }
 
@@ -86,6 +125,20 @@ public class IoUtil {
                 builder.standardName(attribute.getStringValue());
             }
         }
+    }
+
+    public static Attribute addFlagValues(Variable v, String name, String valueString) {
+        Assert.notNull(v, "v == null");
+        Assert.notNull(name, "name == null");
+        Assert.notNull(valueString, "value == null");
+
+        final String[] values = valueString.split("\\s");
+        final Array array = Array.factory(v.getDataType(), new int[]{values.length});
+        final Attribute attribute = v.addAttribute(new Attribute(name, array));
+        for (int i = 0; i < values.length; i++) {
+            array.setInt(i, Integer.valueOf(values[i]));
+        }
+        return attribute;
     }
 
     public static Attribute addAttribute(Variable v, String name, String value) {

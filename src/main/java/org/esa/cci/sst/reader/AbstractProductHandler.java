@@ -19,6 +19,8 @@ package org.esa.cci.sst.reader;
 import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.FlagCoding;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
@@ -109,17 +111,17 @@ abstract class AbstractProductHandler implements IOHandler {
 
     private static Number getSample(Raster raster, int x, int y) {
         switch (raster.getTransferType()) {
-        case DataBuffer.TYPE_BYTE:
-        case DataBuffer.TYPE_SHORT:
-        case DataBuffer.TYPE_USHORT:
-        case DataBuffer.TYPE_INT:
-            return raster.getSample(x, y, 0);
-        case DataBuffer.TYPE_FLOAT:
-            return raster.getSampleFloat(x, y, 0);
-        case DataBuffer.TYPE_DOUBLE:
-            return raster.getSampleDouble(x, y, 0);
-        default:
-            throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+            case DataBuffer.TYPE_BYTE:
+            case DataBuffer.TYPE_SHORT:
+            case DataBuffer.TYPE_USHORT:
+            case DataBuffer.TYPE_INT:
+                return raster.getSample(x, y, 0);
+            case DataBuffer.TYPE_FLOAT:
+                return raster.getSampleFloat(x, y, 0);
+            case DataBuffer.TYPE_DOUBLE:
+                return raster.getSampleDouble(x, y, 0);
+            default:
+                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
 
@@ -220,10 +222,10 @@ abstract class AbstractProductHandler implements IOHandler {
     }
 
     protected final Item createColumn(final RasterDataNode node) {
-        final String name = getSensorName() + "." + node.getName();
-        final DataType type = DataTypeUtils.getNetcdfDataType(node.getDataType());
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.name(name);
+        final String columnName = getSensorName() + "." + node.getName();
+        final DataType type = DataTypeUtils.getNetcdfDataType(node.getDataType());
+        builder.name(columnName);
         builder.type(type);
         builder.unsigned(ProductData.isUIntType(node.getDataType()));
         builder.rank(3);
@@ -241,6 +243,27 @@ abstract class AbstractProductHandler implements IOHandler {
         }
         builder.role(node.getName());
         builder.sensor(getDataFile().getSensor());
+
+        if (node instanceof Band) {
+            final Band band = (Band) node;
+            final FlagCoding flagCoding = band.getFlagCoding();
+            if (flagCoding != null) {
+                final String[] meanings = flagCoding.getFlagNames();
+                final StringBuilder masksStringBuilder = new StringBuilder();
+                final StringBuilder meaningsStringBuilder = new StringBuilder();
+                for (final String meaning : meanings) {
+                    if (meaningsStringBuilder.length() > 0) {
+                        masksStringBuilder.append(" ");
+                        meaningsStringBuilder.append(" ");
+                    }
+                    final int flagMask = flagCoding.getFlagMask(meaning);
+                    masksStringBuilder.append(Integer.toString(flagMask));
+                    meaningsStringBuilder.append(meaning);
+                }
+                builder.flagMasks(masksStringBuilder.toString());
+                builder.flagMeanings(meaningsStringBuilder.toString());
+            }
+        }
 
         return builder.build();
     }
