@@ -94,14 +94,14 @@ public class TargetVariableConfigurationTest {
         assertNotNull("metop.IR037", registry.getSourceColumn(targetColumn).getName());
     }
 
-    private void registerSourceColumns(String fileName, String sensor) throws IOException,
-                                                                              URISyntaxException {
+    private void registerSourceColumns(String fileName, String sensorName) throws IOException,
+                                                                                  URISyntaxException {
         NetcdfFile netcdfFile = null;
         try {
             final File sensorFile = new File(TargetVariableConfigurationTest.class.getResource(fileName).toURI());
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
             for (final Variable variable : netcdfFile.getVariables()) {
-                final Item column = IoUtil.createColumnBuilder(variable, sensor).build();
+                final Item column = IoUtil.createColumnBuilder(variable, sensorName).build();
                 registry.register(column);
             }
         } finally {
