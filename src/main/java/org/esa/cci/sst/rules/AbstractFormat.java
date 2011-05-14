@@ -32,10 +32,16 @@ abstract class AbstractFormat<S extends Number, T extends Number> implements Rul
 
     private final DataType sourceDataType;
     private final DataType targetDataType;
+    private final boolean unsigned;
 
     protected AbstractFormat(Class<S> sourceType, Class<T> targetType) {
-        sourceDataType = getDataType(sourceType);
-        targetDataType = getDataType(targetType);
+        this(sourceType, targetType, false);
+    }
+
+    protected AbstractFormat(Class<S> sourceType, Class<T> targetType, boolean unsigned) {
+        this.sourceDataType = getDataType(sourceType);
+        this.targetDataType = getDataType(targetType);
+        this.unsigned = unsigned;
     }
 
     @Override
@@ -73,6 +79,7 @@ abstract class AbstractFormat<S extends Number, T extends Number> implements Rul
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         Assert.type(sourceDataType, sourceArray);
         final Array targetArray = Array.factory(targetDataType, sourceArray.getShape());
+        targetArray.setUnsigned(unsigned);
         apply(sourceArray, targetArray, sourceColumn.getScaleFactor(), sourceColumn.getAddOffset());
 
         return targetArray;
