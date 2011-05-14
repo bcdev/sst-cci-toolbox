@@ -65,12 +65,13 @@ public class IoUtil {
     private static void setFlagMasks(final Variable variable, final ColumnBuilder cb) {
         final Attribute attribute = variable.findAttribute("flag_masks");
         if (attribute != null) {
+            final Array values = attribute.getValues();
             final StringBuilder sb = new StringBuilder();
             for (int i = 0; i < attribute.getLength(); i++) {
                 if (i > 0) {
                     sb.append(" ");
                 }
-                sb.append(attribute.getNumericValue(i));
+                sb.append(values.getInt(i));
             }
             cb.flagMasks(sb.toString());
         }
@@ -134,6 +135,7 @@ public class IoUtil {
 
         final String[] values = valueString.split("\\s");
         final Array array = Array.factory(v.getDataType(), new int[]{values.length});
+        array.setUnsigned(v.isUnsigned());
         final Attribute attribute = v.addAttribute(new Attribute(name, array));
         for (int i = 0; i < values.length; i++) {
             array.setInt(i, Integer.valueOf(values[i]));
@@ -164,19 +166,19 @@ public class IoUtil {
         Assert.notNull(type, "type == null");
 
         switch (type) {
-            case BYTE:
-                return v.addAttribute(new Attribute(name, value.byteValue()));
-            case SHORT:
-                return v.addAttribute(new Attribute(name, value.shortValue()));
-            case INT:
-                return v.addAttribute(new Attribute(name, value.intValue()));
-            case FLOAT:
-                return v.addAttribute(new Attribute(name, value.floatValue()));
-            case DOUBLE:
-                return v.addAttribute(new Attribute(name, value.doubleValue()));
-            default:
-                throw new IllegalArgumentException(MessageFormat.format(
-                        "Attribute type ''{0}'' is not supported", type.toString()));
+        case BYTE:
+            return v.addAttribute(new Attribute(name, value.byteValue()));
+        case SHORT:
+            return v.addAttribute(new Attribute(name, value.shortValue()));
+        case INT:
+            return v.addAttribute(new Attribute(name, value.intValue()));
+        case FLOAT:
+            return v.addAttribute(new Attribute(name, value.floatValue()));
+        case DOUBLE:
+            return v.addAttribute(new Attribute(name, value.doubleValue()));
+        default:
+            throw new IllegalArgumentException(MessageFormat.format(
+                    "Attribute type ''{0}'' is not supported", type.toString()));
         }
     }
 
@@ -192,6 +194,18 @@ public class IoUtil {
         final String unit = column.getUnit();
         if (unit != null) {
             addAttribute(v, "units", unit);
+        }
+        final String flagMasks = column.getFlagMasks();
+        if (flagMasks != null) {
+            addFlagValues(v, "flag_masks", flagMasks);
+        }
+        final String flagMeanings = column.getFlagMeanings();
+        if (flagMeanings != null) {
+            addAttribute(v, "flag_meanings", flagMeanings);
+        }
+        final String flagValues = column.getFlagValues();
+        if (flagValues != null) {
+            addFlagValues(v, "flag_values", flagValues);
         }
         final Number addOffset = column.getAddOffset();
         if (addOffset != null) {
