@@ -121,7 +121,7 @@ public class Sensor {
      * @deprecated no replacement.
      */
     @Deprecated
-    void setObservationType(String observationType) {
+    public void setObservationType(String observationType) {
         this.observationType = observationType;
     }
 }
