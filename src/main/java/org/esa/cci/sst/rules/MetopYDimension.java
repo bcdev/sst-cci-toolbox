@@ -17,13 +17,14 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Replaces the second and third dimension with 'seviri.ny' and 'seviri.nx', respectively.
+ * Replaces the second dimension with 'metop.ny'.
+ *
+ * @author Ralf Quast
  */
-final class SeviriImageDimensions extends AbstractDimensionReplacement {
+final  class MetopYDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "seviri.ny");
-        builder.replace(2, "seviri.nx");
+        builder.replace(1, "metop.ny");
     }
 }

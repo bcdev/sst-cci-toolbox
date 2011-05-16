@@ -1,7 +1,6 @@
 package org.esa.cci.sst.rules;
 
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
 
 /**
  * abstract rule for converting number types to 'FLOAT'.
@@ -36,6 +35,6 @@ abstract class AbstractFloatFormat<S extends Number> extends AbstractFormat<S, F
         if (number == null) {
             return defaultValue;
         }
-        return number.floatValue();
+        return number.doubleValue();
     }
 }

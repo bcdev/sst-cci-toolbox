@@ -16,14 +16,19 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
+import ucar.ma2.DataType;
+
 /**
- * Replaces the second and third dimension with 'seviri.ny' and 'seviri.nx', respectively.
+ * Character (char) type.
+ *
+ * @author Ralf Quast
  */
-final class SeviriImageDimensions extends AbstractDimensionReplacement {
+final class CharType extends AbstractAttributeModification {
 
     @Override
-    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "seviri.ny");
-        builder.replace(2, "seviri.nx");
+    public Item apply(Item sourceColumn) throws RuleException {
+        return new ColumnBuilder(sourceColumn).type(DataType.CHAR).build();
     }
 }

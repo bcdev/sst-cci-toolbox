@@ -18,17 +18,30 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.DataType;
 
 /**
- * Integer (int) type.
+ * Matchup reference flag
  *
  * @author Ralf Quast
  */
-final class IntType extends AbstractAttributeModification {
+final class MatchupReferenceFlag extends AbstractAttributeModification {
+
+    private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16};
+    private static final String FLAG_MEANINGS = "training testing algorithm_selection reference undefined";
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
-        return new ColumnBuilder(sourceColumn).type(DataType.INT).build();
+        return
+                new ColumnBuilder(sourceColumn).
+                        type(DataType.BYTE).
+                        unsigned(true).
+                        rank(1).
+                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
+                        flagMasks(FLAG_MASKS).
+                        flagMeanings(FLAG_MEANINGS).
+                        build();
     }
+
 }

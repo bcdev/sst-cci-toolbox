@@ -16,14 +16,28 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
+import ucar.ma2.DataType;
+
 /**
- * Replaces the second and third dimension with 'seviri.ny' and 'seviri.nx', respectively.
+ * Matchup insitu dataset.
+ *
+ * @author Ralf Quast
  */
-final class SeviriImageDimensions extends AbstractDimensionReplacement {
+final class MatchupInsituDataset extends AbstractAttributeModification {
+
+    private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16, 32, 64};
+    private static final String FLAG_MEANINGS = "drifter moored ship gtmba radiometer argo dummy";
 
     @Override
-    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "seviri.ny");
-        builder.replace(2, "seviri.nx");
+    public Item apply(Item sourceColumn) throws RuleException {
+        return
+                new ColumnBuilder(sourceColumn).
+                        type(DataType.BYTE).
+                        unsigned(true).
+                        flagMasks(FLAG_MASKS).
+                        flagMeanings(FLAG_MEANINGS).
+                        build();
     }
 }

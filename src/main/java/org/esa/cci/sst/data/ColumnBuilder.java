@@ -128,6 +128,39 @@ public final class ColumnBuilder {
         return this;
     }
 
+    public ColumnBuilder flagMasks(byte... flagMasks) {
+        final StringBuilder sb = new StringBuilder();
+        for (final long mask : flagMasks) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(mask);
+        }
+        return flagMasks(sb.length() != 0 ? sb.toString() : null);
+    }
+
+    public ColumnBuilder flagMasks(int... flagMasks) {
+        final StringBuilder sb = new StringBuilder();
+        for (final long mask : flagMasks) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(mask);
+        }
+        return flagMasks(sb.length() != 0 ? sb.toString() : null);
+    }
+
+    public ColumnBuilder flagMasks(long... flagMasks) {
+        final StringBuilder sb = new StringBuilder();
+        for (final long mask : flagMasks) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(mask);
+        }
+        return flagMasks(sb.length() != 0 ? sb.toString() : null);
+    }
+
     public ColumnBuilder flagMasks(String flagMasks) {
         Assert.argument(flagMasks == null ||
                         flagMasks.matches(FLAG_MASKS_PATTERN),
@@ -142,6 +175,39 @@ public final class ColumnBuilder {
                         "Illegal flag meanings '" + flagMeanings + "'.");
         this.flagMeanings = flagMeanings;
         return this;
+    }
+
+    public ColumnBuilder flagValues(byte... flagValues) {
+        final StringBuilder sb = new StringBuilder();
+        for (final long mask : flagValues) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(mask);
+        }
+        return flagValues(sb.length() != 0 ? sb.toString() : null);
+    }
+
+    public ColumnBuilder flagValues(int... flagValues) {
+        final StringBuilder sb = new StringBuilder();
+        for (final long mask : flagValues) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(mask);
+        }
+        return flagValues(sb.length() != 0 ? sb.toString() : null);
+    }
+
+    public ColumnBuilder flagValues(long... flagValues) {
+        final StringBuilder sb = new StringBuilder();
+        for (final long mask : flagValues) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(mask);
+        }
+        return flagValues(sb.length() != 0 ? sb.toString() : null);
     }
 
     public ColumnBuilder flagValues(String flagValues) {

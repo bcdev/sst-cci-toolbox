@@ -17,7 +17,9 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Replaces the second and third dimension with 'metop.ni' and 'metop.nj', respectively.
+ * Replaces the second and third dimension with 'metop.ny' and 'metop.nx', respectively.
+ *
+ * @author Ralf Quast
  */
 final class MetopImageDimensions extends AbstractDimensionReplacement {
 
