@@ -68,7 +68,7 @@ public class MmdIngestionTool extends BasicTool {
                                                             "WHERE path = '%s'";
 
     private MmdIOHandler ioHandler;
-    private final Ingester ingester = new Ingester(this);
+    private Ingester ingester;
     private DataFile dataFile;
 
     private MmdIngestionTool() {
@@ -76,6 +76,7 @@ public class MmdIngestionTool extends BasicTool {
     }
 
     void ingest() {
+        ingester = new Ingester(this);
         final String sensorName = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
         final String patternProperty = getConfiguration().getProperty(MMS_REINGESTION_PATTERN_PROPERTY, "0");
         final long pattern = Long.parseLong(patternProperty, 16);
