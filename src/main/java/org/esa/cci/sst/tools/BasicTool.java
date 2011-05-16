@@ -178,7 +178,9 @@ public abstract class BasicTool {
     }
 
     public final boolean setCommandLineArgs(String[] args) {
-        getLogger().info("parsing command line and setting parameters");
+        if (isVerbose() || isDebug()) {
+            getLogger().info("parsing command line and setting parameters");
+        }
         final CommandLineParser parser = new PosixParser();
         try {
             final CommandLine commandLine = parser.parse(getOptions(), args);
@@ -225,8 +227,9 @@ public abstract class BasicTool {
         if (initialised) {
             return;
         }
-
-        getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
+        if (isVerbose() || isDebug()) {
+            getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
+        }
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, getConfiguration());
 
         final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
@@ -239,7 +242,6 @@ public abstract class BasicTool {
         } catch (java.text.ParseException e) {
             throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
-
         initialised = true;
     }
 
