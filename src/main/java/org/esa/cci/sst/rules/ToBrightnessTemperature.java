@@ -15,7 +15,7 @@ final class ToBrightnessTemperature extends AbstractRescaling {
     }
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder builder) {
-        builder.unit(Constants.UNIT_BRIGHTNESS_TEMPERATURE);
+    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
+        targetColumnBuilder.unit(Constants.UNIT_BRIGHTNESS_TEMPERATURE);
     }
 }

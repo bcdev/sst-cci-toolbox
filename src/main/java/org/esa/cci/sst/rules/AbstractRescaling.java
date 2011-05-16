@@ -43,7 +43,7 @@ abstract class AbstractRescaling implements Rule {
         return targetArray;
     }
 
-    protected abstract void configureTargetColumn(ColumnBuilder builder);
+    protected abstract void configureTargetColumn(ColumnBuilder targetColumnBuilder);
 
     private void apply(Array sourceArray, Array targetArray,
                        Number sourceScaleFactor,

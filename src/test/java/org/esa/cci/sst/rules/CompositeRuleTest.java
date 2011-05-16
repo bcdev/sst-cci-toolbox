@@ -37,7 +37,7 @@ public class CompositeRuleTest {
 
         @Override
         protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-            targetColumnBuilder.name("R").longName("L");
+            targetColumnBuilder.name("R").longName("R");
         }
     };
 

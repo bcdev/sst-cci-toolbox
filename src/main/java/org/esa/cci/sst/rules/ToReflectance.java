@@ -30,6 +30,6 @@ final class ToReflectance extends AbstractRescaling {
     }
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder builder) {
+    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
     }
 }

@@ -15,8 +15,8 @@ final class ToSeaSurfaceTemperature extends AbstractRescaling {
     }
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder builder) {
-        builder.unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE);
+    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
+        targetColumnBuilder.unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE);
     }
 
 }

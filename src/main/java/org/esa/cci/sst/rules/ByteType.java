@@ -29,6 +29,6 @@ final class ByteType extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        targetColumnBuilder.type(DataType.BYTE).build();
+        targetColumnBuilder.type(DataType.BYTE);
     }
 }
