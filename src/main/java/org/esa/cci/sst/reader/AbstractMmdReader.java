@@ -83,7 +83,7 @@ abstract class AbstractMmdReader implements ObservationReader {
         return TimeUtil.julianDateToDate(julianDate);
     }
 
-    void setupObservation(final int recordNo, final Observation observation) throws IOException {
+    void setupObservation(Observation observation) throws IOException {
         observation.setDatafile(dataFile);
         observation.setSensor(sensor);
     }

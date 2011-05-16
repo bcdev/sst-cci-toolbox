@@ -37,7 +37,7 @@ public class Arc3Reader extends AbstractMmdReader {
     public Observation readObservation(final int recordNo) throws IOException {
         validateRecordNumber(recordNo);
         final Observation observation = new Observation();
-        setupObservation(recordNo, observation);
+        setupObservation(observation);
         return observation;
     }
 }

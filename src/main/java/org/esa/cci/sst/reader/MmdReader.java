@@ -35,7 +35,7 @@ class MmdReader extends AbstractMmdReader {
     public RelatedObservation readObservation(final int recordNo) throws IOException {
         validateRecordNumber(recordNo);
         final RelatedObservation observation = new RelatedObservation();
-        setupObservation(recordNo, observation);
+        setupObservation(observation);
         setObservationLocation(observation, recordNo);
         setObservationTime(recordNo, observation);
         observation.setRecordNo(recordNo);
