@@ -4,7 +4,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.tools.Constants;
 
 /**
- * Rescaling applicable for sea surface temperature columns.
+ * Rescaling applicable to sea surface temperature columns.
  *
  * @author Ralf Quast
  */
@@ -18,5 +18,4 @@ final class ToSeaSurfaceTemperature extends AbstractRescaling {
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
         targetColumnBuilder.unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE);
     }
-
 }

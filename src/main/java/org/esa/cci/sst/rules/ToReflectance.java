@@ -19,7 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 
 /**
- * Rescaling applicable for reflectance columns.
+ * Rescaling applicable to reflectance columns.
  *
  * @author Ralf Quast
  */

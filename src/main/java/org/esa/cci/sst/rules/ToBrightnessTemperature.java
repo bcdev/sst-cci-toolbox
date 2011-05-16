@@ -4,7 +4,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.tools.Constants;
 
 /**
- * Rescaling applicable for brightness temperature columns.
+ * Rescaling applicable to brightness temperature columns.
  *
  * @author Ralf Quast
  */
