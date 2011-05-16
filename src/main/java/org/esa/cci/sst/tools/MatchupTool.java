@@ -146,10 +146,7 @@ public class MatchupTool extends BasicTool {
         }
     }
 
-    /**
-     * JPA persistence entity manager
-     */
-    public MatchupTool() {
+    private MatchupTool() {
         super("mmsmatchup.sh", "0.1");
     }
 
@@ -167,7 +164,7 @@ public class MatchupTool extends BasicTool {
      * Creates matchups for the temporally nearest coincidences. Does the same
      * for METOP as reference and SEVIRI as inquired coincidence.
      */
-    public void findMultiSensorMatchups() {
+    private void findMultiSensorMatchups() {
         try {
             // open database
             getPersistenceManager().transaction();
@@ -268,7 +265,7 @@ public class MatchupTool extends BasicTool {
         }
     }
 
-    public void findSingleSensorMatchups() {
+    private void findSingleSensorMatchups() {
         try {
             // open database
             getPersistenceManager().transaction();

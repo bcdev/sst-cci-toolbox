@@ -38,7 +38,6 @@ public class Observation {
     private String sensor;
     private DataFile datafile;
     private int recordNo;
-    private String callsign;
 
     @Id
     @GeneratedValue
@@ -78,19 +77,11 @@ public class Observation {
         this.recordNo = recordNo;
     }
 
-    public void setCallsign(String callsign) {
-        this.callsign = callsign;
-    }
-
-    public String getCallsign() {
-        return callsign;
-    }
-
     @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
-        return String.format("Observation{callsign='%s\', id=%d, sensor='%s\', datafile=%s, recordNo=%d}",
-                             getCallsign(), getId(), getSensor(), getDatafile(), getRecordNo());
+        return String.format("Observation{id=%d, sensor='%s\', datafile=%s, recordNo=%d}",
+                             getId(), getSensor(), getDatafile(), getRecordNo());
     }
 }
 

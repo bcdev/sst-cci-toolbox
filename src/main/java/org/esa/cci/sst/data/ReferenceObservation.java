@@ -18,11 +18,11 @@ package org.esa.cci.sst.data;
 
 import org.apache.openjpa.persistence.jdbc.Index;
 import org.apache.openjpa.persistence.jdbc.Strategy;
-import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import java.text.MessageFormat;
 
 /**
  * Data item that represents a single observation that refers
@@ -36,6 +36,9 @@ public class ReferenceObservation extends RelatedObservation {
     private PGgeometry point;
     private byte classification;
     private boolean clearSky;
+    private String callsign;
+    private byte dataset;
+    private byte referenceFlag;
 
     @Column(columnDefinition = "GEOGRAPHY(POINT,4326)")
     @Strategy("org.esa.cci.sst.orm.PointValueHandler")
@@ -64,11 +67,36 @@ public class ReferenceObservation extends RelatedObservation {
         this.clearSky = clearSky;
     }
 
+    public void setCallsign(String callsign) {
+        this.callsign = callsign;
+    }
+
+    public String getCallsign() {
+        return callsign;
+    }
+
+    public byte getDataset() {
+        return dataset;
+    }
+
+    public void setDataset(byte dataset) {
+        this.dataset = dataset;
+    }
+
+
+    public byte getReferenceFlag() {
+        return referenceFlag;
+    }
+
+    public void setReferenceFlag(byte referenceFlag) {
+        this.referenceFlag = referenceFlag;
+    }
+
+    @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
-        return String.format("ReferenceObservation(%d,%s,%s,%s,%s,%s,%s,%d,%b)", getId(), getCallsign(), getSensor(),
-                             TimeUtil.formatCcsdsUtcFormat(getTime()), getPoint(), getLocation(), getDatafile(),
-                             getRecordNo(), isClearSky());
+        return MessageFormat.format("ReferenceObservation{callsign={0}, point={1}, classification={2}, clearSky={3}, dataset={4}, referenceFlag={5}{6}",
+                                    getCallsign(), getPoint(), getClassification(), isClearSky(), getDataset(), getReferenceFlag(), '}');
     }
 }
 

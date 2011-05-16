@@ -81,7 +81,6 @@ class InsituIOHandler extends NetcdfIOHandler {
         final InsituObservation observation = new InsituObservation();
         final DataFile dataFile = getDataFile();
         observation.setDatafile(dataFile);
-        observation.setCallsign(getNcFile().findGlobalAttribute("wmo_id").getStringValue());
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 

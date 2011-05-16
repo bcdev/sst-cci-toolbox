@@ -60,6 +60,8 @@ class AtsrMdIOHandler extends MdIOHandler {
                                                              getFloat("atsr.latitude", recordNo)));
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setCallsign(getString("insitu.callsign", recordNo));
+        observation.setDataset(getByte("insitu.dataset", recordNo));
+        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
         observation.setSensor(getDataFile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);

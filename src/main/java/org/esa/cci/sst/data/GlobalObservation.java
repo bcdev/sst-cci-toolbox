@@ -49,7 +49,7 @@ public class GlobalObservation extends Observation implements Timeable {
 
     @Override
     public String toString() {
-        return String.format("GlobalObservation(%d,%s,%s,%s,%s,%d)", getId(), getCallsign(), getSensor(),
+        return String.format("GlobalObservation(%d,%s,%s,%s,%d)", getId(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getDatafile(), getRecordNo());
     }
 }
