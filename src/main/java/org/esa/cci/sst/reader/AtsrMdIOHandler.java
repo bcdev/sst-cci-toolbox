@@ -59,7 +59,7 @@ class AtsrMdIOHandler extends MdIOHandler {
         final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                              getFloat("atsr.latitude", recordNo)));
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setName(getString("insitu.callsign", recordNo));
+        observation.setCallsign(getString("insitu.callsign", recordNo));
         observation.setSensor(getDataFile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);

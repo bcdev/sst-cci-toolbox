@@ -51,7 +51,7 @@ class Ingester {
                 hasPersisted = true;
             } catch (IllegalArgumentException e) {
                 final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
-                                                            observation.getName(),
+                                                            observation.getId(),
                                                             recordNo,
                                                             e.getMessage());
                 tool.getErrorHandler().warn(e, message);

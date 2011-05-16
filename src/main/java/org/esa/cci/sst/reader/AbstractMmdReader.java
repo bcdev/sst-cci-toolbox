@@ -85,7 +85,6 @@ abstract class AbstractMmdReader implements ObservationReader {
 
     void setupObservation(final int recordNo, final Observation observation) throws IOException {
         observation.setDatafile(dataFile);
-        observation.setName(String.format("observation_%d", recordNo));
         observation.setSensor(sensor);
     }
 

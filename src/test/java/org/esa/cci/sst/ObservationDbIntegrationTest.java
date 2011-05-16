@@ -53,11 +53,9 @@ public class ObservationDbIntegrationTest {
         // write new observation to database
         m.getTransaction().begin();
         final ReferenceObservation i = new ReferenceObservation();
-        i.setName("helgoland");
         i.setLocation(new PGgeometry("SRID=4326;POINT(-110 30)"));
         m.persist(i);
         final ReferenceObservation i2 = new ReferenceObservation();
-        i2.setName("isleofman");
         i2.setLocation(new PGgeometry("SRID=4326;POINT(10 50)"));
         m.persist(i2);
         m.getTransaction().commit();
@@ -71,7 +69,6 @@ public class ObservationDbIntegrationTest {
         // write new observation to database
         m.getTransaction().begin();
         final ReferenceObservation i = new ReferenceObservation();
-        i.setName("nowhere");
         i.setLocation(null);
         //i.setLocation(new PGgeometry("SRID=4326;POINT(-110 30)"));
         //System.out.println(i.getLocation().getValue());
@@ -79,7 +76,7 @@ public class ObservationDbIntegrationTest {
         q.setParameter(1, 14);
         q.setParameter(2, i.isClearSky());
         q.setParameter(3, i.getLocation());
-        q.setParameter(4, i.getName());
+        q.setParameter(4, i.getCallsign());
         q.setParameter(5, i.getRecordNo());
         q.setParameter(6, i.getSensor());
         q.setParameter(7, i.getTime());

@@ -73,7 +73,7 @@ class SeviriIOHandler extends MdIOHandler {
         final int column = noOfColumns / 2;
 
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setName(getString("msr_id", recordNo));
+        observation.setCallsign(getString("msr_id", recordNo));
         observation.setSensor(getSensorName());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{
                 new LinearRing(new Point[]{

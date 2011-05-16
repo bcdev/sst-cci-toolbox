@@ -80,7 +80,7 @@ class MetopIOHandler extends MdIOHandler {
         final int y = rowCount / 2;
 
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setName(getString("msr_id", recordNo));
+        observation.setCallsign(getString("msr_id", recordNo));
         observation.setSensor(getSensorName());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
