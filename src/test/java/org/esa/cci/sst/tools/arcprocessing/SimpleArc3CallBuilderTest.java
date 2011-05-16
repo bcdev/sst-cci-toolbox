@@ -91,22 +91,22 @@ public class SimpleArc3CallBuilderTest {
         final String reingestCall = simpleArc3CallBuilder.createReingestionCall();
         final StringBuilder builder = new StringBuilder();
         final String targetFileName = Arc3CallBuilder.getDefaultTargetFileName(sourceFile);
-        builder.append("scp eddie.ecdf.ed.ac.uk:/C:/dev/projects/sst-cci-toolbox/target/test-classes/org/esa/cci/sst/tools/arcprocessing/empty_test_ARC3.nc . \n" +
-                       "if [ -z \"$CCI_SST_HOME\" ]; then \n" +
-                       "    echo \n" +
-                       "    echo Error:\n" +
-                       "    echo CCI_SST_HOME does not exists in your environment. Please\n" +
-                       "    echo set the CCI_SST_HOME variable in your environment to the\n" +
-                       "    echo location of your CCI SST installation.\n" +
-                       "    echo\n" +
-                       "    exit 2\n" +
-                       "fi\n");
-        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s \\\n" +
-                                     " -Dmms.reingestion.located=no \\\n" +
-                                     " -Dmms.reingestion.sensor=ARC3 \\\n" +
-                                     " -Dmms.reingestion.pattern=20000 \\\n" +
-                                     " -c $CCI_SST_HOME/config/mms-config.properties", targetFileName));
+        builder.append(String.format("scp eddie.ecdf.ed.ac.uk:%s . \n", targetFileName));
+        builder.append("if [ -z \"$CCI_SST_HOME\" ]; then \n");
+        builder.append("    echo \n");
+        builder.append("    echo Error:\n");
+        builder.append("    echo CCI_SST_HOME does not exists in your environment. Please\n");
+        builder.append("    echo set the CCI_SST_HOME variable in your environment to the\n");
+        builder.append("    echo location of your CCI SST installation.\n");
+        builder.append("    echo\n");
+        builder.append("    exit 2\n");
+        builder.append("fi\n");
 
+        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s \\\n", targetFileName));
+        builder.append(" -Dmms.reingestion.located=no \\\n");
+        builder.append(" -Dmms.reingestion.sensor=ARC3 \\\n");
+        builder.append(" -Dmms.reingestion.pattern=20000 \\\n");
+        builder.append(" -c $CCI_SST_HOME/config/mms-config.properties");
 
         assertEquals(builder.toString(), reingestCall);
     }
