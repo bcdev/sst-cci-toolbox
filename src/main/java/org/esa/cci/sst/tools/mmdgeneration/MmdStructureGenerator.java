@@ -72,10 +72,9 @@ class MmdStructureGenerator {
     }
 
     private void addAllInputVariables(final NetcdfFileWriteable file) {
-        String sensorName;
         final Properties configuration = tool.getConfiguration();
-        int i = 0;
-        while ((sensorName = getSensor(configuration, i)) != null) {
+        for (int i = 0; i < 100; i++) {
+            String sensorName = getSensor(configuration, i);
             addInputVariables(file, sensorName);
             // todo - mb ts, 29Apr2011 - replace by configuration
             final boolean addVariables = false;
@@ -85,7 +84,6 @@ class MmdStructureGenerator {
                 addLsMaskVariable(file, sensorName);
                 addNwpData(file, sensorName);
             }
-            i++;
         }
     }
 

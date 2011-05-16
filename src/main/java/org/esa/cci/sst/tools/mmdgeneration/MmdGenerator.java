@@ -41,6 +41,7 @@ import ucar.nc2.NetcdfFileWriteable;
 
 import javax.naming.OperationNotSupportedException;
 import javax.persistence.Query;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,6 +82,9 @@ class MmdGenerator {
     MmdGenerator(final BasicTool tool) throws IOException {
         this.tool = tool;
         final String propertiesFilePath = tool.getConfiguration().getProperty("mmd.output.variables");
+        if(!new File(propertiesFilePath).exists()) {
+            throw new IOException(MessageFormat.format("Output variables file ''{0}'' does no exist.", propertiesFilePath));
+        }
         final InputStream is = new FileInputStream(propertiesFilePath);
 
         this.targetVariables = new Properties();
