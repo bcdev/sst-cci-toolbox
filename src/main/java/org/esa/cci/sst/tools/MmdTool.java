@@ -348,7 +348,7 @@ public class MmdTool extends BasicTool {
                 builder.name(Constants.COLUMN_NAME_INSITU_SST).
                         type(DataType.SHORT).
                         dimensions(Constants.DIMENSION_NAME_MATCHUP + " " + Constants.DIMENSION_NAME_INSITU_TIME).
-                        unit(Constants.UNIT_SST).
+                        unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE).
                         build();
         implicitColumns.add(insituSst);
 

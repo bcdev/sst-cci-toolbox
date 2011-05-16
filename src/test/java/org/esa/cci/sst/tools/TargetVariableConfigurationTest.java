@@ -78,16 +78,16 @@ public class TargetVariableConfigurationTest {
         }
 
         assertNotNull(nameList);
-        assertEquals(81, nameList.size());
+        assertEquals(100, nameList.size());
 
-        assertEquals("aatsr_md.atsr.L2_confidence_word", nameList.get(0));
-        assertEquals("tmi.wind_speed", nameList.get(nameList.size() - 1));
+        assertEquals("matchup.id", nameList.get(0));
+        assertEquals("tmi.matchup_line", nameList.get(nameList.size() - 1));
 
         testMetopColumn();
     }
 
     private void testMetopColumn() {
-        final Item targetColumn = registry.getColumn("metop.brightness_temperature.037");
+        final Item targetColumn = registry.getColumn("metop.brightness_temperature_037");
 
         assertEquals("matchup metop.ny metop.nx", targetColumn.getDimensions());
         assertNotNull(registry.getConverter(targetColumn));

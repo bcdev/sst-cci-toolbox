@@ -30,15 +30,12 @@ abstract class AbstractDimensionReplacement extends AbstractAttributeModificatio
     }
 
     @Override
-    public final Item apply(Item sourceColumn) throws RuleException {
-        final ColumnBuilder cb = new ColumnBuilder(sourceColumn);
-        final DimensionStringBuilder sb = new DimensionStringBuilder(sourceColumn.getDimensions());
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        final DimensionStringBuilder dimensionStringBuilder = new DimensionStringBuilder(sourceColumn.getDimensions());
+        replaceDimensions(dimensionStringBuilder);
 
-        replaceDimensions(sb);
-        cb.rank(sb.getDimensionCount());
-        cb.dimensions(sb.toString());
-
-        return cb.build();
+        targetColumnBuilder.rank(dimensionStringBuilder.getDimensionCount());
+        targetColumnBuilder.dimensions(dimensionStringBuilder.toString());
     }
 
     protected abstract void replaceDimensions(DimensionStringBuilder builder) throws RuleException;

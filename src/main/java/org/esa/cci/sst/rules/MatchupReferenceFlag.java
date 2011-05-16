@@ -32,16 +32,13 @@ final class MatchupReferenceFlag extends AbstractAttributeModification {
     private static final String FLAG_MEANINGS = "training testing algorithm_selection reference undefined";
 
     @Override
-    public Item apply(Item sourceColumn) throws RuleException {
-        return
-                new ColumnBuilder(sourceColumn).
-                        type(DataType.BYTE).
-                        unsigned(true).
-                        rank(1).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        flagMasks(FLAG_MASKS).
-                        flagMeanings(FLAG_MEANINGS).
-                        build();
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.BYTE).
+                unsigned(true).
+                rank(1).
+                dimensions(Constants.DIMENSION_NAME_MATCHUP).
+                flagMasks(FLAG_MASKS).
+                flagMeanings(FLAG_MEANINGS);
     }
 
 }

@@ -29,7 +29,7 @@ import ucar.ma2.DataType;
 final class LatType extends AbstractAttributeModification {
 
     @Override
-    public Item apply(Item sourceColumn) throws RuleException {
-        return new ColumnBuilder(sourceColumn).type(DataType.FLOAT).unit(Constants.UNIT_LAT).build();
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.FLOAT).unit(Constants.UNIT_LAT);
     }
 }

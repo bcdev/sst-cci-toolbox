@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
-final class ShortToFloat extends AbstractFloatFormat<Short> {
+final class ShortToFloat extends AbstractReformatToFloat<Short> {
 
     ShortToFloat() {
         super(Short.class);

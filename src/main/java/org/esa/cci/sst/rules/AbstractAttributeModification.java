@@ -16,11 +16,12 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 
 /**
- * Base class for rules that modify the column attributes only.
+ * Base class for rules that modify the column attributes.
  *
  * @author Ralf Quast
  */
@@ -30,7 +31,18 @@ abstract class AbstractAttributeModification implements Rule {
     }
 
     @Override
+    public final Item apply(Item sourceColumn) throws RuleException {
+        final ColumnBuilder targetColumnBuilder = new ColumnBuilder(sourceColumn);
+        configureTargetColumn(targetColumnBuilder, sourceColumn);
+
+        return targetColumnBuilder.build();
+    }
+
+    @Override
     public final Array apply(Array sourceArray, Item sourceColumn) {
         return sourceArray;
     }
+
+    protected abstract void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
+                                                                                                        RuleException;
 }

@@ -17,69 +17,19 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.Item;
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
 
 /**
- * Reflectance type.
+ * Rescaling applicable for reflectance columns.
  *
  * @author Ralf Quast
  */
-public class ToReflectance implements Rule {
+final class ToReflectance extends AbstractRescaling {
 
-    private final double targetAddOffset = 0.0;
-    private final double targetScaleFactor = 0.0001;
-
-    @Override
-    public Item apply(Item sourceColumn) throws RuleException {
-        final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
-        builder.addOffset(targetAddOffset);
-        builder.scaleFactor(targetScaleFactor);
-        builder.type(DataType.SHORT);
-        builder.fillValue(Short.MIN_VALUE);
-
-        return builder.build();
+    ToReflectance() {
+        super(0.0001, 0.0);
     }
 
     @Override
-    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Array targetArray = Array.factory(DataType.SHORT, sourceArray.getShape());
-        apply(sourceArray, targetArray,
-              sourceColumn.getScaleFactor(),
-              sourceColumn.getAddOffset(),
-              sourceColumn.getFillValue());
-
-        return targetArray;
-    }
-
-    private void apply(Array sourceArray, Array targetArray,
-                       Number sourceScaleFactor,
-                       Number sourceAddOffset,
-                       Number sourceFillValue) {
-        final double a = getDouble(sourceScaleFactor, 0.0);
-        final double b = getDouble(sourceAddOffset, 0.0);
-        for (int i = 0; i < sourceArray.getSize(); i++) {
-            final double number = sourceArray.getDouble(i);
-            if (isInvalid(number, sourceFillValue)) {
-                targetArray.setShort(i, Short.MIN_VALUE);
-            }
-            targetArray.setShort(i, apply(number, a, b));
-        }
-    }
-
-    private boolean isInvalid(double d, Number fillValue) {
-        return fillValue != null && d == fillValue.doubleValue() || Double.isNaN(d) || Double.isInfinite(d);
-    }
-
-    private short apply(double d, double sourceScaleFactor, double sourceAddOffset) {
-        return (short) (((sourceScaleFactor * d + sourceAddOffset) - targetAddOffset) / targetScaleFactor);
-    }
-
-    private double getDouble(Number number, double defaultValue) {
-        if (number == null) {
-            return defaultValue;
-        }
-        return number.floatValue();
+    protected final void configureTargetColumn(ColumnBuilder builder) {
     }
 }

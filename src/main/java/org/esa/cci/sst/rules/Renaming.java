@@ -33,7 +33,7 @@ final class Renaming extends AbstractAttributeModification {
     }
 
     @Override
-    public Item apply(Item sourceColumn) {
-        return new ColumnBuilder(sourceColumn).name(targetName).build();
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.name(targetName);
     }
 }

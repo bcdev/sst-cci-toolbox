@@ -3,13 +3,13 @@ package org.esa.cci.sst.rules;
 import ucar.ma2.Array;
 
 /**
- * abstract rule for converting number types to 'FLOAT'.
+ * Abstract base class for numeric conversions into 'FLOAT'.
  *
  * @author Ralf Quast
  */
-abstract class AbstractFloatFormat<S extends Number> extends AbstractFormat<S, Float> {
+abstract class AbstractReformatToFloat<S extends Number> extends AbstractReformat<S, Float> {
 
-    protected AbstractFloatFormat(Class<S> sourceType) {
+    protected AbstractReformatToFloat(Class<S> sourceType) {
         super(sourceType, Float.class);
     }
 

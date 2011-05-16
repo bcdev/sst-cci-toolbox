@@ -31,13 +31,10 @@ final class MatchupInsituDataset extends AbstractAttributeModification {
     private static final String FLAG_MEANINGS = "drifter moored ship gtmba radiometer argo dummy";
 
     @Override
-    public Item apply(Item sourceColumn) throws RuleException {
-        return
-                new ColumnBuilder(sourceColumn).
-                        type(DataType.BYTE).
-                        unsigned(true).
-                        flagMasks(FLAG_MASKS).
-                        flagMeanings(FLAG_MEANINGS).
-                        build();
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.BYTE).
+                unsigned(true).
+                flagMasks(FLAG_MASKS).
+                flagMeanings(FLAG_MEANINGS);
     }
 }

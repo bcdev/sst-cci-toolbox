@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
-final class IntToFloat extends AbstractFloatFormat<Integer> {
+final class IntToFloat extends AbstractReformatToFloat<Integer> {
 
     IntToFloat() {
         super(Integer.class);

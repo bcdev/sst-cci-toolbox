@@ -29,15 +29,15 @@ public class CompositeRuleTest {
     private static final Rule L = new AbstractAttributeModification() {
 
         @Override
-        public Item apply(Item sourceColumn) {
-            return new ColumnBuilder(sourceColumn).name("L").role("L").build();
+        protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+            targetColumnBuilder.name("L").role("L");
         }
     };
     private static final Rule R = new AbstractAttributeModification() {
 
         @Override
-        public Item apply(Item sourceColumn) {
-            return new ColumnBuilder(sourceColumn).name("R").longName("R").build();
+        protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+            targetColumnBuilder.name("R").longName("L");
         }
     };
 

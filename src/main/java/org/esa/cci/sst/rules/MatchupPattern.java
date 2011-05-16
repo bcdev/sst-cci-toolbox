@@ -80,15 +80,12 @@ final class MatchupPattern extends AbstractAttributeModification {
             "tmi";
 
     @Override
-    public Item apply(Item sourceColumn) throws RuleException {
-        return
-                new ColumnBuilder(sourceColumn).
-                        type(DataType.INT).
-                        unsigned(true).
-                        rank(1).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        flagMasks(FLAG_MASKS).
-                        flagMeanings(FLAG_MEANINGS).
-                        build();
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.INT).
+                unsigned(true).
+                rank(1).
+                dimensions(Constants.DIMENSION_NAME_MATCHUP).
+                flagMasks(FLAG_MASKS).
+                flagMeanings(FLAG_MEANINGS);
     }
 }

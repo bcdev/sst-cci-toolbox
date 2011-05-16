@@ -28,7 +28,7 @@ import ucar.ma2.DataType;
 final class ByteType extends AbstractAttributeModification {
 
     @Override
-    public Item apply(Item sourceColumn) throws RuleException {
-        return new ColumnBuilder(sourceColumn).type(DataType.BYTE).build();
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.BYTE).build();
     }
 }

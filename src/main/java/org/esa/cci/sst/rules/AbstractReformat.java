@@ -24,21 +24,21 @@ import ucar.ma2.DataType;
 import java.text.MessageFormat;
 
 /**
- * Abstract rule for numeric conversions changing the number type.
+ * Abstract base class for numeric conversion rules.
  *
  * @author Ralf Quast
  */
-abstract class AbstractFormat<S extends Number, T extends Number> implements Rule {
+abstract class AbstractReformat<S extends Number, T extends Number> implements Rule {
 
     private final DataType sourceDataType;
     private final DataType targetDataType;
     private final boolean unsigned;
 
-    protected AbstractFormat(Class<S> sourceType, Class<T> targetType) {
+    protected AbstractReformat(Class<S> sourceType, Class<T> targetType) {
         this(sourceType, targetType, false);
     }
 
-    protected AbstractFormat(Class<S> sourceType, Class<T> targetType, boolean unsigned) {
+    protected AbstractReformat(Class<S> sourceType, Class<T> targetType, boolean unsigned) {
         this.sourceDataType = getDataType(sourceType);
         this.targetDataType = getDataType(targetType);
         this.unsigned = unsigned;

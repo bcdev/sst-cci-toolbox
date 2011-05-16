@@ -26,10 +26,10 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-public class DTimeType extends AbstractAttributeModification {
+final class DTimeType extends AbstractAttributeModification {
 
     @Override
-    public Item apply(Item sourceColumn) throws RuleException {
-        return new ColumnBuilder(sourceColumn).type(DataType.SHORT).unit(Constants.UNIT_DTIME).build();
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.SHORT).unit(Constants.UNIT_DTIME);
     }
 }
