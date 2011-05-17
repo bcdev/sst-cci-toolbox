@@ -32,7 +32,7 @@ class Assert {
     private Assert() {
     }
 
-    static void notNull(String value, String name) throws RuleException {
+    static void notNull(Object value, String name) throws RuleException {
         if (value == null) {
             throw new RuleException(
                     MessageFormat.format("Expected non-null value for property ''{0}''.", name));
@@ -68,6 +68,15 @@ class Assert {
                     MessageFormat.format("Expected data type ''{0}'', but actual type is ''{1}''.",
                                          expectedType,
                                          array.getElementType().getSimpleName()));
+        }
+    }
+
+    static void addOffset(Number expectedAddOffset, Item column) throws RuleException {
+        if (!expectedAddOffset.equals(column.getAddOffset())) {
+            throw new RuleException(
+                    MessageFormat.format("Expected add-offset ''{0}'', but actual unit is ''{1}''.",
+                                         expectedAddOffset,
+                                         column.getAddOffset()));
         }
     }
 

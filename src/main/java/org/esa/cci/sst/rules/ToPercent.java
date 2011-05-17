@@ -17,21 +17,22 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.data.Item;
 
 /**
- * Rescaling applicable to brightness temperature columns.
+ * Converts the unit of a scaled column into 'percent'. Applicable to
+ * SEVIRI MD reflectance.
  *
  * @author Ralf Quast
  */
-final class ToBrightnessTemperature extends AbstractRescaling {
-
-    ToBrightnessTemperature() {
-        super(0.002, 260.0);
-    }
+final class ToPercent extends AbstractAttributeModification {
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
-        targetColumnBuilder.unit(Constants.UNIT_BRIGHTNESS_TEMPERATURE);
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        Assert.unit("1", sourceColumn);
+        Assert.addOffset(0.0, sourceColumn);
+
+        targetColumnBuilder.scaleFactor(sourceColumn.getScaleFactor().doubleValue() * 100.0);
+        targetColumnBuilder.unit("%");
     }
 }

@@ -26,10 +26,11 @@ import org.esa.cci.sst.data.ColumnBuilder;
 final class ToReflectance extends AbstractRescaling {
 
     ToReflectance() {
-        super(0.0001, 0.0);
+        super(0.01, 0.0);
     }
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
+        targetColumnBuilder.unit("%");
     }
 }
