@@ -107,7 +107,13 @@ public class MmdTool extends BasicTool {
 
         for (final String name : targetColumnNames) {
             final Item column = columnRegistry.getColumn(name);
-            dimensionNames.addAll(Arrays.asList(column.getDimensions().split("\\s")));
+            final String dimensions = column.getDimensions();
+            if (dimensions.isEmpty()) {
+                final String message = MessageFormat.format(
+                        "Expected at least one dimension for target column ''{0}''.", name);
+                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
         }
 
         readDimensionConfiguration(dimensionNames);
@@ -180,7 +186,7 @@ public class MmdTool extends BasicTool {
         try {
             properties.load(new FileInputStream(configFilePath));
             for (final String dimensionName : dimensionNames) {
-                if (!Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
+                if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
                     continue;
                 }
                 final String dimensionLength = properties.getProperty(dimensionName);

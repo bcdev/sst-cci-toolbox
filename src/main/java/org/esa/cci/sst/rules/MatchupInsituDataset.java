@@ -18,6 +18,7 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.DataType;
 
 /**
@@ -34,6 +35,8 @@ final class MatchupInsituDataset extends AbstractAttributeModification {
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
         targetColumnBuilder.type(DataType.BYTE).
                 unsigned(true).
+                rank(1).
+                dimensions(Constants.DIMENSION_NAME_MATCHUP).
                 flagMasks(FLAG_MASKS).
                 flagMeanings(FLAG_MEANINGS);
     }

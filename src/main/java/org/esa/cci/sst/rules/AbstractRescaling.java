@@ -38,14 +38,26 @@ abstract class AbstractRescaling implements Rule {
 
     @Override
     public final Item apply(Item sourceColumn) throws RuleException {
-        final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
-        builder.addOffset(targetAddOffset);
-        builder.scaleFactor(targetScaleFactor);
-        builder.type(DataType.SHORT);
-        builder.fillValue(Short.MIN_VALUE);
-        configureTargetColumn(builder);
+        final ColumnBuilder columnBuilder = new ColumnBuilder(sourceColumn);
+        columnBuilder.addOffset(targetAddOffset);
+        columnBuilder.scaleFactor(targetScaleFactor);
+        columnBuilder.type(DataType.SHORT);
+        columnBuilder.fillValue(Short.MIN_VALUE);
 
-        return builder.build();
+        final Number validMin = sourceColumn.getValidMin();
+        if (validMin != null) {
+            columnBuilder.validMin(rescale(validMin.doubleValue(),
+                                           getDouble(sourceColumn.getScaleFactor(), 1.0),
+                                           getDouble(sourceColumn.getAddOffset(), 0.0)));
+        }
+        final Number validMax = sourceColumn.getValidMax();
+        if (validMax != null) {
+            columnBuilder.validMax(rescale(validMax.doubleValue(),
+                                           getDouble(sourceColumn.getScaleFactor(), 1.0),
+                                           getDouble(sourceColumn.getAddOffset(), 0.0)));
+        }
+
+        return columnBuilder.build();
     }
 
     @Override
@@ -80,8 +92,8 @@ abstract class AbstractRescaling implements Rule {
         return fillValue != null && d == fillValue.doubleValue() || Double.isNaN(d) || Double.isInfinite(d);
     }
 
-    private short rescale(double d, double sourceScaleFactor, double sourceAddOffset) {
-        return (short) (((sourceScaleFactor * d + sourceAddOffset) - targetAddOffset) / targetScaleFactor);
+    private short rescale(double d, double a, double b) {
+        return (short) Math.floor((a * d + (b - targetAddOffset)) / targetScaleFactor + 0.5);
     }
 
     private double getDouble(Number number, double defaultValue) {

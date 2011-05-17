@@ -72,11 +72,15 @@ class Assert {
     }
 
     static void addOffset(Number expectedAddOffset, Item column) throws RuleException {
-        if (!expectedAddOffset.equals(column.getAddOffset())) {
+        final Number actualAddOffset = column.getAddOffset();
+        if (expectedAddOffset == null && actualAddOffset != null ||
+            expectedAddOffset != null && actualAddOffset == null ||
+            expectedAddOffset != null &&
+            !Double.valueOf(expectedAddOffset.doubleValue()).equals(actualAddOffset.doubleValue())) {
             throw new RuleException(
-                    MessageFormat.format("Expected add-offset ''{0}'', but actual unit is ''{1}''.",
+                    MessageFormat.format("Expected add-offset ''{0}'', but actual add-offset is ''{1}''.",
                                          expectedAddOffset,
-                                         column.getAddOffset()));
+                                         actualAddOffset));
         }
     }
 

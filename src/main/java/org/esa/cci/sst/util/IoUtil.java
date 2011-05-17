@@ -209,22 +209,22 @@ public class IoUtil {
         }
         final Number addOffset = column.getAddOffset();
         if (addOffset != null) {
-            addAttribute(v, "add_offset", addOffset);
+            addAttribute(v, "add_offset", addOffset, DataType.DOUBLE);
         }
         final Number scaleFactor = column.getScaleFactor();
         if (scaleFactor != null) {
-            addAttribute(v, "scale_factor", scaleFactor);
+            addAttribute(v, "scale_factor", scaleFactor, DataType.DOUBLE);
         }
         final Number fillValue = column.getFillValue();
         if (fillValue != null) {
             addAttribute(v, "_FillValue", fillValue, dataType);
         }
         final Number validMin = column.getValidMin();
-        if (fillValue != null) {
+        if (validMin != null) {
             addAttribute(v, "validMin", validMin, dataType);
         }
         final Number validMax = column.getValidMax();
-        if (fillValue != null) {
+        if (validMax != null) {
             addAttribute(v, "validMax", validMax, dataType);
         }
         final String standardName = column.getStandardName();
