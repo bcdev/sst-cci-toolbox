@@ -21,7 +21,6 @@ import org.esa.cci.sst.Queries;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.util.IoUtil;
-import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFileWriteable;
 
 import java.io.File;
@@ -103,7 +102,7 @@ public class MmdTool extends BasicTool {
         super.initialize();
 
         registerSourceColumns();
-        registerImplicitColumns();
+        registerImplicitColumn();
         registerTargetColumns();
 
         for (final String name : targetColumnNames) {
@@ -226,140 +225,7 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private void registerImplicitColumns() {
-        final List<Item> implicitColumns = new ArrayList<Item>(10);
-        final ColumnBuilder builder = new ColumnBuilder();
-
-        builder.dimensions(Constants.DIMENSION_NAME_MATCHUP);
-
-        final Item matchupId =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_ID).
-                        type(DataType.INT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupId);
-
-        final Item matchupTime =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_TIME).
-                        type(DataType.INT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNIT_TIME).
-                        build();
-        implicitColumns.add(matchupTime);
-
-        final Item matchupLon =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_LON).
-                        type(DataType.FLOAT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNIT_LON).
-                        build();
-        implicitColumns.add(matchupLon);
-
-        final Item matchupLat =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_LAT).
-                        type(DataType.FLOAT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNIT_LAT).
-                        build();
-        implicitColumns.add(matchupLat);
-
-        final Item matchupInsituCallsign =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_INSITU_CALLSIGN).
-                        type(DataType.CHAR).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP + " " + Constants.DIMENSION_NAME_CALLSIGN_LENGTH).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupInsituCallsign);
-
-        final Item matchupInsituDataset =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_INSITU_DATASET).
-                        type(DataType.BYTE).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupInsituDataset);
-
-        final Item matchupReferenceFlag =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_REFERENCE_FLAG).
-                        type(DataType.BYTE).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupReferenceFlag);
-
-        final Item matchupValidFlag =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_VALID).
-                        type(DataType.BYTE).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupValidFlag);
-
-        final Item matchupPrimarySensor =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_PRIMARY_SENSOR).
-                        type(DataType.BYTE).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupPrimarySensor);
-
-        final Item matchupPrimaryFilename =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_PRIMARY_FILENAME).
-                        type(DataType.CHAR).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP + " " + Constants.DIMENSION_NAME_FILENAME_LENGTH).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupPrimaryFilename);
-
-        final Item matchupSensorList =
-                builder.name(Constants.COLUMN_NAME_MATCHUP_SENSOR_LIST).
-                        type(DataType.CHAR).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                        unit(Constants.UNITLESS).
-                        build();
-        implicitColumns.add(matchupSensorList);
-
-        final Item insituTime =
-                builder.name(Constants.COLUMN_NAME_INSITU_TIME).
-                        type(DataType.INT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP + " " + Constants.DIMENSION_NAME_INSITU_TIME).
-                        unit(Constants.UNIT_TIME).
-                        build();
-        implicitColumns.add(insituTime);
-
-        final Item insituLon =
-                builder.name(Constants.COLUMN_NAME_INSITU_LON).
-                        type(DataType.FLOAT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP + " " + Constants.DIMENSION_NAME_INSITU_TIME).
-                        unit(Constants.UNIT_LON).
-                        build();
-        implicitColumns.add(insituLon);
-
-        final Item insituLat =
-                builder.name(Constants.COLUMN_NAME_INSITU_LAT).
-                        type(DataType.FLOAT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP + " " + Constants.DIMENSION_NAME_INSITU_TIME).
-                        unit(Constants.UNIT_LAT).
-                        build();
-        implicitColumns.add(insituLat);
-
-        final Item insituSst =
-                builder.name(Constants.COLUMN_NAME_INSITU_SST).
-                        type(DataType.SHORT).
-                        dimensions(Constants.DIMENSION_NAME_MATCHUP + " " + Constants.DIMENSION_NAME_INSITU_TIME).
-                        unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE).
-                        build();
-        implicitColumns.add(insituSst);
-
-        // todo - add NWP etc.
-
-        for (final Item column : implicitColumns) {
-            if (columnRegistry.hasColumn(column.getName())) {
-                throw new ToolException(MessageFormat.format("Column ''{0}'' is already defined.", column.getName()),
-                                        ToolException.UNKNOWN_ERROR);
-            }
-            columnRegistry.register(column);
-        }
+    private void registerImplicitColumn() {
+        columnRegistry.register(new ColumnBuilder().build());
     }
 }

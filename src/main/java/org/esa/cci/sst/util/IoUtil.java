@@ -166,19 +166,19 @@ public class IoUtil {
         Assert.notNull(type, "type == null");
 
         switch (type) {
-        case BYTE:
-            return v.addAttribute(new Attribute(name, value.byteValue()));
-        case SHORT:
-            return v.addAttribute(new Attribute(name, value.shortValue()));
-        case INT:
-            return v.addAttribute(new Attribute(name, value.intValue()));
-        case FLOAT:
-            return v.addAttribute(new Attribute(name, value.floatValue()));
-        case DOUBLE:
-            return v.addAttribute(new Attribute(name, value.doubleValue()));
-        default:
-            throw new IllegalArgumentException(MessageFormat.format(
-                    "Attribute type ''{0}'' is not supported", type.toString()));
+            case BYTE:
+                return v.addAttribute(new Attribute(name, value.byteValue()));
+            case SHORT:
+                return v.addAttribute(new Attribute(name, value.shortValue()));
+            case INT:
+                return v.addAttribute(new Attribute(name, value.intValue()));
+            case FLOAT:
+                return v.addAttribute(new Attribute(name, value.floatValue()));
+            case DOUBLE:
+                return v.addAttribute(new Attribute(name, value.doubleValue()));
+            default:
+                throw new IllegalArgumentException(MessageFormat.format(
+                        "Attribute type ''{0}'' is not supported", type.toString()));
         }
     }
 
@@ -187,9 +187,9 @@ public class IoUtil {
         final DataType dataType = DataType.valueOf(column.getType());
         final Variable v = targetFile.addVariable(rootGroup, column.getName(), dataType, column.getDimensions());
 
-        final String standardName = column.getStandardName();
-        if (standardName != null) {
-            addAttribute(v, "standard_name", standardName);
+        final boolean unsigned = column.isUnsigned();
+        if (unsigned) {
+            addAttribute(v, "_Unsigned", "true");
         }
         final String unit = column.getUnit();
         if (unit != null) {
@@ -226,6 +226,14 @@ public class IoUtil {
         final Number validMax = column.getValidMax();
         if (fillValue != null) {
             addAttribute(v, "validMax", validMax, dataType);
+        }
+        final String standardName = column.getStandardName();
+        if (standardName != null) {
+            addAttribute(v, "standard_name", standardName);
+        }
+        final String longName = column.getLongName();
+        if (longName != null) {
+            addAttribute(v, "long_name", longName);
         }
     }
 }
