@@ -20,8 +20,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 
 /**
- * Converts the unit of a scaled column into 'percent'. Applicable to
- * SEVIRI MD reflectance.
+ * Applicable to reflectance in SEVIRI MD files.
  *
  * @author Ralf Quast
  */
