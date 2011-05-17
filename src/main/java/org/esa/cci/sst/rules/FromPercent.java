@@ -20,18 +20,17 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 
 /**
- * Applicable to reflectance in SEVIRI MD files.
+ * Applicable to reflectance measured in percent.
  *
  * @author Ralf Quast
  */
-final class ToPercent extends AbstractAttributeModification {
+final class FromPercent extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        Assert.unit("1", sourceColumn);
         Assert.addOffset(0.0, sourceColumn);
 
-        targetColumnBuilder.scaleFactor(sourceColumn.getScaleFactor().doubleValue() * 100.0);
-        targetColumnBuilder.unit("%");
+        targetColumnBuilder.scaleFactor(sourceColumn.getScaleFactor().doubleValue() * 0.01);
+        targetColumnBuilder.unit("1");
     }
 }
