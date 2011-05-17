@@ -33,8 +33,9 @@ public abstract class AbstractRuleTest {
 
     @Before
     public final void setUp() {
-        rule = RuleFactory.getInstance().getRule(getClass().getSimpleName().replace("Test", ""));
-        sourceColumn = configureSourceColumnBuilder(new ColumnBuilder()).build();
+        final RuleFactory ruleFactory = RuleFactory.getInstance();
+        rule = ruleFactory.getRule(getClass().getSimpleName().replace("Test", ""));
+        sourceColumn = configureSourceColumn(new ColumnBuilder()).build();
     }
 
     @Test
@@ -46,16 +47,16 @@ public abstract class AbstractRuleTest {
         assertTargetColumn(targetColumn);
     }
 
+    protected abstract ColumnBuilder configureSourceColumn(ColumnBuilder columnBuilder);
+
+    protected abstract void assertTargetColumn(Item targetColumn);
+
     @Test
     public abstract void testNumericConversion() throws RuleException;
 
     protected final Rule getRule() {
         return rule;
     }
-
-    protected abstract void assertTargetColumn(Item targetColumn);
-
-    protected abstract ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder);
 
     protected final Item getSourceColumn() {
         return sourceColumn;

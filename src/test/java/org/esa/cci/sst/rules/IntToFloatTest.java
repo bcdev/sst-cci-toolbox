@@ -31,6 +31,25 @@ import static org.junit.Assert.assertTrue;
 public class IntToFloatTest extends AbstractRuleTest {
 
     @Override
+    protected ColumnBuilder configureSourceColumn(ColumnBuilder columnBuilder) {
+        columnBuilder.type(DataType.INT);
+        columnBuilder.addOffset(0.5f);
+        columnBuilder.scaleFactor(2.0f);
+        columnBuilder.fillValue(-1);
+
+        return columnBuilder;
+    }
+
+    @Override
+    protected void assertTargetColumn(Item targetColumn) {
+        assertTrue(DataType.FLOAT.name().equals(targetColumn.getType()));
+        assertTrue(targetColumn.getAddOffset() == null);
+        assertTrue(targetColumn.getScaleFactor() == null);
+        assertTrue(targetColumn.getFillValue() instanceof Float);
+        assertTrue(targetColumn.getFillValue().floatValue() == -1.5f);
+    }
+
+    @Override
     @Test
     public void testNumericConversion() throws RuleException {
         final Rule rule = getRule();
@@ -48,25 +67,6 @@ public class IntToFloatTest extends AbstractRuleTest {
     @Test(expected = RuleException.class)
     public void testColumnConversion_ImproperType() throws RuleException {
         getRule().apply(new ColumnBuilder().type(DataType.BYTE).build());
-    }
-
-    @Override
-    protected void assertTargetColumn(Item targetColumn) {
-        assertTrue(DataType.FLOAT.name().equals(targetColumn.getType()));
-        assertTrue(targetColumn.getAddOffset() == null);
-        assertTrue(targetColumn.getScaleFactor() == null);
-        assertTrue(targetColumn.getFillValue() instanceof Float);
-        assertTrue(targetColumn.getFillValue().floatValue() == -1.5f);
-    }
-
-    @Override
-    protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
-        columnBuilder.type(DataType.INT);
-        columnBuilder.addOffset(0.5f);
-        columnBuilder.scaleFactor(2.0f);
-        columnBuilder.fillValue(-1);
-
-        return columnBuilder;
     }
 
 }

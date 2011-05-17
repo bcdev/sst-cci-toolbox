@@ -31,23 +31,13 @@ import static org.junit.Assert.assertTrue;
 public class ShortToFloatTest extends AbstractRuleTest {
 
     @Override
-    @Test
-    public void testNumericConversion() throws RuleException {
-        final Rule rule = getRule();
-        final Item sourceColumn = getSourceColumn();
-        final Array sourceArray = Array.factory(DataType.SHORT, new int[]{2});
-        sourceArray.setShort(0, (short) 5);
-        sourceArray.setShort(1, (short) 7);
-        final Array targetArray = rule.apply(sourceArray, sourceColumn);
+    protected ColumnBuilder configureSourceColumn(ColumnBuilder columnBuilder) {
+        columnBuilder.type(DataType.SHORT);
+        columnBuilder.addOffset(0.5f);
+        columnBuilder.scaleFactor(2.0f);
+        columnBuilder.fillValue((short) -1);
 
-        assertTrue(targetArray.getElementType() == float.class);
-        assertEquals(10.5f, targetArray.getFloat(0), 0.0f);
-        assertEquals(14.5f, targetArray.getFloat(1), 0.0f);
-    }
-
-    @Test(expected = RuleException.class)
-    public void testColumnConversion_ImproperType() throws Exception {
-        getRule().apply(new ColumnBuilder().type(DataType.BYTE).build());
+        return columnBuilder;
     }
 
     @Override
@@ -60,13 +50,22 @@ public class ShortToFloatTest extends AbstractRuleTest {
     }
 
     @Override
-    protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
-        columnBuilder.type(DataType.SHORT);
-        columnBuilder.addOffset(0.5f);
-        columnBuilder.scaleFactor(2.0f);
-        columnBuilder.fillValue((short) -1);
+    @Test
+    public void testNumericConversion() throws RuleException {
+        final Array sourceArray = Array.factory(DataType.SHORT, new int[]{2});
+        sourceArray.setShort(0, (short) 5);
+        sourceArray.setShort(1, (short) 7);
 
-        return columnBuilder;
+        final Array targetArray = getRule().apply(sourceArray, getSourceColumn());
+
+        assertTrue(targetArray.getElementType() == float.class);
+        assertEquals(10.5f, targetArray.getFloat(0), 0.0f);
+        assertEquals(14.5f, targetArray.getFloat(1), 0.0f);
+    }
+
+    @Test(expected = RuleException.class)
+    public void testColumnConversion_ImproperType() throws Exception {
+        getRule().apply(new ColumnBuilder().type(DataType.BYTE).build());
     }
 
 }

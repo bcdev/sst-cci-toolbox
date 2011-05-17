@@ -24,8 +24,8 @@ import static org.junit.Assert.assertEquals;
 public class MetopImageDimensionsTest extends AbstractRuleTest {
 
     @Override
-    public void testNumericConversion() throws RuleException {
-        // no numeric conversion is carried out for this rule
+    protected ColumnBuilder configureSourceColumn(ColumnBuilder columnBuilder) {
+        return columnBuilder.rank(1).dimensions("n");
     }
 
     @Override
@@ -35,7 +35,7 @@ public class MetopImageDimensionsTest extends AbstractRuleTest {
     }
 
     @Override
-    protected ColumnBuilder configureSourceColumnBuilder(ColumnBuilder columnBuilder) {
-        return columnBuilder.rank(1).dimensions("n");
+    public void testNumericConversion() throws RuleException {
+        // no numeric conversion is carried out for this rule
     }
 }
