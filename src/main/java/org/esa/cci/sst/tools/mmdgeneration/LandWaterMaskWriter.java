@@ -16,10 +16,10 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.beam.watermask.operator.GeoRectangle;
 import org.esa.beam.watermask.operator.WatermaskClassifier;
 import org.esa.cci.sst.tools.BasicTool;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
@@ -33,13 +33,20 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Writes a land water mask band to a given netcdf file. That file has to comprise the correct structure already, that
- * is, the given latitude and longitude variables have to exist as well as the x and y dimensions. Additionally, the
- * lat/lon variables have to be written to the file before the land water mask is written.
+ * Writes a land water mask band to a given netcdf file.
+ * Prerequisites:
+ * <ul>
+ * <li>the target file has to comprise the correct structure already, that is
+ * <li>the given latitude and longitude variables have to exist
+ * <li>the x and y dimensions have to exist
+ * <li>the lat/lon variables have to be written to the file
+ * </ul>
  *
  * @author Thomas Storm
  */
 class LandWaterMaskWriter {
+
+    private static final int SUBSAMPLING_FACTOR = 10;
 
     private final NetcdfFileWriteable file;
     private final BasicTool tool;
@@ -73,14 +80,48 @@ class LandWaterMaskWriter {
             final String targetVariable = targetVariables[i];
             for (int x = 0; x < sourceXDimension.getLength(); x++) {
                 for (int y = 0; y < sourceYDimension.getLength(); y++) {
-                    final Array value = tryAndGetValue(sourceLatitude, sourceLongitude, x, y);
-                    if (value == null) {
+                    GeoRectangle geoRectangle = computeGeoRectangle(sourceLatitude, sourceLongitude, x, y);
+                    float value = tryAndGetValue(geoRectangle);
+                    if(value == -1.0f) {
                         return;
                     }
-                    writeValue(targetVariable, value, new int[]{matchupIndex, x, y});
+                    writeValue(targetVariable, Array.factory(value), new int[]{matchupIndex, x, y});
                 }
             }
         }
+    }
+
+    private float tryAndGetValue(GeoRectangle geoRectangle) {
+        final float value;
+        try {
+            value = classifier.getWaterMaskFraction(geoRectangle, SUBSAMPLING_FACTOR);
+        } catch (IOException e) {
+            handle(e);
+            return -1.0f;
+        }
+        return value;
+    }
+
+    private void handle(Exception e) {
+        final String message = MessageFormat.format(
+                "Unable to write land/water mask for matchup with index ''{0}''. Reason: ''{1}''.",
+                this.matchupIndex, e.getMessage());
+        tool.getLogger().warning(message);
+    }
+
+    private GeoRectangle computeGeoRectangle(Variable sourceLatitude, Variable sourceLongitude, int x, int y) throws IOException {
+        float startLat = readSingleFloat(sourceLatitude, x, y);
+        float startLon = readSingleFloat(sourceLongitude, x, y);
+        float endLat;
+        float endLon;
+        try {
+            endLat = readSingleFloat(sourceLatitude, x, y + 1);
+            endLon = readSingleFloat(sourceLongitude, x + 1, y);
+        } catch (IOException e) {
+            endLat = startLat;
+            endLon = startLon;
+        }
+        return new GeoRectangle(startLat, endLat, startLon, endLon);
     }
 
     private void setTargetVariables() {
@@ -102,26 +143,6 @@ class LandWaterMaskWriter {
         for (final String sourceGeoVariableName : sourceGeoVariables) {
             list.add(file.findVariable(sourceGeoVariableName));
         }
-    }
-
-    private Array tryAndGetValue(final Variable sourceLat, final Variable sourceLon, final int x, final int y) {
-        Array value = null;
-        try {
-            value = getValue(sourceLat, sourceLon, x, y);
-        } catch (IOException e) {
-            final String message = MessageFormat.format(
-                    "Unable to write land/water mask for matchup with index ''{0}''. Reason: ''{1}''.",
-                    matchupIndex, e.getMessage());
-            tool.getLogger().warning(message);
-        }
-        return value;
-    }
-
-    private Array getValue(final Variable sourceLat, final Variable sourceLon, final int x, final int y) throws IOException {
-        float lat = readSingleFloat(sourceLat, x, y);
-        float lon = readSingleFloat(sourceLon, x, y);
-        final short sample = (short) classifier.getWaterMaskSample(lat, lon);
-        return Array.factory(DataType.SHORT, new int[]{1, 1, 1}, new short[]{sample});
     }
 
     private void writeValue(final String targetVariable, final Array value, final int[] origin) throws IOException {
@@ -149,4 +170,5 @@ class LandWaterMaskWriter {
         final Properties configuration = tool.getConfiguration();
         return configuration.getProperty(key);
     }
+
 }
