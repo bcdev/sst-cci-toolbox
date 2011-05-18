@@ -102,6 +102,12 @@ class InsituIOHandler extends NetcdfIOHandler {
         return observation;
     }
 
+    @Override
+    public final Array read(ExtractDefinition extractDefinition) {
+        // todo - implement
+        return null;
+    }
+
     /**
      * Writes a subset of an in-situ history observation to an MMD target file. The method must be called per
      * variable and per match-up. The subset covers plus/minus 12 hours centered at the reference observation

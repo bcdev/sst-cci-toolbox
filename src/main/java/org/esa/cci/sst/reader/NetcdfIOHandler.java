@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.util.IoUtil;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -39,7 +40,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     private NetcdfFile netcdfFile;
     private DataFile datafile;
 
-    NetcdfIOHandler(String sensorName) {
+    protected NetcdfIOHandler(String sensorName) {
         this.sensorName = sensorName;
     }
 
@@ -62,7 +63,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     }
 
     @Override
-    public Item getColumn(String role) {
+    public final Item getColumn(String role) {
         final Variable variable = netcdfFile.findVariable(NetcdfFile.escapeName(role));
         if (variable != null) {
             createColumn(variable);
@@ -71,7 +72,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     }
 
     @Override
-    public Item[] getColumns() {
+    public final Item[] getColumns() {
         final ArrayList<Item> columnList = new ArrayList<Item>();
         for (final Variable variable : netcdfFile.getVariables()) {
             final Item column = createColumn(variable);
@@ -101,15 +102,15 @@ abstract class NetcdfIOHandler implements IOHandler {
     }
 
     @Override
-    public DataFile getDatafile() {
+    public final DataFile getDatafile() {
         return datafile;
     }
 
-    protected String getSensorName() {
+    public final String getSensorName() {
         return sensorName;
     }
 
-    protected NetcdfFile getNetcdfFile() {
+    public final NetcdfFile getNetcdfFile() {
         return netcdfFile;
     }
 

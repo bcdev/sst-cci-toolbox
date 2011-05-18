@@ -109,6 +109,12 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
+    public final Array read(ExtractDefinition extractDefinition) {
+        // todo - implement
+        return null;
+    }
+
+    @Override
     public void write(final NetcdfFileWriteable targetFile, final Observation sourceObservation,
                       final String sourceVariableName, final String targetVariableName, final int targetRecordNumber,
                       final PGgeometry refPoint, final Date refTime) throws IOException {

@@ -67,64 +67,6 @@ abstract class AbstractProductHandler implements IOHandler {
         this.formatNames = formatNames;
     }
 
-    private static Rectangle createSubsceneRectangle(final PixelPos center, final int[] shape) {
-        final int w = shape[2];
-        final int h = shape[1];
-        final int x = (int) Math.floor(center.getX()) - w / 2;
-        final int y = (int) Math.floor(center.getY()) - h / 2;
-
-        return new Rectangle(x, y, w, h);
-    }
-
-    private static Array readSubsceneData(final RasterDataNode node,
-                                          final DataType targetDataType,
-                                          final int[] targetShape,
-                                          final Rectangle rectangle) {
-        final Array targetArray = Array.factory(targetDataType, new int[]{1, targetShape[1], targetShape[2]});
-
-        final MultiLevelImage sourceImage = node.getSourceImage();
-        final int minX = sourceImage.getMinX();
-        final int minY = sourceImage.getMinY();
-        final int maxX = sourceImage.getMaxX();
-        final int maxY = sourceImage.getMaxY();
-
-        final int x = Math.max(rectangle.x, minX);
-        final int y = Math.max(rectangle.y, minY);
-        final int w = Math.min(rectangle.x + rectangle.width - 1, maxX) - x + 1;
-        final int h = Math.min(rectangle.y + rectangle.height - 1, maxY) - y + 1;
-        final Rectangle validRectangle = new Rectangle(x, y, w, h);
-        final Raster raster = sourceImage.getData(validRectangle);
-
-        for (int i = rectangle.y, k = 0; i < rectangle.y + rectangle.height; i++) {
-            for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
-                final Number value;
-                if (i < minY || i > maxY || j < minX || j > maxX) {
-                    value = node.getNoDataValue();
-                } else {
-                    value = getSample(raster, j, i);
-                }
-                targetArray.setObject(k, value);
-            }
-        }
-        return targetArray;
-    }
-
-    private static Number getSample(Raster raster, int x, int y) {
-        switch (raster.getTransferType()) {
-            case DataBuffer.TYPE_BYTE:
-            case DataBuffer.TYPE_SHORT:
-            case DataBuffer.TYPE_USHORT:
-            case DataBuffer.TYPE_INT:
-                return raster.getSample(x, y, 0);
-            case DataBuffer.TYPE_FLOAT:
-                return raster.getSampleFloat(x, y, 0);
-            case DataBuffer.TYPE_DOUBLE:
-                return raster.getSampleDouble(x, y, 0);
-            default:
-                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
-        }
-    }
-
     @Override
     public final void init(DataFile dataFile) throws IOException {
         if (getProduct() != null) {
@@ -172,6 +114,12 @@ abstract class AbstractProductHandler implements IOHandler {
 
     @Override
     public abstract Observation readObservation(int recordNo) throws IOException;
+
+    @Override
+    public Array read(ExtractDefinition extractDefinition) {
+        // todo - implement
+        return null;
+    }
 
     @Override
     public Item getColumn(String role) {
@@ -230,7 +178,7 @@ abstract class AbstractProductHandler implements IOHandler {
         throw new OperationNotSupportedException();
     }
 
-    protected final Item createColumn(final RasterDataNode node) {
+    private Item createColumn(final RasterDataNode node) {
         final ColumnBuilder builder = new ColumnBuilder();
         final String columnName = sensorName + "." + node.getName();
         final DataType type = DataTypeUtils.getNetcdfDataType(node.getDataType());
@@ -290,14 +238,14 @@ abstract class AbstractProductHandler implements IOHandler {
         return centerTime.getAsDate();
     }
 
-    protected final PixelPos findPixelPos(PGgeometry referencePoint) throws IOException {
+    private PixelPos findPixelPos(PGgeometry referencePoint) throws IOException {
         final float lon = (float) referencePoint.getGeometry().getFirstPoint().x;
         final float lat = (float) referencePoint.getGeometry().getFirstPoint().y;
         final GeoPos geoPos = new GeoPos(lat, lon);
         if (!geoPos.isValid()) {
             throw new IOException("Geo-location of reference point is invalid.");
         }
-        final GeoCoding geoCoding = getProduct().getGeoCoding();
+        final GeoCoding geoCoding = product.getGeoCoding();
         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
         if (!pixelPos.isValid()) {
             final String message = MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
@@ -308,4 +256,63 @@ abstract class AbstractProductHandler implements IOHandler {
         }
         return pixelPos;
     }
+
+    private static Rectangle createSubsceneRectangle(final PixelPos center, final int[] shape) {
+        final int w = shape[2];
+        final int h = shape[1];
+        final int x = (int) Math.floor(center.getX()) - w / 2;
+        final int y = (int) Math.floor(center.getY()) - h / 2;
+
+        return new Rectangle(x, y, w, h);
+    }
+
+    private static Array readSubsceneData(final RasterDataNode node,
+                                          final DataType targetDataType,
+                                          final int[] targetShape,
+                                          final Rectangle rectangle) {
+        final Array targetArray = Array.factory(targetDataType, new int[]{1, targetShape[1], targetShape[2]});
+
+        final MultiLevelImage sourceImage = node.getSourceImage();
+        final int minX = sourceImage.getMinX();
+        final int minY = sourceImage.getMinY();
+        final int maxX = sourceImage.getMaxX();
+        final int maxY = sourceImage.getMaxY();
+
+        final int x = Math.max(rectangle.x, minX);
+        final int y = Math.max(rectangle.y, minY);
+        final int w = Math.min(rectangle.x + rectangle.width - 1, maxX) - x + 1;
+        final int h = Math.min(rectangle.y + rectangle.height - 1, maxY) - y + 1;
+        final Rectangle validRectangle = new Rectangle(x, y, w, h);
+        final Raster raster = sourceImage.getData(validRectangle);
+
+        for (int i = rectangle.y, k = 0; i < rectangle.y + rectangle.height; i++) {
+            for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
+                final Number value;
+                if (i < minY || i > maxY || j < minX || j > maxX) {
+                    value = node.getNoDataValue();
+                } else {
+                    value = getSample(raster, j, i);
+                }
+                targetArray.setObject(k, value);
+            }
+        }
+        return targetArray;
+    }
+
+    private static Number getSample(Raster raster, int x, int y) {
+        switch (raster.getTransferType()) {
+            case DataBuffer.TYPE_BYTE:
+            case DataBuffer.TYPE_SHORT:
+            case DataBuffer.TYPE_USHORT:
+            case DataBuffer.TYPE_INT:
+                return raster.getSample(x, y, 0);
+            case DataBuffer.TYPE_FLOAT:
+                return raster.getSampleFloat(x, y, 0);
+            case DataBuffer.TYPE_DOUBLE:
+                return raster.getSampleDouble(x, y, 0);
+            default:
+                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+        }
+    }
+
 }

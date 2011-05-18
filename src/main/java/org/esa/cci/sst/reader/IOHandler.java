@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.naming.OperationNotSupportedException;
@@ -71,6 +72,8 @@ public interface IOHandler {
      */
     Observation readObservation(int recordNo) throws IOException;
 
+    Array read(ExtractDefinition extractDefinition);
+
     Item getColumn(String role);
 
     /**
@@ -80,7 +83,6 @@ public interface IOHandler {
      * @return an array of columns.
      */
     Item[] getColumns();
-
 
     /**
      * Writes the variable from the observation in the file.

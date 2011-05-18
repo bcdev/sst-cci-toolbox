@@ -18,10 +18,25 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Queries;
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.reader.ExtractDefinition;
+import org.esa.cci.sst.reader.IOHandler;
+import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.rules.Converter;
+import org.esa.cci.sst.rules.RuleException;
+import org.esa.cci.sst.util.Cache;
+import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,6 +67,9 @@ public class MmdTool extends BasicTool {
     private final Set<String> dimensionNames = new TreeSet<String>();
     private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
     private final List<String> targetColumnNames = new ArrayList<String>(500);
+
+    private final Cache<String, IOHandler> readerCache = new Cache<String, IOHandler>(100);
+
     private int matchupCount;
 
     public MmdTool() {
@@ -67,7 +85,7 @@ public class MmdTool extends BasicTool {
     public static void main(String[] args) {
         final MmdTool tool = new MmdTool();
 
-        NetcdfFileWriteable mmdFile = null;
+        NetcdfFileWriteable mmd = null;
         try {
             final boolean performWork = tool.setCommandLineArgs(args);
             if (!performWork) {
@@ -75,26 +93,103 @@ public class MmdTool extends BasicTool {
             }
             tool.initialize();
 
-            mmdFile = tool.newMmdFile();
-            mmdFile = tool.defineContents(mmdFile);
-
-            writeMatchups(mmdFile);
+            mmd = tool.createMmd();
+            mmd = tool.defineMmd(mmd);
+            tool.writeMmd(mmd);
         } catch (ToolException e) {
             tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
             tool.getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
-            if (mmdFile != null) {
+            if (mmd != null) {
                 try {
-                    mmdFile.close();
+                    tool.closeReaders();
+                    mmd.close();
                 } catch (IOException ignored) {
                 }
             }
         }
     }
 
-    private static void writeMatchups(NetcdfFileWriteable mmdFile) {
-        // todo - implement
+    private void closeReaders() {
+        final Collection<IOHandler> removedReaders = readerCache.clear();
+        for (final IOHandler reader : removedReaders) {
+            reader.close();
+        }
+    }
+
+    private void writeMmd(NetcdfFileWriteable mmd) {
+        final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
+                                                              getSourceStartTime(),
+                                                              getSourceStartTime());
+
+        for (int i = 0, matchupListSize = matchupList.size(); i < matchupListSize; i++) {
+            final Matchup matchup = matchupList.get(i);
+            final ReferenceObservation refObs = matchup.getRefObs();
+            final List<Coincidence> coincidenceList = matchup.getCoincidences();
+
+            for (final Variable variable : mmd.getVariables()) {
+                final Item targetColumn = columnRegistry.getColumn(variable.getName());
+                final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
+
+                if (!"Implicit".equals(sourceColumn.getName())) {
+                    // todo - implement
+                } else {
+                    final String sensorName = targetColumn.getSensor().getName();
+                    final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
+                    if (coincidence != null) {
+                        writeColumn(mmd, variable, i, targetColumn, sourceColumn, coincidence);
+                    }
+                }
+            }
+        }
+    }
+
+    private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
+                             Coincidence coincidence) {
+        try {
+            final IOHandler reader = getReader(coincidence.getObservation());
+            final String role = sourceColumn.getRole();
+            final ExtractDefinition extractDefinition =
+                    new ExtractDefinitionBuilder()
+                            .role(role)
+                            .coincidence(coincidence)
+                            .recordNo(coincidence.getObservation().getRecordNo())
+                            .shape(variable.getShape())
+                            .build();
+            final Array sourceArray = reader.read(extractDefinition);
+
+            final Converter converter = columnRegistry.getConverter(targetColumn, reader.getColumn(role));
+            final Array targetArray = converter.apply(sourceArray);
+
+            final int[] targetOrigin = new int[variable.getRank()];
+            targetOrigin[0] = i;
+            mmd.write(variable.getNameEscaped(), targetOrigin, targetArray);
+        } catch (IOException e) {
+            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+        } catch (RuleException e) {
+            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
+        } catch (InvalidRangeException e) {
+            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
+        }
+    }
+
+    private IOHandler getReader(Observation observation) throws IOException {
+        final DataFile datafile = observation.getDatafile();
+        final String path = datafile.getPath();
+        if (!readerCache.contains(path)) {
+            final IOHandler reader = IOHandlerFactory.createHandler("GunzipDecorator,ProductHandler",
+                                                                    observation.getSensor());
+            reader.init(datafile);
+            final IOHandler removedReader = readerCache.add(path, reader);
+            if (removedReader != null) {
+                removedReader.close();
+            }
+        }
+        return readerCache.get(path);
     }
 
     @Override
@@ -119,27 +214,27 @@ public class MmdTool extends BasicTool {
         readDimensionConfiguration(dimensionNames);
     }
 
-    private NetcdfFileWriteable newMmdFile() throws IOException {
+    private NetcdfFileWriteable createMmd() throws IOException {
         final Properties configuration = getConfiguration();
         final String mmdDirPath = configuration.getProperty("mms.target.dir", ".");
         final String mmdFileName = configuration.getProperty("mms.target.filename", "mmd.nc");
         final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
 
-        final NetcdfFileWriteable mmdFile = NetcdfFileWriteable.createNew(mmdFilePath, true);
-        mmdFile.setLargeFile(true);
+        final NetcdfFileWriteable mmd = NetcdfFileWriteable.createNew(mmdFilePath, true);
+        mmd.setLargeFile(true);
 
-        return mmdFile;
+        return mmd;
     }
 
 
-    private NetcdfFileWriteable defineContents(NetcdfFileWriteable mmdFile) throws IOException {
-        defineDimensions(mmdFile);
-        defineVariables(mmdFile);
-        defineGlobalAttributes(mmdFile);
+    private NetcdfFileWriteable defineMmd(NetcdfFileWriteable mmd) throws IOException {
+        defineDimensions(mmd);
+        defineVariables(mmd);
+        defineGlobalAttributes(mmd);
 
-        mmdFile.create();
+        mmd.create();
 
-        return mmdFile;
+        return mmd;
     }
 
     private void defineDimensions(NetcdfFileWriteable mmdFile) {
@@ -234,4 +329,14 @@ public class MmdTool extends BasicTool {
     private void registerImplicitColumn() {
         columnRegistry.register(new ColumnBuilder().build());
     }
+
+    private static Coincidence findCoincidence(String sensorName, List<Coincidence> coincidenceList) {
+        for (final Coincidence coincidence : coincidenceList) {
+            if (sensorName.equals(coincidence.getObservation().getSensor())) {
+                return coincidence;
+            }
+        }
+        return null;
+    }
+
 }

@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFileWriteable;
 
 import javax.naming.OperationNotSupportedException;
@@ -108,6 +109,11 @@ class GunzipDecorator implements IOHandler {
     @Override
     public final Observation readObservation(int recordNo) throws IOException {
         return delegate.readObservation(recordNo);
+    }
+
+    @Override
+    public final Array read(ExtractDefinition extractDefinition) {
+        return delegate.read(extractDefinition);
     }
 
     @Override

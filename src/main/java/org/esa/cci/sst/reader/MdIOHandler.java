@@ -112,6 +112,12 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     }
 
     @Override
+    public final Array read(ExtractDefinition extractDefinition) {
+        // todo - implement
+        return null;
+    }
+
+    @Override
     public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVarName,
                       String targetVarName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
                                                                                                              IOException {
