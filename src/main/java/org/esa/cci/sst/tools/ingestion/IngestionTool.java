@@ -157,7 +157,7 @@ public class IngestionTool extends BasicTool {
             final String sensor = configuration.getProperty(
                     String.format("mms.source.%d.sensor", i));
             final String readerSpec = configuration.getProperty(
-                    String.format("mms.reader.%s", sensor));
+                    String.format("mms.reader.%s", sensor), "GunzipDecorator,ProductHandler");
             final String patternString = configuration.getProperty(
                     String.format("mms.pattern.%s", sensor), "0");
             final String observationType = configuration.getProperty(
