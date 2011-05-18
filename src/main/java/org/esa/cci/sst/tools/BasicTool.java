@@ -208,7 +208,8 @@ public abstract class BasicTool {
                 addConfigurationProperties(optionProperties);
             }
             // set java.io.tmpdir system property for file io of compressed files
-            final String tmpDir = commandLine.getOptionValue("tmp", "/tmp");
+            final String systemTmpDir = System.getProperty("java.io.tmpdir", "/tmp");
+            final String tmpDir = commandLine.getOptionValue("tmp", systemTmpDir);
             System.getProperties().put("java.io.tmpdir", tmpDir);
 
             setAdditionalCommandLineArgs(commandLine);
