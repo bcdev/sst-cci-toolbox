@@ -203,8 +203,8 @@ public class ColumnRegistry {
 
     /**
      * Returns a converter suitable for numeric conversions from a number complying
-     * with the source column associated with the target column supplied as
-     * argument into a number complying with the target column.
+     * with the source column registered for the target column supplied as argument
+     * into a number complying with the target column.
      *
      * @param targetColumn The target column.
      *
@@ -212,8 +212,23 @@ public class ColumnRegistry {
      *         with the target column.
      */
     public Converter getConverter(Item targetColumn) {
+        return getConverter(targetColumn, columnsByTarget.get(targetColumn));
+    }
+
+    /**
+     * Returns a converter suitable for numeric conversions from a number complying
+     * with the source column supplied as argument into a number complying with the
+     * target column supplied as argument.
+     *
+     * @param targetColumn The target column.
+     * @param sourceColumn The source column.
+     *
+     * @return a converter suitable for numeric conversions into numbers complying
+     *         with the target column.
+     */
+    public Converter getConverter(Item targetColumn, Item sourceColumn) {
         synchronized (this) {
-            return new ConverterImpl(rulesByTarget.get(targetColumn), columnsByTarget.get(targetColumn));
+            return new ConverterImpl(rulesByTarget.get(targetColumn), sourceColumn);
         }
     }
 

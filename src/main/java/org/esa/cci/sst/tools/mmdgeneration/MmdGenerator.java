@@ -271,7 +271,7 @@ class MmdGenerator {
             ioHandlerMap.put(sensorName, ioHandler);
         }
 
-        final DataFile handlerDataFile = ioHandler.getDataFile();
+        final DataFile handlerDataFile = ioHandler.getDatafile();
         if (observation.getDatafile() != handlerDataFile) {
             if (handlerDataFile != null) {
                 ioHandler.close();
