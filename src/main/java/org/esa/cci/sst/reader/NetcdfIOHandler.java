@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -36,8 +36,8 @@ abstract class NetcdfIOHandler implements IOHandler {
 
     private final String sensorName;
 
-    private NetcdfFile ncFile;
-    private DataFile dataFile;
+    private NetcdfFile netcdfFile;
+    private DataFile datafile;
 
     NetcdfIOHandler(String sensorName) {
         this.sensorName = sensorName;
@@ -47,25 +47,34 @@ abstract class NetcdfIOHandler implements IOHandler {
      * Opens NetCDF file. May be overridden to initialise additional
      * variables.
      *
-     * @param dataFile data file entry to be referenced in each observation created by reader
+     * @param datafile data file entry to be referenced in each observation created by reader
      *
      * @throws java.io.IOException if file access fails
      */
     @Override
-    public void init(DataFile dataFile) throws IOException {
-        if (ncFile != null) {
+    public void init(DataFile datafile) throws IOException {
+        if (netcdfFile != null) {
             close();
         }
-        final String path = dataFile.getPath();
-        ncFile = NetcdfFile.open(path);
-        this.dataFile = dataFile;
+        final String path = datafile.getPath();
+        this.netcdfFile = NetcdfFile.open(path);
+        this.datafile = datafile;
     }
 
     @Override
-    public Item[] getColumns() throws IOException {
+    public Item getColumn(String role) {
+        final Variable variable = netcdfFile.findVariable(NetcdfFile.escapeName(role));
+        if (variable != null) {
+            createColumn(variable);
+        }
+        return null;
+    }
+
+    @Override
+    public Item[] getColumns() {
         final ArrayList<Item> columnList = new ArrayList<Item>();
-        for (final Variable variable : ncFile.getVariables()) {
-            final Item column = createColumn(variable, sensorName, dataFile);
+        for (final Variable variable : netcdfFile.getVariables()) {
+            final Item column = createColumn(variable);
             columnList.add(column);
         }
         return columnList.toArray(new Item[columnList.size()]);
@@ -81,31 +90,30 @@ abstract class NetcdfIOHandler implements IOHandler {
      */
     @Override
     public void close() {
-        if (ncFile != null) {
+        if (netcdfFile != null) {
             try {
-                ncFile.close();
+                netcdfFile.close();
             } catch (IOException ignore) {
                 // ok
             }
         }
-        dataFile = null;
+        datafile = null;
     }
 
     @Override
-    public DataFile getDataFile() {
-        return dataFile;
+    public DataFile getDatafile() {
+        return datafile;
     }
 
     protected String getSensorName() {
         return sensorName;
     }
 
-    protected NetcdfFile getNcFile() {
-        return ncFile;
+    protected NetcdfFile getNetcdfFile() {
+        return netcdfFile;
     }
 
-    private static Item createColumn(final Variable variable, final String sensorName, final DataFile dataFile) {
-        return IoUtil.createColumnBuilder(variable, sensorName).sensor(dataFile.getSensor()).build();
+    private Item createColumn(final Variable variable) {
+        return IoUtil.createColumnBuilder(variable, sensorName).sensor(datafile.getSensor()).build();
     }
-
 }

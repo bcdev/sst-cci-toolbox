@@ -56,9 +56,9 @@ class MetopIOHandler extends MdIOHandler {
     }
 
     @Override
-    public void init(DataFile dataFile) throws IOException {
-        super.init(dataFile);
-        final NetcdfFile ncFile = getNcFile();
+    public void init(DataFile datafile) throws IOException {
+        super.init(datafile);
+        final NetcdfFile ncFile = getNetcdfFile();
         rowCount = ncFile.findDimension("ny").getLength();
         colCount = ncFile.findDimension("nx").getLength();
     }
@@ -88,7 +88,7 @@ class MetopIOHandler extends MdIOHandler {
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(TimeUtil.secondsSince1981ToDate(
                 getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
-        observation.setDatafile(getDataFile());
+        observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != getSstFillValue());
 

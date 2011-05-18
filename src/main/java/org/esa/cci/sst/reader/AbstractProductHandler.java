@@ -157,7 +157,7 @@ abstract class AbstractProductHandler implements IOHandler {
     }
 
     @Override
-    public final DataFile getDataFile() {
+    public final DataFile getDatafile() {
         return dataFile;
     }
 
@@ -174,7 +174,16 @@ abstract class AbstractProductHandler implements IOHandler {
     public abstract Observation readObservation(int recordNo) throws IOException;
 
     @Override
-    public final Item[] getColumns() throws IOException {
+    public Item getColumn(String role) {
+        final RasterDataNode node = product.getRasterDataNode(role);
+        if (node != null) {
+            return createColumn(node);
+        }
+        return null;
+    }
+
+    @Override
+    public final Item[] getColumns() {
         final List<Item> columnList = new ArrayList<Item>();
         for (final RasterDataNode node : product.getTiePointGrids()) {
             final Item column = createColumn(node);
@@ -223,7 +232,7 @@ abstract class AbstractProductHandler implements IOHandler {
 
     protected final Item createColumn(final RasterDataNode node) {
         final ColumnBuilder builder = new ColumnBuilder();
-        final String columnName = getSensorName() + "." + node.getName();
+        final String columnName = sensorName + "." + node.getName();
         final DataType type = DataTypeUtils.getNetcdfDataType(node.getDataType());
         builder.name(columnName);
         builder.type(type);
@@ -242,7 +251,7 @@ abstract class AbstractProductHandler implements IOHandler {
             builder.fillValue(node.getNoDataValue());
         }
         builder.role(node.getName());
-        builder.sensor(getDataFile().getSensor());
+        builder.sensor(dataFile.getSensor());
 
         if (node instanceof Band) {
             final Band band = (Band) node;

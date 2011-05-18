@@ -45,14 +45,14 @@ import java.util.List;
  */
 abstract class AbstractMmdReader implements ObservationReader {
 
-    private final DataFile dataFile;
+    private final DataFile datafile;
     private final NetcdfFile mmd;
-    private final String sensor;
+    private final String sensorName;
 
-    AbstractMmdReader(DataFile dataFile, final NetcdfFile mmd, final String sensor) {
-        this.dataFile = dataFile;
+    AbstractMmdReader(DataFile datafile, final NetcdfFile mmd, final String sensorName) {
+        this.datafile = datafile;
         this.mmd = mmd;
-        this.sensor = sensor;
+        this.sensorName = sensorName;
     }
 
     @Override
@@ -66,12 +66,20 @@ abstract class AbstractMmdReader implements ObservationReader {
     }
 
     @Override
-    public Item[] getItems() throws IOException {
+    public Item getColumn(String role) {
+        final Variable variable = mmd.findVariable(NetcdfFile.escapeName(role));
+        if (variable != null) {
+            return createColumn(variable);
+        }
+        return null;
+    }
+
+    @Override
+    public Item[] getColumns() {
         final List<Item> items = new ArrayList<Item>();
         final List<Variable> variables = mmd.getVariables();
-        final DataFile datafile = dataFile;
         for (Variable variable : variables) {
-            final Item item = createItem(variable, datafile);
+            final Item item = createColumn(variable);
             items.add(item);
         }
         return items.toArray(new Item[items.size()]);
@@ -84,8 +92,8 @@ abstract class AbstractMmdReader implements ObservationReader {
     }
 
     void setupObservation(Observation observation) throws IOException {
-        observation.setDatafile(dataFile);
-        observation.setSensor(sensor);
+        observation.setDatafile(datafile);
+        observation.setSensor(sensorName);
     }
 
     void validateRecordNumber(final int recordNo) {
@@ -149,9 +157,9 @@ abstract class AbstractMmdReader implements ObservationReader {
         }
     }
 
-    private Item createItem(final Variable variable, final DataFile dataFile) {
-        final Sensor dataFileSensor = dataFile.getSensor();
-        final ColumnBuilder columnBuilder = IoUtil.createColumnBuilder(variable, sensor);
+    private Item createColumn(final Variable variable) {
+        final Sensor dataFileSensor = datafile.getSensor();
+        final ColumnBuilder columnBuilder = IoUtil.createColumnBuilder(variable, sensorName);
         columnBuilder.sensor(dataFileSensor);
         return columnBuilder.build();
     }

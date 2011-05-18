@@ -74,7 +74,7 @@ class ProductHandler extends AbstractProductHandler {
         }
         observation.setTime(getCenterTimeAsDate());
 
-        observation.setDatafile(getDataFile());
+        observation.setDatafile(getDatafile());
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 

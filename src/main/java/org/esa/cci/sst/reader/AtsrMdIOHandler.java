@@ -62,11 +62,11 @@ class AtsrMdIOHandler extends MdIOHandler {
         observation.setCallsign(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
         observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
-        observation.setSensor(getDataFile().getSensor().getName());
+        observation.setSensor(getDatafile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
-        observation.setDatafile(getDataFile());
+        observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         try {
             observation.setClassification(getByte("insitu.reference_flag", recordNo));

@@ -49,9 +49,9 @@ class SeviriIOHandler extends MdIOHandler {
     }
 
     @Override
-    public void init(DataFile dataFile) throws IOException {
-        super.init(dataFile);
-        final NetcdfFile ncFile = getNcFile();
+    public void init(DataFile datafile) throws IOException {
+        super.init(datafile);
+        final NetcdfFile ncFile = getNetcdfFile();
         noOfLines = ncFile.findDimension("ny").getLength();
         noOfColumns = ncFile.findDimension("nx").getLength();
     }
@@ -95,7 +95,7 @@ class SeviriIOHandler extends MdIOHandler {
                                                       coordinateOf(getInt("lat", recordNo, line, column)))));
         observation.setTime(TimeUtil.secondsSince1981ToDate(
                 getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
-        observation.setDatafile(getDataFile());
+        observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != getSstFillValue());
         return observation;

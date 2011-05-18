@@ -110,11 +110,16 @@ class GunzipDecorator implements IOHandler {
         return delegate.readObservation(recordNo);
     }
 
+    @Override
+    public final Item getColumn(String role) {
+        return delegate.getColumn(role);
+    }
+
     /**
      * Delegates to decorated IO handler.
      */
     @Override
-    public final Item[] getColumns() throws IOException {
+    public final Item[] getColumns() {
         return delegate.getColumns();
     }
 
@@ -146,8 +151,8 @@ class GunzipDecorator implements IOHandler {
      * Delegates to decorated IO handler.
      */
     @Override
-    public final DataFile getDataFile() {
-        return delegate.getDataFile();
+    public final DataFile getDatafile() {
+        return delegate.getDatafile();
     }
 
     /**

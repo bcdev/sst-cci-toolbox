@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
 import ucar.nc2.NetcdfFileWriteable;
@@ -71,15 +71,16 @@ public interface IOHandler {
      */
     Observation readObservation(int recordNo) throws IOException;
 
+    Item getColumn(String role);
+
     /**
      * Returns an array of columns for the variables that are used by the
      * files supported by this IO handler.
      *
      * @return an array of columns.
-     *
-     * @throws IOException when an error occurred.
      */
-    Item[] getColumns() throws IOException;
+    Item[] getColumns();
+
 
     /**
      * Writes the variable from the observation in the file.
@@ -98,7 +99,6 @@ public interface IOHandler {
     void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
                String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
                                                                                                                  IOException;
-
 
     /**
      * Reads a record of in-situ data.
@@ -119,5 +119,5 @@ public interface IOHandler {
      *
      * @return the data file.
      */
-    DataFile getDataFile();
+    DataFile getDatafile();
 }

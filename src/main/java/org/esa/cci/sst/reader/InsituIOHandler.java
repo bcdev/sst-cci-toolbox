@@ -60,8 +60,8 @@ class InsituIOHandler extends NetcdfIOHandler {
     }
 
     @Override
-    public void init(DataFile dataFile) throws IOException {
-        super.init(dataFile);
+    public void init(DataFile datafile) throws IOException {
+        super.init(datafile);
         historyTimes = readHistoryTimes();
     }
 
@@ -79,7 +79,7 @@ class InsituIOHandler extends NetcdfIOHandler {
     @Override
     public InsituObservation readObservation(int recordNo) throws IOException {
         final InsituObservation observation = new InsituObservation();
-        final DataFile dataFile = getDataFile();
+        final DataFile dataFile = getDatafile();
         observation.setDatafile(dataFile);
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
@@ -119,7 +119,7 @@ class InsituIOHandler extends NetcdfIOHandler {
     public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVariableName,
                       String targetVariableName, int matchupIndex, PGgeometry refPoint, Date refTime) throws
                                                                                                       IOException {
-        final NetcdfFile sourceFile = getNcFile();
+        final NetcdfFile sourceFile = getNetcdfFile();
         final Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(sourceVariableName));
         final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
 
@@ -138,11 +138,11 @@ class InsituIOHandler extends NetcdfIOHandler {
     }
 
     private double parseDouble(String attributeName) throws ParseException {
-        return Double.parseDouble(getNcFile().findGlobalAttribute(attributeName).getStringValue());
+        return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
     }
 
     private Array readHistoryTimes() throws IOException {
-        return getNcFile().findVariable(NetcdfFile.escapeName("insitu.time")).read();
+        return getNetcdfFile().findVariable(NetcdfFile.escapeName("insitu.time")).read();
     }
 
     /**

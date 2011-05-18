@@ -37,7 +37,7 @@ class AaiProductHandler extends AbstractProductHandler {
     public final GlobalObservation readObservation(int recordNo) throws IOException {
         final GlobalObservation globalObservation = new GlobalObservation();
         globalObservation.setTime(getCenterTimeAsDate());
-        globalObservation.setDatafile(getDataFile());
+        globalObservation.setDatafile(getDatafile());
         globalObservation.setRecordNo(0);
         globalObservation.setSensor(getSensorName());
 

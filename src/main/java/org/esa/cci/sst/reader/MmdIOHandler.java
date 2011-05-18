@@ -87,9 +87,15 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
-    public Item[] getColumns() throws IOException {
+    public Item getColumn(String role) {
         validateDelegate(reader);
-        return reader.getItems();
+        return reader.getColumn(role);
+    }
+
+    @Override
+    public Item[] getColumns() {
+        validateDelegate(reader);
+        return reader.getColumns();
     }
 
     @Override
@@ -98,7 +104,7 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
-    public DataFile getDataFile() {
+    public DataFile getDatafile() {
         return dataFile;
     }
 
