@@ -74,7 +74,6 @@ public class ObservationDbIntegrationTest {
         //System.out.println(i.getLocation().getValue());
         Query q = m.createNativeQuery("insert into mm_observation values (?,?,?,?,?,?,?,?)");
         q.setParameter(1, 14);
-        q.setParameter(2, i.isClearSky());
         q.setParameter(3, i.getLocation());
         q.setParameter(4, i.getCallsign());
         q.setParameter(5, i.getRecordNo());
