@@ -61,18 +61,15 @@ class AtsrMdIOHandler extends MdIOHandler {
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setCallsign(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
-        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
+//        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
+        // todo - ts 19May2011 - make configurable
+        observation.setReferenceFlag((byte) 4);
         observation.setSensor(getDatafile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
-        try {
-            observation.setClassification(getByte("insitu.reference_flag", recordNo));
-        } catch (IOException ignore) {
-            // ignore, there is no insitu.reference_flag
-        }
         observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != getSstFillValue());
         return observation;
     }
