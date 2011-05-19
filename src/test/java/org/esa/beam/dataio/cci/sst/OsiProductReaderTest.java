@@ -185,7 +185,9 @@ public class OsiProductReaderTest {
 
             System.out.println(netcdfFile.toString());
         } finally {
-            netcdfFile.close();
+            if (netcdfFile != null) {
+                netcdfFile.close();
+            }
         }
     }
 
