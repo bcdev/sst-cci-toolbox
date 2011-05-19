@@ -107,7 +107,7 @@ abstract class AbstractProductHandler implements IOHandler {
     public abstract Observation readObservation(int recordNo) throws IOException;
 
     @Override
-    public Array read(ExtractDefinition extractDefinition) {
+    public Array read(String role, ExtractDefinition extractDefinition) {
         Assert.state(product != null, "product == null");
         // todo - implement
         return null;

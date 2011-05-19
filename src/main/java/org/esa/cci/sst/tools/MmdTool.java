@@ -151,12 +151,11 @@ public class MmdTool extends BasicTool {
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
-                            .role(role)
                             .coincidence(coincidence)
                             .recordNo(coincidence.getObservation().getRecordNo())
                             .shape(variable.getShape())
                             .build();
-            final Array sourceArray = reader.read(extractDefinition);
+            final Array sourceArray = reader.read(role, extractDefinition);
 
             final Converter converter = columnRegistry.getConverter(targetColumn, reader.getColumn(role));
             final Array targetArray = converter.apply(sourceArray);

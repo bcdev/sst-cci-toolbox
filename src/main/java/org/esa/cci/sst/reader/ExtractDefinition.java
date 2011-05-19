@@ -3,15 +3,11 @@ package org.esa.cci.sst.reader;
 import java.util.Date;
 
 /**
- * Created by IntelliJ IDEA.
- * User: ralf
- * Date: 5/18/11
- * Time: 18:50
- * To change this template use File | Settings | File Templates.
+ * Defines an extract from a data set, e.g. a subscene of a full orbit image.
+ *
+ * @author Ralf Quast
  */
 public interface ExtractDefinition {
-
-    String getRole();
 
     double getLat();
 

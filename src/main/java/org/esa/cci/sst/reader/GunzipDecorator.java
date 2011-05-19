@@ -112,8 +112,8 @@ class GunzipDecorator implements IOHandler {
     }
 
     @Override
-    public final Array read(ExtractDefinition extractDefinition) {
-        return delegate.read(extractDefinition);
+    public final Array read(String role, ExtractDefinition extractDefinition) {
+        return delegate.read(role, extractDefinition);
     }
 
     @Override

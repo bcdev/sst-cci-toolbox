@@ -72,7 +72,7 @@ public interface IOHandler {
      */
     Observation readObservation(int recordNo) throws IOException;
 
-    Array read(ExtractDefinition extractDefinition);
+    Array read(String role, ExtractDefinition extractDefinition);
 
     Item getColumn(String role);
 

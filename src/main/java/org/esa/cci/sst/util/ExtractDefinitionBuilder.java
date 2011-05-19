@@ -30,7 +30,6 @@ import java.util.Date;
  */
 public class ExtractDefinitionBuilder {
 
-    private String role;
     private double lon;
     private double lat;
 
@@ -38,11 +37,6 @@ public class ExtractDefinitionBuilder {
     private int[] shape;
 
     private Date date;
-
-    public ExtractDefinitionBuilder role(String role) {
-        this.role = role;
-        return this;
-    }
 
     public ExtractDefinitionBuilder coincidence(Coincidence c) {
         final ReferenceObservation refObs = c.getMatchup().getRefObs();
@@ -64,7 +58,6 @@ public class ExtractDefinitionBuilder {
     }
 
     public ExtractDefinition build() {
-        final String role = this.role;
         final double lat = this.lat;
         final double lon = this.lon;
         final Date date = this.date;
@@ -76,11 +69,6 @@ public class ExtractDefinitionBuilder {
         shape[0] = 1;
 
         return new ExtractDefinition() {
-
-            @Override
-            public final String getRole() {
-                return role;
-            }
 
             @Override
             public final double getLat() {

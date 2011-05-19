@@ -109,7 +109,7 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
-    public final Array read(ExtractDefinition extractDefinition) {
+    public final Array read(String role, ExtractDefinition extractDefinition) {
         // todo - implement
         return null;
     }
