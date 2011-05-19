@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.dataio.cci.sst.AaiProductReaderPlugIn;
+import org.esa.beam.dataio.cci.sst.NcAaiProductReaderPlugIn;
 import org.esa.cci.sst.data.GlobalObservation;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.io.IOException;
 class AaiProductHandler extends AbstractProductHandler {
 
     AaiProductHandler(String sensorName) {
-        super(sensorName, AaiProductReaderPlugIn.FORMAT_NAME);
+        super(sensorName, NcAaiProductReaderPlugIn.FORMAT_NAME);
     }
 
     @Override

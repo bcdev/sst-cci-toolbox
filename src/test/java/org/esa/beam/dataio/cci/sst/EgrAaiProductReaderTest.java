@@ -37,7 +37,7 @@ import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 
-public class AaiProductReaderTest {
+public class EgrAaiProductReaderTest {
 
     private static final int COL_COUNT = 288;
     private static final int ROW_COUNT = 180;
@@ -45,7 +45,7 @@ public class AaiProductReaderTest {
 
     @Test
     public void testReferenceTime() throws URISyntaxException, IOException {
-        final ProductData.UTC time = AaiProductReader.readReferenceTime(getResourceAsFile(RESOURCE_NAME));
+        final ProductData.UTC time = EgrAaiProductReader.readReferenceTime(getResourceAsFile(RESOURCE_NAME));
         assertEquals(TimeZone.getTimeZone("UTC"), time.getAsCalendar().getTimeZone());
         assertEquals(2010, time.getAsCalendar().get(Calendar.YEAR));
         assertEquals(5, time.getAsCalendar().get(Calendar.MONTH));
@@ -58,7 +58,7 @@ public class AaiProductReaderTest {
 
     @Test
     public void testGeoCoding() {
-        final GeoCoding geoCoding = AaiProductReader.createGeoCoding(new Dimension(COL_COUNT, ROW_COUNT));
+        final GeoCoding geoCoding = EgrAaiProductReader.createGeoCoding(new Dimension(COL_COUNT, ROW_COUNT));
         assertNotNull(geoCoding);
         assertTrue(geoCoding.canGetGeoPos());
         assertTrue(geoCoding.canGetPixelPos());
@@ -77,11 +77,11 @@ public class AaiProductReaderTest {
 
     @Test
     public void testSourceImage() throws URISyntaxException {
-        final AaiProductReader.SampleReader sampleReader =
-                AaiProductReader.createSampleReader(getResourceAsFile(RESOURCE_NAME));
+        final EgrAaiProductReader.SampleReader sampleReader =
+                EgrAaiProductReader.createSampleReader(getResourceAsFile(RESOURCE_NAME));
         assertNotNull(sampleReader);
         final RenderedImage sourceImage =
-                AaiProductReader.createSourceImage(ProductData.TYPE_UINT16, COL_COUNT, ROW_COUNT, sampleReader);
+                EgrAaiProductReader.createSourceImage(ProductData.TYPE_UINT16, COL_COUNT, ROW_COUNT, sampleReader);
         assertNotNull(sourceImage);
         assertEquals(COL_COUNT, sourceImage.getWidth());
         assertEquals(ROW_COUNT, sourceImage.getHeight());
@@ -100,7 +100,7 @@ public class AaiProductReaderTest {
 
     @Test
     public void testReadSamples() throws URISyntaxException {
-        final Number[] samples = AaiProductReader.readSamples(getResourceAsFile(RESOURCE_NAME));
+        final Number[] samples = EgrAaiProductReader.readSamples(getResourceAsFile(RESOURCE_NAME));
         assertEquals(COL_COUNT * ROW_COUNT, samples.length);
         assertEquals(999, getSample(samples, 0, 0));
         assertEquals(443, getSample(samples, 2, 2));
@@ -111,7 +111,7 @@ public class AaiProductReaderTest {
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {
-        final URL url = AaiProductReaderTest.class.getResource(name);
+        final URL url = EgrAaiProductReaderTest.class.getResource(name);
         final URI uri = url.toURI();
 
         return new File(uri);

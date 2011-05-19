@@ -17,11 +17,10 @@
 package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
+import org.esa.beam.dataio.netcdf.util.MetadataUtils;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.CrsGeoCoding;
-import org.esa.beam.framework.datamodel.MetadataAttribute;
-import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
@@ -30,7 +29,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
 import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
 import ucar.nc2.Variable;
 
 import java.awt.Rectangle;
@@ -39,8 +37,6 @@ import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -50,31 +46,29 @@ import java.util.List;
  */
 public class NcAaiProductReader extends NetcdfProductReaderTemplate {
 
-    private static final String VARIABLE_NAME = "aerosol_absorbing_index";
-
     public NcAaiProductReader(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
     }
 
     @Override
     protected void addBands(Product product) throws IOException {
-        final Variable variable = getNetcdfFile().findVariable(VARIABLE_NAME);
-        final int dataType = DataTypeUtils.getRasterDataType(variable);
-        final String variableName = variable.getName();
-        final Band band = product.addBand(variableName, dataType);
-        final Attribute fillValueAttribute = variable.findAttribute("_FillValue");
-        if(fillValueAttribute != null) {
-            band.setNoDataValue((Float) fillValueAttribute.getNumericValue());
-            band.setNoDataValueUsed(true);
+        final List<Variable> variables = getNetcdfFile().getVariables();
+        for (final Variable variable : variables) {
+            final int dataType = DataTypeUtils.getRasterDataType(variable);
+            final String variableName = variable.getName();
+            final Band band = product.addBand(variableName, dataType);
+            final Attribute fillValueAttribute = variable.findAttribute("_FillValue");
+            if (fillValueAttribute != null) {
+                band.setNoDataValue((Float) fillValueAttribute.getNumericValue());
+                band.setNoDataValueUsed(true);
+            }
         }
     }
 
     @Override
     protected void addGeoCoding(Product product) {
-        final Dimension xDimension = getNetcdfFile().findDimension("nx");
-        final Dimension yDimension = getNetcdfFile().findDimension("ny");
-        final int width = xDimension.getLength();
-        final int height = yDimension.getLength();
+        final int width = product.getSceneRasterWidth();
+        final int height = product.getSceneRasterHeight();
         final double scaleX = 360.0 / width;
         final double scaleY = 180.0 / height;
         final AffineTransform transform = new AffineTransform();
@@ -86,22 +80,15 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
             final CrsGeoCoding geoCoding = new CrsGeoCoding(DefaultGeographicCRS.WGS84, imageBounds, transform);
             product.setGeoCoding(geoCoding);
         } catch (FactoryException e) {
-            throw new IllegalArgumentException("dimension", e);
+            throw new IllegalStateException(e);
         } catch (TransformException e) {
-            throw new IllegalArgumentException("dimension", e);
+            throw new IllegalStateException(e);
         }
     }
 
     @Override
     protected void addMetadata(Product product) {
-        final MetadataElement element = new MetadataElement("Global Attributes");
-        final List<Attribute> globalAttributes = getNetcdfFile().getGlobalAttributes();
-        for (Attribute ncAttribute : globalAttributes) {
-            ProductData productData = DataTypeUtils.createProductData(ncAttribute);
-            final MetadataAttribute attribute = new MetadataAttribute(ncAttribute.getName(), productData, true);
-            element.addAttribute(attribute);
-        }
-        product.getMetadataRoot().addElement(element);
+        MetadataUtils.readNetcdfMetadata(getNetcdfFile(), product.getMetadataRoot());
     }
 
     @Override
@@ -109,9 +96,8 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
         final File file = new File(getInput().toString());
         final int width = getNetcdfFile().findDimension("nx").getLength();
         final int height = getNetcdfFile().findDimension("ny").getLength();
-        final Product product = new Product(file.getName(), "AerosolAai", width, height, this);
-        product.setFileLocation(file);
-        return product;
+
+        return new Product(file.getName(), "AerosolAai", width, height);
     }
 
     @Override
@@ -137,26 +123,17 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected void setTime(Product product) {
-        final String timeString = getTimeString();
-        if (timeString == null) {
-            return;
-        }
-        final SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM hh:mm:ss yyyy");
-        try {
-            final Date date = sdf.parse(timeString);
-            product.setStartTime(ProductData.UTC.create(date, 0));
-        } catch (ParseException ignored) {
-            // ok; set no time, then.
+        final String name = product.getName();
+        if (name.matches("aai_[0-9]{8}.+")) {
+            final String timeString = name.substring(4, 12);
+            try {
+                final ProductData.UTC startTime = ProductData.UTC.parse(timeString, "yyyyMMdd");
+                product.setStartTime(startTime);
+                final ProductData.UTC endTime = new ProductData.UTC(startTime.getDaysFraction() + 1, 0, 0);
+                product.setEndTime(endTime);
+            } catch (ParseException ignored) {
+            }
         }
     }
 
-    String getTimeString() {
-        final List<Attribute> globalAttributes = getNetcdfFile().getGlobalAttributes();
-        for (Attribute globalAttribute : globalAttributes) {
-            if (globalAttribute.getName().equalsIgnoreCase("creation_date")) {
-                return globalAttribute.getStringValue();
-            }
-        }
-        return null;
-    }
 }

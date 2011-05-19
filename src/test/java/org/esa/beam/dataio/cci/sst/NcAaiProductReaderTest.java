@@ -19,16 +19,15 @@ package org.esa.beam.dataio.cci.sst;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 import ucar.nc2.NetcdfFile;
 
-import java.io.File;
 import java.io.IOException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Thomas Storm
@@ -36,46 +35,62 @@ import static org.mockito.Mockito.*;
 public class NcAaiProductReaderTest {
 
 
-    private AaiProductReaderPlugIn plugIn;
     private NcAaiProductReader reader;
+    private Product product;
 
     @Before
-    public void setUp() throws Exception {
-        plugIn = new AaiProductReaderPlugIn();
-        reader = createMock();
+    public void setUp() throws IOException {
+        reader = new NcAaiProductReader(new NcAaiProductReaderPlugIn()) {
+
+            @Override
+            protected NetcdfFile getNetcdfFile() {
+                final String location = getInput();
+                try {
+                    return NetcdfFile.open(location);
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+
+            @Override
+            public String getInput() {
+                return getClass().getResource("aai_20101224.nc").getFile();
+            }
+        };
+        product = reader.createPlainProduct();
     }
 
     @Test
-    public void testCreatePlainProduct() throws Exception {
-        final Product product = reader.createPlainProduct();
-        String fileString = getClass().getResource("aai_20101224.nc").getFile();
-
+    public void testPlainProduct() throws Exception {
         assertNotNull(product);
-        assertEquals(new File(fileString).getAbsolutePath(), product.getFileLocation().getAbsolutePath());
-        assertEquals("AerosolAai", product.getProductType());
         assertEquals("aai_20101224.nc", product.getName());
+        assertEquals("AerosolAai", product.getProductType());
         assertEquals(288, product.getSceneRasterWidth());
         assertEquals(180, product.getSceneRasterHeight());
     }
 
     @Test
-    public void testGetTimeString() throws Exception {
-        final String timeString = reader.getTimeString();
-        assertEquals("Tue May 17 10:32:00 2011", timeString);
+    public void testSetTime() throws Exception {
+        reader.setTime(product);
+
+        final ProductData.UTC productStartTime = product.getStartTime();
+        final ProductData.UTC expectedStartTime = ProductData.UTC.parse("2010-12-24-00-00", "yyyy-MM-dd-HH-mm");
+
+        assertNotNull(productStartTime);
+        assertEquals(expectedStartTime.getMJD(), productStartTime.getMJD(), 0.0);
+
+        final ProductData.UTC productEndTime = product.getEndTime();
+        final ProductData.UTC expectedEndTime = ProductData.UTC.parse("2010-12-25-00-00", "yyyy-MM-dd-HH-mm");
+
+        assertNotNull(productEndTime);
+        assertEquals(expectedEndTime.getMJD(), productEndTime.getMJD(), 0.0);
     }
 
     @Test
     public void testAddMetadata() throws Exception {
-        final NcAaiProductReader mock = mock(NcAaiProductReader.class);
-        final String fileString = getClass().getResource("aai_20101224.nc").getFile();
-        final NetcdfFile file = NetcdfFile.open(fileString);
-        when(mock.getNetcdfFile()).thenReturn(file);
-        doCallRealMethod().when(mock).addMetadata(Matchers.<Product>any());
+        reader.addMetadata(product);
 
-        final Product product = new Product("dummy", "dummy", 10, 10);
-        mock.addMetadata(product);
-
-        final MetadataElement globalAttributes = product.getMetadataRoot().getElement("Global Attributes");
+        final MetadataElement globalAttributes = product.getMetadataRoot().getElementAt(0);
         assertNotNull(globalAttributes);
         final MetadataAttribute[] attributes = globalAttributes.getAttributes();
 
@@ -84,28 +99,5 @@ public class NcAaiProductReaderTest {
         assertEquals("Global Aerosol - Absorbing Aerosol Index", attributes[0].getData().getElemString());
         assertEquals("creation_date", attributes[3].getName());
         assertEquals("Tue May 17 10:32:00 2011", attributes[3].getData().getElemString());
-    }
-
-    private NcAaiProductReader createMock() {
-        return new NcAaiProductReader(plugIn) {
-
-            private String fileString;
-
-            @Override
-            protected NetcdfFile getNetcdfFile() {
-                fileString = getClass().getResource("aai_20101224.nc").getFile();
-                try {
-                    return NetcdfFile.open(fileString);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            public Object getInput() {
-                return getClass().getResource("aai_20101224.nc").getFile();
-            }
-        };
     }
 }

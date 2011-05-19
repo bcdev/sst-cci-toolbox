@@ -23,20 +23,19 @@ import org.esa.beam.util.io.BeamFileFilter;
 import java.io.File;
 import java.util.Locale;
 
-public class AaiProductReaderPlugIn implements ProductReaderPlugIn {
+public class EgrAaiProductReaderPlugIn implements ProductReaderPlugIn {
 
     public static final String FORMAT_NAME = "AAI-EGR";
 
     @Override
-    public NcAaiProductReader createReaderInstance() {
-        return new NcAaiProductReader(this);
+    public EgrAaiProductReader createReaderInstance() {
+        return new EgrAaiProductReader(this);
     }
 
     @Override
     public DecodeQualification getDecodeQualification(Object input) {
-        final File file = new File(input.toString());
-        if (file.getName().endsWith(".nc") &&
-                file.getName().startsWith("aai_")) {
+        final File file = input instanceof File ? (File) input : new File(input.toString());
+        if (file.getName().matches("[0-9]{8}\\.egr")) {
             return DecodeQualification.INTENDED;
         }
         return DecodeQualification.UNABLE;
@@ -49,7 +48,7 @@ public class AaiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String[] getDefaultFileExtensions() {
-        return new String[]{".nc"};
+        return new String[]{".egr"};
     }
 
     @Override

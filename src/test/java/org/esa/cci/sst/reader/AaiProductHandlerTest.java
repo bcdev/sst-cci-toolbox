@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.dataio.cci.sst.AaiProductReaderTest;
+import org.esa.beam.dataio.cci.sst.EgrAaiProductReaderTest;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Item;
@@ -45,7 +45,7 @@ public class AaiProductHandlerTest {
 
     @BeforeClass
     public static void init() throws IOException, URISyntaxException {
-        final URL url = AaiProductReaderTest.class.getResource(AAI_RESOURCE_NAME);
+        final URL url = EgrAaiProductReaderTest.class.getResource(AAI_RESOURCE_NAME);
         final URI uri = url.toURI();
         final File file = new File(uri);
 

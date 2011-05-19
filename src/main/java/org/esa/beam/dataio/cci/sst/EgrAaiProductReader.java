@@ -50,7 +50,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Scanner;
 
-public class AaiProductReader extends AbstractProductReader {
+public class EgrAaiProductReader extends AbstractProductReader {
 
     private static final int COL_COUNT = 288;
     private static final int ROW_COUNT = 180;
@@ -59,7 +59,7 @@ public class AaiProductReader extends AbstractProductReader {
     private static final double SCALING_FACTOR = 10.0;
     private static final Number NO_DATA_VALUE = 999;
 
-    protected AaiProductReader(ProductReaderPlugIn readerPlugIn) {
+    protected EgrAaiProductReader(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
     }
 
@@ -72,7 +72,7 @@ public class AaiProductReader extends AbstractProductReader {
 
         final ProductData.UTC startTime = readReferenceTime(file);
         product.setStartTime(startTime);
-        final ProductData.UTC endTime = new ProductData.UTC(startTime.getDaysFraction(), 86399, 999999);
+        final ProductData.UTC endTime = new ProductData.UTC(startTime.getDaysFraction() + 1, 0, 0);
         product.setEndTime(endTime);
 
         final GeoCoding geoCoding = createGeoCoding(new Dimension(COL_COUNT, ROW_COUNT));
@@ -180,7 +180,7 @@ public class AaiProductReader extends AbstractProductReader {
             scanner.nextLine();
             scanner.useDelimiter("\\s*lat\\s=\\s.*\\n");
 
-            for (int i = ROW_COUNT; i-- > 0;) { // flip vertically
+            for (int i = ROW_COUNT; i-- > 0; ) { // flip vertically
                 final String line = scanner.next().replaceAll("\\s", "");
                 for (int k = 0, index = 0; k < COL_COUNT; k++, index += 3) {
                     try {
@@ -247,6 +247,7 @@ public class AaiProductReader extends AbstractProductReader {
 
             final int targetPixelStride = targetData.pixelStride;
             final int targetLineStride = targetData.lineStride;
+            @SuppressWarnings({"MismatchedReadAndWriteOfArray"})
             final short[] targetDataArray = targetData.getShortData(0);
             int targetLineOffset = targetData.getOffset(0);
 
