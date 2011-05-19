@@ -112,7 +112,7 @@ class GunzipDecorator implements IOHandler {
     }
 
     @Override
-    public final Array read(String role, ExtractDefinition extractDefinition) {
+    public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         return delegate.read(role, extractDefinition);
     }
 
