@@ -16,16 +16,20 @@
 
 package org.esa.cci.sst.reader;
 
+import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.util.IoUtil;
-import ucar.ma2.Array;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract base class for all netcdf-observation readers. Provides methods to to open the file and access its
@@ -36,35 +40,58 @@ import java.util.ArrayList;
 abstract class NetcdfIOHandler implements IOHandler {
 
     private final String sensorName;
+    private final HashMap<String, Variable> variableMap = new HashMap<String, Variable>(100);
 
-    private NetcdfFile netcdfFile;
     private DataFile datafile;
+    private NetcdfFile netcdfFile;
+    private int numRecords;
 
     protected NetcdfIOHandler(String sensorName) {
         this.sensorName = sensorName;
     }
 
     /**
-     * Opens NetCDF file. May be overridden to initialise additional
+     * Opens a NetCDF file. May be overridden to initialise additional
      * variables.
      *
-     * @param datafile data file entry to be referenced in each observation created by reader
+     * @param datafile The data file to be referenced in each observation created.
      *
-     * @throws java.io.IOException if file access fails
+     * @throws IOException if file access fails.
      */
     @Override
     public void init(DataFile datafile) throws IOException {
-        if (netcdfFile != null) {
-            close();
-        }
-        final String path = datafile.getPath();
-        this.netcdfFile = NetcdfFile.open(path);
+        Assert.state(netcdfFile == null, "netcdfFile != null");
+
         this.datafile = datafile;
+        this.netcdfFile = NetcdfFile.open(datafile.getPath());
+
+        final List<Variable> variables = netcdfFile.getVariables();
+        for (final Variable variable : variables) {
+            if (variable.getRank() > 0) {
+                variableMap.put(variable.getName(), variable);
+            }
+        }
+
+        final HashMap<Dimension, Integer> map = new HashMap<Dimension, Integer>();
+        for (final Variable variable : variables) {
+            final Dimension d = variable.getDimension(0);
+            if (!map.containsKey(d)) {
+                map.put(d, 1);
+            } else {
+                map.put(d, map.get(d) + 1);
+            }
+        }
+        int c = 0;
+        for (final Map.Entry<Dimension, Integer> entry : map.entrySet()) {
+            if (entry.getValue() > c) {
+                numRecords = entry.getKey().getLength();
+            }
+        }
     }
 
     @Override
     public final Item getColumn(String role) {
-        final Variable variable = netcdfFile.findVariable(NetcdfFile.escapeName(role));
+        final Variable variable = variableMap.get(role);
         if (variable != null) {
             createColumn(variable);
         }
@@ -74,7 +101,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     @Override
     public final Item[] getColumns() {
         final ArrayList<Item> columnList = new ArrayList<Item>();
-        for (final Variable variable : netcdfFile.getVariables()) {
+        for (final Variable variable : variableMap.values()) {
             final Item column = createColumn(variable);
             columnList.add(column);
         }
@@ -87,10 +114,12 @@ abstract class NetcdfIOHandler implements IOHandler {
     }
 
     /**
-     * Closes NetCDF file.
+     * Closes the NetCDF file.
      */
     @Override
     public void close() {
+        numRecords = 0;
+        variableMap.clear();
         if (netcdfFile != null) {
             try {
                 netcdfFile.close();
@@ -99,6 +128,11 @@ abstract class NetcdfIOHandler implements IOHandler {
             }
         }
         datafile = null;
+    }
+
+    @Override
+    public final int getNumRecords() {
+        return numRecords;
     }
 
     @Override
@@ -112,6 +146,10 @@ abstract class NetcdfIOHandler implements IOHandler {
 
     public final NetcdfFile getNetcdfFile() {
         return netcdfFile;
+    }
+
+    public final Variable getVariable(String name) {
+        return variableMap.get(name);
     }
 
     private Item createColumn(final Variable variable) {

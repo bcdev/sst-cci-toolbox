@@ -40,7 +40,7 @@ class SeviriIOHandler extends MdIOHandler {
     protected int noOfColumns;
 
     SeviriIOHandler(String sensorName) {
-        super(sensorName, "n");
+        super(sensorName);
     }
 
     @Override

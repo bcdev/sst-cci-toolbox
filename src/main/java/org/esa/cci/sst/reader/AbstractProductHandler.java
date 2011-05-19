@@ -32,9 +32,9 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.tools.ToolException;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
@@ -108,9 +108,29 @@ abstract class AbstractProductHandler implements IOHandler {
 
     @Override
     public Array read(String role, ExtractDefinition extractDefinition) {
+        Assert.argument(role != null, "role == null");
+        Assert.argument(extractDefinition != null, "extractDefinition == null");
         Assert.state(product != null, "product == null");
-        // todo - implement
-        return null;
+
+        final RasterDataNode node;
+        if (product.containsBand(role)) {
+            node = product.getBand(role);
+        } else {
+            node = product.getTiePointGrid(role);
+        }
+        if (node == null) {
+            return null;
+        }
+
+        @SuppressWarnings({"ConstantConditions"})
+        final double lon = extractDefinition.getLon();
+        final double lat = extractDefinition.getLat();
+        final int[] shape = extractDefinition.getShape();
+
+        final PixelPos p = findPixelPos(lon, lat);
+        final Rectangle rectangle = createSubsceneRectangle(p, shape);
+
+        return readSubsceneData(node, shape, rectangle);
     }
 
     @Override
@@ -138,6 +158,7 @@ abstract class AbstractProductHandler implements IOHandler {
         return columnList.toArray(new Item[columnList.size()]);
     }
 
+    @Deprecated
     @Override
     public final void write(NetcdfFileWriteable targetFile,
                             Observation observation,
@@ -153,13 +174,13 @@ abstract class AbstractProductHandler implements IOHandler {
             node = product.getTiePointGrid(sourceVariableName);
         }
 
-        final PixelPos pixelPos = findPixelPos(refPoint);
+        final PixelPos pixelPos = findPixelPos((float) refPoint.getGeometry().getFirstPoint().x,
+                                               (float) refPoint.getGeometry().getFirstPoint().y);
         final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
         final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
         final int[] targetShape = targetVariable.getShape();
         final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
-        final DataType dataType = DataTypeUtils.getNetcdfDataType(node.getDataType());
-        final Array array = readSubsceneData(node, dataType, targetShape, rectangle);
+        final Array array = readSubsceneData(node, targetShape, rectangle);
         try {
             targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
         } catch (Exception e) {
@@ -238,12 +259,10 @@ abstract class AbstractProductHandler implements IOHandler {
         return builder.build();
     }
 
-    private PixelPos findPixelPos(PGgeometry referencePoint) throws IOException {
-        final float lon = (float) referencePoint.getGeometry().getFirstPoint().x;
-        final float lat = (float) referencePoint.getGeometry().getFirstPoint().y;
-        final GeoPos geoPos = new GeoPos(lat, lon);
+    private PixelPos findPixelPos(double lon, double lat) {
+        final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
         if (!geoPos.isValid()) {
-            throw new IOException("Geo-location of reference point is invalid.");
+            throw new ToolException("Geo-location of reference point is invalid.", ToolException.TOOL_ERROR);
         }
         final GeoCoding geoCoding = product.getGeoCoding();
         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
@@ -252,25 +271,22 @@ abstract class AbstractProductHandler implements IOHandler {
                                                         geoPos.getLon(),
                                                         geoPos.getLat(),
                                                         getProduct().getName());
-            throw new IOException(message);
+            throw new ToolException(message, ToolException.TOOL_ERROR);
         }
         return pixelPos;
     }
 
-    private static Rectangle createSubsceneRectangle(final PixelPos center, final int[] shape) {
+    private static Rectangle createSubsceneRectangle(final PixelPos p, final int[] shape) {
         final int w = shape[2];
         final int h = shape[1];
-        final int x = (int) Math.floor(center.getX()) - w / 2;
-        final int y = (int) Math.floor(center.getY()) - h / 2;
+        final int x = (int) Math.floor(p.getX()) - w / 2;
+        final int y = (int) Math.floor(p.getY()) - h / 2;
 
         return new Rectangle(x, y, w, h);
     }
 
-    private static Array readSubsceneData(final RasterDataNode node,
-                                          final DataType targetDataType,
-                                          final int[] targetShape,
-                                          final Rectangle rectangle) {
-        final Array targetArray = Array.factory(targetDataType, new int[]{1, targetShape[1], targetShape[2]});
+    private static Array readSubsceneData(final RasterDataNode node, final int[] shape, final Rectangle rectangle) {
+        final Array array = Array.factory(DataTypeUtils.getNetcdfDataType(node.getDataType()), shape);
 
         final MultiLevelImage sourceImage = node.getSourceImage();
         final int minX = sourceImage.getMinX();
@@ -285,34 +301,37 @@ abstract class AbstractProductHandler implements IOHandler {
         final Rectangle validRectangle = new Rectangle(x, y, w, h);
         final Raster raster = sourceImage.getData(validRectangle);
 
-        for (int i = rectangle.y, k = 0; i < rectangle.y + rectangle.height; i++) {
-            for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
-                final Number value;
-                if (i < minY || i > maxY || j < minX || j > maxX) {
-                    value = node.getNoDataValue();
-                } else {
-                    value = getSample(raster, j, i);
+        if (validRectangle.equals(rectangle)) {
+            raster.getDataElements(x, y, w, h, array.getStorage());
+        } else {
+            for (int i = rectangle.y, k = 0; i < rectangle.y + rectangle.height; i++) {
+                for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
+                    final Number value;
+                    if (i < minY || i > maxY || j < minX || j > maxX) {
+                        value = node.getNoDataValue();
+                    } else {
+                        value = getSample(raster, j, i);
+                    }
+                    array.setObject(k, value);
                 }
-                targetArray.setObject(k, value);
             }
         }
-        return targetArray;
+        return array;
     }
 
     private static Number getSample(Raster raster, int x, int y) {
         switch (raster.getTransferType()) {
-        case DataBuffer.TYPE_BYTE:
-        case DataBuffer.TYPE_SHORT:
-        case DataBuffer.TYPE_USHORT:
-        case DataBuffer.TYPE_INT:
-            return raster.getSample(x, y, 0);
-        case DataBuffer.TYPE_FLOAT:
-            return raster.getSampleFloat(x, y, 0);
-        case DataBuffer.TYPE_DOUBLE:
-            return raster.getSampleDouble(x, y, 0);
-        default:
-            throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+            case DataBuffer.TYPE_BYTE:
+            case DataBuffer.TYPE_SHORT:
+            case DataBuffer.TYPE_USHORT:
+            case DataBuffer.TYPE_INT:
+                return raster.getSample(x, y, 0);
+            case DataBuffer.TYPE_FLOAT:
+                return raster.getSampleFloat(x, y, 0);
+            case DataBuffer.TYPE_DOUBLE:
+                return raster.getSampleDouble(x, y, 0);
+            default:
+                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
-
 }

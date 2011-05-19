@@ -29,14 +29,12 @@ import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 import ucar.nc2.VariableIF;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -55,34 +53,25 @@ import java.util.Map;
  */
 abstract class MdIOHandler extends NetcdfIOHandler {
 
-    private final String recordDimensionName;
     private final Map<String, Array> data = new HashMap<String, Array>();
     private final Map<String, Integer> offsetMap = new HashMap<String, Integer>();
     private final Map<String, Integer> bufferMap = new HashMap<String, Integer>();
 
-    private int numRecords;
     private int sstFillValue;
     private int bufferStart;
     private int bufferFill;
 
-    protected MdIOHandler(String sensorName, String recordDimensionName) {
+    protected MdIOHandler(String sensorName) {
         super(sensorName);
-        this.recordDimensionName = recordDimensionName;
     }
 
     @Override
     public void init(DataFile datafile) throws IOException {
         super.init(datafile);
         // read number of records value
-        final NetcdfFile ncFile = getNetcdfFile();
-        final Dimension dimension = ncFile.findDimension(recordDimensionName);
-        if (dimension == null) {
-            throw new IOException(MessageFormat.format("Can''t find dimension ''{0}'' in file {1}", recordDimensionName,
-                                                       datafile.getPath()));
-        }
-        numRecords = dimension.getLength();
+        final NetcdfFile netcdfFile = getNetcdfFile();
         // read SST fill value
-        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(getSstVariableName()));
+        final Variable variable = netcdfFile.findVariable(NetcdfFile.escapeName(getSstVariableName()));
         if (variable != null) {
             final Attribute attribute = variable.findAttribute("_FillValue");
             if (attribute != null) {
@@ -91,16 +80,6 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         }
         bufferStart = 0;
         bufferFill = 0;
-    }
-
-    /**
-     * Number of records of file. initialised in init() when opening the NetCDF file.
-     *
-     * @return number of records in NetCDF file
-     */
-    @Override
-    public int getNumRecords() {
-        return numRecords;
     }
 
     @Override
@@ -112,11 +91,16 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     }
 
     @Override
-    public final Array read(String role, ExtractDefinition extractDefinition) {
-        // todo - implement
+    public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
+        final Variable variable = getVariable(role);
+        if (variable == null) {
+            return null;
+        }
+
         return null;
     }
 
+    @Deprecated
     @Override
     public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVarName,
                       String targetVarName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws

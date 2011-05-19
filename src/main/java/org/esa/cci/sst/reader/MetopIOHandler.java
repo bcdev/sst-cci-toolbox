@@ -47,7 +47,7 @@ class MetopIOHandler extends MdIOHandler {
     protected int colCount;
 
     MetopIOHandler(String sensorName) {
-        super(sensorName, "n");
+        super(sensorName);
     }
 
     @Override

@@ -36,7 +36,7 @@ import java.util.Date;
 class AtsrMdIOHandler extends MdIOHandler {
 
     AtsrMdIOHandler(String sensorName) {
-        super(sensorName, "match_up");
+        super(sensorName);
     }
 
     @Override
