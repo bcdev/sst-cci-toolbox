@@ -125,9 +125,9 @@ public class QueriesTest {
     @Test
     public void testGetObservationCount() throws ParseException {
         @SuppressWarnings({"unchecked"})
-        final int matchupCount = Queries.getObservationCount(pm);
+        final int observationCount = Queries.getObservationCount(pm);
 
-        assertEquals(16269, matchupCount);
+        assertEquals(16270, observationCount);
     }
 
     @Test
