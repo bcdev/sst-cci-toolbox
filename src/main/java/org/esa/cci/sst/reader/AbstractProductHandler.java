@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import com.bc.ceres.core.Assert;
 import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
@@ -59,7 +60,7 @@ abstract class AbstractProductHandler implements IOHandler {
     private final String sensorName;
     private final String[] formatNames;
 
-    private DataFile dataFile;
+    private DataFile datafile;
     private Product product;
 
     protected AbstractProductHandler(String sensorName, String... formatNames) {
@@ -68,21 +69,11 @@ abstract class AbstractProductHandler implements IOHandler {
     }
 
     @Override
-    public final void init(DataFile dataFile) throws IOException {
-        if (getProduct() != null) {
-            close();
-        }
-        this.product = readProduct(dataFile);
-        this.dataFile = dataFile;
-    }
+    public final void init(DataFile datafile) throws IOException {
+        Assert.state(product == null, "product != null");
 
-    protected Product readProduct(DataFile dataFile) throws IOException {
-        Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
-        if (product == null) {
-            throw new IOException(
-                    MessageFormat.format("Cannot read product file ''{0}''.", dataFile.getPath()));
-        }
-        return product;
+        this.product = readProduct(datafile);
+        this.datafile = datafile;
     }
 
     @Override
@@ -90,7 +81,7 @@ abstract class AbstractProductHandler implements IOHandler {
         if (product != null) {
             product.dispose();
         }
-        dataFile = null;
+        datafile = null;
         product = null;
     }
 
@@ -100,7 +91,7 @@ abstract class AbstractProductHandler implements IOHandler {
 
     @Override
     public final DataFile getDatafile() {
-        return dataFile;
+        return datafile;
     }
 
     public final String getSensorName() {
@@ -117,12 +108,14 @@ abstract class AbstractProductHandler implements IOHandler {
 
     @Override
     public Array read(ExtractDefinition extractDefinition) {
+        Assert.state(product != null, "product == null");
         // todo - implement
         return null;
     }
 
     @Override
     public Item getColumn(String role) {
+        Assert.state(product != null, "product == null");
         final RasterDataNode node = product.getRasterDataNode(role);
         if (node != null) {
             return createColumn(node);
@@ -132,6 +125,7 @@ abstract class AbstractProductHandler implements IOHandler {
 
     @Override
     public final Item[] getColumns() {
+        Assert.state(product != null, "product == null");
         final List<Item> columnList = new ArrayList<Item>();
         for (final RasterDataNode node : product.getTiePointGrids()) {
             final Item column = createColumn(node);
@@ -178,12 +172,32 @@ abstract class AbstractProductHandler implements IOHandler {
         throw new OperationNotSupportedException();
     }
 
+    protected Product readProduct(DataFile dataFile) throws IOException {
+        Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
+        if (product == null) {
+            throw new IOException(
+                    MessageFormat.format("Cannot read product file ''{0}''.", dataFile.getPath()));
+        }
+        return product;
+    }
+
+    protected final Date getCenterTimeAsDate() throws IOException {
+        final ProductData.UTC startTime = product.getStartTime();
+        if (startTime == null) {
+            throw new IOException("Unable to get start time for product '" + product.getName() + "'.");
+        }
+        final ProductData.UTC endTime = product.getEndTime();
+        if (endTime == null) {
+            return startTime.getAsDate();
+        }
+        final ProductData.UTC centerTime = new ProductData.UTC(0.5 * (startTime.getMJD() + endTime.getMJD()));
+        return centerTime.getAsDate();
+    }
+
     private Item createColumn(final RasterDataNode node) {
         final ColumnBuilder builder = new ColumnBuilder();
-        final String columnName = sensorName + "." + node.getName();
-        final DataType type = DataTypeUtils.getNetcdfDataType(node.getDataType());
-        builder.name(columnName);
-        builder.type(type);
+        builder.name(sensorName + "." + node.getName());
+        builder.type(DataTypeUtils.getNetcdfDataType(node.getDataType()));
         builder.unsigned(ProductData.isUIntType(node.getDataType()));
         builder.rank(3);
         builder.dimensions("record ny nx");
@@ -191,16 +205,6 @@ abstract class AbstractProductHandler implements IOHandler {
         if (unit != null && !unit.isEmpty()) {
             builder.unit(unit);
         }
-        if (node.isScalingApplied()) {
-            builder.addOffset(node.getScalingOffset());
-            builder.scaleFactor(node.getScalingFactor());
-        }
-        if (node.isNoDataValueUsed()) {
-            builder.fillValue(node.getNoDataValue());
-        }
-        builder.role(node.getName());
-        builder.sensor(dataFile.getSensor());
-
         if (node instanceof Band) {
             final Band band = (Band) node;
             final FlagCoding flagCoding = band.getFlagCoding();
@@ -221,21 +225,17 @@ abstract class AbstractProductHandler implements IOHandler {
                 builder.flagMeanings(meaningsStringBuilder.toString());
             }
         }
+        if (node.isScalingApplied()) {
+            builder.addOffset(node.getScalingOffset());
+            builder.scaleFactor(node.getScalingFactor());
+        }
+        if (node.isNoDataValueUsed()) {
+            builder.fillValue(node.getNoDataValue());
+        }
+        builder.role(node.getName());
+        builder.sensor(datafile.getSensor());
 
         return builder.build();
-    }
-
-    protected final Date getCenterTimeAsDate() throws IOException {
-        final ProductData.UTC startTime = getProduct().getStartTime();
-        if (startTime == null) {
-            throw new IOException("Unable to get start time for product '" + product.getName() + "'.");
-        }
-        final ProductData.UTC endTime = getProduct().getEndTime();
-        if (endTime == null) {
-            return startTime.getAsDate();
-        }
-        final ProductData.UTC centerTime = new ProductData.UTC(0.5 * (startTime.getMJD() + endTime.getMJD()));
-        return centerTime.getAsDate();
     }
 
     private PixelPos findPixelPos(PGgeometry referencePoint) throws IOException {
@@ -301,17 +301,17 @@ abstract class AbstractProductHandler implements IOHandler {
 
     private static Number getSample(Raster raster, int x, int y) {
         switch (raster.getTransferType()) {
-            case DataBuffer.TYPE_BYTE:
-            case DataBuffer.TYPE_SHORT:
-            case DataBuffer.TYPE_USHORT:
-            case DataBuffer.TYPE_INT:
-                return raster.getSample(x, y, 0);
-            case DataBuffer.TYPE_FLOAT:
-                return raster.getSampleFloat(x, y, 0);
-            case DataBuffer.TYPE_DOUBLE:
-                return raster.getSampleDouble(x, y, 0);
-            default:
-                throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
+        case DataBuffer.TYPE_BYTE:
+        case DataBuffer.TYPE_SHORT:
+        case DataBuffer.TYPE_USHORT:
+        case DataBuffer.TYPE_INT:
+            return raster.getSample(x, y, 0);
+        case DataBuffer.TYPE_FLOAT:
+            return raster.getSampleFloat(x, y, 0);
+        case DataBuffer.TYPE_DOUBLE:
+            return raster.getSampleDouble(x, y, 0);
+        default:
+            throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
 
