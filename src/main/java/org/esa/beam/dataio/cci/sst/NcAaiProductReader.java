@@ -16,6 +16,7 @@
 
 package org.esa.beam.dataio.cci.sst;
 
+import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
@@ -28,7 +29,6 @@ import org.esa.beam.jai.ResolutionLevel;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
-import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
 import java.awt.Rectangle;
@@ -54,13 +54,9 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
     protected void addBands(Product product) throws IOException {
         final List<Variable> variables = getNetcdfFile().getVariables();
         for (final Variable variable : variables) {
-            final int dataType = DataTypeUtils.getRasterDataType(variable);
-            final String variableName = variable.getName();
-            final Band band = product.addBand(variableName, dataType);
-            final Attribute fillValueAttribute = variable.findAttribute("_FillValue");
-            if (fillValueAttribute != null) {
-                band.setNoDataValue((Float) fillValueAttribute.getNumericValue());
-                band.setNoDataValueUsed(true);
+            if (variable.getDimensionsString().contains("ny nx")) {
+                final Band band = product.addBand(variable.getName(), DataTypeUtils.getRasterDataType(variable));
+                CfBandPart.readCfBandAttributes(variable, band);
             }
         }
     }
