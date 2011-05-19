@@ -1,0 +1,50 @@
+netcdf avhrr_md_200312 {
+dimensions:
+	match_up = 58948 ;
+	cs_length = 5 ;
+	as_length = 7 ;
+variables:
+	char insitu.callsign(match_up, cs_length) ;
+		insitu.callsign:long_name = "insitu callsign" ;
+	byte insitu.dataset(match_up) ;
+		insitu.dataset:long_name = "insitu data set " ;
+	float insitu.latitude(match_up) ;
+		insitu.latitude:long_name = "insitu latitude" ;
+		insitu.latitude:units = "degrees_north" ;
+	float insitu.longitude(match_up) ;
+		insitu.longitude:long_name = "insitu longitude" ;
+		insitu.longitude:units = "degrees_east" ;
+	int insitu.time(match_up) ;
+		insitu.time:long_name = "time of in situ measurement" ;
+		insitu.time:units = "seconds from 01/01/1981 00:00:00" ;
+	short insitu.sea_surface_temperature(match_up) ;
+		insitu.sea_surface_temperature:long_name = "in situ sea surface temperature" ;
+		insitu.sea_surface_temperature:units = "celcius" ;
+		insitu.sea_surface_temperature:_Fillvalue = -32768s ;
+		insitu.sea_surface_temperature:add_offset = 20.f ;
+		insitu.sea_surface_temperature:scale_factor = 0.001f ;
+	char avhrr.sensor(match_up, as_length) ;
+		avhrr.sensor:long_name = "name of avhrr sensor" ;
+	float avhrr.latitude(match_up) ;
+		avhrr.latitude:long_name = "avhrr latitude" ;
+		avhrr.latitude:units = "degrees_north" ;
+	float avhrr.longitude(match_up) ;
+		avhrr.longitude:long_name = "avhrr longitude" ;
+		avhrr.longitude:units = "degrees_east" ;
+	double avhrr.time(match_up) ;
+		avhrr.time:long_name = "time of avhrr sst" ;
+		avhrr.time:units = "seconds from 01/01/1981 00:00:00" ;
+	short avhrr.sea_surface_temperature(match_up) ;
+		avhrr.sea_surface_temperature:long_name = "avhrr sea surface temperature" ;
+		avhrr.sea_surface_temperature:units = "celcius" ;
+		avhrr.sea_surface_temperature:_Fillvalue = -32768s ;
+		avhrr.sea_surface_temperature:add_offset = 20.f ;
+		avhrr.sea_surface_temperature:scale_factor = 0.001f ;
+
+// global attributes:
+		:title = "AVHRR Pathfinder SST match-up records" ;
+		:institution = "University of Miami" ;
+		:contact = "Gary Corlett (gkc1@le.ac.uk)" ;
+		:creation_date = "Wed May 18 21:04:25 2011" ;
+		:number_of_matchups = 58948 ;
+}
