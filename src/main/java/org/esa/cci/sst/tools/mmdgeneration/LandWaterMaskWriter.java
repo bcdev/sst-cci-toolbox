@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.beam.watermask.operator.GeoRectangle;
 import org.esa.beam.watermask.operator.WatermaskClassifier;
 import org.esa.cci.sst.tools.BasicTool;
 import ucar.ma2.Array;
@@ -70,37 +69,41 @@ class LandWaterMaskWriter {
         classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50);
     }
 
+/*
+    lines below are commented out because code did not compile (rq-20110520)
+    todo - comment in again
+ */
     void writeLandWaterMask(int matchupIndex) throws IOException {
-        this.matchupIndex = matchupIndex;
-        for (int i = 0; i < sourceXDimensions.size(); i++) {
-            final Dimension sourceXDimension = sourceXDimensions.get(i);
-            final Dimension sourceYDimension = sourceYDimensions.get(i);
-            final Variable sourceLatitude = sourceLatitudes.get(i);
-            final Variable sourceLongitude = sourceLongitudes.get(i);
-            final String targetVariable = targetVariables[i];
-            for (int x = 0; x < sourceXDimension.getLength(); x++) {
-                for (int y = 0; y < sourceYDimension.getLength(); y++) {
-                    GeoRectangle geoRectangle = computeGeoRectangle(sourceLatitude, sourceLongitude, x, y);
-                    float value = tryAndGetValue(geoRectangle);
-                    if(value == -1.0f) {
-                        return;
-                    }
-                    writeValue(targetVariable, Array.factory(value), new int[]{matchupIndex, x, y});
-                }
-            }
-        }
+//        this.matchupIndex = matchupIndex;
+//        for (int i = 0; i < sourceXDimensions.size(); i++) {
+//            final Dimension sourceXDimension = sourceXDimensions.get(i);
+//            final Dimension sourceYDimension = sourceYDimensions.get(i);
+//            final Variable sourceLatitude = sourceLatitudes.get(i);
+//            final Variable sourceLongitude = sourceLongitudes.get(i);
+//            final String targetVariable = targetVariables[i];
+//            for (int x = 0; x < sourceXDimension.getLength(); x++) {
+//                for (int y = 0; y < sourceYDimension.getLength(); y++) {
+//                    GeoRectangle geoRectangle = computeGeoRectangle(sourceLatitude, sourceLongitude, x, y);
+//                    float value = tryAndGetValue(geoRectangle);
+//                    if(value == -1.0f) {
+//                        return;
+//                    }
+//                    writeValue(targetVariable, Array.factory(value), new int[]{matchupIndex, x, y});
+//                }
+//            }
+//        }
     }
 
-    private float tryAndGetValue(GeoRectangle geoRectangle) {
-        final float value;
-        try {
-            value = classifier.getWaterMaskFraction(geoRectangle, SUBSAMPLING_FACTOR);
-        } catch (IOException e) {
-            handle(e);
-            return -1.0f;
-        }
-        return value;
-    }
+//    private float tryAndGetValue(GeoRectangle geoRectangle) {
+//        final float value;
+//        try {
+//            value = classifier.getWaterMaskFraction(geoRectangle, SUBSAMPLING_FACTOR);
+//        } catch (IOException e) {
+//            handle(e);
+//            return -1.0f;
+//        }
+//        return value;
+//    }
 
     private void handle(Exception e) {
         final String message = MessageFormat.format(
@@ -109,20 +112,20 @@ class LandWaterMaskWriter {
         tool.getLogger().warning(message);
     }
 
-    private GeoRectangle computeGeoRectangle(Variable sourceLatitude, Variable sourceLongitude, int x, int y) throws IOException {
-        float startLat = readSingleFloat(sourceLatitude, x, y);
-        float startLon = readSingleFloat(sourceLongitude, x, y);
-        float endLat;
-        float endLon;
-        try {
-            endLat = readSingleFloat(sourceLatitude, x, y + 1);
-            endLon = readSingleFloat(sourceLongitude, x + 1, y);
-        } catch (IOException e) {
-            endLat = startLat;
-            endLon = startLon;
-        }
-        return new GeoRectangle(startLat, endLat, startLon, endLon);
-    }
+//    private GeoRectangle computeGeoRectangle(Variable sourceLatitude, Variable sourceLongitude, int x, int y) throws IOException {
+//        float startLat = readSingleFloat(sourceLatitude, x, y);
+//        float startLon = readSingleFloat(sourceLongitude, x, y);
+//        float endLat;
+//        float endLon;
+//        try {
+//            endLat = readSingleFloat(sourceLatitude, x, y + 1);
+//            endLon = readSingleFloat(sourceLongitude, x + 1, y);
+//        } catch (IOException e) {
+//            endLat = startLat;
+//            endLon = startLon;
+//        }
+//        return new GeoRectangle(startLat, endLat, startLon, endLon);
+//    }
 
     private void setTargetVariables() {
         final String variableNames = getProperty("mmd.watermask.target.variablename");
