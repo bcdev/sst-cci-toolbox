@@ -17,9 +17,12 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
+import org.esa.cci.sst.data.DataFile;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
 
 /**
  * Factory providing a static method for getting the correct io handler, according to given schema name.
@@ -29,8 +32,30 @@ import java.lang.reflect.InvocationTargetException;
 public class IOHandlerFactory {
 
     private static final String PACKAGE_NAME = IOHandlerFactory.class.getPackage().getName();
+    private static final String DEFAULT_READER_SPEC = "GunzipDecorator,ProductHandler";
 
     private IOHandlerFactory() {
+    }
+
+    /**
+     * Factory method for creating an {@link IOHandler}, which is initialized with the
+     * data file supplied as argument.
+     *
+     * @param datafile      The data file.
+     * @param configuration The tool configuration.
+     *
+     * @return a new {@link IOHandler} instance, which is initialized with the data file
+     *         supplied as argument.
+     *
+     * @throws IOException if the {@link IOHandler} could not be initialized.
+     */
+    public static IOHandler open(DataFile datafile, Properties configuration) throws IOException {
+        final String sensorName = datafile.getSensor().getName();
+        final String readerSpec = configuration.getProperty("mms.reader." + sensorName, DEFAULT_READER_SPEC);
+        final IOHandler reader = createHandler(readerSpec, sensorName);
+        reader.init(datafile);
+
+        return reader;
     }
 
     /**

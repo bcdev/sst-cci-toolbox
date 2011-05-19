@@ -23,7 +23,6 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.IOHandler;
@@ -148,7 +147,7 @@ public class MmdTool extends BasicTool {
     private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Coincidence coincidence) {
         try {
-            final IOHandler reader = getReader(coincidence.getObservation());
+            final IOHandler reader = getReader(coincidence.getObservation().getDatafile());
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
@@ -177,13 +176,10 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private IOHandler getReader(Observation observation) throws IOException {
-        final DataFile datafile = observation.getDatafile();
+    private IOHandler getReader(DataFile datafile) throws IOException {
         final String path = datafile.getPath();
         if (!readerCache.contains(path)) {
-            final IOHandler reader = IOHandlerFactory.createHandler("GunzipDecorator,ProductHandler",
-                                                                    observation.getSensor());
-            reader.init(datafile);
+            final IOHandler reader = IOHandlerFactory.open(datafile, getConfiguration());
             final IOHandler removedReader = readerCache.add(path, reader);
             if (removedReader != null) {
                 removedReader.close();
