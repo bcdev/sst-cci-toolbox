@@ -70,7 +70,6 @@ class AtsrMdIOHandler extends MdIOHandler {
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
-        observation.setClearSky(getShort("atsr.sea_surface_temperature.dual", recordNo) != getSstFillValue());
         return observation;
     }
 

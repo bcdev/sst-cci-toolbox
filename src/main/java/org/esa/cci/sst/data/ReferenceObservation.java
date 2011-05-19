@@ -33,7 +33,6 @@ import java.text.MessageFormat;
 public class ReferenceObservation extends RelatedObservation {
 
     private PGgeometry point;
-    private boolean clearSky;
     private String callsign;
     private byte dataset;
     private byte referenceFlag;
@@ -46,14 +45,6 @@ public class ReferenceObservation extends RelatedObservation {
 
     public void setPoint(PGgeometry point) {
         this.point = point;
-    }
-
-    public boolean isClearSky() {
-        return clearSky;
-    }
-
-    public void setClearSky(boolean clearSky) {
-        this.clearSky = clearSky;
     }
 
     public void setCallsign(String callsign) {
@@ -84,8 +75,8 @@ public class ReferenceObservation extends RelatedObservation {
     @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
-        return MessageFormat.format("ReferenceObservation{callsign={0}, point={1}, clearSky={2}, dataset={3}, referenceFlag={4}{5}",
-                                    getCallsign(), getPoint(), isClearSky(), getDataset(), getReferenceFlag(), '}');
+        return MessageFormat.format("ReferenceObservation{callsign={0}, point={1}, dataset={3}, referenceFlag={4}{5}",
+                                    getCallsign(), getPoint(), getDataset(), getReferenceFlag(), '}');
     }
 }
 

@@ -17,7 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
@@ -57,29 +56,11 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     private final Map<String, Integer> offsetMap = new HashMap<String, Integer>();
     private final Map<String, Integer> bufferMap = new HashMap<String, Integer>();
 
-    private int sstFillValue;
     private int bufferStart;
     private int bufferFill;
 
     protected MdIOHandler(String sensorName) {
         super(sensorName);
-    }
-
-    @Override
-    public void init(DataFile datafile) throws IOException {
-        super.init(datafile);
-        // read number of records value
-        final NetcdfFile netcdfFile = getNetcdfFile();
-        // read SST fill value
-        final Variable variable = netcdfFile.findVariable(NetcdfFile.escapeName(getSstVariableName()));
-        if (variable != null) {
-            final Attribute attribute = variable.findAttribute("_FillValue");
-            if (attribute != null) {
-                sstFillValue = attribute.getNumericValue().intValue();
-            }
-        }
-        bufferStart = 0;
-        bufferFill = 0;
     }
 
     @Override
@@ -443,10 +424,6 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         shape2[0] = 1;
         System.arraycopy(shape1, 0, shape2, 1, shape1.length);
         return slice.reshape(shape2);
-    }
-
-    protected int getSstFillValue() {
-        return sstFillValue;
     }
 
     /**

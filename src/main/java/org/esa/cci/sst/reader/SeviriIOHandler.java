@@ -97,7 +97,6 @@ class SeviriIOHandler extends MdIOHandler {
                 getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
-        observation.setClearSky(getShort(getSstVariableName(), recordNo, line, column) != getSstFillValue());
         return observation;
     }
 

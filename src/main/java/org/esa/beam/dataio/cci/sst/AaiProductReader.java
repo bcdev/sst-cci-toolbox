@@ -114,23 +114,13 @@ public class AaiProductReader extends AbstractProductReader {
     }
 
     private File getInputFile() {
-        File file;
-        if (getInput() instanceof String) {
-            file = new File((String) getInput());
-        } else if (getInput() instanceof File) {
-            file = (File) getInput();
-        } else {
-            throw new IllegalArgumentException(
-                    MessageFormat.format("Unsupported input source: {0}", getInput()));  /*I18N*/
-        }
-        return file;
+        return new File(getInput().toString());
     }
 
     static GeoCoding createGeoCoding(Dimension dimension) {
-        final AffineTransform transform;
         final double scaleX = 360.0 / dimension.getWidth();
         final double scaleY = 180.0 / dimension.getHeight();
-        transform = new AffineTransform();
+        final AffineTransform transform = new AffineTransform();
         transform.translate(-180.0, 90.0);
         transform.scale(scaleX, -scaleY);
 
@@ -218,7 +208,7 @@ public class AaiProductReader extends AbstractProductReader {
 
         private final SampleReader sampleReader;
 
-        public SingleTileOpImage(int dataType, int w, int h, SampleReader sampleReader) {
+        private SingleTileOpImage(int dataType, int w, int h, SampleReader sampleReader) {
             super(ImageManager.getDataBufferType(dataType),
                   w,
                   h,

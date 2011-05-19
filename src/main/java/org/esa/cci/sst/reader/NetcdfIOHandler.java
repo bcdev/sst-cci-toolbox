@@ -54,7 +54,7 @@ abstract class NetcdfIOHandler implements IOHandler {
      * Opens a NetCDF file. May be overridden to initialise additional
      * variables.
      *
-     * @param datafile The data file to be referenced in each observation created.
+     * @param datafile data file entry to be referenced in each observation created by reader
      *
      * @throws IOException if file access fails.
      */

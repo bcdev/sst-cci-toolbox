@@ -90,7 +90,6 @@ class MetopIOHandler extends MdIOHandler {
                 getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
-        observation.setClearSky(getShort(getSstVariableName(), recordNo, y, x) != getSstFillValue());
 
         return observation;
     }
