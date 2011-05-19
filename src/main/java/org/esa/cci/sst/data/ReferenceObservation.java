@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.data;
 
-import org.apache.openjpa.persistence.jdbc.Index;
 import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.postgis.PGgeometry;
 
@@ -34,7 +33,6 @@ import java.text.MessageFormat;
 public class ReferenceObservation extends RelatedObservation {
 
     private PGgeometry point;
-    private byte classification;
     private boolean clearSky;
     private String callsign;
     private byte dataset;
@@ -48,15 +46,6 @@ public class ReferenceObservation extends RelatedObservation {
 
     public void setPoint(PGgeometry point) {
         this.point = point;
-    }
-
-    @Index
-    public byte getClassification() {
-        return classification;
-    }
-
-    public void setClassification(byte classification) {
-        this.classification = classification;
     }
 
     public boolean isClearSky() {
@@ -95,8 +84,8 @@ public class ReferenceObservation extends RelatedObservation {
     @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
-        return MessageFormat.format("ReferenceObservation{callsign={0}, point={1}, classification={2}, clearSky={3}, dataset={4}, referenceFlag={5}{6}",
-                                    getCallsign(), getPoint(), getClassification(), isClearSky(), getDataset(), getReferenceFlag(), '}');
+        return MessageFormat.format("ReferenceObservation{callsign={0}, point={1}, clearSky={2}, dataset={3}, referenceFlag={4}{5}",
+                                    getCallsign(), getPoint(), isClearSky(), getDataset(), getReferenceFlag(), '}');
     }
 }
 
