@@ -124,7 +124,7 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
     @Override
     protected void setTime(Product product) {
         final String name = product.getName();
-        if (name.matches("aai_[0-9]{8}.+")) {
+        if (name.matches("aai_[0-9]{8}.*\\.nc")) {
             final String timeString = name.substring(4, 12);
             try {
                 final ProductData.UTC startTime = ProductData.UTC.parse(timeString, "yyyyMMdd");

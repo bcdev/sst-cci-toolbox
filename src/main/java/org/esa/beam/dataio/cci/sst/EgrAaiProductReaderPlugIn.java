@@ -35,7 +35,7 @@ public class EgrAaiProductReaderPlugIn implements ProductReaderPlugIn {
     @Override
     public DecodeQualification getDecodeQualification(Object input) {
         final File file = input instanceof File ? (File) input : new File(input.toString());
-        if (file.getName().matches("[0-9]{8}\\.egr")) {
+        if (file.getName().matches("[0-9]{8}.*\\.egr")) {
             return DecodeQualification.INTENDED;
         }
         return DecodeQualification.UNABLE;

@@ -35,7 +35,7 @@ public class NcAaiProductReaderPlugIn implements ProductReaderPlugIn {
     @Override
     public DecodeQualification getDecodeQualification(Object input) {
         final File file = new File(input.toString());
-        if (file.getName().matches("aai_[0-9]{8}\\.nc")) {
+        if (file.getName().matches("aai_[0-9]{8}.*\\.nc")) {
             return DecodeQualification.INTENDED;
         }
         return DecodeQualification.UNABLE;
