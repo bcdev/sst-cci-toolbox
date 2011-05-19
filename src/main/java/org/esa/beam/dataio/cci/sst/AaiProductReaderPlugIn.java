@@ -28,14 +28,15 @@ public class AaiProductReaderPlugIn implements ProductReaderPlugIn {
     public static final String FORMAT_NAME = "AAI-EGR";
 
     @Override
-    public AaiProductReader createReaderInstance() {
-        return new AaiProductReader(this);
+    public NcAaiProductReader createReaderInstance() {
+        return new NcAaiProductReader(this);
     }
 
     @Override
     public DecodeQualification getDecodeQualification(Object input) {
-        final File file = input instanceof File ? (File) input : new File(input.toString());
-        if (file.getName().endsWith(".egr")) {
+        final File file = new File(input.toString());
+        if (file.getName().endsWith(".nc") &&
+                file.getName().startsWith("aai_")) {
             return DecodeQualification.INTENDED;
         }
         return DecodeQualification.UNABLE;
@@ -48,7 +49,7 @@ public class AaiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String[] getDefaultFileExtensions() {
-        return new String[]{".egr"};
+        return new String[]{".nc"};
     }
 
     @Override

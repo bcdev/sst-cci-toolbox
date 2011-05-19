@@ -43,18 +43,13 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
         super(readerPlugIn);
     }
 
-    protected final NetcdfFile getNetcdfFile() {
+    protected NetcdfFile getNetcdfFile() {
         return netcdfFile;
     }
 
     @Override
     protected final Product readProductNodesImpl() throws IOException {
-        final File inputFile;
-        if (getInput() instanceof File) {
-            inputFile = (File) getInput();
-        } else {
-            inputFile = new File(getInput().toString());
-        }
+        final File inputFile = new File(getInput().toString());
         netcdfFile = NetcdfFile.open(inputFile.getPath());
         final Product product = createPlainProduct();
         product.setProductReader(this);
