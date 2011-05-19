@@ -72,11 +72,10 @@ public class ReferenceObservation extends RelatedObservation {
         this.referenceFlag = referenceFlag;
     }
 
-    @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
         return MessageFormat.format("ReferenceObservation{callsign={0}, point={1}, dataset={3}, referenceFlag={4}{5}",
-                                    getCallsign(), getPoint(), getDataset(), getReferenceFlag(), '}');
+                                    callsign, point, dataset, referenceFlag, '}');
     }
 }
 
