@@ -206,8 +206,14 @@ public class IngestionTool extends BasicTool {
             } catch (IOException e) {
                 throw new ToolException(e.getMessage(), e, ToolException.TOOL_IO_ERROR);
             } catch (Exception e) {
-                getLogger().warning(MessageFormat.format("Ignoring observation for record number {0}: {1}",
-                                                         recordNo, e.getMessage()));
+                StringBuilder messageBuilder = new StringBuilder();
+                messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",
+                                                           recordNo, e.getMessage()));
+                for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+                    messageBuilder.append(stackTraceElement.toString());
+                    messageBuilder.append('\n');
+                }
+                getLogger().warning(messageBuilder.toString());
             }
             if (recordNo % 65536 == 65535) {
                 persistenceManager.commit();
