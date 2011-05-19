@@ -62,8 +62,8 @@ public class ExtractDefinitionBuilder {
         final double lon = this.lon;
         final Date date = this.date;
 
-        final int[] origin = new int[this.shape.length];
-        origin[0] = recordNo;
+        final int[] start = new int[shape.length];
+        start[0] = recordNo;
 
         final int[] shape = this.shape;
         shape[0] = 1;
@@ -81,8 +81,8 @@ public class ExtractDefinitionBuilder {
             }
 
             @Override
-            public final int[] getOrigin() {
-                return origin;
+            public final int[] getStart() {
+                return start;
             }
 
             @Override

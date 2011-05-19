@@ -160,9 +160,9 @@ public class MmdTool extends BasicTool {
             final Converter converter = columnRegistry.getConverter(targetColumn, reader.getColumn(role));
             final Array targetArray = converter.apply(sourceArray);
 
-            final int[] targetOrigin = new int[variable.getRank()];
-            targetOrigin[0] = i;
-            mmd.write(variable.getNameEscaped(), targetOrigin, targetArray);
+            final int[] targetStart = new int[variable.getRank()];
+            targetStart[0] = i;
+            mmd.write(variable.getNameEscaped(), targetStart, targetArray);
         } catch (IOException e) {
             final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
