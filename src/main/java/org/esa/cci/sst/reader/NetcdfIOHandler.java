@@ -19,7 +19,6 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.util.IoUtil;
-import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -48,18 +47,18 @@ abstract class NetcdfIOHandler implements IOHandler {
      * Opens NetCDF file. May be overridden to initialise additional
      * variables.
      *
-     * @param datafile data file entry to be referenced in each observation created by reader
+     * @param dataFile data file entry to be referenced in each observation created by reader
      *
      * @throws java.io.IOException if file access fails
      */
     @Override
-    public void init(DataFile datafile) throws IOException {
+    public void init(DataFile dataFile) throws IOException {
         if (netcdfFile != null) {
             close();
         }
-        final String path = datafile.getPath();
+        final String path = dataFile.getPath();
         this.netcdfFile = NetcdfFile.open(path);
-        this.datafile = datafile;
+        this.datafile = dataFile;
     }
 
     @Override
