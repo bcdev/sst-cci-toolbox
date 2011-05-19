@@ -17,6 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
@@ -28,15 +29,15 @@ import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
-import ucar.nc2.VariableIF;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,13 +59,38 @@ abstract class MdIOHandler extends NetcdfIOHandler {
 
     private int bufferStart;
     private int bufferFill;
+    private int numRecords;
 
     protected MdIOHandler(String sensorName) {
         super(sensorName);
     }
 
     @Override
+    public void init(DataFile datafile) throws IOException {
+        super.init(datafile);
+
+        // find the record dimension based on the assumption that the record dimension is used by the most variables
+        final HashMap<Dimension, Integer> map = new HashMap<Dimension, Integer>();
+        for (final Variable variable : getVariables()) {
+            // the record dimension must be the first dimension of a variable
+            final Dimension d = variable.getDimension(0);
+            if (!map.containsKey(d)) {
+                map.put(d, 1);
+            } else {
+                map.put(d, map.get(d) + 1);
+            }
+        }
+        int c = 0;
+        for (final Map.Entry<Dimension, Integer> entry : map.entrySet()) {
+            if (entry.getValue() > c) {
+                numRecords = entry.getKey().getLength();
+            }
+        }
+    }
+
+    @Override
     public void close() {
+        numRecords = 0;
         bufferMap.clear();
         offsetMap.clear();
         data.clear();
@@ -77,6 +103,8 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         if (variable == null) {
             return null;
         }
+
+        // todo - implement
 
         return null;
     }
@@ -96,6 +124,11 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         }
+    }
+
+    @Override
+    public final int getNumRecords() {
+        return numRecords;
     }
 
     /**
@@ -230,7 +263,7 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         return getNumberScaled(variable, number);
     }
 
-    private static Number getNumberScaled(VariableIF variable, Number number) throws IOException {
+    private static Number getNumberScaled(Variable variable, Number number) throws IOException {
         Assert.notNull(variable);
         Assert.notNull(number);
         final double factor = getAttribute(variable, "scale_factor", 1.0).doubleValue();
@@ -239,7 +272,7 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         return factor * number.doubleValue() + offset;
     }
 
-    private static Number getAttribute(VariableIF variable, String attributeName, Number defaultValue) {
+    private static Number getAttribute(Variable variable, String attributeName, Number defaultValue) {
         final Attribute attribute = variable.findAttribute(attributeName);
         if (attribute == null) {
             return defaultValue;
@@ -341,7 +374,7 @@ abstract class MdIOHandler extends NetcdfIOHandler {
             bufferFill = bufferMap.get(varName);
         }
         if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
-            final Variable variable = getNetcdfFile().findVariable(NetcdfFile.escapeName(varName));
+            final Variable variable = getVariable(varName);
             final int[] shape = variable.getShape();
             final int[] start = new int[shape.length];
             start[0] = recordNo;
@@ -385,8 +418,8 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     int fetch(int recordNo) throws IOException {
         if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
             final int tileSize = 1024;  // TODO adjust default, read from property
-            final List<? extends Variable> variableList = getNetcdfFile().getVariables();
-            for (final Variable variable : variableList) {
+            final Collection<Variable> variables = getVariables();
+            for (final Variable variable : variables) {
                 final int[] shape = variable.getShape();
                 final int[] start = new int[shape.length];
                 start[0] = recordNo;
@@ -410,7 +443,7 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     }
 
     Array getData(String variableName, int recordNo) throws IOException {
-        final Variable variable = getNetcdfFile().findVariable(NetcdfFile.escapeName(variableName));
+        final Variable variable = getVariable(variableName);
         if (recordNo >= variable.getShape()[0]) {
             throw new IllegalArgumentException("recordNo >= variable.getShape()[0]");
         }
