@@ -1,3 +1,4 @@
-org.esa.beam.dataio.cci.sst.AaiProductReaderPlugIn
+org.esa.beam.dataio.cci.sst.EgrAaiProductReaderPlugIn
+org.esa.beam.dataio.cci.sst.NcAaiProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.OsiProductReaderPlugIn
 org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn
