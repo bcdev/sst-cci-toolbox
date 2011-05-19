@@ -1,0 +1,32 @@
+Ingestion of data for year 2010
+===============================
+
+Observation count by sensor:
+ 
+    sensor     |  count
+---------------+---------
+ amsre         |    5229
+ avhrr_orb.n16 |    5161
+ seviri        | 1889573
+ avhrr_orb.n19 |    5161
+ tmi           |    5687
+ history       |    1818
+ atsr_orb.3    |    5063
+ avhrr_orb.n15 |    5229
+ avhrr_orb.n18 |    5141
+ atsr_md       |  495414
+ metop         | 2892676
+ avhrr_orb.n17 |    5227
+ seaice        |     730
+ 
+ 
+Ingestion durations:
+
+      sensor      | ~ duration
+------------------+------------
+ aatsr            |       58 h
+ atsr-md          |      5 min
+ avhrr            |     42.5 h
+ metop + seviri   |        6 h
+ seaice + history |     35 min
+ tmi + amsre      |      6.5 h
