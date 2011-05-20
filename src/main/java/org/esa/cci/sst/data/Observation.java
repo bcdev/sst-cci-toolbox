@@ -77,7 +77,6 @@ public class Observation {
         this.recordNo = recordNo;
     }
 
-    @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
         return String.format("Observation(id=%d, sensor='%s\', datafile=%s, recordNo=%d)", getId(), getSensor(),
