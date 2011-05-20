@@ -69,22 +69,12 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     public void init(DataFile datafile) throws IOException {
         super.init(datafile);
 
-        // find the record dimension based on the assumption that the record dimension is used by the most variables
-        final HashMap<Dimension, Integer> map = new HashMap<Dimension, Integer>();
+        //noinspection LoopStatementThatDoesntLoop
         for (final Variable variable : getVariables()) {
-            // the record dimension must be the first dimension of a variable
+            // the record dimension is the first dimension of all record variables
             final Dimension d = variable.getDimension(0);
-            if (!map.containsKey(d)) {
-                map.put(d, 1);
-            } else {
-                map.put(d, map.get(d) + 1);
-            }
-        }
-        int c = 0;
-        for (final Map.Entry<Dimension, Integer> entry : map.entrySet()) {
-            if (entry.getValue() > c) {
-                numRecords = entry.getKey().getLength();
-            }
+            numRecords = d.getLength();
+            break;
         }
     }
 
