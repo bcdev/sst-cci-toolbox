@@ -92,7 +92,7 @@ public class PmwProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String getDescription(Locale locale) {
-        return "A BEAM reader for passive microwave sensor (AMSR-E and TMI) data products.";
+        return "Passive microwave (AMSR-E and TMI) data products.";
     }
 
     @Override
