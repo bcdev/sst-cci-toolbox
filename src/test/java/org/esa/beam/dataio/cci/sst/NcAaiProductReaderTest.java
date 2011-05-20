@@ -22,12 +22,15 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.junit.Before;
 import org.junit.Test;
+import ucar.ma2.Array;
+import ucar.ma2.IndexIterator;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
@@ -99,5 +102,31 @@ public class NcAaiProductReaderTest {
         assertEquals("Global Aerosol - Absorbing Aerosol Index", attributes[0].getData().getElemString());
         assertEquals("creation_date", attributes[3].getName());
         assertEquals("Tue May 17 10:32:00 2011", attributes[3].getData().getElemString());
+    }
+
+    @Test
+    public void testGetMinAndMaxValue() throws Exception {
+        final String testFile = getClass().getResource("aai_20101224.nc").getFile();
+        final NetcdfFile file = NetcdfFile.open(testFile);
+        float minValue = Float.MAX_VALUE;
+        float maxValue = Float.MIN_VALUE;
+        final Variable variable = file.findVariable(NetcdfFile.escapeName("aerosol_absorbing_index"));
+        final Array array = variable.read();
+        final IndexIterator iterator = array.getIndexIterator();
+        while(iterator.hasNext()) {
+            final float currentValue = iterator.getFloatNext();
+            if(currentValue == (Float) variable.findAttribute("_FillValue").getValue(0)) {
+                continue;
+            }
+            if(currentValue < minValue) {
+                minValue = currentValue;
+            }
+            if(currentValue > maxValue) {
+                maxValue = currentValue;
+            }
+        }
+
+        System.out.println(MessageFormat.format("minValue = {0}", minValue));
+        System.out.println(MessageFormat.format("maxValue = {0}", maxValue));
     }
 }

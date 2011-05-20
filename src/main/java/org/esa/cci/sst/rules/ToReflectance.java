@@ -23,7 +23,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
  *
  * @author Ralf Quast
  */
-final class ToReflectance extends AbstractRescaling {
+final class ToReflectance extends AbstractRescalingToShort {
 
     ToReflectance() {
         super(0.0001, 0.0);

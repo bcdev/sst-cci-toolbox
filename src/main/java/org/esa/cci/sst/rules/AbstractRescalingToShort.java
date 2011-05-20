@@ -26,12 +26,12 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-abstract class AbstractRescaling implements Rule {
+abstract class AbstractRescalingToShort implements Rule {
 
     private final double targetAddOffset;
     private final double targetScaleFactor;
 
-    protected AbstractRescaling(double targetScaleFactor, double targetAddOffset) {
+    protected AbstractRescalingToShort(double targetScaleFactor, double targetAddOffset) {
         this.targetScaleFactor = targetScaleFactor;
         this.targetAddOffset = targetAddOffset;
     }
@@ -73,6 +73,10 @@ abstract class AbstractRescaling implements Rule {
 
     protected abstract void configureTargetColumn(ColumnBuilder targetColumnBuilder);
 
+    protected short rescale(double d, double a, double b) {
+        return (short) Math.floor((a * d + (b - targetAddOffset)) / targetScaleFactor + 0.5);
+    }
+
     private void apply(Array sourceArray, Array targetArray,
                        Number sourceScaleFactor,
                        Number sourceAddOffset,
@@ -90,10 +94,6 @@ abstract class AbstractRescaling implements Rule {
 
     private boolean isInvalid(double d, Number fillValue) {
         return fillValue != null && d == fillValue.doubleValue() || Double.isNaN(d) || Double.isInfinite(d);
-    }
-
-    private short rescale(double d, double a, double b) {
-        return (short) Math.floor((a * d + (b - targetAddOffset)) / targetScaleFactor + 0.5);
     }
 
     private double getDouble(Number number, double defaultValue) {

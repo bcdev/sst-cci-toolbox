@@ -24,7 +24,7 @@ import org.esa.cci.sst.tools.Constants;
  *
  * @author Ralf Quast
  */
-final class ToSeaSurfaceTemperature extends AbstractRescaling {
+final class ToSeaSurfaceTemperature extends AbstractRescalingToShort {
 
     ToSeaSurfaceTemperature() {
         super(0.001, 293.15);
