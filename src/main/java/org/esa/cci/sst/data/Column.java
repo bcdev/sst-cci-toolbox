@@ -281,14 +281,4 @@ public class Column implements Item {
     public void setUnsigned(boolean unsigned) {
         this.unsigned = unsigned;
     }
-
-    @Override
-    public boolean equals(Object anObject) {
-        return this == anObject || anObject instanceof Item && this.getId() == ((Column) anObject).getId();
-    }
-
-    @Override
-    public int hashCode() {
-        return 31 * getId();
-    }
 }
