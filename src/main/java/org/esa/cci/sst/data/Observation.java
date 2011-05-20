@@ -80,8 +80,8 @@ public class Observation {
     @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
-        return String.format("Observation{id=%d, sensor='%s\', datafile=%s, recordNo=%d}", id, sensor, datafile,
-                             recordNo);
+        return String.format("Observation(id=%d, sensor='%s\', datafile=%s, recordNo=%d)", getId(), getSensor(),
+                             getDatafile(), getRecordNo());
     }
 }
 

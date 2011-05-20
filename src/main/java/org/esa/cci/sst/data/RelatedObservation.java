@@ -64,7 +64,7 @@ public class RelatedObservation extends Observation implements Timeable {
     @Override
     public String toString() {
         return String.format("RelatedObservation(%d,%s,%s,%s,%s,%d)", getId(), getSensor(),
-                             TimeUtil.formatCcsdsUtcFormat(time), location, getDatafile(), getRecordNo());
+                             TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo());
     }
 }
 

@@ -17,11 +17,11 @@
 package org.esa.cci.sst.data;
 
 import org.apache.openjpa.persistence.jdbc.Strategy;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import java.text.MessageFormat;
 
 /**
  * Data item that represents a single observation that refers
@@ -74,8 +74,9 @@ public class ReferenceObservation extends RelatedObservation {
 
     @Override
     public String toString() {
-        return MessageFormat.format("ReferenceObservation{callsign={0}, point={1}, dataset={3}, referenceFlag={4}{5}",
-                                    callsign, point, dataset, referenceFlag, '}');
+        return String.format("ReferenceObservation(%d,%s,%s,%s,%s,%d,%s,%s,%d,%d)", getId(), getSensor(),
+                             TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo(),
+                             getPoint(), getCallsign(), getDataset(), getReferenceFlag());
     }
 }
 
