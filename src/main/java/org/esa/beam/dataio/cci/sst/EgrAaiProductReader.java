@@ -121,8 +121,8 @@ public class EgrAaiProductReader extends AbstractProductReader {
         final double scaleX = 360.0 / dimension.getWidth();
         final double scaleY = 180.0 / dimension.getHeight();
         final AffineTransform transform = new AffineTransform();
-        transform.translate(-180.0, 90.0);
-        transform.scale(scaleX, -scaleY);
+        transform.translate(-180.0, -90.0);
+        transform.scale(scaleX, scaleY);
 
         try {
             return new CrsGeoCoding(DefaultGeographicCRS.WGS84, new Rectangle(dimension), transform);
@@ -180,7 +180,7 @@ public class EgrAaiProductReader extends AbstractProductReader {
             scanner.nextLine();
             scanner.useDelimiter("\\s*lat\\s=\\s.*\\n");
 
-            for (int i = ROW_COUNT; i-- > 0; ) { // flip vertically
+            for (int i = 0; i < ROW_COUNT; i++) {
                 final String line = scanner.next().replaceAll("\\s", "");
                 for (int k = 0, index = 0; k < COL_COUNT; k++, index += 3) {
                     try {

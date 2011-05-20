@@ -68,8 +68,8 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
         final double scaleX = 360.0 / width;
         final double scaleY = 180.0 / height;
         final AffineTransform transform = new AffineTransform();
-        transform.translate(-180.0, 90.0);
-        transform.scale(scaleX, -scaleY);
+        transform.translate(-180.0, -90.0);
+        transform.scale(scaleX, scaleY);
 
         try {
             final Rectangle imageBounds = new Rectangle(width, height);
