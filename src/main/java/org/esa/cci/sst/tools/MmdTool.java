@@ -23,7 +23,6 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.IOHandler;
 import org.esa.cci.sst.reader.IOHandlerFactory;
@@ -53,6 +52,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
 /**
  * Tool for writing the matchup data file.
@@ -120,18 +120,22 @@ public class MmdTool extends BasicTool {
     private void writeMmd(NetcdfFileWriteable mmd) {
         final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
                                                               getSourceStartTime(),
-                                                              getSourceStartTime());
+                                                              getSourceStopTime());
 
         for (int i = 0, matchupListSize = matchupList.size(); i < matchupListSize; i++) {
             final Matchup matchup = matchupList.get(i);
-            final ReferenceObservation refObs = matchup.getRefObs();
             final List<Coincidence> coincidenceList = matchup.getCoincidences();
+
+            if (getLogger().isLoggable(Level.INFO)) {
+                getLogger().info(MessageFormat.format(
+                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), i, matchupListSize));
+            }
 
             for (final Variable variable : mmd.getVariables()) {
                 final Item targetColumn = columnRegistry.getColumn(variable.getName());
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
 
-                if (!"Implicit".equals(sourceColumn.getName())) {
+                if ("Implicit".equals(sourceColumn.getName())) {
                     // todo - implement
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
@@ -156,13 +160,14 @@ public class MmdTool extends BasicTool {
                             .shape(variable.getShape())
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
+            if (sourceArray != null) {
+                final Converter converter = columnRegistry.getConverter(targetColumn, reader.getColumn(role));
+                final Array targetArray = converter.apply(sourceArray);
 
-            final Converter converter = columnRegistry.getConverter(targetColumn, reader.getColumn(role));
-            final Array targetArray = converter.apply(sourceArray);
-
-            final int[] targetStart = new int[variable.getRank()];
-            targetStart[0] = i;
-            mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+                final int[] targetStart = new int[variable.getRank()];
+                targetStart[0] = i;
+                mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+            }
         } catch (IOException e) {
             final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);

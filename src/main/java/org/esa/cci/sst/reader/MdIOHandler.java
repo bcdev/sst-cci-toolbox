@@ -89,13 +89,7 @@ abstract class MdIOHandler extends NetcdfIOHandler {
 
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
-        final Variable variable = getVariable(role);
-        if (variable == null) {
-            return null;
-        }
-
         // todo - implement
-
         return null;
     }
 

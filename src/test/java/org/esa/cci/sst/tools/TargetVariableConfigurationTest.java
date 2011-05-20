@@ -91,7 +91,7 @@ public class TargetVariableConfigurationTest {
 
         assertEquals("matchup metop.ny metop.nx", targetColumn.getDimensions());
         assertNotNull(registry.getConverter(targetColumn));
-        assertNotNull("metop.IR037", registry.getSourceColumn(targetColumn).getName());
+        assertEquals("metop.IR037", registry.getSourceColumn(targetColumn).getName());
     }
 
     private void registerSourceColumns(String fileName, String sensorName) throws IOException,
