@@ -97,7 +97,7 @@ class MmdGenerator {
         try {
             final List<Matchup> resultList = getMatchups();
             final int matchupCount = resultList.size();
-            final LandWaterMaskWriter landWaterMaskWriter = new LandWaterMaskWriter(file, tool);
+            final LandWaterMaskWriter landWaterMaskWriter = new LandWaterMaskWriter(file);
             for (int matchupIndex = 0; matchupIndex < matchupCount; matchupIndex++) {
                 final Matchup matchup = resultList.get(matchupIndex);
                 final ReferenceObservation referenceObservation = matchup.getRefObs();
@@ -119,7 +119,7 @@ class MmdGenerator {
                     writeObservation(file, observation, point, matchupIndex, referenceObservation.getTime());
                 }
                 if(targetVariables.contains("watermask")) {
-                    landWaterMaskWriter.writeLandWaterMask(matchupIndex);
+//                    landWaterMaskWriter.writeLandWaterMask(matchupIndex, landWaterMaskWriter.getProperty("mmd.watermask.target.variablename"));
                 }
                 persistenceManager.detach(coincidences);
             }
@@ -287,6 +287,7 @@ class MmdGenerator {
      * @param sensorName The sensor name to get the reader specification for.
      * @return The reader specification, or <code>null</code> if it doesn't exist.
      */
+    @Deprecated
     String getReaderSpec(String sensorName) {
         final Properties configuration = tool.getConfiguration();
         for(int i = 0; i < 100; i++) {
