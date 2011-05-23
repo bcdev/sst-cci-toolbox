@@ -51,11 +51,6 @@ class MetopIOHandler extends MdIOHandler {
     }
 
     @Override
-    public String getSstVariableName() {
-        return "sst";
-    }
-
-    @Override
     public void init(DataFile datafile) throws IOException {
         super.init(datafile);
         final NetcdfFile ncFile = getNetcdfFile();
