@@ -39,11 +39,6 @@ class AtsrMdIOHandler extends MdIOHandler {
         super(sensorName);
     }
 
-    @Override
-    public String getSstVariableName() {
-        return "atsr.sea_surface_temperature.dual";
-    }
-
     /**
      * Reads record and creates ReferenceObservation for (A)ATSR pixel contained in MD. This observation
      * may serve as reference observation in some matchup.
