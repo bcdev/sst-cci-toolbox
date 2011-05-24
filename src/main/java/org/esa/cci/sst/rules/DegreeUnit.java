@@ -16,15 +16,18 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
+
 /**
- * Replaces the second dimension with the 'insitu.time' dimension.
+ * Rule that replaces the unit of the column with "deg".
  *
  * @author Thomas Storm
  */
-class InsituDimension extends AbstractDimensionReplacement {
+class DegreeUnit extends AbstractAttributeModification {
 
     @Override
-    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "insitu.time");
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        targetColumnBuilder.unit("deg");
     }
 }

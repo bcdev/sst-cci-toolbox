@@ -17,14 +17,14 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Replaces the second dimension with the 'insitu.time' dimension.
+ * Replaces the second dimension of the column with "avhrr.nj".
  *
  * @author Thomas Storm
  */
-class InsituDimension extends AbstractDimensionReplacement {
+class AvhrrScanlineDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "insitu.time");
+        builder.replace(1, "avhrr.nj");
     }
 }

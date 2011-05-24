@@ -19,31 +19,32 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.ma2.IndexIterator;
 
 /**
- * Rule to convert a percentage value given in float to a short in [0..10000].
+ * Rule for converting type 'INT' into 'SHORT'.
  *
  * @author Thomas Storm
  */
-class FloatPercentToShort extends AbstractReformat<Float, Short> {
+class IntToShort extends AbstractReformat<Integer, Short> {
 
-    protected FloatPercentToShort() {
-        super(Float.class, Short.class);
-    }
-
-    @Override
-    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        // no additional configuration needed
+    protected IntToShort() {
+        super(Integer.class, Short.class);
     }
 
     @Override
     protected void apply(Array sourceArray, Array targetArray, Number scaleFactor, Number addOffset) {
-        final IndexIterator sourceIterator = sourceArray.getIndexIterator();
-        final IndexIterator targetIterator = targetArray.getIndexIterator();
+        IndexIterator sourceIterator = sourceArray.getIndexIterator();
+        IndexIterator targetIterator = targetArray.getIndexIterator();
         while(sourceIterator.hasNext() && targetIterator.hasNext()) {
-            final float currentValue = sourceIterator.getFloatNext();
-            targetIterator.setShortNext((short) (currentValue * 100));
+            short value = (short) sourceIterator.getIntNext();
+            targetIterator.setShortNext(value);
         }
+    }
+
+    @Override
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.SHORT);
     }
 }

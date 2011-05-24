@@ -16,15 +16,18 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
+
 /**
- * Replaces the second dimension with the 'insitu.time' dimension.
+ * Replaces the column's unit with "-".
  *
  * @author Thomas Storm
  */
-class InsituDimension extends AbstractDimensionReplacement {
+final class NoUnit extends AbstractAttributeModification {
 
     @Override
-    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "insitu.time");
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        targetColumnBuilder.unit("-");
     }
 }
