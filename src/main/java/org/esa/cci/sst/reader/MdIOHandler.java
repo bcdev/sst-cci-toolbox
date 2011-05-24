@@ -443,10 +443,4 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         return slice.reshape(shape2);
     }
 
-    /**
-     * Constant name of variable to read the sst value from
-     *
-     * @return variable name
-     */
-    abstract protected String getSstVariableName();
 }
