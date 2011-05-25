@@ -27,7 +27,7 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
-import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
+import org.esa.beam.framework.datamodel.PixelFinderGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
@@ -100,7 +100,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         final Band lonBand = product.getBand("lon");
         final Band latBand = product.getBand("lat");
         if (latBand != null && lonBand != null) {
-            final GeoCoding geoCoding = new PixelGeoCodingWithFallback(
+            final GeoCoding geoCoding = new PixelFinderGeoCoding(
                     new PixelGeoCoding(latBand, lonBand, latBand.getValidMaskExpression(), 5));
             product.setGeoCoding(geoCoding);
         }

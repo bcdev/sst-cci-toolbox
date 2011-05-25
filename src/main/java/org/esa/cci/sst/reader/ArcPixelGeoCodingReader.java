@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
+import org.esa.beam.framework.datamodel.PixelFinderGeoCoding;
 import org.esa.beam.util.PixelFinder;
 import org.esa.beam.util.SampleSource;
 import org.esa.beam.dataio.netcdf.ProfileReadContext;
@@ -48,7 +48,7 @@ public class ArcPixelGeoCodingReader extends CfGeocodingPart {
         final SampleSource latSource = new RasterDataNodeSampleSource(latBand);
         final SampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
         final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
-        final PixelGeoCodingWithFallback geoCoding = new PixelGeoCodingWithFallback(sourceGeoCoding, pixelFinder);
+        final PixelFinderGeoCoding geoCoding = new PixelFinderGeoCoding(sourceGeoCoding, pixelFinder);
         p.setGeoCoding(geoCoding);
     }
 }
