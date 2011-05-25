@@ -23,7 +23,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.esa.beam.util.SystemUtils;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.TimeUtil;
@@ -230,7 +229,6 @@ public abstract class BasicTool {
         if (initialised) {
             return;
         }
-        initializeBeam();
         if (isVerbose() || isDebug()) {
             getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
         }
@@ -247,21 +245,6 @@ public abstract class BasicTool {
             throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         initialised = true;
-    }
-
-    private void initializeBeam() {
-        SystemUtils.init3rdPartyLibs(BasicTool.class.getClassLoader());
-        final String mmsHome = System.getProperty("mms.home", ".");
-        final File mmsConfig = new File(mmsHome, "config");
-        final FileReader fileReader;
-        try {
-            fileReader = new FileReader(new File(mmsConfig, "beam.config"));
-            System.getProperties().load(fileReader);
-        } catch (FileNotFoundException e) {
-            throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
-        } catch (IOException e) {
-            throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_IO_ERROR);
-        }
     }
 
     protected String getCommandLineSyntax() {
