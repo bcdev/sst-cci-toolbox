@@ -16,8 +16,6 @@
 
 package org.esa.beam.util;
 
-import com.bc.ceres.core.Assert;
-
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.Collections;
@@ -62,12 +60,12 @@ public class QuadTreePixelFinder implements PixelFinder {
 
     @Override
     public boolean findPixel(double lon, double lat, Point2D pixelPos) {
-        final Result result = new Result();
+        final Result result = new Result(lon, lat);
         final int w = latSource.getWidth();
         final int h = latSource.getHeight();
         final boolean pixelFound = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
         if (pixelFound) {
-            pixelPos.setLocation(result.x + 0.5, result.y + 0.5);
+            result.get(pixelPos);
         }
         return pixelFound;
     }
@@ -77,109 +75,117 @@ public class QuadTreePixelFinder implements PixelFinder {
             return false;
         }
         @SuppressWarnings({"UnnecessaryLocalVariable"})
-        final int x1 = x;
-        final int x2 = x1 + w - 1;
+        final int x0 = x;
+        final int x1 = x0 + w - 1;
         @SuppressWarnings({"UnnecessaryLocalVariable"})
-        final int y1 = y;
-        final int y2 = y1 + h - 1;
+        final int y0 = y;
+        final int y1 = y0 + h - 1;
 
         if (w == 2 && h == 2) {
-            final double lat0 = getLat(x1, y1);
-            final double lat1 = getLat(x1, y2);
-            final double lat2 = getLat(x2, y1);
-            final double lat3 = getLat(x2, y2);
+            final double lat0 = getLat(x0, y0);
+            final double lat1 = getLat(x0, y1);
+            final double lat2 = getLat(x1, y0);
+            final double lat3 = getLat(x1, y1);
 
-            final double lon0 = getLon(x1, y1);
-            final double lon1 = getLon(x1, y2);
-            final double lon2 = getLon(x2, y1);
-            final double lon3 = getLon(x2, y2);
+            final double lon0 = getLon(x0, y0);
+            final double lon1 = getLon(x0, y1);
+            final double lon2 = getLon(x1, y0);
+            final double lon3 = getLon(x1, y1);
 
             final double f = Math.cos(lat * D2R);
-            boolean update = result.update(x1, y1, sqr(lat - lat0, f * Result.delta(lon, lon0)));
-            update |= result.update(x1, y2, sqr(lat - lat1, f * Result.delta(lon, lon1)));
-            update |= result.update(x2, y1, sqr(lat - lat2, f * Result.delta(lon, lon2)));
-            update |= result.update(x2, y2, sqr(lat - lat3, f * Result.delta(lon, lon3)));
-            return update;
-        }
 
-        Assert.state(w > 2 || h > 2, "w > 2 || h > 2 failed.");
+            final double d0 = sqr(lat - lat0, f * Result.delta(lon, lon0));
+            final double d1 = sqr(lat - lat1, f * Result.delta(lon, lon1));
+            final double d2 = sqr(lat - lat2, f * Result.delta(lon, lon2));
+            final double d3 = sqr(lat - lat3, f * Result.delta(lon, lon3));
 
-        final GeoRegion geoRegion = getGeoRegion(x1, x2, y1, y2);
-        if (geoRegion != null && geoRegion.isOutside(lat, lon, tolerance)) {
-            return false;
+            final boolean invalidated = result.invalidate(d0, d1, d2, d3);
+            if (invalidated) {
+                result.add(x0, y0, lon0, lat0, d0);
+                result.add(x0, y1, lon1, lat1, d1);
+                result.add(x1, y0, lon2, lat2, d2);
+                result.add(x1, y1, lon3, lat3, d3);
+            }
+            return invalidated;
         }
-        return quadTreeRecursion(depth, lat, lon, x1, y1, w, h, result);
+        if (w > 64 && h > 64) {
+            final GeoRegion geoRegion = getGeoRegion(x0, x1, y0, y1);
+            if (geoRegion != null && geoRegion.isOutside(lat, lon, tolerance)) {
+                return false;
+            }
+        }
+        return quadTreeRecursion(depth, lat, lon, x0, y0, w, h, result);
     }
 
-    private GeoRegion getGeoRegion(int x1, int x2, int y1, int y2) {
-        final Rectangle pixelRegion = new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+    private GeoRegion getGeoRegion(int x0, int x1, int y0, int y1) {
+        final Rectangle pixelRegion = new Rectangle(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
 
         synchronized (regionMap) {
             if (!regionMap.containsKey(pixelRegion)) {
-                double minLat = 90.0f;
-                double maxLat = -90.0f;
-                double minLon = 180.0f;
-                double maxLon = -180.0f;
+                double minLat = 90.0;
+                double maxLat = -90.0;
+                double minLon = 180.0;
+                double maxLon = -180.0;
 
-                double lastLon1 = getLon(x1, y1);
-                double lastLon2 = getLon(x2, y1);
-                for (int y = y1; y <= y2; y++) {
+                double lastLon0 = getLon(x0, y0);
+                double lastLon1 = getLon(x1, y0);
+                for (int y = y0; y <= y1; y++) {
+                    final double lat0 = getLat(x0, y);
                     final double lat1 = getLat(x1, y);
-                    final double lat2 = getLat(x2, y);
-                    final double lo1 = getLon(x1, y);
-                    final double lo2 = getLon(x2, y);
-                    if (Double.isNaN(lat1) || Double.isNaN(lat2) || Double.isNaN(lo1) || Double.isNaN(lo2)) {
-                        return returnNull(pixelRegion);
+                    final double lon0 = getLon(x0, y);
+                    final double lon1 = getLon(x1, y);
+                    if (Double.isNaN(lat0) || Double.isNaN(lat1) || Double.isNaN(lon0) || Double.isNaN(lon1)) {
+                        return putNull(pixelRegion);
                     }
+                    minLat = min(lat0, minLat);
                     minLat = min(lat1, minLat);
-                    minLat = min(lat2, minLat);
+                    maxLat = max(lat0, maxLat);
                     maxLat = max(lat1, maxLat);
-                    maxLat = max(lat2, maxLat);
-                    minLon = min(lo1, minLon);
-                    minLon = min(lo2, minLon);
-                    maxLon = max(lo1, maxLon);
-                    maxLon = max(lo2, maxLon);
-                    final boolean antimeridianIncluded = Math.abs(lastLon1 - lo1) > 180.0 || Math.abs(
-                            lastLon2 - lo2) > 180.0;
+                    minLon = min(lon0, minLon);
+                    minLon = min(lon1, minLon);
+                    maxLon = max(lon0, maxLon);
+                    maxLon = max(lon1, maxLon);
+                    final boolean antimeridianIncluded = Math.abs(lastLon0 - lon0) > 180.0 || Math.abs(
+                            lastLon1 - lon1) > 180.0;
                     if (antimeridianIncluded) {
-                        return returnNull(pixelRegion);
+                        return putNull(pixelRegion);
                     }
-                    final boolean meridianIncluded = (lastLon1 > 0 != lo1 > 0) || (lastLon2 > 0 != lo2 > 0);
+                    final boolean meridianIncluded = (lastLon0 > 0.0 != lon0 > 0.0) || (lastLon1 > 0.0 != lon1 > 0.0);
                     if (meridianIncluded) {
-                        return returnNull(pixelRegion);
+                        return putNull(pixelRegion);
                     }
-                    lastLon1 = lo1;
-                    lastLon2 = lo2;
+                    lastLon0 = lon0;
+                    lastLon1 = lon1;
                 }
-                lastLon1 = getLon(x1, y1);
-                lastLon2 = getLon(x1, y2);
-                for (int x = x1; x <= x2; x++) {
+                lastLon0 = getLon(x0, y0);
+                lastLon1 = getLon(x0, y1);
+                for (int x = x0; x <= x1; x++) {
+                    final double lat0 = getLat(x, y0);
                     final double lat1 = getLat(x, y1);
-                    final double lat2 = getLat(x, y2);
-                    final double lo1 = getLon(x, y1);
-                    final double lo2 = getLon(x, y2);
-                    if (Double.isNaN(lat1) || Double.isNaN(lat2) || Double.isNaN(lo1) || Double.isNaN(lo2)) {
-                        return returnNull(pixelRegion);
+                    final double lon0 = getLon(x, y0);
+                    final double lon1 = getLon(x, y1);
+                    if (Double.isNaN(lat0) || Double.isNaN(lat1) || Double.isNaN(lon0) || Double.isNaN(lon1)) {
+                        return putNull(pixelRegion);
                     }
+                    minLat = min(lat0, minLat);
                     minLat = min(lat1, minLat);
-                    minLat = min(lat2, minLat);
+                    maxLat = max(lat0, maxLat);
                     maxLat = max(lat1, maxLat);
-                    maxLat = max(lat2, maxLat);
-                    minLon = min(lo1, minLon);
-                    minLon = min(lo2, minLon);
-                    maxLon = max(lo1, maxLon);
-                    maxLon = max(lo2, maxLon);
-                    final boolean antimeridianIncluded = Math.abs(lastLon1 - lo1) > 180.0 || Math.abs(
-                            lastLon2 - lo2) > 180.0;
+                    minLon = min(lon0, minLon);
+                    minLon = min(lon1, minLon);
+                    maxLon = max(lon0, maxLon);
+                    maxLon = max(lon1, maxLon);
+                    final boolean antimeridianIncluded = Math.abs(lastLon0 - lon0) > 180.0 || Math.abs(
+                            lastLon1 - lon1) > 180.0;
                     if (antimeridianIncluded) {
-                        return returnNull(pixelRegion);
+                        return putNull(pixelRegion);
                     }
-                    final boolean meridianIncluded = (lastLon1 > 0 != lo1 > 0) || (lastLon2 > 0 != lo2 > 0);
+                    final boolean meridianIncluded = (lastLon0 > 0.0 != lon0 > 0.0) || (lastLon1 > 0.0 != lon1 > 0.0);
                     if (meridianIncluded) {
-                        return returnNull(pixelRegion);
+                        return putNull(pixelRegion);
                     }
-                    lastLon1 = lo1;
-                    lastLon2 = lo2;
+                    lastLon0 = lon0;
+                    lastLon1 = lon1;
                 }
                 regionMap.put(pixelRegion, new GeoRegion(minLat, maxLat, minLon, maxLon));
             }
@@ -188,7 +194,7 @@ public class QuadTreePixelFinder implements PixelFinder {
         }
     }
 
-    private GeoRegion returnNull(Rectangle pixelRegion) {
+    private GeoRegion putNull(Rectangle pixelRegion) {
         regionMap.put(pixelRegion, null);
         return null;
     }
@@ -241,36 +247,13 @@ public class QuadTreePixelFinder implements PixelFinder {
         return latSource.getSample(x, y);
     }
 
-    private static class Result {
-
-        public static final double INVALID = Double.MAX_VALUE;
-
-        private int x;
-        private int y;
-        private double delta = INVALID;
-
-        private boolean update(int x, int y, double delta) {
-            final boolean doUpdate = delta < this.delta;
-            if (doUpdate) {
-                this.x = x;
-                this.y = y;
-                this.delta = delta;
-            }
-            return doUpdate;
-        }
-
-        private static double delta(double lon, double lon0) {
-            final double e = Math.abs(lon - lon0);
-            return e < 180.0 ? e : 360.0 - e;
-        }
-    }
 
     private static class GeoRegion {
 
-        final double minLat;
-        final double maxLat;
-        final double minLon;
-        final double maxLon;
+        private final double minLat;
+        private final double maxLat;
+        private final double minLon;
+        private final double maxLon;
 
         private GeoRegion(double minLat, double maxLat, double minLon, double maxLon) {
             this.minLat = minLat;
