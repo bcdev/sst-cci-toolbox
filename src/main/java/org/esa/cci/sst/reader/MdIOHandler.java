@@ -16,12 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.tools.ToolException;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
@@ -35,7 +31,6 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
-import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
@@ -371,4 +366,11 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         }
         return attribute.getNumericValue();
     }
+
+    /**
+     * Constant name of variable to read the sst value from
+     *
+     * @return variable name
+     */
+    abstract protected String getSstVariableName();
 }

@@ -34,8 +34,7 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class TargetVariableConfigurationTest {
 
@@ -54,6 +53,7 @@ public class TargetVariableConfigurationTest {
         registerSourceColumns("atsr.1.nc", "atsr1");
         registerSourceColumns("atsr.2.nc", "atsr2");
         registerSourceColumns("atsr.3.nc", "atsr3");
+        registerSourceColumns("aai.nc", "aai");
     }
 
     @After
@@ -78,10 +78,10 @@ public class TargetVariableConfigurationTest {
         }
 
         assertNotNull(nameList);
-        assertEquals(100, nameList.size());
+        assertEquals(117, nameList.size());
 
         assertEquals("matchup.id", nameList.get(0));
-        assertEquals("tmi.matchup_line", nameList.get(nameList.size() - 1));
+        assertEquals("insitu.sea_surface_temperature", nameList.get(nameList.size() - 1));
 
         testMetopColumn();
     }
