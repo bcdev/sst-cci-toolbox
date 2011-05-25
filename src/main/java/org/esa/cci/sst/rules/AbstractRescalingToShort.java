@@ -56,7 +56,7 @@ abstract class AbstractRescalingToShort implements Rule {
                                            getDouble(sourceColumn.getScaleFactor(), 1.0),
                                            getDouble(sourceColumn.getAddOffset(), 0.0)));
         }
-
+        configureTargetColumn(columnBuilder);
         return columnBuilder.build();
     }
 
@@ -81,7 +81,7 @@ abstract class AbstractRescalingToShort implements Rule {
                        Number sourceScaleFactor,
                        Number sourceAddOffset,
                        Number sourceFillValue) {
-        final double a = getDouble(sourceScaleFactor, 0.0);
+        final double a = getDouble(sourceScaleFactor, 1.0);
         final double b = getDouble(sourceAddOffset, 0.0);
         for (int i = 0; i < sourceArray.getSize(); i++) {
             final double number = sourceArray.getDouble(i);
