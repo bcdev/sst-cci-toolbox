@@ -64,6 +64,11 @@ abstract class AbstractProductHandler implements IOHandler {
     private DataFile datafile;
     private Product product;
 
+    static {
+        System.setProperty("beam.pixelGeoCoding.useTiling", "true");
+        System.setProperty("beam.pixelGeoCoding.fractionAccuracy", "true");
+    }
+
     protected AbstractProductHandler(String sensorName, String... formatNames) {
         this.sensorName = sensorName;
         this.formatNames = formatNames;
