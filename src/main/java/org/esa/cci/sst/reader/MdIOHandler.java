@@ -366,11 +366,4 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         }
         return attribute.getNumericValue();
     }
-
-    /**
-     * Constant name of variable to read the sst value from
-     *
-     * @return variable name
-     */
-    abstract protected String getSstVariableName();
 }
