@@ -21,33 +21,35 @@ import org.esa.beam.util.QuadTreePixelFinder;
 import org.esa.beam.util.RasterDataNodeSampleSource;
 
 /**
- * A workaround for BEAM-1240.
+ * A geo-coding working around BEAM-1240 and providing sub-pixel precision.
  *
  * @author Ralf Quast
  */
-public class PixelGeoCodingWithFallback extends ForwardingGeoCoding {
+public class PixelFinderGeoCoding extends ForwardingGeoCoding {
 
     private final PixelFinder pixelFinder;
 
-    public PixelGeoCodingWithFallback(PixelGeoCoding pixelGeoCoding) {
+    public PixelFinderGeoCoding(PixelGeoCoding pixelGeoCoding) {
         super(pixelGeoCoding);
         this.pixelFinder = new QuadTreePixelFinder(
                 new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand()),
                 new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand()));
     }
 
-    public PixelGeoCodingWithFallback(PixelGeoCoding pixelGeoCoding, PixelFinder pixelFinder) {
+    public PixelFinderGeoCoding(PixelGeoCoding pixelGeoCoding, PixelFinder pixelFinder) {
         super(pixelGeoCoding);
         this.pixelFinder = pixelFinder;
     }
 
     @Override
-    public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
-        super.getPixelPos(geoPos, pixelPos);
+    public final PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
+        if (pixelPos == null) {
+            pixelPos = new PixelPos();
+        }
         if (geoPos.isValid()) {
-            if (!pixelPos.isValid()) {
-                pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
-            }
+            pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
+        } else {
+            pixelPos.setInvalid();
         }
         return pixelPos;
     }
