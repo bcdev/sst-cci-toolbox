@@ -29,7 +29,8 @@ public class ToArc3CloudMask extends AbstractRescalingToShort {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
-        targetColumnBuilder.longName("Probability of clear-sky");
         targetColumnBuilder.fillValue(-999);
+        targetColumnBuilder.validMin(0);
+        targetColumnBuilder.validMax(100);
     }
 }

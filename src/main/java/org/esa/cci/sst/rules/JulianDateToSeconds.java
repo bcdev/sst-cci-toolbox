@@ -29,11 +29,9 @@ final class JulianDateToSeconds implements Rule {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
-        Assert.type(DataType.DOUBLE, sourceColumn);
-        Assert.unit("Julian Date", sourceColumn);
-
         final ColumnBuilder builder = new ColumnBuilder(sourceColumn);
         builder.unit(Constants.UNIT_TIME);
+        builder.type(DataType.INT);
         final Number sourceFillValue = sourceColumn.getFillValue();
         if (sourceFillValue != null) {
             builder.fillValue((sourceFillValue.doubleValue() - 2443509.5) * 86400.0);

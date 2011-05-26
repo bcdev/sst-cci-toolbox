@@ -28,6 +28,6 @@ final class NoUnit extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        targetColumnBuilder.unit("-");
+        targetColumnBuilder.unit(null);
     }
 }

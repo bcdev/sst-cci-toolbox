@@ -16,18 +16,15 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.ColumnBuilder;
-
 /**
+ * Replaces the column's second dimension with "atsr.nj".
+ *
  * @author Thomas Storm
  */
-public class ToSaharanDustIndex extends AbstractRescalingToShort {
-
-    protected ToSaharanDustIndex() {
-        super(1.0, 0.0);
-    }
+public class AtsrYDimension extends AbstractDimensionReplacement {
 
     @Override
-    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
+    protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
+        builder.replace(1, "atsr.nj");
     }
 }
