@@ -50,9 +50,9 @@ class ProductHandler extends AbstractProductHandler {
               EnvisatConstants.ENVISAT_FORMAT_NAME,
               AtsrConstants.ATSR_FORMAT_NAME,
               HdfOsiProductReaderPlugIn.FORMAT_NAME,
+              NcOsiProductReaderPlugIn.FORMAT_NAME,
               PmwProductReaderPlugIn.FORMAT_NAME,
-              AvhrrReaderPlugIn.FORMAT_NAME,
-              NcOsiProductReaderPlugIn.FORMAT_NAME);
+              AvhrrReaderPlugIn.FORMAT_NAME);
         this.bc = new BoundaryCalculator();
     }
 
