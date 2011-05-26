@@ -95,7 +95,7 @@ public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String getDescription(Locale locale) {
-        return "A BEAM reader for Ocean & Sea Ice Science Application Facility (OSI SAF) data products.";
+        return "Ocean & Sea Ice Science Application Facility (OSI SAF) data products.";
     }
 
     @Override
