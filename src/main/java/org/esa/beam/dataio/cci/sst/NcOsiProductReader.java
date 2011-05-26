@@ -32,6 +32,7 @@ import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -48,7 +49,7 @@ import java.io.IOException;
  */
 public class NcOsiProductReader extends NetcdfProductReaderTemplate {
 
-    private static final double M = 1000.0;
+    private static final double KM = 1000.0;
 
     protected NcOsiProductReader(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
@@ -75,10 +76,10 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
             final Array y = getNetcdfFile().findVariable("yc").read();
             final Array lat = getNetcdfFile().findVariable("lat").read(new int[]{w / 2, h / 2}, new int[]{1, 1});
 
-            final double easting = x.getDouble(0) * M;
-            final double northing = y.getDouble(0) * M;
-            final double sizeX = (x.getDouble(w - 1) * M - easting) / (w - 1);
-            final double sizeY = (northing - y.getDouble(h - 1) * M) / (h - 1);
+            final double easting = x.getDouble(0) * KM;
+            final double northing = y.getDouble(0) * KM;
+            final double sizeX = (x.getDouble(w - 1) * KM - easting) / (w - 1);
+            final double sizeY = (northing - y.getDouble(h - 1) * KM) / (h - 1);
 
             final String code;
             if (lat.getDouble(0) > 0.0) {
@@ -86,7 +87,8 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
             } else {
                 code = "EPSG:3412";
             }
-            final GeoCoding gc = new CrsGeoCoding(CRS.decode(code), w, h, easting, northing, sizeX, sizeY, 0.5, 0.5);
+            final CoordinateReferenceSystem crs = CRS.decode(code);
+            final GeoCoding gc = new CrsGeoCoding(crs, w, h, easting, northing, sizeX, sizeY, 0.5, 0.5);
             product.setGeoCoding(gc);
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
