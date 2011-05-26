@@ -56,9 +56,7 @@ class AtsrMdIOHandler extends MdIOHandler {
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setCallsign(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
-//        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
-        // todo - ts 19May2011 - make configurable
-        observation.setReferenceFlag((byte) 4);
+        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
         observation.setSensor(getDatafile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);

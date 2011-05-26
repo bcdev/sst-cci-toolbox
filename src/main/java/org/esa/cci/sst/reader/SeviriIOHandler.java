@@ -69,7 +69,17 @@ class SeviriIOHandler extends MdIOHandler {
 
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setCallsign(getString("msr_id", recordNo));
-        observation.setDataset(getByte("msr_type", recordNo));
+        final byte dataset = getByte("msr_type", recordNo);
+        switch (dataset) {
+            case 1:
+                observation.setDataset((byte) 2);
+                break;
+            case 2:
+                observation.setDataset((byte) 1);
+                break;
+            default:
+                observation.setDataset(dataset);
+        }
         observation.setReferenceFlag((byte) 4);
         observation.setSensor(getSensorName());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{
