@@ -19,21 +19,34 @@ package org.esa.beam.util;
 import java.awt.geom.Point2D;
 
 /**
- * An algorithm for finding the pixel position that corresponds to a given geo-location.
+ * An algorithm for finding the pixel position that corresponds to a given geo-location
+ * and vice versa.
  *
  * @author Ralf Quast
  */
 public interface PixelFinder {
 
     /**
-     * Finds the pixel position that corresponds to a given (lon, lat) geo-location.
+     * Finds the (lon, lat) geo-location that corresponds to a given (x, y) pixel position.
      *
-     * @param lon      The longitude [-180.0, 180.0].
-     * @param lat      The latitude [-90.0, 90.0].
-     * @param pixelPos The pixel position. On return contains the pixel position found. Is
-     *                 not modified, when the pixel position was not found.
+     * @param x The pixel x position.
+     * @param y The pixel y position.
+     * @param g The geo-location. On return contains the geo-location position found. Is
+     *          not modified, when the geo-location was not found.
+     *
+     * @return {@code true} if the geo-location was found, {@code false} otherwise.
+     */
+    public boolean findLocation(double x, double y, Point2D g);
+
+    /**
+     * Finds the (x, y) pixel position that corresponds to a given (lon, lat) geo-location.
+     *
+     * @param lon The longitude [-180.0, 180.0].
+     * @param lat The latitude [-90.0, 90.0].
+     * @param p   The pixel position. On return contains the pixel position found. Is
+     *            not modified, when the pixel position was not found.
      *
      * @return {@code true} if the pixel position was found, {@code false} otherwise.
      */
-    boolean findPixel(double lon, double lat, Point2D pixelPos);
+    boolean findPixel(double lon, double lat, Point2D p);
 }

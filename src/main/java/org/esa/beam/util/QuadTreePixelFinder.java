@@ -16,6 +16,8 @@
 
 package org.esa.beam.util;
 
+import org.esa.beam.util.math.MathUtils;
+
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.Collections;
@@ -24,8 +26,28 @@ import java.util.Map;
 
 /**
  * A {@link PixelFinder} implementation using a quad-tree algorithm.
+ * <p/>
+ * A better implementation of the find pixel method could be something like:
+ * <ol>
+ * <li>Create a coverage of the full scene by means of largely overlapping
+ * image tiles (e.g. tile size of 100 pixels squared with an overlap of 25 pixels)</li>
+ * <li>For each tile create a rational function model of the (lon, lat) to (x, y)
+ * transformation, rotating to the (lon, lat) of the tile center</li>
+ * <li>Refine the accuracy of the selected rational function model until the
+ * accuracy goal (i.e. a certain RMSE) is reached</li>
+ * <li>Select the tile T in {T1, T2, ...} where the (x, y) result is nearest
+ * to (0, 0)</li>
+ * <li>Use the three closest pixels to compute the final (x, y)</li>
+ * <li>Keep all rational function approximations in a map and reuse them for
+ * subsequent calls.</li>
+ * </ol>
+ * <p/>
+ * The advantage of this algorithm is that it obviously avoids problems related
+ * to the antimeridian and poles included in the scene.
  *
+ * @author Martin Boettcher
  * @author Ralf Quast
+ * @author Thomas Storm
  */
 public class QuadTreePixelFinder implements PixelFinder {
 
@@ -58,16 +80,53 @@ public class QuadTreePixelFinder implements PixelFinder {
         this.tolerance = 0.045;
     }
 
+
     @Override
-    public boolean findPixel(double lon, double lat, Point2D pixelPos) {
-        final Result result = new Result(lon, lat);
+    public boolean findLocation(double x, double y, Point2D g) {
+        final int w = lonSource.getWidth();
+        final int h = lonSource.getHeight();
+
+        int x0 = (int) Math.floor(x);
+        int y0 = (int) Math.floor(y);
+
+        if (x0 >= 0 && x0 < w && y0 >= 0 && y0 < h) {
+            if (x0 > 0 && x - x0 < 0.5 || x0 == w - 1) {
+                x0 -= 1;
+            }
+            if (y0 > 0 && y - y0 < 0.5 || y0 == h - 1) {
+                y0 -= 1;
+            }
+            final int x1 = x0 + 1;
+            final int y1 = y0 + 1;
+            if (x1 < w && y1 < h) {
+                final double wx = x - (x0 + 0.5);
+                final double wy = y - (y0 + 0.5);
+                final double lon = interpolate(x0, y0, wx, wy, lonSource);
+                final double lat = interpolate(x0, y0, wx, wy, latSource);
+                g.setLocation(lon, lat);
+            } else {
+                final double lon = getLon(x0, y0);
+                final double lat = getLat(x0, y0);
+                g.setLocation(lon, lat);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean findPixel(double lon, double lat, Point2D p) {
         final int w = latSource.getWidth();
         final int h = latSource.getHeight();
-        final boolean pixelFound = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
-        if (pixelFound) {
-            result.get(pixelPos);
+        final Result result = new Result(lon, lat);
+
+        final boolean successful = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
+        if (successful) {
+            result.get(p);
         }
-        return pixelFound;
+
+        return successful;
     }
 
     private boolean quadTreeSearch(int depth, double lat, double lon, int x, int y, int w, int h, Result result) {
@@ -194,11 +253,6 @@ public class QuadTreePixelFinder implements PixelFinder {
         }
     }
 
-    private GeoRegion putNull(Rectangle pixelRegion) {
-        regionMap.put(pixelRegion, null);
-        return null;
-    }
-
     private boolean quadTreeRecursion(int depth, double lat, double lon, int i, int j, int w, int h, Result result) {
         int w2 = w >> 1;
         int h2 = h >> 1;
@@ -247,6 +301,21 @@ public class QuadTreePixelFinder implements PixelFinder {
         return latSource.getSample(x, y);
     }
 
+    private double interpolate(int x0, int y0, double wx, double wy, SampleSource sampleSource) {
+        final int x1 = x0 + 1;
+        final int y1 = y0 + 1;
+        final double d00 = sampleSource.getSample(x0, y0);
+        final double d10 = sampleSource.getSample(x1, y0);
+        final double d01 = sampleSource.getSample(x0, y1);
+        final double d11 = sampleSource.getSample(x1, y1);
+
+        return MathUtils.interpolate2D(wx, wy, d00, d10, d01, d11);
+    }
+
+    private GeoRegion putNull(Rectangle pixelRegion) {
+        regionMap.put(pixelRegion, null);
+        return null;
+    }
 
     private static class GeoRegion {
 

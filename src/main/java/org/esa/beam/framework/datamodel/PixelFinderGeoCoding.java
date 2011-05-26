@@ -20,6 +20,8 @@ import org.esa.beam.util.PixelFinder;
 import org.esa.beam.util.QuadTreePixelFinder;
 import org.esa.beam.util.RasterDataNodeSampleSource;
 
+import java.awt.geom.Point2D;
+
 /**
  * A geo-coding working around BEAM-1240 and providing sub-pixel precision.
  *
@@ -42,6 +44,19 @@ public class PixelFinderGeoCoding extends ForwardingGeoCoding {
     }
 
     @Override
+    public final GeoPos getGeoPos(PixelPos pixelPos, GeoPos geoPos) {
+        if (geoPos == null) {
+            geoPos = new GeoPos();
+        }
+        if (pixelPos.isValid()) {
+            pixelFinder.findLocation(pixelPos.getX(), pixelPos.getY(), new GeoPoint(geoPos));
+        } else {
+            geoPos.setInvalid();
+        }
+        return geoPos;
+    }
+
+    @Override
     public final PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
         if (pixelPos == null) {
             pixelPos = new PixelPos();
@@ -52,5 +67,30 @@ public class PixelFinderGeoCoding extends ForwardingGeoCoding {
             pixelPos.setInvalid();
         }
         return pixelPos;
+    }
+
+    private static class GeoPoint extends Point2D {
+
+        private final GeoPos g;
+
+        public GeoPoint(GeoPos g) {
+            this.g = g;
+        }
+
+        @Override
+        public final double getX() {
+            return g.lon;
+        }
+
+        @Override
+        public final double getY() {
+            return g.lat;
+        }
+
+        @Override
+        public final void setLocation(double x, double y) {
+            g.lon = (float) x;
+            g.lat = (float) y;
+        }
     }
 }
