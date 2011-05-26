@@ -43,7 +43,7 @@ import java.util.Calendar;
  *
  * @author Thomas Storm
  */
-public class OsiProductReader extends NetcdfProductReaderTemplate {
+public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
 
     static final String NH_GRID = "OSISAF_NH";
     static final String SH_GRID = "OSISAF_SH";
@@ -59,7 +59,7 @@ public class OsiProductReader extends NetcdfProductReaderTemplate {
                                                            "corresponding to the quality of the calculated sea ice " +
                                                            "parameter and information on the processing conditions.";
 
-    OsiProductReader(OsiProductReaderPlugIn plugin) {
+    HdfOsiProductReader(HdfOsiProductReaderPlugIn plugin) {
         super(plugin);
     }
 
@@ -90,6 +90,10 @@ public class OsiProductReader extends NetcdfProductReaderTemplate {
             band.setNoDataValueUsed(true);
             product.setDescription(DESCRIPTION_QUALITY_FLAG);
         }
+        final Band lonBand = product.addBand("lon", "LON", ProductData.TYPE_FLOAT32);
+        lonBand.setUnit("Degrees east");
+        final Band latBand = product.addBand("lat", "LAT", ProductData.TYPE_FLOAT32);
+        latBand.setUnit("Degrees north");
     }
 
     @Override

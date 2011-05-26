@@ -31,7 +31,7 @@ import java.util.Locale;
  *
  * @author Thomas Storm
  */
-public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
+public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     /**
      * The format name.
@@ -85,7 +85,7 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public ProductReader createReaderInstance() {
-        return new OsiProductReader(this);
+        return new HdfOsiProductReader(this);
     }
 
     @Override

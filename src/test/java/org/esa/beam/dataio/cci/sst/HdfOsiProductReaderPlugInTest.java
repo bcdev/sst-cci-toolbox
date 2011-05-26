@@ -24,15 +24,14 @@ import org.junit.Test;
 import java.io.File;
 import java.net.URISyntaxException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Thomas Storm
  */
-public class OsiProductReaderPlugInTest {
+public class HdfOsiProductReaderPlugInTest {
 
-    private OsiProductReaderPlugIn plugin;
+    private HdfOsiProductReaderPlugIn plugin;
 
     @Test
     public void testGetDecodeQualification_ForSeaIceConcentrationFile() throws Exception {
@@ -106,7 +105,7 @@ public class OsiProductReaderPlugInTest {
 
     @Before
     public void setUp() throws Exception {
-        plugin = new OsiProductReaderPlugIn();
+        plugin = new HdfOsiProductReaderPlugIn();
     }
 
     private static File getIceConcentrationFile() throws URISyntaxException {
@@ -118,7 +117,7 @@ public class OsiProductReaderPlugInTest {
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {
-        return new File(OsiProductReaderPlugInTest.class.getResource(name).toURI());
+        return new File(HdfOsiProductReaderPlugInTest.class.getResource(name).toURI());
     }
 
 }
