@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
- *
+ * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * 
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 3 of the License, or (at your option)
@@ -9,7 +9,7 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see http://www.gnu.org/licenses/
  */
@@ -20,67 +20,42 @@ import org.esa.beam.framework.dataio.DecodeQualification;
 import org.esa.beam.framework.dataio.ProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.util.io.BeamFileFilter;
-import ucar.nc2.NetcdfFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Locale;
 
 /**
- * The BEAM reader plugin for Ocean & Sea Ice SAF data products.
+ * Reader plugin for Osi products in NetCDF format.
  *
  * @author Thomas Storm
+ * @author Ralf Quast
  */
-public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
+public class NcOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
-    /**
-     * The format name.
-     */
-    public static final String FORMAT_NAME = "HDF-OSI-SAF";
-    /**
-     * The FIle extension.
-     */
-    public static final String FILE_EXTENSION_HDF = ".hdf";
+    public static final String FORMAT_NAME = "NETCDF-OSI-SAF";
+    private static final String FILE_EXTENSION_NC = ".nc";
 
     @Override
     public DecodeQualification getDecodeQualification(Object input) {
-        final File file = new File(input.toString());
-        if (!file.getName().endsWith(FILE_EXTENSION_HDF)) {
+        final File inputFile = new File(input.toString());
+        final String inputFileName = inputFile.getName();
+        if (!inputFileName.endsWith(FILE_EXTENSION_NC)) {
             return DecodeQualification.UNABLE;
         }
-        final String fileName = file.getName();
-        if (!fileName.startsWith("ice_conc_") && !fileName.startsWith("ice_edge_") &&
-            !fileName.startsWith("ice_type_") && !fileName.startsWith("multi_conc_") &&
-            !fileName.startsWith("multi_edge_") && !fileName.startsWith("multi_type_")) {
-            return DecodeQualification.UNABLE;
-        }
-        NetcdfFile netcdfFile = null;
-        try {
-            netcdfFile = NetcdfFile.open(file.getAbsolutePath());
-            if (netcdfFile.findVariable("Header") != null) {
-                return DecodeQualification.INTENDED;
-            }
-        } catch (Exception ignored) {
-        } finally {
-            if (netcdfFile != null) {
-                try {
-                    netcdfFile.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
+        if(inputFileName.matches("ice_conc_[ns]h_.*]")) {
+            return DecodeQualification.INTENDED;
         }
         return DecodeQualification.UNABLE;
     }
 
     @Override
     public Class[] getInputTypes() {
-        return new Class[]{File.class, String.class};
+        return new Class[]{String.class, File.class};
     }
 
     @Override
     public ProductReader createReaderInstance() {
-        return new HdfOsiProductReader(this);
+        return new NcOsiProductReader(this);
     }
 
     @Override
@@ -90,7 +65,7 @@ public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String[] getDefaultFileExtensions() {
-        return new String[]{FILE_EXTENSION_HDF};
+        return new String[]{FILE_EXTENSION_NC};
     }
 
     @Override

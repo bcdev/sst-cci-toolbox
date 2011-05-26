@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.dataio.atsr.AtsrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.HdfOsiProductReaderPlugIn;
+import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
@@ -50,7 +51,8 @@ class ProductHandler extends AbstractProductHandler {
               AtsrConstants.ATSR_FORMAT_NAME,
               HdfOsiProductReaderPlugIn.FORMAT_NAME,
               PmwProductReaderPlugIn.FORMAT_NAME,
-              AvhrrReaderPlugIn.FORMAT_NAME);
+              AvhrrReaderPlugIn.FORMAT_NAME,
+              NcOsiProductReaderPlugIn.FORMAT_NAME);
         this.bc = new BoundaryCalculator();
     }
 
