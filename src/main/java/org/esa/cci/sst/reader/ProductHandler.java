@@ -24,6 +24,8 @@ import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.framework.dataio.ProductFlipper;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
+import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.cci.sst.data.DataFile;
@@ -62,6 +64,9 @@ class ProductHandler extends AbstractProductHandler {
         if (product.getProductReader() instanceof EnvisatProductReader && product.getName().startsWith("ATS")) {
             // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
             product = createHorizontallyFlippedProduct(product);
+        }
+        if (product.getGeoCoding() instanceof PixelGeoCoding) {
+            product.setGeoCoding(new PixelGeoCodingWrapper((PixelGeoCoding) product.getGeoCoding()));
         }
         return product;
     }

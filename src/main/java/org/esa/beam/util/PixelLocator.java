@@ -24,29 +24,30 @@ import java.awt.geom.Point2D;
  *
  * @author Ralf Quast
  */
-public interface PixelFinder {
+public interface PixelLocator {
 
     /**
-     * Finds the (lon, lat) geo-location that corresponds to a given (x, y) pixel position.
+     * Returns the (lon, lat) geo-location that corresponds to a given (x, y) pixel
+     * location.
      *
-     * @param x The pixel x position.
-     * @param y The pixel y position.
+     * @param x The pixel x location.
+     * @param y The pixel y location.
      * @param g The geo-location. On return contains the geo-location position found. Is
      *          not modified, when the geo-location was not found.
      *
      * @return {@code true} if the geo-location was found, {@code false} otherwise.
      */
-    public boolean findLocation(double x, double y, Point2D g);
+    public boolean getGeoLocation(double x, double y, Point2D g);
 
     /**
-     * Finds the (x, y) pixel position that corresponds to a given (lon, lat) geo-location.
+     * Returns the (x, y) pixel location that corresponds to a given (lon, lat) geo-location.
      *
-     * @param lon The longitude [-180.0, 180.0].
-     * @param lat The latitude [-90.0, 90.0].
-     * @param p   The pixel position. On return contains the pixel position found. Is
-     *            not modified, when the pixel position was not found.
+     * @param lon The pixel longitude [-180.0, 180.0].
+     * @param lat The pixel latitude [-90.0, 90.0].
+     * @param p   The (x, y) pixel location. On return contains the pixel location found. Is
+     *            not modified, when the pixel location was not found.
      *
-     * @return {@code true} if the pixel position was found, {@code false} otherwise.
+     * @return {@code true} if the pixel location was found, {@code false} otherwise.
      */
-    boolean findPixel(double lon, double lat, Point2D p);
+    boolean getPixelLocation(double lon, double lat, Point2D p);
 }

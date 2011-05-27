@@ -22,7 +22,7 @@ import java.awt.geom.Point2D;
 import java.util.Arrays;
 
 /**
- * Helper class used by the {@link QuadTreePixelFinder} for storing its
+ * Helper class used by the {@link QuadTreePixelLocator} for storing its
  * result.
  *
  * @author Ralf Quast

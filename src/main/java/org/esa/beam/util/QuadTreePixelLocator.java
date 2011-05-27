@@ -25,31 +25,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A {@link PixelFinder} implementation using a quad-tree algorithm.
- * <p/>
- * A better implementation of the find pixel method could be something like:
- * <ol>
- * <li>Create a coverage of the full scene by means of largely overlapping
- * image tiles (e.g. tile size of 100 pixels squared with an overlap of 25 pixels)</li>
- * <li>For each tile create a rational function model of the (lon, lat) to (x, y)
- * transformation, rotating to the (lon, lat) of the tile center</li>
- * <li>Refine the accuracy of the selected rational function model until the
- * accuracy goal (i.e. a certain RMSE) is reached</li>
- * <li>Select the tile T in {T1, T2, ...} where the (x, y) result is nearest
- * to (0, 0)</li>
- * <li>Use the three closest pixels to compute the final (x, y)</li>
- * <li>Keep all rational function approximations in a map and reuse them for
- * subsequent calls.</li>
- * </ol>
- * <p/>
- * The advantage of this algorithm is that it obviously avoids problems related
- * to the antimeridian and poles included in the scene.
+ * A {@link PixelLocator} implementation using a quad-tree algorithm.
  *
  * @author Martin Boettcher
  * @author Ralf Quast
  * @author Thomas Storm
  */
-public class QuadTreePixelFinder implements PixelFinder {
+public class QuadTreePixelLocator implements PixelLocator {
 
     private static final double D2R = Math.PI / 180.0;
 
@@ -67,7 +49,7 @@ public class QuadTreePixelFinder implements PixelFinder {
      *
      * @throws IllegalArgumentException when the dimension of the sample sources are different.
      */
-    public QuadTreePixelFinder(SampleSource lonSource, SampleSource latSource) {
+    public QuadTreePixelLocator(SampleSource lonSource, SampleSource latSource) {
         if (lonSource.getWidth() != latSource.getWidth()) {
             throw new IllegalArgumentException("lonSource.getMaxX() != latSource.getMaxX()");
         }
@@ -82,7 +64,7 @@ public class QuadTreePixelFinder implements PixelFinder {
 
 
     @Override
-    public boolean findLocation(double x, double y, Point2D g) {
+    public boolean getGeoLocation(double x, double y, Point2D g) {
         final int w = lonSource.getWidth();
         final int h = lonSource.getHeight();
 
@@ -116,7 +98,7 @@ public class QuadTreePixelFinder implements PixelFinder {
     }
 
     @Override
-    public boolean findPixel(double lon, double lat, Point2D p) {
+    public boolean getPixelLocation(double lon, double lat, Point2D p) {
         final int w = latSource.getWidth();
         final int h = latSource.getHeight();
         final Result result = new Result(lon, lat);

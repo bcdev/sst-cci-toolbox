@@ -16,16 +16,11 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.framework.datamodel.PixelFinderGeoCoding;
-import org.esa.beam.util.PixelFinder;
-import org.esa.beam.util.SampleSource;
 import org.esa.beam.dataio.netcdf.ProfileReadContext;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfGeocodingPart;
-import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.util.QuadTreePixelFinder;
-import org.esa.beam.util.RasterDataNodeSampleSource;
 
 import java.io.IOException;
 
@@ -43,12 +38,7 @@ public class ArcPixelGeoCodingReader extends CfGeocodingPart {
     public void decode(final ProfileReadContext ctx, final Product p) throws IOException {
         super.decode(ctx, p);
         final PixelGeoCoding sourceGeoCoding = (PixelGeoCoding) p.getGeoCoding();
-        final Band latBand = sourceGeoCoding.getLatBand();
-        final Band lonBand = sourceGeoCoding.getLonBand();
-        final SampleSource latSource = new RasterDataNodeSampleSource(latBand);
-        final SampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
-        final PixelFinder pixelFinder = new QuadTreePixelFinder(lonSource, latSource);
-        final PixelFinderGeoCoding geoCoding = new PixelFinderGeoCoding(sourceGeoCoding, pixelFinder);
+        final PixelGeoCodingWrapper geoCoding = new PixelGeoCodingWrapper(sourceGeoCoding);
         p.setGeoCoding(geoCoding);
     }
 }

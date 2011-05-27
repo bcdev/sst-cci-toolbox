@@ -16,8 +16,8 @@
 
 package org.esa.beam.framework.datamodel;
 
-import org.esa.beam.util.PixelFinder;
-import org.esa.beam.util.QuadTreePixelFinder;
+import org.esa.beam.util.PixelLocator;
+import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.RasterDataNodeSampleSource;
 
 import java.awt.geom.Point2D;
@@ -27,20 +27,15 @@ import java.awt.geom.Point2D;
  *
  * @author Ralf Quast
  */
-public class PixelFinderGeoCoding extends ForwardingGeoCoding {
+public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
 
-    private final PixelFinder pixelFinder;
+    private final PixelLocator pixelLocator;
 
-    public PixelFinderGeoCoding(PixelGeoCoding pixelGeoCoding) {
+    public PixelGeoCodingWrapper(PixelGeoCoding pixelGeoCoding) {
         super(pixelGeoCoding);
-        this.pixelFinder = new QuadTreePixelFinder(
-                new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand()),
-                new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand()));
-    }
-
-    public PixelFinderGeoCoding(PixelGeoCoding pixelGeoCoding, PixelFinder pixelFinder) {
-        super(pixelGeoCoding);
-        this.pixelFinder = pixelFinder;
+        final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand());
+        final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand());
+        pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
     }
 
     @Override
@@ -49,7 +44,7 @@ public class PixelFinderGeoCoding extends ForwardingGeoCoding {
             geoPos = new GeoPos();
         }
         if (pixelPos.isValid()) {
-            pixelFinder.findLocation(pixelPos.getX(), pixelPos.getY(), new GeoPoint(geoPos));
+            pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(), new GeoPoint(geoPos));
         } else {
             geoPos.setInvalid();
         }
@@ -62,7 +57,7 @@ public class PixelFinderGeoCoding extends ForwardingGeoCoding {
             pixelPos = new PixelPos();
         }
         if (geoPos.isValid()) {
-            pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
+            pixelLocator.getPixelLocation(geoPos.getLon(), geoPos.getLat(), pixelPos);
         } else {
             pixelPos.setInvalid();
         }
