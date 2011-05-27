@@ -59,6 +59,10 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
                 CfBandPart.readCfBandAttributes(variable, band);
             }
         }
+        final Band lonBand = product.addBand("lon", "LON", ProductData.TYPE_FLOAT32);
+        lonBand.setUnit("Degrees east");
+        final Band latBand = product.addBand("lat", "LAT", ProductData.TYPE_FLOAT32);
+        latBand.setUnit("Degrees north");
     }
 
     @Override
@@ -90,8 +94,8 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
     @Override
     protected Product createPlainProduct() throws IOException {
         final File file = new File(getInput().toString());
-        final int width = getNetcdfFile().findDimension("nx").getLength();
-        final int height = getNetcdfFile().findDimension("ny").getLength();
+        final int width = findDimension("nx").getLength();
+        final int height = findDimension("ny").getLength();
 
         return new Product(file.getName(), "AerosolAai", width, height);
     }

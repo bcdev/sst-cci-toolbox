@@ -31,25 +31,20 @@ import java.util.Locale;
  *
  * @author Thomas Storm
  */
-public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
+public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     /**
      * The format name.
      */
-    public static final String FORMAT_NAME = "OSI-SAF";
+    public static final String FORMAT_NAME = "OSI-SAF-HDF";
     /**
      * The FIle extension.
      */
     public static final String FILE_EXTENSION_HDF = ".hdf";
 
     @Override
-    public DecodeQualification getDecodeQualification(Object o) {
-        final File file;
-        if (o instanceof File) {
-            file = (File) o;
-        } else {
-            file = new File(o.toString());
-        }
+    public DecodeQualification getDecodeQualification(Object input) {
+        final File file = new File(input.toString());
         if (!file.getName().endsWith(FILE_EXTENSION_HDF)) {
             return DecodeQualification.UNABLE;
         }
@@ -85,7 +80,7 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public ProductReader createReaderInstance() {
-        return new OsiProductReader(this);
+        return new HdfOsiProductReader(this);
     }
 
     @Override
@@ -100,7 +95,7 @@ public class OsiProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String getDescription(Locale locale) {
-        return "A BEAM reader for Ocean & Sea Ice Science Application Facility (OSI SAF) data products.";
+        return "Ocean & Sea Ice Science Application Facility (OSI SAF) data products.";
     }
 
     @Override

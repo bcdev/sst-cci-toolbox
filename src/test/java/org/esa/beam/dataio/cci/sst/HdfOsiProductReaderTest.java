@@ -37,9 +37,9 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class OsiProductReaderTest {
+public class HdfOsiProductReaderTest {
 
-    private OsiProductReader reader;
+    private HdfOsiProductReader reader;
 
     @Test
     public void testReadProductNodesImpl() throws Exception {
@@ -49,7 +49,7 @@ public class OsiProductReaderTest {
         assertNotNull(product);
         assertTrue(product.getProductReader() == reader);
         assertEquals(inputFile, product.getFileLocation());
-        assertEquals(1, product.getNumBands());
+        assertEquals(3, product.getNumBands());
         assertNotNull(product.getGeoCoding());
         assertNotNull(product.getBandAt(0).getSourceImage());
         assertNotNull(product.getStartTime());
@@ -94,13 +94,13 @@ public class OsiProductReaderTest {
         assertEquals(1120, metadata.getAttribute("Header.ih").getData().getElemInt());
         assertEquals(-3850.0, metadata.getAttribute("Header.Bx").getData().getElemFloat(), 0.0);
         assertEquals(5850, metadata.getAttribute("Header.By").getData().getElemFloat(), 0.0);
-        assertEquals(OsiProductReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
+        assertEquals(HdfOsiProductReader.NORTHERN_HEMISPHERE, metadata.getAttribute("Header.area").getData().getElemString());
     }
 
     @Test
     public void testIsSeaIceFile() throws Exception {
-        assertTrue(OsiProductReader.isSeaIceFile(getIceConcentrationFile()));
-        assertFalse(OsiProductReader.isSeaIceFile(getIceConcentrationQualityFile()));
+        assertTrue(HdfOsiProductReader.isSeaIceFile(getIceConcentrationFile()));
+        assertFalse(HdfOsiProductReader.isSeaIceFile(getIceConcentrationQualityFile()));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class OsiProductReaderTest {
 
     @Before
     public void setUp() throws Exception {
-        reader = new OsiProductReader(new OsiProductReaderPlugIn());
+        reader = new HdfOsiProductReader(new HdfOsiProductReaderPlugIn());
     }
 
     @After
@@ -141,7 +141,7 @@ public class OsiProductReaderTest {
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {
-        return new File(OsiProductReaderPlugInTest.class.getResource(name).toURI());
+        return new File(HdfOsiProductReaderPlugInTest.class.getResource(name).toURI());
     }
 
     public static void main() throws IOException, URISyntaxException {

@@ -39,11 +39,6 @@ class AtsrMdIOHandler extends MdIOHandler {
         super(sensorName);
     }
 
-    @Override
-    public String getSstVariableName() {
-        return "atsr.sea_surface_temperature.dual";
-    }
-
     /**
      * Reads record and creates ReferenceObservation for (A)ATSR pixel contained in MD. This observation
      * may serve as reference observation in some matchup.
@@ -61,9 +56,7 @@ class AtsrMdIOHandler extends MdIOHandler {
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setCallsign(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
-//        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
-        // todo - ts 19May2011 - make configurable
-        observation.setReferenceFlag((byte) 4);
+        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
         observation.setSensor(getDatafile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);

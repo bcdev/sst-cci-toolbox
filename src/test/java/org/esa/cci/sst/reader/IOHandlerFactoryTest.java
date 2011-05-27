@@ -25,10 +25,10 @@ import static junit.framework.Assert.*;
  */
 public class IOHandlerFactoryTest {
 
+    @SuppressWarnings({"ReuseOfLocalVariable"})
     @Test
     public void testCreateReader() throws Exception {
-        IOHandler handler;
-        handler = IOHandlerFactory.createHandler("GunzipDecorator,ProductHandler", "");
+        IOHandler handler = IOHandlerFactory.createHandler("GunzipDecorator,ProductHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof GunzipDecorator);
 
@@ -55,6 +55,10 @@ public class IOHandlerFactoryTest {
         handler = IOHandlerFactory.createHandler("SeviriIOHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof SeviriIOHandler);
+
+        handler = IOHandlerFactory.createHandler("AvhrrMdReader", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof AvhrrMdReader);
 
     }
 

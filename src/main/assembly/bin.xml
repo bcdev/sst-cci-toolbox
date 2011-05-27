@@ -42,6 +42,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
         <fileSet>
             <directory>src/main/config</directory>
             <includes>
+                <include>*.config</include>
                 <include>*.properties</include>
             </includes>
             <outputDirectory>config</outputDirectory>

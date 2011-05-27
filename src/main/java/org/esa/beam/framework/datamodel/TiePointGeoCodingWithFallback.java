@@ -16,7 +16,7 @@
 
 package org.esa.beam.framework.datamodel;
 
-import org.esa.beam.util.PixelFinder;
+import org.esa.beam.util.PixelLocator;
 
 /**
  * Workaround for BEAM-1241
@@ -27,13 +27,13 @@ public class TiePointGeoCodingWithFallback extends ForwardingGeoCoding {
 
     private final int sceneRasterWidth;
     private final int sceneRasterHeight;
-    private final PixelFinder pixelFinder;
+    private final PixelLocator pixelLocator;
 
-    public TiePointGeoCodingWithFallback(TiePointGeoCoding tiePointGeoCoding, PixelFinder pixelFinder) {
+    public TiePointGeoCodingWithFallback(TiePointGeoCoding tiePointGeoCoding, PixelLocator pixelLocator) {
         super(tiePointGeoCoding);
         sceneRasterWidth = tiePointGeoCoding.getLatGrid().getSceneRasterWidth();
         sceneRasterHeight = tiePointGeoCoding.getLatGrid().getSceneRasterHeight();
-        this.pixelFinder = pixelFinder;
+        this.pixelLocator = pixelLocator;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class TiePointGeoCodingWithFallback extends ForwardingGeoCoding {
             if (!pixelPos.isValid() ||
                 pixelPos.x < 0 || pixelPos.y < 0 ||
                 pixelPos.x > sceneRasterWidth || pixelPos.y > sceneRasterHeight) {
-                final boolean pixelFound = pixelFinder.findPixel(geoPos.getLon(), geoPos.getLat(), pixelPos);
+                final boolean pixelFound = pixelLocator.getPixelLocation(geoPos.getLon(), geoPos.getLat(), pixelPos);
                 if (!pixelFound) {
                     pixelPos.setInvalid();
                 }

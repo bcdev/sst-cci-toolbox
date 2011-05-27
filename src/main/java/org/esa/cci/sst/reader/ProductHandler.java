@@ -18,11 +18,14 @@ package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.atsr.AtsrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
-import org.esa.beam.dataio.cci.sst.OsiProductReaderPlugIn;
+import org.esa.beam.dataio.cci.sst.HdfOsiProductReaderPlugIn;
+import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.framework.dataio.ProductFlipper;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
+import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.cci.sst.data.DataFile;
@@ -48,7 +51,8 @@ class ProductHandler extends AbstractProductHandler {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
               AtsrConstants.ATSR_FORMAT_NAME,
-              OsiProductReaderPlugIn.FORMAT_NAME,
+              HdfOsiProductReaderPlugIn.FORMAT_NAME,
+              NcOsiProductReaderPlugIn.FORMAT_NAME,
               PmwProductReaderPlugIn.FORMAT_NAME,
               AvhrrReaderPlugIn.FORMAT_NAME);
         this.bc = new BoundaryCalculator();
@@ -60,6 +64,9 @@ class ProductHandler extends AbstractProductHandler {
         if (product.getProductReader() instanceof EnvisatProductReader && product.getName().startsWith("ATS")) {
             // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
             product = createHorizontallyFlippedProduct(product);
+        }
+        if (product.getGeoCoding() instanceof PixelGeoCoding) {
+            product.setGeoCoding(new PixelGeoCodingWrapper((PixelGeoCoding) product.getGeoCoding()));
         }
         return product;
     }

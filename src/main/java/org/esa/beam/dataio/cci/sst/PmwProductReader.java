@@ -27,7 +27,6 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
-import org.esa.beam.framework.datamodel.PixelGeoCodingWithFallback;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
@@ -79,8 +78,8 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         } else {
             invalidateLines(TMI_LAT_INVALIDATOR);
         }
-        final int h = getNetcdfFile().findDimension("ni").getLength() - leadLineSkip - tailLineSkip;
-        final int w = getNetcdfFile().findDimension("nj").getLength();
+        final int h = findDimension("ni").getLength() - leadLineSkip - tailLineSkip;
+        final int w = findDimension("nj").getLength();
 
         return new Product(productName, getReaderPlugIn().getFormatNames()[0], w, h);
     }
@@ -100,8 +99,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         final Band lonBand = product.getBand("lon");
         final Band latBand = product.getBand("lat");
         if (latBand != null && lonBand != null) {
-            final GeoCoding geoCoding = new PixelGeoCodingWithFallback(
-                    new PixelGeoCoding(latBand, lonBand, latBand.getValidMaskExpression(), 5));
+            final GeoCoding geoCoding = new PixelGeoCoding(latBand, lonBand, latBand.getValidMaskExpression(), 5);
             product.setGeoCoding(geoCoding);
         }
     }
@@ -164,7 +162,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
     }
 
     private void invalidateLines(Invalidator invalidator) throws IOException {
-        final Variable variable = getNetcdfFile().findVariable("lat");
+        final Variable variable = findVariable("lat");
         if (variable != null) {
             final int[] shape = variable.getShape();
             for (int i = 0; i < shape.length - 1; i++) {
@@ -179,7 +177,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
                         break;
                     }
                 }
-                for (int i = variable.getShape(variable.getRank() - 1); i-- > 0;) {
+                for (int i = variable.getShape(variable.getRank() - 1); i-- > 0; ) {
                     if (invalidator.isInvalid(array.getDouble(i))) {
                         tailLineSkip++;
                     } else {

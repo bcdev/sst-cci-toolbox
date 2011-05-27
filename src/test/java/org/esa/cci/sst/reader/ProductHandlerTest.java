@@ -19,9 +19,9 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
@@ -84,9 +84,12 @@ public class ProductHandlerTest {
         final float wantedLon = 18.7432f;
         final GeoPos g = new GeoPos(wantedLat, wantedLon);
         final PixelPos p = new PixelPos();
+
         geoCoding.getPixelPos(g, p);
 
         assertTrue(p.isValid());
+
+        geoCoding.getGeoPos(p, g);
 
         final float actualLat = g.getLat();
         final float actualLon = g.getLon();
@@ -101,6 +104,14 @@ public class ProductHandlerTest {
                 assertTrue(actualDelta <= delta(wantedLat, wantedLon, g.lat, g.lon));
             }
         }
+
+        // check that pixel position is exact when geo-position coincides with a pixel center
+        geoCoding.getGeoPos(new PixelPos(0.5f, 0.5f), g);
+        geoCoding.getPixelPos(g, p);
+
+        assertTrue(p.isValid());
+        assertEquals(0.5, p.getX(), 0.0);
+        assertEquals(0.5, p.getY(), 0.0);
     }
 
     @Test

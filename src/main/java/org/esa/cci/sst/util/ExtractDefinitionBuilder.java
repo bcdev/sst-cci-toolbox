@@ -81,7 +81,7 @@ public class ExtractDefinitionBuilder {
             }
 
             @Override
-            public final int[] getStart() {
+            public final int[] getOrigin() {
                 return start;
             }
 

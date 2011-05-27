@@ -2,6 +2,7 @@
 postgres/
 target/
 testdata/
+/config/
 *.iml
 *.iws
 *.ipr

@@ -80,7 +80,7 @@ public class QueriesTest {
         final List<? extends Item> columnList = Queries.getAllColumns(pm);
 
         assertNotNull(columnList);
-        assertEquals(353, columnList.size());
+        assertEquals(357, columnList.size());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class QueriesTest {
         @SuppressWarnings({"unchecked"})
         final int matchupCount = Queries.getMatchupCount(pm, START_DATE, STOP_DATE);
 
-        assertEquals(14483, matchupCount);
+        assertEquals(14482, matchupCount);
     }
 
     @Test
@@ -110,7 +110,7 @@ public class QueriesTest {
         final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE);
 
         assertNotNull(matchupList);
-        assertEquals(14483, matchupList.size());
+        assertEquals(14482, matchupList.size());
     }
 
     @Test

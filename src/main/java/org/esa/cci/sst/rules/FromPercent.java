@@ -28,9 +28,15 @@ final class FromPercent extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        Assert.addOffset(0.0, sourceColumn);
+        Assert.condition(sourceColumn.getAddOffset() == null || sourceColumn.getAddOffset().doubleValue() == 0.0,
+                         "expected addOffset == null or addOffset == 0.0");
 
-        targetColumnBuilder.scaleFactor(sourceColumn.getScaleFactor().doubleValue() * 0.01);
+        final Number scaleFactor = sourceColumn.getScaleFactor();
+        if(scaleFactor == null) {
+            targetColumnBuilder.scaleFactor(0.01);
+        } else {
+            targetColumnBuilder.scaleFactor(scaleFactor.doubleValue() * 0.01);
+        }
         targetColumnBuilder.unit("1");
     }
 }

@@ -71,6 +71,7 @@ public abstract class BasicTool {
     protected BasicTool(String name, String version) {
         this.name = name;
         this.version = version;
+
         configuration = new Properties();
         options = createCommandLineOptions();
 

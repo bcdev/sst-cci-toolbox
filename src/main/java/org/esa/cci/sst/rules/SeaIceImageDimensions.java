@@ -25,7 +25,7 @@ class SeaIceImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "seaice.nj");
-        builder.replace(2, "seaice.ni");
+        builder.replace(1, "seaice.ny");
+        builder.replace(2, "seaice.nx");
     }
 }

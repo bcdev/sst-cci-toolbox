@@ -41,6 +41,7 @@ import ucar.nc2.Variable;
 
 import javax.naming.OperationNotSupportedException;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.io.File;
@@ -62,6 +63,11 @@ abstract class AbstractProductHandler implements IOHandler {
 
     private DataFile datafile;
     private Product product;
+
+    static {
+        System.setProperty("beam.pixelGeoCoding.useTiling", "true");
+        System.setProperty("beam.pixelGeoCoding.fractionAccuracy", "true");
+    }
 
     protected AbstractProductHandler(String sensorName, String... formatNames) {
         this.sensorName = sensorName;
@@ -127,7 +133,7 @@ abstract class AbstractProductHandler implements IOHandler {
         final double lat = extractDefinition.getLat();
         final int[] shape = extractDefinition.getShape();
 
-        final PixelPos p = findPixelPos(lon, lat);
+        final Point2D p = findPixelPos(lon, lat);
         final Rectangle rectangle = createSubsceneRectangle(p, shape);
 
         return readSubsceneData(node, shape, rectangle);
@@ -270,13 +276,13 @@ abstract class AbstractProductHandler implements IOHandler {
             final String message = MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
                                                         geoPos.getLon(),
                                                         geoPos.getLat(),
-                                                        getProduct().getName());
+                                                        product.getName());
             throw new ToolException(message, ToolException.TOOL_ERROR);
         }
         return pixelPos;
     }
 
-    private static Rectangle createSubsceneRectangle(final PixelPos p, final int[] shape) {
+    private static Rectangle createSubsceneRectangle(Point2D p, int[] shape) {
         final int w = shape[2];
         final int h = shape[1];
         final int x = (int) Math.floor(p.getX()) - w / 2;
@@ -285,7 +291,7 @@ abstract class AbstractProductHandler implements IOHandler {
         return new Rectangle(x, y, w, h);
     }
 
-    private static Array readSubsceneData(final RasterDataNode node, final int[] shape, final Rectangle rectangle) {
+    private static Array readSubsceneData(RasterDataNode node, int[] shape, Rectangle rectangle) {
         final Array array = Array.factory(DataTypeUtils.getNetcdfDataType(node.getDataType()), shape);
 
         final MultiLevelImage sourceImage = node.getSourceImage();

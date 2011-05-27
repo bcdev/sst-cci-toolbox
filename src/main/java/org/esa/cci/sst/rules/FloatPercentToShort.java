@@ -26,7 +26,7 @@ import ucar.ma2.IndexIterator;
  *
  * @author Thomas Storm
  */
-public class FloatPercentToShort extends AbstractReformat<Float, Short> {
+class FloatPercentToShort extends AbstractReformat<Float, Short> {
 
     protected FloatPercentToShort() {
         super(Float.class, Short.class);

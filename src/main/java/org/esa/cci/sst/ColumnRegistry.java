@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -123,7 +124,8 @@ public class ColumnRegistry {
                                 break;
                         }
                     } catch (Exception e) {
-                        throw new ParseException(e.getMessage(), lineNumber);
+                        throw new ParseException(
+                                MessageFormat.format("Line ''{0}'': {1}", lineNumber + 1, e.getMessage()), lineNumber);
                     }
                 }
                 return nameList;

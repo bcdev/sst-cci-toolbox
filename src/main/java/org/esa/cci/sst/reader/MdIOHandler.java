@@ -16,17 +16,21 @@
 
 package org.esa.cci.sst.reader;
 
-import com.bc.ceres.core.Assert;
+import org.esa.beam.util.PixelLocator;
+import org.esa.beam.util.QuadTreePixelLocator;
+import org.esa.beam.util.SampleSource;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.tools.ToolException;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
-import ucar.ma2.ArrayByte;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
-import ucar.ma2.ArrayFloat;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
+import ucar.ma2.DataType;
+import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
@@ -34,8 +38,9 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import java.awt.Point;
 import java.io.IOException;
-import java.util.Collection;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,12 +58,9 @@ import java.util.Map;
  */
 abstract class MdIOHandler extends NetcdfIOHandler {
 
-    private final Map<String, Array> data = new HashMap<String, Array>();
-    private final Map<String, Integer> offsetMap = new HashMap<String, Integer>();
-    private final Map<String, Integer> bufferMap = new HashMap<String, Integer>();
+    private final Map<String, Array> arrayMap = new HashMap<String, Array>();
+    private final Map<String, Integer> indexMap = new HashMap<String, Integer>();
 
-    private int bufferStart;
-    private int bufferFill;
     private int numRecords;
 
     protected MdIOHandler(String sensorName) {
@@ -81,16 +83,43 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     @Override
     public void close() {
         numRecords = 0;
-        bufferMap.clear();
-        offsetMap.clear();
-        data.clear();
+        indexMap.clear();
+        arrayMap.clear();
         super.close();
     }
 
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
-        // todo - implement
-        return null;
+        final Variable variable = getVariable(role);
+        final int recordNo = extractDefinition.getOrigin()[0];
+        if (variable.getRank() < 3) {
+            return getData(variable, recordNo);
+        }
+        final Variable lon = getVariable("lon");
+        final Variable lat = getVariable("lat");
+        final Array lonData = getData(lon, recordNo);
+        final Array latData = getData(lat, recordNo);
+        final SampleSource lonSource = new VariableSampleSource(lon, lonData);
+        final SampleSource latSource = new VariableSampleSource(lat, latData);
+        final PixelLocator pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
+        final Point p = new Point();
+        final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
+                                                              extractDefinition.getLat(), p);
+        if (!success) {
+            final String message = MessageFormat.format(
+                    "Unable to find pixel at ({0}, {1}) for record {2} in file ''{3}''.",
+                    extractDefinition.getLon(),
+                    extractDefinition.getLat(),
+                    recordNo,
+                    getNetcdfFile().getLocation());
+            throw new ToolException(message, ToolException.TOOL_ERROR);
+        }
+
+        final Array sourceData = getData(variable, recordNo);
+        final Array targetData = Array.factory(variable.getDataType(), extractDefinition.getShape());
+        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
+        extractSubscene(sourceData, targetData, p, fillValue);
+        return targetData;
     }
 
     @Deprecated
@@ -103,7 +132,7 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         origin[0] = matchupIndex;
 
         try {
-            final Array variableData = getData(sourceVarName, observation.getRecordNo());
+            final Array variableData = getData(getVariable(sourceVarName), observation.getRecordNo());
             targetFile.write(NetcdfFile.escapeName(targetVarName), origin, variableData);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
@@ -116,145 +145,265 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     }
 
     /**
-     * Reads record value contained in 2D char array
+     * Reads a record value of a variable of rank 2 and type char.
      *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return record value as String
+     * @return the record value as string.
      *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if the file IO operation fails.
      */
     public String getString(String role, int recordNo) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayChar.D2) variableData).getString(recordNo - offset).trim();
+        final Variable variable = validateArguments(role, 2, DataType.CHAR, recordNo);
+        final Array array = getData(variable, recordNo);
+        return ((ArrayChar.D2) array).getString(0).trim();
     }
 
     /**
-     * Reads record value contained in float array
+     * Reads a record value of a variable of rank 1 and type float.
      *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return record value as float
+     * @return the record value.
      *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if the file IO operation fails.
      */
     public float getFloat(String role, int recordNo) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayFloat.D1) variableData).get(recordNo - offset);
+        final Variable variable = validateArguments(role, 1, DataType.FLOAT, recordNo);
+        final Array array = getData(variable, recordNo);
+        return array.getFloat(0);
     }
 
     /**
-     * Reads record value contained in double array
+     * Reads a record value of a variable of rank 1 and type double.
      *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return record value as double
+     * @return the record value.
      *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if the file IO operation fails.
      */
     public double getDouble(String role, int recordNo) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayDouble.D1) variableData).get(recordNo - offset);
+        final Variable variable = validateArguments(role, 1, DataType.DOUBLE, recordNo);
+        final Array array = getData(variable, recordNo);
+        return array.getDouble(0);
     }
 
     /**
-     * Reads record value contained in byte array
+     * Reads a record value of a variable of rank 1 and type byte.
      *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return record value as byte
+     * @return the record value.
      *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if the file IO operation fails.
      */
     public byte getByte(String role, int recordNo) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayByte.D1) variableData).get(recordNo - offset);
+        final Variable variable = validateArguments(role, 1, DataType.BYTE, recordNo);
+        final Array array = getData(variable, recordNo);
+        return array.getByte(0);
     }
 
     /**
-     * Reads record value contained in int array
+     * Reads a record value of a variable of rank 1 and type int.
      *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return record value as int
+     * @return the record value.
      *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if the file IO operation fails.
      */
     public int getInt(String role, int recordNo) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayInt.D1) variableData).get(recordNo - offset);
+        final Variable variable = validateArguments(role, 1, DataType.INT, recordNo);
+        final Array array = getData(variable, recordNo);
+        return array.getInt(0);
     }
 
     /**
-     * Reads record value contained in short array
+     * Reads a record value of a variable of rank 1 and type short.
      *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return record value as int
+     * @return the record value.
      *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
+     * @throws IOException if the file IO operation fails.
      */
     public short getShort(String role, int recordNo) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayShort.D1) variableData).get(recordNo - offset);
+        final Variable variable = validateArguments(role, 1, DataType.SHORT, recordNo);
+        final Array array = getData(variable, recordNo);
+        return array.getShort(0);
     }
 
     /**
-     * Returns a record value contained in a numeric array.
+     * Reads a record value of a variable of rank 1 and numerical type.
      *
      * @param role     The variable name.
-     * @param recordNo The record number in range 0 .. numRecords-1.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return the record value as {@code Number}.
+     * @return the record value.
      *
-     * @throws IOException if the record number is out of range 0 .. numRecords-1 or if file io fails.
+     * @throws IOException if the file IO operation fails.
      */
     public Number getNumber(String role, int recordNo) throws IOException {
-        final int offset = fetch(recordNo);
-        final Array variableData = data.get(role);
-        return (Number) variableData.getObject(recordNo - offset);
+        final Variable variable = validateArguments(role, 1, null, recordNo);
+        final Array array = getData(variable, recordNo);
+        return (Number) array.getObject(0);
     }
 
     /**
-     * Returns a record value contained in a numeric array, which is properly scaled
-     * according to a variable' s attributes.
+     * Reads a record value of a variable of rank 1 and numerical type.
      *
      * @param role     The variable name.
-     * @param recordNo The record number in range 0 .. numRecords-1.
+     * @param recordNo The record index in range 0 .. numRecords-1.
      *
-     * @return the record value as {@code Number}.
+     * @return the properly scaled record value.
      *
-     * @throws IOException if the record number is out of range 0 .. numRecords-1 or if file io fails.
+     * @throws IOException if the file IO operation fails.
      */
     public Number getNumberScaled(String role, int recordNo) throws IOException {
-        return getNumberScaled(getNetcdfFile(), role, getNumber(role, recordNo));
+        final Variable variable = validateArguments(role, 1, null, recordNo);
+        return getNumberScaled(variable, getNumber(role, recordNo));
     }
 
-    private static Number getNumberScaled(NetcdfFile ncFile, String variableName, Number number) throws IOException {
-        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(variableName));
-        return getNumberScaled(variable, number);
+    /**
+     * Reads single pixel value from record of sub-scenes contained in 3D short array.
+     *
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
+     * @param y        pixel line position in sub-scene.
+     * @param x        pixel column position in sub-scene.
+     *
+     * @return the pixel value.
+     *
+     * @throws IOException if file IO fails.
+     */
+    public int getShort(String role, int recordNo, int y, int x) throws IOException {
+        final Variable variable = validateArguments(role, 3, DataType.SHORT, recordNo);
+        final Array array = getData(variable, recordNo);
+        return ((ArrayShort.D3) array).get(0, y, x);
+    }
+
+    /**
+     * Reads single pixel value from record of sub-scenes contained in 3D int array.
+     *
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
+     * @param y        pixel line position in sub-scene.
+     * @param x        pixel column position in sub-scene.
+     *
+     * @return the pixel value.
+     *
+     * @throws IOException if file IO fails.
+     */
+    public int getInt(String role, int recordNo, int y, int x) throws IOException {
+        final Variable variable = validateArguments(role, 3, DataType.INT, recordNo);
+        final Array array = getData(variable, recordNo);
+        return ((ArrayInt.D3) array).get(0, y, x);
+    }
+
+    /**
+     * Reads single pixel value from record of sub-scenes contained in 3D double array.
+     *
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
+     * @param y        pixel line position in sub-scene.
+     * @param x        pixel column position in sub-scene.
+     *
+     * @return the pixel value.
+     *
+     * @throws IOException if file IO fails.
+     */
+    public double getDouble(String role, int recordNo, int y, int x) throws IOException {
+        final Variable variable = validateArguments(role, 3, DataType.DOUBLE, recordNo);
+        final Array array = getData(variable, recordNo);
+        return ((ArrayDouble.D3) array).get(0, y, x);
+    }
+
+    /**
+     * Reads single pixel value from record of sub-scenes contained in 2D double array.
+     *
+     * @param role     The variable name.
+     * @param recordNo The record index in range 0 .. numRecords-1.
+     * @param y        pixel line position in sub-scene.
+     *
+     * @return the pixel value.
+     *
+     * @throws IOException if file IO fails.
+     */
+    public double getDouble(String role, int recordNo, int y) throws IOException {
+        final Variable variable = validateArguments(role, 2, DataType.DOUBLE, recordNo);
+        final Array array = getData(variable, recordNo);
+        return ((ArrayDouble.D2) array).get(0, y);
+    }
+
+    private Variable validateArguments(String role, int expectedRank, DataType expectedDataType, int recordNo) {
+        final Variable variable = getVariable(role);
+        if (variable == null) {
+            throw new IllegalArgumentException(
+                    MessageFormat.format("Unknown variable ''{0}''.", role));
+        }
+        if (recordNo >= variable.getShape(0)) {
+            throw new IllegalArgumentException("Illegal record number.");
+        }
+        final int actualRank = variable.getRank();
+        if (actualRank != expectedRank) {
+            throw new IllegalArgumentException(
+                    MessageFormat.format("Expected variable of rank {0}. Rank of variable ''{1}'' is {2}",
+                                         expectedRank, role, actualRank));
+        }
+        final DataType actualDataType = variable.getDataType();
+        if (expectedDataType == null) {
+            if (!actualDataType.isNumeric()) {
+                throw new IllegalArgumentException(
+                        MessageFormat.format("Expected numeric data type. Type of variable ''{0}'' is {1}",
+                                             role, actualDataType));
+            }
+        } else {
+            if (actualDataType != expectedDataType) {
+                throw new IllegalArgumentException(
+                        MessageFormat.format("Expected variable of type {0}. Type of variable ''{1}'' is {2}",
+                                             expectedDataType, role, actualDataType));
+            }
+        }
+        return variable;
+    }
+
+    private Array getData(Variable variable, int recordNo) throws IOException {
+        final String role = variable.getName();
+        final Array cachedArray = arrayMap.get(role);
+        if (cachedArray != null) {
+            final Integer cachedRecord = indexMap.get(role);
+            if (cachedRecord != null && cachedRecord == recordNo) {
+                return cachedArray;
+            }
+        }
+        final int[] shape = variable.getShape();
+        shape[0] = 1;
+        final int[] start = new int[shape.length];
+        start[0] = recordNo;
+        try {
+            final Array array = variable.read(start, shape);
+            arrayMap.put(role, array);
+            indexMap.put(role, recordNo);
+            return array;
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
     }
 
     private static Number getNumberScaled(Variable variable, Number number) throws IOException {
-        Assert.notNull(variable);
-        Assert.notNull(number);
-        final double factor = getAttribute(variable, "scale_factor", 1.0).doubleValue();
-        final double offset = getAttribute(variable, "add_offset", 0.0).doubleValue();
+        final double scaleFactor = getAttribute(variable, "scale_factor", 1.0).doubleValue();
+        final double addOffset = getAttribute(variable, "add_offset", 0.0).doubleValue();
 
-        return factor * number.doubleValue() + offset;
+        return scaleFactor * number.doubleValue() + addOffset;
     }
+
 
     private static Number getAttribute(Variable variable, String attributeName, Number defaultValue) {
         final Attribute attribute = variable.findAttribute(attributeName);
@@ -264,189 +413,32 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         return attribute.getNumericValue();
     }
 
-    /**
-     * Reads single pixel value from record of sub-scenes contained in 3D short array
-     *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
-     * @param line     pixel line position in sub-scene
-     * @param column   pixel column position in sub-scene
-     *
-     * @return pixel value as int
-     *
-     * @throws IOException if record number is out of range 0 .. numRecords-1
-     *                     or line and column are out of range or if file io fails
-     */
-    public int getShort(String role, int recordNo, int line, int column) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayShort.D3) variableData).get(recordNo - offset, line, column);
-    }
+    static void extractSubscene(Array source, Array target, Point p, Number fillValue) {
+        final int[] sourceShape = source.getShape();
+        final int[] targetShape = target.getShape();
+        final int ssx = sourceShape[source.getRank() - 1];
+        final int ssy = sourceShape[source.getRank() - 2];
+        final int tsx = targetShape[target.getRank() - 1];
+        final int tsy = targetShape[target.getRank() - 2];
+        final int cx = tsx / 2;
+        final int cy = tsy / 2;
 
-    /**
-     * Reads single pixel value from record of sub-scenes contained in 3D int array
-     *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
-     * @param line     pixel line position in sub-scene
-     * @param column   pixel column position in sub-scene
-     *
-     * @return pixel value as int
-     *
-     * @throws IOException if record number is out of range 0 .. numRecords-1
-     *                     or line and column are out of range or if file io fails
-     */
-    public int getInt(String role, int recordNo, int line, int column) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayInt.D3) variableData).get(recordNo - offset, line, column);
-    }
-
-    /**
-     * Reads single pixel value from record of sub-scenes contained in 3D double array
-     *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
-     * @param line     pixel line position in sub-scene
-     * @param column   pixel column position in sub-scene
-     *
-     * @return pixel value as double
-     *
-     * @throws IOException if record number is out of range 0 .. numRecords-1
-     *                     or line and column are out of range or if file io fails
-     */
-    public double getDouble(String role, int recordNo, int line, int column) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayDouble.D3) variableData).get(recordNo - offset, line, column);
-    }
-
-    /**
-     * Reads single pixel value from record of sub-scenes contained in 2D double array
-     *
-     * @param role     variable name
-     * @param recordNo record index in range 0 .. numRecords-1
-     * @param line     pixel line position in sub-scene
-     *
-     * @return pixel value as double
-     *
-     * @throws IOException if record number is out of range 0 .. numRecords-1
-     *                     or if line and column are out of range or if file io fails
-     */
-    public double getDouble(String role, int recordNo, int line) throws IOException {
-        final int offset = fetch(recordNo);
-        Object variableData = data.get(role);
-        return ((ArrayDouble.D2) variableData).get(recordNo - offset, line);
-    }
-
-    /**
-     * Ensures that identified record is in the data buffer, maybe reads tile to achieve this.
-     *
-     * @param varName  The name of the variable to be read.
-     * @param recordNo Index of record to be in the data buffer.
-     *
-     * @return Index of first record in buffer, to be used as offset of record
-     *         number when accessing data buffer
-     *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
-     */
-    int fetch(String varName, int recordNo) throws IOException {
-        int bufferStart = 0;
-        int bufferFill = 0;
-        if (offsetMap.get(varName) != null) {
-            bufferStart = offsetMap.get(varName);
-            bufferFill = bufferMap.get(varName);
-        }
-        if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
-            final Variable variable = getVariable(varName);
-            final int[] shape = variable.getShape();
-            final int[] start = new int[shape.length];
-            start[0] = recordNo;
-            shape[0] = shape[0] - recordNo;
-            ensureBounds(variable, shape);
-
-            final Array values;
-            try {
-                values = variable.read(start, shape);
-            } catch (InvalidRangeException e) {
-                throw new IOException(e);
-            }
-            data.put(varName, values);
-            bufferStart = recordNo;
-            bufferFill = shape[0];
-            offsetMap.put(varName, bufferStart);
-            bufferMap.put(varName, bufferFill);
-        }
-        return bufferStart;
-    }
-
-    private void ensureBounds(final Variable variable, final int[] shape) {
-        for (int i = 0; i < shape.length; i++) {
-            final int dimLength = variable.getDimension(i).getLength();
-            if (shape[i] > dimLength) {
-                shape[i] = dimLength;
-            }
-        }
-    }
-
-    /**
-     * Ensures that identified record is in the data buffer, maybe reads tile to achieve this.
-     *
-     * @param recordNo Index of record to be in the data buffer.
-     *
-     * @return Index of first record in buffer, to be used as offset of record
-     *         number when accessing data buffer
-     *
-     * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
-     */
-    int fetch(int recordNo) throws IOException {
-        if (recordNo < bufferStart || recordNo >= bufferStart + bufferFill) {
-            final int tileSize = 1024;  // TODO adjust default, read from property
-            final Collection<Variable> variables = getVariables();
-            for (final Variable variable : variables) {
-                final int[] shape = variable.getShape();
-                final int[] start = new int[shape.length];
-                start[0] = recordNo;
-                shape[0] = (shape[0] < recordNo + tileSize)
-                           ? shape[0] - recordNo
-                           : tileSize;
-                final Array values;
-                try {
-                    values = variable.read(start, shape);
-                } catch (InvalidRangeException e) {
-                    throw new IOException(e);
+        final Index si = source.getIndex();
+        final Index ti = target.getIndex();
+        for (int ty = 0; ty < tsy; ty++) {
+            ti.setDim(target.getRank() - 2, ty);
+            for (int tx = 0; tx < tsx; tx++) {
+                ti.setDim(target.getRank() - 1, tx);
+                final int sx = tx - (cx - p.x);
+                final int sy = ty - (cy - p.y);
+                if (sx >= 0 && sy >= 0 && sx < ssx && sy < ssy) {
+                    si.setDim(source.getRank() - 1, sx);
+                    si.setDim(source.getRank() - 2, sy);
+                    target.setObject(ti, source.getObject(si));
+                } else {
+                    target.setObject(ti, fillValue);
                 }
-                // we do not use the escaped variable name here because we want to be able to
-                // call, e.g., data.get("atsr.longitude")
-                data.put(variable.getName(), values);
             }
-            bufferStart = recordNo;
-            bufferFill = tileSize;
         }
-        return bufferStart;
     }
-
-    Array getData(String variableName, int recordNo) throws IOException {
-        final Variable variable = getVariable(variableName);
-        if (recordNo >= variable.getShape()[0]) {
-            throw new IllegalArgumentException("recordNo >= variable.getShape()[0]");
-        }
-        // todo - why not use fetch(recordNo)? (rq-20110323)
-        fetch(variableName, recordNo);
-        final int offset = offsetMap.get(variableName);
-        final int index = recordNo - offset;
-        final Array slice = data.get(variableName).slice(0, index);
-        final int[] shape1 = slice.getShape();
-        final int[] shape2 = new int[shape1.length + 1];
-        shape2[0] = 1;
-        System.arraycopy(shape1, 0, shape2, 1, shape1.length);
-        return slice.reshape(shape2);
-    }
-
-    /**
-     * Constant name of variable to read the sst value from
-     *
-     * @return variable name
-     */
-    abstract protected String getSstVariableName();
 }

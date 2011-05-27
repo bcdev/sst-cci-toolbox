@@ -147,7 +147,7 @@ public final class TimeUtil {
     }
 
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
-        final GregorianCalendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+        final Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
         c.clear();
         c.set(year, month, date, hour, minute, second);
         return c;
