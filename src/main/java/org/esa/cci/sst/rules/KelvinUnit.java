@@ -28,6 +28,6 @@ final class KelvinUnit extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        targetColumnBuilder.unit("Kelvin");
+        targetColumnBuilder.unit("kelvin");
     }
 }
