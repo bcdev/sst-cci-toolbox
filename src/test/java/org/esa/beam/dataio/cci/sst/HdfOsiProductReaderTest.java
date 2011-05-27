@@ -49,7 +49,7 @@ public class HdfOsiProductReaderTest {
         assertNotNull(product);
         assertTrue(product.getProductReader() == reader);
         assertEquals(inputFile, product.getFileLocation());
-        assertEquals(1, product.getNumBands());
+        assertEquals(3, product.getNumBands());
         assertNotNull(product.getGeoCoding());
         assertNotNull(product.getBandAt(0).getSourceImage());
         assertNotNull(product.getStartTime());

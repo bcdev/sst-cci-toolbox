@@ -28,6 +28,7 @@ import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
@@ -82,7 +83,13 @@ abstract class MdIOHandler extends NetcdfIOHandler {
 
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
-        // todo - implement
+        // for rank > 1 variables:
+        // 1. geo-coding for sub-scene
+        // 2. find center pixel for extract location
+        // 3. read data for extract (fill pixel that are not in the subscene)
+        // 4. return
+        // for rank = 1 variables:
+
         return null;
     }
 
@@ -91,6 +98,16 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVarName,
                       String targetVarName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
                                                                                                              IOException {
+        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVarName));
+        final int[] origin = new int[targetVariable.getRank()];
+        origin[0] = matchupIndex;
+
+        try {
+            final Array variableData = getData(getVariable(sourceVarName), observation.getRecordNo());
+            targetFile.write(NetcdfFile.escapeName(targetVarName), origin, variableData);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override

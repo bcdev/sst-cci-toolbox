@@ -36,7 +36,7 @@ public class HdfOsiProductReaderPlugIn implements ProductReaderPlugIn {
     /**
      * The format name.
      */
-    public static final String FORMAT_NAME = "HDF-OSI-SAF";
+    public static final String FORMAT_NAME = "OSI-SAF-HDF";
     /**
      * The FIle extension.
      */

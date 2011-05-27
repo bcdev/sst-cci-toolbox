@@ -84,7 +84,7 @@ public class HdfOsiProductReaderPlugInTest {
     @Test
     public void testGetFormatNames() throws Exception {
         assertEquals(1, plugin.getFormatNames().length);
-        assertEquals("OSI-SAF", plugin.getFormatNames()[0]);
+        assertEquals("OSI-SAF-HDF", plugin.getFormatNames()[0]);
     }
 
     @Test

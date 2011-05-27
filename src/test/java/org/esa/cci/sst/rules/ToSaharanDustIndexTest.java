@@ -21,35 +21,36 @@ import org.esa.cci.sst.data.Item;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Thomas Storm
  */
-public class ToSaharanDustIndexTest {
+public class ToSaharanDustIndexTest extends AbstractRuleTest {
 
-    private ToSaharanDustIndex rule;
-    private Item sourceItem;
-
-    @Before
-    public void setUp() throws Exception {
-        sourceItem = new ColumnBuilder().build();
-        rule = new ToSaharanDustIndex();
+    @Override
+    protected ColumnBuilder configureSourceColumn(ColumnBuilder columnBuilder) {
+        return columnBuilder
+                .standardName("ASDI2")
+                .longName("ATSR Saharan Dust Index from 2 channel algorithm")
+                .unit("kelvin")
+                .type(DataType.FLOAT);
     }
 
-    @Test
-    public void testTargetItem() throws Exception {
-        Item targetItem = rule.apply(sourceItem);
-        assertEquals("kelvin", targetItem.getUnit());
-        assertEquals("ASDI2", targetItem.getStandardName());
-        assertEquals("ATSR Saharan Dust Index from 2 channel algorithm", targetItem.getLongName());
+    @Override
+    protected void assertTargetColumn(Item targetColumn) {
+        assertEquals("ASDI2", targetColumn.getStandardName());
+        assertEquals("ATSR Saharan Dust Index from 2 channel algorithm", targetColumn.getLongName());
+        assertEquals("kelvin", targetColumn.getUnit());
+        assertEquals(DataType.SHORT.name(), targetColumn.getType());
     }
 
-    @Test
-    public void testTargetArray() throws Exception {
+    @Override
+    public void testNumericConversion() throws RuleException {
         Array sourceArray = Array.factory(new float[]{12.0f, 37.56f, 129.123f});
-        Array targetArray = rule.apply(sourceArray, sourceItem);
+        Array targetArray = getRule().apply(sourceArray, getSourceColumn());
         assertEquals(12, targetArray.getShort(0));
         assertEquals(38, targetArray.getShort(1));
         assertEquals(129, targetArray.getShort(2));

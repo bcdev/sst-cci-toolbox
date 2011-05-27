@@ -66,12 +66,12 @@ public class EgrAaiProductReaderTest {
 
         final PixelPos upperLeft = new PixelPos(0.5f, 0.5f);
         final GeoPos northWest = geoCoding.getGeoPos(upperLeft, new GeoPos());
-        assertEquals(89.5, northWest.getLat(), 0.0);
+        assertEquals(-89.5, northWest.getLat(), 0.0);
         assertEquals(-179.375, northWest.getLon(), 0.0);
 
         final PixelPos lowerRight = new PixelPos(COL_COUNT - 0.5f, ROW_COUNT - 0.5f);
         final GeoPos southEast = geoCoding.getGeoPos(lowerRight, new GeoPos());
-        assertEquals(-89.5, southEast.getLat(), 0.0);
+        assertEquals(89.5, southEast.getLat(), 0.0);
         assertEquals(179.375, southEast.getLon(), 0.0);
     }
 
@@ -90,12 +90,12 @@ public class EgrAaiProductReaderTest {
         assertEquals(DataBuffer.TYPE_USHORT, sourceImage.getSampleModel().getDataType());
 
         final Raster samples = sourceImage.getData();
-        assertEquals(999, getSample(samples, 0, 0));
-        assertEquals(443, getSample(samples, 2, 2));
-        assertEquals(440, getSample(samples, COL_COUNT - 3, 2));
-        assertEquals(439, getSample(samples, 0, 3));
-        assertEquals(441, getSample(samples, COL_COUNT - 1, 3));
-        assertEquals(999, getSample(samples, COL_COUNT - 1, ROW_COUNT - 1));
+        assertEquals(999, getSample(samples, 0, ROW_COUNT - 1));
+        assertEquals(443, getSample(samples, 2, ROW_COUNT - 3));
+        assertEquals(440, getSample(samples, COL_COUNT - 3, ROW_COUNT - 3));
+        assertEquals(439, getSample(samples, 0, ROW_COUNT - 4));
+        assertEquals(441, getSample(samples, COL_COUNT - 1, ROW_COUNT - 4));
+        assertEquals(999, getSample(samples, COL_COUNT - 1, 0));
     }
 
     @Test
@@ -103,11 +103,11 @@ public class EgrAaiProductReaderTest {
         final Number[] samples = EgrAaiProductReader.readSamples(getResourceAsFile(RESOURCE_NAME));
         assertEquals(COL_COUNT * ROW_COUNT, samples.length);
         assertEquals(999, getSample(samples, 0, 0));
-        assertEquals(443, getSample(samples, 2, 2));
-        assertEquals(440, getSample(samples, COL_COUNT - 3, 2));
-        assertEquals(439, getSample(samples, 0, 3));
-        assertEquals(441, getSample(samples, COL_COUNT - 1, 3));
-        assertEquals(999, getSample(samples, COL_COUNT - 1, ROW_COUNT - 1));
+        assertEquals(443, getSample(samples, 2, ROW_COUNT - 3));
+        assertEquals(440, getSample(samples, COL_COUNT - 3, ROW_COUNT - 3));
+        assertEquals(439, getSample(samples, 0, ROW_COUNT - 4));
+        assertEquals(441, getSample(samples, COL_COUNT - 1, ROW_COUNT - 4));
+        assertEquals(999, getSample(samples, COL_COUNT - 1, 0));
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {

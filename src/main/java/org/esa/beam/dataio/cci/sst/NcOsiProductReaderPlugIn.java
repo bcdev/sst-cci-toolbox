@@ -32,7 +32,7 @@ import java.util.Locale;
  */
 public class NcOsiProductReaderPlugIn implements ProductReaderPlugIn {
 
-    public static final String FORMAT_NAME = "NETCDF-OSI-SAF";
+    public static final String FORMAT_NAME = "OSI-SAF-NC";
     private static final String FILE_EXTENSION_NC = ".nc";
 
     @Override

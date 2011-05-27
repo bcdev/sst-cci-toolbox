@@ -107,7 +107,7 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
     protected abstract void setTime(Product product) throws IOException;
 
     protected final Dimension findDimension(String name) throws IOException {
-        final Dimension dimension = netcdfFile.findDimension(name);
+        final Dimension dimension = getNetcdfFile().findDimension(name);
         if (dimension == null) {
             throw new IOException(MessageFormat.format("Dimension ''{0}'' is missing.", name));
         }
@@ -115,7 +115,7 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
     }
 
     protected final Variable findVariable(String name) throws IOException {
-        final Variable variable = netcdfFile.findVariable(name);
+        final Variable variable = getNetcdfFile().findVariable(name);
         if (variable == null) {
             throw new IOException(MessageFormat.format("Variable ''{0}'' is missing.", name));
         }
