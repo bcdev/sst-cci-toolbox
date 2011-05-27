@@ -94,7 +94,7 @@ public class HdfOsiProductReaderTest {
         assertEquals(1120, metadata.getAttribute("Header.ih").getData().getElemInt());
         assertEquals(-3850.0, metadata.getAttribute("Header.Bx").getData().getElemFloat(), 0.0);
         assertEquals(5850, metadata.getAttribute("Header.By").getData().getElemFloat(), 0.0);
-        assertEquals(HdfOsiProductReader.NH_GRID, metadata.getAttribute("Header.area").getData().getElemString());
+        assertEquals(HdfOsiProductReader.NORTHERN_HEMISPHERE, metadata.getAttribute("Header.area").getData().getElemString());
     }
 
     @Test

@@ -67,14 +67,14 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
     }
 
     @Override
-    protected void addGeoCoding(Product product) {
+    protected void addGeoCoding(Product product) throws IOException {
         final int w = product.getSceneRasterWidth();
         final int h = product.getSceneRasterHeight();
 
         try {
-            final Array x = getNetcdfFile().findVariable("xc").read();
-            final Array y = getNetcdfFile().findVariable("yc").read();
-            final Array lat = getNetcdfFile().findVariable("lat").read(new int[]{w / 2, h / 2}, new int[]{1, 1});
+            final Array x = getVariable("xc").read();
+            final Array y = getVariable("yc").read();
+            final Array lat = getVariable("lat").read(new int[]{w / 2, h / 2}, new int[]{1, 1});
 
             final double easting = x.getDouble(0) * KM;
             final double northing = y.getDouble(0) * KM;
@@ -91,8 +91,6 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
             final GeoCoding gc = new CrsGeoCoding(crs, w, h, easting, northing, sizeX, sizeY, 0.5, 0.5);
             product.setGeoCoding(gc);
         } catch (InvalidRangeException e) {
-            throw new IllegalStateException(e);
-        } catch (IOException e) {
             throw new IllegalStateException(e);
         } catch (FactoryException e) {
             throw new IllegalStateException(e);

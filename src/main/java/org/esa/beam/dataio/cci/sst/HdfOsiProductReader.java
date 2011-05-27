@@ -28,6 +28,9 @@ import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.util.Debug;
 import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Structure;
 import ucar.nc2.Variable;
@@ -36,6 +39,7 @@ import java.awt.Dimension;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Calendar;
 
 /**
@@ -45,8 +49,8 @@ import java.util.Calendar;
  */
 public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
 
-    static final String NH_GRID = "OSISAF_NH";
-    static final String SH_GRID = "OSISAF_SH";
+    static final String NORTHERN_HEMISPHERE = "OSISAF_NH";
+    static final String SOUTHERN_HEMISPHERE = "OSISAF_SH";
 
     private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_concentration";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
@@ -58,6 +62,7 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
                                                            "concentration: it indicates the confidence level " +
                                                            "corresponding to the quality of the calculated sea ice " +
                                                            "parameter and information on the processing conditions.";
+    private static final double KM = 1000.0;
 
     HdfOsiProductReader(HdfOsiProductReaderPlugIn plugin) {
         super(plugin);
@@ -65,7 +70,7 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected Product createPlainProduct() throws IOException {
-        final Structure headerStructure = getHeaderStructure();
+        final Structure headerStructure = getHeader();
         final String productName = headerStructure.findVariable("product").readScalarString();
         final int w = headerStructure.findVariable("iw").readScalarInt();
         final int h = headerStructure.findVariable("ih").readScalarInt();
@@ -97,18 +102,16 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
     }
 
     @Override
-    protected final void addGeoCoding(Product product) {
-        final GeoCoding geoCoding;
-        try {
-            geoCoding = createGeoCoding(getHeaderStructure());
-            product.setGeoCoding(geoCoding);
-        } catch (Exception ignored) {
-        }
+    protected final void addGeoCoding(Product product) throws IOException {
+        product.setGeoCoding(createGeoCoding(getHeader()));
     }
 
     @Override
     protected final void addMetadata(Product product) {
-        product.getMetadataRoot().addElement(getMetadata(getHeaderStructure()));
+        try {
+            product.getMetadataRoot().addElement(getMetadata(getHeader()));
+        } catch (IOException ignored) {
+        }
     }
 
     @Override
@@ -133,17 +136,14 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
     }
 
     @Override
-    protected final void setTime(Product product) {
-        final Structure headerStructure = getHeaderStructure();
-        try {
-            final int year = headerStructure.findVariable("year").readScalarInt();
-            final int month = headerStructure.findVariable("month").readScalarInt();
-            final int day = headerStructure.findVariable("day").readScalarInt();
-            final int hour = headerStructure.findVariable("hour").readScalarInt();
-            final int minute = headerStructure.findVariable("minute").readScalarInt();
-            setTime(product, year, month, day, hour, minute);
-        } catch (IOException ignored) {
-        }
+    protected final void setTime(Product product) throws IOException {
+        final Structure header = getHeader();
+        final int year = findVariable(header, "year").readScalarInt();
+        final int month = findVariable(header, "month").readScalarInt();
+        final int day = findVariable(header, "day").readScalarInt();
+        final int hour = findVariable(header, "hour").readScalarInt();
+        final int minute = findVariable(header, "minute").readScalarInt();
+        setTime(product, year, month, day, hour, minute);
     }
 
     MetadataElement getMetadata(Structure headerStructure) {
@@ -190,14 +190,14 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
         return element;
     }
 
-    GeoCoding createGeoCoding(Structure headerStructure) throws Exception {
-        final int w = headerStructure.findVariable("iw").readScalarInt();
-        final int h = headerStructure.findVariable("ih").readScalarInt();
-        final String grid = headerStructure.findVariable("area").readScalarString();
-        String code;
-        if (NH_GRID.equals(grid)) {
+    GeoCoding createGeoCoding(Structure header) throws IOException {
+        final int w = findVariable(header, "iw").readScalarInt();
+        final int h = findVariable(header, "ih").readScalarInt();
+        final String area = findVariable(header, "area").readScalarString();
+        final String code;
+        if (NORTHERN_HEMISPHERE.equals(area)) {
             code = "EPSG:3411";
-        } else if (SH_GRID.equals(grid)) {
+        } else if (SOUTHERN_HEMISPHERE.equals(area)) {
             code = "EPSG:3412";
         } else {
             // code for computing math transform for higher latitude grid is to be found
@@ -206,17 +206,19 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
                     "Grid support for grids different from 'Northern Hemisphere Grid' and " +
                     "'Southern Hemisphere Grid' not yet implemented.");
         }
-        final double easting = headerStructure.findVariable("Bx").readScalarFloat() * 1000.0;
-        final double northing = headerStructure.findVariable("By").readScalarFloat() * 1000.0;
-        final double pixelSizeX = headerStructure.findVariable("Ax").readScalarFloat() * 1000.0;
-        final double pixelSizeY = headerStructure.findVariable("Ay").readScalarFloat() * 1000.0;
+        try {
+            final CoordinateReferenceSystem crs = CRS.decode(code);
+            final double easting = findVariable(header, "Bx").readScalarFloat() * KM;
+            final double northing = findVariable(header, "By").readScalarFloat() * KM;
+            final double pixelSizeX = findVariable(header, "Ax").readScalarFloat() * KM;
+            final double pixelSizeY = findVariable(header, "Ay").readScalarFloat() * KM;
 
-        return new CrsGeoCoding(CRS.decode(code), w, h, easting, northing, pixelSizeX, pixelSizeY, 0.0, 0.0);
-    }
-
-
-    private Structure getHeaderStructure() {
-        return (Structure) getNetcdfFile().findVariable("Header");
+            return new CrsGeoCoding(crs, w, h, easting, northing, pixelSizeX, pixelSizeY, 0.0, 0.0);
+        } catch (FactoryException e) {
+            throw new IllegalStateException(e);
+        } catch (TransformException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     void setTime(Product product, int year, int month, int day, int hour, int minute) {
@@ -236,4 +238,15 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
         return !file.getName().contains("_qual_");
     }
 
+    private Structure getHeader() throws IOException {
+        return (Structure) getVariable("Header");
+    }
+
+    private Variable findVariable(Structure structure, String name) throws IOException {
+        final Variable variable = structure.findVariable(name);
+        if (variable == null) {
+            throw new IOException(MessageFormat.format("Expected variable ''{0}'', which is missing.", name));
+        }
+        return variable;
+    }
 }

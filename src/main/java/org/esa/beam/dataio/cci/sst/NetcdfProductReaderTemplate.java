@@ -23,12 +23,14 @@ import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.awt.Rectangle;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 
 /**
  * A template for netCDF product file readers.
@@ -69,12 +71,12 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
     protected final synchronized void readBandRasterDataImpl(int sourceOffsetX, int sourceOffsetY,
                                                              int sourceWidth, int sourceHeight,
                                                              int sourceStepX, int sourceStepY,
-                                                             Band destBand,
+                                                             Band targetBand,
                                                              int targetOffsetX, int targetOffsetY,
                                                              int targetWidth, int targetHeight,
                                                              ProductData targetBuffer,
                                                              ProgressMonitor pm) throws IOException {
-        final RenderedImage image = destBand.getSourceImage();
+        final RenderedImage image = targetBand.getSourceImage();
         final Raster data = image.getData(new Rectangle(targetOffsetX, targetOffsetY, targetWidth, targetHeight));
         data.getDataElements(targetOffsetX, targetOffsetY, targetWidth, targetHeight, targetBuffer.getElems());
     }
@@ -93,7 +95,7 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
 
     protected abstract void addBands(Product product) throws IOException;
 
-    protected abstract void addGeoCoding(Product product);
+    protected abstract void addGeoCoding(Product product) throws IOException;
 
     protected abstract void addMetadata(Product product);
 
@@ -101,5 +103,13 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
 
     protected abstract RenderedImage createSourceImage(Band band);
 
-    protected abstract void setTime(Product product);
+    protected abstract void setTime(Product product) throws IOException;
+
+    protected final Variable getVariable(String name) throws IOException {
+        final Variable variable = netcdfFile.findVariable(name);
+        if (variable == null) {
+            throw new IOException(MessageFormat.format("Expected variable ''{0}'', which is missing.", name));
+        }
+        return variable;
+    }
 }
