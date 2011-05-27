@@ -72,9 +72,9 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
         final int h = product.getSceneRasterHeight();
 
         try {
-            final Array x = getVariable("xc").read();
-            final Array y = getVariable("yc").read();
-            final Array lat = getVariable("lat").read(new int[]{w / 2, h / 2}, new int[]{1, 1});
+            final Array x = findVariable("xc").read();
+            final Array y = findVariable("yc").read();
+            final Array lat = findVariable("lat").read(new int[]{w / 2, h / 2}, new int[]{1, 1});
 
             final double easting = x.getDouble(0) * KM;
             final double northing = y.getDouble(0) * KM;
@@ -109,8 +109,8 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
     protected Product createPlainProduct() throws IOException {
         final File inputFile = new File(getNetcdfFile().getLocation());
         final String productName = inputFile.getName();
-        final int w = getNetcdfFile().findDimension("xc").getLength();
-        final int h = getNetcdfFile().findDimension("yc").getLength();
+        final int w = findDimension("xc").getLength();
+        final int h = findDimension("yc").getLength();
 
         return new Product(productName, NcOsiProductReaderPlugIn.FORMAT_NAME, w, h);
     }

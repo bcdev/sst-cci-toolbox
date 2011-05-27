@@ -22,6 +22,7 @@ import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -105,10 +106,18 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
 
     protected abstract void setTime(Product product) throws IOException;
 
-    protected final Variable getVariable(String name) throws IOException {
+    protected final Dimension findDimension(String name) throws IOException {
+        final Dimension dimension = netcdfFile.findDimension(name);
+        if (dimension == null) {
+            throw new IOException(MessageFormat.format("Dimension ''{0}'' is missing.", name));
+        }
+        return dimension;
+    }
+
+    protected final Variable findVariable(String name) throws IOException {
         final Variable variable = netcdfFile.findVariable(name);
         if (variable == null) {
-            throw new IOException(MessageFormat.format("Expected variable ''{0}'', which is missing.", name));
+            throw new IOException(MessageFormat.format("Variable ''{0}'' is missing.", name));
         }
         return variable;
     }

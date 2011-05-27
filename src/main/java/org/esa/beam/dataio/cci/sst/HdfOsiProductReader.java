@@ -70,10 +70,10 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected Product createPlainProduct() throws IOException {
-        final Structure headerStructure = getHeader();
-        final String productName = headerStructure.findVariable("product").readScalarString();
-        final int w = headerStructure.findVariable("iw").readScalarInt();
-        final int h = headerStructure.findVariable("ih").readScalarInt();
+        final Structure header = getHeader();
+        final String productName = findVariable(header, "product").readScalarString();
+        final int w = findVariable(header, "iw").readScalarInt();
+        final int h = findVariable(header, "ih").readScalarInt();
 
         final Product product = new Product(productName, getReaderPlugIn().getFormatNames()[0], w, h);
         // IMPORTANT - resulting image is wrong when tile size is different from image dimension
@@ -239,7 +239,7 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
     }
 
     private Structure getHeader() throws IOException {
-        return (Structure) getVariable("Header");
+        return (Structure) findVariable("Header");
     }
 
     private Variable findVariable(Structure structure, String name) throws IOException {

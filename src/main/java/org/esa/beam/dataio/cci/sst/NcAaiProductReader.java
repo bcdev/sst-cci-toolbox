@@ -90,8 +90,8 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
     @Override
     protected Product createPlainProduct() throws IOException {
         final File file = new File(getInput().toString());
-        final int width = getNetcdfFile().findDimension("nx").getLength();
-        final int height = getNetcdfFile().findDimension("ny").getLength();
+        final int width = findDimension("nx").getLength();
+        final int height = findDimension("ny").getLength();
 
         return new Product(file.getName(), "AerosolAai", width, height);
     }
