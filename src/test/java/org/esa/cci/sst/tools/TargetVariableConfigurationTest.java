@@ -45,7 +45,7 @@ public class TargetVariableConfigurationTest {
         final ColumnBuilder builder = new ColumnBuilder();
         final Item implicitColumn = builder.build();
         registry.register(implicitColumn);
-        for (String variable : VarsHolder.VARS) {
+        for (String variable : VarsHolder.VARIABLES) {
             registry.register(builder.name(variable.trim()).build());
         }
 
