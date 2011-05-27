@@ -22,6 +22,7 @@ import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.datamodel.VirtualBand;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -61,6 +62,9 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
         addBands(product);
         addGeoCoding(product);
         for (final Band band : product.getBands()) {
+            if (band instanceof VirtualBand) {
+                continue;
+            }
             band.setSourceImage(createSourceImage(band));
         }
         setTime(product);
