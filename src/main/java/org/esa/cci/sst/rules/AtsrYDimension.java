@@ -25,6 +25,6 @@ public class AtsrYDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "atsr.nj");
+        builder.replace(1, "atsr.ny");
     }
 }

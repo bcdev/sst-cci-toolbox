@@ -25,7 +25,7 @@ class AtsrImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "atsr.nj");
-        builder.replace(2, "atsr.ni");
+        builder.replace(1, "atsr.ny");
+        builder.replace(2, "atsr.nx");
     }
 }

@@ -80,7 +80,7 @@ public class QueriesTest {
         final List<? extends Item> columnList = Queries.getAllColumns(pm);
 
         assertNotNull(columnList);
-        assertEquals(355, columnList.size());
+        assertEquals(357, columnList.size());
     }
 
     @Test

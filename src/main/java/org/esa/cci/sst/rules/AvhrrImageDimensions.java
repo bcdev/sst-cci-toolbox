@@ -25,7 +25,7 @@ class AvhrrImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "avhrr.nj");
-        builder.replace(2, "avhrr.ni");
+        builder.replace(1, "avhrr.ny");
+        builder.replace(2, "avhrr.nx");
     }
 }

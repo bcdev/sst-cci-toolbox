@@ -25,7 +25,7 @@ class AaiImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "aai.nj");
-        builder.replace(2, "aai.ni");
+        builder.replace(1, "aai.ny");
+        builder.replace(2, "aai.nx");
     }
 }
