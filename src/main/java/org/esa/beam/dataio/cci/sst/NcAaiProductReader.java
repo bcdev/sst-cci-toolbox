@@ -59,6 +59,10 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
                 CfBandPart.readCfBandAttributes(variable, band);
             }
         }
+        final Band lonBand = product.addBand("lon", "LON", ProductData.TYPE_FLOAT32);
+        lonBand.setUnit("Degrees east");
+        final Band latBand = product.addBand("lat", "LAT", ProductData.TYPE_FLOAT32);
+        latBand.setUnit("Degrees north");
     }
 
     @Override
