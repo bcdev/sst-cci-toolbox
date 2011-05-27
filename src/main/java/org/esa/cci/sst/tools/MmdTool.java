@@ -161,7 +161,14 @@ public class MmdTool extends BasicTool {
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
             if (sourceArray != null) {
-                final Converter converter = columnRegistry.getConverter(targetColumn, reader.getColumn(role));
+                getLogger().fine(
+                        MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
+                                             sourceColumn.getRole()));
+                sourceColumn = reader.getColumn(role);
+                if (sourceColumn == null) {
+                    throw new IllegalStateException(MessageFormat.format("Unknown role ''{0}''.", role));
+                }
+                final Converter converter = columnRegistry.getConverter(targetColumn, sourceColumn);
                 final Array targetArray = converter.apply(sourceArray);
 
                 final int[] targetStart = new int[variable.getRank()];

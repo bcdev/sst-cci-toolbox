@@ -16,8 +16,13 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.util.PixelLocator;
+import org.esa.beam.util.QuadTreePixelLocator;
+import org.esa.beam.util.SampleSource;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.tools.ToolException;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
@@ -25,6 +30,7 @@ import ucar.ma2.ArrayDouble;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.ArrayShort;
 import ucar.ma2.DataType;
+import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
@@ -32,6 +38,7 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import java.awt.Point;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
@@ -83,14 +90,36 @@ abstract class MdIOHandler extends NetcdfIOHandler {
 
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
-        // for rank > 1 variables:
-        // 1. geo-coding for sub-scene
-        // 2. find center pixel for extract location
-        // 3. read data for extract (fill pixel that are not in the subscene)
-        // 4. return
-        // for rank = 1 variables:
+        final Variable variable = getVariable(role);
+        final int recordNo = extractDefinition.getOrigin()[0];
+        if (variable.getRank() < 3) {
+            return getData(variable, recordNo);
+        }
+        final Variable lon = getVariable("lon");
+        final Variable lat = getVariable("lat");
+        final Array lonData = getData(lon, recordNo);
+        final Array latData = getData(lat, recordNo);
+        final SampleSource lonSource = new VariableSampleSource(lon, lonData);
+        final SampleSource latSource = new VariableSampleSource(lat, latData);
+        final PixelLocator pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
+        final Point p = new Point();
+        final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
+                                                              extractDefinition.getLat(), p);
+        if (!success) {
+            final String message = MessageFormat.format(
+                    "Unable to find pixel at ({0}, {1}) for record {2} in file ''{3}''.",
+                    extractDefinition.getLon(),
+                    extractDefinition.getLat(),
+                    recordNo,
+                    getNetcdfFile().getLocation());
+            throw new ToolException(message, ToolException.TOOL_ERROR);
+        }
 
-        return null;
+        final Array sourceData = getData(variable, recordNo);
+        final Array targetData = Array.factory(variable.getDataType(), extractDefinition.getShape());
+        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
+        extractSubscene(sourceData, targetData, p, fillValue);
+        return targetData;
     }
 
     @Deprecated
@@ -382,5 +411,34 @@ abstract class MdIOHandler extends NetcdfIOHandler {
             return defaultValue;
         }
         return attribute.getNumericValue();
+    }
+
+    static void extractSubscene(Array source, Array target, Point p, Number fillValue) {
+        final int[] sourceShape = source.getShape();
+        final int[] targetShape = target.getShape();
+        final int ssx = sourceShape[source.getRank() - 1];
+        final int ssy = sourceShape[source.getRank() - 2];
+        final int tsx = targetShape[target.getRank() - 1];
+        final int tsy = targetShape[target.getRank() - 2];
+        final int cx = tsx / 2;
+        final int cy = tsy / 2;
+
+        final Index si = source.getIndex();
+        final Index ti = target.getIndex();
+        for (int ty = 0; ty < tsy; ty++) {
+            ti.setDim(target.getRank() - 2, ty);
+            for (int tx = 0; tx < tsx; tx++) {
+                ti.setDim(target.getRank() - 1, tx);
+                final int sx = tx - (cx - p.x);
+                final int sy = ty - (cy - p.y);
+                if (sx >= 0 && sy >= 0 && sx < ssx && sy < ssy) {
+                    si.setDim(source.getRank() - 1, sx);
+                    si.setDim(source.getRank() - 2, sy);
+                    target.setObject(ti, source.getObject(si));
+                } else {
+                    target.setObject(ti, fillValue);
+                }
+            }
+        }
     }
 }

@@ -76,7 +76,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     public final Item getColumn(String role) {
         final Variable variable = variableMap.get(role);
         if (variable != null) {
-            createColumn(variable);
+            return createColumn(variable);
         }
         return null;
     }

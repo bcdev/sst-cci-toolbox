@@ -276,7 +276,7 @@ abstract class AbstractProductHandler implements IOHandler {
             final String message = MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
                                                         geoPos.getLon(),
                                                         geoPos.getLat(),
-                                                        getProduct().getName());
+                                                        product.getName());
             throw new ToolException(message, ToolException.TOOL_ERROR);
         }
         return pixelPos;
