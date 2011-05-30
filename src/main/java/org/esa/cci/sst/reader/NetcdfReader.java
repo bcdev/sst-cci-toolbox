@@ -37,7 +37,7 @@ import java.util.List;
  *
  * @author Thomas Storm
  */
-abstract class NetcdfIOHandler implements IOHandler {
+abstract class NetcdfReader implements Reader {
 
     private final String sensorName;
     private final HashMap<String, Variable> variableMap = new HashMap<String, Variable>();
@@ -45,7 +45,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     private DataFile datafile;
     private NetcdfFile netcdfFile;
 
-    protected NetcdfIOHandler(String sensorName) {
+    protected NetcdfReader(String sensorName) {
         this.sensorName = sensorName;
     }
 

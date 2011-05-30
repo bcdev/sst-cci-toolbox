@@ -24,8 +24,8 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.reader.ExtractDefinition;
-import org.esa.cci.sst.reader.IOHandler;
-import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.Cache;
@@ -67,7 +67,7 @@ public class MmdTool extends BasicTool {
     private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
     private final List<String> targetColumnNames = new ArrayList<String>(500);
 
-    private final Cache<String, IOHandler> readerCache = new Cache<String, IOHandler>(100);
+    private final Cache<String, Reader> readerCache = new Cache<String, Reader>(100);
 
     private int matchupCount;
 
@@ -111,8 +111,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void closeReaders() {
-        final Collection<IOHandler> removedReaders = readerCache.clear();
-        for (final IOHandler reader : removedReaders) {
+        final Collection<Reader> removedReaders = readerCache.clear();
+        for (final Reader reader : removedReaders) {
             reader.close();
         }
     }
@@ -172,7 +172,7 @@ public class MmdTool extends BasicTool {
     private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Coincidence coincidence) {
         try {
-            final IOHandler reader = getReader(coincidence.getObservation().getDatafile());
+            final Reader reader = getReader(coincidence.getObservation().getDatafile());
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
@@ -209,11 +209,11 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private IOHandler getReader(DataFile datafile) throws IOException {
+    private Reader getReader(DataFile datafile) throws IOException {
         final String path = datafile.getPath();
         if (!readerCache.contains(path)) {
-            final IOHandler reader = IOHandlerFactory.open(datafile, getConfiguration());
-            final IOHandler removedReader = readerCache.add(path, reader);
+            final Reader reader = ReaderFactory.open(datafile, getConfiguration());
+            final Reader removedReader = readerCache.add(path, reader);
             if (removedReader != null) {
                 removedReader.close();
             }

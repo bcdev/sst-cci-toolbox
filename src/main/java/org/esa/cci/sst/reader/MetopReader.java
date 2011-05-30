@@ -39,14 +39,14 @@ import java.util.List;
  *
  * @author Martin Boettcher
  */
-class MetopIOHandler extends MdIOHandler {
+class MetopReader extends MdReader {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
 
     protected int rowCount;
     protected int colCount;
 
-    MetopIOHandler(String sensorName) {
+    MetopReader(String sensorName) {
         super(sensorName);
     }
 

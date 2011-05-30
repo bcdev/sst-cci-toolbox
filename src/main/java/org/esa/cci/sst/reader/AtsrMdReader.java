@@ -33,9 +33,9 @@ import java.util.Date;
  *
  * @author Martin Boettcher
  */
-class AtsrMdIOHandler extends MdIOHandler {
+class AtsrMdReader extends MdReader {
 
-    AtsrMdIOHandler(String sensorName) {
+    AtsrMdReader(String sensorName) {
         super(sensorName);
     }
 

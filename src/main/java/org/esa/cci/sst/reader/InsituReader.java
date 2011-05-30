@@ -45,7 +45,7 @@ import java.util.TimeZone;
  *
  * @author Thomas Storm
  */
-class InsituIOHandler extends NetcdfIOHandler {
+class InsituReader extends NetcdfReader {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
     private Array historyTimes;
@@ -54,7 +54,7 @@ class InsituIOHandler extends NetcdfIOHandler {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    InsituIOHandler(String sensorName) {
+    InsituReader(String sensorName) {
         super(sensorName);
     }
 

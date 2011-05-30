@@ -43,11 +43,11 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class InsituIOHandlerTest {
+public class InsituReaderTest {
 
     @Test
     public void testReadObservation() throws Exception {
-        final InsituIOHandler handler = createIOHandler();
+        final InsituReader handler = createIOHandler();
         final InsituObservation observation;
 
         try {
@@ -83,7 +83,7 @@ public class InsituIOHandlerTest {
     public void testFindRange_ForReferenceTimeInHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455090.56;
-        final Range range = InsituIOHandler.findRange(historyTimes, referenceTime);
+        final Range range = InsituReader.findRange(historyTimes, referenceTime);
 
         assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - 0.5);
         assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - 0.5);
@@ -95,7 +95,7 @@ public class InsituIOHandlerTest {
     public void testFindRange_ForReferenceTimeAtStartOfHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2454939.446;
-        final Range range = InsituIOHandler.findRange(historyTimes, referenceTime);
+        final Range range = InsituReader.findRange(historyTimes, referenceTime);
 
         assertTrue(historyTimes.getDouble(range.first()) == referenceTime);
         assertTrue(historyTimes.getDouble(range.last()) <= referenceTime + 0.5);
@@ -106,7 +106,7 @@ public class InsituIOHandlerTest {
     public void testFindRange_ForReferenceTimeAtEndOfHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455097.774;
-        final Range range = InsituIOHandler.findRange(historyTimes, referenceTime);
+        final Range range = InsituReader.findRange(historyTimes, referenceTime);
 
         assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - 0.5);
         assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - 0.5);
@@ -117,7 +117,7 @@ public class InsituIOHandlerTest {
     public void testFindRange_ForReferenceTimeAtLowerLimit() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2454939.446 - 0.5;
-        final Range range = InsituIOHandler.findRange(historyTimes, referenceTime);
+        final Range range = InsituReader.findRange(historyTimes, referenceTime);
 
         assertNotSame(Range.EMPTY, range);
         assertTrue(range.first() == range.last());
@@ -128,7 +128,7 @@ public class InsituIOHandlerTest {
     public void testFindRange_ForReferenceTimeAtUpperLimit() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455097.774 + 0.5;
-        final Range range = InsituIOHandler.findRange(historyTimes, referenceTime);
+        final Range range = InsituReader.findRange(historyTimes, referenceTime);
 
         assertNotSame(Range.EMPTY, range);
         assertTrue(range.first() == range.last());
@@ -139,7 +139,7 @@ public class InsituIOHandlerTest {
     public void testFindRange_ForReferenceTimeBeforeHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2454939.446 - 1.0;
-        final Range range = InsituIOHandler.findRange(historyTimes, referenceTime);
+        final Range range = InsituReader.findRange(historyTimes, referenceTime);
 
         assertSame(Range.EMPTY, range);
     }
@@ -148,7 +148,7 @@ public class InsituIOHandlerTest {
     public void testFindRange_ForReferenceTimeAfterHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455097.774 + 1.0;
-        final Range range = InsituIOHandler.findRange(historyTimes, referenceTime);
+        final Range range = InsituReader.findRange(historyTimes, referenceTime);
 
         assertSame(Range.EMPTY, range);
     }
@@ -156,8 +156,8 @@ public class InsituIOHandlerTest {
     @Test
     public void testCreateSubsampling() {
         final Array historyTimes = createHistoryTimeArray();
-        final Range r = InsituIOHandler.findRange(historyTimes, 2455090.56);
-        final List<Range> s = InsituIOHandler.createSubsampling(historyTimes, r, 10);
+        final Range r = InsituReader.findRange(historyTimes, 2455090.56);
+        final List<Range> s = InsituReader.createSubsampling(historyTimes, r, 10);
 
         assertEquals(10, s.size());
         assertEquals(r.first(), s.get(0).first());
@@ -169,10 +169,10 @@ public class InsituIOHandlerTest {
     @Test
     public void testCreateSubset_1D() throws InvalidRangeException {
         final Array historyTimes = createHistoryTimeArray();
-        final Range range = InsituIOHandler.findRange(historyTimes, 2455090.56);
-        final List<Range> s = InsituIOHandler.createSubsampling(historyTimes, range, 10);
+        final Range range = InsituReader.findRange(historyTimes, 2455090.56);
+        final List<Range> s = InsituReader.createSubsampling(historyTimes, range, 10);
         final Array subset = Array.factory(historyTimes.getElementType(), new int[]{1, 10});
-        InsituIOHandler.extractSubset(historyTimes, subset, s);
+        InsituReader.extractSubset(historyTimes, subset, s);
 
         assertEquals(2, subset.getRank());
         assertEquals(10, subset.getIndexPrivate().getShape(1));
@@ -184,12 +184,12 @@ public class InsituIOHandlerTest {
     public void testCreateSubset_2D() throws InvalidRangeException {
         final Array historyTimes = createHistoryTimeArray();
         final int historyLength = historyTimes.getIndexPrivate().getShape(0);
-        final Range range = InsituIOHandler.findRange(historyTimes, 2455090.56);
-        final List<Range> s = InsituIOHandler.createSubsampling(historyTimes, range, 10);
+        final Range range = InsituReader.findRange(historyTimes, 2455090.56);
+        final List<Range> s = InsituReader.createSubsampling(historyTimes, range, 10);
 
         final Array array = Array.factory(DataType.INT, new int[]{historyLength, 2});
         final Array subset = Array.factory(array.getElementType(), new int[]{1, 10, 2});
-        InsituIOHandler.extractSubset(array, subset, s);
+        InsituReader.extractSubset(array, subset, s);
 
         assertEquals(3, subset.getRank());
         assertEquals(10, subset.getIndexPrivate().getShape(1));
@@ -931,19 +931,19 @@ public class InsituIOHandlerTest {
         });
     }
 
-    private static InsituIOHandler createIOHandler() throws Exception {
+    private static InsituReader createIOHandler() throws Exception {
         final DataFile dataFile = new DataFile();
         final String path = getResourceAsFile("insitu_WMOID_11851_20071123_20080111.nc").getPath();
         dataFile.setPath(path);
 
-        final InsituIOHandler handler = new InsituIOHandler("history");
+        final InsituReader handler = new InsituReader("history");
         handler.init(dataFile);
 
         return handler;
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {
-        final URL url = InsituIOHandlerTest.class.getResource(name);
+        final URL url = InsituReaderTest.class.getResource(name);
         final URI uri = url.toURI();
 
         return new File(uri);

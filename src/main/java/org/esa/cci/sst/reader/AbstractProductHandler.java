@@ -52,7 +52,7 @@ import java.util.logging.Logger;
  *
  * @author Ralf Quast
  */
-abstract class AbstractProductHandler implements IOHandler {
+abstract class AbstractProductHandler implements Reader {
 
     private final String sensorName;
     private final String[] formatNames;

@@ -50,14 +50,14 @@ import java.util.logging.Logger;
  *
  * @author Martin Boettcher
  */
-abstract class MdIOHandler extends NetcdfIOHandler {
+abstract class MdReader extends NetcdfReader {
 
     private final Map<String, Array> arrayMap = new HashMap<String, Array>();
     private final Map<String, Integer> indexMap = new HashMap<String, Integer>();
 
     private int numRecords;
 
-    protected MdIOHandler(String sensorName) {
+    protected MdReader(String sensorName) {
         super(sensorName);
     }
 

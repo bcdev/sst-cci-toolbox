@@ -19,7 +19,7 @@ package org.esa.cci.sst.tools.ingestion;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.MmdIOHandler;
+import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
@@ -67,7 +67,7 @@ public class MmdIngestionTool extends BasicTool {
                                                             "FROM mm_datafile " +
                                                             "WHERE path = '%s'";
 
-    private MmdIOHandler ioHandler;
+    private MmdReader reader;
     private Ingester ingester;
     private DataFile dataFile;
 
@@ -95,13 +95,13 @@ public class MmdIngestionTool extends BasicTool {
     }
 
     private void ingestObservations() {
-        final MmdObservationIngester observationIngester = new MmdObservationIngester(this, ingester, ioHandler);
+        final MmdObservationIngester observationIngester = new MmdObservationIngester(this, ingester, reader);
         observationIngester.ingestObservations();
     }
 
     private void persistColumns(String sensorName) {
         try {
-            ingester.persistColumns(sensorName, ioHandler);
+            ingester.persistColumns(sensorName, reader);
         } catch (IOException e) {
             throw new ToolException(
                     MessageFormat.format("Unable to persist columns for sensor ''{0}''.", sensorName),
@@ -140,11 +140,11 @@ public class MmdIngestionTool extends BasicTool {
     }
 
     private void initIOHandler(final DataFile dataFile) {
-        ioHandler = new MmdIOHandler(getConfiguration());
+        reader = new MmdReader(getConfiguration());
         try {
-            ioHandler.init(dataFile);
+            reader.init(dataFile);
         } catch (IOException e) {
-            throw new ToolException("Error initializing IOHandler for mmd file.", e, ToolException.TOOL_ERROR);
+            throw new ToolException("Error initializing Reader for mmd file.", e, ToolException.TOOL_ERROR);
         }
     }
 

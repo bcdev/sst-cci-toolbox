@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import ucar.ma2.Array;
 
@@ -41,12 +41,12 @@ import java.util.zip.GZIPInputStream;
  *
  * @author Martin Boettcher
  */
-class GunzipDecorator implements IOHandler {
+class GunzipDecorator implements Reader {
 
-    private final IOHandler delegate;
+    private final Reader delegate;
     private File tmpFile;
 
-    GunzipDecorator(IOHandler delegate) {
+    GunzipDecorator(Reader delegate) {
         this.delegate = delegate;
     }
 

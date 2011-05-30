@@ -34,12 +34,12 @@ import java.io.IOException;
  *
  * @author Martin Boettcher
  */
-class SeviriIOHandler extends MdIOHandler {
+class SeviriReader extends MdReader {
 
     protected int noOfLines;
     protected int noOfColumns;
 
-    SeviriIOHandler(String sensorName) {
+    SeviriReader(String sensorName) {
         super(sensorName);
     }
 

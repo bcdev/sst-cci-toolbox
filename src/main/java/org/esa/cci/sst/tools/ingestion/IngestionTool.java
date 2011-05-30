@@ -20,8 +20,8 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.IOHandler;
-import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 
@@ -95,7 +95,7 @@ public class IngestionTool extends BasicTool {
     private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) {
         getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", file.getPath()));
         final PersistenceManager persistenceManager = getPersistenceManager();
-        final IOHandler ioHandler = getIOHandler(readerSpec, sensorName);
+        final Reader reader = getIOHandler(readerSpec, sensorName);
         try {
             // open database
             persistenceManager.transaction();
@@ -107,14 +107,14 @@ public class IngestionTool extends BasicTool {
                 sensor = ingester.createSensor(sensorName, observationType, pattern);
             }
             final DataFile dataFile = new DataFile(file, sensor);
-            ioHandler.init(dataFile);
+            reader.init(dataFile);
 
             persistenceManager.persist(dataFile);
             if (addVariables) {
-                ingester.persistColumns(sensorName, ioHandler);
+                ingester.persistColumns(sensorName, reader);
             }
 
-            int recordsInTimeInterval = persistObservations(sensorName, ioHandler);
+            int recordsInTimeInterval = persistObservations(sensorName, reader);
             // make changes in database
             persistenceManager.commit();
             getLogger().info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
@@ -128,19 +128,19 @@ public class IngestionTool extends BasicTool {
             }
             getErrorHandler().warn(e, MessageFormat.format("Failed to ingest file ''{0}''.", file));
         } finally {
-            ioHandler.close();
+            reader.close();
         }
     }
 
-    private IOHandler getIOHandler(final String readerSpec, final String sensor) {
-        final IOHandler ioHandler;
+    private Reader getIOHandler(final String readerSpec, final String sensor) {
+        final Reader reader;
         try {
-            ioHandler = IOHandlerFactory.createHandler(readerSpec, sensor);
+            reader = ReaderFactory.createReader(readerSpec, sensor);
         } catch (Exception e) {
             final String message = MessageFormat.format("Cannot create IO handler for sensor ''{0}''.", sensor);
             throw new ToolException(message, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
-        return ioHandler;
+        return reader;
     }
 
     /**
@@ -187,17 +187,17 @@ public class IngestionTool extends BasicTool {
         getLogger().info(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
     }
 
-    private int persistObservations(final String sensorName, final IOHandler ioHandler) {
+    private int persistObservations(final String sensorName, final Reader reader) {
         final PersistenceManager persistenceManager = getPersistenceManager();
         int recordsInTimeInterval = 0;
 
         // loop over records
-        for (int recordNo = 0; recordNo < ioHandler.getNumRecords(); ++recordNo) {
+        for (int recordNo = 0; recordNo < reader.getNumRecords(); ++recordNo) {
             if (recordNo % 65536 == 0 && recordNo > 0) {
                 getLogger().info(MessageFormat.format("Reading record {0} {1}.", sensorName, recordNo));
             }
             try {
-                final Observation observation = ioHandler.readObservation(recordNo);
+                final Observation observation = reader.readObservation(recordNo);
                 if (ingester.persistObservation(observation, recordNo)) {
                     recordsInTimeInterval++;
                 }

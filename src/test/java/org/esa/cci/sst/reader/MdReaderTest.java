@@ -21,9 +21,9 @@ import ucar.ma2.Array;
 
 import java.awt.Point;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-public class MdIOHandlerTest {
+public class MdReaderTest {
 
     @Test
     public void testExtractMdSubscene() {
@@ -39,7 +39,7 @@ public class MdIOHandlerTest {
         final Array target = Array.factory(targetArray);
 
 
-        MdIOHandler.extractSubscene(source, target, new Point(2, 2), -1);
+        MdReader.extractSubscene(source, target, new Point(2, 2), -1);
 
         for (int y = 0; y < target.getShape()[1]; y++) {
             assertEquals(-1, target.getInt(target.getIndex().set(0, y, 0)));

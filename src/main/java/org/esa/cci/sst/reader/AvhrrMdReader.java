@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * @author Thomas Storm
  */
-class AvhrrMdReader extends MdIOHandler {
+class AvhrrMdReader extends MdReader {
 
     protected AvhrrMdReader(String sensorName) {
         super(sensorName);

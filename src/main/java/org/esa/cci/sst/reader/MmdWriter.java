@@ -30,10 +30,10 @@ import java.io.IOException;
  */
 class MmdWriter {
 
-    private final MmdIOHandler mmdIOHandler;
+    private final MmdReader mmdReader;
 
-    MmdWriter(final MmdIOHandler mmdIOHandler) {
-        this.mmdIOHandler = mmdIOHandler;
+    MmdWriter(final MmdReader mmdReader) {
+        this.mmdReader = mmdReader;
     }
 
     void write(final NetcdfFileWriteable targetFile, final Observation sourceObservation,
@@ -45,7 +45,7 @@ class MmdWriter {
         origin[0] = targetRecordNumber;
 
         try {
-            final Array variableData = mmdIOHandler.getData(sourceVariableName, sourceObservation.getRecordNo());
+            final Array variableData = mmdReader.getData(sourceVariableName, sourceObservation.getRecordNo());
             targetFile.write(NetcdfFile.escapeName(targetVariableName), origin, variableData);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
