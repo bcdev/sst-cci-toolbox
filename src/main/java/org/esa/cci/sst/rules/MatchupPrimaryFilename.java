@@ -21,13 +21,15 @@ import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
-/**
- * Matchup ID.
- */
-public class MatchupId extends MatchupRule {
+import java.io.File;
 
-    private static final DataType DATA_TYPE = DataType.INT;
-    private static final int[] SHAPE = new int[]{1};
+/**
+ * Matchup filename.
+ */
+public class MatchupPrimaryFilename extends MatchupRule {
+
+    private static final DataType DATA_TYPE = DataType.CHAR;
+    private static final int[] SHAPE = new int[]{1, 80};
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
@@ -37,7 +39,11 @@ public class MatchupId extends MatchupRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setInt(0, getMatchup().getId());
+        final String filePath = getMatchup().getRefObs().getDatafile().getPath();
+        final String filename = new File(filePath).getName();
+        for (int i = 0; i < Math.min(SHAPE[1], filename.length()); i++) {
+            targetArray.setChar(i, filename.charAt(i));
+        }
         return targetArray;
     }
 }

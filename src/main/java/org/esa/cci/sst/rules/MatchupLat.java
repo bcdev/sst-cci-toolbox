@@ -22,11 +22,12 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
- * Matchup ID.
+ * Matchup longitude.
  */
-public class MatchupId extends MatchupRule {
+public class MatchupLat extends MatchupRule {
 
-    private static final DataType DATA_TYPE = DataType.INT;
+
+    private static final DataType DATA_TYPE = DataType.FLOAT;
     private static final int[] SHAPE = new int[]{1};
 
     @Override
@@ -37,7 +38,7 @@ public class MatchupId extends MatchupRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setInt(0, getMatchup().getId());
+        targetArray.setDouble(0, getMatchup().getRefObs().getPoint().getGeometry().getFirstPoint().getY());
         return targetArray;
     }
 }

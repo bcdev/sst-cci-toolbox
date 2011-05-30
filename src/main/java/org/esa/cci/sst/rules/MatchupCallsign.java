@@ -22,12 +22,12 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
- * Matchup ID.
+ * Matchup callsign.
  */
-public class MatchupId extends MatchupRule {
+public class MatchupCallsign extends MatchupRule {
 
-    private static final DataType DATA_TYPE = DataType.INT;
-    private static final int[] SHAPE = new int[]{1};
+    private static final DataType DATA_TYPE = DataType.CHAR;
+    private static final int[] SHAPE = new int[]{1, 16};
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
@@ -37,7 +37,10 @@ public class MatchupId extends MatchupRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setInt(0, getMatchup().getId());
+        final String callsign = getMatchup().getRefObs().getCallsign();
+        for (int i = 0; i < Math.min(SHAPE[1], callsign.length()); i++) {
+            targetArray.setChar(i, callsign.charAt(i));
+        }
         return targetArray;
     }
 }
