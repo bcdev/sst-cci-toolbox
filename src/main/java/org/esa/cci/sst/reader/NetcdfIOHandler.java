@@ -20,6 +20,7 @@ import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.util.IoUtil;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -131,6 +132,14 @@ abstract class NetcdfIOHandler implements IOHandler {
 
     public final Variable getVariable(String name) {
         return variableMap.get(name);
+    }
+
+    protected static Number getAttribute(Variable variable, String attributeName, Number defaultValue) {
+        final Attribute attribute = variable.findAttribute(attributeName);
+        if (attribute == null) {
+            return defaultValue;
+        }
+        return attribute.getNumericValue();
     }
 
     private Item createColumn(final Variable variable) {

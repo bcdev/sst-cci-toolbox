@@ -171,10 +171,11 @@ public class InsituIOHandlerTest {
         final Array historyTimes = createHistoryTimeArray();
         final Range range = InsituIOHandler.findRange(historyTimes, 2455090.56);
         final List<Range> s = InsituIOHandler.createSubsampling(historyTimes, range, 10);
-        final Array subset = InsituIOHandler.createSubset(historyTimes, s);
+        final Array subset = Array.factory(historyTimes.getElementType(), new int[]{1, 10});
+        InsituIOHandler.extractSubset(historyTimes, subset, s);
 
-        assertEquals(1, subset.getRank());
-        assertEquals(10, subset.getIndexPrivate().getShape(0));
+        assertEquals(2, subset.getRank());
+        assertEquals(10, subset.getIndexPrivate().getShape(1));
         assertEquals(historyTimes.getDouble(s.get(0).first()), subset.getDouble(0), 0.0);
         assertEquals(historyTimes.getDouble(s.get(9).first()), subset.getDouble(9), 0.0);
     }
@@ -187,11 +188,12 @@ public class InsituIOHandlerTest {
         final List<Range> s = InsituIOHandler.createSubsampling(historyTimes, range, 10);
 
         final Array array = Array.factory(DataType.INT, new int[]{historyLength, 2});
-        final Array subset = InsituIOHandler.createSubset(array, s);
+        final Array subset = Array.factory(array.getElementType(), new int[]{1, 10, 2});
+        InsituIOHandler.extractSubset(array, subset, s);
 
-        assertEquals(2, subset.getRank());
-        assertEquals(10, subset.getIndexPrivate().getShape(0));
-        assertEquals(2, subset.getIndexPrivate().getShape(1));
+        assertEquals(3, subset.getRank());
+        assertEquals(10, subset.getIndexPrivate().getShape(1));
+        assertEquals(2, subset.getIndexPrivate().getShape(2));
     }
 
     private static Array createHistoryTimeArray() {

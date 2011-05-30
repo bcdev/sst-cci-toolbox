@@ -31,7 +31,6 @@ import ucar.ma2.ArrayShort;
 import ucar.ma2.DataType;
 import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -410,15 +409,6 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         final double addOffset = getAttribute(variable, "add_offset", 0.0).doubleValue();
 
         return scaleFactor * number.doubleValue() + addOffset;
-    }
-
-
-    private static Number getAttribute(Variable variable, String attributeName, Number defaultValue) {
-        final Attribute attribute = variable.findAttribute(attributeName);
-        if (attribute == null) {
-            return defaultValue;
-        }
-        return attribute.getNumericValue();
     }
 
     static void extractSubscene(Array source, Array target, Point p, Number fillValue) {

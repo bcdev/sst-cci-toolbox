@@ -109,9 +109,8 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
-    public final Array read(String role, ExtractDefinition extractDefinition) {
-        // todo - implement
-        return null;
+    public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
+        return getData(role, extractDefinition.getRecordNo());
     }
 
     @Override
