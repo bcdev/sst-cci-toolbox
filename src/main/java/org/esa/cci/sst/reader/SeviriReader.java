@@ -34,12 +34,12 @@ import java.io.IOException;
  *
  * @author Martin Boettcher
  */
-class SeviriIOHandler extends MdIOHandler {
+class SeviriReader extends MdReader {
 
     protected int noOfLines;
     protected int noOfColumns;
 
-    SeviriIOHandler(String sensorName) {
+    SeviriReader(String sensorName) {
         super(sensorName);
     }
 
@@ -103,22 +103,6 @@ class SeviriIOHandler extends MdIOHandler {
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         return observation;
-    }
-
-    @Override
-    public InsituRecord readInsituRecord(int recordNo) throws IOException {
-        final InsituRecord insituRecord = new InsituRecord();
-        final double secondsSince1981 = getDouble("msr_time", recordNo);
-        final double time = TimeUtil.secondsSince1981ToSecondsSinceEpoch(secondsSince1981);
-        insituRecord.setValue(InsituVariable.TIME, time);
-        final Number lat = getNumberScaled("msr_lat", recordNo);
-        insituRecord.setValue(InsituVariable.LAT, lat.floatValue());
-        final Number lon = getNumberScaled("msr_lon", recordNo);
-        insituRecord.setValue(InsituVariable.LON, lon.floatValue());
-        final Number sst = getNumberScaled("msr_sst", recordNo);
-        insituRecord.setValue(InsituVariable.SST, sst.floatValue());
-
-        return insituRecord;
     }
 
     private static float coordinateOf(int intCoordinate) {

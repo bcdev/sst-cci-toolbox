@@ -32,7 +32,6 @@ public class ExtractDefinitionBuilder {
 
     private double lon;
     private double lat;
-
     private int recordNo;
     private int[] shape;
 
@@ -60,10 +59,8 @@ public class ExtractDefinitionBuilder {
     public ExtractDefinition build() {
         final double lat = this.lat;
         final double lon = this.lon;
+        final int recordNo = this.recordNo;
         final Date date = this.date;
-
-        final int[] start = new int[shape.length];
-        start[0] = recordNo;
 
         final int[] shape = this.shape;
         shape[0] = 1;
@@ -81,12 +78,12 @@ public class ExtractDefinitionBuilder {
             }
 
             @Override
-            public final int[] getOrigin() {
-                return start;
+            public final int getRecordNo() {
+                return recordNo;
             }
 
             @Override
-            public final int[] getShape() {
+            public int[] getShape() {
                 return shape;
             }
 

@@ -20,10 +20,10 @@ import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.util.IoUtil;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +37,7 @@ import java.util.List;
  *
  * @author Thomas Storm
  */
-abstract class NetcdfIOHandler implements IOHandler {
+abstract class NetcdfReader implements Reader {
 
     private final String sensorName;
     private final HashMap<String, Variable> variableMap = new HashMap<String, Variable>();
@@ -45,7 +45,7 @@ abstract class NetcdfIOHandler implements IOHandler {
     private DataFile datafile;
     private NetcdfFile netcdfFile;
 
-    protected NetcdfIOHandler(String sensorName) {
+    protected NetcdfReader(String sensorName) {
         this.sensorName = sensorName;
     }
 
@@ -91,11 +91,6 @@ abstract class NetcdfIOHandler implements IOHandler {
         return columnList.toArray(new Item[columnList.size()]);
     }
 
-    @Override
-    public InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException {
-        throw new OperationNotSupportedException();
-    }
-
     /**
      * Closes the NetCDF file.
      */
@@ -131,6 +126,14 @@ abstract class NetcdfIOHandler implements IOHandler {
 
     public final Variable getVariable(String name) {
         return variableMap.get(name);
+    }
+
+    protected static Number getAttribute(Variable variable, String attributeName, Number defaultValue) {
+        final Attribute attribute = variable.findAttribute(attributeName);
+        if (attribute == null) {
+            return defaultValue;
+        }
+        return attribute.getNumericValue();
     }
 
     private Item createColumn(final Variable variable) {

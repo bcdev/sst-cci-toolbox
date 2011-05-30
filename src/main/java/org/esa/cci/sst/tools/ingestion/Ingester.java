@@ -23,7 +23,7 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.IOHandler;
+import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.util.TimeUtil;
 
@@ -60,8 +60,8 @@ class Ingester {
         return hasPersisted;
     }
 
-    void persistColumns(final String sensorName, final IOHandler ioHandler) throws IOException {
-        final Item[] columns = ioHandler.getColumns();
+    void persistColumns(final String sensorName, final Reader reader) throws IOException {
+        final Item[] columns = reader.getColumns();
         tool.getLogger().info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
                                               sensorName, columns.length));
         for (final Item column : columns) {

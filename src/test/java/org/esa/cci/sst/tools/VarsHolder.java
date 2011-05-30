@@ -23,7 +23,7 @@ package org.esa.cci.sst.tools;
 */
 class VarsHolder {
 
-static final String[] VARS = new String[]{
+static final String[] VARIABLES = new String[]{
         "arc3.atsr.1.sea_surface_temperature.op.N2",
         "arc3.atsr.1.sea_surface_temperature.op.N3",
         "arc3.atsr.1.sea_surface_temperature.op.D2",
@@ -433,4 +433,7 @@ static final String[] VARS = new String[]{
         "avhrr.M2.matchup_elem        ",
         "avhrr.M2.matchup_line        ",
 };
+
+    private VarsHolder() {
+    }
 }

@@ -21,9 +21,6 @@ import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.SampleSource;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.tools.ToolException;
-import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
@@ -32,18 +29,15 @@ import ucar.ma2.ArrayShort;
 import ucar.ma2.DataType;
 import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.awt.Point;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Reads records from a NetCDF input file and creates Observations. This abstract
@@ -56,14 +50,14 @@ import java.util.Map;
  *
  * @author Martin Boettcher
  */
-abstract class MdIOHandler extends NetcdfIOHandler {
+abstract class MdReader extends NetcdfReader {
 
     private final Map<String, Array> arrayMap = new HashMap<String, Array>();
     private final Map<String, Integer> indexMap = new HashMap<String, Integer>();
 
     private int numRecords;
 
-    protected MdIOHandler(String sensorName) {
+    protected MdReader(String sensorName) {
         super(sensorName);
     }
 
@@ -91,52 +85,43 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable variable = getVariable(role);
-        final int recordNo = extractDefinition.getOrigin()[0];
+        final Array targetArray = Array.factory(variable.getDataType(), extractDefinition.getShape());
+        final int recordNo = extractDefinition.getRecordNo();
         if (variable.getRank() < 3) {
-            return getData(variable, recordNo);
+            final Array sourceArray = getData(variable, recordNo);
+            for (int i = 0; i < sourceArray.getSize(); i++) {
+                targetArray.setObject(i, sourceArray.getObject(i));
+            }
+            return targetArray;
         }
         final Variable lon = getVariable("lon");
         final Variable lat = getVariable("lat");
-        final Array lonData = getData(lon, recordNo);
-        final Array latData = getData(lat, recordNo);
-        final SampleSource lonSource = new VariableSampleSource(lon, lonData);
-        final SampleSource latSource = new VariableSampleSource(lat, latData);
+        final Array lonArray = getData(lon, recordNo);
+        final Array latArray = getData(lat, recordNo);
+        final SampleSource lonSource = new VariableSampleSource(lon, lonArray);
+        final SampleSource latSource = new VariableSampleSource(lat, latArray);
         final PixelLocator pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
         final Point p = new Point();
         final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
                                                               extractDefinition.getLat(), p);
-        if (!success) {
+        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
+        if (success) {
+            final Array sourceArray = getData(variable, recordNo);
+            extractSubscene(sourceArray, targetArray, p, fillValue);
+        } else {
+            final Logger logger = Logger.getLogger("org.esa.cci.sst");
             final String message = MessageFormat.format(
                     "Unable to find pixel at ({0}, {1}) for record {2} in file ''{3}''.",
                     extractDefinition.getLon(),
                     extractDefinition.getLat(),
                     recordNo,
                     getNetcdfFile().getLocation());
-            throw new ToolException(message, ToolException.TOOL_ERROR);
+            logger.fine(message);
+            for (int i = 0; i < targetArray.getSize(); i++) {
+                targetArray.setObject(i, fillValue);
+            }
         }
-
-        final Array sourceData = getData(variable, recordNo);
-        final Array targetData = Array.factory(variable.getDataType(), extractDefinition.getShape());
-        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
-        extractSubscene(sourceData, targetData, p, fillValue);
-        return targetData;
-    }
-
-    @Deprecated
-    @Override
-    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVarName,
-                      String targetVarName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
-                                                                                                             IOException {
-        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVarName));
-        final int[] origin = new int[targetVariable.getRank()];
-        origin[0] = matchupIndex;
-
-        try {
-            final Array variableData = getData(getVariable(sourceVarName), observation.getRecordNo());
-            targetFile.write(NetcdfFile.escapeName(targetVarName), origin, variableData);
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
-        }
+        return targetArray;
     }
 
     @Override
@@ -402,15 +387,6 @@ abstract class MdIOHandler extends NetcdfIOHandler {
         final double addOffset = getAttribute(variable, "add_offset", 0.0).doubleValue();
 
         return scaleFactor * number.doubleValue() + addOffset;
-    }
-
-
-    private static Number getAttribute(Variable variable, String attributeName, Number defaultValue) {
-        final Attribute attribute = variable.findAttribute(attributeName);
-        if (attribute == null) {
-            return defaultValue;
-        }
-        return attribute.getNumericValue();
     }
 
     static void extractSubscene(Array source, Array target, Point p, Number fillValue) {

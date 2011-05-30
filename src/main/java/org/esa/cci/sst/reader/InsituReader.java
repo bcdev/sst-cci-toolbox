@@ -18,7 +18,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
@@ -46,7 +45,7 @@ import java.util.TimeZone;
  *
  * @author Thomas Storm
  */
-class InsituIOHandler extends NetcdfIOHandler {
+class InsituReader extends NetcdfReader {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
     private Array historyTimes;
@@ -55,7 +54,7 @@ class InsituIOHandler extends NetcdfIOHandler {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    InsituIOHandler(String sensorName) {
+    InsituReader(String sensorName) {
         super(sensorName);
     }
 
@@ -103,44 +102,26 @@ class InsituIOHandler extends NetcdfIOHandler {
     }
 
     @Override
-    public final Array read(String role, ExtractDefinition extractDefinition) {
-        // todo - implement
-        return null;
-    }
-
-    /**
-     * Writes a subset of an in-situ history observation to an MMD target file. The method must be called per
-     * variable and per match-up. The subset covers plus/minus 12 hours centered at the reference observation
-     * time. The subset is limited by the size of the target array, which is {@link org.esa.cci.sst.tools.Constants#INSITU_HISTORY_LENGTH}.
-     *
-     * @param targetFile   The target MMD file.
-     * @param observation  The observation to write.
-     * @param matchupIndex The target matchup index.
-     * @param refPoint     Not used.
-     * @param refTime      The reference time.
-     *
-     * @throws IOException when an IO error has occurred.
-     */
-    @Override
-    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVariableName,
-                      String targetVariableName, int matchupIndex, PGgeometry refPoint, Date refTime) throws
-                                                                                                      IOException {
-        final NetcdfFile sourceFile = getNetcdfFile();
-        final Variable sourceVariable = sourceFile.findVariable(NetcdfFile.escapeName(sourceVariableName));
-        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
-
-        try {
-            final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
-            if (range != Range.EMPTY) {
-                final List<Range> subsampling = createSubsampling(historyTimes, range, targetVariable.getShape(1));
-                final Array source = sourceVariable.read();
-                // todo - convert values into seconds since 1978 here (rq-20110420)
-                final Array subset = createSubset(source, subsampling);
-                writeSubset(targetFile, targetVariable, matchupIndex, subset);
+    public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
+        final Variable sourceVariable = getVariable(role);
+        final Date refTime = extractDefinition.getDate();
+        final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
+        final Array source = sourceVariable.read();
+        final Array target = Array.factory(source.getElementType(), extractDefinition.getShape());
+        if (range != Range.EMPTY) {
+            final List<Range> subsampling = createSubsampling(historyTimes, range, extractDefinition.getShape()[1]);
+            try {
+                extractSubset(source, target, subsampling);
+            } catch (InvalidRangeException e) {
+                throw new IOException("Unable to create target.", e);
             }
-        } catch (Exception e) {
-            throw new IOException(e);
+            return target;
         }
+        final Number fillValue = getAttribute(sourceVariable, "_FillValue", Double.NEGATIVE_INFINITY);
+        for (int i = 0; i < target.getSize(); i++) {
+            target.setObject(i, fillValue);
+        }
+        return target;
     }
 
     private double parseDouble(String attributeName) throws ParseException {
@@ -201,7 +182,7 @@ class InsituIOHandler extends NetcdfIOHandler {
 
     static List<Range> createSubsampling(Array historyTimes, Range range, int maxLength) {
         try {
-            final ArrayList<Range> subsampling = new ArrayList<Range>();
+            final List<Range> subsampling = new ArrayList<Range>();
             if (range.length() > maxLength) {
                 subsampling.add(new Range(range.first(), range.first()));
                 // get maxLength-2 entries from the history
@@ -225,18 +206,9 @@ class InsituIOHandler extends NetcdfIOHandler {
         }
     }
 
-    static Array createSubset(Array source, List<Range> subsetRanges) throws InvalidRangeException {
-        // compute subset shape for first dimension
-        int length = 0;
-        for (final Range r : subsetRanges) {
-            length += r.length();
-        }
-        // create empty subset array
-        final int[] subsetShape = source.getShape();
-        subsetShape[0] = length;
-        final Array subset = Array.factory(source.getElementType(), subsetShape);
+    static void extractSubset(Array source, Array subset, List<Range> subsetRanges) throws InvalidRangeException {
         // setup ranges for copying
-        final ArrayList<Range> sourceRanges = new ArrayList<Range>(source.getRank());
+        final List<Range> sourceRanges = new ArrayList<Range>(source.getRank());
         for (int i = 0; i < source.getRank(); i++) {
             sourceRanges.add(null);
         }
@@ -250,7 +222,6 @@ class InsituIOHandler extends NetcdfIOHandler {
                 subsetIterator.setObjectNext(sourceIterator.getObjectNext());
             }
         }
-        return subset;
     }
 
     private static void writeSubset(NetcdfFileWriteable targetFile, Variable targetVariable, int matchupIndex,

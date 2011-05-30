@@ -16,26 +16,29 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 
 /**
- * Used for for carrying out numerical conversions.
- *
- * @author Ralf Quast
+ * Matchup longitude.
  */
-public interface Converter {
+public class MatchupLat extends MatchupRule {
 
-    /**
-     * Applies the numerical conversion rule to the numbers supplied as argument.
-     *
-     * @param numbers The numbers to be converted.
-     *
-     * @return the converted numbers.
-     *
-     * @throws RuleException when the conversion rule cannot be applied.
-     */
-    Array apply(Array numbers) throws RuleException;
 
-    void setMatchup(Matchup matchup);
+    private static final DataType DATA_TYPE = DataType.FLOAT;
+    private static final int[] SHAPE = new int[]{1};
+
+    @Override
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        targetColumnBuilder.type(DATA_TYPE);
+    }
+
+    @Override
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
+        targetArray.setDouble(0, getMatchup().getRefObs().getPoint().getGeometry().getFirstPoint().getY());
+        return targetArray;
+    }
 }

@@ -17,7 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
-import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.Band;
@@ -33,30 +32,27 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.ToolException;
-import org.postgis.PGgeometry;
 import ucar.ma2.Array;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
-import ucar.nc2.Variable;
 
-import javax.naming.OperationNotSupportedException;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Base class for product IO handlers.
  *
  * @author Ralf Quast
  */
-abstract class AbstractProductHandler implements IOHandler {
+abstract class AbstractProductHandler implements Reader {
 
     private final String sensorName;
     private final String[] formatNames;
@@ -133,9 +129,8 @@ abstract class AbstractProductHandler implements IOHandler {
         final double lat = extractDefinition.getLat();
         final int[] shape = extractDefinition.getShape();
 
-        final Point2D p = findPixelPos(lon, lat);
+        final PixelPos p = findPixelPos(lon, lat);
         final Rectangle rectangle = createSubsceneRectangle(p, shape);
-
         return readSubsceneData(node, shape, rectangle);
     }
 
@@ -162,41 +157,6 @@ abstract class AbstractProductHandler implements IOHandler {
             columnList.add(column);
         }
         return columnList.toArray(new Item[columnList.size()]);
-    }
-
-    @Deprecated
-    @Override
-    public final void write(NetcdfFileWriteable targetFile,
-                            Observation observation,
-                            String sourceVariableName,
-                            String targetVariableName,
-                            int matchupIndex,
-                            PGgeometry refPoint,
-                            Date refTime) throws IOException {
-        final RasterDataNode node;
-        if (product.containsBand(sourceVariableName)) {
-            node = product.getBand(sourceVariableName);
-        } else {
-            node = product.getTiePointGrid(sourceVariableName);
-        }
-
-        final PixelPos pixelPos = findPixelPos((float) refPoint.getGeometry().getFirstPoint().x,
-                                               (float) refPoint.getGeometry().getFirstPoint().y);
-        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVariableName));
-        final int[] targetOrigin = new int[]{matchupIndex, 0, 0};
-        final int[] targetShape = targetVariable.getShape();
-        final Rectangle rectangle = createSubsceneRectangle(pixelPos, targetShape);
-        final Array array = readSubsceneData(node, targetShape, rectangle);
-        try {
-            targetFile.write(NetcdfFile.escapeName(targetVariableName), targetOrigin, array);
-        } catch (Exception e) {
-            throw new IOException(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public final InsituRecord readInsituRecord(int recordNo) throws OperationNotSupportedException {
-        throw new OperationNotSupportedException();
     }
 
     protected Product readProduct(DataFile dataFile) throws IOException {
@@ -273,11 +233,12 @@ abstract class AbstractProductHandler implements IOHandler {
         final GeoCoding geoCoding = product.getGeoCoding();
         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
         if (!pixelPos.isValid()) {
+            final Logger logger = Logger.getLogger("org.esa.cci.sst");
             final String message = MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
                                                         geoPos.getLon(),
                                                         geoPos.getLat(),
                                                         product.getName());
-            throw new ToolException(message, ToolException.TOOL_ERROR);
+            logger.fine(message);
         }
         return pixelPos;
     }
@@ -292,37 +253,40 @@ abstract class AbstractProductHandler implements IOHandler {
     }
 
     private static Array readSubsceneData(RasterDataNode node, int[] shape, Rectangle rectangle) {
-        final Array array = Array.factory(DataTypeUtils.getNetcdfDataType(node.getDataType()), shape);
+        final Array targetArray = Array.factory(DataTypeUtils.getNetcdfDataType(node.getDataType()), shape);
 
-        final MultiLevelImage sourceImage = node.getSourceImage();
+        final RenderedImage sourceImage = node.getSourceImage().getImage(0);
         final int minX = sourceImage.getMinX();
         final int minY = sourceImage.getMinY();
-        final int maxX = sourceImage.getMaxX();
-        final int maxY = sourceImage.getMaxY();
 
-        final int x = Math.max(rectangle.x, minX);
-        final int y = Math.max(rectangle.y, minY);
-        final int w = Math.min(rectangle.x + rectangle.width - 1, maxX) - x + 1;
-        final int h = Math.min(rectangle.y + rectangle.height - 1, maxY) - y + 1;
-        final Rectangle validRectangle = new Rectangle(x, y, w, h);
-        final Raster raster = sourceImage.getData(validRectangle);
-
-        if (validRectangle.equals(rectangle)) {
-            raster.getDataElements(x, y, w, h, array.getStorage());
+        final Rectangle imageRectangle = new Rectangle(minX, minY, sourceImage.getWidth(), sourceImage.getHeight());
+        final Rectangle validRectangle = imageRectangle.intersection(rectangle);
+        if (validRectangle.isEmpty()) {
+            for (int i = 0; i < targetArray.getSize(); i++) {
+                targetArray.setObject(i, node.getNoDataValue());
+            }
         } else {
-            for (int i = rectangle.y, k = 0; i < rectangle.y + rectangle.height; i++) {
-                for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
-                    final Number value;
-                    if (i < minY || i > maxY || j < minX || j > maxX) {
-                        value = node.getNoDataValue();
-                    } else {
-                        value = getSample(raster, j, i);
+            final Raster raster = sourceImage.getData(validRectangle);
+            if (validRectangle.equals(rectangle)) {
+                raster.getDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height,
+                                       targetArray.getStorage());
+            } else {
+                final int maxX = minX + sourceImage.getWidth() - 1;
+                final int maxY = minY + sourceImage.getHeight() - 1;
+                for (int i = rectangle.y, k = 0; i < rectangle.y + rectangle.height; i++) {
+                    for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
+                        final Number value;
+                        if (i < minY || i > maxY || j < minX || j > maxX) {
+                            value = node.getNoDataValue();
+                        } else {
+                            value = getSample(raster, j, i);
+                        }
+                        targetArray.setObject(k, value);
                     }
-                    array.setObject(k, value);
                 }
             }
         }
-        return array;
+        return targetArray;
     }
 
     private static Number getSample(Raster raster, int x, int y) {

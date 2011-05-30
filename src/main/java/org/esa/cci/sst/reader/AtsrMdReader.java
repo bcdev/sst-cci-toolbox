@@ -33,9 +33,9 @@ import java.util.Date;
  *
  * @author Martin Boettcher
  */
-class AtsrMdIOHandler extends MdIOHandler {
+class AtsrMdReader extends MdReader {
 
-    AtsrMdIOHandler(String sensorName) {
+    AtsrMdReader(String sensorName) {
         super(sensorName);
     }
 
@@ -64,20 +64,6 @@ class AtsrMdIOHandler extends MdIOHandler {
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         return observation;
-    }
-
-    @Override
-    public InsituRecord readInsituRecord(int recordNo) throws IOException {
-        final InsituRecord insituRecord = new InsituRecord();
-        final double julianDate = getDouble("insitu.time.julian", recordNo);
-        final double time = TimeUtil.julianDateToSecondsSinceEpoch(julianDate);
-        insituRecord.setValue(InsituVariable.TIME, time);
-        insituRecord.setValue(InsituVariable.LAT, getFloat("insitu.latitude", recordNo));
-        insituRecord.setValue(InsituVariable.LAT, getFloat("insitu.longitude", recordNo));
-        final Number sst = getNumberScaled("insitu.sea_surface_temperature", recordNo);
-        insituRecord.setValue(InsituVariable.SST, sst.floatValue() + 273.15f);
-
-        return insituRecord;
     }
 
     private static Date dateOf(double julianDate) {

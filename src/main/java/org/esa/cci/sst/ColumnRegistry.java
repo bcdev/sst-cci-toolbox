@@ -17,7 +17,9 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.rules.Converter;
+import org.esa.cci.sst.rules.MatchupRule;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.rules.RuleFactory;
@@ -317,6 +319,16 @@ public class ColumnRegistry {
         @Override
         public Array apply(Array numbers) throws RuleException {
             return rule.apply(numbers, sourceColumn);
+        }
+
+        @Override
+        public void setMatchup(Matchup matchup) {
+            // todo - replace matchup with context
+            if (rule instanceof MatchupRule) {
+                ((MatchupRule) rule).setMatchup(matchup);
+            } else {
+                throw new IllegalStateException("Not a matchup rule.");
+            }
         }
     }
 }

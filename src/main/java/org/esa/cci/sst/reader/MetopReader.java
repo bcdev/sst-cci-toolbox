@@ -39,14 +39,14 @@ import java.util.List;
  *
  * @author Martin Boettcher
  */
-class MetopIOHandler extends MdIOHandler {
+class MetopReader extends MdReader {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
 
     protected int rowCount;
     protected int colCount;
 
-    MetopIOHandler(String sensorName) {
+    MetopReader(String sensorName) {
         super(sensorName);
     }
 
@@ -87,22 +87,6 @@ class MetopIOHandler extends MdIOHandler {
         observation.setRecordNo(recordNo);
 
         return observation;
-    }
-
-    @Override
-    public InsituRecord readInsituRecord(int recordNo) throws IOException {
-        final InsituRecord insituRecord = new InsituRecord();
-        final double secondsSince1981 = getDouble("msr_time", recordNo);
-        final double time = TimeUtil.secondsSince1981ToSecondsSinceEpoch(secondsSince1981);
-        insituRecord.setValue(InsituVariable.TIME, time);
-        final Number lat = getNumberScaled("msr_lat", recordNo);
-        insituRecord.setValue(InsituVariable.LAT, lat.floatValue());
-        final Number lon = getNumberScaled("msr_lon", recordNo);
-        insituRecord.setValue(InsituVariable.LON, lon.floatValue());
-        final Number sst = getNumberScaled("msr_sst", recordNo);
-        insituRecord.setValue(InsituVariable.SST, sst.floatValue());
-
-        return insituRecord;
     }
 
     private Point[] getPoints(int recordNo) throws IOException {

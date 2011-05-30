@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.tools.Constants;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
@@ -26,7 +27,10 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-final class MatchupPattern extends AbstractAttributeModification {
+final class MatchupPattern extends MatchupRule {
+
+    private static final DataType DATA_TYPE = DataType.INT;
+    private static final int[] SHAPE = new int[]{1};
 
     private static final int[] FLAG_MASKS = new int[]{
             1,
@@ -81,11 +85,18 @@ final class MatchupPattern extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        targetColumnBuilder.type(DataType.INT).
+        targetColumnBuilder.type(DATA_TYPE).
                 unsigned(true).
                 rank(1).
                 dimensions(Constants.DIMENSION_NAME_MATCHUP).
                 flagMasks(FLAG_MASKS).
                 flagMeanings(FLAG_MEANINGS);
+    }
+
+    @Override
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
+        targetArray.setInt(0, (int) (getMatchup().getPattern() & 0xFFFFFFFFL));
+        return targetArray;
     }
 }

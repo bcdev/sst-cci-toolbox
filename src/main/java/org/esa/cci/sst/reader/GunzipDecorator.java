@@ -16,14 +16,11 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
-import org.postgis.PGgeometry;
 import ucar.ma2.Array;
-import ucar.nc2.NetcdfFileWriteable;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,26 +28,25 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 /**
- * A decorator for IO handlers that deflates a gzip-compressed input file into
- * a temporary directory but otherwise forwards IO operations to the decorated
- * handler.
+ * A decorator for readers that deflates a gzip-compressed input file into
+ * a temporary directory but otherwise forwards operations to the decorated
+ * reader.
  * <p/>
  * Compressed input file are recognized due to the ".gz" file extension. The
  * decorator gracefully handles non-compressed files by simply delegating to
- * the decorated IO handler.
+ * the decorated reader.
  *
  * @author Martin Boettcher
  */
-class GunzipDecorator implements IOHandler {
+class GunzipDecorator implements Reader {
 
-    private final IOHandler delegate;
+    private final Reader delegate;
     private File tmpFile;
 
-    GunzipDecorator(IOHandler delegate) {
+    GunzipDecorator(Reader delegate) {
         this.delegate = delegate;
     }
 
@@ -96,7 +92,7 @@ class GunzipDecorator implements IOHandler {
     }
 
     /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final int getNumRecords() {
@@ -104,7 +100,7 @@ class GunzipDecorator implements IOHandler {
     }
 
     /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final Observation readObservation(int recordNo) throws IOException {
@@ -122,39 +118,16 @@ class GunzipDecorator implements IOHandler {
     }
 
     /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final Item[] getColumns() {
         return delegate.getColumns();
     }
 
-    /**
-     * Delegates to decorated IO handler.
-     */
-    @Override
-    public void write(NetcdfFileWriteable targetFile,
-                      Observation sourceObservation,
-                      String sourceVariableName,
-                      String targetVariableName,
-                      int targetRecordNumber,
-                      PGgeometry refPoint,
-                      Date refTime) throws IOException {
-        delegate.write(targetFile, sourceObservation, sourceVariableName, targetVariableName, targetRecordNumber,
-                       refPoint, refTime);
-    }
-
 
     /**
-     * Delegates to decorated IO handler.
-     */
-    @Override
-    public final InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException {
-        return delegate.readInsituRecord(recordNo);
-    }
-
-    /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final DataFile getDatafile() {

@@ -23,40 +23,40 @@ import static junit.framework.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class IOHandlerFactoryTest {
+public class ReaderFactoryTest {
 
     @SuppressWarnings({"ReuseOfLocalVariable"})
     @Test
     public void testCreateReader() throws Exception {
-        IOHandler handler = IOHandlerFactory.createHandler("GunzipDecorator,ProductHandler", "");
+        Reader handler = ReaderFactory.createReader("GunzipDecorator,ProductHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof GunzipDecorator);
 
-        handler = IOHandlerFactory.createHandler("GunzipDecorator,AaiProductHandler", "");
+        handler = ReaderFactory.createReader("GunzipDecorator,AaiProductHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof GunzipDecorator);
 
-        handler = IOHandlerFactory.createHandler("ProductHandler", "");
+        handler = ReaderFactory.createReader("ProductHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof AbstractProductHandler);
 
-        handler = IOHandlerFactory.createHandler("AaiProductHandler", "");
+        handler = ReaderFactory.createReader("AaiProductHandler", "");
         assertNotNull(handler);
         assertTrue(handler instanceof AaiProductHandler);
 
-        handler = IOHandlerFactory.createHandler("MetopIOHandler", "");
+        handler = ReaderFactory.createReader("MetopReader", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof MetopIOHandler);
+        assertTrue(handler instanceof MetopReader);
 
-        handler = IOHandlerFactory.createHandler("AtsrMdIOHandler", "");
+        handler = ReaderFactory.createReader("AtsrMdReader", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof AtsrMdIOHandler);
+        assertTrue(handler instanceof AtsrMdReader);
 
-        handler = IOHandlerFactory.createHandler("SeviriIOHandler", "");
+        handler = ReaderFactory.createReader("SeviriReader", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof SeviriIOHandler);
+        assertTrue(handler instanceof SeviriReader);
 
-        handler = IOHandlerFactory.createHandler("AvhrrMdReader", "");
+        handler = ReaderFactory.createReader("AvhrrMdReader", "");
         assertNotNull(handler);
         assertTrue(handler instanceof AvhrrMdReader);
 

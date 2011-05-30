@@ -32,11 +32,11 @@ import static org.junit.Assert.*;
 /**
  * @author Thomas Storm
  */
-public class MmdIOHandlerTest {
+public class MmdReaderTest {
 
     public static final String TEST_WITH_ACTUAL_DATA = "test_with_actual_data.nc";
 
-    private MmdIOHandler mmdIOHandler;
+    private MmdReader mmdReader;
 
     @Before
     public void setUp() throws Exception {
@@ -45,37 +45,37 @@ public class MmdIOHandlerTest {
         configuration.setProperty("mms.reingestion.pattern", "10000");
         configuration.setProperty("mms.reingestion.located", "yes");
 
-        mmdIOHandler = new MmdIOHandler(configuration);
+        mmdReader = new MmdReader(configuration);
     }
 
     @After
     public void tearDown() throws Exception {
         try {
-            mmdIOHandler.close();
+            mmdReader.close();
         } catch (IllegalStateException ignore) {
             // ok
         }
-        mmdIOHandler = null;
+        mmdReader = null;
     }
 
     @Test(expected = IOException.class)
     public void testFailingInit() throws Exception {
         final DataFile dataFile = new DataFile();
         dataFile.setPath("pom.xml");
-        mmdIOHandler.init(dataFile);
+        mmdReader.init(dataFile);
     }
 
     @Test(expected = IllegalStateException.class)
     public void testFailingClose() throws Exception {
-        mmdIOHandler.close();
+        mmdReader.close();
     }
 
     @Test
     public void testInit() throws Exception {
         initMmdReader(TEST_WITH_ACTUAL_DATA);
-        final Field mmd = mmdIOHandler.getClass().getDeclaredField("ncFile");
+        final Field mmd = mmdReader.getClass().getDeclaredField("ncFile");
         mmd.setAccessible(true);
-        final NetcdfFile mmdObj = (NetcdfFile) mmd.get(mmdIOHandler);
+        final NetcdfFile mmdObj = (NetcdfFile) mmd.get(mmdReader);
 
         assertNotNull(mmdObj);
         final String location = mmdObj.getLocation();
@@ -90,7 +90,7 @@ public class MmdIOHandlerTest {
         final DataFile dataFile = new DataFile();
         final File file = new File(getClass().getResource(filename).getFile());
         dataFile.setPath(file.getPath());
-        mmdIOHandler.init(dataFile);
+        mmdReader.init(dataFile);
     }
 
 }

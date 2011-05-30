@@ -24,8 +24,8 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.reader.ExtractDefinition;
-import org.esa.cci.sst.reader.IOHandler;
-import org.esa.cci.sst.reader.IOHandlerFactory;
+import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.util.Cache;
@@ -67,7 +67,7 @@ public class MmdTool extends BasicTool {
     private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
     private final List<String> targetColumnNames = new ArrayList<String>(500);
 
-    private final Cache<String, IOHandler> readerCache = new Cache<String, IOHandler>(100);
+    private final Cache<String, Reader> readerCache = new Cache<String, Reader>(100);
 
     private int matchupCount;
 
@@ -111,8 +111,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void closeReaders() {
-        final Collection<IOHandler> removedReaders = readerCache.clear();
-        for (final IOHandler reader : removedReaders) {
+        final Collection<Reader> removedReaders = readerCache.clear();
+        for (final Reader reader : removedReaders) {
             reader.close();
         }
     }
@@ -128,7 +128,7 @@ public class MmdTool extends BasicTool {
 
             if (getLogger().isLoggable(Level.INFO)) {
                 getLogger().info(MessageFormat.format(
-                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), i, matchupListSize));
+                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), i + 1, matchupListSize));
             }
 
             for (final Variable variable : mmd.getVariables()) {
@@ -136,7 +136,7 @@ public class MmdTool extends BasicTool {
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
 
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    // todo - implement
+                    writeImplicitColumn(mmd, variable, i, targetColumn, matchup);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
@@ -148,10 +148,31 @@ public class MmdTool extends BasicTool {
         }
     }
 
+    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn,
+                                     Matchup matchup) {
+        try {
+            final Converter converter = columnRegistry.getConverter(targetColumn);
+            converter.setMatchup(matchup);
+            final Array targetArray = converter.apply(null);
+            final int[] targetStart = new int[variable.getRank()];
+            targetStart[0] = i;
+            mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+        } catch (IOException e) {
+            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+        } catch (RuleException e) {
+            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
+        } catch (InvalidRangeException e) {
+            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
+        }
+    }
+
     private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Coincidence coincidence) {
         try {
-            final IOHandler reader = getReader(coincidence.getObservation().getDatafile());
+            final Reader reader = getReader(coincidence.getObservation().getDatafile());
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
@@ -161,9 +182,10 @@ public class MmdTool extends BasicTool {
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
             if (sourceArray != null) {
-                getLogger().fine(
-                        MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                                             sourceColumn.getRole()));
+                if (getLogger().isLoggable(Level.FINE)) {
+                    getLogger().fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
+                                                          sourceColumn.getRole()));
+                }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {
                     throw new IllegalStateException(MessageFormat.format("Unknown role ''{0}''.", role));
@@ -187,11 +209,11 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private IOHandler getReader(DataFile datafile) throws IOException {
+    private Reader getReader(DataFile datafile) throws IOException {
         final String path = datafile.getPath();
         if (!readerCache.contains(path)) {
-            final IOHandler reader = IOHandlerFactory.open(datafile, getConfiguration());
-            final IOHandler removedReader = readerCache.add(path, reader);
+            final Reader reader = ReaderFactory.open(datafile, getConfiguration());
+            final Reader removedReader = readerCache.add(path, reader);
             if (removedReader != null) {
                 removedReader.close();
             }
@@ -345,5 +367,4 @@ public class MmdTool extends BasicTool {
         }
         return null;
     }
-
 }

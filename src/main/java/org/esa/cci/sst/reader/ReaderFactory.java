@@ -25,68 +25,68 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 /**
- * Factory providing a static method for getting the correct io handler, according to given schema name.
+ * Factory providing a static method for getting the correct io reader, according to given schema name.
  *
  * @author Thomas Storm
  */
-public class IOHandlerFactory {
+public class ReaderFactory {
 
-    private static final String PACKAGE_NAME = IOHandlerFactory.class.getPackage().getName();
+    private static final String PACKAGE_NAME = ReaderFactory.class.getPackage().getName();
     private static final String DEFAULT_READER_SPEC = "GunzipDecorator,ProductHandler";
 
-    private IOHandlerFactory() {
+    private ReaderFactory() {
     }
 
     /**
-     * Factory method for creating an {@link IOHandler}, which is initialized with the
+     * Factory method for creating an {@link Reader}, which is initialized with the
      * data file supplied as argument.
      *
      * @param datafile      The data file.
      * @param configuration The tool configuration.
      *
-     * @return a new {@link IOHandler} instance, which is initialized with the data file
+     * @return a new {@link Reader} instance, which is initialized with the data file
      *         supplied as argument.
      *
-     * @throws IOException if the {@link IOHandler} could not be initialized.
+     * @throws IOException if the {@link Reader} could not be initialized.
      */
-    public static IOHandler open(DataFile datafile, Properties configuration) throws IOException {
+    public static Reader open(DataFile datafile, Properties configuration) throws IOException {
         final String sensorName = datafile.getSensor().getName();
         final String readerSpec = configuration.getProperty("mms.reader." + sensorName, DEFAULT_READER_SPEC);
-        final IOHandler reader = createHandler(readerSpec, sensorName);
+        final Reader reader = createReader(readerSpec, sensorName);
         reader.init(datafile);
 
         return reader;
     }
 
     /**
-     * Factory method for getting the correct io handler, according to given schema and sensor names.
+     * Factory method for getting the correct reader, according to given schema and sensor names.
      *
      * @param readerSpec The reader specification, in the form <code>Reader2,Reader1</code>,
      *                   where <code>Reader1</code> is constructor argument for <code>Reader2</code>.
      * @param sensorName The sensor name.
      *
-     * @return a new instance of <code>IOHandler</code>.
+     * @return a new instance of <code>Reader</code>.
      *
      * @throws IllegalArgumentException when the reader specification is incorrect.
      */
     @SuppressWarnings({"unchecked"})
-    public static IOHandler createHandler(String readerSpec, String sensorName) {
+    public static Reader createReader(String readerSpec, String sensorName) {
         Assert.argument(readerSpec != null, "readerSpec == null");
         Assert.argument(sensorName != null, "sensorName == null");
-        final String[] handlerClassNames = readerSpec.split(",");
-        IOHandler handler = null;
+        final String[] readerClassNames = readerSpec.split(",");
+        Reader reader = null;
         try {
-            for (int i = handlerClassNames.length - 1; i >= 0; i--) {
-                final Class<? extends IOHandler> handlerClass =
-                        (Class<? extends IOHandler>) Class.forName(PACKAGE_NAME + '.' + handlerClassNames[i]);
-                if (handler == null) {
-                    final Constructor<? extends IOHandler> constructor =
-                            handlerClass.getDeclaredConstructor(String.class);
-                    handler = constructor.newInstance(sensorName);
+            for (int i = readerClassNames.length - 1; i >= 0; i--) {
+                final Class<? extends Reader> readerClass =
+                        (Class<? extends Reader>) Class.forName(PACKAGE_NAME + '.' + readerClassNames[i]);
+                if (reader == null) {
+                    final Constructor<? extends Reader> constructor =
+                            readerClass.getDeclaredConstructor(String.class);
+                    reader = constructor.newInstance(sensorName);
                 } else {
-                    final Constructor<? extends IOHandler> constructor =
-                            handlerClass.getDeclaredConstructor(IOHandler.class);
-                    handler = constructor.newInstance(handler);
+                    final Constructor<? extends Reader> constructor =
+                            readerClass.getDeclaredConstructor(Reader.class);
+                    reader = constructor.newInstance(reader);
                 }
             }
         } catch (ClassCastException e) {
@@ -103,6 +103,6 @@ public class IOHandlerFactory {
             throw new IllegalStateException(e);
         }
 
-        return handler;
+        return reader;
     }
 }

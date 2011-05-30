@@ -43,9 +43,7 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
         if (geoPos == null) {
             geoPos = new GeoPos();
         }
-        if (pixelPos.isValid()) {
-            pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(), new GeoPoint(geoPos));
-        } else {
+        if (!pixelPos.isValid() || !pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(), new GeoPoint(geoPos))) {
             geoPos.setInvalid();
         }
         return geoPos;
@@ -56,9 +54,7 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
         if (pixelPos == null) {
             pixelPos = new PixelPos();
         }
-        if (geoPos.isValid()) {
-            pixelLocator.getPixelLocation(geoPos.getLon(), geoPos.getLat(), pixelPos);
-        } else {
+        if (!geoPos.isValid() || !pixelLocator.getPixelLocation(geoPos.getLon(), geoPos.getLat(), pixelPos)) {
             pixelPos.setInvalid();
         }
         return pixelPos;
