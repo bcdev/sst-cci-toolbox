@@ -128,7 +128,7 @@ public class MmdTool extends BasicTool {
 
             if (getLogger().isLoggable(Level.INFO)) {
                 getLogger().info(MessageFormat.format(
-                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), i, matchupListSize));
+                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), i + 1, matchupListSize));
             }
 
             for (final Variable variable : mmd.getVariables()) {
