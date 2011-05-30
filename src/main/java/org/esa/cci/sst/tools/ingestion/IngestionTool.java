@@ -95,7 +95,7 @@ public class IngestionTool extends BasicTool {
     private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) {
         getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", file.getPath()));
         final PersistenceManager persistenceManager = getPersistenceManager();
-        final Reader reader = getIOHandler(readerSpec, sensorName);
+        final Reader reader = getReader(readerSpec, sensorName);
         try {
             // open database
             persistenceManager.transaction();
@@ -132,12 +132,12 @@ public class IngestionTool extends BasicTool {
         }
     }
 
-    private Reader getIOHandler(final String readerSpec, final String sensor) {
+    private Reader getReader(final String readerSpec, final String sensor) {
         final Reader reader;
         try {
             reader = ReaderFactory.createReader(readerSpec, sensor);
         } catch (Exception e) {
-            final String message = MessageFormat.format("Cannot create IO handler for sensor ''{0}''.", sensor);
+            final String message = MessageFormat.format("Cannot create reader for sensor ''{0}''.", sensor);
             throw new ToolException(message, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         return reader;

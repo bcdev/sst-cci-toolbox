@@ -25,7 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 /**
- * Factory providing a static method for getting the correct io handler, according to given schema name.
+ * Factory providing a static method for getting the correct io reader, according to given schema name.
  *
  * @author Thomas Storm
  */
@@ -59,7 +59,7 @@ public class ReaderFactory {
     }
 
     /**
-     * Factory method for getting the correct io handler, according to given schema and sensor names.
+     * Factory method for getting the correct reader, according to given schema and sensor names.
      *
      * @param readerSpec The reader specification, in the form <code>Reader2,Reader1</code>,
      *                   where <code>Reader1</code> is constructor argument for <code>Reader2</code>.
@@ -73,20 +73,20 @@ public class ReaderFactory {
     public static Reader createReader(String readerSpec, String sensorName) {
         Assert.argument(readerSpec != null, "readerSpec == null");
         Assert.argument(sensorName != null, "sensorName == null");
-        final String[] handlerClassNames = readerSpec.split(",");
-        Reader handler = null;
+        final String[] readerClassNames = readerSpec.split(",");
+        Reader reader = null;
         try {
-            for (int i = handlerClassNames.length - 1; i >= 0; i--) {
-                final Class<? extends Reader> handlerClass =
-                        (Class<? extends Reader>) Class.forName(PACKAGE_NAME + '.' + handlerClassNames[i]);
-                if (handler == null) {
+            for (int i = readerClassNames.length - 1; i >= 0; i--) {
+                final Class<? extends Reader> readerClass =
+                        (Class<? extends Reader>) Class.forName(PACKAGE_NAME + '.' + readerClassNames[i]);
+                if (reader == null) {
                     final Constructor<? extends Reader> constructor =
-                            handlerClass.getDeclaredConstructor(String.class);
-                    handler = constructor.newInstance(sensorName);
+                            readerClass.getDeclaredConstructor(String.class);
+                    reader = constructor.newInstance(sensorName);
                 } else {
                     final Constructor<? extends Reader> constructor =
-                            handlerClass.getDeclaredConstructor(Reader.class);
-                    handler = constructor.newInstance(handler);
+                            readerClass.getDeclaredConstructor(Reader.class);
+                    reader = constructor.newInstance(reader);
                 }
             }
         } catch (ClassCastException e) {
@@ -103,6 +103,6 @@ public class ReaderFactory {
             throw new IllegalStateException(e);
         }
 
-        return handler;
+        return reader;
     }
 }

@@ -31,13 +31,13 @@ import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 
 /**
- * A decorator for IO handlers that deflates a gzip-compressed input file into
- * a temporary directory but otherwise forwards IO operations to the decorated
- * handler.
+ * A decorator for readers that deflates a gzip-compressed input file into
+ * a temporary directory but otherwise forwards operations to the decorated
+ * reader.
  * <p/>
  * Compressed input file are recognized due to the ".gz" file extension. The
  * decorator gracefully handles non-compressed files by simply delegating to
- * the decorated IO handler.
+ * the decorated reader.
  *
  * @author Martin Boettcher
  */
@@ -92,7 +92,7 @@ class GunzipDecorator implements Reader {
     }
 
     /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final int getNumRecords() {
@@ -100,7 +100,7 @@ class GunzipDecorator implements Reader {
     }
 
     /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final Observation readObservation(int recordNo) throws IOException {
@@ -118,7 +118,7 @@ class GunzipDecorator implements Reader {
     }
 
     /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final Item[] getColumns() {
@@ -127,7 +127,7 @@ class GunzipDecorator implements Reader {
 
 
     /**
-     * Delegates to decorated IO handler.
+     * Delegates to decorated reader.
      */
     @Override
     public final DataFile getDatafile() {

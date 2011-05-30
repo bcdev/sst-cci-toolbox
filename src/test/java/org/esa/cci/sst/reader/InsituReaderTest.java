@@ -47,7 +47,7 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation() throws Exception {
-        final InsituReader handler = createIOHandler();
+        final InsituReader handler = createReader();
         final InsituObservation observation;
 
         try {
@@ -931,15 +931,15 @@ public class InsituReaderTest {
         });
     }
 
-    private static InsituReader createIOHandler() throws Exception {
+    private static InsituReader createReader() throws Exception {
         final DataFile dataFile = new DataFile();
         final String path = getResourceAsFile("insitu_WMOID_11851_20071123_20080111.nc").getPath();
         dataFile.setPath(path);
 
-        final InsituReader handler = new InsituReader("history");
-        handler.init(dataFile);
+        final InsituReader reader = new InsituReader("history");
+        reader.init(dataFile);
 
-        return handler;
+        return reader;
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {

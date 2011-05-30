@@ -92,7 +92,7 @@ public interface Reader {
 
     /**
      * Returns an array of columns for the variables that are used by the
-     * files supported by this IO handler.
+     * files supported by this reader.
      *
      * @return an array of columns.
      */

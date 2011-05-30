@@ -87,7 +87,7 @@ public class MmdIngestionTool extends BasicTool {
             sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
         }
         DataFile dataFile = createDataFile(sensor);
-        initIOHandler(dataFile);
+        initReader(dataFile);
         if (persistVariables) {
             persistColumns(sensorName);
         }
@@ -139,7 +139,7 @@ public class MmdIngestionTool extends BasicTool {
         return new File(filename);
     }
 
-    private void initIOHandler(final DataFile dataFile) {
+    private void initReader(final DataFile dataFile) {
         reader = new MmdReader(getConfiguration());
         try {
             reader.init(dataFile);
