@@ -13,7 +13,7 @@ public interface ExtractDefinition {
 
     double getLon();
 
-    int[] getOrigin();
+    int getRecordNo();
 
     int[] getShape();
 

@@ -161,9 +161,10 @@ public class MmdTool extends BasicTool {
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
             if (sourceArray != null) {
-                getLogger().fine(
-                        MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                                             sourceColumn.getRole()));
+                if (getLogger().isLoggable(Level.FINE)) {
+                    getLogger().fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
+                                                          sourceColumn.getRole()));
+                }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {
                     throw new IllegalStateException(MessageFormat.format("Unknown role ''{0}''.", role));
@@ -346,4 +347,9 @@ public class MmdTool extends BasicTool {
         return null;
     }
 
+    private static int[] singleRecordShape(Variable variable) {
+        final int[] shape = variable.getShape();
+        shape[0] = 1;
+        return shape;
+    }
 }

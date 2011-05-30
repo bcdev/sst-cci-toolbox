@@ -22,7 +22,6 @@ import org.esa.beam.util.SampleSource;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.tools.ToolException;
 import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
@@ -44,6 +43,7 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Reads records from a NetCDF input file and creates Observations. This abstract
@@ -91,35 +91,43 @@ abstract class MdIOHandler extends NetcdfIOHandler {
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable variable = getVariable(role);
-        final int recordNo = extractDefinition.getOrigin()[0];
+        final Array targetArray = Array.factory(variable.getDataType(), extractDefinition.getShape());
+        final int recordNo = extractDefinition.getRecordNo();
         if (variable.getRank() < 3) {
-            return getData(variable, recordNo);
+            final Array sourceArray = getData(variable, recordNo);
+            for (int i = 0; i < sourceArray.getSize(); i++) {
+                targetArray.setObject(i, sourceArray.getObject(i));
+            }
+            return targetArray;
         }
         final Variable lon = getVariable("lon");
         final Variable lat = getVariable("lat");
-        final Array lonData = getData(lon, recordNo);
-        final Array latData = getData(lat, recordNo);
-        final SampleSource lonSource = new VariableSampleSource(lon, lonData);
-        final SampleSource latSource = new VariableSampleSource(lat, latData);
+        final Array lonArray = getData(lon, recordNo);
+        final Array latArray = getData(lat, recordNo);
+        final SampleSource lonSource = new VariableSampleSource(lon, lonArray);
+        final SampleSource latSource = new VariableSampleSource(lat, latArray);
         final PixelLocator pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
         final Point p = new Point();
         final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
                                                               extractDefinition.getLat(), p);
-        if (!success) {
+        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
+        if (success) {
+            final Array sourceArray = getData(variable, recordNo);
+            extractSubscene(sourceArray, targetArray, p, fillValue);
+        } else {
+            final Logger logger = Logger.getLogger("org.esa.cci.sst");
             final String message = MessageFormat.format(
                     "Unable to find pixel at ({0}, {1}) for record {2} in file ''{3}''.",
                     extractDefinition.getLon(),
                     extractDefinition.getLat(),
                     recordNo,
                     getNetcdfFile().getLocation());
-            throw new ToolException(message, ToolException.TOOL_ERROR);
+            logger.fine(message);
+            for (int i = 0; i < targetArray.getSize(); i++) {
+                targetArray.setObject(i, fillValue);
+            }
         }
-
-        final Array sourceData = getData(variable, recordNo);
-        final Array targetData = Array.factory(variable.getDataType(), extractDefinition.getShape());
-        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
-        extractSubscene(sourceData, targetData, p, fillValue);
-        return targetData;
+        return targetArray;
     }
 
     @Deprecated
