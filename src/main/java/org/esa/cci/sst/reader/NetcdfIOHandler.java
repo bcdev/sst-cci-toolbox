@@ -24,7 +24,6 @@ import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,11 +89,6 @@ abstract class NetcdfIOHandler implements IOHandler {
             columnList.add(column);
         }
         return columnList.toArray(new Item[columnList.size()]);
-    }
-
-    @Override
-    public InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException {
-        throw new OperationNotSupportedException();
     }
 
     /**

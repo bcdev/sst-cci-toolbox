@@ -16,26 +16,33 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
-import ucar.ma2.Array;
 
 /**
- * Used for for carrying out numerical conversions.
- *
- * @author Ralf Quast
+ * Abstract matchup rule.
  */
-public interface Converter {
+public abstract class MatchupRule implements Rule {
 
-    /**
-     * Applies the numerical conversion rule to the numbers supplied as argument.
-     *
-     * @param numbers The numbers to be converted.
-     *
-     * @return the converted numbers.
-     *
-     * @throws RuleException when the conversion rule cannot be applied.
-     */
-    Array apply(Array numbers) throws RuleException;
+    private Matchup matchup;
 
-    void setMatchup(Matchup matchup);
+    @Override
+    public final Item apply(Item sourceColumn) throws RuleException {
+        final ColumnBuilder targetColumnBuilder = new ColumnBuilder(sourceColumn);
+        configureTargetColumn(targetColumnBuilder, sourceColumn);
+
+        return targetColumnBuilder.build();
+    }
+
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+    }
+
+    protected final Matchup getMatchup() {
+        return matchup;
+    }
+
+    public final void setMatchup(Matchup matchup) {
+        this.matchup = matchup;
+    }
 }

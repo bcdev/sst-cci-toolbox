@@ -18,7 +18,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
@@ -108,40 +107,21 @@ class InsituIOHandler extends NetcdfIOHandler {
         final Date refTime = extractDefinition.getDate();
         final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
         final Array source = sourceVariable.read();
-        final Array subset = Array.factory(source.getElementType(), extractDefinition.getShape());
+        final Array target = Array.factory(source.getElementType(), extractDefinition.getShape());
         if (range != Range.EMPTY) {
             final List<Range> subsampling = createSubsampling(historyTimes, range, extractDefinition.getShape()[1]);
             try {
-                extractSubset(source, subset, subsampling);
+                extractSubset(source, target, subsampling);
             } catch (InvalidRangeException e) {
-                throw new IOException("Unable to create subset.", e);
+                throw new IOException("Unable to create target.", e);
             }
-            return subset;
+            return target;
         }
         final Number fillValue = getAttribute(sourceVariable, "_FillValue", Double.NEGATIVE_INFINITY);
-        for (int i = 0; i < subset.getSize(); i++) {
-            subset.setObject(i, fillValue);
+        for (int i = 0; i < target.getSize(); i++) {
+            target.setObject(i, fillValue);
         }
-        return subset;
-    }
-
-    /**
-     * Writes a subset of an in-situ history observation to an MMD target file. The method must be called per
-     * variable and per match-up. The subset covers plus/minus 12 hours centered at the reference observation
-     * time. The subset is limited by the size of the target array, which is {@link org.esa.cci.sst.tools.Constants#INSITU_HISTORY_LENGTH}.
-     *
-     * @param targetFile   The target MMD file.
-     * @param observation  The observation to write.
-     * @param matchupIndex The target matchup index.
-     * @param refPoint     Not used.
-     * @param refTime      The reference time.
-     *
-     * @throws IOException when an IO error has occurred.
-     */
-    @Override
-    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVariableName,
-                      String targetVariableName, int matchupIndex, PGgeometry refPoint, Date refTime) throws
-                                                                                                      IOException {
+        return target;
     }
 
     private double parseDouble(String attributeName) throws ParseException {

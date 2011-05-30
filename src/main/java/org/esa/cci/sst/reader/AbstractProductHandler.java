@@ -32,11 +32,8 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.ToolException;
-import org.postgis.PGgeometry;
 import ucar.ma2.Array;
-import ucar.nc2.NetcdfFileWriteable;
 
-import javax.naming.OperationNotSupportedException;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.image.DataBuffer;
@@ -160,22 +157,6 @@ abstract class AbstractProductHandler implements IOHandler {
             columnList.add(column);
         }
         return columnList.toArray(new Item[columnList.size()]);
-    }
-
-    @Deprecated
-    @Override
-    public final void write(NetcdfFileWriteable targetFile,
-                            Observation observation,
-                            String sourceVariableName,
-                            String targetVariableName,
-                            int matchupIndex,
-                            PGgeometry refPoint,
-                            Date refTime) throws IOException {
-    }
-
-    @Override
-    public final InsituRecord readInsituRecord(int recordNo) throws OperationNotSupportedException {
-        throw new OperationNotSupportedException();
     }
 
     protected Product readProduct(DataFile dataFile) throws IOException {

@@ -136,7 +136,7 @@ public class MmdTool extends BasicTool {
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
 
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    // todo - implement
+                    writeImplicitColumn(mmd, variable, i, targetColumn, matchup);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
@@ -145,6 +145,27 @@ public class MmdTool extends BasicTool {
                     }
                 }
             }
+        }
+    }
+
+    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn,
+                                     Matchup matchup) {
+        try {
+            final Converter converter = columnRegistry.getConverter(targetColumn);
+            converter.setMatchup(matchup);
+            final Array targetArray = converter.apply(null);
+            final int[] targetStart = new int[variable.getRank()];
+            targetStart[0] = i;
+            mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+        } catch (IOException e) {
+            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+        } catch (RuleException e) {
+            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
+        } catch (InvalidRangeException e) {
+            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
 

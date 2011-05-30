@@ -19,11 +19,8 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.postgis.PGgeometry;
 import ucar.ma2.Array;
-import ucar.nc2.NetcdfFileWriteable;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +28,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -129,29 +125,6 @@ class GunzipDecorator implements IOHandler {
         return delegate.getColumns();
     }
 
-    /**
-     * Delegates to decorated IO handler.
-     */
-    @Override
-    public void write(NetcdfFileWriteable targetFile,
-                      Observation sourceObservation,
-                      String sourceVariableName,
-                      String targetVariableName,
-                      int targetRecordNumber,
-                      PGgeometry refPoint,
-                      Date refTime) throws IOException {
-        delegate.write(targetFile, sourceObservation, sourceVariableName, targetVariableName, targetRecordNumber,
-                       refPoint, refTime);
-    }
-
-
-    /**
-     * Delegates to decorated IO handler.
-     */
-    @Override
-    public final InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException {
-        return delegate.readInsituRecord(recordNo);
-    }
 
     /**
      * Delegates to decorated IO handler.

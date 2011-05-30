@@ -21,16 +21,13 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.Constants;
-import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -99,26 +96,21 @@ public class MmdIOHandler implements IOHandler {
     }
 
     @Override
-    public InsituRecord readInsituRecord(int recordNo) {
-        return null;
-    }
-
-    @Override
     public DataFile getDatafile() {
         return dataFile;
     }
 
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
-        return getData(role, extractDefinition.getRecordNo());
-    }
-
-    @Override
-    public void write(final NetcdfFileWriteable targetFile, final Observation sourceObservation,
-                      final String sourceVariableName, final String targetVariableName, final int targetRecordNumber,
-                      final PGgeometry refPoint, final Date refTime) throws IOException {
-        validateDelegate(writer);
-        writer.write(targetFile, sourceObservation, sourceVariableName, targetVariableName, targetRecordNumber);
+        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(role));
+        final int[] sourceShape = variable.getShape();
+        final int[] targetShape = extractDefinition.getShape();
+        final int[] targetStart = new int[variable.getRank()];
+        targetStart[0] = extractDefinition.getRecordNo();
+        for (int i = 1; i < targetShape.length; i++) {
+            targetStart[i] = sourceShape[i] / 2 - targetShape[i] / 2;
+        }
+        return readData(variable, targetStart, targetShape);
     }
 
     @Override

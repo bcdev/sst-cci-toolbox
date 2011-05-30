@@ -85,38 +85,6 @@ public interface IOHandler {
     Item[] getColumns();
 
     /**
-     * Writes the variable from the observation in the file.
-     *
-     * @param targetFile         The file to write into.
-     * @param sourceObservation  The observation to write.
-     * @param sourceVariableName The name of the source variable to write.
-     * @param targetVariableName The name of the target variable to write.
-     * @param targetRecordNumber The current matchup index.
-     * @param refPoint           The geo-location of the reference observation.
-     * @param refTime            The reference time.
-     *
-     * @throws java.io.IOException If observation data could not be written into the file.
-     */
-    @Deprecated
-    void write(NetcdfFileWriteable targetFile, Observation sourceObservation, String sourceVariableName,
-               String targetVariableName, int targetRecordNumber, final PGgeometry refPoint, final Date refTime) throws
-                                                                                                                 IOException;
-
-    /**
-     * Reads a record of in-situ data.
-     * <p/>
-     * todo - get rid of this method (rq-20100503)
-     *
-     * @param recordNo The record number.
-     *
-     * @return the in-situ data record with record number {@code recordNo}.
-     *
-     * @throws IOException                    when an error occurred.
-     * @throws OperationNotSupportedException when the implementing class does not support this operation.
-     */
-    InsituRecord readInsituRecord(int recordNo) throws IOException, OperationNotSupportedException;
-
-    /**
      * Returns the data file.
      *
      * @return the data file.

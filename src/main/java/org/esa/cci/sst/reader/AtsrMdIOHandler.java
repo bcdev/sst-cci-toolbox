@@ -66,20 +66,6 @@ class AtsrMdIOHandler extends MdIOHandler {
         return observation;
     }
 
-    @Override
-    public InsituRecord readInsituRecord(int recordNo) throws IOException {
-        final InsituRecord insituRecord = new InsituRecord();
-        final double julianDate = getDouble("insitu.time.julian", recordNo);
-        final double time = TimeUtil.julianDateToSecondsSinceEpoch(julianDate);
-        insituRecord.setValue(InsituVariable.TIME, time);
-        insituRecord.setValue(InsituVariable.LAT, getFloat("insitu.latitude", recordNo));
-        insituRecord.setValue(InsituVariable.LAT, getFloat("insitu.longitude", recordNo));
-        final Number sst = getNumberScaled("insitu.sea_surface_temperature", recordNo);
-        insituRecord.setValue(InsituVariable.SST, sst.floatValue() + 273.15f);
-
-        return insituRecord;
-    }
-
     private static Date dateOf(double julianDate) {
         return TimeUtil.julianDateToDate(julianDate);
     }

@@ -21,8 +21,6 @@ import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.SampleSource;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Observation;
-import org.postgis.PGgeometry;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayDouble;
@@ -32,14 +30,11 @@ import ucar.ma2.DataType;
 import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.awt.Point;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -127,23 +122,6 @@ abstract class MdIOHandler extends NetcdfIOHandler {
             }
         }
         return targetArray;
-    }
-
-    @Deprecated
-    @Override
-    public void write(NetcdfFileWriteable targetFile, Observation observation, String sourceVarName,
-                      String targetVarName, int matchupIndex, final PGgeometry refPoint, final Date refTime) throws
-                                                                                                             IOException {
-        final Variable targetVariable = targetFile.findVariable(NetcdfFile.escapeName(targetVarName));
-        final int[] origin = new int[targetVariable.getRank()];
-        origin[0] = matchupIndex;
-
-        try {
-            final Array variableData = getData(getVariable(sourceVarName), observation.getRecordNo());
-            targetFile.write(NetcdfFile.escapeName(targetVarName), origin, variableData);
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
-        }
     }
 
     @Override
