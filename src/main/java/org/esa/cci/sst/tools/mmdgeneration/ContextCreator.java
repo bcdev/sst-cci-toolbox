@@ -50,6 +50,9 @@ class ContextCreator {
     }
 
     Array readMetopDTimes(int recordNo, Coincidence coincidence, Variable variable) {
+        if(variable.getDimensions().size() != 2) {
+            return null;
+        }
         final int rowCount = variable.getDimension(1).getLength();
         if (coincidence == null || !coincidence.getObservation().getSensor().equalsIgnoreCase("metop")) {
             return Array.factory(DataType.SHORT, new int[]{1, rowCount});
