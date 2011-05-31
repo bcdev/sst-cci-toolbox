@@ -36,12 +36,12 @@ import java.net.URL;
 
 import static org.junit.Assert.*;
 
-public class AaiProductHandlerTest {
+public class AaiProductReaderTest {
 
     private static final String AAI_RESOURCE_NAME = "20100601.egr";
 
     private static DataFile dataFile;
-    private static AbstractProductHandler handler;
+    private static AbstractProductReader reader;
 
     @BeforeClass
     public static void init() throws IOException, URISyntaxException {
@@ -49,32 +49,32 @@ public class AaiProductHandlerTest {
         final URI uri = url.toURI();
         final File file = new File(uri);
 
-        handler = new AaiProductHandler("aai");
+        reader = new AaiProductReader("aai");
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
         final Sensor sensor = new SensorBuilder().
-                name(handler.getSensorName()).
+                name(reader.getSensorName()).
                 observationType(GlobalObservation.class).
                 build();
         dataFile.setSensor(sensor);
-        handler.init(dataFile);
+        reader.init(dataFile);
     }
 
     @AfterClass
     public static void clean() {
-        if (handler != null) {
-            handler.close();
+        if (reader != null) {
+            reader.close();
         }
     }
 
     @Test
     public void testGetNumRecords() throws URISyntaxException, IOException {
-        assertEquals(1, handler.getNumRecords());
+        assertEquals(1, reader.getNumRecords());
     }
 
     @Test
     public void testReadObservation() throws IOException, InvalidRangeException, URISyntaxException {
-        final Observation observation = handler.readObservation(0);
+        final Observation observation = reader.readObservation(0);
 
         assertTrue(observation instanceof GlobalObservation);
         assertSame(dataFile, observation.getDatafile());
@@ -82,7 +82,7 @@ public class AaiProductHandlerTest {
 
     @Test
     public void testGetColumns() throws URISyntaxException, IOException {
-        final Item[] columns = handler.getColumns();
+        final Item[] columns = reader.getColumns();
 
         assertEquals(1, columns.length);
     }

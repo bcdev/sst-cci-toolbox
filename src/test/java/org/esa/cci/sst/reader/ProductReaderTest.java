@@ -44,29 +44,29 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class ProductHandlerTest {
+public class ProductReaderTest {
 
     private static final String AMSR_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42970.dat-v01.nc.gz";
 
     private static DataFile dataFile;
     private static GunzipDecorator handler;
-    private static AbstractProductHandler productHandler;
+    private static AbstractProductReader productReader;
 
     @BeforeClass
     public static void init() throws IOException, URISyntaxException {
-        final URL url = ProductHandlerTest.class.getResource(AMSR_RESOURCE_NAME);
+        final URL url = ProductReaderTest.class.getResource(AMSR_RESOURCE_NAME);
         final URI uri = url.toURI();
         final File file = new File(uri);
 
-        productHandler = new ProductHandler("amsre");
+        productReader = new ProductReader("amsre");
         dataFile = new DataFile();
         dataFile.setPath(file.getPath());
         final Sensor sensor = new SensorBuilder().
-                name(productHandler.getSensorName()).
+                name(productReader.getSensorName()).
                 observationType(GlobalObservation.class).
                 build();
         dataFile.setSensor(sensor);
-        handler = new GunzipDecorator(productHandler);
+        handler = new GunzipDecorator(productReader);
         handler.init(dataFile);
     }
 
@@ -79,7 +79,7 @@ public class ProductHandlerTest {
 
     @Test
     public void testGeoCoding() throws URISyntaxException, IOException {
-        final GeoCoding geoCoding = productHandler.getProduct().getGeoCoding();
+        final GeoCoding geoCoding = productReader.getProduct().getGeoCoding();
         final float wantedLat = -47.9727f;
         final float wantedLon = 18.7432f;
         final GeoPos g = new GeoPos(wantedLat, wantedLon);

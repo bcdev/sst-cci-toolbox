@@ -27,9 +27,9 @@ import java.io.IOException;
  *
  * @author Ralf Quast
  */
-class AaiProductHandler extends AbstractProductHandler {
+class AaiProductReader extends AbstractProductReader {
 
-    AaiProductHandler(String sensorName) {
+    AaiProductReader(String sensorName) {
         super(sensorName, NcAaiProductReaderPlugIn.FORMAT_NAME);
     }
 

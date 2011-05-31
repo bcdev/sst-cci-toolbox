@@ -52,7 +52,7 @@ import java.util.logging.Logger;
  *
  * @author Ralf Quast
  */
-abstract class AbstractProductHandler implements Reader {
+abstract class AbstractProductReader implements Reader {
 
     private final String sensorName;
     private final String[] formatNames;
@@ -65,7 +65,7 @@ abstract class AbstractProductHandler implements Reader {
         System.setProperty("beam.pixelGeoCoding.fractionAccuracy", "true");
     }
 
-    protected AbstractProductHandler(String sensorName, String... formatNames) {
+    protected AbstractProductReader(String sensorName, String... formatNames) {
         this.sensorName = sensorName;
         this.formatNames = formatNames;
     }
