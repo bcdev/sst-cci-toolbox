@@ -31,10 +31,11 @@ final class MatchupInsituDataset extends AbstractMatchupRule {
 
     private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16, 32, 64};
     private static final String FLAG_MEANINGS = "drifter moored ship gtmba radiometer argo dummy";
+    private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        targetColumnBuilder.type(DataType.BYTE).
+        targetColumnBuilder.type(DATA_TYPE).
                 unsigned(true).
                 rank(1).
                 dimensions(Constants.DIMENSION_NAME_MATCHUP).
@@ -44,7 +45,8 @@ final class MatchupInsituDataset extends AbstractMatchupRule {
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-
-        return null;
+        final Array array = Array.factory(DATA_TYPE, new int[]{1});
+        array.setByte(0, getContext().getInsituDataset());
+        return array;
     }
 }
