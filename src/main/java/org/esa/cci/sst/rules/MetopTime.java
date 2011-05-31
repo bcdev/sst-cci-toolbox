@@ -16,24 +16,29 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
- * Sets the matchup's time.
+ * Sets metop.time.
  *
  * @author Thomas Storm
  */
-public class MatchupTime extends AbstractMatchupRule {
+public class MetopTime extends AbstractMatchupRule {
 
     private static final DataType DATA_TYPE = DataType.DOUBLE;
-    private static final int[] SHAPE = new int[]{1};
+
+    @Override
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        targetColumnBuilder.type(DATA_TYPE);
+    }
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Array array = Array.factory(DATA_TYPE, SHAPE);
-        array.setDouble(0, getContext().getMatchupTime());
+        final Array array = Array.factory(DATA_TYPE, new int[]{1});
+        array.setDouble(0, getContext().getMetopTime());
         return array;
     }
 }

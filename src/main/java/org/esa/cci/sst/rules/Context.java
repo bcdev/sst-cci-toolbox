@@ -29,5 +29,7 @@ public interface Context {
 
     byte getInsituDataset();
 
-    double getTime();
+    double getMatchupTime();
+
+    double getMetopTime();
 }

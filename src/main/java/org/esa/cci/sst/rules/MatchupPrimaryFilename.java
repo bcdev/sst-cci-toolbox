@@ -26,6 +26,7 @@ import java.io.File;
 /**
  * Matchup filename.
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
 public class MatchupPrimaryFilename extends AbstractMatchupRule {
 
     private static final DataType DATA_TYPE = DataType.CHAR;

@@ -37,6 +37,7 @@ import org.esa.cci.sst.util.Cache;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.TimeUtil;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriteable;
@@ -140,9 +141,11 @@ public class MmdTool extends BasicTool {
             for (final Variable variable : mmd.getVariables()) {
                 final Item targetColumn = columnRegistry.getColumn(variable.getName());
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
-
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    Context context = createContext(recordNo, matchup);
+                    final String variableName = targetColumn.getName();
+                    String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
+                    final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
+                    Context context = createContext(recordNo, matchup, coincidence);
                     writeImplicitColumn(mmd, variable, recordNo, targetColumn, context);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
@@ -155,31 +158,48 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private Context createContext(int recordNo, Matchup matchup) {
+    private Context createContext(int recordNo, Matchup matchup, Coincidence coincidence) {
         byte insituDataset = readInsituDataset(matchup, recordNo);
-        double time = readTime(matchup, recordNo);
+        double matchupTime = readMatchupTime(matchup, recordNo);
+        double metopTime = readMetopTime(recordNo, coincidence);
         return new ContextBuilder()
                 .matchup(matchup)
                 .insituDataset(insituDataset)
-                .time(time)
+                .matchupTime(matchupTime)
+                .metopTime(metopTime)
                 .build();
     }
 
-    private double readTime(Matchup matchup, int recordNo) {
+    private double readMetopTime(int recordNo, Coincidence coincidence) {
+        if (coincidence == null || !coincidence.getObservation().getSensor().equalsIgnoreCase("metop")) {
+            return Double.NaN;
+        }
+        final ReferenceObservation observation = (ReferenceObservation) coincidence.getObservation();
+        final Reader reader = tryAndGetReader(observation.getDatafile());
+        return readObservationTime(recordNo, reader, observation);
+    }
+
+    private double readMatchupTime(Matchup matchup, int recordNo) {
         final Reader reader = tryAndGetReader(matchup.getRefObs().getDatafile());
         final String sensor = matchup.getRefObs().getSensor();
         final OneDimOneValue oneDimOneValue = new OneDimOneValue(recordNo);
-        if("atsr_md".equalsIgnoreCase(sensor)) {
+        if ("atsr_md".equalsIgnoreCase(sensor)) {
             return tryAndRead(reader, "atsr.time.julian", oneDimOneValue).getDouble(0);
-        } else if("metop".equalsIgnoreCase(sensor) || "seviri".equalsIgnoreCase(sensor)) {
-            final double msrTime = tryAndRead(reader, "msr_time", oneDimOneValue).getDouble(0);
-            final double lon = matchup.getRefObs().getPoint().getGeometry().getFirstPoint().getX();
-            final double lat = matchup.getRefObs().getPoint().getGeometry().getFirstPoint().getY();
-            final double julianMsrTime = TimeUtil.julianDateToSecondsSinceEpoch(msrTime);
-            final double dtime = tryAndRead(reader, "dtime", new TwoDimsOneValue(recordNo, lon, lat)).getDouble(0);
-            return julianMsrTime + dtime;
+        } else if ("metop".equalsIgnoreCase(sensor) || "seviri".equalsIgnoreCase(sensor)) {
+            return readObservationTime(recordNo, reader, matchup.getRefObs());
         }
-        throw new IllegalStateException(MessageFormat.format("Illegal primary sensor: ''{0}''.", sensor));
+        return Double.NaN;
+    }
+
+    private double readObservationTime(int recordNo, Reader reader, ReferenceObservation observation) {
+        final OneDimOneValue oneDimOneValue = new OneDimOneValue(recordNo);
+        final double msrTime = tryAndRead(reader, "msr_time", oneDimOneValue).getDouble(0);
+        final Point point = observation.getPoint().getGeometry().getFirstPoint();
+        final double lon = point.getX();
+        final double lat = point.getY();
+        final double julianMsrTime = TimeUtil.julianDateToSecondsSinceEpoch(msrTime);
+        final double dtime = tryAndRead(reader, "dtime", new TwoDimsOneValue(recordNo, lon, lat)).getDouble(0);
+        return julianMsrTime + dtime;
     }
 
     private byte readInsituDataset(Matchup matchup, int recordNo) {
@@ -187,9 +207,9 @@ public class MmdTool extends BasicTool {
         final Reader reader = tryAndGetReader(referenceObservation.getDatafile());
         final String sensor = referenceObservation.getSensor();
         String variableName;
-        if("atsr_md".equalsIgnoreCase(sensor)) {
+        if ("atsr_md".equalsIgnoreCase(sensor)) {
             variableName = "insitu.dataset";
-        } else if("metop".equalsIgnoreCase(sensor) || "seviri".equalsIgnoreCase(sensor)) {
+        } else if ("metop".equalsIgnoreCase(sensor) || "seviri".equalsIgnoreCase(sensor)) {
             variableName = "msr_type";
         } else {
             throw new IllegalStateException(MessageFormat.format("Illegal primary sensor: ''{0}''.", sensor));
@@ -204,7 +224,8 @@ public class MmdTool extends BasicTool {
         try {
             value = reader.read(variableName, extractDefinition);
         } catch (IOException e) {
-            throw new ToolException(MessageFormat.format("Unable to read from variable ''{0}''.", variableName), e, ToolException.TOOL_IO_ERROR);
+            throw new ToolException(MessageFormat.format("Unable to read from variable ''{0}''.", variableName), e,
+                                    ToolException.TOOL_IO_ERROR);
         }
         return value;
     }
@@ -230,13 +251,16 @@ public class MmdTool extends BasicTool {
             targetStart[0] = matchupNumber;
             mmd.write(variable.getNameEscaped(), targetStart, targetArray);
         } catch (IOException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat
+                    .format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat
+                    .format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         } catch (InvalidRangeException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat
+                    .format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }

@@ -29,7 +29,8 @@ class ContextBuilder {
 
     private Matchup matchup;
     private byte insituDataset;
-    private double time;
+    private double matchupTime;
+    private double metopTime;
 
     ContextBuilder matchup(Matchup matchup) {
         this.matchup = matchup;
@@ -41,27 +42,33 @@ class ContextBuilder {
         return this;
     }
 
-    ContextBuilder time(double time) {
-        this.time = time;
+    ContextBuilder matchupTime(double time) {
+        this.matchupTime = time;
         return this;
     }
 
+    public ContextBuilder metopTime(double metopTime) {
+        this.metopTime = metopTime;
+        return this;
+    }
+
+    @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
     Context build() {
-        return new ContextImpl(matchup, insituDataset, time);
+        final ContextImpl context = new ContextImpl();
+        context.matchup = matchup;
+        context.insituDataset = insituDataset;
+        context.matchupTime = matchupTime;
+        context.metopTime = metopTime;
+        return context;
     }
 
 
     private static class ContextImpl implements Context {
 
-        private final Matchup matchup;
-        private final byte insituDataset;
-        private final double time;
-
-        ContextImpl(Matchup matchup, byte insituDataset, double time) {
-            this.matchup = matchup;
-            this.insituDataset = insituDataset;
-            this.time = time;
-        }
+        private Matchup matchup;
+        private byte insituDataset;
+        private double matchupTime;
+        private double metopTime;
 
         @Override
         public Matchup getMatchup() {
@@ -74,8 +81,13 @@ class ContextBuilder {
         }
 
         @Override
-        public double getTime() {
-            return time;
+        public double getMatchupTime() {
+            return matchupTime;
+        }
+
+        @Override
+        public double getMetopTime() {
+            return metopTime;
         }
     }
 }
