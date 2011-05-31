@@ -27,7 +27,7 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-public class MetopTime extends AbstractMatchupRule {
+public class MetopTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.DOUBLE;
 

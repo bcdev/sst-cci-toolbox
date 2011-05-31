@@ -24,7 +24,7 @@ import ucar.ma2.DataType;
 /**
  * Matchup longitude.
  */
-public class MatchupLat extends AbstractMatchupRule {
+public class MatchupLat extends AbstractImplicitRule {
 
 
     private static final DataType DATA_TYPE = DataType.FLOAT;

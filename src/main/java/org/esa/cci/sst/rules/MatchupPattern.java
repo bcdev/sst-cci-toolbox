@@ -27,7 +27,7 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-final class MatchupPattern extends AbstractMatchupRule {
+final class MatchupPattern extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
     private static final int[] SHAPE = new int[]{1};

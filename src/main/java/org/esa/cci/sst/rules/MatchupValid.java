@@ -25,7 +25,7 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-public class MatchupValid extends AbstractMatchupRule {
+public class MatchupValid extends AbstractImplicitRule {
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {

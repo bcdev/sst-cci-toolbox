@@ -22,7 +22,7 @@ import org.esa.cci.sst.data.Item;
 /**
  * Abstract matchup rule.
  */
-public abstract class AbstractMatchupRule extends Rule {
+public abstract class AbstractImplicitRule extends Rule {
 
     @Override
     public final Item apply(Item sourceColumn) throws RuleException {

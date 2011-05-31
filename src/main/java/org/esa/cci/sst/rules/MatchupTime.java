@@ -25,7 +25,7 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-public class MatchupTime extends AbstractMatchupRule {
+public class MatchupTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.DOUBLE;
     private static final int[] SHAPE = new int[]{1};

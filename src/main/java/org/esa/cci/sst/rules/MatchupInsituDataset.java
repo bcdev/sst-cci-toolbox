@@ -27,7 +27,7 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-final class MatchupInsituDataset extends AbstractMatchupRule {
+final class MatchupInsituDataset extends AbstractImplicitRule {
 
     private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16, 32, 64};
     private static final String FLAG_MEANINGS = "drifter moored ship gtmba radiometer argo dummy";

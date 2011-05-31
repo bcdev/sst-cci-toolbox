@@ -27,7 +27,8 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-public class MetopDTime extends AbstractMatchupRule {
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
+public class MetopDTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.SHORT;
 

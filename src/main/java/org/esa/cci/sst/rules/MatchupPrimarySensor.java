@@ -28,7 +28,7 @@ import java.text.MessageFormat;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-public class MatchupPrimarySensor extends AbstractMatchupRule {
+public class MatchupPrimarySensor extends AbstractImplicitRule {
 
     @SuppressWarnings({"IfStatementWithTooManyBranches"})
     @Override
