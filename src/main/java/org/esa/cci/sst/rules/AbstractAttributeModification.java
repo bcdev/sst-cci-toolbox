@@ -25,7 +25,7 @@ import ucar.ma2.Array;
  *
  * @author Ralf Quast
  */
-abstract class AbstractAttributeModification implements Rule {
+abstract class AbstractAttributeModification extends Rule {
 
     protected AbstractAttributeModification() {
     }

@@ -24,7 +24,7 @@ import ucar.ma2.DataType;
 /**
  * Matchup longitude.
  */
-public class MatchupLat extends MatchupRule {
+public class MatchupLat extends AbstractMatchupRule {
 
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
@@ -38,7 +38,7 @@ public class MatchupLat extends MatchupRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setDouble(0, getMatchup().getRefObs().getPoint().getGeometry().getFirstPoint().getY());
+        targetArray.setDouble(0, getContext().getMatchup().getRefObs().getPoint().getGeometry().getFirstPoint().getY());
         return targetArray;
     }
 }

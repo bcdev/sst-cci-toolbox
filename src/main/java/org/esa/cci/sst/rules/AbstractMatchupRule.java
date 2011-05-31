@@ -16,23 +16,22 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
-import ucar.ma2.Array;
 
 /**
- * Identity.
- *
- * @author Ralf Quast
+ * Abstract matchup rule.
  */
-final class Identity extends Rule {
+public abstract class AbstractMatchupRule extends Rule {
 
     @Override
-    public Item apply(Item sourceColumn) {
-        return sourceColumn;
+    public final Item apply(Item sourceColumn) throws RuleException {
+        final ColumnBuilder targetColumnBuilder = new ColumnBuilder(sourceColumn);
+        configureTargetColumn(targetColumnBuilder, sourceColumn);
+
+        return targetColumnBuilder.build();
     }
 
-    @Override
-    public Array apply(Array sourceArray, Item sourceColumn) {
-        return sourceArray;
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
     }
 }

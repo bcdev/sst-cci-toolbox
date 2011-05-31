@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Matchup;
 import ucar.ma2.Array;
 
 /**
@@ -37,5 +36,5 @@ public interface Converter {
      */
     Array apply(Array numbers) throws RuleException;
 
-    void setMatchup(Matchup matchup);
+    void setContext(Context context);
 }

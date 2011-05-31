@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Queries;
@@ -23,11 +23,16 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
+import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
+import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.Cache;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
@@ -46,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,13 +128,13 @@ public class MmdTool extends BasicTool {
                                                               getSourceStartTime(),
                                                               getSourceStopTime());
 
-        for (int i = 0, matchupListSize = matchupList.size(); i < matchupListSize; i++) {
-            final Matchup matchup = matchupList.get(i);
+        for (int recordNo = 0, matchupListSize = matchupList.size(); recordNo < matchupListSize; recordNo++) {
+            final Matchup matchup = matchupList.get(recordNo);
             final List<Coincidence> coincidenceList = matchup.getCoincidences();
 
             if (getLogger().isLoggable(Level.INFO)) {
                 getLogger().info(MessageFormat.format(
-                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), i + 1, matchupListSize));
+                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), recordNo + 1, matchupListSize));
             }
 
             for (final Variable variable : mmd.getVariables()) {
@@ -136,35 +142,104 @@ public class MmdTool extends BasicTool {
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
 
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    writeImplicitColumn(mmd, variable, i, targetColumn, matchup);
+                    byte insituDataset = readInsituDataset(matchup, recordNo);
+                    Context context = new ContextBuilder()
+                            .matchup(matchup)
+                            .insituDataset(insituDataset)
+                            .build();
+                    writeImplicitColumn(mmd, variable, recordNo, targetColumn, context);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
                     if (coincidence != null) {
-                        writeColumn(mmd, variable, i, targetColumn, sourceColumn, coincidence);
+                        writeColumn(mmd, variable, recordNo, targetColumn, sourceColumn, coincidence);
                     }
                 }
             }
         }
     }
 
-    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn,
-                                     Matchup matchup) {
+    private byte readInsituDataset(Matchup matchup, int recordNo) {
+        final ReferenceObservation referenceObservation = matchup.getRefObs();
+        final Reader reader = tryAndGetReader(referenceObservation.getDatafile());
+        final String sensor = referenceObservation.getSensor();
+        String variableName;
+        if("atsr_md".equalsIgnoreCase(sensor)) {
+            variableName = "insitu.dataset";
+        } else if("metop".equalsIgnoreCase(sensor) || "seviri".equalsIgnoreCase(sensor)) {
+            variableName = "msr_type";
+        } else {
+            throw new IllegalStateException(MessageFormat.format("Illegal primary sensor: ''{0}''.", sensor));
+        }
+
+        Array values = tryAndRead(reader, variableName, recordNo);
+        return values.getByte(0);
+    }
+
+    private Array tryAndRead(Reader reader, String variableName, final int recordNo) {
+        Array value;
+        try {
+            value = reader.read(variableName, new ExtractDefinition() {
+
+                @Override
+                public double getLat() {
+                    return Double.NaN;
+                }
+
+                @Override
+                public double getLon() {
+                    return Double.NaN;
+                }
+
+                @Override
+                public int getRecordNo() {
+                    return recordNo;
+                }
+
+                @Override
+                public int[] getShape() {
+                    return new int[]{1};
+                }
+
+                @Override
+                public Date getDate() {
+                    return null;
+                }
+            });
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Unable to read from variable ''{0}''.", variableName), e, ToolException.TOOL_IO_ERROR);
+        }
+        return value;
+    }
+
+    private Reader tryAndGetReader(DataFile datafile) {
+        final Reader reader;
+        try {
+            reader = getReader(datafile);
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Unable to get reader for datafile ''{0}''.",
+                                                         datafile.toString()), e, ToolException.TOOL_IO_ERROR);
+        }
+        return reader;
+    }
+
+    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int matchupNumber, Item targetColumn,
+                                     Context context) {
         try {
             final Converter converter = columnRegistry.getConverter(targetColumn);
-            converter.setMatchup(matchup);
+            converter.setContext(context);
             final Array targetArray = converter.apply(null);
             final int[] targetStart = new int[variable.getRank()];
-            targetStart[0] = i;
+            targetStart[0] = matchupNumber;
             mmd.write(variable.getNameEscaped(), targetStart, targetArray);
         } catch (IOException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         } catch (InvalidRangeException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }

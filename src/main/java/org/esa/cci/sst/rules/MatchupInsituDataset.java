@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.tools.Constants;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
@@ -26,7 +27,7 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-final class MatchupInsituDataset extends AbstractAttributeModification {
+final class MatchupInsituDataset extends AbstractMatchupRule {
 
     private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16, 32, 64};
     private static final String FLAG_MEANINGS = "drifter moored ship gtmba radiometer argo dummy";
@@ -39,5 +40,11 @@ final class MatchupInsituDataset extends AbstractAttributeModification {
                 dimensions(Constants.DIMENSION_NAME_MATCHUP).
                 flagMasks(FLAG_MASKS).
                 flagMeanings(FLAG_MEANINGS);
+    }
+
+    @Override
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+
+        return null;
     }
 }
