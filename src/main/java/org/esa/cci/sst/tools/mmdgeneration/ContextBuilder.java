@@ -29,6 +29,7 @@ class ContextBuilder {
 
     private Matchup matchup;
     private byte insituDataset;
+    private double time;
 
     ContextBuilder matchup(Matchup matchup) {
         this.matchup = matchup;
@@ -40,8 +41,13 @@ class ContextBuilder {
         return this;
     }
 
+    ContextBuilder time(double time) {
+        this.time = time;
+        return this;
+    }
+
     Context build() {
-        return new ContextImpl(matchup, insituDataset);
+        return new ContextImpl(matchup, insituDataset, time);
     }
 
 
@@ -49,10 +55,12 @@ class ContextBuilder {
 
         private final Matchup matchup;
         private final byte insituDataset;
+        private final double time;
 
-        ContextImpl(Matchup matchup, byte insituDataset) {
+        ContextImpl(Matchup matchup, byte insituDataset, double time) {
             this.matchup = matchup;
             this.insituDataset = insituDataset;
+            this.time = time;
         }
 
         @Override
@@ -63,6 +71,11 @@ class ContextBuilder {
         @Override
         public byte getInsituDataset() {
             return insituDataset;
+        }
+
+        @Override
+        public double getTime() {
+            return time;
         }
     }
 }

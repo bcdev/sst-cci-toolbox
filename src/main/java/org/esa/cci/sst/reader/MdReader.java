@@ -87,24 +87,24 @@ abstract class MdReader extends NetcdfReader {
         final Variable variable = getVariable(role);
         final Array targetArray = Array.factory(variable.getDataType(), extractDefinition.getShape());
         final int recordNo = extractDefinition.getRecordNo();
-        if (variable.getRank() < 3) {
+        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
+        if (variable.getDimension(0).getLength() <= recordNo) {
+            for (int i = 0; i < targetArray.getSize(); i++) {
+                targetArray.setObject(i, fillValue);
+            }
+            return targetArray;
+        }
+        if (variable.getRank() < 3 && !role.equalsIgnoreCase("dtime")) {
             final Array sourceArray = getData(variable, recordNo);
             for (int i = 0; i < sourceArray.getSize(); i++) {
                 targetArray.setObject(i, sourceArray.getObject(i));
             }
             return targetArray;
         }
-        final Variable lon = getVariable("lon");
-        final Variable lat = getVariable("lat");
-        final Array lonArray = getData(lon, recordNo);
-        final Array latArray = getData(lat, recordNo);
-        final SampleSource lonSource = new VariableSampleSource(lon, lonArray);
-        final SampleSource latSource = new VariableSampleSource(lat, latArray);
-        final PixelLocator pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
+        final PixelLocator pixelLocator = getPixelLocator(recordNo);
         final Point p = new Point();
         final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
                                                               extractDefinition.getLat(), p);
-        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
         if (success) {
             final Array sourceArray = getData(variable, recordNo);
             extractSubscene(sourceArray, targetArray, p, fillValue);
@@ -325,6 +325,16 @@ abstract class MdReader extends NetcdfReader {
         final Variable variable = validateArguments(role, 2, DataType.DOUBLE, recordNo);
         final Array array = getData(variable, recordNo);
         return ((ArrayDouble.D2) array).get(0, y);
+    }
+
+    private PixelLocator getPixelLocator(int recordNo) throws IOException {
+        final Variable lon = getVariable("lon");
+        final Variable lat = getVariable("lat");
+        final Array lonArray = getData(lon, recordNo);
+        final Array latArray = getData(lat, recordNo);
+        final SampleSource lonSource = new VariableSampleSource(lon, lonArray);
+        final SampleSource latSource = new VariableSampleSource(lat, latArray);
+        return new QuadTreePixelLocator(lonSource, latSource);
     }
 
     private Variable validateArguments(String role, int expectedRank, DataType expectedDataType, int recordNo) {

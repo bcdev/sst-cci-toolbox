@@ -36,6 +36,7 @@ import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.Cache;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriteable;
@@ -51,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,11 +142,7 @@ public class MmdTool extends BasicTool {
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
 
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    byte insituDataset = readInsituDataset(matchup, recordNo);
-                    Context context = new ContextBuilder()
-                            .matchup(matchup)
-                            .insituDataset(insituDataset)
-                            .build();
+                    Context context = createContext(recordNo, matchup);
                     writeImplicitColumn(mmd, variable, recordNo, targetColumn, context);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
@@ -157,6 +153,33 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
+    }
+
+    private Context createContext(int recordNo, Matchup matchup) {
+        byte insituDataset = readInsituDataset(matchup, recordNo);
+        double time = readTime(matchup, recordNo);
+        return new ContextBuilder()
+                .matchup(matchup)
+                .insituDataset(insituDataset)
+                .time(time)
+                .build();
+    }
+
+    private double readTime(Matchup matchup, int recordNo) {
+        final Reader reader = tryAndGetReader(matchup.getRefObs().getDatafile());
+        final String sensor = matchup.getRefObs().getSensor();
+        final OneDimOneValue oneDimOneValue = new OneDimOneValue(recordNo);
+        if("atsr_md".equalsIgnoreCase(sensor)) {
+            return tryAndRead(reader, "atsr.time.julian", oneDimOneValue).getDouble(0);
+        } else if("metop".equalsIgnoreCase(sensor) || "seviri".equalsIgnoreCase(sensor)) {
+            final double msrTime = tryAndRead(reader, "msr_time", oneDimOneValue).getDouble(0);
+            final double lon = matchup.getRefObs().getPoint().getGeometry().getFirstPoint().getX();
+            final double lat = matchup.getRefObs().getPoint().getGeometry().getFirstPoint().getY();
+            final double julianMsrTime = TimeUtil.julianDateToSecondsSinceEpoch(msrTime);
+            final double dtime = tryAndRead(reader, "dtime", new TwoDimsOneValue(recordNo, lon, lat)).getDouble(0);
+            return julianMsrTime + dtime;
+        }
+        throw new IllegalStateException(MessageFormat.format("Illegal primary sensor: ''{0}''.", sensor));
     }
 
     private byte readInsituDataset(Matchup matchup, int recordNo) {
@@ -172,40 +195,14 @@ public class MmdTool extends BasicTool {
             throw new IllegalStateException(MessageFormat.format("Illegal primary sensor: ''{0}''.", sensor));
         }
 
-        Array values = tryAndRead(reader, variableName, recordNo);
-        return values.getByte(0);
+        Array value = tryAndRead(reader, variableName, new OneDimOneValue(recordNo));
+        return value.getByte(0);
     }
 
-    private Array tryAndRead(Reader reader, String variableName, final int recordNo) {
+    private Array tryAndRead(Reader reader, String variableName, ExtractDefinition extractDefinition) {
         Array value;
         try {
-            value = reader.read(variableName, new ExtractDefinition() {
-
-                @Override
-                public double getLat() {
-                    return Double.NaN;
-                }
-
-                @Override
-                public double getLon() {
-                    return Double.NaN;
-                }
-
-                @Override
-                public int getRecordNo() {
-                    return recordNo;
-                }
-
-                @Override
-                public int[] getShape() {
-                    return new int[]{1};
-                }
-
-                @Override
-                public Date getDate() {
-                    return null;
-                }
-            });
+            value = reader.read(variableName, extractDefinition);
         } catch (IOException e) {
             throw new ToolException(MessageFormat.format("Unable to read from variable ''{0}''.", variableName), e, ToolException.TOOL_IO_ERROR);
         }
@@ -442,4 +439,5 @@ public class MmdTool extends BasicTool {
         }
         return null;
     }
+
 }

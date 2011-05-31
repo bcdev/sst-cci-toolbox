@@ -16,18 +16,24 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Item;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
 
 /**
- * Context which provides access to data needed to write mmd file.
+ * Sets the matchup's time.
  *
  * @author Thomas Storm
  */
-public interface Context {
+public class MatchupTime extends AbstractMatchupRule {
 
-    Matchup getMatchup();
+    private static final DataType DATA_TYPE = DataType.DOUBLE;
+    private static final int[] SHAPE = new int[]{1};
 
-    byte getInsituDataset();
-
-    double getTime();
+    @Override
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        final Array array = Array.factory(DATA_TYPE, SHAPE);
+        array.setDouble(0, getContext().getTime());
+        return array;
+    }
 }
