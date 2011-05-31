@@ -17,6 +17,7 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Matchup;
+import ucar.ma2.Array;
 
 /**
  * Context which provides access to data needed to write mmd file.
@@ -32,4 +33,6 @@ public interface Context {
     double getMatchupTime();
 
     double getMetopTime();
+
+    Array getMetopDTimes();
 }

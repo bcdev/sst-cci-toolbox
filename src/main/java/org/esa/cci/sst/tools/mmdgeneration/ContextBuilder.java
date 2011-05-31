@@ -18,6 +18,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.rules.Context;
+import ucar.ma2.Array;
 
 /**
  * Creates unmodifiable instances of ${@link Context}.
@@ -31,6 +32,7 @@ class ContextBuilder {
     private byte insituDataset;
     private double matchupTime;
     private double metopTime;
+    private Array metopDTimes;
 
     ContextBuilder matchup(Matchup matchup) {
         this.matchup = matchup;
@@ -47,8 +49,13 @@ class ContextBuilder {
         return this;
     }
 
-    public ContextBuilder metopTime(double metopTime) {
+    ContextBuilder metopTime(double metopTime) {
         this.metopTime = metopTime;
+        return this;
+    }
+
+    ContextBuilder metopDTimes(Array metopDTimes) {
+        this.metopDTimes = metopDTimes;
         return this;
     }
 
@@ -59,6 +66,7 @@ class ContextBuilder {
         context.insituDataset = insituDataset;
         context.matchupTime = matchupTime;
         context.metopTime = metopTime;
+        context.metopDTimes = metopDTimes;
         return context;
     }
 
@@ -69,6 +77,7 @@ class ContextBuilder {
         private byte insituDataset;
         private double matchupTime;
         private double metopTime;
+        private Array metopDTimes;
 
         @Override
         public Matchup getMatchup() {
@@ -88,6 +97,11 @@ class ContextBuilder {
         @Override
         public double getMetopTime() {
             return metopTime;
+        }
+
+        @Override
+        public Array getMetopDTimes() {
+            return metopDTimes;
         }
     }
 }

@@ -23,13 +23,13 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
- * Sets metop.time.
+ * Sets metop.dtime.
  *
  * @author Thomas Storm
  */
-public class MetopTime extends AbstractMatchupRule {
+public class MetopDTime extends AbstractMatchupRule {
 
-    private static final DataType DATA_TYPE = DataType.DOUBLE;
+    private static final DataType DATA_TYPE = DataType.SHORT;
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
@@ -38,8 +38,11 @@ public class MetopTime extends AbstractMatchupRule {
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Array array = Array.factory(DATA_TYPE, new int[]{1});
-        array.setDouble(0, getContext().getMetopTime());
+        final Array metopDTimes = getContext().getMetopDTimes();
+        final Array array = Array.factory(DATA_TYPE, metopDTimes.getShape());
+        for (int i = 0; i < array.getSize(); i++) {
+              array.setShort(i, metopDTimes.getShort(i));
+        }
         return array;
     }
 }

@@ -39,6 +39,7 @@ import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.Point;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
@@ -145,7 +146,7 @@ public class MmdTool extends BasicTool {
                     final String variableName = targetColumn.getName();
                     String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
-                    Context context = createContext(recordNo, matchup, coincidence);
+                    Context context = createContext(recordNo, matchup, coincidence, variable);
                     writeImplicitColumn(mmd, variable, recordNo, targetColumn, context);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
@@ -158,15 +159,17 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private Context createContext(int recordNo, Matchup matchup, Coincidence coincidence) {
-        byte insituDataset = readInsituDataset(matchup, recordNo);
-        double matchupTime = readMatchupTime(matchup, recordNo);
-        double metopTime = readMetopTime(recordNo, coincidence);
+    private Context createContext(int recordNo, Matchup matchup, Coincidence coincidence, Variable variable) {
+        final byte insituDataset = readInsituDataset(matchup, recordNo);
+        final double matchupTime = readMatchupTime(matchup, recordNo);
+        final double metopTime = readMetopTime(recordNo, coincidence);
+        final Array metopDTimes = readMetopDTimes(recordNo, coincidence, variable);
         return new ContextBuilder()
                 .matchup(matchup)
                 .insituDataset(insituDataset)
                 .matchupTime(matchupTime)
                 .metopTime(metopTime)
+                .metopDTimes(metopDTimes)
                 .build();
     }
 
@@ -177,6 +180,21 @@ public class MmdTool extends BasicTool {
         final ReferenceObservation observation = (ReferenceObservation) coincidence.getObservation();
         final Reader reader = tryAndGetReader(observation.getDatafile());
         return readObservationTime(recordNo, reader, observation);
+    }
+
+    private Array readMetopDTimes(int recordNo, Coincidence coincidence, Variable variable) {
+        final int rowCount = variable.getDimension(1).getLength();
+        if (coincidence == null || !coincidence.getObservation().getSensor().equalsIgnoreCase("metop")) {
+            return Array.factory(DataType.SHORT, new int[]{1, rowCount});
+        }
+        final ReferenceObservation observation = (ReferenceObservation) coincidence.getObservation();
+        final Reader reader = tryAndGetReader(observation.getDatafile());
+        final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
+                .coincidence(coincidence)
+                .recordNo(recordNo)
+                .shape(new int[]{1, rowCount})
+                .build();
+        return tryAndRead(reader, "dtime", extractDefinition);
     }
 
     private double readMatchupTime(Matchup matchup, int recordNo) {
@@ -197,8 +215,8 @@ public class MmdTool extends BasicTool {
         final Point point = observation.getPoint().getGeometry().getFirstPoint();
         final double lon = point.getX();
         final double lat = point.getY();
-        final double julianMsrTime = TimeUtil.julianDateToSecondsSinceEpoch(msrTime);
         final double dtime = tryAndRead(reader, "dtime", new TwoDimsOneValue(recordNo, lon, lat)).getDouble(0);
+        final double julianMsrTime = TimeUtil.julianDateToSecondsSinceEpoch(msrTime);
         return julianMsrTime + dtime;
     }
 
@@ -251,16 +269,13 @@ public class MmdTool extends BasicTool {
             targetStart[0] = matchupNumber;
             mmd.write(variable.getNameEscaped(), targetStart, targetArray);
         } catch (IOException e) {
-            final String message = MessageFormat
-                    .format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException e) {
-            final String message = MessageFormat
-                    .format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         } catch (InvalidRangeException e) {
-            final String message = MessageFormat
-                    .format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
