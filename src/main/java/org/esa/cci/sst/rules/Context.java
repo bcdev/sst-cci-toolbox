@@ -16,8 +16,10 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
-import ucar.ma2.Array;
+import org.esa.cci.sst.reader.Reader;
+import ucar.nc2.Variable;
 
 /**
  * Context which provides access to data needed to write mmd file.
@@ -28,11 +30,11 @@ public interface Context {
 
     Matchup getMatchup();
 
-    byte getInsituDataset();
+    Reader getCoincidenceReader();
 
-    double getMatchupTime();
+    Reader getReferenceObservationReader();
 
-    double getMetopTime();
+    Coincidence getCoincidence();
 
-    Array getMetopDTimes();
+    Variable getTargetVariable();
 }

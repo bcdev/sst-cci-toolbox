@@ -16,23 +16,29 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Item;
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
+import org.junit.Test;
 
 /**
- * Rule setting the 'valid' flag for a matchup.
+ * TODO fill out or delete
  *
  * @author Thomas Storm
  */
-@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class MatchupValid extends AbstractImplicitRule {
+public class LandSeaMaskTest {
 
-    @Override
-    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Array array = Array.factory(DataType.BYTE, new int[]{1});
-        final boolean invalid = getContext().getMatchup().isInvalid();
-        array.setByte(0, (byte) (invalid ? 1 : 0));
-        return array;
+    @Test
+    public void testName() throws Exception {
+        int recordNo = 0;
+        int[] shape = new int[]{0, 2, 6};
+
+        int pixelX;
+        int pixelY;
+        for (int i = 0; i < 12; i++) {
+            pixelX = i % shape[1] + (recordNo * shape[1] * shape[2]);
+            pixelY = i % shape[2] + (recordNo * shape[1] * shape[2]);
+
+            System.out.println("pixelX = " + pixelX);
+            System.out.println("pixelY = " + pixelY);
+            System.out.println();
+        }
     }
 }

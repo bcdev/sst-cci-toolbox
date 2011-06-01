@@ -74,7 +74,6 @@ public class MmdTool extends BasicTool {
     private final Cache<String, Reader> readerCache = new Cache<String, Reader>(100);
 
     private int matchupCount;
-    private ContextCreator contextCreator;
 
     public MmdTool() {
         super("mmsmmd.sh", "0.1");
@@ -127,13 +126,13 @@ public class MmdTool extends BasicTool {
                                                               getSourceStartTime(),
                                                               getSourceStopTime());
 
-        for (int recordNo = 0, matchupListSize = matchupList.size(); recordNo < matchupListSize; recordNo++) {
-            final Matchup matchup = matchupList.get(recordNo);
+        for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
+            final Matchup matchup = matchupList.get(targetRecordNo);
             final List<Coincidence> coincidenceList = matchup.getCoincidences();
 
             if (getLogger().isLoggable(Level.INFO)) {
                 getLogger().info(MessageFormat.format(
-                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), recordNo + 1, matchupListSize));
+                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), targetRecordNo + 1, matchupListSize));
             }
 
             for (final Variable variable : mmd.getVariables()) {
@@ -141,29 +140,40 @@ public class MmdTool extends BasicTool {
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                 if ("Implicit".equals(sourceColumn.getName())) {
                     final String variableName = targetColumn.getName();
+                    // todo - ts 01Jun - Watch out!! Assuming that variable name does not contain '.' after sensor id!
                     String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
-                    Context context = contextCreator.createContext(recordNo, matchup, coincidence, variable);
-                    writeImplicitColumn(mmd, variable, recordNo, targetColumn, context);
+                    Reader coincidenceReader = null;
+                    if(coincidence != null) {
+                        coincidenceReader = tryAndGetReader(coincidence.getObservation().getDatafile());
+                    }
+                    Context context = new ContextBuilder()
+                            .coincidence(coincidence)
+                            .matchup(matchup)
+                            .coincidenceReader(coincidenceReader)
+                            .referenceObservationReader(tryAndGetReader(matchup.getRefObs().getDatafile()))
+                            .targetVariable(variable)
+                            .build();
+                    writeImplicitColumn(mmd, variable, targetRecordNo, targetColumn, context);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
                     if (coincidence != null) {
-                        writeColumn(mmd, variable, recordNo, targetColumn, sourceColumn, coincidence);
+                        writeColumn(mmd, variable, targetRecordNo, targetColumn, sourceColumn, coincidence);
                     }
                 }
             }
         }
     }
 
-    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int matchupNumber, Item targetColumn,
+    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int targetRecordNo, Item targetColumn,
                                      Context context) {
         try {
             final Converter converter = columnRegistry.getConverter(targetColumn);
             converter.setContext(context);
             final Array targetArray = converter.apply(null);
             final int[] targetStart = new int[variable.getRank()];
-            targetStart[0] = matchupNumber;
+            targetStart[0] = targetRecordNo;
             mmd.write(variable.getNameEscaped(), targetStart, targetArray);
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
@@ -217,6 +227,17 @@ public class MmdTool extends BasicTool {
         }
     }
 
+    private Reader tryAndGetReader(DataFile datafile) {
+        final Reader reader;
+        try {
+            reader = getReader(datafile);
+        } catch (IOException e) {
+            throw new ToolException(MessageFormat.format("Unable to get reader for datafile ''{0}''.",
+                                                         datafile.toString()), e, ToolException.TOOL_IO_ERROR);
+        }
+        return reader;
+    }
+
     Reader getReader(DataFile datafile) throws IOException {
         final String path = datafile.getPath();
         if (!readerCache.contains(path)) {
@@ -249,7 +270,6 @@ public class MmdTool extends BasicTool {
         }
 
         readDimensionConfiguration(dimensionNames);
-        contextCreator = new ContextCreator(this);
     }
 
     private NetcdfFileWriteable createMmd() throws IOException {

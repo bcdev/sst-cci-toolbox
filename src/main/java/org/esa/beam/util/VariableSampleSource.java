@@ -44,6 +44,15 @@ public class VariableSampleSource implements SampleSource {
         fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
     }
 
+    public VariableSampleSource(Array slice) {
+        data = slice;
+        width = slice.getShape()[slice.getRank() - 1];
+        height = slice.getShape()[slice.getRank() - 2];
+        scalingFactor = 1.0;
+        fillValue = Double.NEGATIVE_INFINITY;
+        addOffset = 0.0;
+    }
+
     @Override
     public int getWidth() {
         return width;

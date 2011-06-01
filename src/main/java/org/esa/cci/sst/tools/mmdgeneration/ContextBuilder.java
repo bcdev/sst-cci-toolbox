@@ -16,9 +16,11 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
-import ucar.ma2.Array;
+import ucar.nc2.Variable;
 
 /**
  * Creates unmodifiable instances of ${@link Context}.
@@ -29,33 +31,33 @@ import ucar.ma2.Array;
 class ContextBuilder {
 
     private Matchup matchup;
-    private byte insituDataset;
-    private double matchupTime;
-    private double metopTime;
-    private Array metopDTimes;
+    private Coincidence coincidence;
+    private Reader coincidenceReader;
+    private Reader referenceObservationReader;
+    private Variable targetVariable;
 
     ContextBuilder matchup(Matchup matchup) {
         this.matchup = matchup;
         return this;
     }
 
-    ContextBuilder insituDataset(byte insituDataset) {
-        this.insituDataset = insituDataset;
+    ContextBuilder coincidence(Coincidence coincidence) {
+        this.coincidence = coincidence;
         return this;
     }
 
-    ContextBuilder matchupTime(double time) {
-        this.matchupTime = time;
+    public ContextBuilder targetVariable(Variable targetVariable) {
+        this.targetVariable = targetVariable;
         return this;
     }
 
-    ContextBuilder metopTime(double metopTime) {
-        this.metopTime = metopTime;
+    public ContextBuilder coincidenceReader(Reader coincidenceReader) {
+        this.coincidenceReader = coincidenceReader;
         return this;
     }
 
-    ContextBuilder metopDTimes(Array metopDTimes) {
-        this.metopDTimes = metopDTimes;
+    public ContextBuilder referenceObservationReader(Reader referenceObservationReader) {
+        this.referenceObservationReader = referenceObservationReader;
         return this;
     }
 
@@ -63,21 +65,20 @@ class ContextBuilder {
     Context build() {
         final ContextImpl context = new ContextImpl();
         context.matchup = matchup;
-        context.insituDataset = insituDataset;
-        context.matchupTime = matchupTime;
-        context.metopTime = metopTime;
-        context.metopDTimes = metopDTimes;
+        context.coincidence = coincidence;
+        context.coincidenceReader = coincidenceReader;
+        context.referenceObservationReader = referenceObservationReader;
+        context.targetVariable = targetVariable;
         return context;
     }
-
 
     private static class ContextImpl implements Context {
 
         private Matchup matchup;
-        private byte insituDataset;
-        private double matchupTime;
-        private double metopTime;
-        private Array metopDTimes;
+        private Reader coincidenceReader;
+        private Reader referenceObservationReader;
+        private Coincidence coincidence;
+        private Variable targetVariable;
 
         @Override
         public Matchup getMatchup() {
@@ -85,23 +86,23 @@ class ContextBuilder {
         }
 
         @Override
-        public byte getInsituDataset() {
-            return insituDataset;
+        public Reader getCoincidenceReader() {
+            return coincidenceReader;
         }
 
         @Override
-        public double getMatchupTime() {
-            return matchupTime;
+        public Reader getReferenceObservationReader() {
+            return referenceObservationReader;
         }
 
         @Override
-        public double getMetopTime() {
-            return metopTime;
+        public Coincidence getCoincidence() {
+            return coincidence;
         }
 
         @Override
-        public Array getMetopDTimes() {
-            return metopDTimes;
+        public Variable getTargetVariable() {
+            return targetVariable;
         }
     }
 }

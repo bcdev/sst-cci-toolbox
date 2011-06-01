@@ -16,11 +16,19 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.reader.ExtractDefinition;
+import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
+import ucar.nc2.Variable;
+
+import java.io.IOException;
 
 /**
  * Sets metop.dtime.
@@ -28,7 +36,7 @@ import ucar.ma2.DataType;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-public class MetopDTime extends AbstractImplicitRule {
+class MetopDTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.SHORT;
 
@@ -39,11 +47,37 @@ public class MetopDTime extends AbstractImplicitRule {
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Array metopDTimes = getContext().getMetopDTimes();
+        final Array metopDTimes = readMetopDTimes();
         final Array array = Array.factory(DATA_TYPE, metopDTimes.getShape());
         for (int i = 0; i < array.getSize(); i++) {
-              array.setShort(i, metopDTimes.getShort(i));
+            array.setShort(i, metopDTimes.getShort(i));
         }
         return array;
     }
+
+    private Array readMetopDTimes() throws RuleException {
+        final Context context = getContext();
+        final Variable targetVariable = context.getTargetVariable();
+        final Coincidence coincidence = context.getCoincidence();
+        if (targetVariable.getDimensions().size() != 2) {
+            return null;
+        }
+        final int rowCount = targetVariable.getDimension(1).getLength();
+        if (coincidence == null || !coincidence.getObservation().getSensor().equalsIgnoreCase("metop")) {
+            return Array.factory(DataType.SHORT, new int[]{1, rowCount});
+        }
+        final ReferenceObservation observation = (ReferenceObservation) coincidence.getObservation();
+        final Reader reader = context.getCoincidenceReader();
+        final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
+                .coincidence(coincidence)
+                .recordNo(context.getMatchup().getRefObs().getRecordNo())
+                .shape(new int[]{1, rowCount})
+                .build();
+        try {
+            return reader.read("dtime", extractDefinition);
+        } catch (IOException e) {
+            throw new RuleException("Unable to read variable 'dtime'.", e);
+        }
+    }
+
 }

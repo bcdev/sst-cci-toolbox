@@ -24,7 +24,8 @@ import ucar.ma2.DataType;
 /**
  * Matchup callsign.
  */
-public class MatchupCallsign extends AbstractImplicitRule {
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
+class MatchupCallsign extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.CHAR;
     private static final int[] SHAPE = new int[]{1, 16};

@@ -14,34 +14,38 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools.mmdgeneration;
+package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.reader.ExtractDefinition;
 
 import java.util.Date;
 
 /**
- * A default implementation of ${@link ExtractDefinition}, which provides only a record number and
- * a shape for reading exactly one value from a one-dimensional variable.
+ * A default implementation of ${@link ExtractDefinition}, which provides a record number and
+ * a shape for reading the first value from a two-dimensional variable.
  *
  * @author Thomas Storm
  */
-class OneDimOneValue implements ExtractDefinition {
+class TwoDimsOneValue implements ExtractDefinition {
 
     private final int recordNo;
+    private final double lon;
+    private final double lat;
 
-    OneDimOneValue(int recordNo) {
+    TwoDimsOneValue(int recordNo, double lon, double lat) {
         this.recordNo = recordNo;
+        this.lon = lon;
+        this.lat = lat;
     }
 
     @Override
     public double getLat() {
-        return Double.NaN;
+        return lat;
     }
 
     @Override
     public double getLon() {
-        return Double.NaN;
+        return lon;
     }
 
     @Override
@@ -51,7 +55,7 @@ class OneDimOneValue implements ExtractDefinition {
 
     @Override
     public int[] getShape() {
-        return new int[]{1};
+        return new int[]{1, 1};
     }
 
     @Override

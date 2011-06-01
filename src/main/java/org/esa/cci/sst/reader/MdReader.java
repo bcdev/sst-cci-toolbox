@@ -85,15 +85,14 @@ abstract class MdReader extends NetcdfReader {
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable variable = getVariable(role);
+
+        if (extractDefinition == null) {
+            return variable.read();
+        }
+
         final Array targetArray = Array.factory(variable.getDataType(), extractDefinition.getShape());
         final int recordNo = extractDefinition.getRecordNo();
-        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
-        if (variable.getDimension(0).getLength() <= recordNo) {
-            for (int i = 0; i < targetArray.getSize(); i++) {
-                targetArray.setObject(i, fillValue);
-            }
-            return targetArray;
-        }
+
         if (variable.getRank() < 3 && !role.equalsIgnoreCase("dtime")) {
             final Array sourceArray = getData(variable, recordNo);
             for (int i = 0; i < sourceArray.getSize(); i++) {
@@ -103,6 +102,7 @@ abstract class MdReader extends NetcdfReader {
         }
         final PixelLocator pixelLocator = getPixelLocator(recordNo);
         final Point p = new Point();
+        final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
         final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
                                                               extractDefinition.getLat(), p);
         if (success) {
