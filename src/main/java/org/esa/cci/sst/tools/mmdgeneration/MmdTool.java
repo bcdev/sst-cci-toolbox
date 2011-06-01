@@ -172,9 +172,11 @@ public class MmdTool extends BasicTool {
             final Converter converter = columnRegistry.getConverter(targetColumn);
             converter.setContext(context);
             final Array targetArray = converter.apply(null);
-            final int[] targetStart = new int[variable.getRank()];
-            targetStart[0] = targetRecordNo;
-            mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+            if (targetArray != null) {
+                final int[] targetStart = new int[variable.getRank()];
+                targetStart[0] = targetRecordNo;
+                mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+            }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
