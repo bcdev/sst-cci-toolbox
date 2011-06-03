@@ -124,7 +124,8 @@ public class MmdTool extends BasicTool {
     private void writeMmd(NetcdfFileWriteable mmd) {
         final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
                                                               getSourceStartTime(),
-                                                              getSourceStopTime());
+                                                              getSourceStopTime(),
+                                                              getTargetPattern());
 
         for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
             final Matchup matchup = matchupList.get(targetRecordNo);
@@ -132,7 +133,8 @@ public class MmdTool extends BasicTool {
 
             if (getLogger().isLoggable(Level.INFO)) {
                 getLogger().info(MessageFormat.format(
-                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), targetRecordNo + 1, matchupListSize));
+                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), targetRecordNo + 1,
+                        matchupListSize));
             }
 
             for (final Variable variable : mmd.getVariables()) {
@@ -144,7 +146,7 @@ public class MmdTool extends BasicTool {
                     String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
                     Reader coincidenceReader = null;
-                    if(coincidence != null) {
+                    if (coincidence != null) {
                         coincidenceReader = tryAndGetReader(coincidence.getObservation().getDatafile());
                     }
                     Context context = new ContextBuilder()
@@ -178,13 +180,16 @@ public class MmdTool extends BasicTool {
                 mmd.write(variable.getNameEscaped(), targetStart, targetArray);
             }
         } catch (IOException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         } catch (InvalidRangeException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
@@ -298,7 +303,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void defineDimensions(NetcdfFileWriteable mmdFile) {
-        matchupCount = Queries.getMatchupCount(getPersistenceManager(), getSourceStartTime(), getSourceStopTime());
+        matchupCount = Queries.getMatchupCount(getPersistenceManager(), getSourceStartTime(), getSourceStopTime(),
+                                               getTargetPattern());
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
         } else {
@@ -314,6 +320,15 @@ public class MmdTool extends BasicTool {
                         ToolException.TOOL_CONFIGURATION_ERROR);
             }
             mmdFile.addDimension(dimensionName, dimensionConfiguration.get(dimensionName));
+        }
+    }
+
+    private int getTargetPattern() {
+        try {
+            return Integer.parseInt(getConfiguration().getProperty("mms.target.pattern", "0"));
+        } catch (NumberFormatException e) {
+            throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
