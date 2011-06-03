@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.tools;
 
+import org.esa.cci.sst.util.ProcessRunner;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -27,7 +28,7 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 
-public class Scrip {
+public class NwpTool {
 
     public static void main(String[] args) throws IOException, InvalidRangeException {
         NetcdfFile source = null;
@@ -78,6 +79,33 @@ public class Scrip {
             if (source != null) {
                 source.close();
             }
+        }
+
+        final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
+        final String geoFile = "geo.nc";
+        // todo - crete NWP temp files from archive files
+        final String gribCodeFile = "ecmwf_grib_codes.txt";
+        final String spTempFile = "sp2007011412.grb";
+        final String ggTempFile = "gg2007011412.grb";
+        final String ooTempFile = "oo2007011412.nc";
+        final String spRemappedTempFile = "sp.nc";
+        final String ggRemappedTempFile = "gg.nc";
+        final String asamTempFile = "asam2007011412.nc";
+        try {
+            runner.execute(
+                    String.format("/usr/local/bin/cdo -f nc -t %s remapbil,%s -sp2gp %s %s", gribCodeFile, geoFile,
+                                  spTempFile, spRemappedTempFile));
+            runner.execute(
+                    String.format("/usr/local/bin/cdo -R -f nc -t %s remapbil,%s %s %s", gribCodeFile, geoFile,
+                                  ggTempFile, ggRemappedTempFile));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            runner.execute(
+                    "/usr/local/bin/cdo -f nc replace " + ggRemappedTempFile + " -remapbil," + geoFile + " -delvar,qual " + ooTempFile + " " + asamTempFile);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
