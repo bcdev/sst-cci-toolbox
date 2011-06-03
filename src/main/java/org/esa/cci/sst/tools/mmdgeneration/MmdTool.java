@@ -23,6 +23,8 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
@@ -129,6 +131,7 @@ public class MmdTool extends BasicTool {
 
         for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
             final Matchup matchup = matchupList.get(targetRecordNo);
+            final ReferenceObservation referenceObservation = matchup.getRefObs();
             final List<Coincidence> coincidenceList = matchup.getCoincidences();
 
             if (getLogger().isLoggable(Level.INFO)) {
@@ -143,25 +146,47 @@ public class MmdTool extends BasicTool {
                 if ("Implicit".equals(sourceColumn.getName())) {
                     final String variableName = targetColumn.getName();
                     // todo - ts 01Jun - Watch out!! Assuming that variable name does not contain '.' after sensor id!
-                    String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
+                    // todo - rq 03Jun - variable prefix is not always a sensor name, e.g. 'matchup' is not a sensor
+                    // todo - rq 03Jun - use targetColumn.getSensor() instead
+                    final String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
+                    // todo - rq 03Jun - use findObservation() instead of findCoincidence()
                     final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
                     Reader coincidenceReader = null;
                     if (coincidence != null) {
-                        coincidenceReader = tryAndGetReader(coincidence.getObservation().getDatafile());
+                        try {
+                            coincidenceReader = getReader(coincidence.getObservation().getDatafile());
+                        } catch (IOException e) {
+                            final String message = MessageFormat.format("observation {0}: {1}",
+                                                                        coincidence.getObservation().getId(),
+                                                                        e.getMessage());
+                            // todo - rq 03Jun - handle IO exception?
+                            throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+                        }
                     }
-                    Context context = new ContextBuilder()
+                    final Reader referenceObservationReader;
+                    try {
+                        referenceObservationReader = getReader(referenceObservation.getDatafile());
+                    } catch (IOException e) {
+                        // todo - rq 03Jun - handle IO exception?
+                        final String message = MessageFormat.format("observation {0}: {1}",
+                                                                    referenceObservation.getId(),
+                                                                    e.getMessage());
+                        throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+                    }
+                    final Context context = new ContextBuilder()
                             .coincidence(coincidence)
                             .matchup(matchup)
                             .coincidenceReader(coincidenceReader)
-                            .referenceObservationReader(tryAndGetReader(matchup.getRefObs().getDatafile()))
+                            .referenceObservationReader(referenceObservationReader)
                             .targetVariable(variable)
                             .build();
                     writeImplicitColumn(mmd, variable, targetRecordNo, targetColumn, context);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
-                    final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
-                    if (coincidence != null) {
-                        writeColumn(mmd, variable, targetRecordNo, targetColumn, sourceColumn, coincidence);
+                    final Observation observation = findObservation(sensorName, matchup);
+                    if (observation != null) {
+                        writeColumn(mmd, variable, targetRecordNo, targetColumn, sourceColumn, observation,
+                                    referenceObservation);
                     }
                 }
             }
@@ -195,14 +220,14 @@ public class MmdTool extends BasicTool {
     }
 
     private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
-                             Coincidence coincidence) {
+                             Observation observation, ReferenceObservation refObs) {
         try {
-            final Reader reader = getReader(coincidence.getObservation().getDatafile());
+            final Reader reader = getReader(observation.getDatafile());
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
-                            .coincidence(coincidence)
-                            .recordNo(coincidence.getObservation().getRecordNo())
+                            .referenceObservation(refObs)
+                            .recordNo(observation.getRecordNo())
                             .shape(variable.getShape())
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
@@ -223,32 +248,27 @@ public class MmdTool extends BasicTool {
                 mmd.write(variable.getNameEscaped(), targetStart, targetArray);
             }
         } catch (IOException e) {
-            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
+            // todo - rq 03Jun - handle IO exception?
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException e) {
-            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         } catch (InvalidRangeException e) {
-            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
 
-    private Reader tryAndGetReader(DataFile datafile) {
-        final Reader reader;
-        try {
-            reader = getReader(datafile);
-        } catch (IOException e) {
-            throw new ToolException(MessageFormat.format("Unable to get reader for datafile ''{0}''.",
-                                                         datafile.toString()), e, ToolException.TOOL_IO_ERROR);
-        }
-        return reader;
-    }
-
-    Reader getReader(DataFile datafile) throws IOException {
+    private Reader getReader(DataFile datafile) throws IOException {
         final String path = datafile.getPath();
         if (!readerCache.contains(path)) {
-            final Reader reader = ReaderFactory.open(datafile, getConfiguration());
+            final Reader reader;
+            try {
+                reader = ReaderFactory.open(datafile, getConfiguration());
+            } catch (Exception e) {
+                throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
+            }
             final Reader removedReader = readerCache.add(path, reader);
             if (removedReader != null) {
                 removedReader.close();
@@ -405,6 +425,22 @@ public class MmdTool extends BasicTool {
         columnRegistry.register(new ColumnBuilder().build());
     }
 
+    private static Observation findObservation(String sensorName, Matchup matchup) {
+        final ReferenceObservation referenceObservation = matchup.getRefObs();
+        if (sensorName.equals(referenceObservation.getSensor())) {
+            return referenceObservation;
+        }
+        for (final Coincidence coincidence : matchup.getCoincidences()) {
+            final Observation observation = coincidence.getObservation();
+            if (sensorName.equals(observation.getSensor())) {
+                return observation;
+            }
+        }
+        return null;
+    }
+
+    // rq 03Jun - method does not yield the intended result
+    @Deprecated
     private static Coincidence findCoincidence(String sensorName, List<Coincidence> coincidenceList) {
         for (final Coincidence coincidence : coincidenceList) {
             if (sensorName.equals(coincidence.getObservation().getSensor())) {

@@ -121,7 +121,7 @@ class LandSeaMask extends AbstractImplicitRule {
     private GeoCoding createGeoCoding(Coincidence coincidence, int recordNo, int[] shape) throws RuleException {
         final DataFile datafile = coincidence.getObservation().getDatafile();
         final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                .coincidence(coincidence)
+                .referenceObservation(coincidence.getMatchup().getRefObs())
                 .recordNo(recordNo)
                 .shape(shape)
                 .build();

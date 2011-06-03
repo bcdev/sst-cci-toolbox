@@ -69,7 +69,7 @@ class MetopDTime extends AbstractImplicitRule {
         final ReferenceObservation observation = (ReferenceObservation) coincidence.getObservation();
         final Reader reader = context.getCoincidenceReader();
         final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                .coincidence(coincidence)
+                .referenceObservation(coincidence.getMatchup().getRefObs())
                 .recordNo(context.getMatchup().getRefObs().getRecordNo())
                 .shape(new int[]{1, rowCount})
                 .build();
