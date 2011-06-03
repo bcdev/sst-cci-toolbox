@@ -16,9 +16,9 @@
 
 package org.esa.beam.util;
 
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 
-import javax.media.jai.PlanarImage;
 import java.awt.image.Raster;
 
 /**
@@ -29,6 +29,7 @@ import java.awt.image.Raster;
 public class RasterDataNodeSampleSource implements SampleSource {
 
     private final RasterDataNode node;
+    private final Raster data;
 
     /**
      * Construct a new instance of this class.
@@ -37,6 +38,7 @@ public class RasterDataNodeSampleSource implements SampleSource {
      */
     public RasterDataNodeSampleSource(RasterDataNode node) {
         this.node = node;
+        this.data = node.getSourceImage().getImage(0).getData();
     }
 
     /**
@@ -61,18 +63,21 @@ public class RasterDataNodeSampleSource implements SampleSource {
 
     @Override
     public double getSample(int x, int y) {
-        return getGeophysicalSampleDouble(x, y, 0);
+        return getGeophysicalSampleDouble(x, y);
     }
 
-    private double getGeophysicalSampleDouble(int x, int y, int level) {
-        // this code is copied from {@code org.esa.beam.util.ProductUtils#getGeophysicalSampleDouble}
-        final PlanarImage image = node.getGeophysicalImage();
-        final int tileX = image.XToTileX(x);
-        final int tileY = image.YToTileY(y);
-        final Raster data = image.getTile(tileX, tileY);
-        if (data == null) {
-            return Double.NaN;
+    private double getGeophysicalSampleDouble(int x, int y) {
+        final double sample;
+        if (node.getDataType() == ProductData.TYPE_INT8) {
+            sample = (byte) data.getSample(x, y, 0);
+        } else if (node.getDataType() == ProductData.TYPE_UINT32) {
+            sample = data.getSample(x, y, 0) & 0xFFFFFFFFL;
+        } else {
+            sample = data.getSampleDouble(x, y, 0);
         }
-        return data.getSampleDouble(x, y, 0);
+        if (node.isScalingApplied()) {
+            return node.scale(sample);
+        }
+        return sample;
     }
 }
