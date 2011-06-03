@@ -27,6 +27,7 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.TimeUtil;
 
+import javax.media.jai.JAI;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -67,6 +68,11 @@ public abstract class BasicTool {
 
     private Date sourceStartTime;
     private Date sourceStopTime;
+
+    static {
+        JAI.enableDefaultTileCache();
+        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 1024);
+    }
 
     protected BasicTool(String name, String version) {
         this.name = name;
