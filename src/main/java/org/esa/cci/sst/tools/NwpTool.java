@@ -83,7 +83,7 @@ public class NwpTool {
 
         final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
         final String geoFile = "geo.nc";
-        // todo - crete NWP temp files from archive files
+        // todo - create NWP temp files from archive files
         final String gribCodeFile = "ecmwf_grib_codes.txt";
         final String spTempFile = "sp2007011412.grb";
         final String ggTempFile = "gg2007011412.grb";
@@ -103,7 +103,8 @@ public class NwpTool {
         }
         try {
             runner.execute(
-                    "/usr/local/bin/cdo -f nc replace " + ggRemappedTempFile + " -remapbil," + geoFile + " -delvar,qual " + ooTempFile + " " + asamTempFile);
+                    String.format("/usr/local/bin/cdo -f nc replace %s -remapbil,%s -delvar,qual %s %s",
+                                  ggRemappedTempFile, geoFile, ooTempFile, asamTempFile));
         } catch (Exception e) {
             e.printStackTrace();
         }
