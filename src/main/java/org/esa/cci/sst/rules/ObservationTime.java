@@ -17,7 +17,6 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -35,7 +34,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class ReferenceTime extends AbstractImplicitRule {
+class ObservationTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
 
@@ -54,7 +53,11 @@ class ReferenceTime extends AbstractImplicitRule {
 
     private int getTime() throws RuleException {
         final Context context = getContext();
-        final Reader reader = context.getReferenceObservationReader();
+        final Reader reader = context.getObservationReader();
+        if(reader == null) {
+            // todo - ts 06Jun11 - clarify
+            return -1;
+        }
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
         final int recordNo = refObs.getRecordNo();
         final Point point = refObs.getPoint().getGeometry().getFirstPoint();
@@ -63,13 +66,11 @@ class ReferenceTime extends AbstractImplicitRule {
         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
         final int time;
         try {
-            final PixelPos pixelPos = reader.getPixelPos(geoPos);
-            final int scanLine = pixelPos != null ? (int) pixelPos.y : -1;
+            final int scanLine = (int) reader.getPixelPos(geoPos).y;
             time = reader.getTime(recordNo, scanLine);
         } catch (IOException e) {
             throw new RuleException("Unable to read time.", e);
         }
         return time;
     }
-
 }

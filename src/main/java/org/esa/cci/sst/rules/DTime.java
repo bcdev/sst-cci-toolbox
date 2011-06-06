@@ -16,20 +16,15 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 /**
  * Sets metop.dtime.
@@ -37,9 +32,9 @@ import java.text.MessageFormat;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-abstract class DTime extends AbstractImplicitRule {
+class DTime extends AbstractImplicitRule {
 
-    private static final DataType DATA_TYPE = DataType.SHORT;
+    private static final DataType DATA_TYPE = DataType.INT;
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
@@ -48,39 +43,27 @@ abstract class DTime extends AbstractImplicitRule {
 
     @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Array metopDTimes = readMetopDTimes();
-        final Array array = Array.factory(DATA_TYPE, metopDTimes.getShape());
+        final Variable targetVariable = getContext().getTargetVariable();
+        final int rowCount = targetVariable.getDimension(1).getLength();
+        final Array array = Array.factory(DATA_TYPE, new int[]{1, rowCount});
         for (int i = 0; i < array.getSize(); i++) {
-            array.setShort(i, metopDTimes.getShort(i));
+            array.setInt(i, getDTime(i));
         }
         return array;
     }
 
-    private Array readMetopDTimes() throws RuleException {
+    private int getDTime(int scanLine) throws RuleException {
         final Context context = getContext();
-        final Variable targetVariable = context.getTargetVariable();
-        final Coincidence coincidence = context.getCoincidence();
-        if (targetVariable.getDimensions().size() != 2) {
-            return null;
+        final Reader reader = context.getObservationReader();
+        if(reader == null) {
+            // todo - ts 06Jun11 - clarify
+            return 0;
         }
-        final int rowCount = targetVariable.getDimension(1).getLength();
-        if (coincidence == null || !coincidence.getObservation().getSensor().equalsIgnoreCase(getSensorName())) {
-            return Array.factory(DataType.SHORT, new int[]{1, rowCount});
-        }
-        final ReferenceObservation observation = (ReferenceObservation) coincidence.getObservation();
-        final Reader reader = context.getCoincidenceReader();
-        final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                .recordNo(context.getMatchup().getRefObs().getRecordNo())
-                .shape(new int[]{1, rowCount})
-                .build();
+        final int recordNo = context.getMatchup().getRefObs().getRecordNo();
         try {
-            return reader.read(getDTimeVariableName(), extractDefinition);
+            return reader.getDTime(recordNo, scanLine);
         } catch (IOException e) {
-            throw new RuleException(MessageFormat.format("Unable to read variable ''{0}''.", getDTimeVariableName()), e);
+            throw new RuleException("Unable to read dtime.", e);
         }
     }
-
-    protected abstract String getDTimeVariableName();
-
-    protected abstract String getSensorName();
 }

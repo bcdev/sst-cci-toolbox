@@ -27,9 +27,7 @@ import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.SampleSource;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.beam.watermask.operator.WatermaskClassifier;
-import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
@@ -65,19 +63,20 @@ class LandSeaMask extends AbstractImplicitRule {
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Coincidence coincidence = getContext().getCoincidence();
         final Variable targetVariable = getContext().getTargetVariable();
         final int recordNo = getContext().getMatchup().getRefObs().getRecordNo();
-        return readLandSeaMask(coincidence, targetVariable, recordNo);
-    }
-
-    private Array readLandSeaMask(Coincidence coincidence, Variable targetVariable, int recordNo) throws RuleException {
-        final int[] shape = targetVariable.getShape();
-        shape[0] = 1;
-        if (coincidence == null) {
+        if (getContext().getObservationReader() == null) {
+            final int[] shape = targetVariable.getShape();
+            shape[0] = 1;
             return createFilledArray(shape);
         }
-        final GeoCoding geoCoding = createGeoCoding(coincidence, recordNo, shape);
+        return readLandSeaMask(targetVariable, recordNo);
+    }
+
+    private Array readLandSeaMask(Variable targetVariable, int recordNo) throws RuleException {
+        final int[] shape = targetVariable.getShape();
+        shape[0] = 1;
+        final GeoCoding geoCoding = createGeoCoding(recordNo, shape);
         final Array targetArray = Array.factory(DataType.BYTE, shape);
         final PixelPos pixelPos = new PixelPos();
         final Index index = targetArray.getIndex();
@@ -92,14 +91,13 @@ class LandSeaMask extends AbstractImplicitRule {
         return targetArray;
     }
 
-    private GeoCoding createGeoCoding(Coincidence coincidence, int recordNo, int[] shape) throws RuleException {
-        final DataFile datafile = coincidence.getObservation().getDatafile();
+    private GeoCoding createGeoCoding(int recordNo, int[] shape) throws RuleException {
         final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                .referenceObservation(coincidence.getMatchup().getRefObs())
+                .referenceObservation(getContext().getMatchup().getRefObs())
                 .recordNo(recordNo)
                 .shape(shape)
                 .build();
-        final Reader reader = getContext().getCoincidenceReader();
+        final Reader reader = getContext().getObservationReader();
         String longitudeVariableName = "lon";
         if (reader.getColumn(longitudeVariableName) == null) {
             longitudeVariableName = "longitude";
@@ -124,7 +122,7 @@ class LandSeaMask extends AbstractImplicitRule {
     private Array scale(Number scaleFactor, Array array) {
         final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
         for (int i = 0; i < array.getSize(); i++) {
-            double value = ((Number)array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
+            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
             scaledArray.setDouble(i, value);
         }
         return scaledArray;

@@ -16,6 +16,10 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.util.QuadTreePixelLocator;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
@@ -23,8 +27,10 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
+import java.awt.geom.Point2D;
 import java.io.IOException;
 
 /**
@@ -34,10 +40,12 @@ import java.io.IOException;
  *
  * @author Martin Boettcher
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class SeviriReader extends MdReader {
 
     protected int noOfLines;
     protected int noOfColumns;
+    private QuadTreePixelLocator locator;
 
     SeviriReader(String sensorName) {
         super(sensorName);
@@ -49,6 +57,9 @@ class SeviriReader extends MdReader {
         final NetcdfFile ncFile = getNetcdfFile();
         noOfLines = ncFile.findDimension("ny").getLength();
         noOfColumns = ncFile.findDimension("nx").getLength();
+        final Array lonArray = getVariable("lon").read();
+        final Array latArray = getVariable("lat").read();
+        locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     /**
@@ -107,5 +118,26 @@ class SeviriReader extends MdReader {
 
     private static float coordinateOf(int intCoordinate) {
         return intCoordinate * 0.0001f;
+    }
+
+    @Override
+    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+        final PixelPos pixelPos = new PixelPos();
+        final Point2D.Double foundPoint = new Point2D.Double();
+        locator.getPixelLocation(geoPos.lon, geoPos.lat, foundPoint);
+        pixelPos.setLocation(foundPoint);
+        return pixelPos;
+    }
+    @Override
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("time", recordNo);
+        final double dtime = getDouble("dtime", recordNo, scanLine);
+        return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public int getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("time", recordNo);
+        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
     }
 }

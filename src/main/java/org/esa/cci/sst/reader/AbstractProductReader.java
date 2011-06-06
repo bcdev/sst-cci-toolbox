@@ -27,11 +27,13 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 
 import java.awt.Rectangle;
@@ -157,6 +159,24 @@ abstract class AbstractProductReader implements Reader {
             columnList.add(column);
         }
         return columnList.toArray(new Item[columnList.size()]);
+    }
+
+    @Override
+    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+        return product.getGeoCoding().getPixelPos(geoPos, null);
+    }
+
+    @Override
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        final Date date = product.getStartTime().getAsDate();
+        final int julian = (int) TimeUtil.toJulianDate(date);
+        return getTime(recordNo, scanLine) - julian;
+    }
+
+    @Override
+    public int getTime(int recordNo, int scanLine) throws IOException {
+        final ProductData.UTC utc = ProductUtils.getScanLineTime(product, scanLine);
+        return (int) TimeUtil.toJulianDate(utc.getAsDate());
     }
 
     protected Product readProduct(DataFile dataFile) throws IOException {

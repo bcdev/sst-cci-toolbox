@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import ucar.nc2.Variable;
@@ -31,18 +31,13 @@ import ucar.nc2.Variable;
 class ContextBuilder {
 
     private Matchup matchup;
-    private Coincidence coincidence;
-    private Reader coincidenceReader;
+    private Reader observationReader;
     private Reader referenceObservationReader;
     private Variable targetVariable;
+    private Observation observation;
 
     ContextBuilder matchup(Matchup matchup) {
         this.matchup = matchup;
-        return this;
-    }
-
-    ContextBuilder coincidence(Coincidence coincidence) {
-        this.coincidence = coincidence;
         return this;
     }
 
@@ -51,8 +46,8 @@ class ContextBuilder {
         return this;
     }
 
-    public ContextBuilder coincidenceReader(Reader coincidenceReader) {
-        this.coincidenceReader = coincidenceReader;
+    public ContextBuilder observationReader(Reader observationReader) {
+        this.observationReader = observationReader;
         return this;
     }
 
@@ -61,12 +56,17 @@ class ContextBuilder {
         return this;
     }
 
+    public ContextBuilder observation(Observation observation) {
+        this.observation = observation;
+        return this;
+    }
+
     @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
     Context build() {
         final ContextImpl context = new ContextImpl();
         context.matchup = matchup;
-        context.coincidence = coincidence;
-        context.coincidenceReader = coincidenceReader;
+        context.observation = observation;
+        context.observationReader = observationReader;
         context.referenceObservationReader = referenceObservationReader;
         context.targetVariable = targetVariable;
         return context;
@@ -75,9 +75,9 @@ class ContextBuilder {
     private static class ContextImpl implements Context {
 
         private Matchup matchup;
-        private Reader coincidenceReader;
+        private Reader observationReader;
         private Reader referenceObservationReader;
-        private Coincidence coincidence;
+        private Observation observation;
         private Variable targetVariable;
 
         @Override
@@ -86,8 +86,8 @@ class ContextBuilder {
         }
 
         @Override
-        public Reader getCoincidenceReader() {
-            return coincidenceReader;
+        public Reader getObservationReader() {
+            return observationReader;
         }
 
         @Override
@@ -96,8 +96,8 @@ class ContextBuilder {
         }
 
         @Override
-        public Coincidence getCoincidence() {
-            return coincidence;
+        public Observation getObservation() {
+            return observation;
         }
 
         @Override

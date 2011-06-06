@@ -16,8 +16,8 @@
 
 package org.esa.cci.sst.rules;
 
-import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.Reader;
 import ucar.nc2.Variable;
 
@@ -30,11 +30,11 @@ public interface Context {
 
     Matchup getMatchup();
 
-    Reader getCoincidenceReader();
+    Reader getObservationReader();
 
     Reader getReferenceObservationReader();
 
-    Coincidence getCoincidence();
+    Observation getObservation();
 
     Variable getTargetVariable();
 }

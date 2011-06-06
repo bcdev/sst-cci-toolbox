@@ -51,6 +51,7 @@ class MetopReader extends MdReader {
 
     protected int rowCount;
     protected int colCount;
+    private QuadTreePixelLocator locator;
 
     MetopReader(String sensorName) {
         super(sensorName);
@@ -62,6 +63,9 @@ class MetopReader extends MdReader {
         final NetcdfFile ncFile = getNetcdfFile();
         rowCount = ncFile.findDimension("ny").getLength();
         colCount = ncFile.findDimension("nx").getLength();
+        final Array lonArray = getVariable("lon").read();
+        final Array latArray = getVariable("lat").read();
+        locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     /**
@@ -98,10 +102,6 @@ class MetopReader extends MdReader {
     @Override
     public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
         final PixelPos pixelPos = new PixelPos();
-        final Array lonArray = getVariable("lon").read();
-        final Array latArray = getVariable("lat").read();
-        final QuadTreePixelLocator locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray),
-                                                                      new VariableSampleSource(latArray));
         final Point2D.Double foundPoint = new Point2D.Double();
         locator.getPixelLocation(geoPos.lon, geoPos.lat, foundPoint);
         pixelPos.setLocation(foundPoint);
@@ -110,14 +110,14 @@ class MetopReader extends MdReader {
 
     @Override
     public int getDTime(int recordNo, int scanLine) throws IOException {
-        final double time = getDouble("time", recordNo);
+        final double time = getDouble("msr_time", recordNo);
         final double dtime = getDouble("dtime", recordNo, scanLine);
         return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
     }
 
     @Override
     public int getTime(int recordNo, int scanLine) throws IOException {
-        final double time = getDouble("time", recordNo);
+        final double time = getDouble("msr_time", recordNo);
         return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
     }
 

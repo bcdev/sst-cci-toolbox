@@ -17,6 +17,8 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -43,6 +45,8 @@ public class MmdReader implements Reader {
     private ObservationReader reader;
     private DataFile dataFile;
     private final Properties configuration;
+    private Array lonArray;
+    private Array latArray;
 
     @SuppressWarnings({"AssignmentToCollectionOrArrayFieldFromParameter"})
     public MmdReader(Properties configuration) {
@@ -67,6 +71,8 @@ public class MmdReader implements Reader {
         } else {
             reader = new Arc3Reader(dataFile, ncFile, sensorName);
         }
+        lonArray = ncFile.findVariable("lon").read();
+        latArray = ncFile.findVariable("lat").read();
     }
 
     @Override
@@ -96,6 +102,24 @@ public class MmdReader implements Reader {
     @Override
     public DataFile getDatafile() {
         return dataFile;
+    }
+
+    @Override
+    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+        // todo - ts 06Jun11 - implement (?)
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        // todo - ts 06Jun11 - implement (?)
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public int getTime(int recordNo, int scanLine) throws IOException {
+        // todo - ts 06Jun11 - implement (?)
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
