@@ -16,6 +16,10 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.util.QuadTreePixelLocator;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.PgUtil;
@@ -24,8 +28,10 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,6 +93,32 @@ class MetopReader extends MdReader {
         observation.setRecordNo(recordNo);
 
         return observation;
+    }
+
+    @Override
+    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+        final PixelPos pixelPos = new PixelPos();
+        final Array lonArray = getVariable("lon").read();
+        final Array latArray = getVariable("lat").read();
+        final QuadTreePixelLocator locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray),
+                                                                      new VariableSampleSource(latArray));
+        final Point2D.Double foundPoint = new Point2D.Double();
+        locator.getPixelLocation(geoPos.lon, geoPos.lat, foundPoint);
+        pixelPos.setLocation(foundPoint);
+        return pixelPos;
+    }
+
+    @Override
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("time", recordNo);
+        final double dtime = getDouble("dtime", recordNo, scanLine);
+        return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public int getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("time", recordNo);
+        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
     }
 
     private Point[] getPoints(int recordNo) throws IOException {
