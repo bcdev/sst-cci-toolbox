@@ -43,9 +43,10 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * TODO fill out or delete
+ * Reader for sea-ice products in NetCDF format.
  *
  * @author Thomas Storm
+ * @author Ralf Quast
  */
 public class NcOsiProductReader extends NetcdfProductReaderTemplate {
 
