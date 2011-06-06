@@ -16,22 +16,34 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.util.TimeUtil;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
+
+import java.util.Date;
+
 /**
- * Sets metop.dtime.
+ * Sets the reference time.
  *
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class MetopDTime extends DTime {
+class ReferenceTime extends AbstractImplicitRule {
+
+    private static final DataType DATA_TYPE = DataType.INT;
+    private static final int[] SHAPE = new int[]{1};
 
     @Override
-    protected String getDTimeVariableName() {
-        return "dtime";
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        final Array array = Array.factory(DATA_TYPE, SHAPE);
+        array.setInt(0, getReferenceTime());
+        return array;
     }
 
-    @Override
-    protected String getSensorName() {
-        return "metop";
+    private int getReferenceTime() throws RuleException {
+        final Date date = getContext().getMatchup().getRefObs().getTime();
+        return (int) TimeUtil.toJulianDate(date);
     }
 
 }

@@ -77,45 +77,19 @@ class LandSeaMask extends AbstractImplicitRule {
         if (coincidence == null) {
             return createFilledArray(shape);
         }
-
-        try {
-            Array array = getContext().getReferenceObservationReader().read("lon", null);
-            int pixelX;
-            int pixelY;
-            for(int i = 0; i < array.getSize(); i++) {
-                pixelX = i % shape[1] + recordNo * shape[1] * shape[2];
-                pixelY = i % shape[2] + recordNo * shape[1] * shape[2];
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         final GeoCoding geoCoding = createGeoCoding(coincidence, recordNo, shape);
         final Array targetArray = Array.factory(DataType.BYTE, shape);
         final PixelPos pixelPos = new PixelPos();
         final Index index = targetArray.getIndex();
-//        for (int x = recordNo * shape[1] * shape[2]; x < recordNo * shape[1] * shape[2] + shape[1]; x += shape[2]) {
-//            for (int y = x + 1; y < shape[2]; y++) {
-//                pixelPos.setLocation(x, y);
-//                index.set(0, x, y);
-                final byte fraction = classifier.getWaterMaskFraction(geoCoding, pixelPos, 5, 5);
-                targetArray.setByte(index, fraction);
-//            }
-//        }
-        return targetArray;
-    }
-
-    private Array createFilledArray(int[] shape) {
-        final Array fillArray = Array.factory(DataType.BYTE, shape);
-        final Index index = fillArray.getIndex();
         for (int x = 0; x < shape[1]; x++) {
             for (int y = 0; y < shape[2]; y++) {
+                pixelPos.setLocation(x, y);
                 index.set(0, x, y);
-                fillArray.setByte(index, (byte) WatermaskClassifier.INVALID_VALUE);
+                final byte fraction = classifier.getWaterMaskFraction(geoCoding, pixelPos, 5, 5);
+                targetArray.setByte(index, fraction);
             }
         }
-        return fillArray;
+        return targetArray;
     }
 
     private GeoCoding createGeoCoding(Coincidence coincidence, int recordNo, int[] shape) throws RuleException {
@@ -134,15 +108,26 @@ class LandSeaMask extends AbstractImplicitRule {
         if (reader.getColumn(latitudeVariableName) == null) {
             latitudeVariableName = "latitude";
         }
-        final Array lonArray;
-        final Array latArray;
+        Array lonArray;
+        Array latArray;
         try {
-            latArray = reader.read(latitudeVariableName, null);
             lonArray = reader.read(longitudeVariableName, null);
+            latArray = reader.read(latitudeVariableName, null);
+            lonArray = scale(reader.getColumn(longitudeVariableName).getScaleFactor(), lonArray);
+            latArray = scale(reader.getColumn(latitudeVariableName).getScaleFactor(), latArray);
         } catch (IOException e) {
             throw new RuleException("Could not create geo coding.", e);
         }
         return new LSGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+    }
+
+    private Array scale(Number scaleFactor, Array array) {
+        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
+        for (int i = 0; i < array.getSize(); i++) {
+            double value = ((Number)array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
+            scaledArray.setDouble(i, value);
+        }
+        return scaledArray;
     }
 
     private WatermaskClassifier createWatermaskClassifier() {
@@ -151,6 +136,18 @@ class LandSeaMask extends AbstractImplicitRule {
         } catch (IOException e) {
             throw new ToolException("Unable to create watermask classifier.", e, ToolException.UNKNOWN_ERROR);
         }
+    }
+
+    private Array createFilledArray(int[] shape) {
+        final Array fillArray = Array.factory(DataType.BYTE, shape);
+        final Index index = fillArray.getIndex();
+        for (int x = 0; x < shape[1]; x++) {
+            for (int y = 0; y < shape[2]; y++) {
+                index.set(0, x, y);
+                fillArray.setByte(index, (byte) WatermaskClassifier.INVALID_VALUE);
+            }
+        }
+        return fillArray;
     }
 
     @SuppressWarnings({"deprecation"})
@@ -192,9 +189,6 @@ class LandSeaMask extends AbstractImplicitRule {
             final Point2D.Double result = new Point2D.Double();
             locator.getGeoLocation(pixelPos.x, pixelPos.y, result);
             geoPos.setLocation((float) result.y, (float) result.x);
-            if (!geoPos.isValid()) {
-                System.out.println("LandSeaMask$LSGeoCoding.getGeoPos");
-            }
             return geoPos;
         }
 
