@@ -49,8 +49,8 @@ public class NwpToolPrototype {
             "${CDO} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} \n" +
             "${CDO} -s -f nc merge -remapbil,${GEO} ${GAFS_TIME_SERIES} -remapbil,${GEO} ${GGFS_TIME_SERIES} ${FC_TIME_SERIES}";
 
-    public static void main(String[] args) throws IOException, InvalidRangeException, InterruptedException {
-        writeGeoFile("geo.nc");
+    public static void main(String[] args) throws IOException, InterruptedException {
+        writeGeoFile("geo.nc", "mmd.nc");
 
         final Properties properties = new Properties();
         properties.setProperty("CDO", "/usr/local/bin/cdo");
@@ -131,22 +131,21 @@ public class NwpToolPrototype {
         return sb.toString();
     }
 
-    private static void writeGeoFile(String location) throws IOException, InvalidRangeException {
-        NetcdfFile source = null;
+    @SuppressWarnings({"ConstantConditions"})
+    private static void writeGeoFile(String geoFileLocation, String mmdFileLocation) throws IOException {
+        final NetcdfFile mmdFile = NetcdfFile.open(mmdFileLocation);
         try {
-            source = NetcdfFile.open("mmd.nc");
-            final Dimension matchupDimension = source.findDimension("matchup");
-            final Dimension nyDimension = source.findDimension("metop.ny");
-            final Dimension nxDimension = source.findDimension("metop.nx");
+            final Dimension matchupDimension = mmdFile.findDimension("matchup");
+            final Dimension nyDimension = mmdFile.findDimension("metop.ny");
+            final Dimension nxDimension = mmdFile.findDimension("metop.nx");
 
             final int matchupCount = matchupDimension.getLength();
             final int ny = nyDimension.getLength();
             final int nx = nxDimension.getLength();
 
-            NetcdfFileWriteable target = null;
+            final NetcdfFileWriteable geoFile = defineGeoFile(geoFileLocation, matchupCount, ny, nx);
             try {
-                target = defineGeoFile(location, matchupCount, ny, nx);
-                target.write("grid_dims", Array.factory(new int[]{nx, ny * matchupCount}));
+                geoFile.write("grid_dims", Array.factory(new int[]{nx, ny * matchupCount}));
 
                 final int[] sourceShape = {1, ny, nx};
                 final int[] sourceStart = {0, 0, 0};
@@ -154,8 +153,8 @@ public class NwpToolPrototype {
                 final int[] targetShape = {ny * nx};
                 final Array maskData = Array.factory(DataType.INT, targetShape);
 
-                final Variable sourceLat = source.findVariable(NetcdfFile.escapeName("metop.latitude"));
-                final Variable sourceLon = source.findVariable(NetcdfFile.escapeName("metop.longitude"));
+                final Variable sourceLat = mmdFile.findVariable(NetcdfFile.escapeName("metop.latitude"));
+                final Variable sourceLon = mmdFile.findVariable(NetcdfFile.escapeName("metop.longitude"));
 
                 for (int i = 0; i < matchupCount; i++) {
                     sourceStart[0] = i;
@@ -167,18 +166,22 @@ public class NwpToolPrototype {
                         final float lon = lonData.getFloat(k);
                         maskData.setInt(k, lat >= -90.0f && lat <= 90.0f && lon >= -180.0f && lat <= 180.0f ? 1 : 0);
                     }
-                    target.write("grid_center_lat", targetStart, latData.reshape(targetShape));
-                    target.write("grid_center_lon", targetStart, lonData.reshape(targetShape));
-                    target.write("grid_imask", targetStart, maskData);
+                    geoFile.write("grid_center_lat", targetStart, latData.reshape(targetShape));
+                    geoFile.write("grid_center_lon", targetStart, lonData.reshape(targetShape));
+                    geoFile.write("grid_imask", targetStart, maskData);
                 }
+            } catch (InvalidRangeException e) {
+                throw new IOException(e);
             } finally {
-                if (target != null) {
-                    target.close();
+                try {
+                    geoFile.close();
+                } catch (IOException ignored) {
                 }
             }
         } finally {
-            if (source != null) {
-                source.close();
+            try {
+                mmdFile.close();
+            } catch (IOException ignored) {
             }
         }
     }
