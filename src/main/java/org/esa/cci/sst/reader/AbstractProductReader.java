@@ -179,6 +179,11 @@ abstract class AbstractProductReader implements Reader {
         return (int) TimeUtil.toJulianDate(utc.getAsDate());
     }
 
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) {
+        return product.getGeoCoding();
+    }
+
     protected Product readProduct(DataFile dataFile) throws IOException {
         Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
         if (product == null) {

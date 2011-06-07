@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
@@ -125,6 +126,11 @@ class InsituReader extends NetcdfReader {
         }
         return target;
     }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        // todo - ts 07Jun11 - implement (?)
+        throw new IllegalStateException("Not implemented");    }
 
     @Override
     public PixelPos getPixelPos(GeoPos geoPos) throws IOException {

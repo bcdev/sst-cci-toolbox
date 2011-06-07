@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.util.QuadTreePixelLocator;
@@ -28,6 +29,7 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
 
 import java.awt.geom.Point2D;
@@ -139,5 +141,28 @@ class SeviriReader extends MdReader {
     public int getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("time", recordNo);
         return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        String longitudeVariableName = "lon";
+        String latitudeVariableName = "lat";
+        Array lonArray = getNetcdfFile().findVariable(longitudeVariableName).read();
+        Array latArray = getNetcdfFile().findVariable(latitudeVariableName).read();
+        lonArray = scale(getColumn(longitudeVariableName).getScaleFactor(), lonArray);
+        latArray = scale(getColumn(latitudeVariableName).getScaleFactor(), latArray);
+        return new LSGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+    }
+
+    private Array scale(Number scaleFactor, Array array) {
+        if (scaleFactor == null) {
+            return array;
+        }
+        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
+        for (int i = 0; i < array.getSize(); i++) {
+            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
+            scaledArray.setDouble(i, value);
+        }
+        return scaledArray;
     }
 }

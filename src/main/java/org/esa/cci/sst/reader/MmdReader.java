@@ -17,6 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
@@ -98,6 +99,11 @@ public class MmdReader implements Reader {
     @Override
     public DataFile getDatafile() {
         return dataFile;
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        throw new IllegalStateException("not implemented");
     }
 
     @Override

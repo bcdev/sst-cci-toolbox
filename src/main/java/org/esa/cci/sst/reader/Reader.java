@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
@@ -106,6 +107,13 @@ public interface Reader {
      * @return the data file.
      */
     DataFile getDatafile();
+
+    /**
+     * Returns a geo-coding for the record given by the record number.
+     * @param recordNo The number of the record the geo-coding shall received for.
+     * @return A geo-coding.
+     */
+    GeoCoding getGeoCoding(int recordNo) throws IOException;
 
     /**
      * Returns the pixel position at the given geographic position. The pixel position denotes scan line and element

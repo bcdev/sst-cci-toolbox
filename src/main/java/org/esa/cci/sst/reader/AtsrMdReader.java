@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -67,6 +68,11 @@ class AtsrMdReader extends MdReader {
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         return observation;
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        return null;
     }
 
     @Override
