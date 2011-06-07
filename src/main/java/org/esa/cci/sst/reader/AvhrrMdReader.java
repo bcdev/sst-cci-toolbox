@@ -76,8 +76,7 @@ class AvhrrMdReader extends MdReader {
 
     @Override
     public int getDTime(int recordNo, int scanLine) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
-        throw new IllegalStateException("Not implemented");
+        return 0;
     }
 
     @Override
@@ -91,8 +90,8 @@ class AvhrrMdReader extends MdReader {
 
     @Override
     public int getTime(int recordNo, int scanLine) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
-        throw new IllegalStateException("Not implemented");
+        final double time = getDouble("avhrr.time", recordNo);
+        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
     }
 
 }

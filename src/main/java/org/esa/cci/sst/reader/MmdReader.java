@@ -42,11 +42,9 @@ public class MmdReader implements Reader {
     private NetcdfFile ncFile;
     private final String sensorName;
     private Variable matchupIds;
-    private ObservationReader reader;
+    private ObservationReader delegateReader;
     private DataFile dataFile;
     private final Properties configuration;
-    private Array lonArray;
-    private Array latArray;
 
     @SuppressWarnings({"AssignmentToCollectionOrArrayFieldFromParameter"})
     public MmdReader(Properties configuration) {
@@ -67,36 +65,34 @@ public class MmdReader implements Reader {
         }
         final String property = getProperty(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "no");
         if ("yes".equals(property)) {
-            reader = new MmdObservationReader(dataFile, ncFile, sensorName);
+            delegateReader = new MmdObservationReader(dataFile, ncFile, sensorName);
         } else {
-            reader = new Arc3Reader(dataFile, ncFile, sensorName);
+            delegateReader = new Arc3Reader(dataFile, ncFile, sensorName);
         }
-        lonArray = ncFile.findVariable("lon").read();
-        latArray = ncFile.findVariable("lat").read();
     }
 
     @Override
     public int getNumRecords() {
-        validateDelegate(reader);
-        return reader.getNumRecords();
+        validateDelegate(delegateReader);
+        return delegateReader.getNumRecords();
     }
 
     @Override
     public Observation readObservation(final int recordNo) throws IOException {
-        validateDelegate(reader);
-        return reader.readObservation(recordNo);
+        validateDelegate(delegateReader);
+        return delegateReader.readObservation(recordNo);
     }
 
     @Override
     public Item getColumn(String role) {
-        validateDelegate(reader);
-        return reader.getColumn(role);
+        validateDelegate(delegateReader);
+        return delegateReader.getColumn(role);
     }
 
     @Override
     public Item[] getColumns() {
-        validateDelegate(reader);
-        return reader.getColumns();
+        validateDelegate(delegateReader);
+        return delegateReader.getColumns();
     }
 
     @Override
@@ -106,20 +102,17 @@ public class MmdReader implements Reader {
 
     @Override
     public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
-        throw new IllegalStateException("Not implemented");
+        throw new IllegalStateException("not implemented");
     }
 
     @Override
     public int getDTime(int recordNo, int scanLine) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
-        throw new IllegalStateException("Not implemented");
+        throw new IllegalStateException("not implemented");
     }
 
     @Override
     public int getTime(int recordNo, int scanLine) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
-        throw new IllegalStateException("Not implemented");
+        throw new IllegalStateException("not implemented");
     }
 
     @Override
@@ -152,18 +145,6 @@ public class MmdReader implements Reader {
         return matchupId.getInt(0);
     }
 
-    Array getData(final String sourceVariableName, final int recordNo) throws IOException {
-        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(sourceVariableName));
-        if (recordNo >= variable.getShape()[0]) {
-            throw new IllegalArgumentException("recordNo >= variable.getShape()[0]");
-        }
-        final int[] origin = new int[variable.getRank()];
-        origin[0] = recordNo;
-        final int[] shape = variable.getShape();
-        shape[0] = 1;
-        return readData(variable, origin, shape);
-    }
-
     Array readData(final Variable variable, final int[] origin, final int[] shape) throws IOException {
         Assert.notNull(variable, "Trying to read from non-existing variable.");
         try {
@@ -186,7 +167,7 @@ public class MmdReader implements Reader {
 
     private void validateDelegate(final Object delegate) {
         if (delegate == null) {
-            throw new IllegalStateException("Trying to read or write without calling init() beforehand.");
+            throw new IllegalStateException("Trying to read without calling init() beforehand.");
         }
     }
 }

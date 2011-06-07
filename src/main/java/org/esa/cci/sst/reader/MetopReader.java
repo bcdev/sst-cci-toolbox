@@ -18,6 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.util.PixelLocator;
 import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
@@ -45,13 +46,14 @@ import java.util.List;
  *
  * @author Martin Boettcher
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class MetopReader extends MdReader {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
 
     protected int rowCount;
     protected int colCount;
-    private QuadTreePixelLocator locator;
+    private PixelLocator locator;
 
     MetopReader(String sensorName) {
         super(sensorName);
