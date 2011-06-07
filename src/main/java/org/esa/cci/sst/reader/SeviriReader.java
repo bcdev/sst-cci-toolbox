@@ -131,7 +131,7 @@ class SeviriReader extends MdReader {
     @Override
     public int getDTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("time", recordNo);
-        final double dtime = getDouble("dtime", recordNo, scanLine);
+        final double dtime = getDouble("dtime", recordNo, scanLine, 0);
         return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
     }
 

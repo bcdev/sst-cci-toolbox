@@ -61,7 +61,7 @@ class DTime extends AbstractImplicitRule {
         if (reader == null) {
             return FILL_VALUE;
         }
-        final int recordNo = context.getMatchup().getRefObs().getRecordNo();
+        final int recordNo = context.getObservation().getRecordNo();
         try {
             return reader.getDTime(recordNo, scanLine);
         } catch (IOException e) {
