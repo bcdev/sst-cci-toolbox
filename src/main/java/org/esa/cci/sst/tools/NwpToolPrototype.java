@@ -41,12 +41,12 @@ public class NwpToolPrototype {
             "${CDO} -f nc mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} \n" +
             "${CDO} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} \n" +
             "${CDO} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} \n" +
-            "${CDO} -f nc -R -t ecmwf merge -remapbil,${GEO} ${GGAS_TIME_SERIES} -selvar,Q,O3 -remapbil,${GEO} ${GGAM_TIME_SERIES} -selvar,LNSP,T -remapbil,${GEO} -sp2gp ${SPAM_TIME_SERIES} ${AN_TIME_SERIES}";
+            "${CDO} -s -f nc -R -t ecmwf merge -remapbil,${GEO} ${GGAS_TIME_SERIES} -selvar,Q,O3 -remapbil,${GEO} ${GGAM_TIME_SERIES} -selvar,LNSP,T -remapbil,${GEO} -sp2gp ${SPAM_TIME_SERIES} ${AN_TIME_SERIES}";
 
     private static final String CDO_FC_TEMPLATE =
             "#! /bin/sh \n" +
-            "${CDO} -s -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} \n" +
-            "${CDO} -s -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} \n" +
+            "${CDO} -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} \n" +
+            "${CDO} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} \n" +
             "${CDO} -s -f nc merge -remapbil,${GEO} ${GAFS_TIME_SERIES} -remapbil,${GEO} ${GGFS_TIME_SERIES} ${FC_TIME_SERIES}";
 
     public static void main(String[] args) throws IOException, InvalidRangeException, InterruptedException {
