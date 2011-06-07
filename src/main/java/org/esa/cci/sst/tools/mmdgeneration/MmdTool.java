@@ -132,7 +132,6 @@ public class MmdTool extends BasicTool {
         for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
             final Matchup matchup = matchupList.get(targetRecordNo);
             final ReferenceObservation referenceObservation = matchup.getRefObs();
-            final List<Coincidence> coincidenceList = matchup.getCoincidences();
 
             if (getLogger().isLoggable(Level.INFO)) {
                 getLogger().info(MessageFormat.format(
@@ -144,20 +143,15 @@ public class MmdTool extends BasicTool {
                 final Item targetColumn = columnRegistry.getColumn(variable.getName());
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    final String variableName = targetColumn.getName();
-                    // todo - ts 01Jun - Watch out!! Assuming that variable name does not contain '.' after sensor id!
-                    // todo - rq 03Jun - variable prefix is not always a sensor name, e.g. 'matchup' is not a sensor
-                    // todo - rq 03Jun - use targetColumn.getSensor() instead
-                    final String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
-                    // todo - rq 03Jun - use findObservation() instead of findCoincidence()
-                    final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
-                    Reader coincidenceReader = null;
-                    if (coincidence != null) {
+                    final String sensorName = targetColumn.getSensor().getName();
+                    final Observation observation = findObservation(sensorName, matchup);
+                    Reader observationReader = null;
+                    if (observation != null) {
                         try {
-                            coincidenceReader = getReader(coincidence.getObservation().getDatafile());
+                            observationReader = getReader(observation.getDatafile());
                         } catch (IOException e) {
                             final String message = MessageFormat.format("observation {0}: {1}",
-                                                                        coincidence.getObservation().getId(),
+                                                                        observation.getId(),
                                                                         e.getMessage());
                             // todo - rq 03Jun - handle IO exception?
                             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
@@ -174,9 +168,9 @@ public class MmdTool extends BasicTool {
                         throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
                     }
                     final Context context = new ContextBuilder()
-                            .coincidence(coincidence)
                             .matchup(matchup)
-                            .coincidenceReader(coincidenceReader)
+                            .observation(observation)
+                            .observationReader(observationReader)
                             .referenceObservationReader(referenceObservationReader)
                             .targetVariable(variable)
                             .build();
@@ -438,16 +432,4 @@ public class MmdTool extends BasicTool {
         }
         return null;
     }
-
-    // rq 03Jun - method does not yield the intended result
-    @Deprecated
-    private static Coincidence findCoincidence(String sensorName, List<Coincidence> coincidenceList) {
-        for (final Coincidence coincidence : coincidenceList) {
-            if (sensorName.equals(coincidence.getObservation().getSensor())) {
-                return coincidence;
-            }
-        }
-        return null;
-    }
-
 }

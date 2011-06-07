@@ -16,16 +16,28 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.util.PixelLocator;
+import org.esa.beam.util.QuadTreePixelLocator;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,12 +51,14 @@ import java.util.List;
  *
  * @author Martin Boettcher
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class MetopReader extends MdReader {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
 
     protected int rowCount;
     protected int colCount;
+    private PixelLocator locator;
 
     MetopReader(String sensorName) {
         super(sensorName);
@@ -56,6 +70,9 @@ class MetopReader extends MdReader {
         final NetcdfFile ncFile = getNetcdfFile();
         rowCount = ncFile.findDimension("ny").getLength();
         colCount = ncFile.findDimension("nx").getLength();
+        final Array lonArray = getVariable("lon").read();
+        final Array latArray = getVariable("lat").read();
+        locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     /**
@@ -87,6 +104,65 @@ class MetopReader extends MdReader {
         observation.setRecordNo(recordNo);
 
         return observation;
+    }
+
+    @Override
+    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+        final PixelPos pixelPos = new PixelPos();
+        final Point2D.Double foundPoint = new Point2D.Double();
+        locator.getPixelLocation(geoPos.lon, geoPos.lat, foundPoint);
+        pixelPos.setLocation(foundPoint);
+        return pixelPos;
+    }
+
+    @Override
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("msr_time", recordNo);
+        final double dtime = getDouble("dtime", recordNo, scanLine);
+        return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public int getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("msr_time", recordNo);
+        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        final String lonVarName = "lon";
+        final String latVarName = "lat";
+        final Variable lonVariable = getVariable(lonVarName);
+        final Variable latVariable = getVariable(latVarName);
+        final int[] origin = new int[lonVariable.getRank()];
+        origin[0] = recordNo;
+        final int[] shape = lonVariable.getShape();
+        shape[0] = 1;
+        Array lonArray;
+        Array latArray;
+        try {
+            lonArray = lonVariable.read(origin, shape);
+            latArray = latVariable.read(origin, shape);
+            lonArray = scale(getColumn(lonVarName).getScaleFactor(), lonArray);
+            latArray = scale(getColumn(latVarName).getScaleFactor(), latArray);
+        } catch (IOException e) {
+            throw new ToolException("Unable to read geographic information.", e, ToolException.TOOL_IO_ERROR);
+        } catch (InvalidRangeException e) {
+            throw new ToolException("Unable to read geographic information.", e, ToolException.TOOL_IO_ERROR);
+        }
+        return new LSGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+    }
+
+    private Array scale(Number scaleFactor, Array array) {
+        if (scaleFactor == null) {
+            return array;
+        }
+        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
+        for (int i = 0; i < array.getSize(); i++) {
+            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
+            scaledArray.setDouble(i, value);
+        }
+        return scaledArray;
     }
 
     private Point[] getPoints(int recordNo) throws IOException {

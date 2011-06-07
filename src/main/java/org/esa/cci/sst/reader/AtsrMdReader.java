@@ -16,6 +16,9 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -33,6 +36,7 @@ import java.util.Date;
  *
  * @author Martin Boettcher
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class AtsrMdReader extends MdReader {
 
     AtsrMdReader(String sensorName) {
@@ -64,6 +68,30 @@ class AtsrMdReader extends MdReader {
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         return observation;
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        return null;
+    }
+
+    @Override
+    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+        return null;
+    }
+
+    @Override
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("atsr.time.julian", recordNo);
+        final double dtime = getShort("matchup.time.difference", recordNo);
+        return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public int getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("atsr.time.julian", recordNo);
+        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
+
     }
 
     private static Date dateOf(double julianDate) {

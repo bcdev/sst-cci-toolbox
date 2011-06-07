@@ -16,29 +16,15 @@
 
 package org.esa.cci.sst.rules;
 
-import org.junit.Test;
-
 /**
- * TODO fill out or delete
+ * Sets the sensor to 'atsr.3'.
  *
  * @author Thomas Storm
  */
-public class LandSeaMaskTest {
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
+class AvhrrTnSensor extends SensorRule {
 
-    @Test
-    public void testName() throws Exception {
-        int recordNo = 0;
-        int[] shape = new int[]{0, 2, 6};
-
-        int pixelX;
-        int pixelY;
-        for (int i = 0; i < 12; i++) {
-            pixelX = i % shape[1] + (recordNo * shape[1] * shape[2]);
-            pixelY = i % shape[2] + (recordNo * shape[1] * shape[2]);
-
-            System.out.println("pixelX = " + pixelX);
-            System.out.println("pixelY = " + pixelY);
-            System.out.println();
-        }
+    AvhrrTnSensor() {
+        super("atsr.3");
     }
 }
