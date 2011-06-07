@@ -59,6 +59,7 @@ class LandSeaMask extends AbstractImplicitRule {
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder.type(DATA_TYPE);
+        targetColumnBuilder.fillValue((byte) WatermaskClassifier.INVALID_VALUE);
     }
 
     @Override
@@ -109,8 +110,8 @@ class LandSeaMask extends AbstractImplicitRule {
         Array lonArray;
         Array latArray;
         try {
-            lonArray = reader.read(longitudeVariableName, null);
-            latArray = reader.read(latitudeVariableName, null);
+            lonArray = reader.read(longitudeVariableName, extractDefinition);
+            latArray = reader.read(latitudeVariableName, extractDefinition);
             lonArray = scale(reader.getColumn(longitudeVariableName).getScaleFactor(), lonArray);
             latArray = scale(reader.getColumn(latitudeVariableName).getScaleFactor(), latArray);
         } catch (IOException e) {
@@ -120,6 +121,9 @@ class LandSeaMask extends AbstractImplicitRule {
     }
 
     private Array scale(Number scaleFactor, Array array) {
+        if(scaleFactor == null) {
+            return array;
+        }
         final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
         for (int i = 0; i < array.getSize(); i++) {
             double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
