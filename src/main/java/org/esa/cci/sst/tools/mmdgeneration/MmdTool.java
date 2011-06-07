@@ -143,11 +143,7 @@ public class MmdTool extends BasicTool {
                 final Item targetColumn = columnRegistry.getColumn(variable.getName());
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    final String variableName = targetColumn.getName();
-                    // todo - ts 01Jun - Watch out!! Assuming that variable name does not contain '.' after sensor id!
-                    // todo - rq 03Jun - variable prefix is not always a sensor name, e.g. 'matchup' is not a sensor
-                    // todo - rq 03Jun - use targetColumn.getSensor() instead
-                    final String sensorName = variableName.substring(0, variableName.lastIndexOf('.'));
+                    final String sensorName = targetColumn.getSensor().getName();
                     final Observation observation = findObservation(sensorName, matchup);
                     Reader observationReader = null;
                     if (observation != null) {
