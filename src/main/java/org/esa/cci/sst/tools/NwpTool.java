@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.util.ProcessRunner;
+import org.esa.cci.sst.util.TemplateResolver;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -26,11 +27,111 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.Writer;
+import java.util.Properties;
 
 public class NwpTool {
 
-    public static void main(String[] args) throws IOException, InvalidRangeException {
+    private static final String CDO_AN_TEMPLATE =
+            "#! /bin/sh \n" +
+            "${CDO} -f nc mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} \n" +
+            "${CDO} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} \n" +
+            "${CDO} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} \n" +
+            "${CDO} -f nc -R -t ecmwf merge -remapbil,${GEO} ${GGAS_TIME_SERIES} -selvar,Q,O3 -remapbil,${GEO} ${GGAM_TIME_SERIES} -selvar,LNSP,T -remapbil,${GEO} -sp2gp ${SPAM_TIME_SERIES} ${AN_TIME_SERIES}";
+
+    private static final String CDO_FC_TEMPLATE =
+            "#! /bin/sh \n" +
+            "${CDO} -s -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} \n" +
+            "${CDO} -s -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} \n" +
+            "${CDO} -s -f nc merge -remapbil,${GEO} ${GAFS_TIME_SERIES} -remapbil,${GEO} ${GGFS_TIME_SERIES} ${FC_TIME_SERIES}";
+
+    public static void main(String[] args) throws IOException, InvalidRangeException, InterruptedException {
+        writeGeoFile("geo.nc");
+
+        final Properties properties = new Properties();
+        properties.setProperty("CDO", "/usr/local/bin/cdo");
+        properties.setProperty("GEO", "geo.nc");
+        properties.setProperty("GGAS_TIMESTEPS", files("testdata/nwp", "ggas[0-9]*.nc"));
+        properties.setProperty("GGAM_TIMESTEPS", files("testdata/nwp", "ggam[0-9]*.grb"));
+        properties.setProperty("SPAM_TIMESTEPS", files("testdata/nwp", "spam[0-9]*.grb"));
+        properties.setProperty("GGAS_TIME_SERIES", File.createTempFile("ggas", ".nc").getPath());
+        properties.setProperty("GGAM_TIME_SERIES", File.createTempFile("ggam", ".nc").getPath());
+        properties.setProperty("SPAM_TIME_SERIES", File.createTempFile("spam", ".nc").getPath());
+        properties.setProperty("AN_TIME_SERIES", "an.nc");
+
+        final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
+        runner.execute(writeCdoScript(CDO_AN_TEMPLATE, properties).getPath());
+
+        properties.setProperty("GAFS_TIMESTEPS", files("testdata/nwp", "gafs[0-9]*.nc"));
+        properties.setProperty("GGFS_TIMESTEPS", files("testdata/nwp", "ggfs[0-9]*.nc"));
+        properties.setProperty("GAFS_TIME_SERIES", File.createTempFile("gafs", ".nc").getPath());
+        properties.setProperty("GGFS_TIME_SERIES", File.createTempFile("ggfs", ".nc").getPath());
+        properties.setProperty("FC_TIME_SERIES", "fc.nc");
+
+        runner.execute(writeCdoScript(CDO_FC_TEMPLATE, properties).getPath());
+
+        printVariables("an.nc");
+        printVariables("fc.nc");
+
+        // todo - temporal interpolation of AN
+    }
+
+    private static void printVariables(String location) throws IOException {
+        final NetcdfFile anFile = NetcdfFile.open(location);
+        try {
+            for (final Variable v : anFile.getVariables()) {
+                System.out.println("variable = " + v.getName());
+            }
+        } finally {
+            try {
+                anFile.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private static File writeCdoScript(String template, Properties properties) throws IOException {
+        final File script = File.createTempFile("cdo", ".sh");
+        final boolean executable = script.setExecutable(true);
+        if (!executable) {
+            throw new IOException("Cannot create CDO script.");
+        }
+        final Writer writer = new FileWriter(script);
+        try {
+            final TemplateResolver templateResolver = new TemplateResolver(properties);
+            writer.write(templateResolver.resolve(template));
+        } finally {
+            try {
+                writer.close();
+            } catch (IOException ignored) {
+            }
+        }
+        return script;
+    }
+
+    private static String files(final String dirPath, final String pattern) {
+        final File dir = new File(dirPath);
+        final File[] files = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.matches(pattern);
+            }
+        });
+        final StringBuilder sb = new StringBuilder();
+        for (final File file : files) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(file.getPath());
+        }
+        return sb.toString();
+    }
+
+    private static void writeGeoFile(String location) throws IOException, InvalidRangeException {
         NetcdfFile source = null;
         try {
             source = NetcdfFile.open("mmd.nc");
@@ -44,7 +145,7 @@ public class NwpTool {
 
             NetcdfFileWriteable target = null;
             try {
-                target = createTargetFile(matchupCount, ny, nx);
+                target = defineGeoFile(location, matchupCount, ny, nx);
                 target.write("grid_dims", Array.factory(new int[]{nx, ny * matchupCount}));
 
                 final int[] sourceShape = {1, ny, nx};
@@ -80,57 +181,30 @@ public class NwpTool {
                 source.close();
             }
         }
-
-        final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-        final String geoFile = "geo.nc";
-        // todo - create NWP temp files from archive files
-        final String gribCodeFile = "ecmwf_grib_codes.txt";
-        final String spTempFile = "sp2007011412.grb";
-        final String ggTempFile = "gg2007011412.grb";
-        final String ooTempFile = "oo2007011412.nc";
-        final String spRemappedTempFile = "sp.nc";
-        final String ggRemappedTempFile = "gg.nc";
-        final String asamTempFile = "asam2007011412.nc";
-        try {
-            runner.execute(
-                    String.format("/usr/local/bin/cdo -f nc -t %s remapbil,%s -sp2gp %s %s", gribCodeFile, geoFile,
-                                  spTempFile, spRemappedTempFile));
-            runner.execute(
-                    String.format("/usr/local/bin/cdo -R -f nc -t %s remapbil,%s %s %s", gribCodeFile, geoFile,
-                                  ggTempFile, ggRemappedTempFile));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            runner.execute(
-                    String.format("/usr/local/bin/cdo -f nc replace %s -remapbil,%s -delvar,qual %s %s",
-                                  ggRemappedTempFile, geoFile, ooTempFile, asamTempFile));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
-    private static NetcdfFileWriteable createTargetFile(int matchupCount, int ny, int nx) throws IOException {
-        final NetcdfFileWriteable target = NetcdfFileWriteable.createNew("geo.nc", true);
-        target.addDimension("grid_size", matchupCount * ny * nx);
-        target.addDimension("grid_matchup", matchupCount);
-        target.addDimension("grid_ny", ny);
-        target.addDimension("grid_nx", nx);
-        target.addDimension("grid_corners", 4);
-        target.addDimension("grid_rank", 2);
+    private static NetcdfFileWriteable defineGeoFile(String location, int matchupCount, int ny, int nx) throws
+                                                                                                        IOException {
+        final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew(location, true);
+        geoFile.addDimension("grid_size", matchupCount * ny * nx);
+        geoFile.addDimension("grid_matchup", matchupCount);
+        geoFile.addDimension("grid_ny", ny);
+        geoFile.addDimension("grid_nx", nx);
+        geoFile.addDimension("grid_corners", 4);
+        geoFile.addDimension("grid_rank", 2);
 
-        target.addVariable("grid_dims", DataType.INT, "grid_rank");
-        target.addVariable("grid_center_lat", DataType.FLOAT, "grid_size").addAttribute(
+        geoFile.addVariable("grid_dims", DataType.INT, "grid_rank");
+        geoFile.addVariable("grid_center_lat", DataType.FLOAT, "grid_size").addAttribute(
                 new Attribute("units", "degrees"));
-        target.addVariable("grid_center_lon", DataType.FLOAT, "grid_size").addAttribute(
+        geoFile.addVariable("grid_center_lon", DataType.FLOAT, "grid_size").addAttribute(
                 new Attribute("units", "degrees"));
-        target.addVariable("grid_imask", DataType.INT, "grid_size");
-        target.addVariable("grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
-        target.addVariable("grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
+        geoFile.addVariable("grid_imask", DataType.INT, "grid_size");
+        geoFile.addVariable("grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
+        geoFile.addVariable("grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
 
-        target.addGlobalAttribute("title", "MMD geo-location in SCRIP format");
-        target.create();
+        geoFile.addGlobalAttribute("title", "MMD geo-location in SCRIP format");
+        geoFile.create();
 
-        return target;
+        return geoFile;
     }
 }

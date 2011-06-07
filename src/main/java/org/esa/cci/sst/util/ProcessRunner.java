@@ -37,7 +37,7 @@ public class ProcessRunner {
         logger = Logger.getLogger(loggerName);
     }
 
-    public void execute(final String command) throws Exception {
+    public void execute(final String command) throws IOException, InterruptedException {
         try {
             if (logger.isLoggable(Level.FINER)) {
                 logger.entering(ProcessRunner.class.getName(), "execute");
@@ -61,7 +61,7 @@ public class ProcessRunner {
                 out.start();
             }
             if (process.waitFor() != 0) {
-                throw new Exception(
+                throw new RuntimeException(
                         MessageFormat.format("Command <code>{0}</code> terminated with exit value {1}",
                                              command, process.exitValue()));
             }

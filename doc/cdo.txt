@@ -1,0 +1,27 @@
+##
+# Time series extraction of analysis data
+#
+
+# merge all needed GGAS time steps into a single file
+cdo -f nc mergetime ggas[0-9]*.nc ggas.nc
+
+# merge all needed GGAM time steps into a single file
+cdo -f grb mergetime ggam[0-9]*.grb ggam.grb
+
+# merge all needed SPAM time steps into a single file
+cdo -f grb mergetime spam[0-9]*.grb spam.grb
+
+# merge remapped data into a single file
+cdo -f nc -R -t ecmwf merge -remapbil,geo.nc ggas.nc -selvar,Q,O3 -remapbil,geo.nc ggam.grb -selvar,LNSP,T -remapbil,geo.nc -sp2gp spam.grb an.nc
+
+
+##
+# Time series extraction of forecast data
+#
+
+# merge all needed time steps
+cdo -f nc mergetime gafs[0-9].nc gafs.nc
+cdo -f nc mergetime ggfs[0-9].nc ggfs.nc
+
+# merge remapped data into a single file
+cdo -f nc merge -remapbil,geo.nc gafs.nc -remapbil,geo.nc ggfs.nc fc.nc
