@@ -27,7 +27,7 @@ import ucar.nc2.Variable;
 import java.io.IOException;
 
 /**
- * Sets metop.dtime.
+ * Sets dtime.
  *
  * @author Thomas Storm
  */
@@ -35,10 +35,13 @@ import java.io.IOException;
 class DTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
+    // todo - ts 06Jun11 - clarify
+    private static final int FILL_VALUE = 0;
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder.type(DATA_TYPE).unit(Constants.UNIT_TIME);
+        targetColumnBuilder.fillValue(FILL_VALUE);
     }
 
     @Override
@@ -55,9 +58,8 @@ class DTime extends AbstractImplicitRule {
     private int getDTime(int scanLine) throws RuleException {
         final Context context = getContext();
         final Reader reader = context.getObservationReader();
-        if(reader == null) {
-            // todo - ts 06Jun11 - clarify
-            return 0;
+        if (reader == null) {
+            return FILL_VALUE;
         }
         final int recordNo = context.getMatchup().getRefObs().getRecordNo();
         try {
