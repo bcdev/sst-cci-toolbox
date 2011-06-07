@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Properties;
 
-public class NwpTool {
+public class NwpToolPrototype {
 
     private static final String CDO_AN_TEMPLATE =
             "#! /bin/sh \n" +
