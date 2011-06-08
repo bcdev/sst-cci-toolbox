@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.tools;
 
+import org.esa.beam.util.math.FracIndex;
 import org.esa.cci.sst.util.ProcessRunner;
 import org.esa.cci.sst.util.TemplateResolver;
 import ucar.ma2.Array;
@@ -32,6 +33,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.MessageFormat;
 import java.util.Properties;
 
 /**
@@ -47,17 +49,17 @@ public class NwpToolPrototype {
             "${CDO} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
             "${CDO} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc -R -t ecmwf remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc -t ecmwf remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc merge -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
+            "${CDO} -f nc -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} -f nc -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
 
     private static final String CDO_FC_TEMPLATE =
             "#! /bin/sh\n" +
             "${CDO} -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
             "${CDO} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc merge -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
+            "${CDO} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
+            "${CDO} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -67,8 +69,9 @@ public class NwpToolPrototype {
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
-            properties.setProperty("GEO", geoFile.getLocation());
+            properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
+            properties.setProperty("GEO", geoFile.getLocation());
             properties.setProperty("GGAS_TIMESTEPS", files("testdata/nwp", "ggas[0-9]*.nc"));
             properties.setProperty("GGAM_TIMESTEPS", files("testdata/nwp", "ggam[0-9]*.grb"));
             properties.setProperty("SPAM_TIMESTEPS", files("testdata/nwp", "spam[0-9]*.grb"));
@@ -108,44 +111,85 @@ public class NwpToolPrototype {
         }
     }
 
-    private static void writeAnalysisMmdFile(NetcdfFile mmdFile, NetcdfFile anFile) throws IOException {
-        final Dimension matchupDimension = mmdFile.findDimension("matchup");
-        final Dimension nyDimension = mmdFile.findDimension("metop.ny");
-        final Dimension nxDimension = mmdFile.findDimension("metop.nx");
+    private static void writeAnalysisMmdFile(NetcdfFile mmd, NetcdfFile analysisFile) throws IOException {
+        final Dimension matchupDimension = getDimension(mmd, "matchup");
+        final Dimension nyDimension = getDimension(mmd, "metop.ny");
+        final Dimension nxDimension = getDimension(mmd, "metop.nx");
 
-        final NetcdfFileWriteable anMmdFile = NetcdfFileWriteable.createNew("an.nc", true);
-        anMmdFile.addDimension(matchupDimension.getName(), matchupDimension.getLength());
-        anMmdFile.addDimension(nyDimension.getName(), nyDimension.getLength());
-        anMmdFile.addDimension(nxDimension.getName(), nxDimension.getLength());
+        final NetcdfFileWriteable amd = NetcdfFileWriteable.createNew("an.nc", true);
+        amd.addDimension(matchupDimension.getName(), matchupDimension.getLength());
+        amd.addDimension("metop.nwp.nz", getDimension(analysisFile, "lev").getLength());
+        amd.addDimension("metop.nwp.ny", nyDimension.getLength());
+        amd.addDimension("metop.nwp.nx", nxDimension.getLength());
+
+        final Variable matchupId = mmd.findVariable("matchup.id");
+
+        amd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
+
+        for (final Variable v : analysisFile.getVariables()) {
+            if (v.getRank() == 4) {
+                if (v.getDimension(1).getLength() == 1) {
+                    amd.addVariable(v.getName(), v.getDataType(),
+                                    "matchup metop.nwp.ny metop.nwp.nx");
+                } else {
+                    amd.addVariable(v.getName(), v.getDataType(),
+                                    "matchup metop.nwp.nz metop.nwp.ny metop.nwp.nx");
+                }
+            }
+        }
+
+        amd.create();
 
         final int matchupCount = matchupDimension.getLength();
         final int ny = nyDimension.getLength();
         final int nx = nxDimension.getLength();
+
+        final Array targetTimes = getVariable(mmd, "metop.time").read();
+        final Array sourceTimes = getVariable(analysisFile, "time").read();
+
+        try {
+            for (int i = 0; i < matchupCount; i++) {
+                final int[] sourceStart = {0, 0, i * ny, 0};
+                final int[] sourceShape = {1, 0, ny, nx};
+
+                final double targetTime = targetTimes.getDouble(i);
+                final FracIndex fi = computeFracIndex(sourceTimes, targetTime);
+
+                for (final Variable targetVariable : amd.getVariables()) {
+                    final Variable sourceVariable = getVariable(analysisFile, targetVariable.getName());
+                    sourceStart[0] = fi.i;
+                    sourceShape[1] = sourceVariable.getShape(1);
+                    final Array slice1 = sourceVariable.read(sourceStart, sourceShape);
+                    sourceStart[0] = fi.i + 1;
+                    final Array slice2 = sourceVariable.read(sourceStart, sourceShape);
+
+                    for (int k = 0; k < slice1.getSize(); k++) {
+                        slice2.setDouble(k, fi.f * slice1.getDouble(k) + (1.0 - fi.f) * slice2.getDouble(k));
+                    }
+                    final int[] targetShape = targetVariable.getShape();
+                    targetShape[0] = 1;
+                    final int[] targetStart = new int[targetShape.length];
+                    targetStart[0] = i;
+                    amd.write(targetVariable.getNameEscaped(), targetStart, slice2.reshape(targetShape));
+                }
+            }
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
     }
 
-    private static NetcdfFileWriteable createAnalysisMmdFile(int matchupCount, int ny, int nx) throws IOException {
-        final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew("an.nc", true);
-
-        geoFile.addDimension("grid_size", matchupCount * ny * nx);
-        geoFile.addDimension("grid_matchup", matchupCount);
-        geoFile.addDimension("grid_ny", ny);
-        geoFile.addDimension("grid_nx", nx);
-        geoFile.addDimension("grid_corners", 4);
-        geoFile.addDimension("grid_rank", 2);
-
-        geoFile.addVariable("grid_dims", DataType.INT, "grid_rank");
-        geoFile.addVariable("grid_center_lat", DataType.FLOAT, "grid_size").addAttribute(
-                new Attribute("units", "degrees"));
-        geoFile.addVariable("grid_center_lon", DataType.FLOAT, "grid_size").addAttribute(
-                new Attribute("units", "degrees"));
-        geoFile.addVariable("grid_imask", DataType.INT, "grid_size");
-        geoFile.addVariable("grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
-        geoFile.addVariable("grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
-
-        geoFile.addGlobalAttribute("title", "MMD geo-location in SCRIP format");
-        geoFile.create();
-
-        return geoFile;
+    private static FracIndex computeFracIndex(Array sourceTimes, double targetTime) {
+        for (int i = 1; i < sourceTimes.getSize(); i++) {
+            final double maxTime = sourceTimes.getDouble(i);
+            final double minTime = sourceTimes.getDouble(i - 1);
+            if (targetTime >= minTime && targetTime <= maxTime) {
+                final FracIndex fracIndex = new FracIndex();
+                fracIndex.i = i - 1;
+                fracIndex.f = (targetTime - minTime) / (maxTime - minTime);
+                return fracIndex;
+            }
+        }
+        throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
     }
 
     private static File createTempFile(String prefix, String suffix, boolean deleteOnExit) throws IOException {
@@ -194,10 +238,10 @@ public class NwpToolPrototype {
     }
 
     @SuppressWarnings({"ConstantConditions"})
-    private static NetcdfFileWriteable writeGeoFile(NetcdfFile mmdFile) throws IOException {
-        final Dimension matchupDimension = mmdFile.findDimension("matchup");
-        final Dimension nyDimension = mmdFile.findDimension("metop.ny");
-        final Dimension nxDimension = mmdFile.findDimension("metop.nx");
+    private static NetcdfFileWriteable writeGeoFile(NetcdfFile mmd) throws IOException {
+        final Dimension matchupDimension = getDimension(mmd, "matchup");
+        final Dimension nyDimension = getDimension(mmd, "metop.ny");
+        final Dimension nxDimension = getDimension(mmd, "metop.nx");
 
         final int matchupCount = matchupDimension.getLength();
         final int ny = nyDimension.getLength();
@@ -213,8 +257,8 @@ public class NwpToolPrototype {
             final int[] targetShape = {ny * nx};
             final Array maskData = Array.factory(DataType.INT, targetShape);
 
-            final Variable sourceLat = mmdFile.findVariable(NetcdfFile.escapeName("metop.latitude"));
-            final Variable sourceLon = mmdFile.findVariable(NetcdfFile.escapeName("metop.longitude"));
+            final Variable sourceLat = getVariable(mmd, "metop.latitude");
+            final Variable sourceLon = getVariable(mmd, "metop.longitude");
 
             for (int i = 0; i < matchupCount; i++) {
                 sourceStart[0] = i;
@@ -265,5 +309,21 @@ public class NwpToolPrototype {
         geoFile.create();
 
         return geoFile;
+    }
+
+    private static Dimension getDimension(NetcdfFile file, String name) throws IOException {
+        final Dimension d = file.findDimension(name);
+        if (d == null) {
+            throw new IOException(MessageFormat.format("Expected dimension ''{0}''.", name));
+        }
+        return d;
+    }
+
+    private static Variable getVariable(NetcdfFile file, String name) throws IOException {
+        final Variable v = file.findVariable(NetcdfFile.escapeName(name));
+        if (v == null) {
+            throw new IOException(MessageFormat.format("Expected variable ''{0}''.", name));
+        }
+        return v;
     }
 }
