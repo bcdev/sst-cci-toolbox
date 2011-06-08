@@ -81,17 +81,16 @@ class AtsrMdReader extends MdReader {
     }
 
     @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
+    public int getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("atsr.time.julian", recordNo);
-        final double dtime = getShort("matchup.time.difference", recordNo);
+        final double dtime = getDTime(recordNo, scanLine);
         return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
     }
 
     @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
-        final double time = getDouble("atsr.time.julian", recordNo);
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        final double time = getShort("matchup.time.difference", recordNo);
         return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
-
     }
 
     private static Date dateOf(double julianDate) {
