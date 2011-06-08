@@ -153,15 +153,13 @@ public class MmdTool extends BasicTool {
                             final String message = MessageFormat.format("observation {0}: {1}",
                                                                         observation.getId(),
                                                                         e.getMessage());
-                            // todo - rq 03Jun - handle IO exception?
-                            throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+                            getLogger().warning(message);
                         }
                     }
                     final Reader referenceObservationReader;
                     try {
                         referenceObservationReader = getReader(referenceObservation.getDatafile());
                     } catch (IOException e) {
-                        // todo - rq 03Jun - handle IO exception?
                         final String message = MessageFormat.format("observation {0}: {1}",
                                                                     referenceObservation.getId(),
                                                                     e.getMessage());
@@ -243,8 +241,7 @@ public class MmdTool extends BasicTool {
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
-            // todo - rq 03Jun - handle IO exception?
-            throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+            getLogger().warning(message);
         } catch (RuleException e) {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);

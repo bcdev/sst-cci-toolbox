@@ -37,11 +37,14 @@ import java.io.IOException;
 class ObservationTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
+    // todo - ts 06Jun11 - clarify
+    private static final int FILL_VALUE = -1;
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
                                                                                                      RuleException {
         targetColumnBuilder.type(DATA_TYPE).unit(Constants.UNIT_TIME);
+        targetColumnBuilder.fillValue(FILL_VALUE);
     }
 
     @Override
@@ -54,9 +57,8 @@ class ObservationTime extends AbstractImplicitRule {
     private int getTime() throws RuleException {
         final Context context = getContext();
         final Reader reader = context.getObservationReader();
-        if(reader == null) {
-            // todo - ts 06Jun11 - clarify
-            return -1;
+        if (reader == null) {
+            return FILL_VALUE;
         }
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
         final int recordNo = refObs.getRecordNo();
