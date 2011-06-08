@@ -28,7 +28,7 @@ import org.esa.beam.util.SampleSource;
 import java.awt.geom.Point2D;
 
 /**
-* Geo-coding which only implements <code>getGeoPos(PixelPos pixelPos, GeoPos geoPos)</code>.
+* Geo-coding using a ${@link QuadTreePixelLocator}.
 *
 * @author Thomas Storm
 */
@@ -63,7 +63,11 @@ class LSGeoCoding extends AbstractGeoCoding {
 
     @Override
     public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
-        return null;
+        final Point2D.Double point = new Point2D.Double();
+        locator.getPixelLocation(geoPos.lon, geoPos.lat, point);
+        final PixelPos result = new PixelPos();
+        result.setLocation(point);
+        return result;
     }
 
     @Override

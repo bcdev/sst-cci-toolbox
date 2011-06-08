@@ -16,12 +16,13 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.tools.Constants;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -29,50 +30,50 @@ import ucar.ma2.DataType;
 import java.io.IOException;
 
 /**
- * Sets the time of the reference observation.
+ * Abstract class for setting the value of the variables 'matchup_line' and 'matchup_elem'.
  *
  * @author Thomas Storm
  */
-@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class ObservationTime extends AbstractImplicitRule {
+@SuppressWarnings({"UnusedDeclaration"})
+abstract class MatchupPosition extends Rule {
 
-    private static final DataType DATA_TYPE = DataType.INT;
-    // todo - ts 06Jun11 - clarify
     private static final int FILL_VALUE = -1;
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
-                                                                                                     RuleException {
-        targetColumnBuilder.type(DATA_TYPE).unit(Constants.UNIT_TIME);
-        targetColumnBuilder.fillValue(FILL_VALUE);
+    public Item apply(Item sourceColumn) throws RuleException {
+        return new ColumnBuilder(sourceColumn)
+                .fillValue(FILL_VALUE)
+                .build();
     }
 
     @Override
-    public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final Array array = Array.factory(DATA_TYPE, new int[]{1});
-        array.setInt(0, getTime());
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        final Array array = Array.factory(DataType.SHORT, new int[]{1});
+        array.setShort(0, getMatchupDimension());
         return array;
     }
 
-    private int getTime() throws RuleException {
+    private short getMatchupDimension() throws RuleException {
+        short matchupElem;
         final Context context = getContext();
-        final Reader reader = context.getObservationReader();
-        if (reader == null) {
-            return FILL_VALUE;
-        }
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
-        final int recordNo = refObs.getRecordNo();
         final Point point = refObs.getPoint().getGeometry().getFirstPoint();
         final double lon = point.getX();
         final double lat = point.getY();
-        final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
-        final int time;
-        try {
-            final int scanLine = (int) reader.getPixelPos(geoPos).y;
-            time = reader.getTime(recordNo, scanLine);
-        } catch (IOException e) {
-            throw new RuleException("Unable to read time.", e);
+        final Reader observationReader = context.getObservationReader();
+        if(observationReader == null) {
+            return FILL_VALUE;
         }
-        return time;
+        final GeoCoding geoCoding;
+        try {
+            geoCoding = observationReader.getGeoCoding(refObs.getRecordNo());
+        } catch (IOException e) {
+            throw new RuleException("Unable to obtain geo-coding.", e);
+        }
+        final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
+        return getDimension(pixelPos);
     }
+
+    protected abstract short getDimension(PixelPos pixelPos);
+
 }

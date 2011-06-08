@@ -131,15 +131,15 @@ class SeviriReader extends MdReader {
         return pixelPos;
     }
     @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
+    public int getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("time", recordNo);
-        final double dtime = getDouble("dtime", recordNo, scanLine, 0);
+        final double dtime = getDTime(recordNo, scanLine);
         return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
     }
 
     @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
-        final double time = getDouble("time", recordNo);
+    public int getDTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("dtime", recordNo, scanLine, 0);
         return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
     }
 
