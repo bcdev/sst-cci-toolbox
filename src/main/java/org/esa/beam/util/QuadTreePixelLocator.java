@@ -71,7 +71,7 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int h = lonSource.getHeight();
 
         final boolean cannotInterpolate = w == 1 && h == 1;
-        if(cannotInterpolate) {
+        if (cannotInterpolate) {
             final double lon = lonSource.getSample(0, 0);
             final double lat = latSource.getSample(0, 0);
             g.setLocation(lon, lat);
@@ -422,6 +422,13 @@ public class QuadTreePixelLocator implements PixelLocator {
         }
 
         void get(Point2D p) {
+            // todo - fix for situation when all lats or lons are equal
+            if (lats[0] == lats[1] && lats[1] == lats[2]) {
+                lats[1] += 0.001;
+            }
+            if (lons[0] == lons[1] && lons[1] == lons[2]) {
+                lons[1] += 0.001;
+            }
             rotation.transform(lons, lats);
             final RationalFunctionModel xModel = new RationalFunctionModel(1, 0, lons, lats, xs);
             final RationalFunctionModel yModel = new RationalFunctionModel(1, 0, lons, lats, ys);

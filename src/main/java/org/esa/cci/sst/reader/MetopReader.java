@@ -124,8 +124,7 @@ class MetopReader extends MdReader {
 
     @Override
     public int getDTime(int recordNo, int scanLine) throws IOException {
-        final double time = getDouble("dtime", recordNo, scanLine);
-        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
+        return (int) getDouble("dtime", recordNo, scanLine);
     }
 
     @Override

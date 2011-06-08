@@ -61,14 +61,14 @@ class ObservationTime extends AbstractImplicitRule {
             return FILL_VALUE;
         }
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
-        final int recordNo = refObs.getRecordNo();
+        final int recordNo = context.getObservation().getRecordNo();
         final Point point = refObs.getPoint().getGeometry().getFirstPoint();
         final double lon = point.getX();
         final double lat = point.getY();
         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
         final int time;
         try {
-            final int scanLine = (int) reader.getPixelPos(geoPos).y;
+            final int scanLine = (int) reader.getGeoCoding(recordNo).getPixelPos(geoPos, null).y;
             time = reader.getTime(recordNo, scanLine);
         } catch (IOException e) {
             throw new RuleException("Unable to read time.", e);
