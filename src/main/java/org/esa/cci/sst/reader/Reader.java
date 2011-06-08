@@ -110,8 +110,12 @@ public interface Reader {
 
     /**
      * Returns a geo-coding for the record given by the record number.
+     *
      * @param recordNo The number of the record the geo-coding shall received for.
+     *
      * @return A geo-coding.
+     *
+     * @throws java.io.IOException If some IO error occurs.
      */
     GeoCoding getGeoCoding(int recordNo) throws IOException;
 
