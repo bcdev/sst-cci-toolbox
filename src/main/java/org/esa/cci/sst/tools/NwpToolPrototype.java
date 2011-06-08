@@ -47,7 +47,7 @@ public class NwpToolPrototype {
             "#! /bin/sh \n" +
             "${CDO} -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} \n" +
             "${CDO} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} \n" +
-            "${CDO} -s -f nc merge -remapbil,${GEO} ${GAFS_TIME_SERIES} -remapbil,${GEO} ${GGFS_TIME_SERIES} ${FC_TIME_SERIES}";
+            "${CDO} -s -f nc merge -remapbil,${GEO} ${GAFS_TIME_SERIES} -delvar,CSF,LSF -remapbil,${GEO} ${GGFS_TIME_SERIES} ${FC_TIME_SERIES}";
 
     public static void main(String[] args) throws IOException, InterruptedException {
         writeGeoFile("geo.nc", "mmd.nc");
