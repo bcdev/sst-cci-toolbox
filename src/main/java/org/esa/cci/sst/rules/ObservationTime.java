@@ -38,22 +38,17 @@ import java.io.IOException;
 class ObservationTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
-    // todo - ts 06Jun11 - clarify
-    private static final int FILL_VALUE = -1;
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
                                                                                                      RuleException {
         targetColumnBuilder.type(DATA_TYPE).unit(Constants.UNIT_TIME);
-        targetColumnBuilder.fillValue(FILL_VALUE);
     }
 
     @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array array = Array.factory(DATA_TYPE, new int[]{1});
-        final long time = getTime();
-        final int julianDate = (int) TimeUtil.millisToSecondsSinceEpoch(time);
-        array.setInt(0, julianDate);
+        array.setDouble(0, TimeUtil.millisToSecondsSinceEpoch(getTime()));
         return array;
     }
 
@@ -61,7 +56,7 @@ class ObservationTime extends AbstractImplicitRule {
         final Context context = getContext();
         final Reader reader = context.getObservationReader();
         if (reader == null) {
-            return FILL_VALUE;
+            throw new RuleException("Cannot to read time.");
         }
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
         final int recordNo = context.getObservation().getRecordNo();
@@ -74,7 +69,7 @@ class ObservationTime extends AbstractImplicitRule {
             final int scanLine = (int) reader.getGeoCoding(recordNo).getPixelPos(geoPos, null).y;
             time = reader.getTime(recordNo, scanLine);
         } catch (IOException e) {
-            throw new RuleException("Unable to read time.", e);
+            throw new RuleException("Cannot read time.", e);
         }
         return time;
     }
