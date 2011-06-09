@@ -128,7 +128,7 @@ class SeviriReader extends MdReader {
 
     @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
-        return 1000.0 * getDouble("dtime", recordNo, scanLine, 0);
+        return getDouble("dtime", recordNo, scanLine, 0);
     }
 
     @Override
