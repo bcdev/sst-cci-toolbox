@@ -35,6 +35,7 @@ import javax.persistence.Table;
 public class Observation {
 
     private int id;
+    private String name;
     private String sensor;
     private DataFile datafile;
     private int recordNo;
@@ -49,6 +50,14 @@ public class Observation {
     @Deprecated
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Index
@@ -80,8 +89,8 @@ public class Observation {
     @SuppressWarnings({"CallToSimpleGetterFromWithinClass"})
     @Override
     public String toString() {
-        return String.format("Observation(id=%d, sensor='%s\', datafile=%s, recordNo=%d)", getId(), getSensor(),
-                             getDatafile(), getRecordNo());
+        return String.format("Observation(id=%d, sensor='%s\', name=%s, datafile=%s, recordNo=%d)", getId(), getSensor(),
+                             getName(), getDatafile(), getRecordNo());
     }
 }
 

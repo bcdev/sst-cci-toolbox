@@ -29,6 +29,7 @@ import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
+import javax.persistence.TemporalType;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -74,29 +75,26 @@ public class MatchupTool extends BasicTool {
 
     private static final String COINCIDING_OBSERVATION_QUERY =
             "select o.id"
-                    + " from mm_observation o, mm_observation oref"
-                    + " where oref.id = ?"
-                    + " and o.sensor = ?"
-                    + " and o.time >= oref.time - interval '12:00:00' and o.time < oref.time + interval '12:00:00'"
-                    + " and st_intersects(o.location, oref.point)"
-                    + " order by abs(extract(epoch from o.time) - extract(epoch from oref.time))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
+                    + " and st_intersects(o.location, st_geomfromewkt(?3))"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     private static final String COINCIDING_GLOBALOBS_QUERY =
             "select o.id"
-                    + " from mm_observation o, mm_observation oref"
-                    + " where oref.id = ?"
-                    + " and o.sensor = ?"
-                    + " and o.time >= oref.time - interval '12:00:00' and o.time < oref.time + interval '12:00:00'"
-                    + " order by abs(extract(epoch from o.time) - extract(epoch from oref.time))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     private static final String COINCIDING_INSITUOBS_QUERY =
             "select o.id"
-                    + " from mm_observation o, mm_observation oref"
-                    + " where oref.id = ?"
-                    + " and o.sensor = ?"
-                    + " and o.name = oref.name"
-                    + " and abs(extract(epoch from o.time) - extract(epoch from oref.time)) <= o.timeRadius"
-                    + " order by abs(extract(epoch from o.time) - extract(epoch from oref.time))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.name = ?4"
+                    + " and abs(extract(epoch from o.time) - extract(epoch from timestamp ?2)) <= o.timeRadius"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
 
     private static final int CHUNK_SIZE = 1024*16;
@@ -421,8 +419,7 @@ public class MatchupTool extends BasicTool {
     private void addCoincidence(Matchup matchup, String sensorName, String queryString,
                                 long pattern, Class<? extends Observation> observationClass) {
         final ReferenceObservation refObs = matchup.getRefObs();
-        final Query query = createObservationQuery(queryString, observationClass);
-        final Observation sensorObs = findCoincidingObservation(refObs, query, sensorName);
+        final Observation sensorObs = findCoincidingObservation(refObs, queryString, observationClass, sensorName);
         if (sensorObs != null) {
             final Coincidence coincidence = createCoincidence(matchup, sensorObs);
             matchup.setPattern(matchup.getPattern() | pattern);
@@ -442,17 +439,21 @@ public class MatchupTool extends BasicTool {
      */
     private Observation findCoincidingObservation(ReferenceObservation refObs, Sensor sensor) {
         final Class<? extends Observation> observationClass = getObservationClass(sensor);
-        final Query query = createObservationQuery(COINCIDING_OBSERVATION_QUERY, observationClass);
-        return findCoincidingObservation(refObs, query, sensor.getName());
+        return findCoincidingObservation(refObs, COINCIDING_OBSERVATION_QUERY, observationClass, sensor.getName());
     }
 
     private Query createObservationQuery(String queryString, Class<? extends Observation> resultClass) {
         return getPersistenceManager().createNativeQuery(queryString, resultClass);
     }
 
-    private Observation findCoincidingObservation(ReferenceObservation refObs, Query query, String sensorName) {
-        query.setParameter(1, refObs.getId());
-        query.setParameter(2, sensorName);
+    private Observation findCoincidingObservation(ReferenceObservation refObs, String queryString, Class observationClass, String sensorName) {
+        // since binding a date to a parameter failed ...
+        final String queryString2 = queryString.replaceAll("\\?2", "'" + TimeUtil.formatCcsdsUtcFormat(refObs.getTime()) + "'");
+        final Query query = createObservationQuery(queryString2, observationClass);
+        query.setParameter(1, sensorName);
+        //query.setParameter("time", refObs.getTime(), TemporalType.TIMESTAMP);
+        query.setParameter(3, refObs.getPoint().toString());
+        query.setParameter(4, refObs.getName());
         query.setMaxResults(1);
         @SuppressWarnings({"unchecked"})
         final List<? extends Observation> observations = query.getResultList();

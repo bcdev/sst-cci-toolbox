@@ -78,7 +78,7 @@ class SeviriReader extends MdReader {
         final int column = noOfColumns / 2;
 
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setCallsign(getString("msr_id", recordNo));
+        observation.setName(getString("msr_id", recordNo));
         final byte dataset = getByte("msr_type", recordNo);
         switch (dataset) {
             case 1:

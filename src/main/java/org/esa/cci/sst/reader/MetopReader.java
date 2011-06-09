@@ -89,7 +89,7 @@ class MetopReader extends MdReader {
         final int y = rowCount / 2;
 
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setCallsign(getString("msr_id", recordNo));
+        observation.setName(getString("msr_id", recordNo));
         observation.setDataset(getByte("msr_type", recordNo));
         observation.setReferenceFlag((byte) 4);
         observation.setSensor(getSensorName());

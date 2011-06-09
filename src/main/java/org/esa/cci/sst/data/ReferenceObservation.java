@@ -33,7 +33,6 @@ import javax.persistence.Entity;
 public class ReferenceObservation extends RelatedObservation {
 
     private PGgeometry point;
-    private String callsign;
     private byte dataset;
     private byte referenceFlag;
 
@@ -45,14 +44,6 @@ public class ReferenceObservation extends RelatedObservation {
 
     public void setPoint(PGgeometry point) {
         this.point = point;
-    }
-
-    public void setCallsign(String callsign) {
-        this.callsign = callsign;
-    }
-
-    public String getCallsign() {
-        return callsign;
     }
 
     public byte getDataset() {
@@ -76,7 +67,7 @@ public class ReferenceObservation extends RelatedObservation {
     public String toString() {
         return String.format("ReferenceObservation(%d,%s,%s,%s,%s,%d,%s,%s,%d,%d)", getId(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo(),
-                             getPoint(), getCallsign(), getDataset(), getReferenceFlag());
+                             getPoint(), getName(), getDataset(), getReferenceFlag());
     }
 }
 

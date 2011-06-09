@@ -205,6 +205,8 @@ public class IngestionTool extends BasicTool {
                 throw e;
             } catch (IOException e) {
                 throw new ToolException(e.getMessage(), e, ToolException.TOOL_IO_ERROR);
+            } catch (IllegalArgumentException e) {
+                getLogger().warning(e.getMessage());
             } catch (Exception e) {
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",

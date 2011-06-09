@@ -75,7 +75,7 @@ public class ObservationDbIntegrationTest {
         Query q = m.createNativeQuery("insert into mm_observation values (?,?,?,?,?,?,?,?)");
         q.setParameter(1, 14);
         q.setParameter(3, i.getLocation());
-        q.setParameter(4, i.getCallsign());
+        q.setParameter(4, i.getName());
         q.setParameter(5, i.getRecordNo());
         q.setParameter(6, i.getSensor());
         q.setParameter(7, i.getTime());

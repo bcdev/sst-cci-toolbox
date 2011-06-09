@@ -38,7 +38,7 @@ class MatchupCallsign extends AbstractImplicitRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        final String callsign = getContext().getMatchup().getRefObs().getCallsign();
+        final String callsign = getContext().getMatchup().getRefObs().getName();
         for (int i = 0; i < Math.min(SHAPE[1], callsign.length()); i++) {
             targetArray.setChar(i, callsign.charAt(i));
         }

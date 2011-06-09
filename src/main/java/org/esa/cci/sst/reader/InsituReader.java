@@ -81,6 +81,7 @@ class InsituReader extends NetcdfReader {
         final InsituObservation observation = new InsituObservation();
         final DataFile dataFile = getDatafile();
         observation.setDatafile(dataFile);
+        observation.setName(getNetcdfFile().findGlobalAttribute("wmo_id").getStringValue());
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 

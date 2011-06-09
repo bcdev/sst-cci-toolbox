@@ -42,7 +42,7 @@ class AvhrrMdReader extends MdReader {
         ReferenceObservation observation = new ReferenceObservation();
         final PGgeometry location = new PGgeometry(new Point(getFloat("avhrr.longitude", recordNo),
                                                              getFloat("avhrr.latitude", recordNo)));
-        observation.setCallsign(getString("insitu.callsign", recordNo));
+        observation.setName(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
         observation.setReferenceFlag((byte) 4);
         observation.setSensor(getDatafile().getSensor().getName());
