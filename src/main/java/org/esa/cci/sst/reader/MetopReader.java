@@ -137,7 +137,7 @@ class MetopReader extends MdReader {
         } catch (InvalidRangeException e) {
             throw new ToolException("Unable to read geographic information.", e, ToolException.TOOL_IO_ERROR);
         }
-        return new LSGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+        return new PixelLocatorGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     private Array scale(Number scaleFactor, Array array) {

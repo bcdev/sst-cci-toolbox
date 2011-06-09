@@ -139,7 +139,7 @@ class SeviriReader extends MdReader {
         Array latArray = getNetcdfFile().findVariable(latitudeVariableName).read();
         lonArray = scale(getColumn(longitudeVariableName).getScaleFactor(), lonArray);
         latArray = scale(getColumn(latitudeVariableName).getScaleFactor(), latArray);
-        return new LSGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+        return new PixelLocatorGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     private Array scale(Number scaleFactor, Array array) {
