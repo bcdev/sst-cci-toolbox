@@ -18,8 +18,6 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -107,17 +105,12 @@ public class MmdReader implements Reader {
     }
 
     @Override
-    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+    public double getDTime(int recordNo, int scanLine) throws IOException {
         throw new IllegalStateException("not implemented");
     }
 
     @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
-        throw new IllegalStateException("not implemented");
-    }
-
-    @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
+    public long getTime(int recordNo, int scanLine) throws IOException {
         throw new IllegalStateException("not implemented");
     }
 

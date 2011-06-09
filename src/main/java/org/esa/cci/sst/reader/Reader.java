@@ -17,8 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -120,19 +118,6 @@ public interface Reader {
     GeoCoding getGeoCoding(int recordNo) throws IOException;
 
     /**
-     * Returns the pixel position at the given geographic position. The pixel position denotes scan line and element
-     * line, where <code>PixelPos.x</code> corresponds to element line and <code>PixelPos.y</code> corresponds to scan
-     * line.
-     *
-     * @param geoPos The geo position to get the pixel position for.
-     *
-     * @return The pixel position at the given geo position.
-     *
-     * @throws java.io.IOException If IO fails.
-     */
-    PixelPos getPixelPos(GeoPos geoPos) throws IOException;
-
-    /**
      * Returns the value of the time delta corresponding to the given record number and scan line.
      *
      * @param recordNo The record number.
@@ -142,18 +127,19 @@ public interface Reader {
      *
      * @throws java.io.IOException If IO fails.
      */
-    int getDTime(int recordNo, int scanLine) throws IOException;
+    double getDTime(int recordNo, int scanLine) throws IOException;
 
     /**
      * Returns the time value corresponding to the given record number and scan line.
      *
+     *
      * @param recordNo The record number.
      * @param scanLine The scan line.
      *
-     * @return The time.
+     * @return The time, given in milliseconds since 01.01.1970.
      *
      * @throws java.io.IOException If IO fails.
      */
-    int getTime(int recordNo, int scanLine) throws IOException;
+    long getTime(int recordNo, int scanLine) throws IOException;
 
 }

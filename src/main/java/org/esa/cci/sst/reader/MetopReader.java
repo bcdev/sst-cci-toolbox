@@ -17,8 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.util.PixelLocator;
 import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
@@ -37,7 +35,6 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,24 +104,15 @@ class MetopReader extends MdReader {
     }
 
     @Override
-    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
-        final PixelPos pixelPos = new PixelPos();
-        final Point2D.Double foundPoint = new Point2D.Double();
-        locator.getPixelLocation(geoPos.lon, geoPos.lat, foundPoint);
-        pixelPos.setLocation(foundPoint);
-        return pixelPos;
-    }
-
-    @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
+    public long getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("msr_time", recordNo);
         final double dtime = getDTime(recordNo, scanLine);
-        return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+        return TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
     }
 
     @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
-        return (int) getDouble("dtime", recordNo, scanLine);
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        return getDouble("dtime", recordNo, scanLine);
     }
 
     @Override

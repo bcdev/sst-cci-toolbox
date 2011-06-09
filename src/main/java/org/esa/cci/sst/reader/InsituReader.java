@@ -17,8 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.util.TimeUtil;
@@ -133,19 +131,13 @@ class InsituReader extends NetcdfReader {
         throw new IllegalStateException("Not implemented");    }
 
     @Override
-    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
+    public double getDTime(int recordNo, int scanLine) throws IOException {
         // todo - ts 06Jun11 - implement (?)
         throw new IllegalStateException("Not implemented");
     }
 
     @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
-        throw new IllegalStateException("Not implemented");
-    }
-
-    @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
+    public long getTime(int recordNo, int scanLine) throws IOException {
         // todo - ts 06Jun11 - implement (?)
         throw new IllegalStateException("Not implemented");
     }

@@ -34,7 +34,7 @@ import java.io.IOException;
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
 class DTime extends AbstractImplicitRule {
 
-    private static final DataType DATA_TYPE = DataType.INT;
+    private static final DataType DATA_TYPE = DataType.SHORT;
     // todo - ts 06Jun11 - clarify
     private static final int FILL_VALUE = 0;
 
@@ -50,12 +50,12 @@ class DTime extends AbstractImplicitRule {
         final int rowCount = targetVariable.getDimension(1).getLength();
         final Array array = Array.factory(DATA_TYPE, new int[]{1, rowCount});
         for (int i = 0; i < array.getSize(); i++) {
-            array.setInt(i, getDTime(i));
+            array.setShort(i, (short) getDTime(i));
         }
         return array;
     }
 
-    private int getDTime(int scanLine) throws RuleException {
+    private double getDTime(int scanLine) throws RuleException {
         final Context context = getContext();
         final Reader reader = context.getObservationReader();
         if (reader == null) {

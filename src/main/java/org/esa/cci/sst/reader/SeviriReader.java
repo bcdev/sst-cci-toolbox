@@ -17,8 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
@@ -32,7 +30,6 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
 
-import java.awt.geom.Point2D;
 import java.io.IOException;
 
 /**
@@ -123,24 +120,15 @@ class SeviriReader extends MdReader {
     }
 
     @Override
-    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
-        final PixelPos pixelPos = new PixelPos();
-        final Point2D.Double foundPoint = new Point2D.Double();
-        locator.getPixelLocation(geoPos.lon, geoPos.lat, foundPoint);
-        pixelPos.setLocation(foundPoint);
-        return pixelPos;
-    }
-    @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
+    public long getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("time", recordNo);
         final double dtime = getDTime(recordNo, scanLine);
-        return (int) TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+        return TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
     }
 
     @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
-        final double time = getDouble("dtime", recordNo, scanLine, 0);
-        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        return getDouble("dtime", recordNo, scanLine, 0);
     }
 
     @Override

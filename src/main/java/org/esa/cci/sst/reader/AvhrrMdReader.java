@@ -17,8 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
@@ -59,19 +57,14 @@ class AvhrrMdReader extends MdReader {
 
 
     @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
+    public double getDTime(int recordNo, int scanLine) throws IOException {
         return 0;
     }
 
     @Override
-    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
-        throw new IllegalStateException("not implemented");
-    }
-
-    @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
+    public long getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("avhrr.time", recordNo);
-        return (int) TimeUtil.secondsSince1981ToDate(time).getTime();
+        return TimeUtil.secondsSince1981ToDate(time).getTime();
     }
 
     @Override

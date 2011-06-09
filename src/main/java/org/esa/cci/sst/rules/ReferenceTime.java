@@ -23,6 +23,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -48,11 +49,13 @@ class ReferenceTime extends AbstractImplicitRule {
     @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array array = Array.factory(DATA_TYPE, new int[]{1});
-        array.setInt(0, getTime());
+        final long time = getTime();
+        final int julianDate = (int) TimeUtil.millisToSecondsSinceEpoch(time);
+        array.setInt(0, julianDate);
         return array;
     }
 
-    private int getTime() throws RuleException {
+    private long getTime() throws RuleException {
         final Context context = getContext();
         final Reader reader = context.getReferenceObservationReader();
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
@@ -61,9 +64,9 @@ class ReferenceTime extends AbstractImplicitRule {
         final double lon = point.getX();
         final double lat = point.getY();
         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
-        final int time;
+        final long time;
         try {
-            final PixelPos pixelPos = reader.getPixelPos(geoPos);
+            final PixelPos pixelPos = reader.getGeoCoding(recordNo).getPixelPos(geoPos, null);
             final int scanLine = pixelPos != null ? (int) pixelPos.y : -1;
             time = reader.getTime(recordNo, scanLine);
         } catch (IOException e) {

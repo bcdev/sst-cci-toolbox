@@ -17,8 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -143,17 +141,12 @@ class GunzipDecorator implements Reader {
     }
 
     @Override
-    public PixelPos getPixelPos(GeoPos geoPos) throws IOException {
-        return delegate.getPixelPos(geoPos);
-    }
-
-    @Override
-    public int getDTime(int recordNo, int scanLine) throws IOException {
+    public double getDTime(int recordNo, int scanLine) throws IOException {
         return delegate.getDTime(recordNo, scanLine);
     }
 
     @Override
-    public int getTime(int recordNo, int scanLine) throws IOException {
+    public long getTime(int recordNo, int scanLine) throws IOException {
         return delegate.getTime(recordNo, scanLine);
     }
 
