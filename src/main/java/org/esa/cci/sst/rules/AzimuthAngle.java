@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
  * 
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -17,17 +17,24 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.Item;
 
 /**
- * Replaces the column's fill value with -1.e+030f, the standard AVHRR fill value.
+ * Rescales the zenith angle.
  *
  * @author Thomas Storm
  */
-class AvhrrMissingValue extends AbstractAttributeModification {
+@SuppressWarnings({"UnusedDeclaration"})
+class AzimuthAngle extends AbstractRescalingToShort {
+
+    protected AzimuthAngle() {
+        super(0.01, 0.0);
+    }
 
     @Override
-    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        targetColumnBuilder.fillValue(-1.e+030f);
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
+        targetColumnBuilder
+                .fillValue(-32768)
+                .validMin(-180.0)
+                .validMax(180.0);
     }
 }
