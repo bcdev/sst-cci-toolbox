@@ -26,7 +26,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 @SuppressWarnings({"UnusedDeclaration"})
 class ZenithAngle extends AbstractRescalingToShort {
 
-    protected ZenithAngle(double targetScaleFactor, double targetAddOffset) {
+    protected ZenithAngle() {
         super(0.01, 90.0);
     }
 
