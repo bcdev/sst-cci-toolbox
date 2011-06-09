@@ -24,6 +24,7 @@ import org.esa.cci.sst.tools.Constants;
  *
  * @author Ralf Quast
  */
+@SuppressWarnings({"UnusedDeclaration"})
 final class ToBrightnessTemperature extends AbstractRescalingToShort {
 
     ToBrightnessTemperature() {
@@ -32,6 +33,10 @@ final class ToBrightnessTemperature extends AbstractRescalingToShort {
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
-        targetColumnBuilder.unit(Constants.UNIT_BRIGHTNESS_TEMPERATURE);
+        targetColumnBuilder
+                .unit(Constants.UNIT_BRIGHTNESS_TEMPERATURE)
+                .fillValue(-32768)
+                .validMin(195.0)
+                .validMax(325.0);
     }
 }
