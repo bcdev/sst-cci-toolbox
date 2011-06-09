@@ -36,13 +36,11 @@ class InsituSST extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
     private static final int[] SHAPE = new int[]{1, 48};
-    private static final float FILL_VALUE = Float.MIN_VALUE;
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
                                                                                                      RuleException {
         targetColumnBuilder.type(DATA_TYPE);
-        targetColumnBuilder.fillValue(Float.MIN_VALUE);
     }
 
     @Override
@@ -62,7 +60,7 @@ class InsituSST extends AbstractImplicitRule {
         } else {
             final Array array = Array.factory(DATA_TYPE, SHAPE);
             for(int i = 0; i < array.getSize(); i++) {
-                array.setFloat(i, FILL_VALUE);
+                array.setFloat(i, sourceColumn.getFillValue().floatValue());
             }
             return array;
         }
