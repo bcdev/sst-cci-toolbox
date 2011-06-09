@@ -112,6 +112,10 @@ public final class TimeUtil {
         return secondsSince1981 + (MILLIS_1981 - MILLIS_1978) / 1000.0;
     }
 
+    public static double millisToSecondsSinceEpoch(long millis) {
+        return (millis - MILLIS_1978) / 1000.0;
+    }
+
     /**
      * Checks if an objective time falls inside a time interval, while taking into account
      * a certain tolerance.
