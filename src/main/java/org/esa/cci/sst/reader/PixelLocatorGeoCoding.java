@@ -33,11 +33,11 @@ import java.awt.geom.Point2D;
 * @author Thomas Storm
 */
 @SuppressWarnings({"deprecation"})
-class LSGeoCoding extends AbstractGeoCoding {
+class PixelLocatorGeoCoding extends AbstractGeoCoding {
 
     private final QuadTreePixelLocator locator;
 
-    LSGeoCoding(SampleSource lonSource, SampleSource latSource) {
+    PixelLocatorGeoCoding(SampleSource lonSource, SampleSource latSource) {
         this.locator = new QuadTreePixelLocator(lonSource, latSource);
     }
 
