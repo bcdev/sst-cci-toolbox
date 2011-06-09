@@ -123,7 +123,7 @@ public interface Reader {
      * @param recordNo The record number.
      * @param scanLine The scan line.
      *
-     * @return The value of the time delta.
+     * @return The value of the time delta in milliseconds from the center pixel.
      *
      * @throws java.io.IOException If IO fails.
      */

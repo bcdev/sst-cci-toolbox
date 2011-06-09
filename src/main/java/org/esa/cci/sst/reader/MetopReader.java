@@ -112,7 +112,7 @@ class MetopReader extends MdReader {
 
     @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
-        return getDouble("dtime", recordNo, scanLine);
+        return 1000.0 * getDouble("dtime", recordNo, scanLine);
     }
 
     @Override
