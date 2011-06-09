@@ -17,10 +17,8 @@
 package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
-import org.esa.beam.dataio.netcdf.util.Constants;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;
-import org.esa.beam.dataio.netcdf.util.TimeUtils;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
@@ -31,6 +29,7 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
@@ -151,43 +150,58 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected final void setTime(Product product) {
-        final ProductData.UTC startTime = TimeUtils.getSceneRasterTime(getNetcdfFile(),
-                                                                       Constants.START_DATE_ATT_NAME,
-                                                                       Constants.START_TIME_ATT_NAME);
-        final ProductData.UTC endTime = TimeUtils.getSceneRasterTime(getNetcdfFile(),
-                                                                     Constants.STOP_DATE_ATT_NAME,
-                                                                     Constants.STOP_TIME_ATT_NAME);
-        product.setStartTime(startTime);
-        product.setEndTime(endTime);
+        try {
+            final double referenceTime = findVariable("time").read().getDouble(0);
+            final Variable variable = findVariable("sst_dtime");
+            final int[] shape = columnShape(variable);
+            final Array array = variable.read(new int[shape.length], shape);
+            final short startDTime = array.getShort(leadLineSkip);
+            final short endDTime = array.getShort(leadLineSkip + product.getSceneRasterHeight() - 1);
+
+            final ProductData.UTC startTime = ProductData.UTC.create(
+                    TimeUtil.secondsSince1981ToDate(referenceTime + 10 * startDTime), 0);
+            final ProductData.UTC endTime = ProductData.UTC.create(
+                    TimeUtil.secondsSince1981ToDate(referenceTime + 10 * endDTime), 0);
+
+            product.setStartTime(startTime);
+            product.setEndTime(endTime);
+        } catch (InvalidRangeException e) {
+            throw new IllegalStateException(e);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void invalidateLines(Invalidator invalidator) throws IOException {
         final Variable variable = findVariable("lat");
-        if (variable != null) {
-            final int[] shape = variable.getShape();
-            for (int i = 0; i < shape.length - 1; i++) {
-                shape[i] = 1;
-            }
-            try {
-                final Array array = variable.read(new int[shape.length], shape);
-                for (int i = 0, lineCount = shape[variable.getRank() - 1]; i < lineCount; i++) {
-                    if (invalidator.isInvalid(array.getDouble(i))) {
-                        leadLineSkip++;
-                    } else {
-                        break;
-                    }
+        final int[] shape = columnShape(variable);
+        try {
+            final Array array = variable.read(new int[shape.length], shape);
+            for (int i = 0, lineCount = shape[variable.getRank() - 1]; i < lineCount; i++) {
+                if (invalidator.isInvalid(array.getDouble(i))) {
+                    leadLineSkip++;
+                } else {
+                    break;
                 }
-                for (int i = variable.getShape(variable.getRank() - 1); i-- > 0; ) {
-                    if (invalidator.isInvalid(array.getDouble(i))) {
-                        tailLineSkip++;
-                    } else {
-                        break;
-                    }
-                }
-            } catch (InvalidRangeException ignored) {
-                // cannot happen
             }
+            for (int i = variable.getShape(variable.getRank() - 1); i-- > 0; ) {
+                if (invalidator.isInvalid(array.getDouble(i))) {
+                    tailLineSkip++;
+                } else {
+                    break;
+                }
+            }
+        } catch (InvalidRangeException ignored) {
+            // cannot happen
         }
+    }
+
+    private static int[] columnShape(Variable variable) {
+        final int[] shape = variable.getShape();
+        for (int i = 0; i < shape.length - 1; i++) {
+            shape[i] = 1;
+        }
+        return shape;
     }
 
     private interface Invalidator {
