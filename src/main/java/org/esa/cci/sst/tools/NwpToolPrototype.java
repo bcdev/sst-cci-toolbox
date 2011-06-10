@@ -46,21 +46,21 @@ public class NwpToolPrototype {
 
     private static final String CDO_AN_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} -f nc mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
-            "${CDO} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
+            "${CDO} -f nc -M mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
+            "${CDO} -f grb -M mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
+            "${CDO} -f grb -M mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
+            "${CDO} -f nc -M -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} -f nc -M -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} -f nc -M merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
 
     private static final String CDO_FC_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
-            "${CDO} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
+            "${CDO} -f nc -M mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
+            "${CDO} -f nc -M mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
+            "${CDO} -f nc -M setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
+            "${CDO} -f nc -M merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -141,12 +141,16 @@ public class NwpToolPrototype {
         final Variable matchupId = findVariable(mmd, "matchup.id");
         amd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
-        for (final Variable v : analysisFile.getVariables()) {
-            if (v.getRank() == 4) {
-                if (v.getDimension(1).getLength() == 1) {
-                    amd.addVariable(v.getName(), v.getDataType(), "matchup nwp.ny nwp.nx");
+        for (final Variable s : analysisFile.getVariables()) {
+            if (s.getRank() == 4) {
+                final Variable t;
+                if (s.getDimension(1).getLength() == 1) {
+                    t = amd.addVariable(s.getName(), s.getDataType(), "matchup nwp.ny nwp.nx");
                 } else {
-                    amd.addVariable(v.getName(), v.getDataType(), "matchup nwp.nz nwp.ny nwp.nx");
+                    t = amd.addVariable(s.getName(), s.getDataType(), "matchup nwp.nz nwp.ny nwp.nx");
+                }
+                for (final Attribute a : s.getAttributes()) {
+                    t.addAttribute(a);
                 }
             }
         }
@@ -154,8 +158,8 @@ public class NwpToolPrototype {
         amd.create();
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
-        final Array targetTimes = findVariable(mmd, "metop.time").read();
         final Array sourceTimes = findVariable(analysisFile, "time").read();
+        final Array targetTimes = findVariable(mmd, "metop.time").read();
 
         try {
             amd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
@@ -167,31 +171,57 @@ public class NwpToolPrototype {
                 final int targetTime = targetTimes.getInt(i);
                 final FracIndex fi = interpolationIndex(sourceTimes, targetTime);
 
-                for (final Variable targetVariable : amd.getVariables()) {
-                    if ("matchup.id".equals(targetVariable.getName())) {
+                for (final Variable t : amd.getVariables()) {
+                    if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable sourceVariable = findVariable(analysisFile, targetVariable.getName());
-                    sourceStart[0] = fi.i;
-                    sourceShape[1] = sourceVariable.getShape(1);
+                    final Variable s = findVariable(analysisFile, t.getName());
+                    final float fillValue = getAttribute(s, "_FillValue", 2.0E+20F);
+                    final float validMin = getAttribute(s, "valid_min", Float.NEGATIVE_INFINITY);
+                    final float validMax = getAttribute(s, "valid_max", Float.POSITIVE_INFINITY);
 
-                    final Array slice1 = sourceVariable.read(sourceStart, sourceShape);
+                    sourceStart[0] = fi.i;
+                    sourceShape[1] = s.getShape(1);
+
+                    final Array slice1 = s.read(sourceStart, sourceShape);
                     sourceStart[0] = fi.i + 1;
-                    final Array slice2 = sourceVariable.read(sourceStart, sourceShape);
+                    final Array slice2 = s.read(sourceStart, sourceShape);
                     for (int k = 0; k < slice1.getSize(); k++) {
-                        slice2.setDouble(k, fi.f * slice1.getDouble(k) + (1.0 - fi.f) * slice2.getDouble(k));
+                        final float v1 = slice1.getFloat(k);
+                        final float v2 = slice2.getFloat(k);
+                        final boolean invalid1 = v1 == fillValue || v1 < validMin || v1 > validMax;
+                        final boolean invalid2 = v2 == fillValue || v2 < validMin || v2 > validMax;
+                        if (invalid1 && invalid2) {
+                            slice2.setFloat(k, fillValue);
+                        } else if (invalid1) {
+                            // do nothing, value is already set
+                        } else if (invalid2) {
+                            slice2.setFloat(k, v1);
+                        } else {
+                            slice2.setDouble(k, fi.f * v1 + (1.0 - fi.f) * v2);
+                        }
                     }
 
-                    final int[] targetShape = targetVariable.getShape();
+                    final int[] targetShape = t.getShape();
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    amd.write(targetVariable.getNameEscaped(), targetStart, slice2.reshape(targetShape));
+                    amd.write(t.getNameEscaped(), targetStart, slice2.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
             throw new IOException(e);
+        } finally {
+            amd.close();
         }
+    }
+
+    private static float getAttribute(Variable s, String name, float defaultValue) {
+        final Attribute a = s.findAttribute(name);
+        if (a == null) {
+            return defaultValue;
+        }
+        return a.getNumericValue().floatValue();
     }
 
     private static FracIndex interpolationIndex(Array sourceTimes, int targetTime) {
@@ -229,12 +259,14 @@ public class NwpToolPrototype {
         final Variable matchupId = findVariable(mmd, "matchup.id");
         fmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
-        for (final Variable v : forecastFile.getVariables()) {
-            if (v.getRank() == 4) {
-                if (v.getDimension(1).getLength() == 1) {
-                    fmd.addVariable(v.getName(), v.getDataType(), "matchup nwp.time nwp.ny nwp.nx");
-                } else {
-                    // there are no profiles in NWP forecast data
+        for (final Variable s : forecastFile.getVariables()) {
+            if (s.getRank() == 4) {
+                if (s.getDimension(1).getLength() == 1) {
+                    final Variable t = fmd.addVariable(s.getName(), s.getDataType(),
+                                                       "matchup nwp.time nwp.ny nwp.nx");
+                    for (final Attribute a : s.getAttributes()) {
+                        t.addAttribute(a);
+                    }
                 }
             }
         }
@@ -248,9 +280,9 @@ public class NwpToolPrototype {
         try {
             fmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
 
+            final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
                 final int[] sourceStart = {0, 0, i * gy, 0};
-                final int[] sourceShape = {timeStepCount, 1, gy, gx};
 
                 final int targetTime = targetTimes.getInt(i);
                 final int timeStep = nearestTimeStep(sourceTimes, targetTime);
@@ -277,6 +309,8 @@ public class NwpToolPrototype {
             }
         } catch (InvalidRangeException e) {
             throw new IOException(e);
+        } finally {
+            fmd.close();
         }
     }
 
@@ -341,6 +375,17 @@ public class NwpToolPrototype {
         return script;
     }
 
+    /**
+     * @param mmd     The MMD file.
+     * @param gx      The the number of tie points in x direction.
+     * @param gy      The the number of tie points in y direction.
+     * @param strideX The tie point stride in x direction.
+     * @param strideY The tie point stride in y direction.
+     *
+     * @return the netCDF file written.
+     *
+     * @throws java.io.IOException when an error occurred.
+     */
     @SuppressWarnings({"ConstantConditions"})
     private static NetcdfFileWriteable writeGeoFile(NetcdfFile mmd, int gx, int gy, int strideX,
                                                     int strideY) throws IOException {
