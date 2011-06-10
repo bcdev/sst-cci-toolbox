@@ -46,21 +46,21 @@ public class NwpToolPrototype {
 
     private static final String CDO_AN_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} -f nc -M mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} -f grb -M mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
-            "${CDO} -f grb -M mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc -M -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc -M -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc -M merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
+            "${CDO} ${CDO_OPTS} -f nc -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
 
     private static final String CDO_FC_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} -f nc -M mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
-            "${CDO} -f nc -M mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc -M setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc -M merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
+            "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -70,6 +70,7 @@ public class NwpToolPrototype {
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
+            properties.setProperty("CDO_OPTS", "-M");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", subsceneGeoFile.getLocation());
@@ -212,7 +213,10 @@ public class NwpToolPrototype {
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         } finally {
-            amd.close();
+            try {
+                amd.close();
+            } catch (IOException ignored) {
+            }
         }
     }
 
@@ -282,8 +286,6 @@ public class NwpToolPrototype {
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
-                final int[] sourceStart = {0, 0, i * gy, 0};
-
                 final int targetTime = targetTimes.getInt(i);
                 final int timeStep = nearestTimeStep(sourceTimes, targetTime);
 
@@ -291,26 +293,29 @@ public class NwpToolPrototype {
                     throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
                 }
 
-                for (final Variable targetVariable : fmd.getVariables()) {
-                    if ("matchup.id".equals(targetVariable.getName())) {
+                final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
+
+                for (final Variable t : fmd.getVariables()) {
+                    if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable sourceVariable = findVariable(forecastFile, targetVariable.getName());
-                    sourceStart[0] = timeStep - pastTimeStepCount;
+                    final Variable s = findVariable(forecastFile, t.getName());
+                    final Array sourceData = s.read(sourceStart, sourceShape);
 
-                    final Array array = sourceVariable.read(sourceStart, sourceShape);
-
-                    final int[] targetShape = targetVariable.getShape();
+                    final int[] targetShape = t.getShape();
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    fmd.write(targetVariable.getNameEscaped(), targetStart, array.reshape(targetShape));
+                    fmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         } finally {
-            fmd.close();
+            try {
+                fmd.close();
+            } catch (IOException ignored) {
+            }
         }
     }
 
