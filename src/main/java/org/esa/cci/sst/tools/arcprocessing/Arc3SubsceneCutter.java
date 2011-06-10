@@ -64,7 +64,7 @@ public class Arc3SubsceneCutter extends BasicTool {
         final String targetFilename = SubsceneArc3CallBuilder.createSubsceneMmdFilename(sourceFilename);
 
         final NetcdfFileWriteable target = NetcdfFileWriteable.createNew(targetFilename);
-        addSubsceneDimensions(target, atsrSourceVars.get(0));
+        addSubsceneDimensions(target, atsrSourceVars.get(0).getDimensions());
         addVariables(source, target);
         addNonSubsceneDimensions(source, target);
 
@@ -122,8 +122,7 @@ public class Arc3SubsceneCutter extends BasicTool {
         return values;
     }
 
-    int[] findCentralNetcdfCoords(Variable latitude, Variable longitude, int matchupId, Point point) throws
-                                                                                                     IOException {
+    int[] findCentralNetcdfCoords(Variable latitude, Variable longitude, int matchupId, Point point) throws IOException {
         final int[] latOrigin = {matchupId, 0, 0};
         final int[] latShape = {1, latitude.getDimension(1).getLength(), latitude.getDimension(2).getLength()};
         final int[] lonOrigin = {matchupId, 0, 0};
@@ -185,8 +184,8 @@ public class Arc3SubsceneCutter extends BasicTool {
         }
     }
 
-    void addSubsceneDimensions(NetcdfFileWriteable target, Variable atsrSourceVar) {
-        for (Dimension dimension : atsrSourceVar.getDimensions()) {
+    void addSubsceneDimensions(NetcdfFileWriteable target, List<Dimension> dimensions) {
+        for (Dimension dimension : dimensions) {
             int length = getSubsceneWidth();
             if (dimension.getName().equalsIgnoreCase("record")) {
                 length = dimension.getLength();
