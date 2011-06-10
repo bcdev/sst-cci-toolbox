@@ -42,6 +42,7 @@ public class QuadTreePixelLocator implements PixelLocator {
     private final SampleSource lonSource;
     private final SampleSource latSource;
     private final double tolerance;
+    private final int macroPixelSize;
 
     /**
      * Constructs a new instance of this class.
@@ -62,6 +63,8 @@ public class QuadTreePixelLocator implements PixelLocator {
         this.latSource = latSource;
         // corresponds to 5 km at the equator, i.e. half a pixel for TMI and AMSR-E
         this.tolerance = 0.045;
+        // suitable for Metop MD sub-scenes, can be less for other types
+        this.macroPixelSize = 5;
     }
 
 
@@ -121,7 +124,7 @@ public class QuadTreePixelLocator implements PixelLocator {
     }
 
     private boolean quadTreeSearch(int depth, double lat, double lon, int x, int y, int w, int h, Result result) {
-        if (w < 2 || h < 2) {
+        if (w < macroPixelSize || h < macroPixelSize) {
             return false;
         }
         @SuppressWarnings({"UnnecessaryLocalVariable"})
@@ -131,30 +134,27 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int y0 = y;
         final int y1 = y0 + h - 1;
 
-        if (w == 2 && h == 2) {
-            final double lat0 = getLat(x0, y0);
-            final double lat1 = getLat(x0, y1);
-            final double lat2 = getLat(x1, y0);
-            final double lat3 = getLat(x1, y1);
-
-            final double lon0 = getLon(x0, y0);
-            final double lon1 = getLon(x0, y1);
-            final double lon2 = getLon(x1, y0);
-            final double lon3 = getLon(x1, y1);
-
+        if (w == macroPixelSize && h == macroPixelSize) {
+            final double[] lats = new double[macroPixelSize * macroPixelSize];
+            final double[] lons = new double[macroPixelSize * macroPixelSize];
+            final double[] distances = new double[macroPixelSize * macroPixelSize];
             final double f = Math.cos(lat * D2R);
 
-            final double d0 = sqr(lat - lat0, f * Result.delta(lon, lon0));
-            final double d1 = sqr(lat - lat1, f * Result.delta(lon, lon1));
-            final double d2 = sqr(lat - lat2, f * Result.delta(lon, lon2));
-            final double d3 = sqr(lat - lat3, f * Result.delta(lon, lon3));
+            for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
+                for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
+                    lats[ij] = getLat(j, i);
+                    lons[ij] = getLon(j, i);
+                    distances[ij] = sqr(lat - lats[ij], f * Result.delta(lon, lons[ij]));
+                }
+            }
 
-            final boolean invalidated = result.invalidate(d0, d1, d2, d3);
+            final boolean invalidated = result.invalidate(distances);
             if (invalidated) {
-                result.add(x0, y0, lon0, lat0, d0);
-                result.add(x0, y1, lon1, lat1, d1);
-                result.add(x1, y0, lon2, lat2, d2);
-                result.add(x1, y1, lon3, lat3, d3);
+                for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
+                    for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
+                        result.add(j, i, lons[ij], lats[ij], distances[ij]);
+                    }
+                }
             }
             return invalidated;
         }
@@ -253,11 +253,11 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int w2r = w - w2;
         final int h2r = h - h2;
 
-        if (w2 < 2) {
-            w2 = 2;
+        if (w2 < macroPixelSize) {
+            w2 = macroPixelSize;
         }
-        if (h2 < 2) {
-            h2 = 2;
+        if (h2 < macroPixelSize) {
+            h2 = macroPixelSize;
         }
 
         final boolean b1;
@@ -366,8 +366,10 @@ public class QuadTreePixelLocator implements PixelLocator {
         private final double[] lons = new double[N];
         private final double[] lats = new double[N];
 
+        private final double lon;
+        private final double lat;
         private final Rotation rotation;
-        private final double[] deltas = new double[N];
+        private final double[] distances = new double[N];
 
         static double delta(double lon, double lon0) {
             final double e = Math.abs(lon - lon0);
@@ -375,25 +377,29 @@ public class QuadTreePixelLocator implements PixelLocator {
         }
 
         Result(double lon, double lat) {
-            rotation = new Rotation(lon, lat);
-            Arrays.fill(deltas, Double.POSITIVE_INFINITY);
+            this.lon = lon;
+            this.lat = lat;
+            this.rotation = new Rotation(lon, lat);
+            Arrays.fill(distances, Double.POSITIVE_INFINITY);
         }
 
-        boolean invalidate(double d0, double d1, double d2, double d3) {
-            if (d0 < getDelta() || d1 < getDelta() || d2 < getDelta() || d3 < getDelta()) {
-                final boolean b0 = Double.isNaN(d0);
-                final boolean b1 = Double.isNaN(d1);
-                final boolean b2 = Double.isNaN(d2);
-                final boolean b3 = Double.isNaN(d3);
-
-                // allow a single NaN value
-                if (!b1 && !b2 && !b3 || !b0 && !b2 && !b3 || !b0 && !b1 && !b3 || !b0 && !b1 && !b2) {
-                    for (int i = 0; i < N; i++) {
-                        xs[i] = 0.0;
-                        ys[i] = 0.0;
-                        lons[i] = 0.0;
-                        lats[i] = 0.0;
-                        deltas[i] = Double.MAX_VALUE;
+        boolean invalidate(double... distances) {
+            for (int i = 0, nanCount = 0, dsLength = distances.length; i < dsLength; i++) {
+                if (Double.isNaN(distances[i])) {
+                    nanCount++;
+                }
+                if (nanCount > distances.length - N) {
+                    return false;
+                }
+            }
+            for (int i = 0, dsLength = distances.length; i < dsLength; i++) {
+                if (distances[i] < getDistance()) {
+                    for (int k = 0; k < N; k++) {
+                        xs[k] = 0.0;
+                        ys[k] = 0.0;
+                        lons[k] = lon;
+                        lats[k] = lat;
+                        this.distances[k] = Double.POSITIVE_INFINITY;
                     }
                     return true;
                 }
@@ -401,34 +407,50 @@ public class QuadTreePixelLocator implements PixelLocator {
             return false;
         }
 
-        void add(int x, int y, double lon, double lat, double delta) {
-            for (int i = 0; i < N; i++) {
-                if (delta < deltas[i]) {
-                    for (int k = N - 1; k > i; k--) {
-                        xs[k] = xs[k - 1];
-                        ys[k] = ys[k - 1];
-                        lons[k] = lons[k - 1];
-                        lats[k] = lats[k - 1];
-                        deltas[k] = deltas[k - 1];
+        void add(int x, int y, double lon, double lat, double distance) {
+            if (distance < distances[0]) {
+                if (Math.abs(this.lon - lons[0]) > Math.abs(this.lon - lons[1])) {
+                    if (Math.abs(this.lat - lats[1]) > Math.abs(this.lat - lats[2])) {
+                        xs[2] = xs[1];
+                        ys[2] = ys[1];
+                        lons[2] = lons[1];
+                        lats[2] = lats[1];
+                        distances[2] = distances[1];
                     }
-                    xs[i] = x + 0.5;
-                    ys[i] = y + 0.5;
-                    lons[i] = lon;
-                    lats[i] = lat;
-                    deltas[i] = delta;
-                    break;
+                    xs[1] = xs[0];
+                    ys[1] = ys[0];
+                    lons[1] = lons[0];
+                    lats[1] = lats[0];
+                    distances[1] = distances[0];
                 }
+                xs[0] = x + 0.5;
+                ys[0] = y + 0.5;
+                lons[0] = lon;
+                lats[0] = lat;
+                distances[0] = distance;
+            } else if (Math.abs(this.lon - lon) > Math.abs(this.lon - lons[1])) {
+                if (Math.abs(this.lat - lats[1]) > Math.abs(this.lat - lats[2])) {
+                    xs[2] = xs[1];
+                    ys[2] = ys[1];
+                    lons[2] = lons[1];
+                    lats[2] = lats[1];
+                    distances[2] = distances[1];
+                }
+                xs[1] = x + 0.5;
+                ys[1] = y + 0.5;
+                lons[1] = lon;
+                lats[1] = lat;
+                distances[1] = distance;
+            } else if (Math.abs(this.lat - lat) > Math.abs(this.lat - lats[2])) {
+                xs[2] = x + 0.5;
+                ys[2] = y + 0.5;
+                lons[2] = lon;
+                lats[2] = lat;
+                distances[2] = distance;
             }
         }
 
         void get(Point2D p) {
-            // todo - fix for situation when all lats or lons are equal
-            if (lats[0] == lats[1] && lats[1] == lats[2]) {
-                lats[1] += 0.001;
-            }
-            if (lons[0] == lons[1] && lons[1] == lons[2]) {
-                lons[1] += 0.001;
-            }
             rotation.transform(lons, lats);
             final RationalFunctionModel xModel = new RationalFunctionModel(1, 0, lons, lats, xs);
             final RationalFunctionModel yModel = new RationalFunctionModel(1, 0, lons, lats, ys);
@@ -439,8 +461,8 @@ public class QuadTreePixelLocator implements PixelLocator {
             p.setLocation(x, y);
         }
 
-        private double getDelta() {
-            return deltas[0];
+        private double getDistance() {
+            return distances[0];
         }
     }
 }
