@@ -17,7 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -44,7 +43,6 @@ class SeviriReader extends MdReader {
 
     protected int noOfLines;
     protected int noOfColumns;
-    private QuadTreePixelLocator locator;
 
     SeviriReader(String sensorName) {
         super(sensorName);
@@ -56,9 +54,6 @@ class SeviriReader extends MdReader {
         final NetcdfFile ncFile = getNetcdfFile();
         noOfLines = ncFile.findDimension("ny").getLength();
         noOfColumns = ncFile.findDimension("nx").getLength();
-        final Array lonArray = getVariable("lon").read();
-        final Array latArray = getVariable("lat").read();
-        locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     /**
