@@ -67,7 +67,11 @@ class AtsrMdReader extends MdReader {
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
-        observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
+        if(getVariable("insitu.reference_flag") != null) {
+            observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
+        } else {
+            observation.setReferenceFlag((byte) 4);
+        }
         observation.setSensor(getDatafile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);
