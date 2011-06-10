@@ -5,8 +5,7 @@ import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ToReflectanceTest extends AbstractRuleTest {
 
@@ -27,8 +26,7 @@ public class ToReflectanceTest extends AbstractRuleTest {
         assertEquals(0.0001, targetColumn.getScaleFactor().doubleValue(), 0.0);
         assertEquals(0.0, targetColumn.getAddOffset().doubleValue(), 0.0);
         assertEquals(Short.MIN_VALUE, targetColumn.getFillValue().shortValue());
-        assertEquals(1000, targetColumn.getValidMin().shortValue());
-        assertEquals(9000, targetColumn.getValidMax().shortValue());
+        assertEquals(0, targetColumn.getValidMin().shortValue());
     }
 
     @Override
