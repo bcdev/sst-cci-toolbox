@@ -62,11 +62,24 @@ public class NwpToolPrototype {
             "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
+    private static final String MMD_SOURCE_LOCATION = "mmd.nc";
+    private static final String AMD_TARGET_LOCATION = "amd.nc";
+    private static final String FMD_TARGET_LOCATION = "fmd.nc";
+    private static final int AN_NX = 11 / 2;
+    private static final int AN_NY = 11 / 2;
+    private static final int AN_STRIDE_X = 2;
+    private static final int AN_STRIDE_Y = 2;
+    private static final int FC_NX = 1;
+    private static final int FC_NY = 1;
+    private static final int PAST_TIME_STEP_COUNT = 5;
+    private static final int FUTURE_TIME_STEP_COUNT = 3;
+    private static final String SENSOR_NAME = "metop";
+
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
-        final NetcdfFile mmdFile = NetcdfFile.open("mmd.nc");
+        final NetcdfFile mmdFile = NetcdfFile.open(MMD_SOURCE_LOCATION);
         try {
-            final NetcdfFileWriteable subsceneGeoFile = writeGeoFile(mmdFile, 11 / 2, 11 / 2, 2, 2);
+            final NetcdfFileWriteable subsceneGeoFile = writeGeoFile(mmdFile, AN_NX, AN_NY, AN_STRIDE_X, AN_STRIDE_Y);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
@@ -87,7 +100,7 @@ public class NwpToolPrototype {
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
             runner.execute(writeCdoScript(CDO_AN_TEMPLATE, properties).getPath());
 
-            final NetcdfFileWriteable matchupGeoFile = writeGeoFile(mmdFile, 1, 1, 1, 1);
+            final NetcdfFileWriteable matchupGeoFile = writeGeoFile(mmdFile, FC_NX, FC_NY, 1, 1);
             properties.setProperty("GEO", matchupGeoFile.getLocation());
             properties.setProperty("GAFS_TIMESTEPS", files("testdata/nwp", "gafs[0-9]*.nc"));
             properties.setProperty("GGFS_TIMESTEPS", files("testdata/nwp", "ggfs[0-9]*.nc"));
@@ -109,7 +122,7 @@ public class NwpToolPrototype {
             }
             final NetcdfFile fcFile = NetcdfFile.open(properties.getProperty("FC_TIME_SERIES"));
             try {
-                writeForecastMmdFile(mmdFile, fcFile, 5, 3);
+                writeForecastMmdFile(mmdFile, fcFile, PAST_TIME_STEP_COUNT, FUTURE_TIME_STEP_COUNT);
             } finally {
                 try {
                     anFile.close();
@@ -133,7 +146,7 @@ public class NwpToolPrototype {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable amd = NetcdfFileWriteable.createNew("amd.nc", true);
+        final NetcdfFileWriteable amd = NetcdfFileWriteable.createNew(AMD_TARGET_LOCATION, true);
         amd.addDimension(matchupDimension.getName(), matchupCount);
         amd.addDimension("nwp.nz", findDimension(analysisFile, "lev").getLength());
         amd.addDimension("nwp.ny", gy);
@@ -160,7 +173,7 @@ public class NwpToolPrototype {
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
         final Array sourceTimes = findVariable(analysisFile, "time").read();
-        final Array targetTimes = findVariable(mmd, "metop.time").read();
+        final Array targetTimes = findVariable(mmd, SENSOR_NAME + ".time").read();
 
         try {
             amd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
@@ -252,7 +265,7 @@ public class NwpToolPrototype {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable fmd = NetcdfFileWriteable.createNew("fmd.nc", true);
+        final NetcdfFileWriteable fmd = NetcdfFileWriteable.createNew(FMD_TARGET_LOCATION, true);
         fmd.addDimension(matchupDimension.getName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
@@ -278,7 +291,7 @@ public class NwpToolPrototype {
         fmd.create();
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
-        final Array targetTimes = findVariable(mmd, "metop.time").read();
+        final Array targetTimes = findVariable(mmd, SENSOR_NAME + ".time").read();
         final Array sourceTimes = findVariable(forecastFile, "time").read();
 
         try {
@@ -395,8 +408,8 @@ public class NwpToolPrototype {
     private static NetcdfFileWriteable writeGeoFile(NetcdfFile mmd, int gx, int gy, int strideX,
                                                     int strideY) throws IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
-        final Dimension nyDimension = findDimension(mmd, "metop.ny");
-        final Dimension nxDimension = findDimension(mmd, "metop.nx");
+        final Dimension nyDimension = findDimension(mmd, SENSOR_NAME + ".ny");
+        final Dimension nxDimension = findDimension(mmd, SENSOR_NAME + ".nx");
 
         final String location = createTempFile("geo", ".nc", true).getPath();
         final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew(location, true);
@@ -435,8 +448,8 @@ public class NwpToolPrototype {
             final int[] targetShape = {gy * gx};
             final Array maskData = Array.factory(DataType.INT, targetShape);
 
-            final Variable sourceLat = findVariable(mmd, "metop.latitude");
-            final Variable sourceLon = findVariable(mmd, "metop.longitude");
+            final Variable sourceLat = findVariable(mmd, SENSOR_NAME + ".latitude");
+            final Variable sourceLon = findVariable(mmd, SENSOR_NAME + ".longitude");
 
             for (int i = 0; i < matchupCount; i++) {
                 sourceStart[0] = i;
