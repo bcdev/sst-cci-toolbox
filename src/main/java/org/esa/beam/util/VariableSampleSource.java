@@ -39,9 +39,18 @@ public class VariableSampleSource implements SampleSource {
         data = slice;
         width = variable.getShape(variable.getRank() - 1);
         height = variable.getShape(variable.getRank() - 2);
-        scalingFactor = getAttribute(variable, "scalingFactor", 1.0);
-        addOffset = getAttribute(variable, "addOffset", 0.0);
+        scalingFactor = getAttribute(variable, "scale_factor", 1.0);
+        addOffset = getAttribute(variable, "add_offset", 0.0);
         fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
+    }
+
+    public VariableSampleSource(Array slice) {
+        data = slice;
+        width = slice.getShape()[slice.getRank() - 1];
+        height = slice.getShape()[slice.getRank() - 2];
+        scalingFactor = 1.0;
+        fillValue = Double.NEGATIVE_INFINITY;
+        addOffset = 0.0;
     }
 
     @Override

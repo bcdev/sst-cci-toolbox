@@ -31,8 +31,8 @@ import java.util.Properties;
  */
 public class ReaderFactory {
 
+    public static final String DEFAULT_READER_SPEC = "GunzipDecorator,ProductReader";
     private static final String PACKAGE_NAME = ReaderFactory.class.getPackage().getName();
-    private static final String DEFAULT_READER_SPEC = "GunzipDecorator,ProductHandler";
 
     private ReaderFactory() {
     }

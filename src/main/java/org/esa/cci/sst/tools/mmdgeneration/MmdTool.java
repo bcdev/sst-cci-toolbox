@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Queries;
@@ -23,11 +23,17 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
+import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
+import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.Cache;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
@@ -120,64 +126,100 @@ public class MmdTool extends BasicTool {
     private void writeMmd(NetcdfFileWriteable mmd) {
         final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
                                                               getSourceStartTime(),
-                                                              getSourceStopTime());
+                                                              getSourceStopTime(),
+                                                              getTargetPattern());
 
-        for (int i = 0, matchupListSize = matchupList.size(); i < matchupListSize; i++) {
-            final Matchup matchup = matchupList.get(i);
-            final List<Coincidence> coincidenceList = matchup.getCoincidences();
+        for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
+            final Matchup matchup = matchupList.get(targetRecordNo);
+            final ReferenceObservation referenceObservation = matchup.getRefObs();
 
             if (getLogger().isLoggable(Level.INFO)) {
                 getLogger().info(MessageFormat.format(
-                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), i + 1, matchupListSize));
+                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), targetRecordNo + 1,
+                        matchupListSize));
             }
 
             for (final Variable variable : mmd.getVariables()) {
                 final Item targetColumn = columnRegistry.getColumn(variable.getName());
                 final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
-
                 if ("Implicit".equals(sourceColumn.getName())) {
-                    writeImplicitColumn(mmd, variable, i, targetColumn, matchup);
+                    final String sensorName = targetColumn.getSensor().getName();
+                    final Observation observation = findObservation(sensorName, matchup);
+                    Reader observationReader = null;
+                    if (observation != null) {
+                        try {
+                            observationReader = getReader(observation.getDatafile());
+                        } catch (IOException e) {
+                            final String message = MessageFormat.format("observation {0}: {1}",
+                                                                        observation.getId(),
+                                                                        e.getMessage());
+                            getLogger().warning(message);
+                        }
+                    }
+                    final Reader referenceObservationReader;
+                    try {
+                        referenceObservationReader = getReader(referenceObservation.getDatafile());
+                    } catch (IOException e) {
+                        final String message = MessageFormat.format("observation {0}: {1}",
+                                                                    referenceObservation.getId(),
+                                                                    e.getMessage());
+                        throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+                    }
+                    final Context context = new ContextBuilder()
+                            .matchup(matchup)
+                            .observation(observation)
+                            .observationReader(observationReader)
+                            .referenceObservationReader(referenceObservationReader)
+                            .targetVariable(variable)
+                            .build();
+                    writeImplicitColumn(mmd, variable, targetRecordNo, targetColumn, context);
                 } else {
                     final String sensorName = targetColumn.getSensor().getName();
-                    final Coincidence coincidence = findCoincidence(sensorName, coincidenceList);
-                    if (coincidence != null) {
-                        writeColumn(mmd, variable, i, targetColumn, sourceColumn, coincidence);
+                    final Observation observation = findObservation(sensorName, matchup);
+                    if (observation != null) {
+                        writeColumn(mmd, variable, targetRecordNo, targetColumn, sourceColumn, observation,
+                                    referenceObservation);
                     }
                 }
             }
         }
     }
 
-    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn,
-                                     Matchup matchup) {
+    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int targetRecordNo, Item targetColumn,
+                                     Context context) {
         try {
             final Converter converter = columnRegistry.getConverter(targetColumn);
-            converter.setMatchup(matchup);
+            converter.setContext(context);
             final Array targetArray = converter.apply(null);
-            final int[] targetStart = new int[variable.getRank()];
-            targetStart[0] = i;
-            mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+            if (targetArray != null) {
+                final int[] targetStart = new int[variable.getRank()];
+                targetStart[0] = targetRecordNo;
+                mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+            }
         } catch (IOException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         } catch (InvalidRangeException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", matchup.getId(), e.getMessage());
+            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
 
     private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
-                             Coincidence coincidence) {
+                             Observation observation, ReferenceObservation refObs) {
         try {
-            final Reader reader = getReader(coincidence.getObservation().getDatafile());
+            final Reader reader = getReader(observation.getDatafile());
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
-                            .coincidence(coincidence)
-                            .recordNo(coincidence.getObservation().getRecordNo())
+                            .referenceObservation(refObs)
+                            .recordNo(observation.getRecordNo())
                             .shape(variable.getShape())
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
@@ -198,13 +240,13 @@ public class MmdTool extends BasicTool {
                 mmd.write(variable.getNameEscaped(), targetStart, targetArray);
             }
         } catch (IOException e) {
-            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
-            throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+            final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
+            getLogger().warning(message);
         } catch (RuleException e) {
-            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         } catch (InvalidRangeException e) {
-            final String message = MessageFormat.format("coincidence {0}: {1}", coincidence.getId(), e.getMessage());
+            final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
@@ -212,7 +254,12 @@ public class MmdTool extends BasicTool {
     private Reader getReader(DataFile datafile) throws IOException {
         final String path = datafile.getPath();
         if (!readerCache.contains(path)) {
-            final Reader reader = ReaderFactory.open(datafile, getConfiguration());
+            final Reader reader;
+            try {
+                reader = ReaderFactory.open(datafile, getConfiguration());
+            } catch (Exception e) {
+                throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
+            }
             final Reader removedReader = readerCache.add(path, reader);
             if (removedReader != null) {
                 removedReader.close();
@@ -267,7 +314,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void defineDimensions(NetcdfFileWriteable mmdFile) {
-        matchupCount = Queries.getMatchupCount(getPersistenceManager(), getSourceStartTime(), getSourceStopTime());
+        matchupCount = Queries.getMatchupCount(getPersistenceManager(), getSourceStartTime(), getSourceStopTime(),
+                                               getTargetPattern());
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
         } else {
@@ -283,6 +331,15 @@ public class MmdTool extends BasicTool {
                         ToolException.TOOL_CONFIGURATION_ERROR);
             }
             mmdFile.addDimension(dimensionName, dimensionConfiguration.get(dimensionName));
+        }
+    }
+
+    private int getTargetPattern() {
+        try {
+            return Integer.parseInt(getConfiguration().getProperty("mms.target.pattern", "0"));
+        } catch (NumberFormatException e) {
+            throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -359,10 +416,15 @@ public class MmdTool extends BasicTool {
         columnRegistry.register(new ColumnBuilder().build());
     }
 
-    private static Coincidence findCoincidence(String sensorName, List<Coincidence> coincidenceList) {
-        for (final Coincidence coincidence : coincidenceList) {
-            if (sensorName.equals(coincidence.getObservation().getSensor())) {
-                return coincidence;
+    private static Observation findObservation(String sensorName, Matchup matchup) {
+        final ReferenceObservation referenceObservation = matchup.getRefObs();
+        if (sensorName.equals(referenceObservation.getSensor())) {
+            return referenceObservation;
+        }
+        for (final Coincidence coincidence : matchup.getCoincidences()) {
+            final Observation observation = coincidence.getObservation();
+            if (sensorName.equals(observation.getSensor())) {
+                return observation;
             }
         }
         return null;

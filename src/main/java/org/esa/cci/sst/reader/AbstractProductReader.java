@@ -27,6 +27,7 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
@@ -52,7 +53,7 @@ import java.util.logging.Logger;
  *
  * @author Ralf Quast
  */
-abstract class AbstractProductHandler implements Reader {
+abstract class AbstractProductReader implements Reader {
 
     private final String sensorName;
     private final String[] formatNames;
@@ -65,7 +66,7 @@ abstract class AbstractProductHandler implements Reader {
         System.setProperty("beam.pixelGeoCoding.fractionAccuracy", "true");
     }
 
-    protected AbstractProductHandler(String sensorName, String... formatNames) {
+    protected AbstractProductReader(String sensorName, String... formatNames) {
         this.sensorName = sensorName;
         this.formatNames = formatNames;
     }
@@ -157,6 +158,23 @@ abstract class AbstractProductHandler implements Reader {
             columnList.add(column);
         }
         return columnList.toArray(new Item[columnList.size()]);
+    }
+
+    @Override
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        final long startTime = product.getStartTime().getAsDate().getTime();
+        return getTime(recordNo, scanLine) - startTime;
+    }
+
+    @Override
+    public long getTime(int recordNo, int scanLine) throws IOException {
+        final ProductData.UTC utc = ProductUtils.getScanLineTime(product, scanLine);
+        return utc.getAsDate().getTime();
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) {
+        return product.getGeoCoding();
     }
 
     protected Product readProduct(DataFile dataFile) throws IOException {

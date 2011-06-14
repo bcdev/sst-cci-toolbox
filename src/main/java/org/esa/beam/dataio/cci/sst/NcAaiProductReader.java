@@ -97,7 +97,10 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
         final int width = findDimension("nx").getLength();
         final int height = findDimension("ny").getLength();
 
-        return new Product(file.getName(), "AerosolAai", width, height);
+        final Product product = new Product(file.getName(), "AerosolAai", width, height);
+        product.setPreferredTileSize(width, height);
+
+        return product;
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -132,6 +133,21 @@ class GunzipDecorator implements Reader {
     @Override
     public final DataFile getDatafile() {
         return delegate.getDatafile();
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        return delegate.getGeoCoding(recordNo);
+    }
+
+    @Override
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        return delegate.getDTime(recordNo, scanLine);
+    }
+
+    @Override
+    public long getTime(int recordNo, int scanLine) throws IOException {
+        return delegate.getTime(recordNo, scanLine);
     }
 
     /**

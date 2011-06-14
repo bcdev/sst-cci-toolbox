@@ -16,15 +16,22 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,6 +46,7 @@ import java.util.List;
  *
  * @author Martin Boettcher
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class MetopReader extends MdReader {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
@@ -75,7 +83,7 @@ class MetopReader extends MdReader {
         final int y = rowCount / 2;
 
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setCallsign(getString("msr_id", recordNo));
+        observation.setName(getString("msr_id", recordNo));
         observation.setDataset(getByte("msr_type", recordNo));
         observation.setReferenceFlag((byte) 4);
         observation.setSensor(getSensorName());
@@ -87,6 +95,55 @@ class MetopReader extends MdReader {
         observation.setRecordNo(recordNo);
 
         return observation;
+    }
+
+    @Override
+    public long getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("msr_time", recordNo);
+        final double dtime = getDTime(recordNo, scanLine);
+        return TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        return getDouble("dtime", recordNo, scanLine);
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        final String lonVarName = "lon";
+        final String latVarName = "lat";
+        final Variable lonVariable = getVariable(lonVarName);
+        final Variable latVariable = getVariable(latVarName);
+        final int[] origin = new int[lonVariable.getRank()];
+        origin[0] = recordNo;
+        final int[] shape = lonVariable.getShape();
+        shape[0] = 1;
+        Array lonArray;
+        Array latArray;
+        try {
+            lonArray = lonVariable.read(origin, shape);
+            latArray = latVariable.read(origin, shape);
+            lonArray = scale(getColumn(lonVarName).getScaleFactor(), lonArray);
+            latArray = scale(getColumn(latVarName).getScaleFactor(), latArray);
+        } catch (IOException e) {
+            throw new ToolException("Unable to read geographic information.", e, ToolException.TOOL_IO_ERROR);
+        } catch (InvalidRangeException e) {
+            throw new ToolException("Unable to read geographic information.", e, ToolException.TOOL_IO_ERROR);
+        }
+        return new PixelLocatorGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+    }
+
+    private Array scale(Number scaleFactor, Array array) {
+        if (scaleFactor == null) {
+            return array;
+        }
+        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
+        for (int i = 0; i < array.getSize(); i++) {
+            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
+            scaledArray.setDouble(i, value);
+        }
+        return scaledArray;
     }
 
     private Point[] getPoints(int recordNo) throws IOException {

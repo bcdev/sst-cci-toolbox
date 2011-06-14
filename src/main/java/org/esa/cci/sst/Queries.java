@@ -46,6 +46,13 @@ public class Queries {
             " from Matchup m" +
             " where m.refObs.time >= ?1 and m.refObs.time < ?2";
 
+    public static final String QUERY_STRING_COUNT_MATCHUPS_FOR_SENSOR =
+            "select count(m.id)" +
+            " from mm_matchup m, mm_observation o" +
+            " where o.id = m.refobs_id" +
+            " and o.time >= ?1 and o.time < ?2" +
+            " and m.pattern & ?3 = ?3";
+
     public static final String QUERY_STRING_COUNT_OBSERVATIONS =
             "select count(o)" +
             " from Observation o";
@@ -92,6 +99,16 @@ public class Queries {
         final Query query = pm.createQuery(QUERY_STRING_COUNT_MATCHUPS);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
+
+        final Number matchupCount = (Number) query.getSingleResult();
+        return matchupCount.intValue();
+    }
+
+    public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate, long pattern) {
+        final Query query = pm.createNativeQuery(QUERY_STRING_COUNT_MATCHUPS_FOR_SENSOR);
+        query.setParameter(1, startDate);
+        query.setParameter(2, stopDate);
+        query.setParameter(3, pattern);
 
         final Number matchupCount = (Number) query.getSingleResult();
         return matchupCount.intValue();

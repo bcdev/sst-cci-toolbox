@@ -24,7 +24,8 @@ import ucar.ma2.DataType;
 /**
  * Matchup ID.
  */
-public class MatchupId extends MatchupRule {
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
+class MatchupId extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
     private static final int[] SHAPE = new int[]{1};
@@ -37,7 +38,7 @@ public class MatchupId extends MatchupRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setInt(0, getMatchup().getId());
+        targetArray.setInt(0, getContext().getMatchup().getId());
         return targetArray;
     }
 }

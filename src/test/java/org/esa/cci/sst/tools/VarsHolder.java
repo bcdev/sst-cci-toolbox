@@ -432,6 +432,9 @@ static final String[] VARIABLES = new String[]{
         "avhrr.M2.l1b_filename        ",
         "avhrr.M2.matchup_elem        ",
         "avhrr.M2.matchup_line        ",
+        "seaice.lat",
+        "seaice.lon",
+        "seaice.sea_ice_concentration"
 };
 
     private VarsHolder() {

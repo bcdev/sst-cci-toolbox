@@ -26,7 +26,7 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-abstract class AbstractRescalingToShort implements Rule {
+abstract class AbstractRescalingToShort extends Rule {
 
     private final double targetAddOffset;
     private final double targetScaleFactor;

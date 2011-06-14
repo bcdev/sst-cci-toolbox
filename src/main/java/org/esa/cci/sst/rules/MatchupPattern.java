@@ -27,7 +27,7 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-final class MatchupPattern extends MatchupRule {
+final class MatchupPattern extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
     private static final int[] SHAPE = new int[]{1};
@@ -96,7 +96,7 @@ final class MatchupPattern extends MatchupRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setInt(0, (int) (getMatchup().getPattern() & 0xFFFFFFFFL));
+        targetArray.setInt(0, (int) (getContext().getMatchup().getPattern() & 0xFFFFFFFFL));
         return targetArray;
     }
 }

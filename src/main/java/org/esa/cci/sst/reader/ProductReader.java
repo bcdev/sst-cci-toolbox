@@ -24,8 +24,8 @@ import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.framework.dataio.ProductFlipper;
-import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.cci.sst.data.DataFile;
@@ -43,11 +43,11 @@ import java.io.IOException;
  *
  * @author Ralf Quast
  */
-class ProductHandler extends AbstractProductHandler {
+class ProductReader extends AbstractProductReader {
 
     private final BoundaryCalculator bc;
 
-    ProductHandler(String sensorName) {
+    ProductReader(String sensorName) {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
               AtsrConstants.ATSR_FORMAT_NAME,

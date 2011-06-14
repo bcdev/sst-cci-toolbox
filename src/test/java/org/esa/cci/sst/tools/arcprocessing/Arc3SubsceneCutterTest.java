@@ -65,7 +65,7 @@ public class Arc3SubsceneCutterTest {
         final NetcdfFile source = NetcdfFile.open(netcdfResource);
 
         final Variable someSubsceneVariable = source.findVariable(NetcdfFile.escapeName("atsr_orb.someVariable"));
-        arc3SubsceneCutter.addSubsceneDimensions(target, someSubsceneVariable);
+        arc3SubsceneCutter.addSubsceneDimensions(target, someSubsceneVariable.getDimensions());
 
         assertEquals(3, target.getRootGroup().getDimensions().size());
         assertNotNull(target.getRootGroup().findDimension("record"));
@@ -270,7 +270,7 @@ public class Arc3SubsceneCutterTest {
         final List<Variable> variables = source.getVariables();
         final Arc3SubsceneCutter arc3SubsceneCutterMock = setupMock(source);
 
-        arc3SubsceneCutterMock.addSubsceneDimensions(target, source.findVariable(NetcdfFile.escapeName("atsr_orb.latitude")));
+        arc3SubsceneCutterMock.addSubsceneDimensions(target, source.findVariable(NetcdfFile.escapeName("atsr_orb.latitude")).getDimensions());
         arc3SubsceneCutterMock.addNonSubsceneDimensions(source, target);
         arc3SubsceneCutterMock.addVariables(source, target);
         target.create();
@@ -293,7 +293,7 @@ public class Arc3SubsceneCutterTest {
         when(arc3SubsceneCutterMock.getMatchupLocations(source)).thenReturn(map);
         when(arc3SubsceneCutterMock.getSubsceneWidth()).thenReturn(2);
         doCallRealMethod().when(arc3SubsceneCutterMock).addSubsceneDimensions(Matchers.<NetcdfFileWriteable>any(),
-                                                                                   Matchers.<Variable>any());
+                                                                              Matchers.<Variable>any().getDimensions());
         doCallRealMethod().when(arc3SubsceneCutterMock).addNonSubsceneDimensions(Matchers.<NetcdfFileWriteable>any(),
                                                                                       Matchers.<NetcdfFileWriteable>any());
         doCallRealMethod().when(arc3SubsceneCutterMock).addVariables(Matchers.<NetcdfFile>any(),
@@ -334,7 +334,7 @@ public class Arc3SubsceneCutterTest {
         final Arc3SubsceneCutter arc3SubsceneCutter = new Arc3SubsceneCutter();
         final NetcdfFile source = NetcdfFile.open(netcdfResource);
 
-        arc3SubsceneCutter.addSubsceneDimensions(target, source.findVariable(NetcdfFile.escapeName("atsr_orb.someVariable")));
+        arc3SubsceneCutter.addSubsceneDimensions(target, source.findVariable(NetcdfFile.escapeName("atsr_orb.someVariable")).getDimensions());
         arc3SubsceneCutter.addNonSubsceneDimensions(source, target);
         arc3SubsceneCutter.addVariables(source, target);
 

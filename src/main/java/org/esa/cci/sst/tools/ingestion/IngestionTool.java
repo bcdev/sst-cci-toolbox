@@ -157,7 +157,7 @@ public class IngestionTool extends BasicTool {
             final String sensor = configuration.getProperty(
                     String.format("mms.source.%d.sensor", i));
             final String readerSpec = configuration.getProperty(
-                    String.format("mms.reader.%s", sensor), "GunzipDecorator,ProductHandler");
+                    String.format("mms.reader.%s", sensor), ReaderFactory.DEFAULT_READER_SPEC);
             final String patternString = configuration.getProperty(
                     String.format("mms.pattern.%s", sensor), "0");
             final String observationType = configuration.getProperty(
@@ -205,6 +205,8 @@ public class IngestionTool extends BasicTool {
                 throw e;
             } catch (IOException e) {
                 throw new ToolException(e.getMessage(), e, ToolException.TOOL_IO_ERROR);
+            } catch (IllegalArgumentException e) {
+                getLogger().warning(e.getMessage());
             } catch (Exception e) {
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",

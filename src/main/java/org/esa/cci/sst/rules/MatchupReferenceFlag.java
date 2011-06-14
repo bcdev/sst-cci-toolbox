@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.tools.Constants;
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
@@ -26,14 +27,15 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
-final class MatchupReferenceFlag extends AbstractAttributeModification {
+final class MatchupReferenceFlag extends AbstractImplicitRule {
 
     private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16};
     private static final String FLAG_MEANINGS = "training testing algorithm_selection reference undefined";
+    private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        targetColumnBuilder.type(DataType.BYTE).
+        targetColumnBuilder.type(DATA_TYPE).
                 unsigned(true).
                 rank(1).
                 dimensions(Constants.DIMENSION_NAME_MATCHUP).
@@ -41,4 +43,11 @@ final class MatchupReferenceFlag extends AbstractAttributeModification {
                 flagMeanings(FLAG_MEANINGS);
     }
 
+    @Override
+    public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        final byte referenceFlag = getContext().getMatchup().getRefObs().getReferenceFlag();
+        final Array array = Array.factory(DATA_TYPE, new int[]{1});
+        array.setByte(0, referenceFlag);
+        return array;
+    }
 }

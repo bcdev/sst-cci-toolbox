@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -104,4 +105,41 @@ public interface Reader {
      * @return the data file.
      */
     DataFile getDatafile();
+
+    /**
+     * Returns a geo-coding for the record given by the record number.
+     *
+     * @param recordNo The number of the record the geo-coding shall received for.
+     *
+     * @return A geo-coding.
+     *
+     * @throws java.io.IOException If some IO error occurs.
+     */
+    GeoCoding getGeoCoding(int recordNo) throws IOException;
+
+    /**
+     * Returns the value of the time delta corresponding to the given record number and scan line.
+     *
+     * @param recordNo The record number.
+     * @param scanLine The scan line.
+     *
+     * @return The value of the time delta in milliseconds from the center pixel.
+     *
+     * @throws java.io.IOException If IO fails.
+     */
+    double getDTime(int recordNo, int scanLine) throws IOException;
+
+    /**
+     * Returns the time value corresponding to the given record number and scan line.
+     *
+     *
+     * @param recordNo The record number.
+     * @param scanLine The scan line.
+     *
+     * @return The time, given in milliseconds since 01.01.1970.
+     *
+     * @throws java.io.IOException If IO fails.
+     */
+    long getTime(int recordNo, int scanLine) throws IOException;
+
 }

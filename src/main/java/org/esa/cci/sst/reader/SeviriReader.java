@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
@@ -23,6 +25,8 @@ import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
@@ -34,6 +38,7 @@ import java.io.IOException;
  *
  * @author Martin Boettcher
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class SeviriReader extends MdReader {
 
     protected int noOfLines;
@@ -68,7 +73,7 @@ class SeviriReader extends MdReader {
         final int column = noOfColumns / 2;
 
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setCallsign(getString("msr_id", recordNo));
+        observation.setName(getString("msr_id", recordNo));
         final byte dataset = getByte("msr_type", recordNo);
         switch (dataset) {
             case 1:
@@ -107,5 +112,40 @@ class SeviriReader extends MdReader {
 
     private static float coordinateOf(int intCoordinate) {
         return intCoordinate * 0.0001f;
+    }
+
+    @Override
+    public long getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("time", recordNo);
+        final double dtime = getDTime(recordNo, scanLine);
+        return TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        return getDouble("dtime", recordNo, scanLine, 0);
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        String longitudeVariableName = "lon";
+        String latitudeVariableName = "lat";
+        Array lonArray = getNetcdfFile().findVariable(longitudeVariableName).read();
+        Array latArray = getNetcdfFile().findVariable(latitudeVariableName).read();
+        lonArray = scale(getColumn(longitudeVariableName).getScaleFactor(), lonArray);
+        latArray = scale(getColumn(latitudeVariableName).getScaleFactor(), latArray);
+        return new PixelLocatorGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+    }
+
+    private Array scale(Number scaleFactor, Array array) {
+        if (scaleFactor == null) {
+            return array;
+        }
+        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
+        for (int i = 0; i < array.getSize(); i++) {
+            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
+            scaledArray.setDouble(i, value);
+        }
+        return scaledArray;
     }
 }

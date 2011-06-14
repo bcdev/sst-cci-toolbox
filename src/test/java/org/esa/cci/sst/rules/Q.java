@@ -19,7 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 
-final class Q implements Rule {
+final class Q extends Rule {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {

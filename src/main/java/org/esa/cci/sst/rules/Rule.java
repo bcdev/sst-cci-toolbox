@@ -25,7 +25,9 @@ import ucar.ma2.Array;
  *
  * @author Ralf Quast
  */
-public interface Rule {
+public abstract class Rule {
+
+    private Context context;
 
     /**
      * Applies the rule to the source column supplied as arguments.
@@ -37,7 +39,7 @@ public interface Rule {
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    Item apply(Item sourceColumn) throws RuleException;
+    public abstract Item apply(Item sourceColumn) throws RuleException;
 
     /**
      * Applies the numerical conversion rule to the numbers supplied as argument.
@@ -50,6 +52,17 @@ public interface Rule {
      *
      * @throws RuleException when the rule cannot be applied.
      */
-    Array apply(Array sourceArray, Item sourceColumn) throws RuleException;
+    public abstract Array apply(Array sourceArray, Item sourceColumn) throws RuleException;
+
+    /**
+     * Sets the rule's context.
+     */
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    protected Context getContext() {
+        return context;
+    }
 }
 

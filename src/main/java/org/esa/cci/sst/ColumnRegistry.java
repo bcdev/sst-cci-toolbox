@@ -17,9 +17,8 @@
 package org.esa.cci.sst;
 
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
-import org.esa.cci.sst.rules.MatchupRule;
 import org.esa.cci.sst.rules.Rule;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.rules.RuleFactory;
@@ -103,7 +102,7 @@ public class ColumnRegistry {
             scanner.useLocale(Locale.ENGLISH);
 
             try {
-                final ArrayList<String> nameList = new ArrayList<String>();
+                final List<String> nameList = new ArrayList<String>();
                 for (int lineNumber = 0; scanner.hasNextLine(); lineNumber++) {
                     final String line = stripComment(scanner.nextLine()).trim();
                     final String[] tokens = line.split("\\s+");
@@ -311,7 +310,7 @@ public class ColumnRegistry {
         private final Rule rule;
         private final Item sourceColumn;
 
-        public ConverterImpl(Rule rule, Item sourceColumn) {
+        ConverterImpl(Rule rule, Item sourceColumn) {
             this.rule = rule;
             this.sourceColumn = sourceColumn;
         }
@@ -322,13 +321,8 @@ public class ColumnRegistry {
         }
 
         @Override
-        public void setMatchup(Matchup matchup) {
-            // todo - replace matchup with context
-            if (rule instanceof MatchupRule) {
-                ((MatchupRule) rule).setMatchup(matchup);
-            } else {
-                throw new IllegalStateException("Not a matchup rule.");
-            }
+        public void setContext(Context context) {
+            rule.setContext(context);
         }
     }
 }

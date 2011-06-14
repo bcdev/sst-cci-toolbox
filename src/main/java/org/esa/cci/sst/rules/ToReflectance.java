@@ -23,6 +23,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
  *
  * @author Ralf Quast
  */
+@SuppressWarnings({"UnusedDeclaration"})
 final class ToReflectance extends AbstractRescalingToShort {
 
     ToReflectance() {
@@ -31,5 +32,8 @@ final class ToReflectance extends AbstractRescalingToShort {
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
+        targetColumnBuilder
+                .fillValue(-32768)
+                .validMin(0.0);
     }
 }

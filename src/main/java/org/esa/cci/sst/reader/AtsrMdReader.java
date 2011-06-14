@@ -16,10 +16,20 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.dataio.ProductSubsetDef;
+import org.esa.beam.framework.datamodel.AbstractGeoCoding;
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.framework.datamodel.Scene;
+import org.esa.beam.framework.dataop.maptransf.Datum;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
+import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Date;
@@ -33,6 +43,7 @@ import java.util.Date;
  *
  * @author Martin Boettcher
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class AtsrMdReader extends MdReader {
 
     AtsrMdReader(String sensorName) {
@@ -54,7 +65,7 @@ class AtsrMdReader extends MdReader {
         final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
                                                              getFloat("atsr.latitude", recordNo)));
         final ReferenceObservation observation = new ReferenceObservation();
-        observation.setCallsign(getString("insitu.callsign", recordNo));
+        observation.setName(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
         observation.setReferenceFlag(getByte("insitu.reference_flag", recordNo));
         observation.setSensor(getDatafile().getSensor().getName());
@@ -66,7 +77,91 @@ class AtsrMdReader extends MdReader {
         return observation;
     }
 
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        return new AtsrGeoCoding(recordNo);
+    }
+
+    @Override
+    public long getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("atsr.time.julian", recordNo);
+        final double dtime = getDTime(recordNo, scanLine);
+        return TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        return getShort("matchup.time.difference", recordNo);
+    }
+
     private static Date dateOf(double julianDate) {
         return TimeUtil.julianDateToDate(julianDate);
+    }
+
+    private class AtsrGeoCoding extends AbstractGeoCoding {
+
+        private final int recordNo;
+
+        AtsrGeoCoding(int recordNo) {
+            this.recordNo = recordNo;
+        }
+
+        @Override
+        public boolean transferGeoCoding(Scene srcScene, Scene destScene, ProductSubsetDef subsetDef) {
+            return false;
+        }
+
+        @Override
+        public boolean isCrossingMeridianAt180() {
+            return false;
+        }
+
+        @Override
+        public boolean canGetPixelPos() {
+            return true;
+        }
+
+        @Override
+        public boolean canGetGeoPos() {
+            return true;
+        }
+
+        @SuppressWarnings({"AssignmentToMethodParameter"})
+        @Override
+        public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
+            if(pixelPos == null) {
+                pixelPos = new PixelPos();
+            }
+            pixelPos.setLocation(0, 0);
+            return pixelPos;
+        }
+
+        @Override
+        public GeoPos getGeoPos(PixelPos pixelPos, GeoPos geoPos) {
+            final Variable latVariable = getVariable("atsr.latitude");
+            final Variable lonVariable = getVariable("atsr.latitude");
+            final float latitude;
+            final float longitude;
+            try {
+                latitude = latVariable.read(new int[]{recordNo}, new int[]{1}).getFloat(0);
+                longitude = lonVariable.read(new int[]{recordNo}, new int[]{1}).getFloat(0);
+            } catch (IOException e) {
+                throw new ToolException("Unable to read geo position.", e, ToolException.UNKNOWN_ERROR);
+            } catch (InvalidRangeException e) {
+                throw new ToolException("Unable to read geo position.", e, ToolException.UNKNOWN_ERROR);
+            }
+            geoPos.setLocation(latitude, longitude);
+            return geoPos;
+        }
+
+        @SuppressWarnings({"deprecation"})
+        @Override
+        public Datum getDatum() {
+            return null;
+        }
+
+        @Override
+        public void dispose() {
+        }
     }
 }

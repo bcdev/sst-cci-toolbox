@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author Ralf Quast
  */
-final class RightAssociativeComposition implements CompositeRule {
+final class RightAssociativeComposition extends CompositeRule {
 
     private final List<Rule> ruleList = new ArrayList<Rule>();
 
@@ -49,6 +49,7 @@ final class RightAssociativeComposition implements CompositeRule {
         // todo - optimize computation by skipping non-numeric rules
         for (int i = ruleList.size(); i-- > 0;) {
             final Rule rule = ruleList.get(i);
+            rule.setContext(getContext());
             sourceArray = rule.apply(sourceArray, sourceColumn);
             sourceColumn = rule.apply(sourceColumn);
         }

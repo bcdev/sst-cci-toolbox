@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.postgis.Point;
@@ -37,8 +36,7 @@ public class ExtractDefinitionBuilder {
 
     private Date date;
 
-    public ExtractDefinitionBuilder coincidence(Coincidence c) {
-        final ReferenceObservation refObs = c.getMatchup().getRefObs();
+    public ExtractDefinitionBuilder referenceObservation(ReferenceObservation refObs) {
         final Point point = refObs.getPoint().getGeometry().getFirstPoint();
         lon = point.getX();
         lat = point.getY();

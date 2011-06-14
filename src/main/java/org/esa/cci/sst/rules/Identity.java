@@ -24,7 +24,7 @@ import ucar.ma2.Array;
  *
  * @author Ralf Quast
  */
-final class Identity implements Rule {
+final class Identity extends Rule {
 
     @Override
     public Item apply(Item sourceColumn) {

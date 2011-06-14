@@ -21,11 +21,11 @@ package org.esa.cci.sst.rules;
  *
  * @author Ralf Quast
  */
-public interface CompositeRule extends Rule {
+public abstract class CompositeRule extends Rule {
 
-    CompositeRule append(Rule rule);
+    abstract CompositeRule append(Rule rule);
 
-    Rule getRule(int i);
+    abstract Rule getRule(int i);
 
-    int getRuleCount();
+    abstract int getRuleCount();
 }

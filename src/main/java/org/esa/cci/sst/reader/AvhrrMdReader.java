@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
@@ -25,8 +26,11 @@ import org.postgis.Point;
 import java.io.IOException;
 
 /**
+ * Reader for AVHRR-based matchup datasets.
+ *
  * @author Thomas Storm
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class AvhrrMdReader extends MdReader {
 
     protected AvhrrMdReader(String sensorName) {
@@ -38,7 +42,7 @@ class AvhrrMdReader extends MdReader {
         ReferenceObservation observation = new ReferenceObservation();
         final PGgeometry location = new PGgeometry(new Point(getFloat("avhrr.longitude", recordNo),
                                                              getFloat("avhrr.latitude", recordNo)));
-        observation.setCallsign(getString("insitu.callsign", recordNo));
+        observation.setName(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
         observation.setReferenceFlag((byte) 4);
         observation.setSensor(getDatafile().getSensor().getName());
@@ -49,5 +53,22 @@ class AvhrrMdReader extends MdReader {
         observation.setRecordNo(recordNo);
 
         return observation;
+    }
+
+
+    @Override
+    public double getDTime(int recordNo, int scanLine) throws IOException {
+        return 0;
+    }
+
+    @Override
+    public long getTime(int recordNo, int scanLine) throws IOException {
+        final double time = getDouble("avhrr.time", recordNo);
+        return TimeUtil.secondsSince1981ToDate(time).getTime();
+    }
+
+    @Override
+    public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        throw new IllegalStateException("not implemented");
     }
 }

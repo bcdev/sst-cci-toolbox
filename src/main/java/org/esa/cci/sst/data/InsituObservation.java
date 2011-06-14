@@ -51,7 +51,7 @@ public class InsituObservation extends RelatedObservation {
 
     @Override
     public String toString() {
-        return String.format("InsituObservation(%d,%s,%s,%f,%s,%d)", getId(), getSensor(),
+        return String.format("InsituObservation(%d,%s,%s,%s,%f,%s,%d)", getId(), getName(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getTimeRadius(), getDatafile(), getRecordNo());
     }
 }

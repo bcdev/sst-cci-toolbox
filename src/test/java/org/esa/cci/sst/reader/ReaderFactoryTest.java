@@ -28,21 +28,21 @@ public class ReaderFactoryTest {
     @SuppressWarnings({"ReuseOfLocalVariable"})
     @Test
     public void testCreateReader() throws Exception {
-        Reader handler = ReaderFactory.createReader("GunzipDecorator,ProductHandler", "");
+        Reader handler = ReaderFactory.createReader("GunzipDecorator,ProductReader", "");
         assertNotNull(handler);
         assertTrue(handler instanceof GunzipDecorator);
 
-        handler = ReaderFactory.createReader("GunzipDecorator,AaiProductHandler", "");
+        handler = ReaderFactory.createReader("GunzipDecorator,AaiProductReader", "");
         assertNotNull(handler);
         assertTrue(handler instanceof GunzipDecorator);
 
-        handler = ReaderFactory.createReader("ProductHandler", "");
+        handler = ReaderFactory.createReader("ProductReader", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof AbstractProductHandler);
+        assertTrue(handler instanceof AbstractProductReader);
 
-        handler = ReaderFactory.createReader("AaiProductHandler", "");
+        handler = ReaderFactory.createReader("AaiProductReader", "");
         assertNotNull(handler);
-        assertTrue(handler instanceof AaiProductHandler);
+        assertTrue(handler instanceof AaiProductReader);
 
         handler = ReaderFactory.createReader("MetopReader", "");
         assertNotNull(handler);

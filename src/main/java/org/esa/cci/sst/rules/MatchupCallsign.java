@@ -24,7 +24,8 @@ import ucar.ma2.DataType;
 /**
  * Matchup callsign.
  */
-public class MatchupCallsign extends MatchupRule {
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
+class MatchupCallsign extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.CHAR;
     private static final int[] SHAPE = new int[]{1, 16};
@@ -37,7 +38,7 @@ public class MatchupCallsign extends MatchupRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        final String callsign = getMatchup().getRefObs().getCallsign();
+        final String callsign = getContext().getMatchup().getRefObs().getName();
         for (int i = 0; i < Math.min(SHAPE[1], callsign.length()); i++) {
             targetArray.setChar(i, callsign.charAt(i));
         }
