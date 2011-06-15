@@ -28,11 +28,15 @@ import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.gpf.GPF;
+import org.esa.beam.framework.gpf.OperatorSpi;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.BoundaryCalculator;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A product IO handler that produces {@link RelatedObservation}s. This handler
@@ -61,14 +65,33 @@ class ProductReader extends AbstractProductReader {
     @Override
     protected final Product readProduct(DataFile dataFile) throws IOException {
         Product product = super.readProduct(dataFile);
-        if (product.getProductReader() instanceof EnvisatProductReader && product.getName().startsWith("ATS")) {
-            // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
-            product = createHorizontallyFlippedProduct(product);
+        if (product.getProductReader() instanceof EnvisatProductReader) {
+            final boolean isAtsrProduct = product.getName().startsWith("ATS");
+            if(isAtsrProduct) {
+                // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
+                product = createHorizontallyFlippedProduct(product);
+            }
+            if (product.getName().startsWith("AT1")) {
+                product = shiftBTBands(3, 0, product);
+            } else if(product.getName().startsWith("AT2")) {
+                product = shiftBTBands(1, -1, product);
+            } else if(product.getName().startsWith("ATS")) {
+                product = shiftBTBands(-1, -2, product);
+            }
         }
         if (product.getGeoCoding() instanceof PixelGeoCoding) {
             product.setGeoCoding(new PixelGeoCodingWrapper((PixelGeoCoding) product.getGeoCoding()));
         }
         return product;
+    }
+
+    private Product shiftBTBands(int xi, int yi, Product product) {
+        final Map<String, Object> params = new HashMap<String, Object>();
+        params.put("shiftX", xi);
+        params.put("shiftY", yi);
+        params.put("bandNamesPattern", new String[]{".*btemp_fward.*"});
+        params.put("fillValue", product.getBand("btemp_fward_1200").getNoDataValue());
+        return GPF.createProduct(OperatorSpi.getOperatorAlias(ShiftOp.class), params, product);
     }
 
     @Override
