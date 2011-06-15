@@ -1,0 +1,11 @@
+# This file contains reconstructed detector temperatures for ATSR-1 and ATSR-2.
+# The start time, the step, and the number of records in the file are provided below;
+# the start time is given as number of seconds since 1981-01-01 00:00:00.
+#
+# start: 333849750
+# step: 300
+# number of records: 36
+
+257.02 256.95 256.36 256.13 255.89 255.86 255.84 255.82 255.80 255.80 255.80 255.81
+255.80 255.79 255.83 255.86 256.02 256.24 256.50 256.74 256.77 256.65 256.44 256.18
+255.91 255.87 255.84 255.82 255.80 255.79 255.80 255.81 255.80 255.80 255.80 255.82
