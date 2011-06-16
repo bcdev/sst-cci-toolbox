@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools.mmdgeneration;
+package org.esa.cci.sst.rules;
 
 import org.esa.beam.util.io.CsvReader;
 import org.esa.cci.sst.tools.ToolException;
@@ -34,9 +34,16 @@ import java.util.List;
  */
 class DetectorTemperatureProvider {
 
+    public static final float FILL_VALUE = Float.MIN_VALUE;
+
     float[] temperatures;
     int startTime;
     int step;
+
+    DetectorTemperatureProvider() {
+        final File detectorTemperatureFile = new File(getClass().getResource("detector_temperature.dat").getFile());
+        init(detectorTemperatureFile);
+    }
 
     DetectorTemperatureProvider(File detectorTemperatureFile) {
         init(detectorTemperatureFile);
@@ -51,7 +58,10 @@ class DetectorTemperatureProvider {
         final double millisSince1970 = date.getTime();
         final double millisSince1978 = millisSince1970 - TimeUtil.MILLIS_1978;
         final double secondsSinceCciEpoch = millisSince1978 / 1000;
-        int index = (int) Math.round((secondsSinceCciEpoch - startTime) / 300.0);
+        int index = (int) Math.round((secondsSinceCciEpoch - startTime) / step);
+        if(index >= temperatures.length) {
+            return FILL_VALUE;
+        }
         return temperatures[index];
     }
 

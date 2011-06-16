@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools.mmdgeneration;
+package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
