@@ -136,7 +136,7 @@ class AtsrMdReader extends MdReader {
             if(pixelPos == null) {
                 pixelPos = new PixelPos();
             }
-            pixelPos.setLocation(0, 0);
+            pixelPos.setLocation(0.5, 0.5);
             return pixelPos;
         }
 
