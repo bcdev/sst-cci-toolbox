@@ -67,15 +67,15 @@ class ProductReader extends AbstractProductReader {
         Product product = super.readProduct(dataFile);
         if (product.getProductReader() instanceof EnvisatProductReader) {
             final boolean isAtsrProduct = product.getName().startsWith("ATS");
-            if(isAtsrProduct) {
+            if (isAtsrProduct) {
                 // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
                 product = createHorizontallyFlippedProduct(product);
             }
             if (product.getName().startsWith("AT1")) {
                 product = shiftBTBands(3, 0, product);
-            } else if(product.getName().startsWith("AT2")) {
+            } else if (product.getName().startsWith("AT2")) {
                 product = shiftBTBands(1, -1, product);
-            } else if(product.getName().startsWith("ATS")) {
+            } else if (product.getName().startsWith("ATS")) {
                 product = shiftBTBands(-1, -2, product);
             }
         }
@@ -89,7 +89,7 @@ class ProductReader extends AbstractProductReader {
         final Map<String, Object> params = new HashMap<String, Object>();
         params.put("shiftX", xi);
         params.put("shiftY", yi);
-        params.put("bandNamesPattern", new String[]{".*btemp_fward.*"});
+        params.put("bandNamesPattern", ".*btemp_fward.*");
         params.put("fillValue", product.getBand("btemp_fward_1200").getNoDataValue());
         return GPF.createProduct(OperatorSpi.getOperatorAlias(ShiftOp.class), params, product);
     }

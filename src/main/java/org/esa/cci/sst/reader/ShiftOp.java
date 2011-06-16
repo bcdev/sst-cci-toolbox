@@ -64,15 +64,15 @@ public class ShiftOp extends Operator {
         final int sceneWidth = sourceProduct.getSceneRasterWidth();
         final int sceneHeight = sourceProduct.getSceneRasterHeight();
         targetProduct = new Product(sourceProduct.getName(), sourceProduct.getProductType(), sceneWidth, sceneHeight);
-        ProductUtils.copyGeoCoding(sourceProduct, targetProduct);
         ProductUtils.copyTiePointGrids(sourceProduct, targetProduct);
-        ProductUtils.copyFlagBands(sourceProduct, targetProduct);
+        ProductUtils.copyGeoCoding(sourceProduct, targetProduct);
         for (String bandName : sourceProduct.getBandNames()) {
             ProductUtils.copyBand(bandName, sourceProduct, targetProduct);
+            final Band band = targetProduct.getBand(bandName);
             if (!bandName.matches(bandNamesPattern)) {
-                targetProduct.getBand(bandName).setSourceImage(sourceProduct.getBand(bandName).getSourceImage());
+                band.setSourceImage(sourceProduct.getBand(bandName).getSourceImage());
             } else {
-                targetProduct.getBand(bandName).setNoDataValue(fillValue.doubleValue());
+                band.setNoDataValue(fillValue.doubleValue());
             }
         }
         targetProduct.setEndTime(sourceProduct.getEndTime());
@@ -86,10 +86,6 @@ public class ShiftOp extends Operator {
             return;
         }
 
-        for (Tile.Pos pos : targetTile) {
-            targetTile.setSample(pos.x, pos.y, fillValue.doubleValue());
-        }
-
         final Rectangle rectangle = computeSourceRect(targetTile);
         final Tile sourceTile = getSourceTile(sourceBand, rectangle);
         for (Tile.Pos pos : targetTile) {
@@ -98,7 +94,7 @@ public class ShiftOp extends Operator {
             final int xPos = pos.x - shiftX;
             final int yPos = pos.y - shiftY;
             if (isPositionOutOfBounds(xPos, yPos)) {
-                // fill value is used
+                targetTile.setSample(pos.x, pos.y, fillValue.doubleValue());
                 continue;
             }
             int sample = sourceTile.getSampleInt(xPos, yPos);
