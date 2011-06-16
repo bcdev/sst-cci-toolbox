@@ -23,6 +23,10 @@ package org.esa.cci.sst.rules;
  */
 public final class RuleException extends Exception {
 
+    RuleException(Throwable cause) {
+        super(cause);
+    }
+
     RuleException(String message) {
         super(message);
     }
