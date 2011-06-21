@@ -237,6 +237,7 @@ abstract class AbstractProductReader implements Reader {
         if (node.isNoDataValueUsed()) {
             builder.fillValue(node.getNoDataValue());
         }
+        builder.longName(node.getDescription());
         builder.role(node.getName());
         builder.sensor(datafile.getSensor());
 

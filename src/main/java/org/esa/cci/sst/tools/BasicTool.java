@@ -71,6 +71,7 @@ public abstract class BasicTool {
     private Date sourceStopTime;
 
     static {
+        System.setProperty("EPSG-HSQL.directory", System.getProperty("user.home", ".") + File.separator + "tmp");
         JAI.enableDefaultTileCache();
         JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 1024);
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();

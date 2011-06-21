@@ -73,7 +73,7 @@ public class MmdTool extends BasicTool {
     private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
     private final List<String> targetColumnNames = new ArrayList<String>(500);
 
-    private final Cache<String, Reader> readerCache = new Cache<String, Reader>(100);
+    private final Cache<String, Reader> readerCache = new Cache<String, Reader>(20);
 
     private int matchupCount;
 
