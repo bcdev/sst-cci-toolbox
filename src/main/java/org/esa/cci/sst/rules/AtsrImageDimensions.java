@@ -21,11 +21,15 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
+@SuppressWarnings({"ClassTooDeepInInheritanceTree"})
 class AtsrImageDimensions extends AbstractDimensionReplacement {
+
+    static final String DIMENSIONS_NAME_ATSR_NY = "atsr.ny";
+    static final String DIMENSIONS_NAME_ATSR_NX = "atsr.nx";
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "atsr.ny");
-        builder.replace(2, "atsr.nx");
+        builder.replace(1, DIMENSIONS_NAME_ATSR_NY);
+        builder.replace(2, DIMENSIONS_NAME_ATSR_NX);
     }
 }

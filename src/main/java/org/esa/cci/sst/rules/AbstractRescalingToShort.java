@@ -62,6 +62,9 @@ abstract class AbstractRescalingToShort extends Rule {
 
     @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        if(sourceArray == null) {
+            return null;
+        }
         final Array targetArray = Array.factory(DataType.SHORT, sourceArray.getShape());
         apply(sourceArray, targetArray,
               sourceColumn.getScaleFactor(),

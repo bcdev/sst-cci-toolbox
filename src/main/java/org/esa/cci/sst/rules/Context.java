@@ -21,6 +21,8 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.Reader;
 import ucar.nc2.Variable;
 
+import java.util.Map;
+
 /**
  * Context which provides access to data needed to write mmd file.
  *
@@ -37,4 +39,6 @@ public interface Context {
     Observation getObservation();
 
     Variable getTargetVariable();
+
+    Map<String, Integer> getDimensionConfiguration();
 }

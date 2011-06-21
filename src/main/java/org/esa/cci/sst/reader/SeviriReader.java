@@ -17,7 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -28,7 +27,9 @@ import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 
@@ -44,7 +45,6 @@ class SeviriReader extends MdReader {
 
     protected int noOfLines;
     protected int noOfColumns;
-    private QuadTreePixelLocator locator;
 
     SeviriReader(String sensorName) {
         super(sensorName);
@@ -56,9 +56,6 @@ class SeviriReader extends MdReader {
         final NetcdfFile ncFile = getNetcdfFile();
         noOfLines = ncFile.findDimension("ny").getLength();
         noOfColumns = ncFile.findDimension("nx").getLength();
-        final Array lonArray = getVariable("lon").read();
-        final Array latArray = getVariable("lat").read();
-        locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     /**
@@ -133,13 +130,28 @@ class SeviriReader extends MdReader {
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
-        String longitudeVariableName = "lon";
-        String latitudeVariableName = "lat";
-        Array lonArray = getNetcdfFile().findVariable(longitudeVariableName).read();
-        Array latArray = getNetcdfFile().findVariable(latitudeVariableName).read();
-        lonArray = scale(getColumn(longitudeVariableName).getScaleFactor(), lonArray);
-        latArray = scale(getColumn(latitudeVariableName).getScaleFactor(), latArray);
-        return new PixelLocatorGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+        final Array lonArray;
+        final Array latArray;
+        try {
+            lonArray = getArray(recordNo, "lon");
+            latArray = getArray(recordNo, "lat");
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+        final VariableSampleSource lonSource = new VariableSampleSource(lonArray);
+        final VariableSampleSource latSource = new VariableSampleSource(latArray);
+        return new PixelLocatorGeoCoding(lonSource, latSource);
+    }
+
+    private Array getArray(int recordNo, String varName) throws IOException, InvalidRangeException {
+        final NetcdfFile netcdfFile = getNetcdfFile();
+        final Variable variable = netcdfFile.findVariable(varName);
+        final int[] origin = new int[variable.getRank()];
+        origin[0] = recordNo;
+        final int[] shape = variable.getShape();
+        shape[0] = 1;
+        Array lonArray = variable.read(origin, shape);
+        return scale(getColumn(varName).getScaleFactor(), lonArray);
     }
 
     private Array scale(Number scaleFactor, Array array) {

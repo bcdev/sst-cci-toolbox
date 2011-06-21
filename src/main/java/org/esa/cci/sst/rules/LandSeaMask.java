@@ -78,6 +78,7 @@ class LandSeaMask extends AbstractImplicitRule {
             for (int y = 0; y < shape[2]; y++) {
                 pixelPos.setLocation(x, y);
                 index.set(0, x, y);
+                // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
                 final byte fraction = classifier.getWaterMaskFraction(geoCoding, pixelPos, 5, 5);
                 targetArray.setByte(index, fraction);
             }

@@ -46,33 +46,49 @@ public class NwpToolPrototype {
 
     private static final String CDO_AN_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} -f nc mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
-            "${CDO} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
+            "${CDO} ${CDO_OPTS} -f nc -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${AN_TIME_SERIES}";
 
     private static final String CDO_FC_TEMPLATE =
             "#! /bin/sh\n" +
-            "${CDO} -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
-            "${CDO} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc mergetime ${GAFS_TIMESTEPS} ${GAFS_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
+            "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
+
+    private static final String MMD_SOURCE_LOCATION = "mmd.nc";
+    private static final String AMD_TARGET_LOCATION = "amd.nc";
+    private static final String FMD_TARGET_LOCATION = "fmd.nc";
+    private static final int AN_NX = 11 / 2;
+    private static final int AN_NY = 11 / 2;
+    private static final int AN_STRIDE_X = 2;
+    private static final int AN_STRIDE_Y = 2;
+    private static final int FC_NX = 1;
+    private static final int FC_NY = 1;
+    private static final int PAST_TIME_STEP_COUNT = 5;
+    private static final int FUTURE_TIME_STEP_COUNT = 3;
+    private static final String SENSOR_NAME = "metop";
+    private static final int SENSOR_PATTERN = 2;
 
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
-        final NetcdfFile mmdFile = NetcdfFile.open("mmd.nc");
+        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(MMD_SOURCE_LOCATION));
+
         try {
-            final NetcdfFileWriteable subsceneGeoFile = writeGeoFile(mmdFile, 11 / 2, 11 / 2, 2, 2);
+            final String subsceneGeoFileLocation = writeGeoFile(sensorMmdFile, AN_NX, AN_NY, AN_STRIDE_X, AN_STRIDE_Y);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
+            properties.setProperty("CDO_OPTS", "-M");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
-            properties.setProperty("GEO", subsceneGeoFile.getLocation());
+            properties.setProperty("GEO", subsceneGeoFileLocation);
             properties.setProperty("GGAS_TIMESTEPS", files("testdata/nwp", "ggas[0-9]*.nc"));
             properties.setProperty("GGAM_TIMESTEPS", files("testdata/nwp", "ggam[0-9]*.grb"));
             properties.setProperty("SPAM_TIMESTEPS", files("testdata/nwp", "spam[0-9]*.grb"));
@@ -86,8 +102,8 @@ public class NwpToolPrototype {
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
             runner.execute(writeCdoScript(CDO_AN_TEMPLATE, properties).getPath());
 
-            final NetcdfFileWriteable matchupGeoFile = writeGeoFile(mmdFile, 1, 1, 1, 1);
-            properties.setProperty("GEO", matchupGeoFile.getLocation());
+            final String matchupGeoFileLocation = writeGeoFile(sensorMmdFile, FC_NX, FC_NY, 1, 1);
+            properties.setProperty("GEO", matchupGeoFileLocation);
             properties.setProperty("GAFS_TIMESTEPS", files("testdata/nwp", "gafs[0-9]*.nc"));
             properties.setProperty("GGFS_TIMESTEPS", files("testdata/nwp", "ggfs[0-9]*.nc"));
             properties.setProperty("GAFS_TIME_SERIES", createTempFile("gafs", ".nc", true).getPath());
@@ -99,7 +115,7 @@ public class NwpToolPrototype {
 
             final NetcdfFile anFile = NetcdfFile.open(properties.getProperty("AN_TIME_SERIES"));
             try {
-                writeAnalysisMmdFile(mmdFile, anFile);
+                writeAnalysisMmdFile(sensorMmdFile, anFile);
             } finally {
                 try {
                     anFile.close();
@@ -108,7 +124,7 @@ public class NwpToolPrototype {
             }
             final NetcdfFile fcFile = NetcdfFile.open(properties.getProperty("FC_TIME_SERIES"));
             try {
-                writeForecastMmdFile(mmdFile, fcFile, 5, 3);
+                writeForecastMmdFile(sensorMmdFile, fcFile, PAST_TIME_STEP_COUNT, FUTURE_TIME_STEP_COUNT);
             } finally {
                 try {
                     anFile.close();
@@ -117,7 +133,7 @@ public class NwpToolPrototype {
             }
         } finally {
             try {
-                mmdFile.close();
+                sensorMmdFile.close();
             } catch (IOException ignored) {
             }
         }
@@ -132,7 +148,7 @@ public class NwpToolPrototype {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable amd = NetcdfFileWriteable.createNew("amd.nc", true);
+        final NetcdfFileWriteable amd = NetcdfFileWriteable.createNew(AMD_TARGET_LOCATION, true);
         amd.addDimension(matchupDimension.getName(), matchupCount);
         amd.addDimension("nwp.nz", findDimension(analysisFile, "lev").getLength());
         amd.addDimension("nwp.ny", gy);
@@ -141,12 +157,16 @@ public class NwpToolPrototype {
         final Variable matchupId = findVariable(mmd, "matchup.id");
         amd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
-        for (final Variable v : analysisFile.getVariables()) {
-            if (v.getRank() == 4) {
-                if (v.getDimension(1).getLength() == 1) {
-                    amd.addVariable(v.getName(), v.getDataType(), "matchup nwp.ny nwp.nx");
+        for (final Variable s : analysisFile.getVariables()) {
+            if (s.getRank() == 4) {
+                final Variable t;
+                if (s.getDimension(1).getLength() == 1) {
+                    t = amd.addVariable(s.getName(), s.getDataType(), "matchup nwp.ny nwp.nx");
                 } else {
-                    amd.addVariable(v.getName(), v.getDataType(), "matchup nwp.nz nwp.ny nwp.nx");
+                    t = amd.addVariable(s.getName(), s.getDataType(), "matchup nwp.nz nwp.ny nwp.nx");
+                }
+                for (final Attribute a : s.getAttributes()) {
+                    t.addAttribute(a);
                 }
             }
         }
@@ -154,8 +174,8 @@ public class NwpToolPrototype {
         amd.create();
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
-        final Array targetTimes = findVariable(mmd, "metop.time").read();
         final Array sourceTimes = findVariable(analysisFile, "time").read();
+        final Array targetTimes = findVariable(mmd, SENSOR_NAME + ".time").read();
 
         try {
             amd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
@@ -167,31 +187,60 @@ public class NwpToolPrototype {
                 final int targetTime = targetTimes.getInt(i);
                 final FracIndex fi = interpolationIndex(sourceTimes, targetTime);
 
-                for (final Variable targetVariable : amd.getVariables()) {
-                    if ("matchup.id".equals(targetVariable.getName())) {
+                for (final Variable t : amd.getVariables()) {
+                    if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable sourceVariable = findVariable(analysisFile, targetVariable.getName());
-                    sourceStart[0] = fi.i;
-                    sourceShape[1] = sourceVariable.getShape(1);
+                    final Variable s = findVariable(analysisFile, t.getName());
+                    final float fillValue = getAttribute(s, "_FillValue", 2.0E+20F);
+                    final float validMin = getAttribute(s, "valid_min", Float.NEGATIVE_INFINITY);
+                    final float validMax = getAttribute(s, "valid_max", Float.POSITIVE_INFINITY);
 
-                    final Array slice1 = sourceVariable.read(sourceStart, sourceShape);
+                    sourceStart[0] = fi.i;
+                    sourceShape[1] = s.getShape(1);
+
+                    final Array slice1 = s.read(sourceStart, sourceShape);
                     sourceStart[0] = fi.i + 1;
-                    final Array slice2 = sourceVariable.read(sourceStart, sourceShape);
+                    final Array slice2 = s.read(sourceStart, sourceShape);
                     for (int k = 0; k < slice1.getSize(); k++) {
-                        slice2.setDouble(k, fi.f * slice1.getDouble(k) + (1.0 - fi.f) * slice2.getDouble(k));
+                        final float v1 = slice1.getFloat(k);
+                        final float v2 = slice2.getFloat(k);
+                        final boolean invalid1 = v1 == fillValue || v1 < validMin || v1 > validMax;
+                        final boolean invalid2 = v2 == fillValue || v2 < validMin || v2 > validMax;
+                        if (invalid1 && invalid2) {
+                            slice2.setFloat(k, fillValue);
+                        } else if (invalid1) {
+                            // do nothing, value is already set
+                        } else if (invalid2) {
+                            slice2.setFloat(k, v1);
+                        } else {
+                            slice2.setDouble(k, fi.f * v1 + (1.0 - fi.f) * v2);
+                        }
                     }
 
-                    final int[] targetShape = targetVariable.getShape();
+                    final int[] targetShape = t.getShape();
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    amd.write(targetVariable.getNameEscaped(), targetStart, slice2.reshape(targetShape));
+                    amd.write(t.getNameEscaped(), targetStart, slice2.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
             throw new IOException(e);
+        } finally {
+            try {
+                amd.close();
+            } catch (IOException ignored) {
+            }
         }
+    }
+
+    private static float getAttribute(Variable s, String name, float defaultValue) {
+        final Attribute a = s.findAttribute(name);
+        if (a == null) {
+            return defaultValue;
+        }
+        return a.getNumericValue().floatValue();
     }
 
     private static FracIndex interpolationIndex(Array sourceTimes, int targetTime) {
@@ -218,7 +267,7 @@ public class NwpToolPrototype {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable fmd = NetcdfFileWriteable.createNew("fmd.nc", true);
+        final NetcdfFileWriteable fmd = NetcdfFileWriteable.createNew(FMD_TARGET_LOCATION, true);
         fmd.addDimension(matchupDimension.getName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
@@ -229,12 +278,14 @@ public class NwpToolPrototype {
         final Variable matchupId = findVariable(mmd, "matchup.id");
         fmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
-        for (final Variable v : forecastFile.getVariables()) {
-            if (v.getRank() == 4) {
-                if (v.getDimension(1).getLength() == 1) {
-                    fmd.addVariable(v.getName(), v.getDataType(), "matchup nwp.time nwp.ny nwp.nx");
-                } else {
-                    // there are no profiles in NWP forecast data
+        for (final Variable s : forecastFile.getVariables()) {
+            if (s.getRank() == 4) {
+                if (s.getDimension(1).getLength() == 1) {
+                    final Variable t = fmd.addVariable(s.getName(), s.getDataType(),
+                                                       "matchup nwp.time nwp.ny nwp.nx");
+                    for (final Attribute a : s.getAttributes()) {
+                        t.addAttribute(a);
+                    }
                 }
             }
         }
@@ -242,16 +293,14 @@ public class NwpToolPrototype {
         fmd.create();
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
-        final Array targetTimes = findVariable(mmd, "metop.time").read();
+        final Array targetTimes = findVariable(mmd, SENSOR_NAME + ".time").read();
         final Array sourceTimes = findVariable(forecastFile, "time").read();
 
         try {
             fmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
 
+            final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
-                final int[] sourceStart = {0, 0, i * gy, 0};
-                final int[] sourceShape = {timeStepCount, 1, gy, gx};
-
                 final int targetTime = targetTimes.getInt(i);
                 final int timeStep = nearestTimeStep(sourceTimes, targetTime);
 
@@ -259,24 +308,29 @@ public class NwpToolPrototype {
                     throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
                 }
 
-                for (final Variable targetVariable : fmd.getVariables()) {
-                    if ("matchup.id".equals(targetVariable.getName())) {
+                final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
+
+                for (final Variable t : fmd.getVariables()) {
+                    if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable sourceVariable = findVariable(forecastFile, targetVariable.getName());
-                    sourceStart[0] = timeStep - pastTimeStepCount;
+                    final Variable s = findVariable(forecastFile, t.getName());
+                    final Array sourceData = s.read(sourceStart, sourceShape);
 
-                    final Array array = sourceVariable.read(sourceStart, sourceShape);
-
-                    final int[] targetShape = targetVariable.getShape();
+                    final int[] targetShape = t.getShape();
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    fmd.write(targetVariable.getNameEscaped(), targetStart, array.reshape(targetShape));
+                    fmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
             throw new IOException(e);
+        } finally {
+            try {
+                fmd.close();
+            } catch (IOException ignored) {
+            }
         }
     }
 
@@ -341,12 +395,104 @@ public class NwpToolPrototype {
         return script;
     }
 
+    /**
+     * Extracts the records from an MMD file that correspond to a certain sensor.
+     *
+     * @param mmdLocation The location of the MMD file.
+     *
+     * @return the location of the netCDF file written.
+     *
+     * @throws java.io.IOException when an error occurred.
+     */
     @SuppressWarnings({"ConstantConditions"})
-    private static NetcdfFileWriteable writeGeoFile(NetcdfFile mmd, int gx, int gy, int strideX,
-                                                    int strideY) throws IOException {
+    private static String writeSensorMmdFile(String mmdLocation) throws IOException {
+        final NetcdfFile mmd = NetcdfFile.open(mmdLocation);
+
+        try {
+            final Dimension matchupDimension = findDimension(mmd, "matchup");
+            final Dimension nyDimension = findDimension(mmd, SENSOR_NAME + ".ny");
+            final Dimension nxDimension = findDimension(mmd, SENSOR_NAME + ".nx");
+
+            final Array sensorPatterns = findVariable(mmd, "matchup.sensor_list").read();
+            final int matchupCount = matchupCount(sensorPatterns);
+            final String sensorMmdLocation = createTempFile("mmd", ".nc", true).getPath();
+            final NetcdfFileWriteable sensorMmd = NetcdfFileWriteable.createNew(sensorMmdLocation, true);
+
+            final int ny = nyDimension.getLength();
+            final int nx = nxDimension.getLength();
+
+            sensorMmd.addDimension(matchupDimension.getName(), matchupCount);
+            sensorMmd.addDimension(nyDimension.getName(), ny);
+            sensorMmd.addDimension(nxDimension.getName(), nx);
+
+            addVariable(sensorMmd, findVariable(mmd, "matchup.id"));
+            addVariable(sensorMmd, findVariable(mmd, SENSOR_NAME + ".latitude"));
+            addVariable(sensorMmd, findVariable(mmd, SENSOR_NAME + ".longitude"));
+            addVariable(sensorMmd, findVariable(mmd, SENSOR_NAME + ".time"));
+
+            sensorMmd.create();
+
+            try {
+                for (final Variable v : mmd.getVariables()) {
+                    final int[] sourceStart = new int[v.getRank()];
+                    final int[] sourceShape = v.getShape();
+                    final int[] targetStart = new int[v.getRank()];
+                    if (sensorMmd.findVariable(v.getNameEscaped()) != null) {
+                        for (int m = 0, n = 0; m < matchupDimension.getLength(); m++) {
+                            if ((sensorPatterns.getInt(m) & SENSOR_PATTERN) == SENSOR_PATTERN) {
+                                sourceStart[0] = m;
+                                sourceShape[0] = 1;
+                                targetStart[0] = n;
+                                final Array data = v.read(sourceStart, sourceShape);
+                                sensorMmd.write(v.getNameEscaped(), targetStart, data);
+                                n++;
+                            }
+                        }
+                    }
+                }
+            } catch (InvalidRangeException e) {
+                throw new IOException(e);
+            } finally {
+                try {
+                    sensorMmd.close();
+                } catch (IOException ignored) {
+                }
+            }
+            return sensorMmd.getLocation();
+        } finally {
+            try {
+                mmd.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private static void addVariable(NetcdfFileWriteable netcdfFile, Variable s) {
+        final Variable t = netcdfFile.addVariable(s.getName(), s.getDataType(), s.getDimensionsString());
+        for (final Attribute a : s.getAttributes()) {
+            t.addAttribute(a);
+        }
+    }
+
+    /**
+     * Writes the geo-coordinates from the MMD file to a SCRIP compatible file.
+     *
+     * @param mmd     The MMD file.
+     * @param gx      The the number of tie points in x direction.
+     * @param gy      The the number of tie points in y direction.
+     * @param strideX The tie point stride in x direction.
+     * @param strideY The tie point stride in y direction.
+     *
+     * @return the location of netCDF file written.
+     *
+     * @throws java.io.IOException when an error occurred.
+     */
+    @SuppressWarnings({"ConstantConditions"})
+    private static String writeGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY) throws
+                                                                                                 IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
-        final Dimension nyDimension = findDimension(mmd, "metop.ny");
-        final Dimension nxDimension = findDimension(mmd, "metop.nx");
+        final Dimension nyDimension = findDimension(mmd, SENSOR_NAME + ".ny");
+        final Dimension nxDimension = findDimension(mmd, SENSOR_NAME + ".nx");
 
         final String location = createTempFile("geo", ".nc", true).getPath();
         final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew(location, true);
@@ -385,8 +531,8 @@ public class NwpToolPrototype {
             final int[] targetShape = {gy * gx};
             final Array maskData = Array.factory(DataType.INT, targetShape);
 
-            final Variable sourceLat = findVariable(mmd, "metop.latitude");
-            final Variable sourceLon = findVariable(mmd, "metop.longitude");
+            final Variable sourceLat = findVariable(mmd, SENSOR_NAME + ".latitude");
+            final Variable sourceLon = findVariable(mmd, SENSOR_NAME + ".longitude");
 
             for (int i = 0; i < matchupCount; i++) {
                 sourceStart[0] = i;
@@ -411,7 +557,17 @@ public class NwpToolPrototype {
             } catch (IOException ignored) {
             }
         }
-        return geoFile;
+        return geoFile.getLocation();
+    }
+
+    private static int matchupCount(Array sensorPatterns) {
+        int matchupCount = 0;
+        for (int i = 0; i < sensorPatterns.getSize(); ++i) {
+            if ((sensorPatterns.getInt(i) & SENSOR_PATTERN) != 0) {
+                matchupCount++;
+            }
+        }
+        return matchupCount;
     }
 
     private static Dimension findDimension(NetcdfFile file, String name) throws IOException {

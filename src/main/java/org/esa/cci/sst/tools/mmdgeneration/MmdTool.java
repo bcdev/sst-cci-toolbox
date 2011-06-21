@@ -171,6 +171,7 @@ public class MmdTool extends BasicTool {
                             .observationReader(observationReader)
                             .referenceObservationReader(referenceObservationReader)
                             .targetVariable(variable)
+                            .dimensionConfiguration(dimensionConfiguration)
                             .build();
                     writeImplicitColumn(mmd, variable, targetRecordNo, targetColumn, context);
                 } else {

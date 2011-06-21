@@ -22,6 +22,9 @@ import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import ucar.nc2.Variable;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Creates unmodifiable instances of ${@link Context}.
  *
@@ -35,6 +38,7 @@ class ContextBuilder {
     private Reader referenceObservationReader;
     private Variable targetVariable;
     private Observation observation;
+    private Map<String, Integer> dimensionConfiguration;
 
     ContextBuilder matchup(Matchup matchup) {
         this.matchup = matchup;
@@ -61,6 +65,11 @@ class ContextBuilder {
         return this;
     }
 
+    public ContextBuilder dimensionConfiguration(Map<String,Integer> dimensionConfiguration) {
+        this.dimensionConfiguration = Collections.unmodifiableMap(dimensionConfiguration);
+        return this;
+    }
+
     @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
     Context build() {
         final ContextImpl context = new ContextImpl();
@@ -69,6 +78,7 @@ class ContextBuilder {
         context.observationReader = observationReader;
         context.referenceObservationReader = referenceObservationReader;
         context.targetVariable = targetVariable;
+        context.dimensionConfiguration = dimensionConfiguration;
         return context;
     }
 
@@ -79,6 +89,7 @@ class ContextBuilder {
         private Reader referenceObservationReader;
         private Observation observation;
         private Variable targetVariable;
+        private Map<String, Integer> dimensionConfiguration;
 
         @Override
         public Matchup getMatchup() {
@@ -103,6 +114,11 @@ class ContextBuilder {
         @Override
         public Variable getTargetVariable() {
             return targetVariable;
+        }
+
+        @Override
+        public Map<String, Integer> getDimensionConfiguration() {
+            return Collections.unmodifiableMap(dimensionConfiguration);
         }
     }
 }

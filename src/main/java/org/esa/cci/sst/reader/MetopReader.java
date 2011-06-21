@@ -17,8 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.util.PixelLocator;
-import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -55,7 +53,6 @@ class MetopReader extends MdReader {
 
     protected int rowCount;
     protected int colCount;
-    private PixelLocator locator;
 
     MetopReader(String sensorName) {
         super(sensorName);
@@ -67,9 +64,6 @@ class MetopReader extends MdReader {
         final NetcdfFile ncFile = getNetcdfFile();
         rowCount = ncFile.findDimension("ny").getLength();
         colCount = ncFile.findDimension("nx").getLength();
-        final Array lonArray = getVariable("lon").read();
-        final Array latArray = getVariable("lat").read();
-        locator = new QuadTreePixelLocator(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
     }
 
     /**
