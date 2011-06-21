@@ -31,6 +31,8 @@ import org.esa.cci.sst.util.TimeUtil;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +99,7 @@ public class MatchupTool extends BasicTool {
                     + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
 
-    private static final int CHUNK_SIZE = 1024*16;
+    private static final int CHUNK_SIZE = 1024; //*16;
 
     private static final String ATSR_MD = "atsr_md";
     private static final String METOP = "metop";
@@ -322,58 +324,112 @@ public class MatchupTool extends BasicTool {
     private void findRelatedObservations() {
         try {
             getPersistenceManager().transaction();
-
+            List<String> sensorNames = determineRelatedSensorNames();
+            final Query query = getPersistenceManager().createQuery(MATCHUPS_QUERY);
             long time = System.currentTimeMillis();
-            final Query query = createIncrementalQuery(MATCHUPS_QUERY);
-            for (int cursor = 0; ; ) {
-                final List<Matchup> matchups = query.setFirstResult(cursor).getResultList();
-                if (matchups.size() == 0) {
-                    break;
-                }
 
-                final Properties configuration = getConfiguration();
-                for (int i = 0; i < 100; i++) {
-                    final String sensorName = configuration.getProperty(String.format("mms.source.%d.sensor", i));
-                    if (sensorName == null) {
-                        continue;
-                    }
+            long chunkSizeMillis = 3600 * 1000;
+            final long startTime = getSourceStartTime().getTime();
+            final long stopTime = getSourceStopTime().getTime();
+            long chunkStartTime = startTime;
+            while (chunkStartTime < stopTime) {
+                long chunkStopTime = chunkStartTime + chunkSizeMillis;
+                if (chunkStopTime > stopTime) {
+                    chunkStopTime = stopTime;
+                }
+                if (chunkStartTime > startTime) {
+                    getPersistenceManager().commit();
+                    getPersistenceManager().transaction();
+                }
+                query.setParameter(1, new Date(chunkStartTime));
+                query.setParameter(2, new Date(chunkStopTime));
+                final List<Matchup> matchups = query.getResultList();
+
+                for (String sensorName : sensorNames) {
                     final Sensor sensor = getSensor(sensorName);
-                    if (sensor == null) {
-                        continue;
-                    }
                     final Class<? extends Observation> observationClass = getObservationClass(sensor);
-                    if (observationClass == ReferenceObservation.class) {
-                        continue;
-                    }
                     final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
-                    if (queryString == null) {
-                        final String message = MessageFormat.format("No query for observation type ''{0}''",
-                                                                    observationClass.getSimpleName());
-                        throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-                    }
-                    int count = cursor;
                     for (final Matchup matchup : matchups) {
                         addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
-                        ++count;
-                        if (count % 1024 == 0) {
-                            getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
-                                                                  count,
-                                                                  sensorName,
-                                                                  System.currentTimeMillis() - time));
-                            time = System.currentTimeMillis();
-                        }
                     }
+                    getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+                                                          matchups.size(),
+                                                          sensorName,
+                                                          System.currentTimeMillis() - time));
+                    time = System.currentTimeMillis();
                 }
-
-                getPersistenceManager().commit();
-                getPersistenceManager().transaction();
-                cursor += matchups.size();
+                chunkStartTime = chunkStopTime;
+                if (matchups.size() > 2048) {
+                    chunkSizeMillis = chunkSizeMillis / 2;
+                } else if (matchups.size() < 512) {
+                    chunkSizeMillis = chunkSizeMillis * 2;
+                }
             }
+
+//            long time = System.currentTimeMillis();
+//            final Query query = createIncrementalQuery(MATCHUPS_QUERY);
+//            for (int cursor = 0; ; ) {
+//                final List<Matchup> matchups = query.setFirstResult(cursor).getResultList();
+//                if (matchups.size() == 0) {
+//                    break;
+//                }
+//
+//                for (String sensorName : sensorNames) {
+//                    final Sensor sensor = getSensor(sensorName);
+//                    final Class<? extends Observation> observationClass = getObservationClass(sensor);
+//                    final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
+//                    int count = cursor;
+//                    for (final Matchup matchup : matchups) {
+//                        addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
+//                        ++count;
+//                        if (count % 1024 == 0) {
+//                            getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+//                                                                  count,
+//                                                                  sensorName,
+//                                                                  System.currentTimeMillis() - time));
+//                            time = System.currentTimeMillis();
+//                        }
+//                    }
+//                }
+//
+//                getPersistenceManager().commit();
+//                getPersistenceManager().transaction();
+//                cursor += matchups.size();
+//            }
             getPersistenceManager().commit();
         } catch (Exception e) {
             getPersistenceManager().rollback();
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
+    }
+
+    private List<String> determineRelatedSensorNames() {
+        List<String> sensorNames = new ArrayList<String>();
+        final Properties configuration = getConfiguration();
+        for (int i = 0; i < 100; i++) {
+            final String sensorName = configuration.getProperty(String.format("mms.source.%d.sensor", i));
+            if (sensorName == null) {
+                continue;
+            }
+            final Sensor sensor = getSensor(sensorName);
+            if (sensor == null) {
+                continue;
+            }
+            final Class<? extends Observation> observationClass = getObservationClass(sensor);
+            if (observationClass == ReferenceObservation.class) {
+                continue;
+            }
+            final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
+            if (queryString == null) {
+                final String message = MessageFormat.format("No query for observation type ''{0}''",
+                                                            observationClass.getSimpleName());
+                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            if (! sensorNames.contains(sensorName)) {
+                sensorNames.add(sensorName);
+            }
+        }
+        return sensorNames;
     }
 
     private int configurationIndexOf(String sensor) {
