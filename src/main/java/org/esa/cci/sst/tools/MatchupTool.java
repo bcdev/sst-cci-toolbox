@@ -396,6 +396,7 @@ public class MatchupTool extends BasicTool {
 //                getPersistenceManager().transaction();
 //                cursor += matchups.size();
 //            }
+
             getPersistenceManager().commit();
         } catch (Exception e) {
             getPersistenceManager().rollback();
