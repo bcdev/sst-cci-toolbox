@@ -351,9 +351,9 @@ public class NwpToolPrototype {
     }
 
     private static File createTempFile(String prefix, String suffix, boolean deleteOnExit) throws IOException {
-        final File tempFile = File.createTempFile(prefix, suffix, new File("."));
+        final File tempFile = File.createTempFile(prefix, suffix);
         if (deleteOnExit) {
-            //tempFile.deleteOnExit();
+            tempFile.deleteOnExit();
         }
         return tempFile;
     }
@@ -436,8 +436,8 @@ public class NwpToolPrototype {
                 for (final Variable v : mmd.getVariables()) {
                     final int[] sourceStart = new int[v.getRank()];
                     final int[] sourceShape = v.getShape();
+                    final int[] targetStart = new int[v.getRank()];
                     if (sensorMmd.findVariable(v.getNameEscaped()) != null) {
-                        final int[] targetStart = new int[v.getRank()];
                         for (int m = 0, n = 0; m < matchupDimension.getLength(); m++) {
                             if ((sensorPatterns.getInt(m) & SENSOR_PATTERN) == SENSOR_PATTERN) {
                                 sourceStart[0] = m;
@@ -445,6 +445,7 @@ public class NwpToolPrototype {
                                 targetStart[0] = n;
                                 final Array data = v.read(sourceStart, sourceShape);
                                 sensorMmd.write(v.getNameEscaped(), targetStart, data);
+                                n++;
                             }
                         }
                     }
