@@ -82,7 +82,7 @@ public class TargetVariableConfigurationTest {
         }
 
         assertNotNull(nameList);
-        assertEquals(664, nameList.size());
+        assertEquals(667, nameList.size());
 
         assertEquals("matchup.id", nameList.get(0));
         assertEquals("insitu.sea_surface_temperature", nameList.get(nameList.size() - 1));
