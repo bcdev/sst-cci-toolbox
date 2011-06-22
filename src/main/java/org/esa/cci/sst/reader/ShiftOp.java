@@ -23,6 +23,7 @@ import org.esa.beam.framework.gpf.Operator;
 import org.esa.beam.framework.gpf.OperatorException;
 import org.esa.beam.framework.gpf.OperatorSpi;
 import org.esa.beam.framework.gpf.Tile;
+import org.esa.beam.framework.gpf.annotations.OperatorMetadata;
 import org.esa.beam.framework.gpf.annotations.Parameter;
 import org.esa.beam.framework.gpf.annotations.SourceProduct;
 import org.esa.beam.framework.gpf.annotations.TargetProduct;
@@ -35,6 +36,7 @@ import java.awt.Rectangle;
  *
  * @author Thomas Storm
  */
+@OperatorMetadata(alias = "Shift", internal = true)
 public class ShiftOp extends Operator {
 
     @SourceProduct(alias = "source", description = "The product which images are to be shifted.",
@@ -100,6 +102,14 @@ public class ShiftOp extends Operator {
             int sample = sourceTile.getSampleInt(xPos, yPos);
             targetTile.setSample(targetX, targetY, sample);
         }
+    }
+
+    @Override
+    public void dispose() {
+        if (sourceProduct != null) {
+            sourceProduct.dispose();
+        }
+        super.dispose();
     }
 
     private Rectangle computeSourceRect(Tile targetTile) {
