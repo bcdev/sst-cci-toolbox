@@ -58,9 +58,10 @@ class InsituSST extends AbstractImplicitRule {
                 throw new RuleException("Unable to read sea surface temperature.", e);
             }
         } else {
+            // todo - rq/22Jun2011: use sst from reference observation MD file instead
             final Array array = Array.factory(DATA_TYPE, SHAPE);
-            for(int i = 0; i < array.getSize(); i++) {
-                array.setFloat(i, sourceColumn.getFillValue().floatValue());
+            for (int i = 0; i < array.getSize(); i++) {
+                array.setShort(i, Short.MIN_VALUE);
             }
             return array;
         }

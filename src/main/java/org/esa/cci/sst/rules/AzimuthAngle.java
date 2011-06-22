@@ -35,7 +35,8 @@ class AzimuthAngle extends AbstractRescalingToShort {
         targetColumnBuilder
                 .unit("degrees")
                 .fillValue(-32768)
-                .validMin(-180.0)
-                .validMax(180.0);
+                .validMin(-18000.0)
+                .validMax(18000.0)
+                .longName(null);
     }
 }

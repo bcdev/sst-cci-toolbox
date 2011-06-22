@@ -17,25 +17,15 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.data.Item;
 
 /**
- * Rescaling applicable to sea surface temperature columns.
- *
- * @author Ralf Quast
+ * Sets the unit to percent.
  */
-final class ToSeaSurfaceTemperature extends AbstractRescalingToShort {
-
-    ToSeaSurfaceTemperature() {
-        super(0.001, 293.15);
-    }
+final class PercentUnit extends AbstractAttributeModification {
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
-        targetColumnBuilder
-                .unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE)
-                .validMin(-22000.0)
-                .validMax(31850.0)
-                .longName(null);
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        targetColumnBuilder.unit("%");
     }
 }

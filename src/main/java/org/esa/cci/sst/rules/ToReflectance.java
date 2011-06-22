@@ -35,6 +35,7 @@ final class ToReflectance extends AbstractRescalingToShort {
         targetColumnBuilder
                 .fillValue(-32768)
                 .validMin(0.0)
-                .validMax(null);
+                .validMax(null)
+                .longName(null);
     }
 }
