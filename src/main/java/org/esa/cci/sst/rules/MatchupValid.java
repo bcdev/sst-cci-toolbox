@@ -16,7 +16,9 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -28,11 +30,24 @@ import ucar.ma2.DataType;
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
 class MatchupValid extends AbstractImplicitRule {
 
+    private static final byte[] FLAG_VALUES = new byte[]{0, 1};
+    private static final String FLAG_MEANINGS = "valid invalid";
+    private static final DataType DATA_TYPE = DataType.BYTE;
+
+    @Override
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DATA_TYPE).
+                unsigned(true).
+                rank(1).
+                dimensions(Constants.DIMENSION_NAME_MATCHUP).
+                flagValues(FLAG_VALUES).
+                flagMeanings(FLAG_MEANINGS);
+    }
+
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array array = Array.factory(DataType.BYTE, new int[]{1});
-        final boolean invalid = getContext().getMatchup().isInvalid();
-        array.setByte(0, (byte) (invalid ? 1 : 0));
+        array.setByte(0, (byte) (getContext().getMatchup().isInvalid() ? 1 : 0));
         return array;
     }
 }

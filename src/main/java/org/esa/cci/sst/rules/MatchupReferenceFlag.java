@@ -30,7 +30,7 @@ import ucar.ma2.DataType;
 final class MatchupReferenceFlag extends AbstractImplicitRule {
 
     private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16};
-    private static final String FLAG_MEANINGS = "training testing algorithm_selection reference undefined";
+    private static final String FLAG_MEANINGS = "training test selection validation undefined";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
