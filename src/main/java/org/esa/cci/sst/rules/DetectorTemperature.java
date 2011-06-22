@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -44,6 +45,7 @@ class DetectorTemperature extends Rule {
                 .type(DATA_TYPE)
                 .scaleFactor(SCALE_FACTOR)
                 .fillValue(FILL_VALUE)
+                .unit("K")
                 .build();
     }
 
