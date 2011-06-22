@@ -54,9 +54,9 @@ class InsituLatitude extends AbstractImplicitRule {
                     .referenceObservation(context.getMatchup().getRefObs())
                     .build();
             try {
-                return observationReader.read("insitu.longitude", extractDefinition);
+                return observationReader.read("insitu.latitude", extractDefinition);
             } catch (IOException e) {
-                throw new RuleException("Unable to read longitude", e);
+                throw new RuleException("Unable to read latitude", e);
             }
         } else {
             final Array array = Array.factory(DATA_TYPE, SHAPE);
