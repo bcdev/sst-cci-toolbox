@@ -20,7 +20,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 
 /**
- * Rule that replaces the unit of the column with "deg".
+ * Rule that replaces the unit of the column with "degrees".
  *
  * @author Thomas Storm
  */
@@ -28,6 +28,6 @@ class DegreeUnit extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        targetColumnBuilder.unit("deg");
+        targetColumnBuilder.unit("degrees");
     }
 }
