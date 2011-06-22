@@ -150,6 +150,11 @@ class GunzipDecorator implements Reader {
         return delegate.getTime(recordNo, scanLine);
     }
 
+    @Override
+    public int getLineSkip() {
+        return delegate.getLineSkip();
+    }
+
     /**
      * Constructs File with suffix of original file without "dotgz" in tmp dir.
      * The tmp dir can be configured with property java.io.tmpdir.

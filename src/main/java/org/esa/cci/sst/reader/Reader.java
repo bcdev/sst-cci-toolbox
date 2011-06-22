@@ -142,4 +142,10 @@ public interface Reader {
      */
     long getTime(int recordNo, int scanLine) throws IOException;
 
+    /**
+     * Returns the number of lines which are skipped by the reader.
+     * @return The number of lines skipped by the reader.
+     */
+    int getLineSkip();
+
 }

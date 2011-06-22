@@ -112,6 +112,11 @@ abstract class NetcdfReader implements Reader {
         return datafile;
     }
 
+    @Override
+    public int getLineSkip() {
+        return 0;
+    }
+
     public final String getSensorName() {
         return sensorName;
     }

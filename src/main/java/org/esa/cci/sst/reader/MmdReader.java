@@ -139,6 +139,11 @@ public class MmdReader implements Reader {
         }
     }
 
+    @Override
+    public int getLineSkip() {
+        return 0;
+    }
+
     public int getMatchupId(final int recordNo) throws IOException {
         final Array matchupId = readData(matchupIds, new int[]{recordNo}, new int[]{1});
         return matchupId.getInt(0);

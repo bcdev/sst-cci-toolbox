@@ -177,6 +177,11 @@ abstract class AbstractProductReader implements Reader {
         return product.getGeoCoding();
     }
 
+    @Override
+    public int getLineSkip() {
+        return 0;
+    }
+
     protected Product readProduct(DataFile dataFile) throws IOException {
         Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
         if (product == null) {

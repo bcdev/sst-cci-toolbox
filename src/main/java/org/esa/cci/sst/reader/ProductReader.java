@@ -24,6 +24,8 @@ import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.framework.dataio.ProductFlipper;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
+import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
@@ -109,6 +111,18 @@ class ProductReader extends AbstractProductReader {
         observation.setSensor(getSensorName());
 
         return observation;
+    }
+
+    @Override
+    public int getLineSkip() {
+        final MetadataElement metadataElement = getProduct().getMetadataRoot().getElement("reader_generated");
+        if(metadataElement != null) {
+            final MetadataAttribute metadataAttribute = metadataElement.getAttribute("lead_line_skip");
+            if(metadataAttribute != null) {
+                return metadataAttribute.getData().getElemInt();
+            }
+        }
+        return 0;
     }
 
     private Product createHorizontallyFlippedProduct(Product product) throws IOException {

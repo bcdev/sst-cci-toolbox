@@ -172,6 +172,8 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         }
     }
 
+
+
     private void invalidateLines(Invalidator invalidator) throws IOException {
         final Variable variable = findVariable("lat");
         final int[] shape = columnShape(variable);
