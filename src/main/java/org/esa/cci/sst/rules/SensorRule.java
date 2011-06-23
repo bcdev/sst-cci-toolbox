@@ -18,6 +18,7 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
 
 /**
@@ -36,7 +37,7 @@ abstract class SensorRule extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        final org.esa.cci.sst.data.Sensor sensor = new SensorBuilder()
+        final Sensor sensor = new SensorBuilder()
                 .name(sensorName)
                 .build();
         targetColumnBuilder.sensor(sensor);
