@@ -20,7 +20,6 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
@@ -28,8 +27,6 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -47,7 +44,7 @@ import java.util.List;
  * @author Martin Boettcher
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class MetopReader extends MdReader {
+class MetopReader extends MdReader implements InsituSource {
 
     private static final int LAT_LON_FILL_VALUE = -32768;
 
@@ -102,6 +99,11 @@ class MetopReader extends MdReader {
         final double time = getDouble("msr_time", recordNo);
         final double dtime = getDTime(recordNo, scanLine);
         return TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+    }
+
+    @Override
+    public InsituSource getInsituSource() {
+        return this;
     }
 
     @Override
@@ -241,5 +243,25 @@ class MetopReader extends MdReader {
 
     private static Point newPoint(int lon, int lat) {
         return new Point(0.01 * lon, 0.01 * lat);
+    }
+
+    @Override
+    public final double readInsituLon(int recordNo) throws IOException {
+        return getNumberScaled("msr_lon", recordNo).floatValue();
+    }
+
+    @Override
+    public final double readInsituLat(int recordNo) throws IOException {
+        return getNumberScaled("msr_lat", recordNo).floatValue();
+    }
+
+    @Override
+    public final double readInsituTime(int recordNo) throws IOException {
+        return TimeUtil.secondsSince1981ToSecondsSinceEpoch(getDouble("msr_time", recordNo));
+    }
+
+    @Override
+    public final double readInsituSst(int recordNo) throws IOException {
+        return getNumberScaled("msr_sst", recordNo).doubleValue();
     }
 }

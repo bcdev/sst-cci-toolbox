@@ -35,7 +35,7 @@ import java.util.Date;
  * @author Martin Boettcher
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class AtsrMdReader extends MdReader {
+class AtsrMdReader extends MdReader implements InsituSource {
 
     AtsrMdReader(String sensorName) {
         super(sensorName);
@@ -84,11 +84,36 @@ class AtsrMdReader extends MdReader {
     }
 
     @Override
+    public InsituSource getInsituSource() {
+        return this;
+    }
+
+    @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
         return 0.0;
     }
 
     private static Date dateOf(double julianDate) {
         return TimeUtil.julianDateToDate(julianDate);
+    }
+
+    @Override
+    public final double readInsituLon(int recordNo) throws IOException {
+        return getFloat("insitu.longitude", recordNo);
+    }
+
+    @Override
+    public final double readInsituLat(int recordNo) throws IOException {
+        return getFloat("insitu.latitude", recordNo);
+    }
+
+    @Override
+    public final double readInsituTime(int recordNo) throws IOException {
+        return TimeUtil.julianDateToSecondsSinceEpoch(getDouble("insitu.time.julian", recordNo));
+    }
+
+    @Override
+    public final double readInsituSst(int recordNo) throws IOException {
+        return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue();
     }
 }

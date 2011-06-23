@@ -328,4 +328,9 @@ abstract class AbstractProductReader implements Reader {
                 throw new IllegalArgumentException("Unsupported transfer type " + raster.getTransferType() + ".");
         }
     }
+
+    @Override
+    public InsituSource getInsituSource() {
+        return null;
+    }
 }

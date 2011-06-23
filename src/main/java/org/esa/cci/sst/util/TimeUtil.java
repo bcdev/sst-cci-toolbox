@@ -168,9 +168,8 @@ public final class TimeUtil {
         return date;
     }
 
+    @Deprecated
     public static int secondsSince1981ToSecondsSince1978(int startTime) {
-        final long differenceInMillis = MILLIS_1981 - MILLIS_1978;
-        final int differenceInSeconds = (int) (differenceInMillis / 1000);
-        return startTime + differenceInSeconds;
+        return (int) secondsSince1981ToSecondsSinceEpoch(startTime);
     }
 }

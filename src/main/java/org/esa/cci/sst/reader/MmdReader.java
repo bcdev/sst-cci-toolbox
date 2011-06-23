@@ -144,6 +144,11 @@ public class MmdReader implements Reader {
         return 0;
     }
 
+    @Override
+    public InsituSource getInsituSource() {
+        return null;
+    }
+
     public int getMatchupId(final int recordNo) throws IOException {
         final Array matchupId = readData(matchupIds, new int[]{recordNo}, new int[]{1});
         return matchupId.getInt(0);

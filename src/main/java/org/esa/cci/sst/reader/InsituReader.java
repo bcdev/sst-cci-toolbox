@@ -143,6 +143,11 @@ class InsituReader extends NetcdfReader {
         throw new IllegalStateException("Not implemented");
     }
 
+    @Override
+    public InsituSource getInsituSource() {
+        return null;
+    }
+
     private double parseDouble(String attributeName) throws ParseException {
         return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
     }

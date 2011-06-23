@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
+import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import ucar.ma2.Array;
@@ -47,25 +48,26 @@ class InsituLatitude extends AbstractImplicitRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Context context = getContext();
+        final ReferenceObservation referenceObservation = context.getMatchup().getRefObs();
         final Reader observationReader = context.getObservationReader();
-        if (observationReader != null) {
-            final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                    .shape(SHAPE)
-                    .referenceObservation(context.getMatchup().getRefObs())
-                    .build();
-            try {
+        try {
+            if (observationReader != null) {
+                final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
+                        .shape(SHAPE)
+                        .referenceObservation(referenceObservation)
+                        .build();
                 return observationReader.read("insitu.latitude", extractDefinition);
-            } catch (IOException e) {
-                throw new RuleException("Unable to read latitude", e);
+            } else {
+                final Array array = Array.factory(DATA_TYPE, SHAPE);
+                final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
+                if (insituSource != null) {
+                    final double lat = insituSource.readInsituLat(referenceObservation.getRecordNo());
+                    array.setDouble(0, lat);
+                }
+                return array;
             }
-        } else {
-            final Array array = Array.factory(DATA_TYPE, SHAPE);
-            final ReferenceObservation referenceObservation = getContext().getMatchup().getRefObs();
-            final double lon = referenceObservation.getPoint().getGeometry().getFirstPoint().getX();
-            for(int i = 0; i < array.getSize(); i++) {
-                array.setFloat(i, (float) lon);
-            }
-            return array;
+        } catch (IOException e) {
+            throw new RuleException("Unable to read in-situ latitude", e);
         }
     }
 }

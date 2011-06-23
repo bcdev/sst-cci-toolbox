@@ -26,8 +26,6 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -41,7 +39,7 @@ import java.io.IOException;
  * @author Martin Boettcher
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class SeviriReader extends MdReader {
+class SeviriReader extends MdReader implements InsituSource {
 
     protected int noOfLines;
     protected int noOfColumns;
@@ -124,6 +122,11 @@ class SeviriReader extends MdReader {
     }
 
     @Override
+    public InsituSource getInsituSource() {
+        return this;
+    }
+
+    @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
         return getDouble("dtime", recordNo, scanLine, 0);
     }
@@ -138,5 +141,25 @@ class SeviriReader extends MdReader {
         final VariableSampleSource latSource = new VariableSampleSource(lat, latArray);
 
         return new PixelLocatorGeoCoding(lonSource, latSource);
+    }
+
+    @Override
+    public final double readInsituLon(int recordNo) throws IOException {
+        return getNumberScaled("msr_lon", recordNo).floatValue();
+    }
+
+    @Override
+    public final double readInsituLat(int recordNo) throws IOException {
+        return getNumberScaled("msr_lat", recordNo).floatValue();
+    }
+
+    @Override
+    public final double readInsituTime(int recordNo) throws IOException {
+        return TimeUtil.secondsSince1981ToSecondsSinceEpoch(getDouble("msr_time", recordNo));
+    }
+
+    @Override
+    public final double readInsituSst(int recordNo) throws IOException {
+        return getNumberScaled("msr_sst", recordNo).doubleValue();
     }
 }

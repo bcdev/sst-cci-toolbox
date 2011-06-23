@@ -132,7 +132,6 @@ public interface Reader {
     /**
      * Returns the time value corresponding to the given record number and scan line.
      *
-     *
      * @param recordNo The record number.
      * @param scanLine The scan line.
      *
@@ -144,8 +143,10 @@ public interface Reader {
 
     /**
      * Returns the number of lines which are skipped by the reader.
+     *
      * @return The number of lines skipped by the reader.
      */
     int getLineSkip();
 
+    InsituSource getInsituSource();
 }
