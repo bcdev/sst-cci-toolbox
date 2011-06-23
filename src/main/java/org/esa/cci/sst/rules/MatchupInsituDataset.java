@@ -36,7 +36,7 @@ import java.text.MessageFormat;
 final class MatchupInsituDataset extends AbstractImplicitRule {
 
     private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16, 32, 64, -128};
-    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variablity";
+    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variability";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
