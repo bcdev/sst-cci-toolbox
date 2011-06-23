@@ -240,7 +240,7 @@ public class Arc1ProcessingTool extends BasicTool {
         final String latLonFileName = latlonFile.getName();
         submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
         submitCallsWriter.format(
-                "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh /exports%s tmp/%s\n",
+                "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
                 l1bPath, latLonFileName);
         collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
         collectCallsWriter.format(
