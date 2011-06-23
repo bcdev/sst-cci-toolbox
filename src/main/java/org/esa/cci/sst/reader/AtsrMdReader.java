@@ -89,13 +89,12 @@ class AtsrMdReader extends MdReader {
     @Override
     public long getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("atsr.time.julian", recordNo);
-        final double dtime = getDTime(recordNo, scanLine);
-        return TimeUtil.secondsSince1981ToDate(time + dtime).getTime();
+        return TimeUtil.julianDateToDate(time).getTime();
     }
 
     @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
-        return getShort("matchup.time.difference", recordNo);
+        return 0.0;
     }
 
     private static Date dateOf(double julianDate) {
