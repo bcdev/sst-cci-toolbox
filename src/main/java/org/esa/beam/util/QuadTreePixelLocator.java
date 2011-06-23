@@ -152,7 +152,17 @@ public class QuadTreePixelLocator implements PixelLocator {
             if (invalidated) {
                 for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
                     for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
-                        result.add(j, i, lons[ij], lats[ij], distances[ij]);
+                        result.updateNearest(j, i, lons[ij], lats[ij], distances[ij]);
+                    }
+                }
+                for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
+                    for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
+                        result.updateFarthestLon(j, i, lons[ij], lats[ij], distances[ij]);
+                    }
+                }
+                for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
+                    for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
+                        result.updateFarthestLat(j, i, lons[ij], lats[ij], distances[ij]);
                     }
                 }
             }
@@ -407,47 +417,17 @@ public class QuadTreePixelLocator implements PixelLocator {
             return false;
         }
 
-        void add(int x, int y, double lon, double lat, double distance) {
-            if (distance < distances[0]) {
-                if (Math.abs(this.lon - lons[0]) > Math.abs(this.lon - lons[1])) {
-                    if (Math.abs(this.lat - lats[1]) > Math.abs(this.lat - lats[2])) {
-                        xs[2] = xs[1];
-                        ys[2] = ys[1];
-                        lons[2] = lons[1];
-                        lats[2] = lats[1];
-                        distances[2] = distances[1];
-                    }
-                    xs[1] = xs[0];
-                    ys[1] = ys[0];
-                    lons[1] = lons[0];
-                    lats[1] = lats[0];
-                    distances[1] = distances[0];
-                }
-                xs[0] = x + 0.5;
-                ys[0] = y + 0.5;
-                lons[0] = lon;
-                lats[0] = lat;
-                distances[0] = distance;
-            } else if (Math.abs(this.lon - lon) > Math.abs(this.lon - lons[1])) {
-                if (Math.abs(this.lat - lats[1]) > Math.abs(this.lat - lats[2])) {
-                    xs[2] = xs[1];
-                    ys[2] = ys[1];
-                    lons[2] = lons[1];
-                    lats[2] = lats[1];
-                    distances[2] = distances[1];
-                }
-                xs[1] = x + 0.5;
-                ys[1] = y + 0.5;
-                lons[1] = lon;
-                lats[1] = lat;
-                distances[1] = distance;
-            } else if (Math.abs(this.lat - lat) > Math.abs(this.lat - lats[2])) {
-                xs[2] = x + 0.5;
-                ys[2] = y + 0.5;
-                lons[2] = lon;
-                lats[2] = lat;
-                distances[2] = distance;
-            }
+        private boolean isFartherLon(double lon, double lon2) {
+            return Math.abs(lons[0] - lon) > Math.abs(lons[0] - lon2);
+        }
+
+        private boolean isFartherLat(double lat, double lat2) {
+            return Math.abs(this.lat - lat) > Math.abs(this.lat - lat2);
+        }
+
+        private boolean isTriangle(double lon, double lat) {
+            return (Math.signum(lats[0] - lats[1]) == Math.signum(lats[0] - lat)
+                    || Math.signum(lons[0] - lons[1]) == Math.signum(lons[0] - lon));
         }
 
         void get(Point2D p) {
@@ -463,6 +443,40 @@ public class QuadTreePixelLocator implements PixelLocator {
 
         private double getDistance() {
             return distances[0];
+        }
+
+        public void updateNearest(int x, int y, double lon, double lat, double distance) {
+            if (distance < distances[0]) {
+                xs[0] = x + 0.5;
+                ys[0] = y + 0.5;
+                lons[0] = lon;
+                lats[0] = lat;
+                distances[0] = distance;
+            }
+        }
+
+        public void updateFarthestLon(int x, int y, double lon, double lat, double distance) {
+            if (isFartherLon(lon, lons[1])) {
+                xs[1] = x + 0.5;
+                ys[1] = y + 0.5;
+                lons[1] = lon;
+                lats[1] = lat;
+                distances[1] = distance;
+            }
+        }
+
+        public void updateFarthestLat(int x, int y, double lon, double lat, double distance) {
+            if (!isFarthestLon(x, y) && isFartherLat(lat, lats[2]) && isTriangle(lon, lat)) {
+                xs[2] = x + 0.5;
+                ys[2] = y + 0.5;
+                lons[2] = lon;
+                lats[2] = lat;
+                distances[2] = distance;
+            }
+        }
+
+        private boolean isFarthestLon(int x, int y) {
+            return x + 0.5 == xs[1] && y + 0.5 == ys[1];
         }
     }
 }

@@ -130,39 +130,13 @@ class SeviriReader extends MdReader {
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
-        final Array lonArray;
-        final Array latArray;
-        try {
-            lonArray = getArray(recordNo, "lon");
-            latArray = getArray(recordNo, "lat");
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
-        }
-        final VariableSampleSource lonSource = new VariableSampleSource(lonArray);
-        final VariableSampleSource latSource = new VariableSampleSource(latArray);
+        final Variable lon = getVariable("lon");
+        final Variable lat = getVariable("lat");
+        final Array lonArray = getData(lon, recordNo);
+        final Array latArray = getData(lat, recordNo);
+        final VariableSampleSource lonSource = new VariableSampleSource(lon, lonArray);
+        final VariableSampleSource latSource = new VariableSampleSource(lat, latArray);
+
         return new PixelLocatorGeoCoding(lonSource, latSource);
-    }
-
-    private Array getArray(int recordNo, String varName) throws IOException, InvalidRangeException {
-        final NetcdfFile netcdfFile = getNetcdfFile();
-        final Variable variable = netcdfFile.findVariable(varName);
-        final int[] origin = new int[variable.getRank()];
-        origin[0] = recordNo;
-        final int[] shape = variable.getShape();
-        shape[0] = 1;
-        Array lonArray = variable.read(origin, shape);
-        return scale(getColumn(varName).getScaleFactor(), lonArray);
-    }
-
-    private Array scale(Number scaleFactor, Array array) {
-        if (scaleFactor == null) {
-            return array;
-        }
-        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
-        for (int i = 0; i < array.getSize(); i++) {
-            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
-            scaledArray.setDouble(i, value);
-        }
-        return scaledArray;
     }
 }

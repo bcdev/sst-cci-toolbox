@@ -111,39 +111,14 @@ class MetopReader extends MdReader {
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
-        final String lonVarName = "lon";
-        final String latVarName = "lat";
-        final Variable lonVariable = getVariable(lonVarName);
-        final Variable latVariable = getVariable(latVarName);
-        final int[] origin = new int[lonVariable.getRank()];
-        origin[0] = recordNo;
-        final int[] shape = lonVariable.getShape();
-        shape[0] = 1;
-        Array lonArray;
-        Array latArray;
-        try {
-            lonArray = lonVariable.read(origin, shape);
-            latArray = latVariable.read(origin, shape);
-            lonArray = scale(getColumn(lonVarName).getScaleFactor(), lonArray);
-            latArray = scale(getColumn(latVarName).getScaleFactor(), latArray);
-        } catch (IOException e) {
-            throw new ToolException("Unable to read geographic information.", e, ToolException.TOOL_IO_ERROR);
-        } catch (InvalidRangeException e) {
-            throw new ToolException("Unable to read geographic information.", e, ToolException.TOOL_IO_ERROR);
-        }
-        return new PixelLocatorGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
-    }
+        final Variable lon = getVariable("lon");
+        final Variable lat = getVariable("lat");
+        final Array lonArray = getData(lon, recordNo);
+        final Array latArray = getData(lat, recordNo);
+        final VariableSampleSource lonSource = new VariableSampleSource(lon, lonArray);
+        final VariableSampleSource latSource = new VariableSampleSource(lat, latArray);
 
-    private Array scale(Number scaleFactor, Array array) {
-        if (scaleFactor == null) {
-            return array;
-        }
-        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
-        for (int i = 0; i < array.getSize(); i++) {
-            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
-            scaledArray.setDouble(i, value);
-        }
-        return scaledArray;
+        return new PixelLocatorGeoCoding(lonSource, latSource);
     }
 
     private Point[] getPoints(int recordNo) throws IOException {

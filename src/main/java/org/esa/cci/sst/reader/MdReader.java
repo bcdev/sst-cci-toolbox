@@ -327,6 +327,29 @@ abstract class MdReader extends NetcdfReader {
         return ((ArrayDouble.D2) array).get(0, y);
     }
 
+    protected Array getData(Variable variable, int recordNo) throws IOException {
+        final String role = variable.getName();
+        final Array cachedArray = arrayMap.get(role);
+        if (cachedArray != null) {
+            final Integer cachedRecord = indexMap.get(role);
+            if (cachedRecord != null && cachedRecord == recordNo) {
+                return cachedArray;
+            }
+        }
+        final int[] shape = variable.getShape();
+        shape[0] = 1;
+        final int[] start = new int[shape.length];
+        start[0] = recordNo;
+        try {
+            final Array array = variable.read(start, shape);
+            arrayMap.put(role, array);
+            indexMap.put(role, recordNo);
+            return array;
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+    }
+
     private PixelLocator getPixelLocator(int recordNo) throws IOException {
         final Variable lon = getVariable("lon");
         final Variable lat = getVariable("lat");
@@ -367,29 +390,6 @@ abstract class MdReader extends NetcdfReader {
             }
         }
         return variable;
-    }
-
-    private Array getData(Variable variable, int recordNo) throws IOException {
-        final String role = variable.getName();
-        final Array cachedArray = arrayMap.get(role);
-        if (cachedArray != null) {
-            final Integer cachedRecord = indexMap.get(role);
-            if (cachedRecord != null && cachedRecord == recordNo) {
-                return cachedArray;
-            }
-        }
-        final int[] shape = variable.getShape();
-        shape[0] = 1;
-        final int[] start = new int[shape.length];
-        start[0] = recordNo;
-        try {
-            final Array array = variable.read(start, shape);
-            arrayMap.put(role, array);
-            indexMap.put(role, recordNo);
-            return array;
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
-        }
     }
 
     private static Number getNumberScaled(Variable variable, Number number) throws IOException {
