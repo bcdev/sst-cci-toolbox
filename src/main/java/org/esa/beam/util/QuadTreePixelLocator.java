@@ -25,6 +25,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
+
 /**
  * A {@link PixelLocator} implementation using a quad-tree algorithm.
  *
@@ -35,13 +38,13 @@ import java.util.Map;
 public class QuadTreePixelLocator implements PixelLocator {
 
     private static final double D2R = Math.PI / 180.0;
+    private static final int M = 5;
 
     private final Map<Rectangle, GeoRegion> regionMap =
             Collections.synchronizedMap(new HashMap<Rectangle, GeoRegion>());
     private final SampleSource lonSource;
     private final SampleSource latSource;
     private final double tolerance;
-    private final int macroPixelSize;
 
     /**
      * Constructs a new instance of this class.
@@ -62,8 +65,6 @@ public class QuadTreePixelLocator implements PixelLocator {
         this.latSource = latSource;
         // corresponds to 5 km at the equator, i.e. half a pixel for TMI and AMSR-E
         this.tolerance = 0.045;
-        // suitable for Metop MD sub-scenes, can be less for other types
-        this.macroPixelSize = 5;
     }
 
 
@@ -122,7 +123,7 @@ public class QuadTreePixelLocator implements PixelLocator {
     }
 
     private boolean quadTreeSearch(int depth, double lat, double lon, int x, int y, int w, int h, Result result) {
-        if (w < macroPixelSize || h < macroPixelSize) {
+        if (w < M || h < M) {
             return false;
         }
         @SuppressWarnings({"UnnecessaryLocalVariable"})
@@ -132,40 +133,19 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int y0 = y;
         final int y1 = y0 + h - 1;
 
-        if (w == macroPixelSize && h == macroPixelSize) {
-            final double[] lats = new double[macroPixelSize * macroPixelSize];
-            final double[] lons = new double[macroPixelSize * macroPixelSize];
-            final double[] distances = new double[macroPixelSize * macroPixelSize];
-            final double f = Math.cos(lat * D2R);
+        if (w == M && h == M) {
+            final double[] lats = new double[M * M];
+            final double[] lons = new double[M * M];
+            final double[] deltas = new double[M * M];
 
-            for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
-                for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
+            for (int i = y0, ij = 0; i < y0 + M; i++) {
+                for (int j = x0; j < x0 + M; j++, ij++) {
                     lats[ij] = getLat(j, i);
                     lons[ij] = getLon(j, i);
-                    distances[ij] = sqr(lat - lats[ij], f * Result.deltaLon(lon, lons[ij]));
+                    deltas[ij] = squaredEuclideanDistance(lat - lats[ij], Result.deltaLon(lon, lons[ij]));
                 }
             }
-
-            final boolean invalidated = result.invalidate(distances);
-            if (invalidated) {
-                for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
-                    for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
-                        result.updateNearest(j, i, lons[ij], lats[ij], distances[ij]);
-                    }
-                }
-                // todo - optimize: only a single point is needed at this stage of the algorithm
-                for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
-                    for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
-                        result.updateFarthestLon(j, i, lons[ij], lats[ij]);
-                    }
-                }
-                for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
-                    for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
-                        result.updateFarthest(j, i, lons[ij], lats[ij]);
-                    }
-                }
-            }
-            return invalidated;
+            return result.invalidate(x0, y0, lons, lats, deltas);
         }
         if (w > 64 && h > 64) {
             final GeoRegion geoRegion = getGeoRegion(x0, x1, y0, y1);
@@ -204,7 +184,7 @@ public class QuadTreePixelLocator implements PixelLocator {
                     minLon = min(lon1, minLon);
                     maxLon = max(lon0, maxLon);
                     maxLon = max(lon1, maxLon);
-                    final boolean antimeridianIncluded = Math.abs(lastLon0 - lon0) > 180.0 || Math.abs(
+                    final boolean antimeridianIncluded = abs(lastLon0 - lon0) > 180.0 || abs(
                             lastLon1 - lon1) > 180.0;
                     if (antimeridianIncluded) {
                         return putNull(pixelRegion);
@@ -234,7 +214,7 @@ public class QuadTreePixelLocator implements PixelLocator {
                     minLon = min(lon1, minLon);
                     maxLon = max(lon0, maxLon);
                     maxLon = max(lon1, maxLon);
-                    final boolean antimeridianIncluded = Math.abs(lastLon0 - lon0) > 180.0 || Math.abs(
+                    final boolean antimeridianIncluded = abs(lastLon0 - lon0) > 180.0 || abs(
                             lastLon1 - lon1) > 180.0;
                     if (antimeridianIncluded) {
                         return putNull(pixelRegion);
@@ -262,11 +242,11 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int w2r = w - w2;
         final int h2r = h - h2;
 
-        if (w2 < macroPixelSize) {
-            w2 = macroPixelSize;
+        if (w2 < M) {
+            w2 = M;
         }
-        if (h2 < macroPixelSize) {
-            h2 = macroPixelSize;
+        if (h2 < M) {
+            h2 = M;
         }
 
         final boolean b1;
@@ -395,131 +375,150 @@ public class QuadTreePixelLocator implements PixelLocator {
         return (a >= b) ? a : b;
     }
 
-    private static double sqr(double dx, double dy) {
+    private static double squaredEuclideanDistance(double dx, double dy) {
         return dx * dx + dy * dy;
     }
 
     private static final class Result {
 
+        private static final int M = 5;
         private static final int N = 3;
 
-        private final double[] xs = new double[N];
-        private final double[] ys = new double[N];
-        private final double[] lons = new double[N];
-        private final double[] lats = new double[N];
 
-        private final double lon;
-        private final double lat;
+        private final double[] gcpX = new double[N];
+        private final double[] gcpY = new double[N];
+        private final double[] gcpLon = new double[N];
+        private final double[] gcpLat = new double[N];
+
         private final Rotation rotation;
-        private double distance = Double.POSITIVE_INFINITY;
+
+        private int sceneX;
+        private int sceneY;
+        private double[] sceneLon;
+        private double[] sceneLat;
+        private double[] sceneDeltas;
+        private double delta = Double.POSITIVE_INFINITY;
 
         static double deltaLon(double lon, double lon0) {
-            final double d = Math.abs(lon - lon0);
+            final double d = abs(lon - lon0);
             return d < 180.0 ? d : 360.0 - d;
         }
 
         Result(double lon, double lat) {
-            this.lon = lon;
-            this.lat = lat;
             this.rotation = new Rotation(lon, lat);
         }
 
-        boolean invalidate(double... distances) {
-            for (int i = 0, nanCount = 0, dsLength = distances.length; i < dsLength; i++) {
-                if (Double.isNaN(distances[i])) {
+        boolean invalidate(int x0, int y0, double[] longitudes, double[] latitudes, double[] deltas) {
+            for (int i = 0, nanCount = 0, dsLength = deltas.length; i < dsLength; i++) {
+                if (Double.isNaN(deltas[i])) {
                     nanCount++;
                 }
-                if (nanCount > distances.length - N) {
+                if (nanCount > deltas.length - N) {
                     return false;
                 }
             }
-            for (int i = 0, dsLength = distances.length; i < dsLength; i++) {
-                if (distances[i] < distance) {
-                    for (int k = 0; k < N; k++) {
-                        xs[k] = 0.0;
-                        ys[k] = 0.0;
-                        lons[k] = lon;
-                        lats[k] = lat;
-                        distance = Double.POSITIVE_INFINITY;
-                    }
+            for (final double d : deltas) {
+                if (d < delta) {
+                    this.sceneX = x0;
+                    this.sceneY = y0;
+                    this.sceneLon = longitudes;
+                    this.sceneLat = latitudes;
+                    this.sceneDeltas = deltas;
+                    this.delta = d;
                     return true;
                 }
             }
             return false;
         }
 
-        private boolean isFartherLon(double lon) {
-            return deltaLon(lons[0], lon) > deltaLon(lons[0], lons[1]);
-        }
-
-        private boolean isFarther(double lon, double lat) {
-            final Point2D.Double a = new Point2D.Double(lons[0], lats[0]);
-            final Point2D.Double b = new Point2D.Double(lons[1], lats[1]);
-            final Point2D.Double c = new Point2D.Double(lons[2], lats[2]);
-            final Point2D.Double p = new Point2D.Double(lon, lat);
-
-            rotation.transform(a);
-            rotation.transform(b);
-            rotation.transform(c);
-            rotation.transform(p);
-
-            final double apx = a.getX() - p.getX();
-            final double apy = a.getY() - p.getY();
-            final double bpx = b.getX() - p.getX();
-            final double bpy = b.getY() - p.getY();
-            final double abx = a.getX() - b.getX();
-            final double aby = a.getY() - b.getY();
-            final double acx = a.getX() - c.getX();
-            final double acy = a.getY() - c.getY();
-            final double bcx = b.getX() - c.getX();
-            final double bcy = b.getY() - c.getY();
-
-            final double ap = apx * apx + apy * apy;
-            final double bp = bpx * bpx + bpy * bpy;
-            final double ab = abx * abx + aby * aby;
-            final double ac = acx * acx + acy * acy;
-            final double bc = bcx * bcx + bcy * bcy;
-
-            return (ap + bp) / (ab + Math.abs(ap - bp)) > (ac + bc) / (ab + Math.abs(ac - bc));
-        }
-
         void get(Point2D p) {
-            rotation.transform(lons, lats);
-            final RationalFunctionModel xModel = new RationalFunctionModel(1, 0, lons, lats, xs);
-            final RationalFunctionModel yModel = new RationalFunctionModel(1, 0, lons, lats, ys);
+            findNearestPixel();
+            findFarthestPixel();
+            findMostSuitableThirdPixel();
 
+            rotation.transform(gcpLon, gcpLat);
+            final RationalFunctionModel xModel = new RationalFunctionModel(1, 0, gcpLon, gcpLat, gcpX);
+            final RationalFunctionModel yModel = new RationalFunctionModel(1, 0, gcpLon, gcpLat, gcpY);
             final double x = xModel.getValue(0.0, 0.0);
             final double y = yModel.getValue(0.0, 0.0);
 
             p.setLocation(x, y);
         }
 
-        public void updateNearest(int x, int y, double lon, double lat, double d) {
-            if (d < distance) {
-                xs[0] = xs[1] = xs[2] = x + 0.5;
-                ys[0] = ys[1] = ys[2] = y + 0.5;
-                lons[0] = lons[2] = lons[2] = lon;
-                lats[0] = lats[1] = lats[2] = lat;
-                distance = d;
+        private void findNearestPixel() {
+            double minDelta = Double.POSITIVE_INFINITY;
+
+            for (int y = sceneY, xy = 0; y < sceneY + M; y++) {
+                for (int x = sceneX; x < sceneX + M; x++, xy++) {
+                    if (sceneDeltas[xy] < minDelta) {
+                        gcpX[0] = gcpX[1] = gcpX[2] = x + 0.5;
+                        gcpY[0] = gcpY[1] = gcpY[2] = y + 0.5;
+                        gcpLon[0] = gcpLon[1] = gcpLon[2] = sceneLon[xy];
+                        gcpLat[0] = gcpLat[1] = gcpLat[2] = sceneLat[xy];
+                        minDelta = sceneDeltas[xy];
+                    }
+                }
             }
         }
 
-        public void updateFarthestLon(int x, int y, double lon, double lat) {
-            if (isFartherLon(lon)) {
-                xs[1] = x + 0.5;
-                ys[1] = y + 0.5;
-                lons[1] = lon;
-                lats[1] = lat;
+        private void findFarthestPixel() {
+            double maxDelta = Double.NEGATIVE_INFINITY;
+
+            for (int y = sceneY, xy = 0; y < sceneY + M; y++) {
+                for (int x = sceneX; x < sceneX + M; x++, xy++) {
+                    if (sceneDeltas[xy] > maxDelta) {
+                        gcpX[1] = x + 0.5;
+                        gcpY[1] = y + 0.5;
+                        gcpLon[1] = sceneLon[xy];
+                        gcpLat[1] = sceneLat[xy];
+                        maxDelta = sceneDeltas[xy];
+                    }
+                }
             }
         }
 
-        public void updateFarthest(int x, int y, double lon, double lat) {
-            if (isFarther(lon, lat)) {
-                xs[2] = x + 0.5;
-                ys[2] = y + 0.5;
-                lons[2] = lon;
-                lats[2] = lat;
+        private void findMostSuitableThirdPixel() {
+            for (int y = sceneY, xy = 0; y < sceneY + M; y++) {
+                for (int x = sceneX; x < sceneX + M; x++, xy++) {
+                    if (isMoreSuitableThirdPixel(sceneLon[xy], sceneLat[xy])) {
+                        gcpX[2] = x + 0.5;
+                        gcpY[2] = y + 0.5;
+                        gcpLon[2] = sceneLon[xy];
+                        gcpLat[2] = sceneLat[xy];
+                    }
+                }
             }
+        }
+
+        private boolean isMoreSuitableThirdPixel(double lon, double lat) {
+            final Point2D a = new Point2D.Double(gcpLon[0], gcpLat[0]);
+            final Point2D b = new Point2D.Double(gcpLon[1], gcpLat[1]);
+            final Point2D c = new Point2D.Double(gcpLon[2], gcpLat[2]);
+            final Point2D p = new Point2D.Double(lon, lat);
+
+            rotation.transform(a);
+            rotation.transform(b);
+            rotation.transform(c);
+            rotation.transform(p);
+
+            final double abx = a.getX() - b.getX();
+            final double aby = a.getY() - b.getY();
+            final double acx = a.getX() - c.getX();
+            final double acy = a.getY() - c.getY();
+            final double bcx = b.getX() - c.getX();
+            final double bcy = b.getY() - c.getY();
+            final double apx = a.getX() - p.getX();
+            final double apy = a.getY() - p.getY();
+            final double bpx = b.getX() - p.getX();
+            final double bpy = b.getY() - p.getY();
+
+            final double ab = sqrt(abx * abx + aby * aby);
+            final double ac = sqrt(acx * acx + acy * acy);
+            final double bc = sqrt(bcx * bcx + bcy * bcy);
+            final double ap = sqrt(apx * apx + apy * apy);
+            final double bp = sqrt(bpx * bpx + bpy * bpy);
+
+            return (ap + bp) / (ab + abs(ap - bp)) > (ac + bc) / (ab + abs(ac - bc));
         }
     }
 }
