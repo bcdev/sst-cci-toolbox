@@ -137,12 +137,13 @@ public class QuadTreePixelLocator implements PixelLocator {
             final double[] lats = new double[M * M];
             final double[] lons = new double[M * M];
             final double[] deltas = new double[M * M];
+            final double f = Math.cos(lat * D2R);
 
             for (int i = y0, ij = 0; i < y0 + M; i++) {
                 for (int j = x0; j < x0 + M; j++, ij++) {
                     lats[ij] = getLat(j, i);
                     lons[ij] = getLon(j, i);
-                    deltas[ij] = squaredEuclideanDistance(lat - lats[ij], Result.deltaLon(lon, lons[ij]));
+                    deltas[ij] = delta(lat - lats[ij], f * Result.deltaLon(lon, lons[ij]));
                 }
             }
             return result.invalidate(x0, y0, lons, lats, deltas);
@@ -375,7 +376,7 @@ public class QuadTreePixelLocator implements PixelLocator {
         return (a >= b) ? a : b;
     }
 
-    private static double squaredEuclideanDistance(double dx, double dy) {
+    private static double delta(double dx, double dy) {
         return dx * dx + dy * dy;
     }
 
