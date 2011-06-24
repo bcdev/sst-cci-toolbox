@@ -1,0 +1,32 @@
+[PRODUCT_INFO]
+    ncformat = CCI_MMD_AATSR_ncfmt.INF
+[OUTPUTS]
+    id = matchup.id
+    lat = lat
+    lon = lon
+[SDI]
+    nrec = 2
+    atsr.3.saharan_dust_index.2
+    !atsr.3.saharan_dust_index.3
+[ARC]
+    nrec = 6
+    atsr.3.sea_surface_temperature.ARC.N2
+    !atsr.3.sea_surface_temperature.ARC.N3
+    !atsr.3.sea_surface_temperature.ARC.N2*
+    !atsr.3.sea_surface_temperature.ARC.D2
+    !atsr.3.sea_surface_temperature.ARC.D3
+    !atsr.3.sea_surface_temperature.ARC.D2*
+[ATS]
+    nrec = 4
+    atsr.3.sea_surface_temperature.op.N2
+    !atsr.3.sea_surface_temperature.op.N3
+    !atsr.3.sea_surface_temperature.op.D2
+    !atsr.3.sea_surface_temperature.op.D3
+[PCLR]
+    nrec = 6
+    atsr.3.cloud_mask.bayes_nadir_min
+    !atsr.3.cloud_mask.bayes_nadir_max
+    !atsr.3.cloud_mask.bayes_forward_min
+    !atsr.3.cloud_mask.bayes_forward_max
+    !atsr.3.cloud_mask.bayes_dual_min
+    atsr.3.cloud_mask.bayes_dual_max
