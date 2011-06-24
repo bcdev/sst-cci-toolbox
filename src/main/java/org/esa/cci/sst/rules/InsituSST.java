@@ -18,7 +18,9 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
+import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import ucar.ma2.Array;
@@ -35,7 +37,8 @@ import java.io.IOException;
 class InsituSST extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
-    private static final int[] SHAPE = new int[]{1, 48};
+    private static final int[] SHAPE = {1, 1};
+    private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
@@ -46,23 +49,26 @@ class InsituSST extends AbstractImplicitRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Context context = getContext();
+        final ReferenceObservation referenceObservation = context.getMatchup().getRefObs();
         final Reader observationReader = context.getObservationReader();
-        if (observationReader != null) {
-            final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                    .shape(SHAPE)
-                    .referenceObservation(context.getMatchup().getRefObs())
-                    .build();
-            try {
+        try {
+            if (observationReader != null) {
+                final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
+                        .shape(SHAPE)
+                        .referenceObservation(referenceObservation)
+                        .build();
                 return observationReader.read("insitu.sea_surface_temperature", extractDefinition);
-            } catch (IOException e) {
-                throw new RuleException("Unable to read sea surface temperature.", e);
+            } else {
+                final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
+                final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
+                if (insituSource != null) {
+                    final double sst = insituSource.readInsituSst(referenceObservation.getRecordNo());
+                    array.setDouble(0, sst);
+                }
+                return array;
             }
-        } else {
-            final Array array = Array.factory(DATA_TYPE, SHAPE);
-            for(int i = 0; i < array.getSize(); i++) {
-                array.setFloat(i, sourceColumn.getFillValue().floatValue());
-            }
-            return array;
+        } catch (IOException e) {
+            throw new RuleException("Unable to read in-situ sea surface temperature", e);
         }
     }
 }

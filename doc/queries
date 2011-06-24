@@ -298,4 +298,66 @@ mygisdb=> select pattern, count(*) from mm_matchup m, mm_observation o where m.r
     1022 |     3
 (126 rows)
 
+delete related observation after some date
+------------------------------------------
 
+select o.sensor, max(r.time) 
+from mm_observation o, mm_coincidence c, mm_matchup m, mm_observation r 
+where c.observation_id = o.id and c.matchup_id = m.id and m.refObs_id = r.id
+group by o.sensor;
+
+    sensor     |          max           
+---------------+------------------------
+ amsre         | 2010-02-10 23:17:31.51
+ avhrr_orb.n16 | 2010-02-10 23:17:31.51
+ seviri        | 2010-12-31 23:59:40.72
+ avhrr_orb.n19 | 2010-02-10 23:17:31.51
+ tmi           | 2010-02-10 23:17:31.51
+ atsr_orb.3    | 2010-02-10 23:16:27.17
+ avhrr_orb.n15 | 2010-02-10 23:17:31.51
+ avhrr_orb.n18 | 2010-02-10 23:17:31.51
+ metop         | 2010-12-31 23:49:47.09
+ avhrr_orb.n17 | 2010-02-10 23:17:31.51
+ seaice        | 2010-02-10 23:11:16.34
+(11 rows)
+
+select c.id, o.sensor, r.time 
+from mm_coincidence c, mm_observation o, mm_matchup m, mm_observation r
+where c.observation_id = o.id and c.matchup_id = m.id and m.refObs_id = r.id
+and ( o.sensor = 'amsre' or o.sensor = 'avhrr_orb.n16' or o.sensor = 'avhrr_orb.n19' or o.sensor = 'tmi' or o.sensor = 'atsr_orb.3' or o.sensor = 'avhrr_orb.n15' or o.sensor = 'avhrr_orb.n18' or o.sensor = 'avhrr_orb.n17' or o.sensor = 'seaice' ) and r.time >= '2010-02-10T23:11:16.34Z'
+order by r.time;
+
+delete from mm_coincidence x
+where x.id in (
+select c.id 
+from mm_coincidence c, mm_observation o, mm_matchup m, mm_observation r
+where c.observation_id = o.id and c.matchup_id = m.id and m.refObs_id = r.id
+and ( o.sensor = 'amsre' or o.sensor = 'avhrr_orb.n16' or o.sensor = 'avhrr_orb.n19' or o.sensor = 'tmi' or o.sensor = 'atsr_orb.3' or o.sensor = 'avhrr_orb.n15' or o.sensor = 'avhrr_orb.n18' or o.sensor = 'avhrr_orb.n17' or o.sensor = 'seaice' ) and r.time >= '2010-02-11T00:00:00Z' );
+
+related matchups query
+----------------------
+
+select m.id, r.sensor, r.time, st_astext(r.point) 
+from mm_matchup m, mm_observation r 
+where m.refobs_id = r.id
+and r.time >= '2010-02-11T00:00:00' and r.time < '2010-02-11T01:00:00'
+order by r.time;
+
+   id    | sensor  |          time          |                 st_astext                  
+---------+---------+------------------------+--------------------------------------------
+ 4963284 | atsr_md | 2010-02-11 00:00:10.59 | POINT(140.199249267578 -46.2043418884277)
+
+explain analyse
+select o.id 
+from mm_observation o
+where o.sensor = 'atsr_orb.3'
+and o.time >= timestamp '2010-02-11T00:00:10.59Z' - interval '12:00:00' and o.time < timestamp '2010-02-11T00:00:10.59Z' + interval '12:00:00'
+and st_intersects(o.location, st_geomfromewkt('POINT(140.199249267578 -46.2043418884277)'))
+order by abs(extract(epoch from o.time) - extract(epoch from timestamp '2010-02-11T00:00:10.59Z'));
+
+explain analyse 
+select m.id 
+from mm_matchup m, mm_observation o
+where m.refobs_id = o.id
+and o.time >= '2010-02-11T00:00:00Z' and o.time < '2010-03-11T00:00:00Z'
+order by o.time;

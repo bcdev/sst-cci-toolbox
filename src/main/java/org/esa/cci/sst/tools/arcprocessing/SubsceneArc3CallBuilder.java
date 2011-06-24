@@ -42,7 +42,7 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     }
 
     @Override
-    String createSubsceneCall() {
+    protected String createSubsceneCall() {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         validateSourceFilename(sourceFilename);
 
@@ -64,21 +64,22 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     public String createArc3Call() throws IOException {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         validateSourceFilename(sourceFilename);
+        String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
         final String targetFilename = createSubsceneMmdFilename(sourceFilename);
 
-        String executableName = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_EXECUTABLE, "MMD_SCREEN_Linux");
         String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
 
         final StringBuilder arc3Call = new StringBuilder();
-        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:/tmp\n", sourceFilename));
-        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk ./%s MDB.INP %s %s %s", executableName, targetFilename,
-                                      nwpFilename, getDefaultTargetFileName(targetFilename)));
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:%s\n", sourceFilename, arc3home));
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:%s\n", nwpFilename, arc3home));
+        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk \" cd %s ; ./MMD_SCREEN_Linux MDB.INP %s %s %s",
+                                      arc3home, targetFilename, nwpFilename, getDefaultTargetFileName(targetFilename)));
 
         return arc3Call.toString();
     }
 
     @Override
-    String createReingestionCall() {
+    protected String createReingestionCall() {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         validateSourceFilename(sourceFilename);
         final String subsceneMmdFilename = createSubsceneMmdFilename(sourceFilename);

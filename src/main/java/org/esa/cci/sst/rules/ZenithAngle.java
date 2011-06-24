@@ -33,8 +33,10 @@ class ZenithAngle extends AbstractRescalingToShort {
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
         targetColumnBuilder
+                .unit("degrees")
                 .fillValue(-32768)
-                .validMin(0.0)
-                .validMax(180.0);
+                .validMin(-9000.0)
+                .validMax(9000.0)
+                .longName(null);
     }
 }

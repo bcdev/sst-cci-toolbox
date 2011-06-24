@@ -85,29 +85,31 @@ abstract class MdReader extends NetcdfReader {
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable variable = getVariable(role);
-
-        if (extractDefinition == null) {
-            return variable.read();
-        }
-
-        final Array targetArray = Array.factory(variable.getDataType(), extractDefinition.getShape());
         final int recordNo = extractDefinition.getRecordNo();
 
-        if (variable.getRank() < 3 && !role.equalsIgnoreCase("dtime")) {
+        if (variable.getDataType().isString()) {
+            final Array targetArray = Array.factory(variable.getDataType(), variable.getShape());
             final Array sourceArray = getData(variable, recordNo);
             for (int i = 0; i < sourceArray.getSize(); i++) {
                 targetArray.setObject(i, sourceArray.getObject(i));
             }
             return targetArray;
         }
+
         final PixelLocator pixelLocator = getPixelLocator(recordNo);
         final Point p = new Point();
         final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
         final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
                                                               extractDefinition.getLat(), p);
         if (success) {
+            final Array targetArray = Array.factory(variable.getDataType(), extractDefinition.getShape());
             final Array sourceArray = getData(variable, recordNo);
-            extractSubscene(sourceArray, targetArray, p, fillValue);
+            if (variable.getRank() == 3) {
+                extractSubscene3D(sourceArray, targetArray, p, fillValue);
+            } else {
+                extractSubscene2D(sourceArray, targetArray, p, fillValue);
+            }
+            return targetArray;
         } else {
             final Logger logger = Logger.getLogger("org.esa.cci.sst");
             final String message = MessageFormat.format(
@@ -117,11 +119,8 @@ abstract class MdReader extends NetcdfReader {
                     recordNo,
                     getNetcdfFile().getLocation());
             logger.fine(message);
-            for (int i = 0; i < targetArray.getSize(); i++) {
-                targetArray.setObject(i, fillValue);
-            }
+            return null;
         }
-        return targetArray;
     }
 
     @Override
@@ -327,6 +326,29 @@ abstract class MdReader extends NetcdfReader {
         return ((ArrayDouble.D2) array).get(0, y);
     }
 
+    protected Array getData(Variable variable, int recordNo) throws IOException {
+        final String role = variable.getName();
+        final Array cachedArray = arrayMap.get(role);
+        if (cachedArray != null) {
+            final Integer cachedRecord = indexMap.get(role);
+            if (cachedRecord != null && cachedRecord == recordNo) {
+                return cachedArray;
+            }
+        }
+        final int[] shape = variable.getShape();
+        shape[0] = 1;
+        final int[] start = new int[shape.length];
+        start[0] = recordNo;
+        try {
+            final Array array = variable.read(start, shape);
+            arrayMap.put(role, array);
+            indexMap.put(role, recordNo);
+            return array;
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+    }
+
     private PixelLocator getPixelLocator(int recordNo) throws IOException {
         final Variable lon = getVariable("lon");
         final Variable lat = getVariable("lat");
@@ -369,29 +391,6 @@ abstract class MdReader extends NetcdfReader {
         return variable;
     }
 
-    private Array getData(Variable variable, int recordNo) throws IOException {
-        final String role = variable.getName();
-        final Array cachedArray = arrayMap.get(role);
-        if (cachedArray != null) {
-            final Integer cachedRecord = indexMap.get(role);
-            if (cachedRecord != null && cachedRecord == recordNo) {
-                return cachedArray;
-            }
-        }
-        final int[] shape = variable.getShape();
-        shape[0] = 1;
-        final int[] start = new int[shape.length];
-        start[0] = recordNo;
-        try {
-            final Array array = variable.read(start, shape);
-            arrayMap.put(role, array);
-            indexMap.put(role, recordNo);
-            return array;
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
-        }
-    }
-
     private static Number getNumberScaled(Variable variable, Number number) throws IOException {
         final double scaleFactor = getAttribute(variable, "scale_factor", 1.0).doubleValue();
         final double addOffset = getAttribute(variable, "add_offset", 0.0).doubleValue();
@@ -399,7 +398,7 @@ abstract class MdReader extends NetcdfReader {
         return scaleFactor * number.doubleValue() + addOffset;
     }
 
-    static void extractSubscene(Array source, Array target, Point p, Number fillValue) {
+    static void extractSubscene3D(Array source, Array target, Point p, Number fillValue) {
         final int[] sourceShape = source.getShape();
         final int[] targetShape = target.getShape();
         final int ssx = sourceShape[source.getRank() - 1];
@@ -424,6 +423,27 @@ abstract class MdReader extends NetcdfReader {
                 } else {
                     target.setObject(ti, fillValue);
                 }
+            }
+        }
+    }
+
+    static void extractSubscene2D(Array source, Array target, Point p, Number fillValue) {
+        final int[] sourceShape = source.getShape();
+        final int[] targetShape = target.getShape();
+        final int ssy = sourceShape[source.getRank() - 1];
+        final int tsy = targetShape[target.getRank() - 1];
+        final int cy = tsy / 2;
+
+        final Index si = source.getIndex();
+        final Index ti = target.getIndex();
+        for (int ty = 0; ty < tsy; ty++) {
+            ti.setDim(target.getRank() - 1, ty);
+            final int sy = ty - (cy - p.y);
+            if (sy >= 0 && sy < ssy) {
+                si.setDim(source.getRank() - 1, sy);
+                target.setObject(ti, source.getObject(si));
+            } else {
+                target.setObject(ti, fillValue);
             }
         }
     }

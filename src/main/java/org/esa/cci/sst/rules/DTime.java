@@ -40,7 +40,7 @@ class DTime extends AbstractImplicitRule {
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
-        targetColumnBuilder.type(DATA_TYPE).unit(Constants.UNIT_TIME);
+        targetColumnBuilder.type(DATA_TYPE).unit(Constants.UNIT_DTIME);
         targetColumnBuilder.fillValue(FILL_VALUE);
     }
 

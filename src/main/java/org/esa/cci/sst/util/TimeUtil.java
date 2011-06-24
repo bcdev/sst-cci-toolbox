@@ -167,4 +167,9 @@ public final class TimeUtil {
         }
         return date;
     }
+
+    @Deprecated
+    public static int secondsSince1981ToSecondsSince1978(int startTime) {
+        return (int) secondsSince1981ToSecondsSinceEpoch(startTime);
+    }
 }

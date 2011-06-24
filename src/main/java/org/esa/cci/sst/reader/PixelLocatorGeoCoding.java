@@ -16,34 +16,29 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.framework.dataio.ProductSubsetDef;
-import org.esa.beam.framework.datamodel.AbstractGeoCoding;
+import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.beam.framework.datamodel.Scene;
 import org.esa.beam.framework.dataop.maptransf.Datum;
 import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.SampleSource;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 
 import java.awt.geom.Point2D;
 
 /**
-* Geo-coding using a ${@link QuadTreePixelLocator}.
-*
-* @author Thomas Storm
-*/
+ * Geo-coding using a ${@link QuadTreePixelLocator}.
+ *
+ * @author Thomas Storm
+ */
 @SuppressWarnings({"deprecation"})
-class PixelLocatorGeoCoding extends AbstractGeoCoding {
+class PixelLocatorGeoCoding implements GeoCoding {
 
     private final QuadTreePixelLocator locator;
 
     PixelLocatorGeoCoding(SampleSource lonSource, SampleSource latSource) {
         this.locator = new QuadTreePixelLocator(lonSource, latSource);
-    }
-
-    @Override
-    public boolean transferGeoCoding(Scene srcScene, Scene destScene, ProductSubsetDef subsetDef) {
-        return false;
     }
 
     @Override
@@ -63,18 +58,22 @@ class PixelLocatorGeoCoding extends AbstractGeoCoding {
 
     @Override
     public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
-        final Point2D.Double point = new Point2D.Double();
-        locator.getPixelLocation(geoPos.lon, geoPos.lat, point);
-        final PixelPos result = new PixelPos();
-        result.setLocation(point);
-        return result;
+        final boolean success = locator.getPixelLocation(geoPos.getLon(), geoPos.getLat(), pixelPos);
+        if (!success) {
+            pixelPos.setInvalid();
+        }
+        return pixelPos;
     }
 
     @Override
     public GeoPos getGeoPos(PixelPos pixelPos, GeoPos geoPos) {
-        final Point2D.Double result = new Point2D.Double();
-        locator.getGeoLocation(pixelPos.x, pixelPos.y, result);
-        geoPos.setLocation((float) result.y, (float) result.x);
+        final Point2D.Float result = new Point2D.Float();
+        final boolean success = locator.getGeoLocation(pixelPos.getX(), pixelPos.getY(), result);
+        if (success) {
+            geoPos.setLocation(result.y, result.x);
+        } else {
+            geoPos.setInvalid();
+        }
         return geoPos;
     }
 
@@ -85,5 +84,25 @@ class PixelLocatorGeoCoding extends AbstractGeoCoding {
 
     @Override
     public void dispose() {
+    }
+
+    @Override
+    public CoordinateReferenceSystem getImageCRS() {
+        return null;
+    }
+
+    @Override
+    public CoordinateReferenceSystem getMapCRS() {
+        return null;
+    }
+
+    @Override
+    public CoordinateReferenceSystem getGeoCRS() {
+        return null;
+    }
+
+    @Override
+    public MathTransform getImageToMapTransform() {
+        return null;
     }
 }

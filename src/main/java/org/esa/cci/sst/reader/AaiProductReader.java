@@ -43,4 +43,9 @@ class AaiProductReader extends AbstractProductReader {
 
         return globalObservation;
     }
+
+    @Override
+    public InsituSource getInsituSource() {
+        return null;
+    }
 }

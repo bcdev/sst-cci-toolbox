@@ -28,6 +28,7 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * Sets the time of the reference observation.
@@ -40,23 +41,20 @@ class ObservationTime extends AbstractImplicitRule {
     private static final DataType DATA_TYPE = DataType.INT;
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
-                                                                                                     RuleException {
-        targetColumnBuilder.type(DATA_TYPE).unit(Constants.UNIT_TIME);
-    }
-
-    @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array array = Array.factory(DATA_TYPE, new int[]{1});
-        array.setDouble(0, TimeUtil.millisToSecondsSinceEpoch(getTime()));
+        final Long time = getTime();
+        if (time != null) {
+            array.setDouble(0, TimeUtil.millisToSecondsSinceEpoch(time));
+        }
         return array;
     }
 
-    private long getTime() throws RuleException {
+    private Long getTime() throws RuleException {
         final Context context = getContext();
         final Reader reader = context.getObservationReader();
         if (reader == null) {
-            throw new RuleException("Cannot to read time.");
+            return null;
         }
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
         final int recordNo = context.getObservation().getRecordNo();

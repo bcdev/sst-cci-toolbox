@@ -34,7 +34,8 @@ final class ToSeaSurfaceTemperature extends AbstractRescalingToShort {
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder) {
         targetColumnBuilder
                 .unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE)
-                .validMin(271.51)
-                .validMax(325.0);
+                .validMin(-22000.0)
+                .validMax(31850.0)
+                .longName(null);
     }
 }

@@ -43,7 +43,8 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
         if (geoPos == null) {
             geoPos = new GeoPos();
         }
-        if (!pixelPos.isValid() || !pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(), new GeoPoint(geoPos))) {
+        if (!pixelPos.isValid() || !pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(),
+                                                                new GeoPoint(geoPos))) {
             geoPos.setInvalid();
         }
         return geoPos;

@@ -71,6 +71,7 @@ abstract class MatchupPosition extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
+        pixelPos.x += observationReader.getLineSkip();
         return getDimension(pixelPos);
     }
 

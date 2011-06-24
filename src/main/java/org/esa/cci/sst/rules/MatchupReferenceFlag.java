@@ -29,8 +29,8 @@ import ucar.ma2.DataType;
  */
 final class MatchupReferenceFlag extends AbstractImplicitRule {
 
-    private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16};
-    private static final String FLAG_MEANINGS = "training testing algorithm_selection reference undefined";
+    private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4};
+    private static final String FLAG_MEANINGS = "training test selection validation undefined";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
@@ -39,7 +39,7 @@ final class MatchupReferenceFlag extends AbstractImplicitRule {
                 unsigned(true).
                 rank(1).
                 dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                flagMasks(FLAG_MASKS).
+                flagValues(FLAG_VALUES).
                 flagMeanings(FLAG_MEANINGS);
     }
 

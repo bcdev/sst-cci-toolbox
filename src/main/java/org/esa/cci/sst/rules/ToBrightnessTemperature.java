@@ -36,7 +36,8 @@ final class ToBrightnessTemperature extends AbstractRescalingToShort {
         targetColumnBuilder
                 .unit(Constants.UNIT_BRIGHTNESS_TEMPERATURE)
                 .fillValue(-32768)
-                .validMin(195.0)
-                .validMax(325.0);
+                .validMin(-32500.0)
+                .validMax(32500.0)
+                .longName(null);
     }
 }

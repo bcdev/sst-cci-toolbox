@@ -12,6 +12,8 @@ module load intel/compiler/11.0
 module load geos/sciio/1/intel
 module load geos/sciio-utils/1
 
+export LD_LIBRARY_PATH=/exports/work/geos_gits/geos_applications/SL5/sciio-utils/1/lib:/exports/work/geos_gits/geos_applications/SL5/sciio/1/intel/11.0/lib:/exports/applications/apps/SL5/intel/Compiler/11.0/081/lib/intel64:$LD_LIBRARY_PATH
+
 set -e # one fails, all fail
 set -a
 ulimit -s unlimited
@@ -103,7 +105,7 @@ chmod g+rw $l1b.LOC.nc
 $mmsDir/sst-cci-toolbox-0.1-SNAPSHOT/bin/arcpixelpos.sh -Dmms.pixelpos.latlonfile=$l1b.latlon.txt -Dmms.pixelpos.locationfile=$l1b.LOC.nc
 chgrp geos_gc_sst_cci $l1b.mmm.txt
 chmod g+rw $l1b.mmm.txt
-rm arcpixelpos.log
+rm -f arcpixelpos.log
 
 # create subscenes of L1B file for x/y positions
 $avhrrDir/GBCS/bin/AVHRR_ARC2_Linux AVHRR_ARC2_${SAT}.inp $l1b.gz

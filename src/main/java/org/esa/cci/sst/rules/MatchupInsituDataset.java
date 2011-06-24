@@ -18,14 +18,9 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
-
-import java.io.IOException;
-import java.text.MessageFormat;
 
 /**
  * Matchup insitu dataset.
@@ -35,8 +30,8 @@ import java.text.MessageFormat;
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
 final class MatchupInsituDataset extends AbstractImplicitRule {
 
-    private static final byte[] FLAG_MASKS = new byte[]{1, 2, 4, 8, 16, 32, 64};
-    private static final String FLAG_MEANINGS = "drifter moored ship gtmba radiometer argo dummy";
+    private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4, 5, 6, 7};
+    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variability";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
@@ -45,38 +40,15 @@ final class MatchupInsituDataset extends AbstractImplicitRule {
                 unsigned(true).
                 rank(1).
                 dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                flagMasks(FLAG_MASKS).
+                flagValues(FLAG_VALUES).
                 flagMeanings(FLAG_MEANINGS);
     }
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+        final byte referenceFlag = getContext().getMatchup().getRefObs().getDataset();
         final Array array = Array.factory(DATA_TYPE, new int[]{1});
-        array.setByte(0, readInsituDataset());
+        array.setByte(0, referenceFlag);
         return array;
     }
-
-    private byte readInsituDataset() throws RuleException {
-        final Context context = getContext();
-        final ReferenceObservation referenceObservation = context.getMatchup().getRefObs();
-        final Reader reader = context.getReferenceObservationReader();
-        final String sensor = referenceObservation.getSensor();
-        String variableName;
-        if ("atsr_md".equalsIgnoreCase(sensor)) {
-            variableName = "insitu.dataset";
-        } else if ("metop".equalsIgnoreCase(sensor) || "seviri".equalsIgnoreCase(sensor)) {
-            variableName = "msr_type";
-        } else {
-            throw new IllegalStateException(MessageFormat.format("Illegal primary sensor: ''{0}''.", sensor));
-        }
-
-        Array value;
-        try {
-            value = reader.read(variableName, new OneDimOneValue(referenceObservation.getRecordNo()));
-        } catch (IOException e) {
-            throw new RuleException("Unable to read from variable '" + variableName + "'.", e);
-        }
-        return value.getByte(0);
-    }
-
 }

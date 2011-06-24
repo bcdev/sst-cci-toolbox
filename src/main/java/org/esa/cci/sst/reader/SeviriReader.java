@@ -26,8 +26,8 @@ import org.postgis.PGgeometry;
 import org.postgis.Point;
 import org.postgis.Polygon;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 
@@ -39,7 +39,7 @@ import java.io.IOException;
  * @author Martin Boettcher
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class SeviriReader extends MdReader {
+class SeviriReader extends MdReader implements InsituSource {
 
     protected int noOfLines;
     protected int noOfColumns;
@@ -122,30 +122,44 @@ class SeviriReader extends MdReader {
     }
 
     @Override
+    public InsituSource getInsituSource() {
+        return this;
+    }
+
+    @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
         return getDouble("dtime", recordNo, scanLine, 0);
     }
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
-        String longitudeVariableName = "lon";
-        String latitudeVariableName = "lat";
-        Array lonArray = getNetcdfFile().findVariable(longitudeVariableName).read();
-        Array latArray = getNetcdfFile().findVariable(latitudeVariableName).read();
-        lonArray = scale(getColumn(longitudeVariableName).getScaleFactor(), lonArray);
-        latArray = scale(getColumn(latitudeVariableName).getScaleFactor(), latArray);
-        return new PixelLocatorGeoCoding(new VariableSampleSource(lonArray), new VariableSampleSource(latArray));
+        final Variable lon = getVariable("lon");
+        final Variable lat = getVariable("lat");
+        final Array lonArray = getData(lon, recordNo);
+        final Array latArray = getData(lat, recordNo);
+        final VariableSampleSource lonSource = new VariableSampleSource(lon, lonArray);
+        final VariableSampleSource latSource = new VariableSampleSource(lat, latArray);
+
+        return new PixelLocatorGeoCoding(lonSource, latSource);
     }
 
-    private Array scale(Number scaleFactor, Array array) {
-        if (scaleFactor == null) {
-            return array;
-        }
-        final Array scaledArray = Array.factory(DataType.DOUBLE, array.getShape());
-        for (int i = 0; i < array.getSize(); i++) {
-            double value = ((Number) array.getObject(i)).doubleValue() * scaleFactor.doubleValue();
-            scaledArray.setDouble(i, value);
-        }
-        return scaledArray;
+    @Override
+    public final double readInsituLon(int recordNo) throws IOException {
+        return getNumberScaled("msr_lon", recordNo).floatValue();
+    }
+
+    @Override
+    public final double readInsituLat(int recordNo) throws IOException {
+        return getNumberScaled("msr_lat", recordNo).floatValue();
+    }
+
+    @Override
+    public final double readInsituTime(int recordNo) throws IOException {
+        return TimeUtil.secondsSince1981ToSecondsSinceEpoch(getDouble("msr_time", recordNo));
+    }
+
+    @Override
+    public final double readInsituSst(int recordNo) throws IOException {
+        return getNumberScaled("msr_sst", recordNo).doubleValue();
     }
 }

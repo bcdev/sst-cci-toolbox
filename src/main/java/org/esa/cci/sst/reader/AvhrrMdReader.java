@@ -68,6 +68,11 @@ class AvhrrMdReader extends MdReader {
     }
 
     @Override
+    public InsituSource getInsituSource() {
+        return null;
+    }
+
+    @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
         throw new IllegalStateException("not implemented");
     }

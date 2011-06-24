@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
+import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
@@ -37,10 +38,12 @@ import java.io.IOException;
 class InsituTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
-    private static final int[] SHAPE = new int[]{1, 48};
+    private static final int[] SHAPE = {1, 48};
+    private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
+                                                                                                     RuleException {
         targetColumnBuilder
                 .type(DATA_TYPE)
                 .unit(Constants.UNIT_TIME);
@@ -49,25 +52,26 @@ class InsituTime extends AbstractImplicitRule {
     @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Context context = getContext();
+        final ReferenceObservation referenceObservation = context.getMatchup().getRefObs();
         final Reader observationReader = context.getObservationReader();
-        if (observationReader != null) {
-            final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                    .shape(SHAPE)
-                    .referenceObservation(context.getMatchup().getRefObs())
-                    .build();
-            try {
+        try {
+            if (observationReader != null) {
+                final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
+                        .shape(SHAPE)
+                        .referenceObservation(referenceObservation)
+                        .build();
                 return observationReader.read("insitu.time", extractDefinition);
-            } catch (IOException e) {
-                throw new RuleException("Unable to read insitu.time.", e);
+            } else {
+                final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
+                final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
+                if (insituSource != null) {
+                    final double time = insituSource.readInsituTime(referenceObservation.getRecordNo());
+                    array.setDouble(0, time);
+                }
+                return array;
             }
-        } else {
-            final Array array = Array.factory(DATA_TYPE, SHAPE);
-            final ReferenceObservation referenceObservation = getContext().getMatchup().getRefObs();
-            final long time = referenceObservation.getTime().getTime();
-            for(int i = 0; i < array.getSize(); i++) {
-                array.setInt(i, (int) time);
-            }
-            return array;
+        } catch (IOException e) {
+            throw new RuleException("Unable to read in-situ time", e);
         }
     }
 }

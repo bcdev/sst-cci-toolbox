@@ -29,8 +29,8 @@ public class Constants {
     public static final String DIMENSION_NAME_INSITU_TIME = "insitu.time";
 
     public static final String UNIT_BRIGHTNESS_TEMPERATURE = "K";
-    public static final String UNIT_LAT = "degrees north";
-    public static final String UNIT_LON = "degrees east";
+    public static final String UNIT_LAT = "degrees_north";
+    public static final String UNIT_LON = "degrees_east";
     public static final String UNIT_SEA_SURFACE_TEMPERATURE = "K";
     public static final String UNIT_DTIME = "milliseconds";
     public static final String UNIT_TIME = "seconds since 1978-01-01 00:00:00";
@@ -160,6 +160,7 @@ public class Constants {
 
     @Deprecated
     public static final String VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE = "matchup_id";
+    public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
 
     private Constants() {
     }

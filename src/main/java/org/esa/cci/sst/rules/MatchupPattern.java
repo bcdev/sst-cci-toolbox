@@ -96,7 +96,7 @@ final class MatchupPattern extends AbstractImplicitRule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array targetArray = Array.factory(DATA_TYPE, SHAPE);
-        targetArray.setInt(0, (int) (getContext().getMatchup().getPattern() & 0xFFFFFFFFL));
+        targetArray.setLong(0, getContext().getMatchup().getPattern() & 0xFFFFFFFFL);
         return targetArray;
     }
 }

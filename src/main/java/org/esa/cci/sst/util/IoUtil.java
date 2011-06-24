@@ -107,6 +107,9 @@ public class IoUtil {
             if ("scale_factor".equals(attribute.getName())) {
                 builder.scaleFactor(attribute.getNumericValue());
             }
+            if ("missing_value".equals(attribute.getName())) {
+                builder.fillValue(attribute.getNumericValue());
+            }
             if ("_FillValue".equals(attribute.getName())) {
                 builder.fillValue(attribute.getNumericValue());
             }
@@ -222,11 +225,11 @@ public class IoUtil {
         }
         final Number validMin = column.getValidMin();
         if (validMin != null) {
-            addAttribute(v, "validMin", validMin, dataType);
+            addAttribute(v, "valid_min", validMin, dataType);
         }
         final Number validMax = column.getValidMax();
         if (validMax != null) {
-            addAttribute(v, "validMax", validMax, dataType);
+            addAttribute(v, "valid_max", validMax, dataType);
         }
         final String standardName = column.getStandardName();
         if (standardName != null) {

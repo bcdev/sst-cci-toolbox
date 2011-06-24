@@ -29,11 +29,11 @@ import java.text.MessageFormat;
  */
 abstract class Arc3CallBuilder {
 
-    abstract String createArc3Call() throws IOException;
+    protected abstract String createArc3Call() throws IOException;
 
-    abstract String createReingestionCall();
+    protected abstract String createReingestionCall();
 
-    String createSubsceneCall() {
+    protected String createSubsceneCall() {
         return "";
     }
 

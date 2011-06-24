@@ -255,7 +255,7 @@ class Rotation {
         final double lat = toDegrees(asin(zc));
         final double lon = toDegrees(atan2(yc, xc));
 
-        return new Point2D.Double(lat, lon);
+        return new Point2D.Double(lon, lat);
     }
 
     private static void calculateXYZ(double[] lons, double[] lats, double[] x, double[] y, double[] z) {

@@ -57,22 +57,8 @@ class ReferenceTime extends AbstractImplicitRule {
 
     private long getTime() throws RuleException {
         final Context context = getContext();
-        final Reader reader = context.getReferenceObservationReader();
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
-        final int recordNo = refObs.getRecordNo();
-        final Point point = refObs.getPoint().getGeometry().getFirstPoint();
-        final double lon = point.getX();
-        final double lat = point.getY();
-        final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
-        final long time;
-        try {
-            final PixelPos pixelPos = reader.getGeoCoding(recordNo).getPixelPos(geoPos, null);
-            final int scanLine = pixelPos != null ? (int) pixelPos.y : -1;
-            time = reader.getTime(recordNo, scanLine);
-        } catch (IOException e) {
-            throw new RuleException("Unable to read time.", e);
-        }
-        return time;
+        return refObs.getTime().getTime();
     }
 
 }

@@ -23,6 +23,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.esa.beam.framework.gpf.GPF;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.TimeUtil;
@@ -70,8 +71,10 @@ public abstract class BasicTool {
     private Date sourceStopTime;
 
     static {
+        System.setProperty("EPSG-HSQL.directory", System.getProperty("user.home", ".") + File.separator + "tmp");
         JAI.enableDefaultTileCache();
         JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 1024);
+        GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
     }
 
     protected BasicTool(String name, String version) {

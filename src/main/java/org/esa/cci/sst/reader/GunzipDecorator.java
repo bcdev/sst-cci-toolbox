@@ -62,7 +62,7 @@ class GunzipDecorator implements Reader {
     public final void init(DataFile dataFile) throws IOException {
         if (dataFile.getPath().endsWith(".gz")) {
             // deflate product to tmp file in tmp dir
-            tmpFile = tmpFileFor(dataFile.getPath());
+            tmpFile = tmpFileFor(dataFile.getPath(), true);
             decompress(new File(dataFile.getPath()), tmpFile);
 
             // temporarily read from tmp path
@@ -150,18 +150,29 @@ class GunzipDecorator implements Reader {
         return delegate.getTime(recordNo, scanLine);
     }
 
+    @Override
+    public int getLineSkip() {
+        return delegate.getLineSkip();
+    }
+
+    @Override
+    public InsituSource getInsituSource() {
+        return delegate.getInsituSource();
+    }
+
     /**
      * Constructs File with suffix of original file without "dotgz" in tmp dir.
      * The tmp dir can be configured with property java.io.tmpdir.
      * Else, it is a system default.
      *
      * @param dataFilePath path of the .gz file
+     * @param deleteOnExit
      *
      * @return File in tmp dir
      *
      * @throws IOException if the tmp file could not be created
      */
-    private static File tmpFileFor(String dataFilePath) throws IOException {
+    private static File tmpFileFor(String dataFilePath, boolean deleteOnExit) throws IOException {
         // chop of path before filename and ".gz" suffix to determine filename
         final int slashPosition = dataFilePath.lastIndexOf(File.separator);
         final int dotGzPosition = dataFilePath.length() - ".gz".length();
@@ -171,7 +182,11 @@ class GunzipDecorator implements Reader {
         final String prefix = (dotPosition > -1) ? fileName.substring(0, dotPosition) : fileName;
         final String suffix = (dotPosition > -1) ? fileName.substring(dotPosition) : null;
         // create temporary file in tmp dir, either property java.io.tmpdir or system default
-        return File.createTempFile(prefix, suffix);
+        final File tempFile = File.createTempFile(prefix, suffix);
+        if (deleteOnExit) {
+            tempFile.deleteOnExit();
+        }
+        return tempFile;
     }
 
     /**
