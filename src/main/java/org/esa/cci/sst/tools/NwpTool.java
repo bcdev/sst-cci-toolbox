@@ -68,31 +68,32 @@ public class NwpTool {
             "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
     private static final String SENSOR_NAME = "atsr.3";
-    private static final int SENSOR_PATTERN = 20;
+    private static final int SENSOR_PATTERN = 16;
     private static final boolean MATCHUP_REQUESTED = false;
 
     private static final String MMD_SOURCE_LOCATION = "mmd.nc";
     private static final String NWP_TARGET_LOCATION = SENSOR_NAME + ".nwp.nc";
-    private static final String AMD_TARGET_LOCATION = "matchup.nwp.an.nc";
+    private static final String AND_TARGET_LOCATION = "matchup.nwp.an.nc";
+    private static final String FCD_TARGET_LOCATION = "matchup.nwp.fc.nc";
 
-    private static final String FMD_TARGET_LOCATION = "matchup.nwp.fc.nc";
     private static final int SENSOR_NWP_NX = 1;
     private static final int SENSOR_NWP_NY = 1;
     private static final int SENSOR_NWP_STRIDE_X = 1;
-
     private static final int SENSOR_NWP_STRIDE_Y = 1;
+
     private static final int MATCHUP_AN_PAST_TIME_STEP_COUNT = 8;
     private static final int MATCHUP_AN_FUTURE_TIME_STEP_COUNT = 4;
+
     private static final int MATCHUP_FC_PAST_TIME_STEP_COUNT = 16;
     private static final int MATCHUP_FC_FUTURE_TIME_STEP_COUNT = 8;
 
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
-        createSensorNwpFile();
         if (MATCHUP_REQUESTED) {
             createMatchupAnFile();
             createMatchupFcFile();
         }
+        createSensorNwpFile();
     }
 
     private static void createSensorNwpFile() throws IOException, InterruptedException {
@@ -335,6 +336,9 @@ public class NwpTool {
                 return index;
             }
         }
+        System.out.println("sourceTimes[0] = " + sourceTimes.getInt(0));
+        System.out.println("sourceTimes[n] = " + sourceTimes.getInt((int) (sourceTimes.getSize() - 1)));
+        System.out.println("targetTime = " + targetTime);
         throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
     }
 
@@ -348,22 +352,22 @@ public class NwpTool {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable amd = NetcdfFileWriteable.createNew(AMD_TARGET_LOCATION, true);
-        amd.addDimension(matchupDimension.getName(), matchupCount);
+        final NetcdfFileWriteable anMmd = NetcdfFileWriteable.createNew(AND_TARGET_LOCATION, true);
+        anMmd.addDimension(matchupDimension.getName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
-        amd.addDimension("matchup.nwp.an.time", timeStepCount);
-        amd.addDimension("matchup.nwp.ny", gy);
-        amd.addDimension("matchup.nwp.nx", gx);
+        anMmd.addDimension("matchup.nwp.an.time", timeStepCount);
+        anMmd.addDimension("matchup.nwp.ny", gy);
+        anMmd.addDimension("matchup.nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        amd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        anMmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : analysisFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = amd.addVariable("matchup.nwp." + s.getName(), s.getDataType(),
-                                                       "matchup matchup.nwp.an.time matchup.nwp.ny matchup.nwp.nx");
+                    final Variable t = anMmd.addVariable("matchup.nwp.an." + s.getName(), s.getDataType(),
+                                                         "matchup matchup.nwp.an.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
                     }
@@ -371,14 +375,14 @@ public class NwpTool {
             }
         }
 
-        amd.create();
+        anMmd.create();
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
         final Array targetTimes = findVariable(mmd, "matchup.time").read();
         final Array sourceTimes = findVariable(analysisFile, "time").read();
 
         try {
-            amd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
+            anMmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
@@ -391,25 +395,25 @@ public class NwpTool {
 
                 final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
 
-                for (final Variable t : amd.getVariables()) {
+                for (final Variable t : anMmd.getVariables()) {
                     if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable s = findVariable(analysisFile, t.getName().substring("matchup.nwp.".length()));
+                    final Variable s = findVariable(analysisFile, t.getName().substring("matchup.nwp.an.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    amd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
+                    anMmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         } finally {
             try {
-                amd.close();
+                anMmd.close();
             } catch (IOException ignored) {
             }
         }
@@ -425,22 +429,22 @@ public class NwpTool {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable fmd = NetcdfFileWriteable.createNew(FMD_TARGET_LOCATION, true);
-        fmd.addDimension(matchupDimension.getName(), matchupCount);
+        final NetcdfFileWriteable fcMmd = NetcdfFileWriteable.createNew(FCD_TARGET_LOCATION, true);
+        fcMmd.addDimension(matchupDimension.getName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
-        fmd.addDimension("matchup.nwp.fc.time", timeStepCount);
-        fmd.addDimension("matchup.nwp.ny", gy);
-        fmd.addDimension("matchup.nwp.nx", gx);
+        fcMmd.addDimension("matchup.nwp.fc.time", timeStepCount);
+        fcMmd.addDimension("matchup.nwp.ny", gy);
+        fcMmd.addDimension("matchup.nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        fmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        fcMmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : forecastFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = fmd.addVariable("matchup.nwp." + s.getName(), s.getDataType(),
-                                                       "matchup matchup.nwp.fc.time matchup.nwp.ny matchup.nwp.nx");
+                    final Variable t = fcMmd.addVariable("matchup.nwp.fc." + s.getName(), s.getDataType(),
+                                                         "matchup matchup.nwp.fc.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
                     }
@@ -448,14 +452,14 @@ public class NwpTool {
             }
         }
 
-        fmd.create();
+        fcMmd.create();
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
         final Array targetTimes = findVariable(mmd, "matchup.time").read();
         final Array sourceTimes = findVariable(forecastFile, "time").read();
 
         try {
-            fmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
+            fcMmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
@@ -468,25 +472,25 @@ public class NwpTool {
 
                 final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
 
-                for (final Variable t : fmd.getVariables()) {
+                for (final Variable t : fcMmd.getVariables()) {
                     if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable s = findVariable(forecastFile, t.getName().substring("matchup.nwp.".length()));
+                    final Variable s = findVariable(forecastFile, t.getName().substring("matchup.nwp.fc.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    fmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
+                    fcMmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         } finally {
             try {
-                fmd.close();
+                fcMmd.close();
             } catch (IOException ignored) {
             }
         }
