@@ -39,7 +39,7 @@ public class MdReaderTest {
         final Array target = Array.factory(targetArray);
 
 
-        MdReader.extractSubscene(source, target, new Point(2, 2), -1);
+        MdReader.extractSubscene3D(source, target, new Point(2, 2), -1);
 
         for (int y = 0; y < target.getShape()[1]; y++) {
             assertEquals(-1, target.getInt(target.getIndex().set(0, y, 0)));
