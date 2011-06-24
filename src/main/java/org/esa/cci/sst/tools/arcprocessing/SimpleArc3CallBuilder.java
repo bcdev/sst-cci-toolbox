@@ -54,7 +54,7 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
         final String sourceFilename = getSourceFilename();
         final String targetFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE,
                                                                 getDefaultTargetFileName(sourceFilename));
-        final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "20000");
+        final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "0");
 
         final StringBuilder builder = new StringBuilder();
         builder.append(String.format("scp eddie.ecdf.ed.ac.uk:%s . \n", targetFilename));
