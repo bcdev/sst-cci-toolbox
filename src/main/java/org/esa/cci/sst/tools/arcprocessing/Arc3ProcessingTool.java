@@ -32,11 +32,30 @@ import java.util.Properties;
 
 /**
  * Tool responsible for generating calls of the ARC3 processor.
+ * Prerequisites:
+ *
+ * - MMD file has to lie under $CCI_SST_HOME
+ * - corresponding NWP file has to lie under $CCI_SST_HOME
+ * - folder f for arc processing set up on eddie
+ * - f has to contain:
+ *      - the executable MMD_SCREEN_LINUX
+ *      - the configuration file MDB.INP (the default configuration should do)
+ *      - the folder 'dat' containing the correctly configured files CCI_MMD_AATSR_[imfwd,img,ncfmt,prd].INF
+ * - mms.arc3.home has to be set to f
+ * - mms.arc3.sourcefile has to be set to the MMD file
+ * - mms.arc3.nwpfile has to be set to the NWP file
+ * - mms.arc3.pattern has to be set to the pattern the ARC'ed MMD file shall be re-ingested under
  *
  * @author Thomas Storm
  */
 public class Arc3ProcessingTool extends BasicTool {
 
+    private static final String SHEBANG = "#!/bin/bash\n\n";
+    private static final String SET_MMS_HOME = "if [ ! -d \"$CCI_SST_HOME\" ]\n" +
+                                               "then\n" +
+                                               "    PRGDIR=`dirname $0`\n" +
+                                               "    export CCI_SST_HOME=`cd \"$PRGDIR/..\" ; pwd`\n" +
+                                               "fi\n";
     private PrintWriter arc3CallWriter;
     private PrintWriter subsceneWriter;
     private PrintWriter reingestionCallWriter;
@@ -49,7 +68,8 @@ public class Arc3ProcessingTool extends BasicTool {
     public static void main(String[] args) {
         final Arc3ProcessingTool tool = new Arc3ProcessingTool();
         tool.setCommandLineArgs(args);
-        tool.initialize();
+        // do not initialize tool - no DB access needed
+//        tool.initialize();
         try {
             tool.setupWriters();
             tool.writeCalls();
@@ -66,12 +86,10 @@ public class Arc3ProcessingTool extends BasicTool {
 
     private void writeCalls() throws IOException {
         final Arc3CallBuilder arc3Caller = new Arc3CallBuilderFactory().createArc3CallBuilder();
-        final String subsceneCall = arc3Caller.createSubsceneCall();
         final String arc3Call = arc3Caller.createArc3Call();
         final String reingestionCall = arc3Caller.createReingestionCall();
         final String cleanupCall = arc3Caller.createCleanupCall(subsceneScript, arc3CallScript, reingestionCallScript, cleanupScript);
 
-        subsceneWriter.write(subsceneCall);
         arc3CallWriter.write(arc3Call);
         reingestionCallWriter.write(reingestionCall);
         cleanupCallWriter.write(cleanupCall);
@@ -90,42 +108,42 @@ public class Arc3ProcessingTool extends BasicTool {
 
         String subsceneFilename = String.format("mms-arc3-%s-subscene.sh", time);
         final File subsceneFile = new File(tmpDir, subsceneFilename);
-//        setFileExecutable(subsceneFile);
+        setFileExecutable(subsceneFile);
         subsceneScript = subsceneFile.getAbsolutePath();
         subsceneWriter = new PrintWriter(subsceneFile);
-        subsceneWriter.format("#!/bin/bash\n\n");
+        subsceneWriter.format(SHEBANG);
+        subsceneWriter.format(SET_MMS_HOME);
 
         String arc3CallFilename = String.format("mms-arc3-%s-submit.sh", time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);
-//        setFileExecutable(arc3CallFile);
+        setFileExecutable(arc3CallFile);
         arc3CallScript = arc3CallFile.getAbsolutePath();
         arc3CallWriter = new PrintWriter(arc3CallFile);
-        arc3CallWriter.format("#!/bin/bash\n\n");
+        arc3CallWriter.format(SHEBANG);
 
         String reingestionCallFilename = String.format("mms-arc3-%s-reingest.sh", time);
         final File reingestionFile = new File(tmpDir, reingestionCallFilename);
-//        setFileExecutable(reingestionFile);
+        setFileExecutable(reingestionFile);
         reingestionCallScript = reingestionFile.getAbsolutePath();
         reingestionCallWriter = new PrintWriter(new BufferedWriter(new FileWriter(reingestionFile)));
-        reingestionCallWriter.format("#!/bin/bash\n\n");
+        reingestionCallWriter.format(SHEBANG);
+        reingestionCallWriter.format(SET_MMS_HOME);
 
         String cleanupCallFilename = String.format("mms-arc3-%s-cleanup.sh", time);
         final File cleanupFile = new File(tmpDir, cleanupCallFilename);
-//        setFileExecutable(cleanupFile);
+        setFileExecutable(cleanupFile);
         cleanupScript = cleanupFile.getAbsolutePath();
         cleanupCallWriter = new PrintWriter(new BufferedWriter(new FileWriter(cleanupFile)));
-        cleanupCallWriter.format("#!/bin/bash\n\n");
+        cleanupCallWriter.format(SHEBANG);
+        cleanupCallWriter.format(SET_MMS_HOME);
     }
 
+    @SuppressWarnings({"ResultOfMethodCallIgnored"})
     private void setFileExecutable(File file) throws IOException {
         if(file.canExecute()) {
             return;
         }
-        final boolean success = file.setExecutable(true);
-        if (!success) {
-            throw new IOException(
-                    MessageFormat.format("Could not set file ''{0}'' executable.", file.getAbsolutePath()));
-        }
+        file.setExecutable(true, true);
     }
 
     private void createDirectory(File dir) throws IOException {

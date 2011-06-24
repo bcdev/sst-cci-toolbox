@@ -32,23 +32,25 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
     }
 
     @Override
-    public String createArc3Call() {
+    protected String createArc3Call() {
+        String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
         String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         validateSourceFilename(sourceFilename);
-        String executableName = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_EXECUTABLE, "MMD_SCREEN_Linux");
         String targetFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE,
                                                           getDefaultTargetFileName(sourceFilename));
         String nwpFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "test_nwp.nc");
 
         final StringBuilder arc3Call = new StringBuilder();
-        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:/tmp\n", sourceFilename));
-        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk ./%s MDB.INP %s %s %s", executableName, sourceFilename,
-                                      nwpFilename, targetFilename));
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:%s\n", sourceFilename, arc3home));
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:%s\n", nwpFilename, arc3home));
+        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk \"cd %s ; ./MMD_SCREEN_Linux MDB.INP %s %s %s \"\n",
+                                      arc3home, sourceFilename, nwpFilename, targetFilename));
+        arc3Call.append(String.format("scp eddie.ecdf.ed.ac.uk:%s/%s .\n", arc3home, targetFilename));
         return arc3Call.toString();
     }
 
     @Override
-    public String createReingestionCall() {
+    protected String createReingestionCall() {
         final String sourceFilename = getSourceFilename();
         final String targetFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE,
                                                                 getDefaultTargetFileName(sourceFilename));

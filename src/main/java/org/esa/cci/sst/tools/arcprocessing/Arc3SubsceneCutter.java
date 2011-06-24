@@ -45,6 +45,8 @@ import java.util.Map;
  */
 public class Arc3SubsceneCutter extends BasicTool {
 
+    private static final String SENSOR_NAME = "atsr";
+
     public static void main(String[] args) throws IOException {
         final Arc3SubsceneCutter arc3SubsceneCutter = new Arc3SubsceneCutter();
         arc3SubsceneCutter.setCommandLineArgs(args);
@@ -65,8 +67,8 @@ public class Arc3SubsceneCutter extends BasicTool {
 
         final NetcdfFileWriteable target = NetcdfFileWriteable.createNew(targetFilename);
         addSubsceneDimensions(target, atsrSourceVars.get(0).getDimensions());
-        addVariables(source, target);
         addNonSubsceneDimensions(source, target);
+        addVariables(source, target);
 
         writeSubscene(source, target, atsrSourceVars);
         copyNonSubsceneValues(source, target, getVarNames(atsrSourceVars));
@@ -166,10 +168,12 @@ public class Arc3SubsceneCutter extends BasicTool {
         final Array matchupVariables = matchupVariable.read();
         final IndexIterator indexIterator = matchupVariables.getIndexIterator();
         final HashMap<Integer, Point> map = new HashMap<Integer, Point>();
+        int matchupNumber = 0;
         while (indexIterator.hasNext()) {
             final Integer currentMatchupId = (Integer) indexIterator.next();
             final ReferenceObservation observation = Queries.getReferenceObservationForMatchup(getPersistenceManager(), currentMatchupId);
-            map.put(currentMatchupId, observation.getPoint().getGeometry().getFirstPoint());
+            map.put(matchupNumber, observation.getPoint().getGeometry().getFirstPoint());
+            matchupNumber++;
         }
         return map;
     }
@@ -269,7 +273,7 @@ public class Arc3SubsceneCutter extends BasicTool {
     private List<Variable> getAtsrSourceVariables(NetcdfFile source) {
         final List<Variable> atsrVars = new ArrayList<Variable>();
         for (Variable variable : source.getVariables()) {
-            if (variable.getName().startsWith("atsr_orb")) {
+            if (variable.getName().startsWith(SENSOR_NAME)) {
                 atsrVars.add(variable);
             }
         }
@@ -286,7 +290,7 @@ public class Arc3SubsceneCutter extends BasicTool {
 
     private static void validateSourceVariables(List<Variable> sourceVars) {
         if (sourceVars == null || sourceVars.isEmpty()) {
-            throw new IllegalStateException("No variables of type 'atsr_orb' within source file.");
+            throw new IllegalStateException(MessageFormat.format("No variables of type {0} within source file.", SENSOR_NAME));
         }
     }
 
