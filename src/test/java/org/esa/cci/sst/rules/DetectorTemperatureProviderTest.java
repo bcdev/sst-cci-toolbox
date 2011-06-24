@@ -20,7 +20,6 @@ import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Date;
 
 import static org.junit.Assert.*;
@@ -34,8 +33,7 @@ public class DetectorTemperatureProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        final File testTemperature = new File(getClass().getResource("test_detector_temperature.dat").getFile());
-        provider = new MyDetectorTemperatureProvider(testTemperature);
+        provider = new MyDetectorTemperatureProvider("test_detector_temperature.dat");
     }
 
     @Test
@@ -73,7 +71,7 @@ public class DetectorTemperatureProviderTest {
 
     private static class MyDetectorTemperatureProvider extends DetectorTemperatureProvider {
 
-        MyDetectorTemperatureProvider(File detectorTemperatureFile) {
+        MyDetectorTemperatureProvider(String detectorTemperatureFile) {
             super(detectorTemperatureFile);
         }
     }

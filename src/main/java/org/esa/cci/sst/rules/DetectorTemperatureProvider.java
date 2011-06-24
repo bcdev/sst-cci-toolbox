@@ -21,9 +21,9 @@ import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 
@@ -41,12 +41,11 @@ class DetectorTemperatureProvider {
     int step;
 
     DetectorTemperatureProvider() {
-        final File detectorTemperatureFile = new File(getClass().getResource("detector_temperature.dat").getFile());
-        init(detectorTemperatureFile);
+        init("detector_temperature.dat");
     }
 
-    DetectorTemperatureProvider(File detectorTemperatureFile) {
-        init(detectorTemperatureFile);
+    DetectorTemperatureProvider(String resourceName) {
+        init(resourceName);
     }
 
     /**
@@ -65,18 +64,20 @@ class DetectorTemperatureProvider {
         return temperatures[index];
     }
 
-    private void init(File detectorTemperatureFile) {
+    private void init(String resource) {
         try {
-            readMetaInfo(detectorTemperatureFile);
-            readTemperatures(detectorTemperatureFile);
+            readMetaInfo(resource);
+            readTemperatures(resource);
         } catch (IOException e) {
             throw new ToolException("Unable to read from detector temperature file.", e, ToolException.TOOL_IO_ERROR);
         }
     }
 
-    private void readTemperatures(File detectorTemperatureFile) throws IOException {
+    private void readTemperatures(String resource) throws IOException {
+        final InputStream inputStream = getClass().getResourceAsStream(resource);
+        final InputStreamReader reader = new InputStreamReader(inputStream);
         final char[] separators = {' ', '\n'};
-        final CsvReader csvReader = new CsvReader(new FileReader(detectorTemperatureFile), separators, true, "#");
+        final CsvReader csvReader = new CsvReader(reader, separators, true, "#");
         try {
             final List<double[]> lines = csvReader.readDoubleRecords();
             int index = 0;
@@ -91,23 +92,24 @@ class DetectorTemperatureProvider {
         }
     }
 
-    private void readMetaInfo(File detectorTemperatureFile) throws IOException {
-        int startTime = getMetaInfo(detectorTemperatureFile, "start");
-        this.startTime = TimeUtil.secondsSince1981ToSecondsSince1978(startTime);
-        step = getMetaInfo(detectorTemperatureFile, "step");
-        final int numberOfRecords = getMetaInfo(detectorTemperatureFile, "number of records");
+    private void readMetaInfo(String resource) throws IOException {
+        int startTime = getMetaInfo(resource, "start");
+        this.startTime = (int) TimeUtil.secondsSince1981ToSecondsSinceEpoch(startTime);
+        step = getMetaInfo(resource, "step");
+        final int numberOfRecords = getMetaInfo(resource, "number of records");
         temperatures = new float[numberOfRecords];
     }
 
-    private int getMetaInfo(File file, String type) throws IOException {
-        String line = getLine(file, type);
+    private int getMetaInfo(String resource, String type) throws IOException {
+        String line = getLine(resource, type);
         final String value = line.replace(String.format("# %s:", type), "").trim();
         return Integer.parseInt(value);
     }
 
-    @SuppressWarnings({"NestedAssignment", "UnnecessaryContinue"})
-    private String getLine(File file, String type) throws IOException {
-        final BufferedReader metaInfoReader = new BufferedReader(new FileReader(file));
+    @SuppressWarnings({"NestedAssignment"})
+    private String getLine(String resource, String type) throws IOException {
+        final InputStream inputStream = getClass().getResourceAsStream(resource);
+        final BufferedReader metaInfoReader = new BufferedReader(new InputStreamReader(inputStream));
         try {
             String line;
             while ((line = metaInfoReader.readLine()) != null) {
