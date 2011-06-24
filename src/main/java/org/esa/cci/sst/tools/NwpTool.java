@@ -67,19 +67,20 @@ public class NwpTool {
             "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
-    private static final String SENSOR_NAME = "metop";
-    private static final int SENSOR_PATTERN = 2;
-    private static final String MMD_SOURCE_LOCATION = "mmd.nc";
+    private static final String SENSOR_NAME = "atsr.3";
+    private static final int SENSOR_PATTERN = 20;
+    private static final boolean MATCHUP_REQUESTED = false;
 
+    private static final String MMD_SOURCE_LOCATION = "mmd.nc";
     private static final String NWP_TARGET_LOCATION = SENSOR_NAME + ".nwp.nc";
     private static final String AMD_TARGET_LOCATION = "matchup.nwp.an.nc";
-    private static final String FMD_TARGET_LOCATION = "matchup.nwp.fc.nc";
 
+    private static final String FMD_TARGET_LOCATION = "matchup.nwp.fc.nc";
     private static final int SENSOR_NWP_NX = 1;
     private static final int SENSOR_NWP_NY = 1;
     private static final int SENSOR_NWP_STRIDE_X = 1;
-    private static final int SENSOR_NWP_STRIDE_Y = 1;
 
+    private static final int SENSOR_NWP_STRIDE_Y = 1;
     private static final int MATCHUP_AN_PAST_TIME_STEP_COUNT = 8;
     private static final int MATCHUP_AN_FUTURE_TIME_STEP_COUNT = 4;
     private static final int MATCHUP_FC_PAST_TIME_STEP_COUNT = 16;
@@ -88,13 +89,15 @@ public class NwpTool {
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
         createSensorNwpFile();
-        createMatchupAnFile();
-        createMatchupFcFile();
+        if (MATCHUP_REQUESTED) {
+            createMatchupAnFile();
+            createMatchupFcFile();
+        }
     }
 
     private static void createSensorNwpFile() throws IOException, InterruptedException {
-        final NetcdfFile sensorNwpFile = NetcdfFile.open(writeSensorMmdFile(MMD_SOURCE_LOCATION, SENSOR_NAME,
-                                                                            SENSOR_PATTERN));
+        final NetcdfFile sensorNwpFile = NetcdfFile.open(
+                writeSensorMmdFile(MMD_SOURCE_LOCATION, SENSOR_NAME, SENSOR_PATTERN));
 
         try {
             final String geoFileLocation = writeSensorGeoFile(sensorNwpFile, SENSOR_NWP_NX, SENSOR_NWP_NY,
@@ -137,10 +140,10 @@ public class NwpTool {
     }
 
     private static void createMatchupAnFile() throws IOException, InterruptedException {
-        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeMatchupMmdFile(MMD_SOURCE_LOCATION));
+        final NetcdfFile mmdFile = NetcdfFile.open(MMD_SOURCE_LOCATION);
 
         try {
-            final String geoFileLocation = writeMatchupGeoFile(sensorMmdFile);
+            final String geoFileLocation = writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
@@ -157,7 +160,7 @@ public class NwpTool {
 
             final NetcdfFile anFile = NetcdfFile.open(properties.getProperty("AN_TIME_SERIES"));
             try {
-                writeAnalysisMmdFile(sensorMmdFile, anFile, MATCHUP_AN_PAST_TIME_STEP_COUNT,
+                writeAnalysisMmdFile(mmdFile, anFile, MATCHUP_AN_PAST_TIME_STEP_COUNT,
                                      MATCHUP_AN_FUTURE_TIME_STEP_COUNT);
             } finally {
                 try {
@@ -167,17 +170,17 @@ public class NwpTool {
             }
         } finally {
             try {
-                sensorMmdFile.close();
+                mmdFile.close();
             } catch (IOException ignored) {
             }
         }
     }
 
     private static void createMatchupFcFile() throws IOException, InterruptedException {
-        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeMatchupMmdFile(MMD_SOURCE_LOCATION));
+        final NetcdfFile mmdFile = NetcdfFile.open(MMD_SOURCE_LOCATION);
 
         try {
-            final String geoFileLocation = writeMatchupGeoFile(sensorMmdFile);
+            final String geoFileLocation = writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
@@ -197,7 +200,7 @@ public class NwpTool {
 
             final NetcdfFile fcFile = NetcdfFile.open(properties.getProperty("FC_TIME_SERIES"));
             try {
-                writeForecastMmdFile(sensorMmdFile, fcFile, MATCHUP_FC_PAST_TIME_STEP_COUNT,
+                writeForecastMmdFile(mmdFile, fcFile, MATCHUP_FC_PAST_TIME_STEP_COUNT,
                                      MATCHUP_FC_FUTURE_TIME_STEP_COUNT);
             } finally {
                 try {
@@ -207,7 +210,7 @@ public class NwpTool {
             }
         } finally {
             try {
-                sensorMmdFile.close();
+                mmdFile.close();
             } catch (IOException ignored) {
             }
         }
@@ -513,10 +516,6 @@ public class NwpTool {
         return tempFile;
     }
 
-    private static File createTempFile(String prefix, String suffix) throws IOException {
-        return File.createTempFile(prefix, suffix, new File("."));
-    }
-
     private static String files(final String dirPath, final String pattern) {
         final File dir = new File(dirPath);
         final File[] files = dir.listFiles(new FilenameFilter() {
@@ -557,66 +556,6 @@ public class NwpTool {
     /**
      * Extracts the records from an MMD file that correspond to a certain sensor.
      *
-     * @param mmdLocation The location of the MMD file.
-     *
-     * @return the location of the netCDF file written.
-     *
-     * @throws java.io.IOException when an error occurred.
-     */
-    @SuppressWarnings({"ConstantConditions"})
-    private static String writeMatchupMmdFile(String mmdLocation) throws IOException {
-        final NetcdfFile mmd = NetcdfFile.open(mmdLocation);
-
-        try {
-            final Dimension matchupDimension = findDimension(mmd, "matchup");
-            final String matchupMmdLocation = createTempFile("mmd", ".nc", true).getPath();
-            final NetcdfFileWriteable matchupMmd = NetcdfFileWriteable.createNew(matchupMmdLocation, true);
-
-            final int matchupCount = matchupDimension.getLength();
-            matchupMmd.addDimension(matchupDimension.getName(), matchupCount);
-
-            addVariable(matchupMmd, findVariable(mmd, "matchup.id"));
-            addVariable(matchupMmd, findVariable(mmd, "matchup.latitude"));
-            addVariable(matchupMmd, findVariable(mmd, "matchup.longitude"));
-            addVariable(matchupMmd, findVariable(mmd, "matchup.time"));
-
-            matchupMmd.create();
-
-            try {
-                for (final Variable v : mmd.getVariables()) {
-                    final int[] sourceStart = new int[v.getRank()];
-                    final int[] sourceShape = v.getShape();
-                    final int[] targetStart = new int[v.getRank()];
-                    if (matchupMmd.findVariable(v.getNameEscaped()) != null) {
-                        for (int m = 0; m < matchupCount; m++) {
-                            sourceStart[0] = m;
-                            sourceShape[0] = 1;
-                            targetStart[0] = m;
-                            final Array data = v.read(sourceStart, sourceShape);
-                            matchupMmd.write(v.getNameEscaped(), targetStart, data);
-                        }
-                    }
-                }
-            } catch (InvalidRangeException e) {
-                throw new IOException(e);
-            } finally {
-                try {
-                    matchupMmd.close();
-                } catch (IOException ignored) {
-                }
-            }
-            return matchupMmd.getLocation();
-        } finally {
-            try {
-                mmd.close();
-            } catch (IOException ignored) {
-            }
-        }
-    }
-
-    /**
-     * Extracts the records from an MMD file that correspond to a certain sensor.
-     *
      * @param mmdLocation   The location of the MMD file.
      * @param sensorName    The sensor name.
      * @param sensorPattern The sensor pattern.
@@ -632,8 +571,8 @@ public class NwpTool {
 
         try {
             final Dimension matchupDimension = findDimension(mmd, "matchup");
-            final Dimension nyDimension = findDimension(mmd, sensorName + ".ny");
-            final Dimension nxDimension = findDimension(mmd, sensorName + ".nx");
+            final Dimension nyDimension = findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".ny");
+            final Dimension nxDimension = findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".nx");
 
             final Array sensorPatterns = findVariable(mmd, "matchup.sensor_list").read();
             final int matchupCount = matchupCount(sensorPatterns);
@@ -697,7 +636,7 @@ public class NwpTool {
     }
 
     /**
-     * Writes the geo-coordinates from the MMD file to a SCRIP compatible file.
+     * Writes the match-up geo-coordinates from an MMD file to a SCRIP compatible file.
      *
      * @param mmd The MMD file.
      *
@@ -774,7 +713,7 @@ public class NwpTool {
     }
 
     /**
-     * Writes the geo-coordinates from the MMD file to a SCRIP compatible file.
+     * Writes the sensor geo-coordinates from an MMD file to a SCRIP compatible file.
      *
      * @param mmd     The MMD file.
      * @param gx      The the number of tie points in x direction.
@@ -790,8 +729,8 @@ public class NwpTool {
     private static String writeSensorGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY) throws
                                                                                                        IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
-        final Dimension nyDimension = findDimension(mmd, SENSOR_NAME + ".ny");
-        final Dimension nxDimension = findDimension(mmd, SENSOR_NAME + ".nx");
+        final Dimension nyDimension = findDimension(mmd, SENSOR_NAME.replaceAll("\\..+", "") + ".ny");
+        final Dimension nxDimension = findDimension(mmd, SENSOR_NAME.replaceAll("\\..+", "") + ".nx");
 
         final String location = createTempFile("geo", ".nc", true).getPath();
         final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew(location, true);
