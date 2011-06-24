@@ -73,14 +73,6 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int w = lonSource.getWidth();
         final int h = lonSource.getHeight();
 
-        final boolean cannotInterpolate = w == 1 && h == 1;
-        if (cannotInterpolate) {
-            final double lon = lonSource.getSample(0, 0);
-            final double lat = latSource.getSample(0, 0);
-            g.setLocation(lon, lat);
-            return true;
-        }
-
         int x0 = (int) Math.floor(x);
         int y0 = (int) Math.floor(y);
 
