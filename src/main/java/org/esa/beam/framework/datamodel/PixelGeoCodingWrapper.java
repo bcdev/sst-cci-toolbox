@@ -33,7 +33,17 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
 
     public PixelGeoCodingWrapper(PixelGeoCoding pixelGeoCoding) {
         super(pixelGeoCoding);
-        final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand());
+        final RasterDataNodeSampleSource lonSource;
+        lonSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand()) {
+            @Override
+            public final double getSample(int x, int y) {
+                final double lon = super.getSample(x, y);
+                if (lon > 180.0) {
+                    return lon - 360.0;
+                }
+                return lon;
+            }
+        };
         final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand());
         pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
     }
@@ -43,7 +53,8 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
         if (geoPos == null) {
             geoPos = new GeoPos();
         }
-        if (!pixelPos.isValid() || !pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(), new GeoPoint(geoPos))) {
+        if (!pixelPos.isValid() || !pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(),
+                                                                new GeoPoint(geoPos))) {
             geoPos.setInvalid();
         }
         return geoPos;
