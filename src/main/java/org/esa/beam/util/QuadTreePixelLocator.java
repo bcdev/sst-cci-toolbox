@@ -21,7 +21,6 @@ import org.esa.beam.util.math.MathUtils;
 
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,9 +95,8 @@ public class QuadTreePixelLocator implements PixelLocator {
             if (x1 < w && y1 < h) {
                 final double wx = x - (x0 + 0.5);
                 final double wy = y - (y0 + 0.5);
-                final double lon = interpolate(x0, y0, wx, wy, lonSource);
-                final double lat = interpolate(x0, y0, wx, wy, latSource);
-                g.setLocation(lon, lat);
+                final Point2D p = interpolate(x0, y0, wx, wy);
+                g.setLocation(p);
             } else {
                 final double lon = getLon(x0, y0);
                 final double lat = getLat(x0, y0);
@@ -144,7 +142,7 @@ public class QuadTreePixelLocator implements PixelLocator {
                 for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
                     lats[ij] = getLat(j, i);
                     lons[ij] = getLon(j, i);
-                    distances[ij] = sqr(lat - lats[ij], f * Result.delta(lon, lons[ij]));
+                    distances[ij] = sqr(lat - lats[ij], f * Result.deltaLon(lon, lons[ij]));
                 }
             }
 
@@ -155,14 +153,15 @@ public class QuadTreePixelLocator implements PixelLocator {
                         result.updateNearest(j, i, lons[ij], lats[ij], distances[ij]);
                     }
                 }
+                // todo - optimize: only a single point is needed at this stage of the algorithm
                 for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
                     for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
-                        result.updateFarthestLon(j, i, lons[ij], lats[ij], distances[ij]);
+                        result.updateFarthestLon(j, i, lons[ij], lats[ij]);
                     }
                 }
                 for (int i = y0, ij = 0; i < y0 + macroPixelSize; i++) {
                     for (int j = x0; j < x0 + macroPixelSize; j++, ij++) {
-                        result.updateFarthestLat(j, i, lons[ij], lats[ij], distances[ij]);
+                        result.updateFarthest(j, i, lons[ij], lats[ij]);
                     }
                 }
             }
@@ -295,22 +294,55 @@ public class QuadTreePixelLocator implements PixelLocator {
     }
 
     private double getLon(int x, int y) {
-        return lonSource.getSample(x, y);
+        final double lon = lonSource.getSample(x, y);
+        if (lon > 180.0) {
+            return lon - 360.0;
+        }
+        return lon;
     }
 
     private double getLat(int x, int y) {
         return latSource.getSample(x, y);
     }
 
-    private double interpolate(int x0, int y0, double wx, double wy, SampleSource sampleSource) {
+    private Point2D interpolate(int x0, int y0, double wx, double wy) {
         final int x1 = x0 + 1;
         final int y1 = y0 + 1;
-        final double d00 = sampleSource.getSample(x0, y0);
-        final double d10 = sampleSource.getSample(x1, y0);
-        final double d01 = sampleSource.getSample(x0, y1);
-        final double d11 = sampleSource.getSample(x1, y1);
+        final double[] lons = new double[4];
+        final double[] lats = new double[4];
 
-        return MathUtils.interpolate2D(wx, wy, d00, d10, d01, d11);
+        lons[0] = getLon(x0, y0);
+        lons[1] = getLon(x1, y0);
+        lons[2] = getLon(x0, y1);
+        lons[3] = getLon(x1, y1);
+
+        lats[0] = getLat(x0, y0);
+        lats[1] = getLat(x1, y0);
+        lats[2] = getLat(x0, y1);
+        lats[3] = getLat(x1, y1);
+
+        final Point2D p = new Point2D.Double();
+        if (Double.isNaN(lons[0]) || Double.isNaN(lons[1]) || Double.isNaN(lons[2]) || Double.isNaN(lons[3]) ||
+            Double.isNaN(lats[0]) || Double.isNaN(lats[1]) || Double.isNaN(lats[2]) || Double.isNaN(lats[3])) {
+
+            final int x = wx < 0.5 ? x0 : x1;
+            final int y = wy < 0.5 ? y0 : y1;
+            final double lon = getLon(x, y);
+            final double lat = getLat(x, y);
+
+            p.setLocation(lon, lat);
+        } else {
+            final Rotation rotation = new Rotation(lons, lats);
+            rotation.transform(lons, lats);
+
+            final double lon = MathUtils.interpolate2D(wx, wy, lons[0], lons[1], lons[2], lons[3]);
+            final double lat = MathUtils.interpolate2D(wx, wy, lats[0], lats[1], lats[2], lats[3]);
+
+            p.setLocation(lon, lat);
+            rotation.inverseTransform(p);
+        }
+
+        return p;
     }
 
     private GeoRegion putNull(Rectangle pixelRegion) {
@@ -379,18 +411,17 @@ public class QuadTreePixelLocator implements PixelLocator {
         private final double lon;
         private final double lat;
         private final Rotation rotation;
-        private final double[] distances = new double[N];
+        private double distance = Double.POSITIVE_INFINITY;
 
-        static double delta(double lon, double lon0) {
-            final double e = Math.abs(lon - lon0);
-            return e < 180.0 ? e : 360.0 - e;
+        static double deltaLon(double lon, double lon0) {
+            final double d = Math.abs(lon - lon0);
+            return d < 180.0 ? d : 360.0 - d;
         }
 
         Result(double lon, double lat) {
             this.lon = lon;
             this.lat = lat;
             this.rotation = new Rotation(lon, lat);
-            Arrays.fill(distances, Double.POSITIVE_INFINITY);
         }
 
         boolean invalidate(double... distances) {
@@ -403,13 +434,13 @@ public class QuadTreePixelLocator implements PixelLocator {
                 }
             }
             for (int i = 0, dsLength = distances.length; i < dsLength; i++) {
-                if (distances[i] < getDistance()) {
+                if (distances[i] < distance) {
                     for (int k = 0; k < N; k++) {
                         xs[k] = 0.0;
                         ys[k] = 0.0;
                         lons[k] = lon;
                         lats[k] = lat;
-                        this.distances[k] = Double.POSITIVE_INFINITY;
+                        distance = Double.POSITIVE_INFINITY;
                     }
                     return true;
                 }
@@ -417,17 +448,39 @@ public class QuadTreePixelLocator implements PixelLocator {
             return false;
         }
 
-        private boolean isFartherLon(double lon, double lon2) {
-            return Math.abs(lons[0] - lon) > Math.abs(lons[0] - lon2);
+        private boolean isFartherLon(double lon) {
+            return deltaLon(lons[0], lon) > deltaLon(lons[0], lons[1]);
         }
 
-        private boolean isFartherLat(double lat, double lat2) {
-            return Math.abs(this.lat - lat) > Math.abs(this.lat - lat2);
-        }
+        private boolean isFarther(double lon, double lat) {
+            final Point2D.Double a = new Point2D.Double(lons[0], lats[0]);
+            final Point2D.Double b = new Point2D.Double(lons[1], lats[1]);
+            final Point2D.Double c = new Point2D.Double(lons[2], lats[2]);
+            final Point2D.Double p = new Point2D.Double(lon, lat);
 
-        private boolean isTriangle(double lon, double lat) {
-            return (Math.signum(lats[0] - lats[1]) == Math.signum(lats[0] - lat)
-                    || Math.signum(lons[0] - lons[1]) == Math.signum(lons[0] - lon));
+            rotation.transform(a);
+            rotation.transform(b);
+            rotation.transform(c);
+            rotation.transform(p);
+
+            final double apx = a.getX() - p.getX();
+            final double apy = a.getY() - p.getY();
+            final double bpx = b.getX() - p.getX();
+            final double bpy = b.getY() - p.getY();
+            final double abx = a.getX() - b.getX();
+            final double aby = a.getY() - b.getY();
+            final double acx = a.getX() - c.getX();
+            final double acy = a.getY() - c.getY();
+            final double bcx = b.getX() - c.getX();
+            final double bcy = b.getY() - c.getY();
+
+            final double ap = apx * apx + apy * apy;
+            final double bp = bpx * bpx + bpy * bpy;
+            final double ab = abx * abx + aby * aby;
+            final double ac = acx * acx + acy * acy;
+            final double bc = bcx * bcx + bcy * bcy;
+
+            return (ap + bp) / (ab + Math.abs(ap - bp)) > (ac + bc) / (ab + Math.abs(ac - bc));
         }
 
         void get(Point2D p) {
@@ -441,42 +494,32 @@ public class QuadTreePixelLocator implements PixelLocator {
             p.setLocation(x, y);
         }
 
-        private double getDistance() {
-            return distances[0];
-        }
-
-        public void updateNearest(int x, int y, double lon, double lat, double distance) {
-            if (distance < distances[0]) {
-                xs[0] = x + 0.5;
-                ys[0] = y + 0.5;
-                lons[0] = lon;
-                lats[0] = lat;
-                distances[0] = distance;
+        public void updateNearest(int x, int y, double lon, double lat, double d) {
+            if (d < distance) {
+                xs[0] = xs[1] = xs[2] = x + 0.5;
+                ys[0] = ys[1] = ys[2] = y + 0.5;
+                lons[0] = lons[2] = lons[2] = lon;
+                lats[0] = lats[1] = lats[2] = lat;
+                distance = d;
             }
         }
 
-        public void updateFarthestLon(int x, int y, double lon, double lat, double distance) {
-            if (isFartherLon(lon, lons[1])) {
+        public void updateFarthestLon(int x, int y, double lon, double lat) {
+            if (isFartherLon(lon)) {
                 xs[1] = x + 0.5;
                 ys[1] = y + 0.5;
                 lons[1] = lon;
                 lats[1] = lat;
-                distances[1] = distance;
             }
         }
 
-        public void updateFarthestLat(int x, int y, double lon, double lat, double distance) {
-            if (!isFarthestLon(x, y) && isFartherLat(lat, lats[2]) && isTriangle(lon, lat)) {
+        public void updateFarthest(int x, int y, double lon, double lat) {
+            if (isFarther(lon, lat)) {
                 xs[2] = x + 0.5;
                 ys[2] = y + 0.5;
                 lons[2] = lon;
                 lats[2] = lat;
-                distances[2] = distance;
             }
-        }
-
-        private boolean isFarthestLon(int x, int y) {
-            return x + 0.5 == xs[1] && y + 0.5 == ys[1];
         }
     }
 }
