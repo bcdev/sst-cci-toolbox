@@ -19,7 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.reader.Reader;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -52,14 +52,15 @@ class DetectorTemperature extends Rule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Context context = getContext();
-        final Observation observation = context.getObservation();
         final Array result = Array.factory(DataType.SHORT, new int[]{1});
-        if (observation == null) {
+        final Observation observation = context.getObservation();
+        final Reader observationReader = context.getObservationReader();
+        if (observation == null || observationReader == null) {
             result.setShort(0, FILL_VALUE);
             return result;
         }
         final int recordNo = observation.getRecordNo();
-        context.getObservationReader().getColumns();
+        observationReader.getColumns();
         final int scanline = getScanline();
         final long time = getTime(recordNo, scanline);
         final Date date = new Date(time);
