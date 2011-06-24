@@ -71,22 +71,17 @@ public class NwpTool {
     private static final int SENSOR_PATTERN = 2;
     private static final String MMD_SOURCE_LOCATION = "mmd.nc";
 
-    private static final String NWP_TARGET_LOCATION = "nwp_" + SENSOR_NAME + ".nc";
-    private static final String AMD_TARGET_LOCATION = "amd.nc";
-    private static final String FMD_TARGET_LOCATION = "fmd.nc";
+    private static final String NWP_TARGET_LOCATION = SENSOR_NAME + ".nwp.nc";
+    private static final String AMD_TARGET_LOCATION = "matchup.nwp.an.nc";
+    private static final String FMD_TARGET_LOCATION = "matchup.nwp.fc.nc";
 
     private static final int SENSOR_NWP_NX = 1;
     private static final int SENSOR_NWP_NY = 1;
     private static final int SENSOR_NWP_STRIDE_X = 1;
     private static final int SENSOR_NWP_STRIDE_Y = 1;
 
-    private static final int MATCHUP_AN_NX = 1;
-    private static final int MATCHUP_AN_NY = 1;
     private static final int MATCHUP_AN_PAST_TIME_STEP_COUNT = 8;
     private static final int MATCHUP_AN_FUTURE_TIME_STEP_COUNT = 4;
-
-    private static final int MATCHUP_FC_NX = 1;
-    private static final int MATCHUP_FC_NY = 1;
     private static final int MATCHUP_FC_PAST_TIME_STEP_COUNT = 16;
     private static final int MATCHUP_FC_FUTURE_TIME_STEP_COUNT = 8;
 
@@ -102,8 +97,8 @@ public class NwpTool {
                                                                             SENSOR_PATTERN));
 
         try {
-            final String geoFileLocation = writeGeoFile(sensorNwpFile, SENSOR_NWP_NX, SENSOR_NWP_NY,
-                                                        SENSOR_NWP_STRIDE_X, SENSOR_NWP_STRIDE_Y);
+            final String geoFileLocation = writeSensorGeoFile(sensorNwpFile, SENSOR_NWP_NX, SENSOR_NWP_NY,
+                                                              SENSOR_NWP_STRIDE_X, SENSOR_NWP_STRIDE_Y);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
@@ -142,10 +137,10 @@ public class NwpTool {
     }
 
     private static void createMatchupAnFile() throws IOException, InterruptedException {
-        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(MMD_SOURCE_LOCATION, "matchup", 0));
+        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeMatchupMmdFile(MMD_SOURCE_LOCATION));
 
         try {
-            final String geoFileLocation = writeGeoFile(sensorMmdFile, MATCHUP_AN_NX, MATCHUP_AN_NY, 1, 1);
+            final String geoFileLocation = writeMatchupGeoFile(sensorMmdFile);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
@@ -179,10 +174,10 @@ public class NwpTool {
     }
 
     private static void createMatchupFcFile() throws IOException, InterruptedException {
-        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(MMD_SOURCE_LOCATION, "matchup", 0));
+        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeMatchupMmdFile(MMD_SOURCE_LOCATION));
 
         try {
-            final String geoFileLocation = writeGeoFile(sensorMmdFile, MATCHUP_FC_NX, MATCHUP_FC_NY, 1, 1);
+            final String geoFileLocation = writeMatchupGeoFile(sensorMmdFile);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "/usr/local/bin/cdo");
@@ -230,9 +225,9 @@ public class NwpTool {
 
         final NetcdfFileWriteable nwp = NetcdfFileWriteable.createNew(NWP_TARGET_LOCATION, true);
         nwp.addDimension(matchupDimension.getName(), matchupCount);
-        nwp.addDimension("nwp.nz", findDimension(analysisFile, "lev").getLength());
-        nwp.addDimension("nwp.ny", gy);
-        nwp.addDimension("nwp.nx", gx);
+        nwp.addDimension(sensorName + ".nwp.nx", gx);
+        nwp.addDimension(sensorName + ".nwp.ny", gy);
+        nwp.addDimension(sensorName + ".nwp.nz", findDimension(analysisFile, "lev").getLength());
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
         nwp.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
@@ -241,9 +236,12 @@ public class NwpTool {
             if (s.getRank() == 4) {
                 final Variable t;
                 if (s.getDimension(1).getLength() == 1) {
-                    t = nwp.addVariable(s.getName(), s.getDataType(), "matchup nwp.ny nwp.nx");
+                    t = nwp.addVariable(sensorName + ".nwp." + s.getName(), s.getDataType(),
+                                        String.format("matchup %s.nwp.ny %s.nwp.nx", sensorName, sensorName));
                 } else {
-                    t = nwp.addVariable(s.getName(), s.getDataType(), "matchup nwp.nz nwp.ny nwp.nx");
+                    t = nwp.addVariable(sensorName + ".nwp." + s.getName(), s.getDataType(),
+                                        String.format("matchup %s.nwp.nz %s.nwp.ny %s.nwp.nx", sensorName, sensorName,
+                                                      sensorName));
                 }
                 for (final Attribute a : s.getAttributes()) {
                     t.addAttribute(a);
@@ -271,7 +269,7 @@ public class NwpTool {
                     if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable s = findVariable(analysisFile, t.getName());
+                    final Variable s = findVariable(analysisFile, t.getName().substring(sensorName.length() + 5));
                     final float fillValue = getAttribute(s, "_FillValue", 2.0E+20F);
                     final float validMin = getAttribute(s, "valid_min", Float.NEGATIVE_INFINITY);
                     final float validMax = getAttribute(s, "valid_max", Float.POSITIVE_INFINITY);
@@ -305,21 +303,6 @@ public class NwpTool {
                     nwp.write(t.getNameEscaped(), targetStart, slice2.reshape(targetShape));
                 }
             }
-
-            nwp.setRedefineMode(true);
-            for (final Dimension d : nwp.getDimensions()) {
-                if ("matchup".equals(d.getName())) {
-                    continue;
-                }
-                nwp.renameVariable(d.getName(), sensorName + ".nwp." + d.getName());
-            }
-            for (final Variable t : nwp.getVariables()) {
-                if ("matchup.id".equals(t.getName())) {
-                    continue;
-                }
-                nwp.renameVariable(t.getNameEscaped(), sensorName + ".nwp." + t.getName());
-            }
-            nwp.setRedefineMode(false);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         } finally {
@@ -376,7 +359,7 @@ public class NwpTool {
         for (final Variable s : analysisFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = amd.addVariable(s.getName(), s.getDataType(),
+                    final Variable t = amd.addVariable("matchup.nwp." + s.getName(), s.getDataType(),
                                                        "matchup matchup.nwp.an.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
@@ -409,7 +392,7 @@ public class NwpTool {
                     if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable s = findVariable(analysisFile, t.getName());
+                    final Variable s = findVariable(analysisFile, t.getName().substring("matchup.nwp.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
@@ -419,15 +402,6 @@ public class NwpTool {
                     amd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
-
-            amd.setRedefineMode(true);
-            for (final Variable t : amd.getVariables()) {
-                if ("matchup.id".equals(t.getName())) {
-                    continue;
-                }
-                amd.renameVariable(t.getNameEscaped(), "matchup.nwp.an." + t.getName());
-            }
-            amd.setRedefineMode(false);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         } finally {
@@ -462,7 +436,7 @@ public class NwpTool {
         for (final Variable s : forecastFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = fmd.addVariable(s.getName(), s.getDataType(),
+                    final Variable t = fmd.addVariable("matchup.nwp." + s.getName(), s.getDataType(),
                                                        "matchup matchup.nwp.fc.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
@@ -495,7 +469,7 @@ public class NwpTool {
                     if ("matchup.id".equals(t.getName())) {
                         continue;
                     }
-                    final Variable s = findVariable(forecastFile, t.getName());
+                    final Variable s = findVariable(forecastFile, t.getName().substring("matchup.nwp.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
@@ -505,12 +479,6 @@ public class NwpTool {
                     fmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
-
-            fmd.setRedefineMode(true);
-            for (final Variable t : fmd.getVariables()) {
-                fmd.renameVariable(t.getNameEscaped(), "matchup.nwp.fc." + t.getName());
-            }
-            fmd.setRedefineMode(false);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         } finally {
@@ -543,6 +511,10 @@ public class NwpTool {
             tempFile.deleteOnExit();
         }
         return tempFile;
+    }
+
+    private static File createTempFile(String prefix, String suffix) throws IOException {
+        return File.createTempFile(prefix, suffix, new File("."));
     }
 
     private static String files(final String dirPath, final String pattern) {
@@ -580,6 +552,66 @@ public class NwpTool {
             }
         }
         return script;
+    }
+
+    /**
+     * Extracts the records from an MMD file that correspond to a certain sensor.
+     *
+     * @param mmdLocation The location of the MMD file.
+     *
+     * @return the location of the netCDF file written.
+     *
+     * @throws java.io.IOException when an error occurred.
+     */
+    @SuppressWarnings({"ConstantConditions"})
+    private static String writeMatchupMmdFile(String mmdLocation) throws IOException {
+        final NetcdfFile mmd = NetcdfFile.open(mmdLocation);
+
+        try {
+            final Dimension matchupDimension = findDimension(mmd, "matchup");
+            final String matchupMmdLocation = createTempFile("mmd", ".nc", true).getPath();
+            final NetcdfFileWriteable matchupMmd = NetcdfFileWriteable.createNew(matchupMmdLocation, true);
+
+            final int matchupCount = matchupDimension.getLength();
+            matchupMmd.addDimension(matchupDimension.getName(), matchupCount);
+
+            addVariable(matchupMmd, findVariable(mmd, "matchup.id"));
+            addVariable(matchupMmd, findVariable(mmd, "matchup.latitude"));
+            addVariable(matchupMmd, findVariable(mmd, "matchup.longitude"));
+            addVariable(matchupMmd, findVariable(mmd, "matchup.time"));
+
+            matchupMmd.create();
+
+            try {
+                for (final Variable v : mmd.getVariables()) {
+                    final int[] sourceStart = new int[v.getRank()];
+                    final int[] sourceShape = v.getShape();
+                    final int[] targetStart = new int[v.getRank()];
+                    if (matchupMmd.findVariable(v.getNameEscaped()) != null) {
+                        for (int m = 0; m < matchupCount; m++) {
+                            sourceStart[0] = m;
+                            sourceShape[0] = 1;
+                            targetStart[0] = m;
+                            final Array data = v.read(sourceStart, sourceShape);
+                            matchupMmd.write(v.getNameEscaped(), targetStart, data);
+                        }
+                    }
+                }
+            } catch (InvalidRangeException e) {
+                throw new IOException(e);
+            } finally {
+                try {
+                    matchupMmd.close();
+                } catch (IOException ignored) {
+                }
+            }
+            return matchupMmd.getLocation();
+        } finally {
+            try {
+                mmd.close();
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     /**
@@ -667,6 +699,83 @@ public class NwpTool {
     /**
      * Writes the geo-coordinates from the MMD file to a SCRIP compatible file.
      *
+     * @param mmd The MMD file.
+     *
+     * @return the location of netCDF file written.
+     *
+     * @throws java.io.IOException when an error occurred.
+     */
+    @SuppressWarnings({"ConstantConditions"})
+    private static String writeMatchupGeoFile(NetcdfFile mmd) throws IOException {
+        final Dimension matchupDimension = findDimension(mmd, "matchup");
+
+        final String location = createTempFile("geo", ".nc", true).getPath();
+        final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew(location, true);
+
+        final int matchupCount = matchupDimension.getLength();
+
+        geoFile.addDimension("grid_size", matchupCount);
+        geoFile.addDimension("grid_matchup", matchupCount);
+        geoFile.addDimension("grid_ny", 1);
+        geoFile.addDimension("grid_nx", 1);
+        geoFile.addDimension("grid_corners", 4);
+        geoFile.addDimension("grid_rank", 2);
+
+        geoFile.addVariable("grid_dims", DataType.INT, "grid_rank");
+        geoFile.addVariable("grid_center_lat", DataType.FLOAT, "grid_size").addAttribute(
+                new Attribute("units", "degrees"));
+        geoFile.addVariable("grid_center_lon", DataType.FLOAT, "grid_size").addAttribute(
+                new Attribute("units", "degrees"));
+        geoFile.addVariable("grid_imask", DataType.INT, "grid_size");
+        geoFile.addVariable("grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
+        geoFile.addVariable("grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
+
+        geoFile.addGlobalAttribute("title", "MMD geo-location in SCRIP format");
+
+        geoFile.create();
+
+        try {
+            geoFile.write("grid_dims", Array.factory(new int[]{1, matchupCount}));
+
+            final int[] sourceStart = {0};
+            final int[] sourceShape = {1};
+            final int[] sourceStride = {1};
+            final int[] targetStart = {0};
+            final int[] targetShape = {1};
+            final Array maskData = Array.factory(DataType.INT, targetShape);
+
+            final Variable sourceLat = findVariable(mmd, "matchup.latitude");
+            final Variable sourceLon = findVariable(mmd, "matchup.longitude");
+
+            for (int i = 0; i < matchupCount; i++) {
+                sourceStart[0] = i;
+                targetStart[0] = i;
+                final Section sourceSection = new Section(sourceStart, sourceShape, sourceStride);
+                final Array latData = sourceLat.read(sourceSection);
+                final Array lonData = sourceLon.read(sourceSection);
+                for (int k = 0; k < targetShape[0]; k++) {
+                    final float lat = latData.getFloat(k);
+                    final float lon = lonData.getFloat(k);
+                    maskData.setInt(k, lat >= -90.0f && lat <= 90.0f && lon >= -180.0f && lat <= 180.0f ? 1 : 0);
+                }
+                geoFile.write("grid_center_lat", targetStart, latData.reshape(targetShape));
+                geoFile.write("grid_center_lon", targetStart, lonData.reshape(targetShape));
+                geoFile.write("grid_imask", targetStart, maskData);
+            }
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        } finally {
+            try {
+                geoFile.close();
+            } catch (IOException ignored) {
+            }
+        }
+        return geoFile.getLocation();
+    }
+
+    /**
+     * Writes the geo-coordinates from the MMD file to a SCRIP compatible file.
+     *
      * @param mmd     The MMD file.
      * @param gx      The the number of tie points in x direction.
      * @param gy      The the number of tie points in y direction.
@@ -678,8 +787,8 @@ public class NwpTool {
      * @throws java.io.IOException when an error occurred.
      */
     @SuppressWarnings({"ConstantConditions"})
-    private static String writeGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY) throws
-                                                                                                 IOException {
+    private static String writeSensorGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY) throws
+                                                                                                       IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
         final Dimension nyDimension = findDimension(mmd, SENSOR_NAME + ".ny");
         final Dimension nxDimension = findDimension(mmd, SENSOR_NAME + ".nx");
