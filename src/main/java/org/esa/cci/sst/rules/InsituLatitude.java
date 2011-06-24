@@ -37,7 +37,8 @@ import java.io.IOException;
 class InsituLatitude extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
-    private static final int[] SHAPE = new int[]{1, 48};
+    private static final int[] HISTORY_SHAPE = {1, 48};
+    private static final int[] SINGLE_VALUE_SHAPE = new int[]{1, 1};
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
@@ -53,12 +54,12 @@ class InsituLatitude extends AbstractImplicitRule {
         try {
             if (observationReader != null) {
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                        .shape(SHAPE)
+                        .shape(HISTORY_SHAPE)
                         .referenceObservation(referenceObservation)
                         .build();
                 return observationReader.read("insitu.latitude", extractDefinition);
             } else {
-                final Array array = Array.factory(DATA_TYPE, SHAPE);
+                final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
                 final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
                 if (insituSource != null) {
                     final double lat = insituSource.readInsituLat(referenceObservation.getRecordNo());
