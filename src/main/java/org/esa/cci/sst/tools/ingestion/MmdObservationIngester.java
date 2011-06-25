@@ -39,14 +39,16 @@ class MmdObservationIngester {
     private final BasicTool tool;
     private final Ingester ingester;
     private final MmdReader reader;
+    private final long pattern;
     static final String GET_MATCHUP = "SELECT m " +
                                       "FROM Matchup m " +
                                       "WHERE m.id = %d";
 
-    MmdObservationIngester(BasicTool tool, Ingester ingester, MmdReader reader) {
+    MmdObservationIngester(BasicTool tool, Ingester ingester, MmdReader reader, long pattern) {
         this.tool = tool;
         this.ingester = ingester;
         this.reader = reader;
+        this.pattern = pattern;
     }
 
     void ingestObservations() {
@@ -76,6 +78,7 @@ class MmdObservationIngester {
         final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
         final Coincidence coincidence = createCoincidence(matchup, observation);
         tool.getPersistenceManager().persist(coincidence);
+        matchup.setPattern(matchup.getPattern() | pattern);
     }
 
     private Coincidence createCoincidence(final Matchup matchup, final Observation observation) {

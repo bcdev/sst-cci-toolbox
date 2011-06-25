@@ -91,11 +91,11 @@ public class MmdIngestionTool extends BasicTool {
         if (persistVariables) {
             persistColumns(sensorName);
         }
-        ingestObservations();
+        ingestObservations(pattern);
     }
 
-    private void ingestObservations() {
-        final MmdObservationIngester observationIngester = new MmdObservationIngester(this, ingester, reader);
+    private void ingestObservations(long pattern) {
+        final MmdObservationIngester observationIngester = new MmdObservationIngester(this, ingester, reader, pattern);
         observationIngester.ingestObservations();
     }
 
