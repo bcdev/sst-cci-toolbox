@@ -70,7 +70,7 @@ class Rotation {
      *              origin.
      * @param lat   the geographical latitude of the point becoming the new
      *              origin.
-     * @param alpha the rotation angle (degrees) corresponding to the x-axis.
+     * @param alpha the angle (degrees) of rotation around the x-axis.
      */
     Rotation(double lon, double lat, double alpha) {
         final double u = toRadians(lon);
@@ -127,7 +127,7 @@ class Rotation {
      * @param point the point becoming the new origin, the x and y components
      *              of which define, respectively, the geographical longitude
      *              and latitude.
-     * @param alpha the rotation angle (degrees) around the x-axis.
+     * @param alpha the angle (degrees) of rotation around the x-axis.
      */
     Rotation(Point2D point, double alpha) {
         this(point.getX(), point.getY(), alpha);
