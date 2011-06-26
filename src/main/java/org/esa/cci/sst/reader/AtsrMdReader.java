@@ -67,6 +67,7 @@ class AtsrMdReader extends MdReader implements InsituSource {
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(dateOf(getDouble("atsr.time.julian", recordNo)));
+        observation.setTimeRadius(86400 * Math.abs(getDouble("atsr.time.julian", recordNo) - getDouble("insitu.time.julian", recordNo)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         return observation;

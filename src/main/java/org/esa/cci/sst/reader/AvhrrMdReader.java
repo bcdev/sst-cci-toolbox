@@ -49,6 +49,7 @@ class AvhrrMdReader extends MdReader {
         observation.setPoint(location);
         observation.setLocation(location);
         observation.setTime(TimeUtil.secondsSince1981ToDate(getDouble("avhrr.time", recordNo)));
+        observation.setTimeRadius(Math.abs(getDouble("avhrr.time", recordNo) - getDouble("insitu.time.julian", recordNo)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
 

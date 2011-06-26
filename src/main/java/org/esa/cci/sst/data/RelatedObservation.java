@@ -37,13 +37,9 @@ import java.util.Date;
 public class RelatedObservation extends Observation implements Timeable {
 
     private Date time;
+    // important: double precision is used to preserve precision
+    private double timeRadius;
     private PGgeometry location;
-
-    @Column(columnDefinition = "GEOGRAPHY(GEOMETRY,4326)")
-    @Strategy("org.esa.cci.sst.orm.GeographyValueHandler")
-    public PGgeometry getLocation() {
-        return location;
-    }
 
     @Index
     @Temporal(TemporalType.TIMESTAMP)
@@ -55,6 +51,32 @@ public class RelatedObservation extends Observation implements Timeable {
     @Override
     public void setTime(Date time) {
         this.time = time;
+    }
+
+    /**
+     * Returns the time radius (seconds) of this observation.
+     * Half the distance between first and last measurement for in-situ histories.
+     * Distance between in-situ and satellite reference for MD records.
+     *
+     * @return the time radius (seconds).
+     */
+    public double getTimeRadius() {
+        return timeRadius;
+    }
+
+    /**
+     * Sets the time radius (seconds) of this observation.
+     *
+     * @param timeRadius The time radius (seconds).
+     */
+    public void setTimeRadius(double timeRadius) {
+        this.timeRadius = timeRadius;
+    }
+
+    @Column(columnDefinition = "GEOGRAPHY(GEOMETRY,4326)")
+    @Strategy("org.esa.cci.sst.orm.GeographyValueHandler")
+    public PGgeometry getLocation() {
+        return location;
     }
 
     public void setLocation(PGgeometry location) {

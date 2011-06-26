@@ -98,12 +98,18 @@ public class MatchupTool extends BasicTool {
                     + " and abs(extract(epoch from o.time) - extract(epoch from timestamp ?2)) <= o.timeRadius"
                     + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
+    private static final String DUPLICATES_QUERY = "update mm_observation o set referenceflag = 5 " +
+            "where o.sensor=?1 " +
+            "and o.time >= ?2 and o.time < ?3 " +
+            "and exists ( select p.id from mm_observation p " +
+            "where p.sensor = o.sensor and p.name = o.name " +
+            "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
+            "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
 
     private static final int CHUNK_SIZE = 1024; //*16;
 
     private static final String ATSR_MD = "atsr_md";
     private static final String METOP = "metop";
-
     private static final String SEVIRI = "seviri";
     private static final Map<Class<? extends Observation>, String> OBSERVATION_QUERY_MAP =
             new HashMap<Class<? extends Observation>, String>(12);
@@ -150,6 +156,9 @@ public class MatchupTool extends BasicTool {
         if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.cleanup"))) {
             cleanup();
         }
+        if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.markduplicates"))) {
+            markDuplicates();
+        }
         if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.atsr_md"))) {
             findAtsrMultiSensorMatchups();
         }
@@ -166,6 +175,46 @@ public class MatchupTool extends BasicTool {
             findSingleSensorMatchups(SEVIRI, seviriSensor);
         }
         findRelatedObservations();
+    }
+
+    /**
+     * Sets reference flag of observations to 5
+     * if there are other observations for same sensor and call sign and satellite orbit
+     * with lower temporal distance of in-situ measurement
+     */
+    private void markDuplicates() {
+        try {
+            getPersistenceManager().transaction();
+            Query query = getPersistenceManager().createNativeQuery(DUPLICATES_QUERY);
+            query.setParameter(2, getSourceStartTime());
+            query.setParameter(3, getSourceStopTime());
+
+            long time = System.currentTimeMillis();
+            query.setParameter(1, ATSR_MD);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD, System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
+            getPersistenceManager().transaction();
+
+            time = System.currentTimeMillis();
+            query.setParameter(1, METOP);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP, System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
+            getPersistenceManager().transaction();
+
+            time = System.currentTimeMillis();
+            query.setParameter(1, SEVIRI);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI, System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
+        } catch (Exception e) {
+            getPersistenceManager().rollback();
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
+        }
     }
 
     /**
@@ -408,7 +457,7 @@ public class MatchupTool extends BasicTool {
         List<String> sensorNames = new ArrayList<String>();
         final Properties configuration = getConfiguration();
         for (int i = 0; i < 100; i++) {
-            final String sensorName = configuration.getProperty(String.format("mms.source.%d.sensor", i));
+            final String sensorName = configuration.getProperty(String.format("mms.matchup.%d.sensor", i));
             if (sensorName == null) {
                 continue;
             }
@@ -436,7 +485,7 @@ public class MatchupTool extends BasicTool {
     private int configurationIndexOf(String sensor) {
         final Properties configuration = getConfiguration();
         for (int i = 0; i < 100; i++) {
-            final String sensorName = configuration.getProperty(String.format("mms.source.%d.sensor", i));
+            final String sensorName = configuration.getProperty(String.format("mms.matchup.%d.sensor", i));
             if (sensor.equals(sensorName)) {
                 return i;
             }

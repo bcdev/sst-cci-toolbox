@@ -88,6 +88,7 @@ class MetopReader extends MdReader implements InsituSource {
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));
         observation.setTime(TimeUtil.secondsSince1981ToDate(
                 getDouble("msr_time", recordNo) + getDouble("dtime", recordNo, y)));
+        observation.setTimeRadius(Math.abs(getDouble("dtime", recordNo, y)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
 

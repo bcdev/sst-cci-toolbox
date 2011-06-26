@@ -65,9 +65,9 @@ public class ReferenceObservation extends RelatedObservation {
 
     @Override
     public String toString() {
-        return String.format("ReferenceObservation(%d,%s,%s,%s,%s,%d,%s,%s,%d,%d)", getId(), getSensor(),
+        return String.format("ReferenceObservation(%d,%s,%s,%s,%s,%d,%s,%s,%f,%d,%d)", getId(), getSensor(),
                              TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo(),
-                             getPoint(), getName(), getDataset(), getReferenceFlag());
+                             getPoint(), getName(), getTimeRadius(), getDataset(), getReferenceFlag());
     }
 }
 

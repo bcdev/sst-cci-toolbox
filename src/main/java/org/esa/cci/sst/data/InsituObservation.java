@@ -28,27 +28,6 @@ import javax.persistence.Entity;
 @Entity
 public class InsituObservation extends RelatedObservation {
 
-    // important: double precision is used to preserve precision
-    private double timeRadius;
-
-    /**
-     * Returns the time radius (seconds) of this observation.
-     *
-     * @return the time radius (seconds).
-     */
-    public double getTimeRadius() {
-        return timeRadius;
-    }
-
-    /**
-     * Sets the time radius (seconds) of this observation.
-     *
-     * @param timeRadius The time radius (seconds).
-     */
-    public void setTimeRadius(double timeRadius) {
-        this.timeRadius = timeRadius;
-    }
-
     @Override
     public String toString() {
         return String.format("InsituObservation(%d,%s,%s,%s,%f,%s,%d)", getId(), getName(), getSensor(),

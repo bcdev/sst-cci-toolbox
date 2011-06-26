@@ -105,6 +105,7 @@ class SeviriReader extends MdReader implements InsituSource {
                                                       coordinateOf(getInt("lat", recordNo, line, column)))));
         observation.setTime(TimeUtil.secondsSince1981ToDate(
                 getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
+        observation.setTimeRadius(Math.abs(getDouble("dtime", recordNo, line, column)));
         observation.setDatafile(getDatafile());
         observation.setRecordNo(recordNo);
         return observation;
