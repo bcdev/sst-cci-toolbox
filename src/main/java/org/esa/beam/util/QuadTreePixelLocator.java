@@ -25,8 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 /**
  * A {@link PixelLocator} implementation using a quad-tree algorithm.
@@ -434,6 +433,10 @@ public class QuadTreePixelLocator implements PixelLocator {
             final RationalFunctionModel yModel = new RationalFunctionModel(1, 0, gcpLon, gcpLat, gcpY);
             final double x = xModel.getValue(0.0, 0.0);
             final double y = yModel.getValue(0.0, 0.0);
+
+            if(p == null) {
+                p = new Point2D.Double();
+            }
 
             p.setLocation(x, y);
         }
