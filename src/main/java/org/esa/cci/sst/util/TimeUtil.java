@@ -96,6 +96,10 @@ public final class TimeUtil {
         return new Date((long) ((julianDate - EPOCH_JD) * MILLIS_PER_DAY));
     }
 
+    public static double dateToSecondsSinceEpoch(Date date) {
+        return (MILLIS_1978 - date.getTime()) / 1000.0;
+    }
+
     public static double julianDateToSecondsSinceEpoch(double julianDate) {
         return (julianDate - EPOCH_JD) * SECONDS_PER_DAY - MILLIS_1978 / 1000.0;
     }

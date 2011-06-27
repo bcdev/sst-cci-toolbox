@@ -110,6 +110,10 @@ class InsituReader extends NetcdfReader {
         final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
         final Array source = sourceVariable.read();
         final Array target = Array.factory(source.getElementType(), extractDefinition.getShape());
+        final Number fillValue = getAttribute(sourceVariable, "_FillValue", Double.NEGATIVE_INFINITY);
+        for (int i = 0; i < target.getSize(); i++) {
+            target.setObject(i, fillValue);
+        }
         if (range != Range.EMPTY) {
             final List<Range> subsampling = createSubsampling(historyTimes, range, extractDefinition.getShape()[1]);
             try {
@@ -119,27 +123,21 @@ class InsituReader extends NetcdfReader {
             }
             return target;
         }
-        final Number fillValue = getAttribute(sourceVariable, "_FillValue", Double.NEGATIVE_INFINITY);
-        for (int i = 0; i < target.getSize(); i++) {
-            target.setObject(i, fillValue);
-        }
         return target;
     }
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
-        // todo - ts 07Jun11 - implement (?)
-        throw new IllegalStateException("Not implemented");    }
+        throw new IllegalStateException("Not implemented");
+    }
 
     @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
         throw new IllegalStateException("Not implemented");
     }
 
     @Override
     public long getTime(int recordNo, int scanLine) throws IOException {
-        // todo - ts 06Jun11 - implement (?)
         throw new IllegalStateException("Not implemented");
     }
 
@@ -153,7 +151,7 @@ class InsituReader extends NetcdfReader {
     }
 
     private Array readHistoryTimes() throws IOException {
-        return getNetcdfFile().findVariable(NetcdfFile.escapeName("insitu.time")).read();
+        return getVariable("insitu.time").read();
     }
 
     /**

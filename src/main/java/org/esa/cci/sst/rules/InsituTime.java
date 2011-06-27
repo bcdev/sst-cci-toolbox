@@ -24,6 +24,7 @@ import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -52,21 +53,29 @@ class InsituTime extends AbstractImplicitRule {
     @Override
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Context context = getContext();
-        final ReferenceObservation referenceObservation = context.getMatchup().getRefObs();
+        final ReferenceObservation refObs = context.getMatchup().getRefObs();
+        final double refTime = TimeUtil.dateToSecondsSinceEpoch(refObs.getTime());
         final Reader observationReader = context.getObservationReader();
         try {
             if (observationReader != null) {
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
                         .shape(SHAPE)
-                        .referenceObservation(referenceObservation)
+                        .referenceObservation(refObs)
                         .build();
-                return observationReader.read("insitu.time", extractDefinition);
+                final Array insituTimes = observationReader.read("insitu.time", extractDefinition);
+                for (int i = 0; i < insituTimes.getSize(); i++) {
+                    final double insituTime = insituTimes.getDouble(i);
+                    if (insituTime != sourceColumn.getFillValue().doubleValue()) {
+                        insituTimes.setDouble(i, TimeUtil.julianDateToSecondsSinceEpoch(insituTime) - refTime);
+                    }
+                }
+                return insituTimes;
             } else {
                 final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
                 final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
                 if (insituSource != null) {
-                    final double time = insituSource.readInsituTime(referenceObservation.getRecordNo());
-                    array.setDouble(0, time);
+                    final double insituTime = insituSource.readInsituTime(refObs.getRecordNo());
+                    array.setDouble(0, insituTime - refTime);
                 }
                 return array;
             }
