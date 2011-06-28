@@ -158,8 +158,7 @@ public class Constants {
     @Deprecated
     public static final int INSITU_HISTORY_QC_LENGTH = 2;
 
-    @Deprecated
-    public static final String VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE = "matchup_id";
+    public static final String VARIABLE_NAME_ARC2_MATCHUP_ID = "matchup_id";
     public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
 
     private Constants() {

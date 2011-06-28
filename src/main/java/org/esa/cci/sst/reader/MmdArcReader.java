@@ -23,20 +23,21 @@ import ucar.nc2.NetcdfFile;
 import java.io.IOException;
 
 /**
- * Allows to read from files output by ARC3.
+ * Allows to read from files output by ARC.
  *
  * @author Thomas Storm
  */
-public class Arc3Reader extends AbstractMmdReader {
+public class MmdArcReader extends AbstractMmdReader {
 
-    public Arc3Reader(final DataFile dataFile, final NetcdfFile arc3file, final String sensor) {
-        super(dataFile, arc3file, sensor);
+    public MmdArcReader(final DataFile dataFile, final NetcdfFile arcfile, final String sensor) {
+        super(dataFile, arcfile, sensor);
     }
 
     @Override
     public Observation readObservation(final int recordNo) throws IOException {
         validateRecordNumber(recordNo);
         final Observation observation = new Observation();
+        observation.setRecordNo(recordNo);
         setupObservation(observation);
         return observation;
     }

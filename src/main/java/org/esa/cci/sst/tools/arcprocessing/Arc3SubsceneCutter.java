@@ -203,7 +203,7 @@ public class Arc3SubsceneCutter extends BasicTool {
         Variable matchupVariable = source.findVariable(matchupNameEscaped);
         if (matchupVariable == null) {
             String matchupNameAlternativeEscaped = NetcdfFile.escapeName(
-                    Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE);
+                    Constants.VARIABLE_NAME_ARC2_MATCHUP_ID);
             matchupVariable = source.findVariable(matchupNameAlternativeEscaped);
         }
         if (matchupVariable == null) {
@@ -211,7 +211,7 @@ public class Arc3SubsceneCutter extends BasicTool {
                     MessageFormat.format("File ''{0}'' does neither contain the variable ''{1}'' nor ''{2}''.",
                                          source.getLocation(),
                                          Constants.COLUMN_NAME_MATCHUP_ID,
-                                         Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
+                                         Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
         }
         return matchupVariable;
     }

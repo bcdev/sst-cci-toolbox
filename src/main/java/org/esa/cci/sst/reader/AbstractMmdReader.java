@@ -25,7 +25,6 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
-import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.InvalidRangeException;
@@ -35,7 +34,6 @@ import ucar.nc2.Variable;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -60,7 +58,7 @@ abstract class AbstractMmdReader implements ObservationReader {
         Variable variable = mmd.findVariable(NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_ID));
         // allow for matchup_id instead of matchup.id to support ARC2 output
         if (variable == null) {
-            variable = mmd.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
+            variable = mmd.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
         }
         return variable.getDimensions().get(0).getLength();
     }
@@ -83,12 +81,6 @@ abstract class AbstractMmdReader implements ObservationReader {
             items.add(item);
         }
         return items.toArray(new Item[items.size()]);
-    }
-
-    Date getCreationDate(final int recordNo, Variable variable) throws IOException {
-        // todo - mb,ts 28Apr2011 - maybe other data types
-        final Double julianDate = (Double) readCenterValue(recordNo, variable);
-        return TimeUtil.julianDateToDate(julianDate);
     }
 
     void setupObservation(Observation observation) throws IOException {
@@ -116,7 +108,7 @@ abstract class AbstractMmdReader implements ObservationReader {
         observation.setLocation(geometry);
     }
 
-    private Object readCenterValue(int recordNo, Variable variable) throws IOException {
+    protected Object readCenterValue(int recordNo, Variable variable) throws IOException {
         final int dimCount = variable.getDimensions().size();
         final int[] origin = new int[dimCount];
         final int[] shape = new int[dimCount];
@@ -137,7 +129,7 @@ abstract class AbstractMmdReader implements ObservationReader {
         return centerValue;
     }
 
-    private Variable findVariable(String... variableNames) {
+    protected Variable findVariable(String... variableNames) {
         for (Variable variable : mmd.getVariables()) {
             for (String name : variableNames) {
                 if (variable.getName().endsWith(name)) {
@@ -146,15 +138,6 @@ abstract class AbstractMmdReader implements ObservationReader {
             }
         }
         return null;
-    }
-
-    void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
-        // todo - mb,ts 28Apr2011 - maybe other variable names
-        final Variable variable = findVariable(Constants.VARIABLE_OBSERVATION_TIME);
-        if (variable != null) {
-            final Date creationDate = getCreationDate(recordNo, variable);
-            observation.setTime(creationDate);
-        }
     }
 
     private Item createColumn(final Variable variable) {

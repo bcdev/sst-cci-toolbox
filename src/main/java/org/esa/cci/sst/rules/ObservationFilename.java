@@ -43,14 +43,14 @@ class ObservationFilename extends Rule {
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array array = Array.factory(DataType.CHAR, new int[]{1, 80});
-        final Observation observation = getContext().getObservation();
-        if(observation == null) {
-            return array;
+        if (getContext() == null || getContext().getObservation() == null) {
+            return sourceArray;
         }
+        Observation observation = getContext().getObservation();
         final String filePath = observation.getDatafile().getPath();
         final String filename = new File(filePath).getName();
         final Index index = array.getIndex();
-        for(int i = 0; i < filename.length(); i++) {
+        for (int i = 0; i < filename.length(); i++) {
             index.set(0, i);
             array.setChar(index, filename.charAt(i));
         }

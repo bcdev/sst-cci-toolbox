@@ -39,16 +39,14 @@ import java.util.Properties;
 public class MmdReader implements Reader {
 
     private NetcdfFile ncFile;
-    private final String sensorName;
     private Variable matchupIds;
     private ObservationReader delegateReader;
     private DataFile dataFile;
-    private final Properties configuration;
+    private Properties configuration;
+    private final String sensorName;
 
-    @SuppressWarnings({"AssignmentToCollectionOrArrayFieldFromParameter"})
-    public MmdReader(Properties configuration) {
-        this.sensorName = configuration.getProperty("mms.reingestion.sensor");
-        this.configuration = configuration;
+    public MmdReader(String sensorName) {
+        this.sensorName = sensorName;
     }
 
     @Override
@@ -60,13 +58,13 @@ public class MmdReader implements Reader {
         matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.COLUMN_NAME_MATCHUP_ID));
         // allow for matchup_id instead of matchup.id to support ARC2 output
         if (matchupIds == null) {
-            matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID_ALTERNATIVE));
+            matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
         }
         final String property = getProperty(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "no");
         if ("yes".equals(property)) {
             delegateReader = new MmdObservationReader(dataFile, ncFile, sensorName);
         } else {
-            delegateReader = new Arc3Reader(dataFile, ncFile, sensorName);
+            delegateReader = new MmdArcReader(dataFile, ncFile, sensorName);
         }
     }
 
@@ -117,14 +115,20 @@ public class MmdReader implements Reader {
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(role));
-        final int[] sourceShape = variable.getShape();
-        final int[] targetShape = extractDefinition.getShape();
-        final int[] targetStart = new int[variable.getRank()];
-        targetStart[0] = extractDefinition.getRecordNo();
-        for (int i = 1; i < targetShape.length; i++) {
-            targetStart[i] = sourceShape[i] / 2 - targetShape[i] / 2;
+        final int recordNo = extractDefinition.getRecordNo();
+
+        if (variable.getDataType().isString()) {
+            int[] origin = new int[variable.getRank()];
+            origin[0] = recordNo;
+            final int[] shape = variable.getShape();
+            shape[0] = 1;
+            return readData(variable, origin, shape);
         }
-        return readData(variable, targetStart, targetShape);
+
+        int[] origin = new int[variable.getRank()];
+        origin[0] = recordNo;
+        final int[] shape = extractDefinition.getShape();
+        return readData(variable, origin, shape);
     }
 
     @Override
@@ -170,6 +174,9 @@ public class MmdReader implements Reader {
     }
 
     String getProperty(final String key, final String defaultValue) {
+        if (configuration == null) {
+            return defaultValue;
+        }
         return configuration.getProperty(key, defaultValue);
     }
 
@@ -183,5 +190,9 @@ public class MmdReader implements Reader {
         if (delegate == null) {
             throw new IllegalStateException("Trying to read without calling init() beforehand.");
         }
+    }
+
+    public void setConfiguration(Properties configuration) {
+        this.configuration = configuration;
     }
 }

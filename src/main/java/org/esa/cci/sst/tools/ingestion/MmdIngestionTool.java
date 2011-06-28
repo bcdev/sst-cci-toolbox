@@ -140,7 +140,8 @@ public class MmdIngestionTool extends BasicTool {
     }
 
     private void initReader(final DataFile dataFile) {
-        reader = new MmdReader(getConfiguration());
+        reader = new MmdReader(dataFile.getSensor().getName());
+        reader.setConfiguration(getConfiguration());
         try {
             reader.init(dataFile);
         } catch (IOException e) {

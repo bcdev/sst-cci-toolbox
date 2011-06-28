@@ -45,7 +45,8 @@ public class MmdReaderTest {
         configuration.setProperty("mms.reingestion.pattern", "10000");
         configuration.setProperty("mms.reingestion.located", "yes");
 
-        mmdReader = new MmdReader(configuration);
+        mmdReader = new MmdReader("avhrr.n15");
+        mmdReader.setConfiguration(configuration);
     }
 
     @After
