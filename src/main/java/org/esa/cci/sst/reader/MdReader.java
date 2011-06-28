@@ -88,7 +88,9 @@ abstract class MdReader extends NetcdfReader {
         final int recordNo = extractDefinition.getRecordNo();
 
         if (variable.getDataType().isString()) {
-            final Array targetArray = Array.factory(variable.getDataType(), variable.getShape());
+            final int[] shape = variable.getShape();
+            shape[0] = 1;
+            final Array targetArray = Array.factory(variable.getDataType(), shape);
             final Array sourceArray = getData(variable, recordNo);
             for (int i = 0; i < sourceArray.getSize(); i++) {
                 targetArray.setObject(i, sourceArray.getObject(i));
