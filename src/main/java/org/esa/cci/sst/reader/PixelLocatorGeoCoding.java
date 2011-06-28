@@ -58,6 +58,9 @@ class PixelLocatorGeoCoding implements GeoCoding {
 
     @Override
     public PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
+        if (pixelPos == null) {
+            pixelPos = new PixelPos();
+        }
         final boolean success = locator.getPixelLocation(geoPos.getLon(), geoPos.getLat(), pixelPos);
         if (!success) {
             pixelPos.setInvalid();
@@ -67,6 +70,9 @@ class PixelLocatorGeoCoding implements GeoCoding {
 
     @Override
     public GeoPos getGeoPos(PixelPos pixelPos, GeoPos geoPos) {
+        if (geoPos == null) {
+            geoPos = new GeoPos();
+        }
         final Point2D.Float result = new Point2D.Float();
         final boolean success = locator.getGeoLocation(pixelPos.getX(), pixelPos.getY(), result);
         if (success) {
