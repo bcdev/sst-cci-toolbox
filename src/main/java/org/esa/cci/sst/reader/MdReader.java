@@ -88,14 +88,7 @@ abstract class MdReader extends NetcdfReader {
         final int recordNo = extractDefinition.getRecordNo();
 
         if (variable.getDataType().isString()) {
-            final int[] shape = variable.getShape();
-            shape[0] = 1;
-            final Array targetArray = Array.factory(variable.getDataType(), shape);
-            final Array sourceArray = getData(variable, recordNo);
-            for (int i = 0; i < sourceArray.getSize(); i++) {
-                targetArray.setObject(i, sourceArray.getObject(i));
-            }
-            return targetArray;
+            return getData(variable, recordNo);
         }
 
         final PixelLocator pixelLocator = getPixelLocator(recordNo);
