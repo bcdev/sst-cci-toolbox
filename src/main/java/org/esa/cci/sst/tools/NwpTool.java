@@ -38,7 +38,7 @@ import java.text.MessageFormat;
 import java.util.Properties;
 
 /**
- * NWP extraction prototype.
+ * NWP extraction tool.
  *
  * @author Ralf Quast
  */
@@ -67,12 +67,12 @@ public class NwpTool {
             "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
-    private static final String SENSOR_NAME = "atsr.3";
-    private static final int SENSOR_PATTERN = 16;
-    private static final boolean MATCHUP_REQUESTED = false;
+    private static String sensorName;
+    private static int sensorPattern;
+    private static boolean matchupRequested;
 
-    private static final String MMD_SOURCE_LOCATION = "mmd.nc";
-    private static final String NWP_TARGET_LOCATION = SENSOR_NAME + ".nwp.nc";
+    private static String mmdSourceLocation;
+    private static String nwpTargetLocation;
     private static final String AND_TARGET_LOCATION = "matchup.nwp.an.nc";
     private static final String FCD_TARGET_LOCATION = "matchup.nwp.fc.nc";
 
@@ -89,16 +89,30 @@ public class NwpTool {
 
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
-        if (MATCHUP_REQUESTED) {
+        gatherParameters(args);
+        if (matchupRequested) {
             createMatchupAnFile();
             createMatchupFcFile();
         }
         createSensorNwpFile();
     }
 
+    private static void gatherParameters(String[] args) {
+        if(args.length != 4) {
+            System.out.println("Usage:");
+            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation");
+            System.exit(1);
+        }
+        sensorName = args[0];
+        sensorPattern = Integer.parseInt(args[1]);
+        matchupRequested = Boolean.parseBoolean(args[2]);
+        mmdSourceLocation = args[3];
+        nwpTargetLocation = sensorName + ".nwp.nc";
+    }
+
     private static void createSensorNwpFile() throws IOException, InterruptedException {
         final NetcdfFile sensorNwpFile = NetcdfFile.open(
-                writeSensorMmdFile(MMD_SOURCE_LOCATION, SENSOR_NAME, SENSOR_PATTERN));
+                writeSensorMmdFile(mmdSourceLocation, sensorName, sensorPattern));
 
         try {
             final String geoFileLocation = writeSensorGeoFile(sensorNwpFile, SENSOR_NWP_NX, SENSOR_NWP_NY,
@@ -125,7 +139,7 @@ public class NwpTool {
 
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
             try {
-                writeSensorNwpFile(sensorNwpFile, nwpFile, SENSOR_NAME);
+                writeSensorNwpFile(sensorNwpFile, nwpFile, sensorName);
             } finally {
                 try {
                     nwpFile.close();
@@ -141,7 +155,7 @@ public class NwpTool {
     }
 
     private static void createMatchupAnFile() throws IOException, InterruptedException {
-        final NetcdfFile mmdFile = NetcdfFile.open(MMD_SOURCE_LOCATION);
+        final NetcdfFile mmdFile = NetcdfFile.open(mmdSourceLocation);
 
         try {
             final String geoFileLocation = writeMatchupGeoFile(mmdFile);
@@ -178,7 +192,7 @@ public class NwpTool {
     }
 
     private static void createMatchupFcFile() throws IOException, InterruptedException {
-        final NetcdfFile mmdFile = NetcdfFile.open(MMD_SOURCE_LOCATION);
+        final NetcdfFile mmdFile = NetcdfFile.open(mmdSourceLocation);
 
         try {
             final String geoFileLocation = writeMatchupGeoFile(mmdFile);
@@ -227,7 +241,7 @@ public class NwpTool {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable nwp = NetcdfFileWriteable.createNew(NWP_TARGET_LOCATION, true);
+        final NetcdfFileWriteable nwp = NetcdfFileWriteable.createNew(nwpTargetLocation, true);
         nwp.addDimension(matchupDimension.getName(), matchupCount);
         nwp.addDimension(sensorName + ".nwp.nx", gx);
         nwp.addDimension(sensorName + ".nwp.ny", gy);
@@ -733,8 +747,8 @@ public class NwpTool {
     private static String writeSensorGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY) throws
                                                                                                        IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
-        final Dimension nyDimension = findDimension(mmd, SENSOR_NAME.replaceAll("\\..+", "") + ".ny");
-        final Dimension nxDimension = findDimension(mmd, SENSOR_NAME.replaceAll("\\..+", "") + ".nx");
+        final Dimension nyDimension = findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".ny");
+        final Dimension nxDimension = findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".nx");
 
         final String location = createTempFile("geo", ".nc", true).getPath();
         final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew(location, true);
@@ -773,8 +787,8 @@ public class NwpTool {
             final int[] targetShape = {gy * gx};
             final Array maskData = Array.factory(DataType.INT, targetShape);
 
-            final Variable sourceLat = findVariable(mmd, SENSOR_NAME + ".latitude");
-            final Variable sourceLon = findVariable(mmd, SENSOR_NAME + ".longitude");
+            final Variable sourceLat = findVariable(mmd, sensorName + ".latitude");
+            final Variable sourceLon = findVariable(mmd, sensorName + ".longitude");
 
             for (int i = 0; i < matchupCount; i++) {
                 sourceStart[0] = i;
@@ -805,7 +819,7 @@ public class NwpTool {
     private static int matchupCount(Array sensorPatterns) {
         int matchupCount = 0;
         for (int i = 0; i < sensorPatterns.getSize(); ++i) {
-            if ((sensorPatterns.getInt(i) & SENSOR_PATTERN) != 0) {
+            if ((sensorPatterns.getInt(i) & sensorPattern) != 0) {
                 matchupCount++;
             }
         }
