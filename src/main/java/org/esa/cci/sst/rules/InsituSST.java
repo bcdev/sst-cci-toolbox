@@ -37,7 +37,7 @@ import java.io.IOException;
 class InsituSST extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
-    private static final int[] SHAPE = {1, 1};
+    private static final int[] SHAPE = {1, 48};
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
 
     @Override
