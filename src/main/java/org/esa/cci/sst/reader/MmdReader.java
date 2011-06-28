@@ -149,6 +149,11 @@ public class MmdReader implements Reader {
         return null;
     }
 
+    @Override
+    public int getScanLineCount() {
+        throw new IllegalStateException("Not implemented.");
+    }
+
     public int getMatchupId(final int recordNo) throws IOException {
         final Array matchupId = readData(matchupIds, new int[]{recordNo}, new int[]{1});
         return matchupId.getInt(0);

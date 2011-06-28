@@ -149,4 +149,6 @@ public interface Reader {
     int getLineSkip();
 
     InsituSource getInsituSource();
+
+    int getScanLineCount();
 }

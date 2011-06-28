@@ -77,4 +77,9 @@ class AvhrrMdReader extends MdReader {
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
         throw new IllegalStateException("not implemented");
     }
+
+    @Override
+    public int getScanLineCount() {
+        return 0;
+    }
 }

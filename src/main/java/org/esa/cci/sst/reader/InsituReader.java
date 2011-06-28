@@ -146,6 +146,11 @@ class InsituReader extends NetcdfReader {
         return null;
     }
 
+    @Override
+    public int getScanLineCount() {
+        throw new IllegalStateException("Not implemented.");
+    }
+
     private double parseDouble(String attributeName) throws ParseException {
         return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
     }

@@ -128,6 +128,11 @@ class SeviriReader extends MdReader implements InsituSource {
     }
 
     @Override
+    public int getScanLineCount() {
+        return noOfLines;
+    }
+
+    @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
         return getDouble("dtime", recordNo, scanLine, 0);
     }

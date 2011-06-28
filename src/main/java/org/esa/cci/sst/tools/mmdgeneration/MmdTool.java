@@ -130,6 +130,9 @@ public class MmdTool extends BasicTool {
                                                               getTargetPattern());
 
         for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
+            if (targetRecordNo < 118) {
+                continue;
+            }
             final Matchup matchup = matchupList.get(targetRecordNo);
             final ReferenceObservation referenceObservation = matchup.getRefObs();
 

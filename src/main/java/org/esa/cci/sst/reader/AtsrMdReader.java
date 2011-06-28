@@ -117,4 +117,9 @@ class AtsrMdReader extends MdReader implements InsituSource {
     public final double readInsituSst(int recordNo) throws IOException {
         return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue();
     }
+
+    @Override
+    public int getScanLineCount() {
+        return 0;
+    }
 }

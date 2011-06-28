@@ -162,8 +162,7 @@ abstract class AbstractProductReader implements Reader {
 
     @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
-        final long startTime = product.getStartTime().getAsDate().getTime();
-        return getTime(recordNo, scanLine) - startTime;
+        return 0.0;
     }
 
     @Override
@@ -180,6 +179,11 @@ abstract class AbstractProductReader implements Reader {
     @Override
     public int getLineSkip() {
         return 0;
+    }
+
+    @Override
+    public int getScanLineCount() {
+        return product.getSceneRasterHeight();
     }
 
     protected Product readProduct(DataFile dataFile) throws IOException {

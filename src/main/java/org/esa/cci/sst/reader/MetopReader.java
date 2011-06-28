@@ -108,6 +108,11 @@ class MetopReader extends MdReader implements InsituSource {
     }
 
     @Override
+    public int getScanLineCount() {
+        return rowCount;
+    }
+
+    @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
         return getDouble("dtime", recordNo, scanLine);
     }
