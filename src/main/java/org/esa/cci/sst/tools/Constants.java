@@ -160,6 +160,8 @@ public class Constants {
 
     public static final String VARIABLE_NAME_ARC2_MATCHUP_ID = "matchup_id";
     public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
+    public static final String PROPERTY_MATCHUP_START_TIME = "mms.matchup.startTime";
+    public static final String PROPERTY_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
 
     private Constants() {
     }
