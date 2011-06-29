@@ -29,8 +29,8 @@ import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
-import javax.persistence.TemporalType;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -117,6 +117,8 @@ public class MatchupTool extends BasicTool {
     private Sensor atsrSensor;
     private Sensor metopSensor;
     private Sensor seviriSensor;
+    private Date matchupStartTime;
+    private Date matchupStopTime;
 
     static {
         OBSERVATION_QUERY_MAP.put(ReferenceObservation.class, COINCIDING_OBSERVATION_QUERY);
@@ -150,6 +152,7 @@ public class MatchupTool extends BasicTool {
         atsrSensor = getSensor(ATSR_MD);
         metopSensor = getSensor(METOP);
         seviriSensor = getSensor(SEVIRI);
+        getMatchupStartTime();
     }
 
     private void run() {
@@ -186,13 +189,14 @@ public class MatchupTool extends BasicTool {
         try {
             getPersistenceManager().transaction();
             Query query = getPersistenceManager().createNativeQuery(DUPLICATES_QUERY);
-            query.setParameter(2, getSourceStartTime());
-            query.setParameter(3, getSourceStopTime());
+            query.setParameter(2, matchupStartTime);
+            query.setParameter(3, matchupStopTime);
 
             long time = System.currentTimeMillis();
             query.setParameter(1, ATSR_MD);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD, System.currentTimeMillis() - time));
+            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD,
+                                                  System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -200,7 +204,8 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, METOP);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP, System.currentTimeMillis() - time));
+            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP,
+                                                  System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -208,7 +213,8 @@ public class MatchupTool extends BasicTool {
             time = System.currentTimeMillis();
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
-            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI, System.currentTimeMillis() - time));
+            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI,
+                                                  System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
         } catch (Exception e) {
@@ -217,12 +223,26 @@ public class MatchupTool extends BasicTool {
         }
     }
 
-    /**
-     * Loops over (A)ATSR reference observations and inquires METOP and SEVIRI
-     * fulfilling the coincidence criterion by a spatio-temporal database query.
-     * Creates matchups for the temporally nearest coincidences. Does the same
-     * for METOP as reference and SEVIRI as inquired coincidence.
-     */
+    private void getMatchupStartTime() {
+        final String startTime = getConfiguration().getProperty(Constants.PROPERTY_MATCHUP_START_TIME,
+                                                                "1978-01-01T00:00:00Z");
+        final String endTime = getConfiguration().getProperty(Constants.PROPERTY_MATCHUP_STOP_TIME,
+                                                              "2100-01-01T00:00:00Z");
+        try {
+            matchupStartTime = TimeUtil.parseCcsdsUtcFormat(startTime);
+            matchupStopTime = TimeUtil.parseCcsdsUtcFormat(endTime);
+        } catch (ParseException e) {
+            throw new ToolException("Unable to parse matchup times.", e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
+        /**
+         * Loops over (A)ATSR reference observations and inquires METOP and SEVIRI
+         * fulfilling the coincidence criterion by a spatio-temporal database query.
+         * Creates matchups for the temporally nearest coincidences. Does the same
+         * for METOP as reference and SEVIRI as inquired coincidence.
+         */
+
     private void findAtsrMultiSensorMatchups() {
         try {
             getPersistenceManager().transaction();
@@ -378,8 +398,8 @@ public class MatchupTool extends BasicTool {
             long time = System.currentTimeMillis();
 
             long chunkSizeMillis = 3600 * 1000;
-            final long startTime = getSourceStartTime().getTime();
-            final long stopTime = getSourceStopTime().getTime();
+            final long startTime = matchupStartTime.getTime();
+            final long stopTime = matchupStopTime.getTime();
             long chunkStartTime = startTime;
             while (chunkStartTime < stopTime) {
                 long chunkStopTime = chunkStartTime + chunkSizeMillis;
@@ -475,7 +495,7 @@ public class MatchupTool extends BasicTool {
                                                             observationClass.getSimpleName());
                 throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
             }
-            if (! sensorNames.contains(sensorName)) {
+            if (!sensorNames.contains(sensorName)) {
                 sensorNames.add(sensorName);
             }
         }
@@ -496,16 +516,16 @@ public class MatchupTool extends BasicTool {
     private Query createIncrementalQuery(String sensorName, String queryString) {
         final Query query = getPersistenceManager().createQuery(queryString);
         query.setParameter(1, sensorName);
-        query.setParameter(2, getSourceStartTime());
-        query.setParameter(3, getSourceStopTime());
+        query.setParameter(2, matchupStartTime);
+        query.setParameter(3, matchupStopTime);
         query.setMaxResults(CHUNK_SIZE);
         return query;
     }
 
     private Query createIncrementalQuery(String queryString) {
         final Query query = getPersistenceManager().createQuery(queryString);
-        query.setParameter(1, getSourceStartTime());
-        query.setParameter(2, getSourceStopTime());
+        query.setParameter(1, matchupStartTime);
+        query.setParameter(2, matchupStopTime);
         query.setMaxResults(CHUNK_SIZE);
         return query;
     }
@@ -538,6 +558,7 @@ public class MatchupTool extends BasicTool {
      *
      * @param refObs The reference observation.
      * @param sensor The sensor.
+     *
      * @return common observation of sensor with coincidence to reference observation
      *         that is temporally closest to reference observation, null if no
      *         observation of the specified sensor has a coincidence with the
@@ -577,6 +598,7 @@ public class MatchupTool extends BasicTool {
      *
      * @param referenceObservation the reference observation constituting the matchup
      * @param pattern
+     *
      * @return the new Matchup for the reference observation
      */
     private Matchup createMatchup(ReferenceObservation referenceObservation, long pattern) {
@@ -595,6 +617,7 @@ public class MatchupTool extends BasicTool {
      * @param matchup     the matchup with the reference observation
      * @param observation the common observation that has a coincidence with
      *                    the reference and is temporally closest to it
+     *
      * @return newly created Coincidence relating matchup and common observation
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
