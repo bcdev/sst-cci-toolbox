@@ -514,9 +514,9 @@ public class QuadTreePixelLocator implements PixelLocator {
             final double ap = sqrt(apx * apx + apy * apy);
             final double bp = sqrt(bpx * bpx + bpy * bpy);
 
-            final double areaC = abs(abx * acy - aby * acx);
-            final double areaP = abs(abx * apy - aby * apx);
-            return areaP > areaC;
+            final double sc = abs(abx * acy - aby * acx) / (ac * bc);
+            final double sp = abs(abx * apy - aby * apx) / (ap * bp);
+            return sp > sc;
         }
     }
 }
