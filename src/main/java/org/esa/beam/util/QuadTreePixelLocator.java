@@ -502,21 +502,13 @@ public class QuadTreePixelLocator implements PixelLocator {
             final double aby = a.getY() - b.getY();
             final double acx = a.getX() - c.getX();
             final double acy = a.getY() - c.getY();
-            final double bcx = b.getX() - c.getX();
-            final double bcy = b.getY() - c.getY();
             final double apx = a.getX() - p.getX();
             final double apy = a.getY() - p.getY();
-            final double bpx = b.getX() - p.getX();
-            final double bpy = b.getY() - p.getY();
+            final double ab = sqrt(abx * abx + aby * aby);
 
-            final double ac = sqrt(acx * acx + acy * acy);
-            final double bc = sqrt(bcx * bcx + bcy * bcy);
-            final double ap = sqrt(apx * apx + apy * apy);
-            final double bp = sqrt(bpx * bpx + bpy * bpy);
-
-            final double sc = abs(abx * acy - aby * acx) / (ac * bc);
-            final double sp = abs(abx * apy - aby * apx) / (ap * bp);
-            return sp > sc;
+            final double heightC = abs(abx * acy - aby * acx) / ab;
+            final double heightP = abs(abx * apy - aby * apx) / ab;
+            return heightP > heightC;
         }
     }
 }
