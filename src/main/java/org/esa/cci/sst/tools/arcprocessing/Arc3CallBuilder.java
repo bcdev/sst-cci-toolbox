@@ -33,16 +33,11 @@ abstract class Arc3CallBuilder {
 
     protected abstract String createReingestionCall();
 
-    protected String createSubsceneCall() {
-        return "";
-    }
-
-    String createCleanupCall(String subsceneScript, String arc3CallScript, String reingestionCallScript, String cleanupScript) {
+    String createCleanupCall(String... scripts) {
         final StringBuilder builder = new StringBuilder();
-        builder.append(String.format("rm %s\n", subsceneScript));
-        builder.append(String.format("rm %s\n", arc3CallScript));
-        builder.append(String.format("rm %s\n", reingestionCallScript));
-        builder.append(String.format("rm %s", cleanupScript));
+        for(String script: scripts) {
+            builder.append(String.format("rm %s\n", script));
+        }
         return builder.toString();
     }
 

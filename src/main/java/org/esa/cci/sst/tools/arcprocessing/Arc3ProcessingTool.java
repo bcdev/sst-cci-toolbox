@@ -32,6 +32,7 @@ import java.util.Properties;
 
 /**
  * Tool responsible for generating calls of the ARC3 processor.
+ *
  * Prerequisites:
  *
  * - MMD file has to lie under $CCI_SST_HOME
@@ -41,6 +42,7 @@ import java.util.Properties;
  *      - the executable MMD_SCREEN_LINUX
  *      - the configuration file MDB.INP (the default configuration should do)
  *      - the folder 'dat' containing the correctly configured files CCI_MMD_AATSR_[imfwd,img,ncfmt,prd].INF
+ *      - the folder 'dat' containing the correctly configured file ECMWF_MDB.INF
  * - mms.arc3.home has to be set to f
  * - mms.arc3.sourcefile has to be set to the MMD file
  * - mms.arc3.nwpfile has to be set to the NWP file
@@ -57,13 +59,11 @@ public class Arc3ProcessingTool extends BasicTool {
                                                "    export CCI_SST_HOME=`cd \"$PRGDIR/..\" ; pwd`\n" +
                                                "fi\n";
     private PrintWriter arc3CallWriter;
-    private PrintWriter subsceneWriter;
     private PrintWriter reingestionCallWriter;
     private PrintWriter cleanupCallWriter;
     private String arc3CallScript;
     private String reingestionCallScript;
     private String cleanupScript;
-    private String subsceneScript;
 
     public static void main(String[] args) {
         final Arc3ProcessingTool tool = new Arc3ProcessingTool();
@@ -85,10 +85,11 @@ public class Arc3ProcessingTool extends BasicTool {
     }
 
     private void writeCalls() throws IOException {
-        final Arc3CallBuilder arc3Caller = new Arc3CallBuilderFactory().createArc3CallBuilder();
+        final Properties configuration = getConfiguration();
+        final Arc3CallBuilder arc3Caller = new SimpleArc3CallBuilder(configuration);
         final String arc3Call = arc3Caller.createArc3Call();
         final String reingestionCall = arc3Caller.createReingestionCall();
-        final String cleanupCall = arc3Caller.createCleanupCall(subsceneScript, arc3CallScript, reingestionCallScript, cleanupScript);
+        final String cleanupCall = arc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
 
         arc3CallWriter.write(arc3Call);
         reingestionCallWriter.write(reingestionCall);
@@ -105,14 +106,6 @@ public class Arc3ProcessingTool extends BasicTool {
         final String timeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
         final Date timeAsDate = TimeUtil.getConfiguredTimeOf(timeProperty);
         final String time = TimeUtil.formatCompactUtcFormat(timeAsDate);
-
-        String subsceneFilename = String.format("mms-arc3-%s-subscene.sh", time);
-        final File subsceneFile = new File(tmpDir, subsceneFilename);
-        setFileExecutable(subsceneFile);
-        subsceneScript = subsceneFile.getAbsolutePath();
-        subsceneWriter = new PrintWriter(subsceneFile);
-        subsceneWriter.format(SHEBANG);
-        subsceneWriter.format(SET_MMS_HOME);
 
         String arc3CallFilename = String.format("mms-arc3-%s-submit.sh", time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);
@@ -158,7 +151,6 @@ public class Arc3ProcessingTool extends BasicTool {
     }
 
     private void close() {
-        closeWriter(subsceneWriter);
         closeWriter(arc3CallWriter);
         closeWriter(reingestionCallWriter);
         closeWriter(cleanupCallWriter);
@@ -169,18 +161,4 @@ public class Arc3ProcessingTool extends BasicTool {
             writer.close();
         }
     }
-
-    private class Arc3CallBuilderFactory {
-
-        private Arc3CallBuilder createArc3CallBuilder() {
-            final Properties configuration = getConfiguration();
-            final String cutSubscenes = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_CUT_SUBSCENES, "false");
-            if (Boolean.parseBoolean(cutSubscenes)) {
-                return new SubsceneArc3CallBuilder(configuration);
-            } else {
-                return new SimpleArc3CallBuilder(configuration);
-            }
-        }
-    }
-
 }

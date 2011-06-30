@@ -57,7 +57,6 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
         final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "0");
 
         final StringBuilder builder = new StringBuilder();
-        builder.append(String.format("scp eddie.ecdf.ed.ac.uk:%s . \n", targetFilename));
         builder.append("if [ -z \"$CCI_SST_HOME\" ]; then \n");
         builder.append("    echo \n");
         builder.append("    echo Error:\n");
@@ -67,7 +66,8 @@ class SimpleArc3CallBuilder extends Arc3CallBuilder {
         builder.append("    echo\n");
         builder.append("    exit 2\n");
         builder.append("fi\n");
-        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s \\\n" +
+        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh \\\n" +
+                                     " -Dmms.reingestion.filename=%s \\\n" +
                                      " -Dmms.reingestion.located=no \\\n" +
                                      " -Dmms.reingestion.sensor=ARC3 \\\n" +
                                      " -Dmms.reingestion.pattern=%s \\\n" +

@@ -42,25 +42,6 @@ class SubsceneArc3CallBuilder extends Arc3CallBuilder {
     }
 
     @Override
-    protected String createSubsceneCall() {
-        final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
-        validateSourceFilename(sourceFilename);
-
-        final StringBuilder subsceneCall = new StringBuilder();
-        subsceneCall.append("if [ -z \"$CCI_SST_HOME\" ]; then\n" +
-                            "    echo\n" +
-                            "    echo Error:\n" +
-                            "    echo CCI_SST_HOME does not exists in your environment. Please\n" +
-                            "    echo set the CCI_SST_HOME variable in your environment to the\n" +
-                            "    echo location of your CCI SST installation.\n" +
-                            "    echo\n" +
-                            "    exit 2\n" +
-                            "fi\n");
-        subsceneCall.append(String.format("$CCI_SST_HOME/bin/run_subscene.sh %s \"$@\"", sourceFilename));
-        return subsceneCall.toString();
-    }
-
-    @Override
     public String createArc3Call() throws IOException {
         final String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
         validateSourceFilename(sourceFilename);
