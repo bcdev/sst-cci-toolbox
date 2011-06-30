@@ -72,10 +72,11 @@ public class NwpTool {
     private static boolean matchupRequested;
 
     private static String mmdSourceLocation;
+    private static String nwpSourceLocation;
     private static String nwpTargetLocation;
+
     private static final String AND_TARGET_LOCATION = "matchup.nwp.an.nc";
     private static final String FCD_TARGET_LOCATION = "matchup.nwp.fc.nc";
-
     private static final int SENSOR_NWP_NX = 1;
     private static final int SENSOR_NWP_NY = 1;
     private static final int SENSOR_NWP_STRIDE_X = 1;
@@ -98,15 +99,16 @@ public class NwpTool {
     }
 
     private static void gatherParameters(String[] args) {
-        if(args.length != 4) {
+        if(args.length != 5) {
             System.out.println("Usage:");
-            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation");
+            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation nwpSourceLocation");
             System.exit(1);
         }
         sensorName = args[0];
         sensorPattern = Integer.parseInt(args[1]);
         matchupRequested = Boolean.parseBoolean(args[2]);
         mmdSourceLocation = args[3];
+        nwpSourceLocation = args[4];
         nwpTargetLocation = sensorName + ".nwp.nc";
     }
 
@@ -124,9 +126,9 @@ public class NwpTool {
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
-            properties.setProperty("GGAS_TIMESTEPS", files("testdata/nwp", "ggas[0-9]*.nc"));
-            properties.setProperty("GGAM_TIMESTEPS", files("testdata/nwp", "ggam[0-9]*.grb"));
-            properties.setProperty("SPAM_TIMESTEPS", files("testdata/nwp", "spam[0-9]*.grb"));
+            properties.setProperty("GGAS_TIMESTEPS", files(nwpSourceLocation, "ggas[0-9]*.nc"));
+            properties.setProperty("GGAM_TIMESTEPS", files(nwpSourceLocation, "ggam[0-9]*.grb"));
+            properties.setProperty("SPAM_TIMESTEPS", files(nwpSourceLocation, "spam[0-9]*.grb"));
             properties.setProperty("GGAS_TIME_SERIES", createTempFile("ggas", ".nc", true).getPath());
             properties.setProperty("GGAM_TIME_SERIES", createTempFile("ggam", ".nc", true).getPath());
             properties.setProperty("SPAM_TIME_SERIES", createTempFile("spam", ".nc", true).getPath());
@@ -166,7 +168,7 @@ public class NwpTool {
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
-            properties.setProperty("GGAS_TIMESTEPS", files("testdata/nwp", "ggas[0-9]*.nc"));
+            properties.setProperty("GGAS_TIMESTEPS", files(nwpSourceLocation, "ggas[0-9]*.nc"));
             properties.setProperty("GGAS_TIME_SERIES", createTempFile("ggas", ".nc", true).getPath());
             properties.setProperty("AN_TIME_SERIES", createTempFile("analysis", ".nc", true).getPath());
 
@@ -203,8 +205,8 @@ public class NwpTool {
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
-            properties.setProperty("GAFS_TIMESTEPS", files("testdata/nwp", "gafs[0-9]*.nc"));
-            properties.setProperty("GGFS_TIMESTEPS", files("testdata/nwp", "ggfs[0-9]*.nc"));
+            properties.setProperty("GAFS_TIMESTEPS", files(nwpSourceLocation, "gafs[0-9]*.nc"));
+            properties.setProperty("GGFS_TIMESTEPS", files(nwpSourceLocation, "ggfs[0-9]*.nc"));
             properties.setProperty("GAFS_TIME_SERIES", createTempFile("gafs", ".nc", true).getPath());
             properties.setProperty("GGFS_TIME_SERIES", createTempFile("ggfs", ".nc", true).getPath());
             properties.setProperty("GGFS_TIME_SERIES_REMAPPED", createTempFile("ggfr", ".nc", true).getPath());
