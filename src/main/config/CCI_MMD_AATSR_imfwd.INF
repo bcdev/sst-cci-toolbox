@@ -18,9 +18,9 @@ sataz=  atsr.3.view_azimuth_angle_forward
 solaz=  atsr.3.sun_azimuth_angle_forward
 time=   atsr.3.time
 [CHANNELS]
-    3   atsr.3.reflectance_66_nadir
-    4   atsr.3.reflectance_87_nadir
-    5   atsr.3.reflectance_16_nadir
+    3   atsr.3.reflectance_66_forward
+    4   atsr.3.reflectance_87_forward
+    5   atsr.3.reflectance_16_forward
     6   atsr.3.brightness_temperature_37_forward
     8   atsr.3.brightness_temperature_11_forward
     9   atsr.3.brightness_temperature_12_forward
