@@ -63,10 +63,6 @@ public class RasterDataNodeSampleSource implements SampleSource {
 
     @Override
     public double getSample(int x, int y) {
-        return getGeophysicalSampleDouble(x, y);
-    }
-
-    private double getGeophysicalSampleDouble(int x, int y) {
         final double sample;
         if (node.getDataType() == ProductData.TYPE_INT8) {
             sample = (byte) data.getSample(x, y, 0);
@@ -80,4 +76,5 @@ public class RasterDataNodeSampleSource implements SampleSource {
         }
         return sample;
     }
+
 }
