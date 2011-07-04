@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
  */
 public class Arc1ProcessingTool extends BasicTool {
 
-    private static final String AVHRR_MATCHING_OBSERVARTIONS_QUERY =
+    private static final String AVHRR_MATCHING_OBSERVATIONS_QUERY =
             "SELECT m.id, ST_astext(ref.point), f.path, s.name, s.pattern " +
                     "FROM mm_observation o, mm_coincidence c, mm_matchup m, " +
                     "     mm_observation ref, mm_datafile f, mm_sensor s " +
@@ -158,7 +158,7 @@ public class Arc1ProcessingTool extends BasicTool {
 
     @SuppressWarnings({"unchecked"})
     private List<MatchingObservationInfo> inquireMatchingAvhrrObservations(Date startTime, Date endTime) {
-        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHING_OBSERVARTIONS_QUERY,
+        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHING_OBSERVATIONS_QUERY,
                                                                                Object[].class);
         allPointsQuery.setParameter(1, startTime);
         allPointsQuery.setParameter(2, endTime);
