@@ -125,9 +125,13 @@ public class MmdReader implements Reader {
             return readData(variable, origin, shape);
         }
 
+        final int[] shape = extractDefinition.getShape();
         int[] origin = new int[variable.getRank()];
         origin[0] = recordNo;
-        final int[] shape = extractDefinition.getShape();
+        for(int i = 1; i < variable.getRank(); i++) {
+            origin[i] = (variable.getShape(i) - shape[i]) / 2;
+        }
+
         return readData(variable, origin, shape);
     }
 
