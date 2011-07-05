@@ -35,8 +35,8 @@ import static java.lang.Math.*;
  */
 public class QuadTreePixelLocator implements PixelLocator {
 
-    private static final double D2R = Math.PI / 180.0;
-    private static final int M = 5;
+    private static final double DEG_TO_RAD = Math.PI / 180.0;
+    private static final int SUB_SCENE_SIZE = 5;
 
     private final Map<Rectangle, GeoRegion> regionMap =
             Collections.synchronizedMap(new HashMap<Rectangle, GeoRegion>());
@@ -107,13 +107,13 @@ public class QuadTreePixelLocator implements PixelLocator {
 
         final boolean successful = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
         if (successful) {
-            result.get(p);
+            result.getResult(p);
         }
         return successful;
     }
 
     private boolean quadTreeSearch(int depth, double lat, double lon, int x, int y, int w, int h, Result result) {
-        if (w < M || h < M) {
+        if (w < SUB_SCENE_SIZE || h < SUB_SCENE_SIZE) {
             return false;
         }
         @SuppressWarnings({"UnnecessaryLocalVariable"})
@@ -123,20 +123,20 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int y0 = y;
         final int y1 = y0 + h - 1;
 
-        if (w == M && h == M) {
-            final double[] lats = new double[M * M];
-            final double[] lons = new double[M * M];
-            final double[] deltas = new double[M * M];
-            final double f = Math.cos(lat * D2R);
+        if (w == SUB_SCENE_SIZE && h == SUB_SCENE_SIZE) {
+            final double[] lats = new double[SUB_SCENE_SIZE * SUB_SCENE_SIZE];
+            final double[] lons = new double[SUB_SCENE_SIZE * SUB_SCENE_SIZE];
+            final double[] deltas = new double[SUB_SCENE_SIZE * SUB_SCENE_SIZE];
+            final double cosineFactor = Math.cos(lat * DEG_TO_RAD);
 
-            for (int i = y0, ij = 0; i < y0 + M; i++) {
-                for (int j = x0; j < x0 + M; j++, ij++) {
+            for (int i = y0, ij = 0; i < y0 + SUB_SCENE_SIZE; i++) {
+                for (int j = x0; j < x0 + SUB_SCENE_SIZE; j++, ij++) {
                     lats[ij] = getLat(j, i);
                     lons[ij] = getLon(j, i);
-                    deltas[ij] = delta(lat - lats[ij], f * Result.deltaLon(lon, lons[ij]));
+                    deltas[ij] = delta(lat - lats[ij], cosineFactor * Result.deltaLon(lon, lons[ij]));
                 }
             }
-            return result.invalidate(x0, y0, lons, lats, deltas);
+            return result.isNearer(x0, y0, lons, lats, deltas);
         }
         if (w > 64 && h > 64) {
             final GeoRegion geoRegion = getGeoRegion(x0, x1, y0, y1);
@@ -233,11 +233,11 @@ public class QuadTreePixelLocator implements PixelLocator {
         final int w2r = w - w2;
         final int h2r = h - h2;
 
-        if (w2 < M) {
-            w2 = M;
+        if (w2 < SUB_SCENE_SIZE) {
+            w2 = SUB_SCENE_SIZE;
         }
-        if (h2 < M) {
-            h2 = M;
+        if (h2 < SUB_SCENE_SIZE) {
+            h2 = SUB_SCENE_SIZE;
         }
 
         final boolean b1;
@@ -279,14 +279,14 @@ public class QuadTreePixelLocator implements PixelLocator {
     private Point2D interpolate(int x0, int y0, double wx, double wy) {
         final int x1 = x0 + 1;
         final int y1 = y0 + 1;
-        final double[] lons = new double[4];
-        final double[] lats = new double[4];
 
+        final double[] lons = new double[4];
         lons[0] = getLon(x0, y0);
         lons[1] = getLon(x1, y0);
         lons[2] = getLon(x0, y1);
         lons[3] = getLon(x1, y1);
 
+        final double[] lats = new double[4];
         lats[0] = getLat(x0, y0);
         lats[1] = getLat(x1, y0);
         lats[2] = getLat(x0, y1);
@@ -354,7 +354,7 @@ public class QuadTreePixelLocator implements PixelLocator {
                    lat > maxLat + tolerance ||
                    // do not evaluate the cosine expression unless it is needed
                    (tolerance *= Math.cos(
-                           lat * D2R)) >= 0.0 && (lon < minLon - tolerance || lon > maxLon + tolerance);
+                           lat * DEG_TO_RAD)) >= 0.0 && (lon < minLon - tolerance || lon > maxLon + tolerance);
         }
     }
 
@@ -372,14 +372,14 @@ public class QuadTreePixelLocator implements PixelLocator {
 
     private static final class Result {
 
-        private static final int M = 5;
-        private static final int N = 3;
+        private static final int SUB_SCENE_SIZE = 5;
+        private static final int GCP_COUNT = 3;
 
 
-        private final double[] gcpX = new double[N];
-        private final double[] gcpY = new double[N];
-        private final double[] gcpLon = new double[N];
-        private final double[] gcpLat = new double[N];
+        private final double[] gcpX = new double[GCP_COUNT];
+        private final double[] gcpY = new double[GCP_COUNT];
+        private final double[] gcpLon = new double[GCP_COUNT];
+        private final double[] gcpLat = new double[GCP_COUNT];
 
         private final Rotation rotation;
 
@@ -399,30 +399,33 @@ public class QuadTreePixelLocator implements PixelLocator {
             this.rotation = new Rotation(lon, lat);
         }
 
-        boolean invalidate(int x0, int y0, double[] longitudes, double[] latitudes, double[] deltas) {
+        boolean isNearer(int x0, int y0, double[] longitudes, double[] latitudes, double[] deltas) {
             for (int i = 0, nanCount = 0, dsLength = deltas.length; i < dsLength; i++) {
                 if (Double.isNaN(deltas[i])) {
                     nanCount++;
                 }
-                if (nanCount > deltas.length - N) {
+                if (nanCount > deltas.length - GCP_COUNT) {
                     return false;
                 }
             }
+            boolean nearer = false;
             for (final double d : deltas) {
                 if (d < delta) {
-                    this.sceneX = x0;
-                    this.sceneY = y0;
-                    this.sceneLon = longitudes;
-                    this.sceneLat = latitudes;
-                    this.sceneDeltas = deltas;
+                    if (!nearer) {
+                        this.sceneX = x0;
+                        this.sceneY = y0;
+                        this.sceneLon = longitudes;
+                        this.sceneLat = latitudes;
+                        this.sceneDeltas = deltas;
+                        nearer = true;
+                    }
                     this.delta = d;
-                    return true;
                 }
             }
-            return false;
+            return nearer;
         }
 
-        void get(Point2D p) {
+        void getResult(Point2D p) {
             findNearestPixel();
             p.setLocation(gcpX[0], gcpY[0]);
 
@@ -445,8 +448,8 @@ public class QuadTreePixelLocator implements PixelLocator {
         private void findNearestPixel() {
             double minDelta = Double.POSITIVE_INFINITY;
 
-            for (int y = sceneY, xy = 0; y < sceneY + M; y++) {
-                for (int x = sceneX; x < sceneX + M; x++, xy++) {
+            for (int y = sceneY, xy = 0; y < sceneY + SUB_SCENE_SIZE; y++) {
+                for (int x = sceneX; x < sceneX + SUB_SCENE_SIZE; x++, xy++) {
                     if (sceneDeltas[xy] < minDelta) {
                         gcpX[0] = gcpX[1] = gcpX[2] = x + 0.5;
                         gcpY[0] = gcpY[1] = gcpY[2] = y + 0.5;
@@ -461,8 +464,8 @@ public class QuadTreePixelLocator implements PixelLocator {
         private void findFarthestPixel() {
             double maxDelta = Double.NEGATIVE_INFINITY;
 
-            for (int y = sceneY, xy = 0; y < sceneY + M; y++) {
-                for (int x = sceneX; x < sceneX + M; x++, xy++) {
+            for (int y = sceneY, xy = 0; y < sceneY + SUB_SCENE_SIZE; y++) {
+                for (int x = sceneX; x < sceneX + SUB_SCENE_SIZE; x++, xy++) {
                     if (sceneDeltas[xy] > maxDelta) {
                         gcpX[1] = x + 0.5;
                         gcpY[1] = y + 0.5;
@@ -475,8 +478,8 @@ public class QuadTreePixelLocator implements PixelLocator {
         }
 
         private void findMostSuitableThirdPixel() {
-            for (int y = sceneY, xy = 0; y < sceneY + M; y++) {
-                for (int x = sceneX; x < sceneX + M; x++, xy++) {
+            for (int y = sceneY, xy = 0; y < sceneY + SUB_SCENE_SIZE; y++) {
+                for (int x = sceneX; x < sceneX + SUB_SCENE_SIZE; x++, xy++) {
                     if (isMoreSuitableThirdPixel(sceneLon[xy], sceneLat[xy])) {
                         gcpX[2] = x + 0.5;
                         gcpY[2] = y + 0.5;
