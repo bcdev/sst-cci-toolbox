@@ -32,7 +32,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
 import ucar.nc2.Variable;
 
-import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -92,7 +92,7 @@ abstract class MdReader extends NetcdfReader {
         }
 
         final PixelLocator pixelLocator = getPixelLocator(recordNo);
-        final Point p = new Point();
+        final Point2D p = new Point2D.Double();
         final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
         final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
                                                               extractDefinition.getLat(), p);
@@ -393,7 +393,7 @@ abstract class MdReader extends NetcdfReader {
         return scaleFactor * number.doubleValue() + addOffset;
     }
 
-    static void extractSubscene3D(Array source, Array target, Point p, Number fillValue) {
+    static void extractSubscene3D(Array source, Array target, Point2D p, Number fillValue) {
         final int[] sourceShape = source.getShape();
         final int[] targetShape = target.getShape();
         final int ssx = sourceShape[source.getRank() - 1];
@@ -409,8 +409,8 @@ abstract class MdReader extends NetcdfReader {
             ti.setDim(target.getRank() - 2, ty);
             for (int tx = 0; tx < tsx; tx++) {
                 ti.setDim(target.getRank() - 1, tx);
-                final int sx = tx - (cx - p.x);
-                final int sy = ty - (cy - p.y);
+                final int sx = tx - (cx - (int) p.getX());
+                final int sy = ty - (cy - (int) p.getY());
                 if (sx >= 0 && sy >= 0 && sx < ssx && sy < ssy) {
                     si.setDim(source.getRank() - 1, sx);
                     si.setDim(source.getRank() - 2, sy);
@@ -422,7 +422,7 @@ abstract class MdReader extends NetcdfReader {
         }
     }
 
-    static void extractSubscene2D(Array source, Array target, Point p, Number fillValue) {
+    static void extractSubscene2D(Array source, Array target, Point2D p, Number fillValue) {
         final int[] sourceShape = source.getShape();
         final int[] targetShape = target.getShape();
         final int ssy = sourceShape[source.getRank() - 1];
@@ -433,7 +433,7 @@ abstract class MdReader extends NetcdfReader {
         final Index ti = target.getIndex();
         for (int ty = 0; ty < tsy; ty++) {
             ti.setDim(target.getRank() - 1, ty);
-            final int sy = ty - (cy - p.y);
+            final int sy = ty - (cy - (int) p.getY());
             if (sy >= 0 && sy < ssy) {
                 si.setDim(source.getRank() - 1, sy);
                 target.setObject(ti, source.getObject(si));

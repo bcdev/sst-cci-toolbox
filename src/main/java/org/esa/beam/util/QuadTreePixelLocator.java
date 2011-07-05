@@ -16,7 +16,6 @@
 
 package org.esa.beam.util;
 
-import org.esa.beam.framework.datamodel.RationalFunctionModel;
 import org.esa.beam.util.math.MathUtils;
 
 import java.awt.Rectangle;
@@ -25,8 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 /**
  * A {@link PixelLocator} implementation using a quad-tree algorithm.
@@ -426,20 +424,22 @@ public class QuadTreePixelLocator implements PixelLocator {
 
         void get(Point2D p) {
             findNearestPixel();
-            findFarthestPixel();
-            findMostSuitableThirdPixel();
+            p.setLocation(gcpX[0], gcpY[0]);
 
-            rotation.transform(gcpLon, gcpLat);
-            final RationalFunctionModel xModel = new RationalFunctionModel(1, 0, gcpLon, gcpLat, gcpX);
-            final RationalFunctionModel yModel = new RationalFunctionModel(1, 0, gcpLon, gcpLat, gcpY);
-            final double x = xModel.getValue(0.0, 0.0);
-            final double y = yModel.getValue(0.0, 0.0);
 
-            if (p == null) {
-                p = new Point2D.Double();
-            }
-
-            p.setLocation(x, y);
+//            findFarthestPixel();
+//            findMostSuitableThirdPixel();
+//            rotation.transform(gcpLon, gcpLat);
+//            final RationalFunctionModel xModel = new RationalFunctionModel(1, 0, gcpLon, gcpLat, gcpX);
+//            final RationalFunctionModel yModel = new RationalFunctionModel(1, 0, gcpLon, gcpLat, gcpY);
+//            final double x = xModel.getValue(0.0, 0.0);
+//            final double y = yModel.getValue(0.0, 0.0);
+//
+//            if (p == null) {
+//                p = new Point2D.Double();
+//            }
+//
+//            p.setLocation(x, y);
         }
 
         private void findNearestPixel() {
