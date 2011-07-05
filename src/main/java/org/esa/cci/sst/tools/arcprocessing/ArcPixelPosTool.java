@@ -91,9 +91,9 @@ public class ArcPixelPosTool extends BasicTool {
         buffer.append('\t');
         buffer.append(parseMatchupId(line));
         buffer.append('\t');
-        buffer.append(Math.round(pixelPos.x));
+        buffer.append(Math.round(pixelPos.x) + 1);
         buffer.append('\t');
-        buffer.append(Math.round(pixelPos.y));
+        buffer.append(Math.round(pixelPos.y) + 1);
         buffer.append('\n');
     }
 
