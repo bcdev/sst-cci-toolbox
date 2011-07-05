@@ -91,9 +91,9 @@ public class ArcPixelPosTool extends BasicTool {
         buffer.append('\t');
         buffer.append(parseMatchupId(line));
         buffer.append('\t');
-        buffer.append(Math.round(pixelPos.x) + 1);
+        buffer.append((int) pixelPos.x + 1);
         buffer.append('\t');
-        buffer.append(Math.round(pixelPos.y) + 1);
+        buffer.append((int) pixelPos.y + 1);
         buffer.append('\n');
     }
 
@@ -132,10 +132,10 @@ public class ArcPixelPosTool extends BasicTool {
         final String latlonFilename = getConfiguration().getProperty(Constants.LATLONFILE_PROPERTY);
         final String pixelposFilename;
         if (latlonFilename.endsWith(Arc1ProcessingTool.LATLON_FILE_EXTENSION)) {
-            pixelposFilename = latlonFilename.substring(0,
-                                                        latlonFilename.length() - Arc1ProcessingTool.LATLON_FILE_EXTENSION.length()) + PIXELPOS_FILE_EXTENSION;
+            final int length = latlonFilename.length() - Arc1ProcessingTool.LATLON_FILE_EXTENSION.length();
+            pixelposFilename = String.format("%s%s", latlonFilename.substring(0, length), PIXELPOS_FILE_EXTENSION);
         } else {
-            pixelposFilename = latlonFilename + PIXELPOS_FILE_EXTENSION;
+            pixelposFilename = String.format("%s%s", latlonFilename, PIXELPOS_FILE_EXTENSION);
         }
         BufferedWriter writer = null;
         try {
