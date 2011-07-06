@@ -54,7 +54,6 @@ abstract class MdReader extends NetcdfReader {
 
     private final Map<String, Array> arrayMap = new HashMap<String, Array>();
     private final Map<String, Integer> indexMap = new HashMap<String, Integer>();
-    private final Map<DataFile, Point2D> centerPointCache = new HashMap<DataFile, Point2D>();
 
     private int numRecords;
 
@@ -93,24 +92,17 @@ abstract class MdReader extends NetcdfReader {
         }
 
         final PixelLocator pixelLocator = getPixelLocator(recordNo);
+        final Point2D p = new Point2D.Double();
         final Number fillValue = getAttribute(variable, "_FillValue", Double.NEGATIVE_INFINITY);
-        boolean success;
-        Point2D point = centerPointCache.get(getDatafile());
-        if(point != null) {
-            success = true;
-        } else {
-            point = new Point2D.Double();
-            success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
-                                                    extractDefinition.getLat(), point);
-            centerPointCache.put(getDatafile(), point);
-        }
+        final boolean success = pixelLocator.getPixelLocation(extractDefinition.getLon(),
+                                                              extractDefinition.getLat(), p);
         if (success) {
             final Array targetArray = Array.factory(variable.getDataType(), extractDefinition.getShape());
             final Array sourceArray = getData(variable, recordNo);
             if (variable.getRank() == 3) {
-                extractSubscene3D(sourceArray, targetArray, point, fillValue);
+                extractSubscene3D(sourceArray, targetArray, p, fillValue);
             } else {
-                extractSubscene2D(sourceArray, targetArray, point, fillValue);
+                extractSubscene2D(sourceArray, targetArray, p, fillValue);
             }
             return targetArray;
         } else {
