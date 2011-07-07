@@ -103,13 +103,48 @@ public class QuadTreePixelLocator implements PixelLocator {
     public boolean getPixelLocation(double lon, double lat, Point2D p) {
         final int w = latSource.getWidth();
         final int h = latSource.getHeight();
-        final Result result = new Result(lon, lat);
 
-        final boolean successful = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
-        if (successful) {
-            result.getResult(p);
+        Rectangle scene = new Rectangle();
+
+        final int x0 = 0;
+        final int y0 = 0;
+        final int sceneWidth = w / 2;
+        final GeoRegion geoRegion = getGeoRegion(x0, sceneWidth, y0, h - 1);
+        if (geoRegion == null) {
+            scene.setBounds(x0, y0, w, h);
+        } else if (geoRegion.isOutside(lat, lon, tolerance)) {
+            scene.setBounds(w - sceneWidth, y0, sceneWidth, h);
+        } else {
+            scene.setBounds(x0, y0, w - sceneWidth, h);
         }
-        return successful;
+
+        final double cosineFactor = Math.cos(lat * DEG_TO_RAD);
+        int bestX = 0;
+        int bestY = 0;
+        double minDelta = Double.MAX_VALUE;
+        for (int x = scene.x; x < scene.x + scene.width; x++) {
+            for (int y = scene.y; y < scene.y + scene.height; y++) {
+                final double sourceLat = getLat(x, y) + 90.0;
+                final double sourceLon = getLon(x, y) + 180.0;
+                final double delta = (sourceLat - (lat + 90.0)) * (sourceLat - (lat + 90.0)) +
+                                     (sourceLon - (lon + 180.0)) * (sourceLon - (lon + 180.0)) * cosineFactor;
+                if (delta < minDelta) {
+                    bestX = x;
+                    bestY = y;
+                    minDelta = delta;
+                }
+            }
+        }
+        p.setLocation(bestX, bestY);
+        return true;
+
+//        final Result result = new Result(lon, lat);
+//
+//        final boolean successful = quadTreeSearch(0, lat, lon, 0, 0, w, h, result);
+//        if (successful) {
+//            result.getResult(p);
+//        }
+//        return successful;
     }
 
     private boolean quadTreeSearch(int depth, double lat, double lon, int x, int y, int w, int h, Result result) {
