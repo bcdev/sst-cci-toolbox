@@ -76,7 +76,7 @@ class DTime extends AbstractImplicitRule {
             for (int i = 0; i < array.getSize(); i++) {
                 final int scanLine = (int) (refScanLine - array.getSize() / 2) + i;
                 if (scanLine >= 0 && scanLine < reader.getScanLineCount()) {
-                    array.setDouble(i, reader.getDTime(recordNo, scanLine) - time);
+                    array.setDouble(i, reader.getTime(recordNo, scanLine) - time);
                 }
             }
         } catch (IOException e) {
