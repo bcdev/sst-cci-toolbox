@@ -30,6 +30,6 @@ final class TimeType extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        targetColumnBuilder.type(DataType.INT).unit(Constants.UNIT_TIME).fillValue(Integer.MIN_VALUE);
+        targetColumnBuilder.type(DataType.INT).unit(Constants.UNIT_TIME).fillValue(Short.MIN_VALUE);
     }
 }
