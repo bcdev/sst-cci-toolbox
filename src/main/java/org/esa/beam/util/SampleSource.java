@@ -50,4 +50,6 @@ public interface SampleSource {
      * @return the sample value at (x, y).
      */
     double getSample(int x, int y);
+
+    Number getFillValue();
 }

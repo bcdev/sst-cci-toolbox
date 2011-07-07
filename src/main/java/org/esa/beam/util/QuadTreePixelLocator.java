@@ -125,7 +125,13 @@ public class QuadTreePixelLocator implements PixelLocator {
         for (int x = scene.x; x < scene.x + scene.width; x++) {
             for (int y = scene.y; y < scene.y + scene.height; y++) {
                 final double sourceLat = getLat(x, y) + 90.0;
+                if(latSource.getFillValue() != null && sourceLat == latSource.getFillValue().doubleValue()) {
+                    continue;
+                }
                 final double sourceLon = getLon(x, y) + 180.0;
+                if(lonSource.getFillValue() != null && sourceLon == lonSource.getFillValue().doubleValue()) {
+                    continue;
+                }
                 final double delta = (sourceLat - (lat + 90.0)) * (sourceLat - (lat + 90.0)) +
                                      (sourceLon - (lon + 180.0)) * (sourceLon - (lon + 180.0)) * cosineFactor;
                 if (delta < minDelta) {

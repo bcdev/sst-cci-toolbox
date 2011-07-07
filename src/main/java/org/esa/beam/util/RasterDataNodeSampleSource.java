@@ -78,4 +78,12 @@ public class RasterDataNodeSampleSource implements SampleSource {
         return sample;
     }
 
+    @Override
+    public Number getFillValue() {
+        if(node.isNoDataValueSet()) {
+            return node.getNoDataValue();
+        }
+        return null;
+    }
+
 }

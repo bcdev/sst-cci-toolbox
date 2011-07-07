@@ -23,6 +23,7 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.util.ImageUtils;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -36,6 +37,7 @@ import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Thomas Storm
@@ -45,6 +47,7 @@ public class ArcBandPartReader extends CfBandPart {
     private static final String LONGITUDE_BAND_NAME = "lon";
     private static final String DIMENSION_NAME_WIDTH = "scan_elem";
     private static final String DIMENSION_NAME_HEIGHT = "scan_line";
+    private static final double FILL_VALUE = -1.0E30;
     private final String locationFile;
 
     public ArcBandPartReader(final String locationFile) {
@@ -59,6 +62,15 @@ public class ArcBandPartReader extends CfBandPart {
         final Variable variable = file.findVariable(NetcdfFile.escapeName(LONGITUDE_BAND_NAME));
         final SourcelessOpImage image = createOpImage(file, variable);
         final Band lon = p.addBand(LONGITUDE_BAND_NAME, ProductData.TYPE_FLOAT32);
+        final List<Variable> variables = file.getVariables();
+        for (Variable variable1 : variables) {
+            final Band band = p.getBand(variable1.getName());
+            final Attribute missingValue = variable1.findAttribute("missing_value");
+            if(band != null && missingValue != null) {
+                band.setNoDataValue(missingValue.getNumericValue().doubleValue());
+                band.setNoDataValueUsed(true);
+            }
+        }
         lon.setSourceImage(image);
     }
 
@@ -73,7 +85,6 @@ public class ArcBandPartReader extends CfBandPart {
 
     private static class LongitudeNormaliseImage extends SourcelessOpImage {
 
-        private static final double FILL_VALUE = -1.0E30;
         private static final long TILE_CACHE_SIZE = 8 * 300 * 1024 * 1024L;
         private final Variable lonVar;
 

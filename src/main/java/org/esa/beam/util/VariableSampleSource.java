@@ -60,6 +60,11 @@ public class VariableSampleSource implements SampleSource {
         return value != fillValue ? value * scalingFactor + addOffset : Double.NaN;
     }
 
+    @Override
+    public Number getFillValue() {
+        return fillValue;
+    }
+
     private static double getAttribute(Variable v, String name, double defaultValue) {
         final Attribute attribute = v.findAttribute(name);
         if (attribute == null) {
