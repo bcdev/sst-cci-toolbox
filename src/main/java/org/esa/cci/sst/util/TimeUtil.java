@@ -97,7 +97,7 @@ public final class TimeUtil {
     }
 
     public static double dateToSecondsSinceEpoch(Date date) {
-        return (MILLIS_1978 - date.getTime()) / 1000.0;
+        return (date.getTime() - MILLIS_1978) / 1000.0;
     }
 
     public static double julianDateToSecondsSinceEpoch(double julianDate) {
