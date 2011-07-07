@@ -30,6 +30,6 @@ final class LonType extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        targetColumnBuilder.type(DataType.FLOAT).unit(Constants.UNIT_LON).validMin(-180.0f).validMax(180.0f);
+        targetColumnBuilder.type(DataType.FLOAT).unit(Constants.UNIT_LON).validMin(-180.0f).validMax(180.0f).fillValue(Short.MIN_VALUE);
     }
 }
