@@ -44,6 +44,7 @@ class InsituSST extends AbstractImplicitRule {
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
                                                                                                      RuleException {
         targetColumnBuilder.type(DATA_TYPE);
+        targetColumnBuilder.fillValue(Short.MIN_VALUE);
     }
 
     @Override

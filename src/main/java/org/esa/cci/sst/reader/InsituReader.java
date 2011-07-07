@@ -110,7 +110,7 @@ class InsituReader extends NetcdfReader {
         final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
         final Array source = sourceVariable.read();
         final Array target = Array.factory(source.getElementType(), extractDefinition.getShape());
-        final Number fillValue = getAttribute(sourceVariable, "_FillValue", Double.NEGATIVE_INFINITY);
+        final Number fillValue = getAttribute(sourceVariable, "_FillValue", Short.MIN_VALUE);
         for (int i = 0; i < target.getSize(); i++) {
             target.setObject(i, fillValue);
         }
@@ -121,7 +121,6 @@ class InsituReader extends NetcdfReader {
             } catch (InvalidRangeException e) {
                 throw new IOException("Unable to create target.", e);
             }
-            return target;
         }
         return target;
     }
