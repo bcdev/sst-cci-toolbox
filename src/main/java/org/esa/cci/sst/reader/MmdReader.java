@@ -18,6 +18,7 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -29,7 +30,11 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * Reader for reading from and an mmd file.
@@ -99,7 +104,26 @@ public class MmdReader implements Reader {
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
-        throw new IllegalStateException("not implemented");
+        if (ncFile.findVariable("longitude") == null || ncFile.findVariable("latitude") == null) {
+            throw new IllegalStateException("Only implemented for ARC2 inputs.");
+        }
+        final VariableSampleSource lonSampleSource = getVariableSampleSource(recordNo, "longitude");
+        final VariableSampleSource latSampleSource = getVariableSampleSource(recordNo, "latitude");
+        return new PixelLocatorGeoCoding(lonSampleSource, latSampleSource);
+    }
+
+    private VariableSampleSource getVariableSampleSource(int recordNo, String variableName) throws IOException {
+        final Variable variable = ncFile.findVariable(variableName);
+        final int[] origin = {recordNo, 0, 0};
+        final int[] shape = variable.getShape();
+        shape[0] = 1;
+        final Array slice;
+        try {
+            slice = variable.read(origin, shape);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+        return new VariableSampleSource(variable, slice);
     }
 
     @Override
@@ -109,7 +133,36 @@ public class MmdReader implements Reader {
 
     @Override
     public long getTime(int recordNo, int scanLine) throws IOException {
-        throw new IllegalStateException("not implemented");
+        final int[] origin = {recordNo, scanLine};
+        final int[] shape = {1, 1};
+        final int year = getSingleInt(origin, shape, "time_year");
+        final int day = getSingleInt(origin, shape, "time_day_num");
+        final int milliseconds = getSingleInt(origin, shape, "time_utc_msecs");
+        final int second = milliseconds / 1000;
+        final int minute = second / 60;
+        final int hour = minute / 60;
+        final int millisecond = milliseconds % 1000 * 60 * 60;
+
+        final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+        calendar.clear();
+        calendar.set(GregorianCalendar.YEAR, year);
+        calendar.set(GregorianCalendar.DAY_OF_YEAR, day);
+        calendar.set(GregorianCalendar.HOUR_OF_DAY, hour);
+        calendar.set(GregorianCalendar.MINUTE, minute);
+        calendar.set(GregorianCalendar.SECOND, second);
+        calendar.set(GregorianCalendar.MILLISECOND, millisecond);
+        return calendar.getTimeInMillis();
+    }
+
+    private int getSingleInt(int[] origin, int[] shape, String varName) throws IOException {
+        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(varName));
+        final Array yearArray;
+        try {
+            yearArray = variable.read(origin, shape);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+        return yearArray.getInt(0);
     }
 
     @Override
@@ -128,7 +181,7 @@ public class MmdReader implements Reader {
         final int[] shape = extractDefinition.getShape();
         int[] origin = new int[variable.getRank()];
         origin[0] = recordNo;
-        for(int i = 1; i < variable.getRank(); i++) {
+        for (int i = 1; i < variable.getRank(); i++) {
             origin[i] = (variable.getShape(i) - shape[i]) / 2;
         }
 
@@ -159,7 +212,11 @@ public class MmdReader implements Reader {
 
     @Override
     public int getScanLineCount() {
-        throw new IllegalStateException("Not implemented.");
+        final Variable latitude = ncFile.findVariable("latitude");
+        if(latitude == null) {
+            throw new IllegalStateException("Only implemented for ARC2 inputs.");
+        }
+        return latitude.getShape()[latitude.getRank() - 2];
     }
 
     public int getMatchupId(final int recordNo) throws IOException {

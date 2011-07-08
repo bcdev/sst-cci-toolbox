@@ -25,6 +25,6 @@ package org.esa.cci.sst.rules;
 class Avhrr8Sensor extends SensorRule {
 
     Avhrr8Sensor() {
-        super("avhrr_orb.8");
+        super("avhrr.n8");
     }
 }

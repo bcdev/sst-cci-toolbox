@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Sets the sensor to 'atsr.3'.
+ * Sets the sensor to 'avhrr.tn'.
  *
  * @author Thomas Storm
  */
@@ -25,6 +25,6 @@ package org.esa.cci.sst.rules;
 class AvhrrTnSensor extends SensorRule {
 
     AvhrrTnSensor() {
-        super("atsr.3");
+        super("avhrr.tn");
     }
 }
