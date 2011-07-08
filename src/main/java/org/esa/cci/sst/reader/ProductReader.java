@@ -90,7 +90,7 @@ class ProductReader extends AbstractProductReader {
         final Map<String, Object> params = new HashMap<String, Object>();
         params.put("shiftX", xi);
         params.put("shiftY", yi);
-        params.put("bandNamesPattern", ".*_fward.*");
+        params.put("bandNamesPattern", ".*_fward_.*");
         params.put("fillValue", product.getBand("btemp_fward_1200").getNoDataValue());
         return GPF.createProduct(OperatorSpi.getOperatorAlias(ShiftOp.class), params, product);
     }
