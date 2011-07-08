@@ -54,7 +54,7 @@ class GunzipDecorator implements Reader {
     /**
      * Maybe deflates gz files, initialises reader.
      *
-     * @param dataFile The file to be ingested.
+     * @param dataFile The file to be read.
      *
      * @throws IOException if decompressing or opening the file with the decorated reader fails.
      */
