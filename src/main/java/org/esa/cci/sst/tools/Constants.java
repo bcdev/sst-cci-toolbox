@@ -89,7 +89,6 @@ public class Constants {
     public static final String PROPERTY_MMS_ARC3_SOURCEFILE = "mms.arc3.sourcefile";
     public static final String PROPERTY_MMS_ARC3_CUT_SUBSCENES = "mms.arc3.cutSubscenes";
     public static final String PROPERTY_MMS_ARC3_TARGETFILE = "mms.arc3.targetfile";
-    public static final String PROPERTY_MMS_ARC3_NWPFILE = "mms.arc3.nwpfile";
     public static final String PROPERTY_MMS_ARC3_PATTERN = "mms.arc3.pattern";
 
     /**
