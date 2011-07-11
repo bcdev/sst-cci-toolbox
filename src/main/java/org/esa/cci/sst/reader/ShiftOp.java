@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.gpf.Operator;
 import org.esa.beam.framework.gpf.OperatorException;
 import org.esa.beam.framework.gpf.OperatorSpi;
@@ -90,6 +91,7 @@ public class ShiftOp extends Operator {
 
         final Rectangle rectangle = computeSourceRect(targetTile);
         final Tile sourceTile = getSourceTile(sourceBand, rectangle);
+        final ProductData rawSamples = sourceTile.getRawSamples();
         for (Tile.Pos pos : targetTile) {
             int targetX = pos.x;
             int targetY = pos.y;
@@ -99,7 +101,7 @@ public class ShiftOp extends Operator {
                 targetTile.setSample(pos.x, pos.y, fillValue.doubleValue());
                 continue;
             }
-            int sample = sourceTile.getSampleInt(xPos, yPos);
+            final int sample = rawSamples.getElemIntAt(sourceTile.getWidth() * yPos + xPos);
             targetTile.setSample(targetX, targetY, sample);
         }
     }
