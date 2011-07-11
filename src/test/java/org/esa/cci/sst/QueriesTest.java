@@ -124,7 +124,7 @@ public class QueriesTest {
     @Test
     public void testGetMatchupsForSensor() throws ParseException {
         @SuppressWarnings({"unchecked"})
-        final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE, 1);
+        final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE, 1, -1);
 
         assertNotNull(matchupList);
         assertEquals(1966, matchupList.size());
