@@ -27,6 +27,7 @@ import ucar.ma2.DataType;
  *
  * @author Ralf Quast
  */
+@SuppressWarnings({"UnusedDeclaration"})
 final class MatchupPattern extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
@@ -55,15 +56,16 @@ final class MatchupPattern extends AbstractImplicitRule {
             1 << 19,
             1 << 20,
             1 << 21,
-            1 << 22
+            1 << 22,
+            1 << 23
     };
     private static final String FLAG_MEANINGS =
             "atsr_md " +
             "metop_md " +
             "seviri_md " +
             "atsr_1 " +
-            "atsr_2" +
-            "atsr_3" +
+            "atsr_2 " +
+            "atsr_3 " +
             "avhrr_noaa_tn " +
             "avhrr_noaa_06 " +
             "avhrr_noaa_07 " +
