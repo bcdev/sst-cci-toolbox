@@ -243,7 +243,7 @@ public class Arc1ProcessingTool extends BasicTool {
                 "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
                 l1bPath, latLonFileName);
         collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
-        collectCallsWriter.format("chmod g+r %s/%s.MMM.nc\n", destPath, basename);
+        collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", destPath, basename);
         collectCallsWriter.format(
                 "bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
                         + "  -Dmms.reingestion.located=no \\\n"
