@@ -30,6 +30,7 @@ import org.esa.beam.framework.gpf.annotations.SourceProduct;
 import org.esa.beam.framework.gpf.annotations.TargetProduct;
 import org.esa.beam.util.ProductUtils;
 
+import javax.media.jai.PlanarImage;
 import java.awt.Rectangle;
 
 /**
@@ -95,13 +96,16 @@ public class ShiftOp extends Operator {
         for (Tile.Pos pos : targetTile) {
             int targetX = pos.x;
             int targetY = pos.y;
-            final int xPos = pos.x - shiftX;
-            final int yPos = pos.y - shiftY;
+            int xPos = pos.x - shiftX;
+            int yPos = pos.y - shiftY;
             if (isPositionOutOfBounds(xPos, yPos)) {
                 targetTile.setSample(pos.x, pos.y, fillValue.doubleValue());
                 continue;
             }
-            final int sample = rawSamples.getElemIntAt(sourceTile.getWidth() * yPos + xPos);
+            final PlanarImage sourceImage = targetBand.getSourceImage();
+            xPos -= sourceImage.XToTileX(xPos) * sourceTile.getWidth();
+            yPos -= sourceImage.YToTileY(yPos) * sourceTile.getHeight();
+            final float sample = rawSamples.getElemFloatAt(sourceTile.getWidth() * yPos + xPos);
             targetTile.setSample(targetX, targetY, sample);
         }
     }
