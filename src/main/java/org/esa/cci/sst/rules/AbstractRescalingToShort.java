@@ -90,8 +90,9 @@ abstract class AbstractRescalingToShort extends Rule {
             final double number = sourceArray.getDouble(i);
             if (isInvalid(number, sourceFillValue)) {
                 targetArray.setShort(i, Short.MIN_VALUE);
+            } else {
+                targetArray.setShort(i, rescale(number, a, b));
             }
-            targetArray.setShort(i, rescale(number, a, b));
         }
     }
 
