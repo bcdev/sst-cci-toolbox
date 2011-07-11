@@ -46,9 +46,9 @@ final class MatchupInsituDataset extends AbstractImplicitRule {
 
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
-        final byte referenceFlag = getContext().getMatchup().getRefObs().getDataset();
+        final byte dataset = getContext().getMatchup().getRefObs().getDataset();
         final Array array = Array.factory(DATA_TYPE, new int[]{1});
-        array.setByte(0, referenceFlag);
+        array.setByte(0, dataset);
         return array;
     }
 }
