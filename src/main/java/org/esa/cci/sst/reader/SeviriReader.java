@@ -44,6 +44,9 @@ class SeviriReader extends MdReader implements InsituSource {
     protected int noOfLines;
     protected int noOfColumns;
 
+    private int cachedRecordNo = Integer.MAX_VALUE;
+    private GeoCoding cachedGeoCoding = null;
+
     SeviriReader(String sensorName) {
         super(sensorName);
     }
@@ -139,6 +142,9 @@ class SeviriReader extends MdReader implements InsituSource {
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
+        if (recordNo == cachedRecordNo) {
+            return cachedGeoCoding;
+        }
         final Variable lon = getVariable("lon");
         final Variable lat = getVariable("lat");
         final Array lonArray = getData(lon, recordNo);
@@ -146,7 +152,8 @@ class SeviriReader extends MdReader implements InsituSource {
         final VariableSampleSource lonSource = new VariableSampleSource(lon, lonArray);
         final VariableSampleSource latSource = new VariableSampleSource(lat, latArray);
 
-        return new PixelLocatorGeoCoding(lonSource, latSource);
+        cachedRecordNo = recordNo;
+        return cachedGeoCoding = new PixelLocatorGeoCoding(lonSource, latSource);
     }
 
     @Override

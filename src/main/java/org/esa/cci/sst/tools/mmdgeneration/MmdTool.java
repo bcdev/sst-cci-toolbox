@@ -59,6 +59,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
+import javax.persistence.Query;
 
 /**
  * Tool for writing the matchup data file.
@@ -100,7 +101,11 @@ public class MmdTool extends BasicTool {
 
             mmd = tool.createMmd();
             mmd = tool.defineMmd(mmd);
-            tool.writeMmd(mmd);
+            if (Boolean.valueOf((String) tool.getConfiguration().get("mms.target.shuffled"))) {
+                tool.writeMmdShuffled(mmd);
+            } else {
+                tool.writeMmd(mmd);
+            }
         } catch (ToolException e) {
             tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -121,6 +126,113 @@ public class MmdTool extends BasicTool {
         for (final Reader reader : removedReaders) {
             reader.close();
         }
+    }
+
+    /**
+     * Writes MMD by having the input files in the outermost loop to avoid re-opening them.
+     * @param mmd
+     */
+    private void writeMmdShuffled(NetcdfFileWriteable mmd) {
+        // group variables by sensors
+        Map<String,List<Variable>> variablesOfSensors = new HashMap<String,List<Variable>>();
+        for (final Variable variable : mmd.getVariables()) {
+            final Item targetColumn = columnRegistry.getColumn(variable.getName());
+            final String sensorName = targetColumn.getSensor().getName();
+            List<Variable> variables = variablesOfSensors.get(sensorName);
+            if (variables == null) {
+                variables = new ArrayList();
+                variablesOfSensors.put(sensorName, variables);
+            }
+            variables.add(variable);
+        }
+        // create inverted index of matchups
+        final Map<Integer,Integer> recordOfMatchup = new HashMap<Integer,Integer>();
+        {
+            final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
+                                                               getSourceStartTime(),
+                                                               getSourceStopTime(),
+                                                               getTargetPattern());
+            for (int i=0; i<matchups.size(); ++i) {
+                recordOfMatchup.put(matchups.get(i).getId(), i);
+            }
+        }
+        // memorise previous datafile
+        DataFile previousDataFile = null;
+        // loop over sensors, matchups ordered by sensor files, variables of sensor
+        for (String sensorName : variablesOfSensors.keySet()) {
+            final Query query;
+            if (! "Implicit".equals(sensorName)) {
+                query =
+                    getPersistenceManager().createNativeQuery("select m.id " +
+                                                 "from mm_datafile f, mm_datafile g, mm_observation o, mm_matchup m, mm_observation r " +
+                                                 "where o.sensor = ?1 and m.pattern & ?2 = ?2 " +
+                                                 "and m.refobs_id = r.id and o.datafile_id = f.id and r.datafile_id = g.id " +
+                                                 "and r.time >= ?3 and r.time < ?4 " +
+                                                 "and ( o.id = m.refobs_id " +
+                                                 "or exists(select * from mm_coincidence c where o.id = c.observation_id and c.matchup_id = m.id ) ) " +
+                                                 "order by f.name, g.name, r.time", Matchup.class);
+            } else {
+                query =
+                    getPersistenceManager().createNativeQuery("select m.id " +
+                                                 "from mm_datafile g, mm_matchup m, mm_observation r " +
+                                                 "where m.pattern & ?2 = ?2 " +
+                                                 "and m.refobs_id = r.id and r.datafile_id = g.id " +
+                                                 "and r.time >= ?3 and r.time < ?4 " +
+                                                 "order by g.name, r.time", Matchup.class);
+
+            }
+            query.setParameter(1, sensorName);
+            query.setParameter(2, getTargetPattern());
+            query.setParameter(3, getSourceStartTime());
+            query.setParameter(4, getSourceStopTime());
+            List<Matchup> matchups = query.getResultList();
+            for (final Matchup matchup : matchups) {
+                try {
+                    final int targetRecordNo = recordOfMatchup.get(matchup.getId());
+                    final ReferenceObservation referenceObservation = matchup.getRefObs();
+                    final Observation observation = findObservation(sensorName, matchup);
+                    if (observation != null && observation.getDatafile() != null && !observation.getDatafile().equals(previousDataFile)) {
+                        if (previousDataFile != null) {
+
+                            closeReader(previousDataFile);
+                        }
+                        previousDataFile = observation.getDatafile();
+                    }
+                    for (final Variable variable : variablesOfSensors.get(sensorName)) {
+                        final Item targetColumn = columnRegistry.getColumn(variable.getName());
+                        final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
+                        if ("Implicit".equals(sourceColumn.getName())) {
+                            Reader observationReader = null;
+                            if (observation != null) {
+                                observationReader = getReader(observation.getDatafile());
+                            }
+                            final Reader referenceObservationReader = getReader(referenceObservation.getDatafile());
+                            final Context context = new ContextBuilder()
+                                    .matchup(matchup)
+                                    .observation(observation)
+                                    .observationReader(observationReader)
+                                    .referenceObservationReader(referenceObservationReader)
+                                    .targetVariable(variable)
+                                    .dimensionConfiguration(dimensionConfiguration)
+                                    .build();
+                            writeImplicitColumn(mmd, variable, targetRecordNo, targetColumn, context);
+                        } else {
+                            if (observation != null) {
+                                writeColumn(mmd, variable, targetRecordNo, targetColumn, sourceColumn, observation,
+                                            referenceObservation);
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    final String message = MessageFormat.format("matchup {0}: {1}",
+                                                                matchup.getId(),
+                                                                e.getMessage());
+                    throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
+                }
+            }
+        }
+
+
     }
 
     private void writeMmd(NetcdfFileWriteable mmd) {
@@ -258,6 +370,8 @@ public class MmdTool extends BasicTool {
         if (!readerCache.contains(path)) {
             final Reader reader;
             try {
+                final String message = MessageFormat.format("opening input file {0}", datafile.getPath());
+                getLogger().warning(message);
                 reader = ReaderFactory.open(datafile, getConfiguration());
             } catch (Exception e) {
                 throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
@@ -268,6 +382,18 @@ public class MmdTool extends BasicTool {
             }
         }
         return readerCache.get(path);
+    }
+
+    private void closeReader(DataFile datafile) {
+        final Reader removedReader = readerCache.remove(datafile.getPath());
+        if (removedReader != null) {
+            removedReader.close();
+            final String message = MessageFormat.format("closing input file {0}", datafile.getPath());
+            getLogger().warning(message);
+        } else {
+            final String message = MessageFormat.format("failed closing input file {0}", datafile.getPath());
+            getLogger().warning(message);
+        }
     }
 
     @Override

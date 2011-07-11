@@ -19,6 +19,7 @@ package org.esa.beam.framework.datamodel;
 import org.esa.beam.util.PixelLocator;
 import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.RasterDataNodeSampleSource;
+import org.esa.beam.util.SimplePixelLocator;
 
 import java.awt.geom.Point2D;
 
@@ -35,7 +36,7 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
         super(pixelGeoCoding);
         final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand());
         final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand());
-        pixelLocator = new QuadTreePixelLocator(lonSource, latSource);
+        pixelLocator = new SimplePixelLocator(lonSource, latSource);
     }
 
     @Override

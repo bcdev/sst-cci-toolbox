@@ -20,8 +20,10 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.dataop.maptransf.Datum;
+import org.esa.beam.util.PixelLocator;
 import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.SampleSource;
+import org.esa.beam.util.SimplePixelLocator;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
@@ -35,10 +37,10 @@ import java.awt.geom.Point2D;
 @SuppressWarnings({"deprecation"})
 class PixelLocatorGeoCoding implements GeoCoding {
 
-    private final QuadTreePixelLocator locator;
+    private final PixelLocator locator;
 
     PixelLocatorGeoCoding(SampleSource lonSource, SampleSource latSource) {
-        this.locator = new QuadTreePixelLocator(lonSource, latSource);
+        this.locator = new SimplePixelLocator(lonSource, latSource);
     }
 
     @Override

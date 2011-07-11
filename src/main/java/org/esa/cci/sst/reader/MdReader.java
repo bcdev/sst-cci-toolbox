@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.util.PixelLocator;
 import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.SampleSource;
+import org.esa.beam.util.SimplePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import ucar.ma2.Array;
@@ -56,6 +57,9 @@ abstract class MdReader extends NetcdfReader {
     private final Map<String, Integer> indexMap = new HashMap<String, Integer>();
 
     private int numRecords;
+
+    private int cachedRecordNo = Integer.MAX_VALUE;
+    private PixelLocator cachedPixelLocator = null;
 
     protected MdReader(String sensorName) {
         super(sensorName);
@@ -345,13 +349,17 @@ abstract class MdReader extends NetcdfReader {
     }
 
     private PixelLocator getPixelLocator(int recordNo) throws IOException {
+        if (recordNo == cachedRecordNo) {
+            return cachedPixelLocator;
+        }
         final Variable lon = getVariable("lon");
         final Variable lat = getVariable("lat");
         final Array lonArray = getData(lon, recordNo);
         final Array latArray = getData(lat, recordNo);
         final SampleSource lonSource = new VariableSampleSource(lon, lonArray);
         final SampleSource latSource = new VariableSampleSource(lat, latArray);
-        return new QuadTreePixelLocator(lonSource, latSource);
+        cachedRecordNo = recordNo;
+        return cachedPixelLocator = new SimplePixelLocator(lonSource, latSource);
     }
 
     private Variable validateArguments(String role, int expectedRank, DataType expectedDataType, int recordNo) {

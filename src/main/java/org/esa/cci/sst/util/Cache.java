@@ -67,4 +67,13 @@ public class Cache<K, V> {
 
         return collection;
     }
+
+    public V remove(K key) {
+        V item = itemMap.get(key);
+        if (item != null) {
+            itemList.remove(item);
+            itemMap.remove(key);
+        }
+        return item;
+    }
 }
