@@ -129,10 +129,11 @@ abstract class AbstractProductReader implements Reader {
         final double lon = extractDefinition.getLon();
         final double lat = extractDefinition.getLat();
         final int[] shape = extractDefinition.getShape();
+        final Number fillValue = extractDefinition.getFillValue();
 
         final PixelPos p = findPixelPos(lon, lat);
         final Rectangle rectangle = createSubsceneRectangle(p, shape);
-        return readSubsceneData(node, shape, rectangle);
+        return readSubsceneData(node, shape, rectangle, fillValue);
     }
 
     @Override
@@ -280,7 +281,7 @@ abstract class AbstractProductReader implements Reader {
         return new Rectangle(x, y, w, h);
     }
 
-    private static Array readSubsceneData(RasterDataNode node, int[] shape, Rectangle rectangle) {
+    private static Array readSubsceneData(RasterDataNode node, int[] shape, Rectangle rectangle, Number fillValue) {
         final Array targetArray = Array.factory(DataTypeUtils.getNetcdfDataType(node.getDataType()), shape);
 
         final RenderedImage sourceImage = node.getSourceImage().getImage(0);
@@ -291,7 +292,11 @@ abstract class AbstractProductReader implements Reader {
         final Rectangle validRectangle = imageRectangle.intersection(rectangle);
         if (validRectangle.isEmpty()) {
             for (int i = 0; i < targetArray.getSize(); i++) {
-                targetArray.setObject(i, node.getNoDataValue());
+                if (fillValue != null) {
+                    targetArray.setObject(i, fillValue);
+                } else {
+                    targetArray.setObject(i, node.getNoDataValue());
+                }
             }
         } else {
             final Raster raster = sourceImage.getData(validRectangle);

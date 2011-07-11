@@ -18,4 +18,6 @@ public interface ExtractDefinition {
     int[] getShape();
 
     Date getDate();
+
+    Number getFillValue();
 }

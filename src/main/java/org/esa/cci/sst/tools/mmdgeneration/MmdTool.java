@@ -42,6 +42,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import javax.persistence.Query;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -59,7 +60,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
-import javax.persistence.Query;
 
 /**
  * Tool for writing the matchup data file.
@@ -151,7 +151,8 @@ public class MmdTool extends BasicTool {
             final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
                                                                getSourceStartTime(),
                                                                getSourceStopTime(),
-                                                               getTargetPattern());
+                                                               getTargetPattern(),
+                                                               getDuplicateFlag());
             for (int i=0; i<matchups.size(); ++i) {
                 recordOfMatchup.put(matchups.get(i).getId(), i);
             }
@@ -335,6 +336,7 @@ public class MmdTool extends BasicTool {
                             .referenceObservation(refObs)
                             .recordNo(observation.getRecordNo())
                             .shape(variable.getShape())
+                            .fillValue(targetColumn.getFillValue())
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
             if (sourceArray != null) {

@@ -35,6 +35,7 @@ public class ExtractDefinitionBuilder {
     private int[] shape;
 
     private Date date;
+    private Number fillValue;
 
     public ExtractDefinitionBuilder referenceObservation(ReferenceObservation refObs) {
         final Point point = refObs.getPoint().getGeometry().getFirstPoint();
@@ -54,11 +55,17 @@ public class ExtractDefinitionBuilder {
         return this;
     }
 
+    public ExtractDefinitionBuilder fillValue(Number fillValue) {
+        this.fillValue = fillValue;
+        return this;
+    }
+
     public ExtractDefinition build() {
         final double lat = this.lat;
         final double lon = this.lon;
         final int recordNo = this.recordNo;
         final Date date = this.date;
+        final Number fillValue = this.fillValue;
 
         final int[] shape = this.shape;
         shape[0] = 1;
@@ -88,6 +95,11 @@ public class ExtractDefinitionBuilder {
             @Override
             public final Date getDate() {
                 return date;
+            }
+
+            @Override
+            public Number getFillValue() {
+                return fillValue;
             }
         };
     }
