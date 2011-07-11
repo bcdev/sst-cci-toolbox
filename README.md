@@ -73,8 +73,8 @@ All components with test PostGIS database example (changed to mygisdb by Boe)
     sudo su postgres
     createdb -U postgres mygisdb
     createlang -dmygisdb plpgsql
-    psql -U postgres -d mygisdb -f /usr/share/postgresql/9.0/contrib/postgis-1.5/postgis.sql
-    psql -U postgres -d mygisdb -f /usr/share/postgresql/9.0/contrib/postgis-1.5/spatial_ref_sys.sql
+    psql -d mygisdb -f /usr/pgsql-9.0/share/contrib/postgis-1.5/postgis.sql
+    psql -d mygisdb -f /usr/pgsql-9.0/share/contrib/postgis-1.5/spatial_ref_sys.sql
     psql -U postgres -d mygisdb -c"select postgis_lib_version();"
     exit
 
