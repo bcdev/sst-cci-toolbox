@@ -69,7 +69,7 @@ public class Queries {
             " where o.id = m.refobs_id" +
             " and o.time >= ?1 and o.time < ?2" +
             " and m.pattern & ?3 = ?3" +
-            " and o.reference_flag <> ?4 " +
+            " and o.referenceflag <> ?4 " +
             " order by o.time";
 
     public static final String QUERY_STRING_SELECT_REFERENCE_OBSERVATION_FOR_MATCHUP =
