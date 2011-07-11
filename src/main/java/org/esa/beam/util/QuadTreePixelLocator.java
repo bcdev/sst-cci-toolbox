@@ -112,7 +112,7 @@ public class QuadTreePixelLocator implements PixelLocator {
         final GeoRegion geoRegion = getGeoRegion(x0, sceneWidth, y0, h - 1);
         if (geoRegion == null) {
             scene.setBounds(x0, y0, w, h);
-        } else if (geoRegion.isOutside(lat, lon, tolerance)) {
+        } else if (geoRegion.isOutside(lat, lon, 0.0)) {
             scene.setBounds(w - sceneWidth, y0, sceneWidth, h);
         } else {
             scene.setBounds(x0, y0, w - sceneWidth, h);
