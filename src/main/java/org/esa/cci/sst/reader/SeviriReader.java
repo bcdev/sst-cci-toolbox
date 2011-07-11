@@ -76,11 +76,11 @@ class SeviriReader extends MdReader implements InsituSource {
         observation.setName(getString("msr_id", recordNo));
         final byte dataset = getByte("msr_type", recordNo);
         switch (dataset) {
-            case 1:
-                observation.setDataset((byte) 2);
-                break;
-            case 2:
+            case 0:
                 observation.setDataset((byte) 1);
+                break;
+            case 1:
+                observation.setDataset((byte) 0);
                 break;
             default:
                 observation.setDataset(dataset);
