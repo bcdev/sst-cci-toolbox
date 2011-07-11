@@ -127,7 +127,8 @@ public class MmdTool extends BasicTool {
         final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
                                                               getSourceStartTime(),
                                                               getSourceStopTime(),
-                                                              getTargetPattern());
+                                                              getTargetPattern(),
+                                                              getDuplicateFlag());
 
         for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
             final Matchup matchup = matchupList.get(targetRecordNo);
@@ -342,6 +343,11 @@ public class MmdTool extends BasicTool {
             throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
                                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
+    }
+
+    private int getDuplicateFlag() {
+        final String duplicateFlagProperty = getConfiguration().getProperty("mms.target.duplicateFlag", "-1");
+        return Integer.parseInt(duplicateFlagProperty);
     }
 
     private void defineVariables(NetcdfFileWriteable mmdFile) {

@@ -69,6 +69,7 @@ public class Queries {
             " where o.id = m.refobs_id" +
             " and o.time >= ?1 and o.time < ?2" +
             " and m.pattern & ?3 = ?3" +
+            " and o.reference_flag <> ?4 " +
             " order by o.time";
 
     public static final String QUERY_STRING_SELECT_REFERENCE_OBSERVATION_FOR_MATCHUP =
@@ -124,11 +125,12 @@ public class Queries {
     }
 
     @SuppressWarnings({"unchecked"})
-    public static List<Matchup> getMatchups(PersistenceManager pm, Date startDate, Date stopDate, long pattern) {
+    public static List<Matchup> getMatchups(PersistenceManager pm, Date startDate, Date stopDate, long targetPattern, long duplicateFlag) {
         final Query query = pm.createNativeQuery(QUERY_STRING_SELECT_MATCHUPS_FOR_SENSOR, Matchup.class);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
-        query.setParameter(3, pattern);
+        query.setParameter(3, targetPattern);
+        query.setParameter(4, duplicateFlag);
 
         return query.getResultList();
     }
