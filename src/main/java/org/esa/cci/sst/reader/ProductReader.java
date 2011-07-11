@@ -73,11 +73,11 @@ class ProductReader extends AbstractProductReader {
                 product = createHorizontallyFlippedProduct(product);
             }
             if (product.getName().startsWith("AT1")) {
-                product = shiftBTBands(3, 0, product);
+                product = shiftForwardBands(3, 0, product);
             } else if (product.getName().startsWith("AT2")) {
-                product = shiftBTBands(1, -1, product);
+                product = shiftForwardBands(1, -1, product);
             } else if (product.getName().startsWith("ATS")) {
-                product = shiftBTBands(-1, -2, product);
+                product = shiftForwardBands(-1, -2, product);
             }
         }
         if (product.getGeoCoding() instanceof PixelGeoCoding) {
@@ -86,7 +86,7 @@ class ProductReader extends AbstractProductReader {
         return product;
     }
 
-    private Product shiftBTBands(int xi, int yi, Product product) {
+    private Product shiftForwardBands(int xi, int yi, Product product) {
         final Map<String, Object> params = new HashMap<String, Object>();
         params.put("shiftX", xi);
         params.put("shiftY", yi);
