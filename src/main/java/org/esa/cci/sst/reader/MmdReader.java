@@ -141,7 +141,7 @@ public class MmdReader implements Reader {
         final int second = milliseconds / 1000;
         final int minute = second / 60;
         final int hour = minute / 60;
-        final int millisecond = milliseconds % 1000 * 60 * 60;
+        final int millisecond = milliseconds % 1000;
 
         final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
         calendar.clear();
