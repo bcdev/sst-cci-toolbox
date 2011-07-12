@@ -101,7 +101,8 @@ public class MmdTool extends BasicTool {
 
             mmd = tool.createMmd();
             mmd = tool.defineMmd(mmd);
-            if (Boolean.valueOf((String) tool.getConfiguration().get("mms.target.shuffled"))) {
+            // shuffled becomes the default, now
+            if (! "false".equals((String) tool.getConfiguration().get("mms.target.shuffled"))) {
                 tool.writeMmdShuffled(mmd);
             } else {
                 tool.writeMmd(mmd);
