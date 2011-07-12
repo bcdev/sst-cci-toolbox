@@ -165,12 +165,11 @@ public class MmdTool extends BasicTool {
             if (! "Implicit".equals(sensorName)) {
                 query =
                     getPersistenceManager().createNativeQuery("select m.id " +
-                                                 "from mm_datafile f, mm_datafile g, mm_observation o, mm_matchup m, mm_observation r " +
+                                                 "from mm_datafile f, mm_datafile g, mm_observation o, mm_coincidence c, mm_matchup m, mm_observation r " +
                                                  "where o.sensor = ?1 and m.pattern & ?2 = ?2 " +
                                                  "and m.refobs_id = r.id and o.datafile_id = f.id and r.datafile_id = g.id " +
                                                  "and r.time >= ?3 and r.time < ?4 " +
-                                                 "and ( o.id = m.refobs_id " +
-                                                 "or exists(select * from mm_coincidence c where o.id = c.observation_id and c.matchup_id = m.id ) ) " +
+                                                 "and o.id = c.observation_id and c.matchup_id = m.id " +
                                                  "order by f.name, g.name, r.time", Matchup.class);
             } else {
                 query =
@@ -373,7 +372,7 @@ public class MmdTool extends BasicTool {
             final Reader reader;
             try {
                 final String message = MessageFormat.format("opening input file {0}", datafile.getPath());
-                getLogger().warning(message);
+                getLogger().info(message);
                 reader = ReaderFactory.open(datafile, getConfiguration());
             } catch (Exception e) {
                 throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
@@ -389,9 +388,12 @@ public class MmdTool extends BasicTool {
     private void closeReader(DataFile datafile) {
         final Reader removedReader = readerCache.remove(datafile.getPath());
         if (removedReader != null) {
+
             removedReader.close();
-            final String message = MessageFormat.format("closing input file {0}", datafile.getPath());
-            getLogger().warning(message);
+            final String message = MessageFormat.format("closing input file {0})", datafile.getPath());
+            getLogger().info(message);
+            //final String message2 = MessageFormat.format("mem max {0} total {1} free {2})", Runtime.getRuntime().maxMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().freeMemory());
+            //getLogger().info(message2);
         } else {
             final String message = MessageFormat.format("failed closing input file {0}", datafile.getPath());
             getLogger().warning(message);
