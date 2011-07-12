@@ -14,9 +14,10 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tools.nwp;
 
 import org.esa.beam.util.math.FracIndex;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.ProcessRunner;
 import org.esa.cci.sst.util.TemplateResolver;
 import ucar.ma2.Array;
