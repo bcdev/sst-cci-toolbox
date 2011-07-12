@@ -292,11 +292,8 @@ abstract class AbstractProductReader implements Reader {
         final Rectangle validRectangle = imageRectangle.intersection(rectangle);
         if (validRectangle.isEmpty()) {
             for (int i = 0; i < targetArray.getSize(); i++) {
-                if (fillValue != null) {
-                    targetArray.setObject(i, fillValue);
-                } else {
-                    targetArray.setObject(i, node.getNoDataValue());
-                }
+                fillValue = getFillValue(node, fillValue);
+                targetArray.setObject(i, fillValue);
             }
         } else {
             final Raster raster = sourceImage.getData(validRectangle);
@@ -310,7 +307,7 @@ abstract class AbstractProductReader implements Reader {
                     for (int j = rectangle.x; j < rectangle.x + rectangle.width; j++, k++) {
                         final Number value;
                         if (i < minY || i > maxY || j < minX || j > maxX) {
-                            value = node.getNoDataValue();
+                            value = getFillValue(node, fillValue);
                         } else {
                             value = getSample(raster, j, i);
                         }
@@ -320,6 +317,14 @@ abstract class AbstractProductReader implements Reader {
             }
         }
         return targetArray;
+    }
+
+    private static Number getFillValue(RasterDataNode node, Number fillValue) {
+        if (fillValue != null) {
+            return fillValue;
+        } else {
+            return node.getNoDataValue();
+        }
     }
 
     private static Number getSample(Raster raster, int x, int y) {
