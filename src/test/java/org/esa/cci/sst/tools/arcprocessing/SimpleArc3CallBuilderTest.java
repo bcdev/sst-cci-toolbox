@@ -34,7 +34,6 @@ public class SimpleArc3CallBuilderTest {
         final String sourceFile = getClass().getResource("empty_test.nc").getFile();
         configuration.setProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE, sourceFile);
         configuration.setProperty(Constants.PROPERTY_MMS_ARC3_EXECUTABLE, "ARC3_FOR_AVHRR");
-        configuration.setProperty(Constants.PROPERTY_MMS_ARC3_NWPFILE, "some_nwp.nc");
         configuration.setProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE, "target.nc");
         final SimpleArc3CallBuilder simpleArc3CallBuilder = new SimpleArc3CallBuilder(configuration);
 
