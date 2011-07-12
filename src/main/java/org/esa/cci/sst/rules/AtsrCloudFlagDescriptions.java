@@ -32,11 +32,11 @@ public class AtsrCloudFlagDescriptions extends AbstractAttributeModification {
                                                 "Entire_scan_absent_from_telemetry " +
                                                 "Pixel_absent_from_telemetry " +
                                                 "Pixel_not_decompressed_owing_to_error_in_packet_validation " +
-                                                "No_signal_in_some_channel_(zero_count) " +
-                                                "Saturation_in_some_channel_(maximum_count) " +
+                                                "No_signal_in_some_channel " +
+                                                "Saturation_in_some_channel " +
                                                 "Derived_radiance_of_some_channel_outside_range_of_calibration " +
                                                 "Calibration_Parameters_unavailable_for_pixel " +
-                                                "Pixel_unfilled_(cosmetic_fill_algorithm_unable_to_find_nearest_neighbour_pixel)";
+                                                "Pixel_unfilled";
     
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
