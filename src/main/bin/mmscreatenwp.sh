@@ -26,4 +26,4 @@ java \
     -Xmx1024M $MMS_OPTIONS \
     -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpa.version}.jar" \
     -classpath "$MMS_HOME/lib/*" \
-    org.esa.cci.sst.tools.NwpTool "atsr.3" "16" "false" "mmd.nc" "/home/mms/sst-cci-testdata-20110607/nwp"
+    org.esa.cci.sst.tools.nwp.NwpTool "atsr.3" "16" "false" "mmd.nc" "/home/mms/sst-cci-testdata-20110607/nwp"
