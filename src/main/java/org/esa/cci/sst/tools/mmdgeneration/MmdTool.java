@@ -194,7 +194,6 @@ public class MmdTool extends BasicTool {
                     final Observation observation = findObservation(sensorName, matchup);
                     if (observation != null && observation.getDatafile() != null && !observation.getDatafile().equals(previousDataFile)) {
                         if (previousDataFile != null) {
-
                             closeReader(previousDataFile);
                         }
                         previousDataFile = observation.getDatafile();
@@ -389,9 +388,8 @@ public class MmdTool extends BasicTool {
     private void closeReader(DataFile datafile) {
         final Reader removedReader = readerCache.remove(datafile.getPath());
         if (removedReader != null) {
-
             removedReader.close();
-            final String message = MessageFormat.format("closing input file {0})", datafile.getPath());
+            final String message = MessageFormat.format("closing input file {0}", datafile.getPath());
             getLogger().info(message);
             //final String message2 = MessageFormat.format("mem max {0} total {1} free {2})", Runtime.getRuntime().maxMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().freeMemory());
             //getLogger().info(message2);
