@@ -17,18 +17,15 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 import java.io.IOException;
-import java.util.Date;
 
 /**
  * Sets the time of the reference observation.
@@ -45,7 +42,11 @@ class ObservationTime extends AbstractImplicitRule {
         final Array array = Array.factory(DATA_TYPE, new int[]{1});
         final Long time = getTime();
         if (time != null) {
-            array.setDouble(0, TimeUtil.millisToSecondsSinceEpoch(time));
+            if(time != Short.MIN_VALUE) {
+                array.setDouble(0, TimeUtil.millisToSecondsSinceEpoch(time));
+            } else {
+                array.setShort(0, Short.MIN_VALUE);
+            }
         }
         return array;
     }

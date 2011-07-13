@@ -138,6 +138,9 @@ public class MmdReader implements Reader {
         final int year = getSingleInt(origin, shape, "time_year");
         final int day = getSingleInt(origin, shape, "time_day_num");
         final int milliseconds = getSingleInt(origin, shape, "time_utc_msecs");
+        if(year == Short.MIN_VALUE || day == Short.MIN_VALUE || milliseconds == Short.MIN_VALUE) {
+            return Short.MIN_VALUE;
+        }
         final int second = milliseconds / 1000;
         final int minute = second / 60;
         final int hour = minute / 60;
@@ -156,13 +159,13 @@ public class MmdReader implements Reader {
 
     private int getSingleInt(int[] origin, int[] shape, String varName) throws IOException {
         final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(varName));
-        final Array yearArray;
+        final Array array;
         try {
-            yearArray = variable.read(origin, shape);
+            array = variable.read(origin, shape);
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         }
-        return yearArray.getInt(0);
+        return array.getInt(0);
     }
 
     @Override
@@ -190,6 +193,7 @@ public class MmdReader implements Reader {
 
     @Override
     public void close() {
+        delegateReader = null;
         if (ncFile != null) {
             try {
                 ncFile.close();
