@@ -264,14 +264,14 @@ public class MmdTool extends BasicTool {
         final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
         if(pixelPos.x < 0 || pixelPos.y < 0) {
             getLogger().warning(msg);
-            return false;
+            return true;
         }
         if(pixelPos.x >= reader.getElementCount() || pixelPos.y >= reader.getScanLineCount()) {
             getLogger().warning(msg);
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     private void writeMmd(NetcdfFileWriteable mmd) {
