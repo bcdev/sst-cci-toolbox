@@ -252,7 +252,7 @@ public class MmdTool extends BasicTool {
 
     private boolean shouldFilter(ReferenceObservation refObs, Reader reader, Observation observation) {
         final Point location = refObs.getPoint().getGeometry().getFirstPoint();
-        final GeoPos geoPos = new GeoPos((float) location.x, (float)location.y);
+        final GeoPos geoPos = new GeoPos((float) location.y, (float)location.x);
         final GeoCoding geoCoding;
         try {
             geoCoding = reader.getGeoCoding(observation.getRecordNo());
