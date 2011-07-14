@@ -163,35 +163,52 @@ public class MmdTool extends BasicTool {
                 recordOfMatchup.put(matchups.get(i).getId(), i);
             }
         }
+        // trace output
+//        for (String sensorName : variablesOfSensors.keySet()) {
+//            System.out.println("sensor |" + sensorName + "|");
+//            for (Variable variable : variablesOfSensors.get(sensorName)) {
+//                final Item targetColumn = columnRegistry.getColumn(variable.getName());
+//                final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
+//                final String targetSensorName = targetColumn.getSensor().getName();
+//                final String sourceSensorName = sourceColumn.getSensor().getName();
+//                System.out.println("v=" + variable.getName() + " t=" + targetColumn.getName() + "/" + targetSensorName + " s=" + sourceColumn.getName() + "/" + sourceSensorName);
+//            }
+//        }
         // memorise previous datafile
         DataFile previousDataFile = null;
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         for (String sensorName : variablesOfSensors.keySet()) {
             final Query query;
             if (!"Implicit".equals(sensorName)) {
-                query = getPersistenceManager().createNativeQuery("(select m.id " +
-                                                                  "from mm_datafile f, mm_datafile g, mm_observation o, mm_coincidence c, mm_matchup m, mm_observation r " +
-                                                                  "where o.sensor = ?1 and m.pattern & ?2 = ?2 " +
-                                                                  "and m.refobs_id = r.id and o.datafile_id = f.id and r.datafile_id = g.id " +
-                                                                  "and r.time >= ?3 and r.time < ?4 " +
-                                                                  "and o.id = c.observation_id and c.matchup_id = m.id " +
-                                                                  "order by f.name, g.name, r.time) " +
-                                                                  "union " +
-                                                                  "(select m.id " +
-                                                                  "from mm_datafile f, mm_matchup m, mm_observation r " +
-                                                                  "where r.sensor = ?1 and m.pattern & ?2 = ?2 " +
-                                                                  "and m.refobs_id = r.id and r.datafile_id = f.id " +
-                                                                  "and r.time >= ?3 and r.time < ?4 " +
-                                                                  "order by f.name, r.time)", Matchup.class);
+                query = getPersistenceManager().createNativeQuery("select u.id from (" +
+                                                                  "(select m.id id, f.path p, r.time t " +
+                                                                  "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                                                                  "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and m.refobs_id = r.id " +
+                                                                  "and m.pattern & ?2 = ?2 " +
+                                                                  "and c.matchup_id = m.id " +
+                                                                  "and o.id = c.observation_id " +
+                                                                  "and o.sensor = ?1 " +
+                                                                  "and f.id = o.datafile_id " +
+                                                                  ") union (" +
+                                                                  "select m.id id, f.path p, r.time t " +
+                                                                  "from mm_matchup m, mm_observation r, mm_datafile f " +
+                                                                  "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and r.sensor = ?1 " +
+                                                                  "and m.refobs_id = r.id " +
+                                                                  "and m.pattern & ?2 = ?2 " +
+                                                                  "and f.id = r.datafile_id) " +
+                                                                  "order by p, t) as u", Matchup.class);
 
             } else {
                 query =
                         getPersistenceManager().createNativeQuery("select m.id " +
-                                                                  "from mm_datafile g, mm_matchup m, mm_observation r " +
-                                                                  "where m.pattern & ?2 = ?2 " +
-                                                                  "and m.refobs_id = r.id and r.datafile_id = g.id " +
-                                                                  "and r.time >= ?3 and r.time < ?4 " +
-                                                                  "order by g.name, r.time", Matchup.class);
+                                                                  "from mm_matchup m, mm_observation r, mm_datafile f " +
+                                                                  "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and m.refobs_id = r.id " +
+                                                                  "and m.pattern & ?2 = ?2 " +
+                                                                  "and f.id = r.datafile_id " +
+                                                                  "order by f.name, r.time", Matchup.class);
 
             }
             query.setParameter(1, sensorName);
