@@ -320,7 +320,7 @@ public class MatchupTool extends BasicTool {
             final Query query = createIncrementalQuery(METOP, SECONDARY_OBSERVATION_QUERY);
             for (int cursor = 0; ;) {
                 final List<ReferenceObservation> metopObservations = query.setFirstResult(cursor).getResultList();
-                if (metopObservations.size() == 0) {
+                if (metopObservations.isEmpty()) {
                     break;
                 }
                 cursor += metopObservations.size();
@@ -363,7 +363,7 @@ public class MatchupTool extends BasicTool {
             final Query query = createIncrementalQuery(sensorName, SINGLE_SENSOR_OBSERVATION_QUERY);
             for (int cursor = 0; ; ) {
                 final List<ReferenceObservation> observations = query.setFirstResult(cursor).getResultList();
-                if (observations.size() == 0) {
+                if (observations.isEmpty()) {
                     break;
                 }
                 cursor += observations.size();
