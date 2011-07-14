@@ -105,7 +105,7 @@ public class MmdReader implements Reader {
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
         if (ncFile.findVariable("longitude") == null || ncFile.findVariable("latitude") == null) {
-            throw new IllegalStateException("Only implemented for ARC2 inputs.");
+            return null;
         }
         final VariableSampleSource lonSampleSource = getVariableSampleSource(recordNo, "longitude");
         final VariableSampleSource latSampleSource = getVariableSampleSource(recordNo, "latitude");
