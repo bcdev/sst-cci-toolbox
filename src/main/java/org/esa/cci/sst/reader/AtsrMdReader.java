@@ -122,4 +122,9 @@ class AtsrMdReader extends MdReader implements InsituSource {
     public int getScanLineCount() {
         return 0;
     }
+
+    @Override
+    public int getElementCount() {
+        return 0;
+    }
 }

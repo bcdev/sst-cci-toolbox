@@ -187,6 +187,11 @@ abstract class AbstractProductReader implements Reader {
         return product.getSceneRasterHeight();
     }
 
+    @Override
+    public int getElementCount() {
+        return product.getSceneRasterWidth();
+    }
+
     protected Product readProduct(DataFile dataFile) throws IOException {
         Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
         if (product == null) {

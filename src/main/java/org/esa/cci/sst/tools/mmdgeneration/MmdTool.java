@@ -16,6 +16,9 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.Queries;
 import org.esa.cci.sst.data.Coincidence;
@@ -37,6 +40,7 @@ import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.Cache;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriteable;
@@ -102,7 +106,7 @@ public class MmdTool extends BasicTool {
             mmd = tool.createMmd();
             mmd = tool.defineMmd(mmd);
             // shuffled becomes the default, now
-            if (! "false".equals((String) tool.getConfiguration().get("mms.target.shuffled"))) {
+            if (!"false".equals(tool.getConfiguration().get("mms.target.shuffled"))) {
                 tool.writeMmdShuffled(mmd);
             } else {
                 tool.writeMmd(mmd);
@@ -131,11 +135,12 @@ public class MmdTool extends BasicTool {
 
     /**
      * Writes MMD by having the input files in the outermost loop to avoid re-opening them.
+     *
      * @param mmd
      */
     private void writeMmdShuffled(NetcdfFileWriteable mmd) {
         // group variables by sensors
-        Map<String,List<Variable>> variablesOfSensors = new HashMap<String,List<Variable>>();
+        Map<String, List<Variable>> variablesOfSensors = new HashMap<String, List<Variable>>();
         for (final Variable variable : mmd.getVariables()) {
             final Item targetColumn = columnRegistry.getColumn(variable.getName());
             final String sensorName = targetColumn.getSensor().getName();
@@ -147,14 +152,14 @@ public class MmdTool extends BasicTool {
             variables.add(variable);
         }
         // create inverted index of matchups
-        final Map<Integer,Integer> recordOfMatchup = new HashMap<Integer,Integer>();
+        final Map<Integer, Integer> recordOfMatchup = new HashMap<Integer, Integer>();
         {
             final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
                                                                getSourceStartTime(),
                                                                getSourceStopTime(),
                                                                getTargetPattern(),
                                                                getDuplicateFlag());
-            for (int i=0; i<matchups.size(); ++i) {
+            for (int i = 0; i < matchups.size(); ++i) {
                 recordOfMatchup.put(matchups.get(i).getId(), i);
             }
         }
@@ -163,23 +168,30 @@ public class MmdTool extends BasicTool {
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         for (String sensorName : variablesOfSensors.keySet()) {
             final Query query;
-            if (! "Implicit".equals(sensorName)) {
-                query =
-                    getPersistenceManager().createNativeQuery("select m.id " +
-                                                 "from mm_datafile f, mm_datafile g, mm_observation o, mm_coincidence c, mm_matchup m, mm_observation r " +
-                                                 "where o.sensor = ?1 and m.pattern & ?2 = ?2 " +
-                                                 "and m.refobs_id = r.id and o.datafile_id = f.id and r.datafile_id = g.id " +
-                                                 "and r.time >= ?3 and r.time < ?4 " +
-                                                 "and o.id = c.observation_id and c.matchup_id = m.id " +
-                                                 "order by f.name, g.name, r.time", Matchup.class);
+            if (!"Implicit".equals(sensorName)) {
+                query = getPersistenceManager().createNativeQuery("(select m.id " +
+                                                                  "from mm_datafile f, mm_datafile g, mm_observation o, mm_coincidence c, mm_matchup m, mm_observation r " +
+                                                                  "where o.sensor = ?1 and m.pattern & ?2 = ?2 " +
+                                                                  "and m.refobs_id = r.id and o.datafile_id = f.id and r.datafile_id = g.id " +
+                                                                  "and r.time >= ?3 and r.time < ?4 " +
+                                                                  "and o.id = c.observation_id and c.matchup_id = m.id " +
+                                                                  "order by f.name, g.name, r.time) " +
+                                                                  "union " +
+                                                                  "(select m.id " +
+                                                                  "from mm_datafile f, mm_matchup m, mm_observation r " +
+                                                                  "where r.sensor = ?1 and m.pattern & ?2 = ?2 " +
+                                                                  "and m.refobs_id = r.id and r.datafile_id = f.id " +
+                                                                  "and r.time >= ?3 and r.time < ?4 " +
+                                                                  "order by f.name, r.time)", Matchup.class);
+
             } else {
                 query =
-                    getPersistenceManager().createNativeQuery("select m.id " +
-                                                 "from mm_datafile g, mm_matchup m, mm_observation r " +
-                                                 "where m.pattern & ?2 = ?2 " +
-                                                 "and m.refobs_id = r.id and r.datafile_id = g.id " +
-                                                 "and r.time >= ?3 and r.time < ?4 " +
-                                                 "order by g.name, r.time", Matchup.class);
+                        getPersistenceManager().createNativeQuery("select m.id " +
+                                                                  "from mm_datafile g, mm_matchup m, mm_observation r " +
+                                                                  "where m.pattern & ?2 = ?2 " +
+                                                                  "and m.refobs_id = r.id and r.datafile_id = g.id " +
+                                                                  "and r.time >= ?3 and r.time < ?4 " +
+                                                                  "order by g.name, r.time", Matchup.class);
 
             }
             query.setParameter(1, sensorName);
@@ -199,13 +211,16 @@ public class MmdTool extends BasicTool {
                         previousDataFile = observation.getDatafile();
                     }
                     for (final Variable variable : variablesOfSensors.get(sensorName)) {
+                        Reader observationReader = null;
+                        if (observation != null) {
+                            observationReader = getReader(observation.getDatafile());
+                            if (shouldFilter(referenceObservation, observationReader, observation)) {
+                                continue;
+                            }
+                        }
                         final Item targetColumn = columnRegistry.getColumn(variable.getName());
                         final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                         if ("Implicit".equals(sourceColumn.getName())) {
-                            Reader observationReader = null;
-                            if (observation != null) {
-                                observationReader = getReader(observation.getDatafile());
-                            }
                             final Reader referenceObservationReader = getReader(referenceObservation.getDatafile());
                             final Context context = new ContextBuilder()
                                     .matchup(matchup)
@@ -233,6 +248,30 @@ public class MmdTool extends BasicTool {
         }
 
 
+    }
+
+    private boolean shouldFilter(ReferenceObservation refObs, Reader reader, Observation observation) {
+        final Point location = refObs.getPoint().getGeometry().getFirstPoint();
+        final GeoPos geoPos = new GeoPos((float) location.x, (float)location.y);
+        final GeoCoding geoCoding;
+        try {
+            geoCoding = reader.getGeoCoding(observation.getRecordNo());
+        } catch (IOException e) {
+            throw new ToolException("Unable to get geo coding.", e, ToolException.TOOL_ERROR);
+        }
+        final PixelPos pixelPos = new PixelPos();
+        geoCoding.getPixelPos(geoPos, pixelPos);
+        final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
+        if(pixelPos.x < 0 || pixelPos.y < 0) {
+            getLogger().warning(msg);
+            return false;
+        }
+        if(pixelPos.x >= reader.getElementCount() || pixelPos.y >= reader.getScanLineCount()) {
+            getLogger().warning(msg);
+            return false;
+        }
+
+        return true;
     }
 
     private void writeMmd(NetcdfFileWriteable mmd) {

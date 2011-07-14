@@ -223,6 +223,15 @@ public class MmdReader implements Reader {
         return latitude.getShape()[latitude.getRank() - 2];
     }
 
+    @Override
+    public int getElementCount() {
+        final Variable longitude = ncFile.findVariable("longitude");
+        if(longitude == null) {
+            throw new IllegalStateException("Only implemented for ARC2 inputs.");
+        }
+        return longitude.getShape()[longitude.getRank() - 2];
+    }
+
     public int getMatchupId(final int recordNo) throws IOException {
         final Array matchupId = readData(matchupIds, new int[]{recordNo}, new int[]{1});
         return matchupId.getInt(0);

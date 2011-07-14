@@ -126,6 +126,11 @@ class MetopReader extends MdReader implements InsituSource {
     }
 
     @Override
+    public int getElementCount() {
+        return colCount;
+    }
+
+    @Override
     public double getDTime(int recordNo, int scanLine) throws IOException {
         return getDouble("dtime", recordNo, scanLine);
     }

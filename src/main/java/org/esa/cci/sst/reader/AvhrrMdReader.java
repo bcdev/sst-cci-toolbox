@@ -82,4 +82,9 @@ class AvhrrMdReader extends MdReader {
     public int getScanLineCount() {
         return 0;
     }
+
+    @Override
+    public int getElementCount() {
+        return 0;
+    }
 }

@@ -151,4 +151,6 @@ public interface Reader {
     InsituSource getInsituSource();
 
     int getScanLineCount();
+
+    int getElementCount();
 }
