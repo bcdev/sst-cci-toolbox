@@ -167,7 +167,7 @@ class GunzipDecorator implements Reader {
 
     @Override
     public int getElementCount() {
-        return delegate.getScanLineCount();
+        return delegate.getElementCount();
     }
 
     /**

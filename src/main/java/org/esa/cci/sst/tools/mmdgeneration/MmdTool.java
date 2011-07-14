@@ -251,22 +251,26 @@ public class MmdTool extends BasicTool {
     }
 
     private boolean shouldFilter(ReferenceObservation refObs, Reader reader, Observation observation) {
-        final Point location = refObs.getPoint().getGeometry().getFirstPoint();
-        final GeoPos geoPos = new GeoPos((float) location.y, (float)location.x);
         final GeoCoding geoCoding;
         try {
             geoCoding = reader.getGeoCoding(observation.getRecordNo());
         } catch (IOException e) {
             throw new ToolException("Unable to get geo coding.", e, ToolException.TOOL_ERROR);
         }
+        if(geoCoding == null) {
+            return false;
+        }
+        final Point location = refObs.getPoint().getGeometry().getFirstPoint();
+        final GeoPos geoPos = new GeoPos((float) location.y, (float)location.x);
         final PixelPos pixelPos = new PixelPos();
         geoCoding.getPixelPos(geoPos, pixelPos);
-        final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
         if(pixelPos.x < 0 || pixelPos.y < 0) {
+            final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             getLogger().warning(msg);
             return true;
         }
         if(pixelPos.x >= reader.getElementCount() || pixelPos.y >= reader.getScanLineCount()) {
+            final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             getLogger().warning(msg);
             return true;
         }

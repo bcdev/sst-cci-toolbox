@@ -127,7 +127,7 @@ class InsituReader extends NetcdfReader {
 
     @Override
     public GeoCoding getGeoCoding(int recordNo) throws IOException {
-        throw new IllegalStateException("Not implemented");
+        return null;
     }
 
     @Override
