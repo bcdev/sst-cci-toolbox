@@ -33,6 +33,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -252,20 +253,23 @@ class NwpHelpers {
         return tempFile;
     }
 
-    static String files(final String dirPath, final String pattern) {
-        final File dir = new File(dirPath);
-        final File[] files = dir.listFiles(new FilenameFilter() {
+    static String files(final String dirPath, List<String> subDirectories, final String pattern) {
+        final StringBuilder sb = new StringBuilder();
+        final FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.matches(pattern);
             }
-        });
-        final StringBuilder sb = new StringBuilder();
-        for (final File file : files) {
-            if (sb.length() > 0) {
-                sb.append(" ");
+        };
+        for (String subDirectory : subDirectories) {
+            final File dir = new File(dirPath, subDirectory);
+            final File[] files = dir.listFiles(filter);
+            for (final File file : files) {
+                if (sb.length() > 0) {
+                    sb.append(' ');
+                }
+                sb.append(file.getPath());
             }
-            sb.append(file.getPath());
         }
         return sb.toString();
     }

@@ -112,6 +112,10 @@ public final class TimeUtil {
         return new Date(MILLIS_1981 + (long) (secondsSince1981 * 1000.0));
     }
 
+    public static Date secondsSince1978ToDate(double secondsSince1978) {
+        return new Date(MILLIS_1978 + (long) (secondsSince1978 * 1000.0));
+    }
+
     public static double secondsSince1981ToSecondsSinceEpoch(double secondsSince1981) {
         return secondsSince1981 + (MILLIS_1981 - MILLIS_1978) / 1000.0;
     }

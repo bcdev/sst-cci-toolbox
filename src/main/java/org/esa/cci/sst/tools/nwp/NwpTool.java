@@ -18,6 +18,7 @@ package org.esa.cci.sst.tools.nwp;
 
 import org.esa.beam.util.math.FracIndex;
 import org.esa.cci.sst.util.ProcessRunner;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -29,9 +30,14 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * NWP extraction tool.
@@ -100,6 +106,8 @@ class NwpTool {
     void createSensorNwpFile() throws IOException, InterruptedException {
         final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(sensorName, sensorPattern));
 
+        final List<String> subDirectories = getNwpSubDirectories(sensorMmdFile, sensorName + ".time");
+
         try {
             writeSensorGeoFile(sensorMmdFile, SENSOR_NWP_NX, SENSOR_NWP_NY, SENSOR_NWP_STRIDE_X, SENSOR_NWP_STRIDE_Y);
 
@@ -109,9 +117,9 @@ class NwpTool {
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
-            properties.setProperty("GGAS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "ggas[0-9]*.nc"));
-            properties.setProperty("GGAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "ggam[0-9]*.grb"));
-            properties.setProperty("SPAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "spam[0-9]*.grb"));
+            properties.setProperty("GGAS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "ggas[0-9]*.nc"));
+            properties.setProperty("GGAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "ggam[0-9]*.grb"));
+            properties.setProperty("SPAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "spam[0-9]*.grb"));
             properties.setProperty("GGAS_TIME_SERIES", NwpHelpers.createTempFile("ggas", ".nc", true).getPath());
             properties.setProperty("GGAM_TIME_SERIES", NwpHelpers.createTempFile("ggam", ".nc", true).getPath());
             properties.setProperty("SPAM_TIME_SERIES", NwpHelpers.createTempFile("spam", ".nc", true).getPath());
@@ -142,6 +150,8 @@ class NwpTool {
     void createMatchupAnFile() throws IOException, InterruptedException {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdSourceLocation);
 
+        final List<String> subDirectories = getNwpSubDirectories(mmdFile, "matchup.time");
+
         try {
             writeMatchupGeoFile(mmdFile);
 
@@ -151,7 +161,7 @@ class NwpTool {
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
-            properties.setProperty("GGAS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "ggas[0-9]*.nc"));
+            properties.setProperty("GGAS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "ggas[0-9]*.nc"));
             properties.setProperty("GGAS_TIME_SERIES", NwpHelpers.createTempFile("ggas", ".nc", true).getPath());
             properties.setProperty("AN_TIME_SERIES", NwpHelpers.createTempFile("analysis", ".nc", true).getPath());
 
@@ -179,6 +189,8 @@ class NwpTool {
     void createMatchupFcFile() throws IOException, InterruptedException {
         final NetcdfFile mmdFile = NetcdfFile.open(mmdSourceLocation);
 
+        final List<String> subDirectories = getNwpSubDirectories(mmdFile, "matchup.time");
+
         try {
             writeMatchupGeoFile(mmdFile);
 
@@ -188,8 +200,8 @@ class NwpTool {
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
-            properties.setProperty("GAFS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "gafs[0-9]*.nc"));
-            properties.setProperty("GGFS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "ggfs[0-9]*.nc"));
+            properties.setProperty("GAFS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "gafs[0-9]*.nc"));
+            properties.setProperty("GGFS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "ggfs[0-9]*.nc"));
             properties.setProperty("GAFS_TIME_SERIES", NwpHelpers.createTempFile("gafs", ".nc", true).getPath());
             properties.setProperty("GGFS_TIME_SERIES", NwpHelpers.createTempFile("ggfs", ".nc", true).getPath());
             properties.setProperty("GGFS_TIME_SERIES_REMAPPED", NwpHelpers.createTempFile("ggfr", ".nc", true).getPath());
@@ -329,27 +341,30 @@ class NwpTool {
     void createMashupFile() throws IOException, InterruptedException {
         final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(sensorName, sensorPattern));
 
+        final List<String> subDirectories = getNwpSubDirectories(sensorMmdFile, sensorName + ".time");
+
         try {
             writeSensorGeoFile(sensorMmdFile, SENSOR_NWP_NX, SENSOR_NWP_NY, SENSOR_NWP_STRIDE_X, SENSOR_NWP_STRIDE_Y);
 
             final Properties properties = new Properties();
-            properties.setProperty("CDO", "/usr/local/bin/cdo");
+            properties.setProperty("CDO", "cdo");
             properties.setProperty("CDO_OPTS", "-M");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
             properties.setProperty("GEO", geoFileLocation);
-            properties.setProperty("GGAS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "ggas[0-9]*.nc"));
-            properties.setProperty("GGAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "ggam[0-9]*.grb"));
-            properties.setProperty("SPAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, "spam[0-9]*.grb"));
-            properties.setProperty("GGAS_TIME_SERIES", NwpHelpers.createTempFile("ggas", ".nc", true).getPath());
-            properties.setProperty("GGAM_TIME_SERIES", NwpHelpers.createTempFile("ggam", ".nc", true).getPath());
-            properties.setProperty("SPAM_TIME_SERIES", NwpHelpers.createTempFile("spam", ".nc", true).getPath());
-            properties.setProperty("GGAM_TIME_SERIES_REMAPPED", NwpHelpers.createTempFile("ggar", ".nc", true).getPath());
-            properties.setProperty("SPAM_TIME_SERIES_REMAPPED", NwpHelpers.createTempFile("spar", ".nc", true).getPath());
-            properties.setProperty("NWP_TIME_SERIES", NwpHelpers.createTempFile("nwp", ".nc", true).getPath());
+            properties.setProperty("GGAS_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "ggas[0-9]*.nc"));
+            properties.setProperty("GGAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "ggam[0-9]*.grb"));
+            properties.setProperty("SPAM_TIMESTEPS", NwpHelpers.files(nwpSourceLocation, subDirectories, "spam[0-9]*.grb"));
+            properties.setProperty("GGAS_TIME_SERIES", NwpHelpers.createTempFile("ggas", ".nc", false).getPath());
+            properties.setProperty("GGAM_TIME_SERIES", NwpHelpers.createTempFile("ggam", ".nc", false).getPath());
+            properties.setProperty("SPAM_TIME_SERIES", NwpHelpers.createTempFile("spam", ".nc", false).getPath());
+            properties.setProperty("GGAM_TIME_SERIES_REMAPPED", NwpHelpers.createTempFile("ggar", ".nc", false).getPath());
+            properties.setProperty("SPAM_TIME_SERIES_REMAPPED", NwpHelpers.createTempFile("spar", ".nc", false).getPath());
+            properties.setProperty("NWP_TIME_SERIES", NwpHelpers.createTempFile("nwp", ".nc", false).getPath());
 
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-            runner.execute(NwpHelpers.writeCdoScript(CDO_NWP_TEMPLATE, properties).getPath());
+            final String path = NwpHelpers.writeCdoScript(CDO_NWP_TEMPLATE, properties).getPath();
+            runner.execute(path);
 
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
             try {
@@ -366,6 +381,37 @@ class NwpTool {
             } catch (IOException ignored) {
             }
         }
+    }
+
+    private List<String> getNwpSubDirectories(NetcdfFile sensorMmdFile, String timeVariableName) throws IOException {
+        final Variable variable = sensorMmdFile.findVariable(NetcdfFile.escapeName(timeVariableName));
+        final int[] origin = {0};
+        final int[] shape = {1};
+        final int startTime;
+        final int endTime;
+        try {
+            startTime = variable.read(origin, shape).getInt(0);
+            origin[0] = variable.getShape(0) - 1;
+            endTime = variable.read(origin, shape).getInt(0);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
+        }
+        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime);
+        final Date endDate = TimeUtil.secondsSince1978ToDate(endTime);
+        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.setTime(startDate);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final List<String> subDirectories = new ArrayList<String>();
+        while (!calendar.getTime().after(endDate)) {
+            subDirectories.add(simpleDateFormat.format(calendar.getTime()));
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
+        return subDirectories;
     }
 
     private void writeMmdNwpFile(NetcdfFile nwpSourceFile, String sensorName) throws IOException {
@@ -391,9 +437,11 @@ class NwpTool {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
+        final Variable targetTimesVariable = NwpHelpers.findVariable(mmdNwp, sensorName + ".time");
         final Array matchupIds = NwpHelpers.findVariable(mmdNwp, "matchup.id").read();
         final Array sourceTimes = NwpHelpers.findVariable(nwpSourceFile, "time").read();
-        final Array targetTimes = NwpHelpers.findVariable(mmdNwp, sensorName + ".time").read();
+        final Array targetTimes = targetTimesVariable.read();
+        final float targetFillValue = NwpHelpers.getAttribute(targetTimesVariable, "_FillValue", Short.MIN_VALUE);
 
         try {
             mmdNwp.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
@@ -403,6 +451,10 @@ class NwpTool {
                 final int[] sourceShape = {1, 0, gy, gx};
 
                 final int targetTime = targetTimes.getInt(i);
+                if(targetTime == (int)targetFillValue) {
+                    continue;
+                }
+
                 final FracIndex fi = NwpHelpers.interpolationIndex(sourceTimes, targetTime);
 
                 for (final Variable targetVariable : mmdNwp.getVariables()) {
@@ -467,9 +519,6 @@ class NwpTool {
         mmdNwp.addDimension(sensorName + ".nwp.ny", gy);
         mmdNwp.addDimension(sensorName + ".nwp.nz", gz);
 
-        final Variable matchupId = NwpHelpers.findVariable(mmd, "matchup.id");
-        mmdNwp.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
-
         for (final Variable sourceVariable : nwpSourceFile.getVariables()) {
             if (sourceVariable.getRank() == 4) {
                 final Variable targetVariable;
@@ -521,7 +570,7 @@ class NwpTool {
         final int matchupCount = matchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
         for (Dimension dimension : mmd.getDimensions()) {
             final String dimensionName = dimension.getName();
-            if (dimensionName.startsWith(sensorName.substring(0, sensorName.indexOf("."))) && !dimensionName.equals("matchup")) {
+            if (dimensionName.startsWith(sensorName.substring(0, sensorName.indexOf('.'))) && !dimensionName.equals("matchup")) {
                 mmdNwp.addDimension(null, dimension);
             } else if(dimensionName.equals("matchup")) {
                 mmdNwp.addDimension(dimensionName, matchupCount);
@@ -529,11 +578,12 @@ class NwpTool {
                 mmdNwp.addDimension(dimensionName, dimension.getLength());
             }
         }
-        for (Variable variable : mmd.getVariables()) {
-            if (variable.getName().startsWith(sensorName)) {
-                final Variable variable1 = mmdNwp.addVariable(variable.getName(), variable.getDataType(), variable.getDimensionsString());
-                for (Attribute attribute : variable.getAttributes()) {
-                    variable1.addAttribute(attribute);
+        for (Variable sourceVariable : mmd.getVariables()) {
+            final String variableName = sourceVariable.getName();
+            if (variableName.startsWith(sensorName) || variableName.equals("matchup.id")) {
+                final Variable targetVariable = mmdNwp.addVariable(variableName, sourceVariable.getDataType(), sourceVariable.getDimensionsString());
+                for (Attribute attribute : sourceVariable.getAttributes()) {
+                    targetVariable.addAttribute(attribute);
                 }
             }
         }
