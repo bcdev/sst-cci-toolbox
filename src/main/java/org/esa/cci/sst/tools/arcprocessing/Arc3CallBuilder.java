@@ -21,17 +21,66 @@ import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Properties;
 
 /**
- * Different strategies to create an ARC3 call need to extend this class.
+ * Creates an ARC3 call.
  *
  * @author Thomas Storm
  */
-abstract class Arc3CallBuilder {
+class Arc3CallBuilder {
 
-    protected abstract String createArc3Call() throws IOException;
+    private final Properties configuration;
 
-    protected abstract String createReingestionCall();
+    Arc3CallBuilder(Properties configuration) {
+        this.configuration = new Properties(configuration);
+    }
+
+    protected String createArc3Call() {
+        String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
+        String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
+        validateSourceFilename(sourceFilename);
+        String targetFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE,
+                                                          getDefaultTargetFileName(sourceFilename));
+
+        final StringBuilder arc3Call = new StringBuilder();
+        arc3Call.append(String.format("scp %s eddie.ecdf.ed.ac.uk:%s\n", sourceFilename, arc3home));
+        arc3Call.append(String.format("ssh eddie.ecdf.ed.ac.uk \"cd %s ; ./MMD_SCREEN_Linux MDB.INP %s %s %s \"\n",
+                                      arc3home, sourceFilename, sourceFilename, targetFilename));
+        arc3Call.append(String.format("scp eddie.ecdf.ed.ac.uk:%s/%s .\n", arc3home, targetFilename));
+        return arc3Call.toString();
+    }
+
+    protected String createReingestionCall() {
+        final String sourceFilename = getSourceFilename();
+        final String targetFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_TARGETFILE,
+                                                                getDefaultTargetFileName(sourceFilename));
+        final String pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "0");
+
+        final StringBuilder builder = new StringBuilder();
+        builder.append("if [ -z \"$CCI_SST_HOME\" ]; then \n");
+        builder.append("    echo \n");
+        builder.append("    echo Error:\n");
+        builder.append("    echo CCI_SST_HOME does not exists in your environment. Please\n");
+        builder.append("    echo set the CCI_SST_HOME variable in your environment to the\n");
+        builder.append("    echo location of your CCI SST installation.\n");
+        builder.append("    echo\n");
+        builder.append("    exit 2\n");
+        builder.append("fi\n");
+        builder.append(String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh \\\n" +
+                                     " -Dmms.reingestion.filename=%s \\\n" +
+                                     " -Dmms.reingestion.located=no \\\n" +
+                                     " -Dmms.reingestion.sensor=ARC3 \\\n" +
+                                     " -Dmms.reingestion.pattern=%s \\\n" +
+                                     " -c $CCI_SST_HOME/config/mms-config.properties", targetFilename, pattern));
+        return builder.toString();
+    }
+
+    private String getSourceFilename() {
+        String sourceFilename = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_SOURCEFILE);
+        validateSourceFilename(sourceFilename);
+        return sourceFilename;
+    }
 
     String createCleanupCall(String... scripts) {
         final StringBuilder builder = new StringBuilder();

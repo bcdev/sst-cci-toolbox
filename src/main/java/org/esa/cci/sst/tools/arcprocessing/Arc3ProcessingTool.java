@@ -86,7 +86,7 @@ public class Arc3ProcessingTool extends BasicTool {
 
     private void writeCalls() throws IOException {
         final Properties configuration = getConfiguration();
-        final Arc3CallBuilder arc3Caller = new SimpleArc3CallBuilder(configuration);
+        final Arc3CallBuilder arc3Caller = new Arc3CallBuilder(configuration);
         final String arc3Call = arc3Caller.createArc3Call();
         final String reingestionCall = arc3Caller.createReingestionCall();
         final String cleanupCall = arc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
