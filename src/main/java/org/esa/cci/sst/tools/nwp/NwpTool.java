@@ -90,9 +90,9 @@ class NwpTool {
     private String geoFileLocation;
 
     NwpTool(String[] args) {
-        if (args.length != 5) {
+        if (args.length != 6) {
             System.out.println("Usage:");
-            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation nwpSourceLocation");
+            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation nwpSourceLocation nwpTargetLocation");
             System.exit(1);
         }
         sensorName = args[0];
@@ -100,7 +100,7 @@ class NwpTool {
         matchupRequested = Boolean.parseBoolean(args[2]);
         mmdSourceLocation = args[3];
         nwpSourceLocation = args[4];
-        nwpTargetLocation = sensorName + ".nwp.nc";
+        nwpTargetLocation = args[5];
     }
 
     void createSensorNwpFile() throws IOException, InterruptedException {

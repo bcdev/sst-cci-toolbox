@@ -32,17 +32,17 @@ import java.util.Properties;
 
 /**
  * Tool responsible for generating calls of the ARC3 processor.
- *
+ * <p/>
  * Prerequisites:
- *
+ * <p/>
  * - MMD file has to lie under $CCI_SST_HOME
  * - corresponding NWP file has to lie under $CCI_SST_HOME
  * - folder f for arc processing set up on eddie
  * - f has to contain:
- *      - the executable MMD_SCREEN_LINUX
- *      - the configuration file MDB.INP (the default configuration should do)
- *      - the folder 'dat' containing the correctly configured files CCI_MMD_AATSR_[imfwd,img,ncfmt,prd].INF
- *      - the folder 'dat' containing the correctly configured file ECMWF_MDB.INF
+ * - the executable MMD_SCREEN_LINUX
+ * - the configuration file MDB.INP (the default configuration should do)
+ * - the folder 'dat' containing the correctly configured files CCI_MMD_AATSR_[imfwd,img,ncfmt,prd].INF
+ * - the folder 'dat' containing the correctly configured file ECMWF_MDB.INF
  * - mms.arc3.home has to be set to f
  * - mms.arc3.sourcefile has to be set to the MMD file
  * - mms.arc3.nwpfile has to be set to the NWP file
@@ -86,10 +86,10 @@ public class Arc3ProcessingTool extends BasicTool {
 
     private void writeCalls() throws IOException {
         final Properties configuration = getConfiguration();
-        final Arc3CallBuilder arc3Caller = new Arc3CallBuilder(configuration);
-        final String arc3Call = arc3Caller.createArc3Call();
-        final String reingestionCall = arc3Caller.createReingestionCall();
-        final String cleanupCall = arc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
+        final NwpArc3Caller nwpArc3Caller = new NwpArc3Caller(configuration);
+        final String arc3Call = nwpArc3Caller.createNwpArc3Call();
+        final String reingestionCall = nwpArc3Caller.createReingestionCall();
+        final String cleanupCall = nwpArc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
 
         arc3CallWriter.write(arc3Call);
         reingestionCallWriter.write(reingestionCall);
@@ -132,14 +132,14 @@ public class Arc3ProcessingTool extends BasicTool {
     }
 
     @SuppressWarnings({"ResultOfMethodCallIgnored"})
-    private void setFileExecutable(File file) throws IOException {
-        if(file.canExecute()) {
+    private static void setFileExecutable(File file) throws IOException {
+        if (file.canExecute()) {
             return;
         }
         file.setExecutable(true, true);
     }
 
-    private void createDirectory(File dir) throws IOException {
+    private static void createDirectory(File dir) throws IOException {
         if (dir.exists()) {
             return;
         }
@@ -156,9 +156,11 @@ public class Arc3ProcessingTool extends BasicTool {
         closeWriter(cleanupCallWriter);
     }
 
-    private void closeWriter(PrintWriter writer) {
-        if(writer != null) {
+    private static void closeWriter(PrintWriter writer) {
+        if (writer != null) {
             writer.close();
         }
     }
+
+
 }

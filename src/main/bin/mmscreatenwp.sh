@@ -21,9 +21,12 @@ if [ ! -z $MMS_DEBUG ]; then
     MMS_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=y"
 fi
 
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/tstorm/opt/local/lib
+export PATH=${PATH}:/home/tstorm/opt/cdo-1.5.0/bin
+
 java \
     -Dmms.home="$MMS_HOME" \
     -Xmx1024M $MMS_OPTIONS \
-    -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpa.version}.jar" \
+    -javaagent:"$MMS_HOME/lib/openjpa-all-2.1.0.jar" \
     -classpath "$MMS_HOME/lib/*" \
-    org.esa.cci.sst.tools.nwp.NwpTool "atsr.3" "16" "false" "mmd.nc" "/home/mms/sst-cci-testdata-20110607/nwp"
+    org.esa.cci.sst.tools.nwp.Nwp "atsr.3" "16" "false" "mmd.nc" "/exports/nas/exports/cse/geos/scratch/gc/sst-cci/ecmwf-era-interim/v01"

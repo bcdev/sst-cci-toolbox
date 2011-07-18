@@ -88,8 +88,9 @@ public class Constants {
     public static final String PROPERTY_MMS_ARC3_EXECUTABLE = "mms.arc3.executable";
     public static final String PROPERTY_MMS_ARC3_SOURCEFILE = "mms.arc3.sourcefile";
     public static final String PROPERTY_MMS_ARC3_CUT_SUBSCENES = "mms.arc3.cutSubscenes";
-    public static final String PROPERTY_MMS_ARC3_TARGETFILE = "mms.arc3.targetfile";
+    public static final String PROPERTY_MMS_ARC3_OUTPUT = "mms.arc3.targetfile";
     public static final String PROPERTY_MMS_ARC3_PATTERN = "mms.arc3.pattern";
+    public static final String PROPERTY_MMS_NWP_PATTERN = "mms.nwp.pattern";
 
     /**
      * @deprecated replaced by #COLUMN_NAME_MATCHUP_TIME.
@@ -162,6 +163,12 @@ public class Constants {
     public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
     public static final String PROPERTY_MATCHUP_START_TIME = "mms.matchup.startTime";
     public static final String PROPERTY_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
+    public static final String PROPERTY_MMS_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
+    public static final String PROPERTY_MMS_NWP_SOURCEFILE = "mms.nwp.sourcefile";
+    public static final String PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN = "mms.nwp_arc3.pattern";
+    public static final String PROPERTY_MMS_NWP_SOURCEDIR = "mms.nwp.sourceDir";
+    public static final String PROPERTY_MMS_NWP_TARGETFILE = "mms.nwp.targetfile";
+    public static final String PROPERTY_MMS_ARC3_CONFIG_FILE = "mms.arc3.configFile";
 
     private Constants() {
     }
