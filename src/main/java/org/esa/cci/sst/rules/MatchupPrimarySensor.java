@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -30,17 +31,24 @@ import java.text.MessageFormat;
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
 class MatchupPrimarySensor extends AbstractImplicitRule {
 
+    @Override
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
+        targetColumnBuilder
+                .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD")
+                .flagValues(new byte[] {0, 1, 2});
+    }
+
     @SuppressWarnings({"IfStatementWithTooManyBranches"})
     @Override
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array array = Array.factory(DataType.BYTE, new int[]{1});
         final String sensor = getContext().getMatchup().getRefObs().getSensor();
         byte flag;
-        if("atsr_md".equalsIgnoreCase(sensor)) {
+        if ("atsr_md".equalsIgnoreCase(sensor)) {
             flag = 0;
-        } else if("metop".equalsIgnoreCase(sensor)) {
+        } else if ("metop".equalsIgnoreCase(sensor)) {
             flag = 1;
-        } else if("seviri".equalsIgnoreCase(sensor)) {
+        } else if ("seviri".equalsIgnoreCase(sensor)) {
             flag = 2;
         } else {
             throw new RuleException(MessageFormat.format("Unknown primary sensor ''{0}''.", sensor));
