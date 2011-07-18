@@ -39,6 +39,7 @@ import java.io.IOException;
 class InsituTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
+    private static final int FILL_VALUE = Integer.MIN_VALUE;
     private static final int[] SHAPE = {1, 48};
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
 
@@ -47,6 +48,7 @@ class InsituTime extends AbstractImplicitRule {
                                                                                                      RuleException {
         targetColumnBuilder
                 .type(DATA_TYPE)
+                .fillValue(FILL_VALUE)
                 .unit(Constants.UNIT_INSITU_TIME);
     }
 
@@ -65,9 +67,7 @@ class InsituTime extends AbstractImplicitRule {
                 final Array insituTimes = observationReader.read("insitu.time", extractDefinition);
                 for (int i = 0; i < insituTimes.getSize(); i++) {
                     final double insituTime = insituTimes.getDouble(i);
-                    if (insituTime != sourceColumn.getFillValue().doubleValue()) {
-                        insituTimes.setDouble(i, TimeUtil.julianDateToSecondsSinceEpoch(insituTime) - refTime);
-                    }
+                    insituTimes.setDouble(i, TimeUtil.julianDateToSecondsSinceEpoch(insituTime) - refTime);
                 }
                 return insituTimes;
             } else {
