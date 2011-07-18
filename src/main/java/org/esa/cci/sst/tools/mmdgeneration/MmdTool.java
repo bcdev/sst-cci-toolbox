@@ -179,7 +179,34 @@ public class MmdTool extends BasicTool {
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         for (String sensorName : variablesOfSensors.keySet()) {
             final Query query;
-            if (!"Implicit".equals(sensorName)) {
+            if ("history".equals(sensorName)) {
+                // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
+                query = getPersistenceManager().createNativeQuery("select u.id from (" +
+                                                                  "(select m.id id, f.path p, r.time t " +
+                                                                  "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                                                                  "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and m.refobs_id = r.id " +
+                                                                  "and m.pattern & ?2 = ?2 " +
+                                                                  "and c.matchup_id = m.id " +
+                                                                  "and o.id = c.observation_id " +
+                                                                  "and o.sensor = ?1 " +
+                                                                  "and f.id = o.datafile_id " +
+                                                                  ") union (" +
+                                                                  "select m.id id, ' ' p, r.time t " +
+                                                                  "from mm_matchup m, mm_observation r " +
+                                                                  "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and m.refobs_id = r.id " +
+                                                                  "and m.pattern & ?2 = ?2 " +
+                                                                  "and not exists (select f.id from mm_coincidence c, mm_observation o, mm_datafile f " +
+                                                                  "where c.matchup_id = m.id " +
+                                                                  "and o.id = c.observation_id " +
+                                                                  "and o.sensor = ?1 " +
+                                                                  "and f.id = o.datafile_id) " +
+                                                                  ") " +
+                                                                  "order by p, t) as u", Matchup.class);
+
+            } else if (!"Implicit".equals(sensorName)) {
+                // second part of union introduced to access data for metop variables via refobs observation if metop is primary
                 query = getPersistenceManager().createNativeQuery("select u.id from (" +
                                                                   "(select m.id id, f.path p, r.time t " +
                                                                   "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
