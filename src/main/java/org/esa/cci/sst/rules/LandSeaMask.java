@@ -17,11 +17,14 @@
 package org.esa.cci.sst.rules;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.watermask.operator.WatermaskClassifier;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.ToolException;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.Index;
@@ -66,21 +69,32 @@ class LandSeaMask extends AbstractImplicitRule {
         final int[] shape = targetVariable.getShape();
         shape[0] = 1;
         final GeoCoding geoCoding;
+        final Reader observationReader = getContext().getObservationReader();
         try {
-            geoCoding = getContext().getObservationReader().getGeoCoding(recordNo);
+            geoCoding = observationReader.getGeoCoding(recordNo);
         } catch (IOException e) {
             throw new RuleException("Unable to create geo-coding.", e);
         }
-        final Array targetArray = Array.factory(DataType.BYTE, shape);
+        final Point point = getContext().getMatchup().getRefObs().getPoint().getGeometry().getFirstPoint();
+        final double lon = point.getX();
+        final double lat = point.getY();
         final PixelPos pixelPos = new PixelPos();
+        geoCoding.getPixelPos(new GeoPos((float)lat, (float) lon), pixelPos);
+        final Array targetArray = Array.factory(DataType.BYTE, shape);
         final Index index = targetArray.getIndex();
-        for (int x = 0; x < shape[1]; x++) {
-            for (int y = 0; y < shape[2]; y++) {
-                pixelPos.setLocation(x, y);
-                index.set(0, x, y);
-                // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
-                final byte fraction = classifier.getWaterMaskFraction(geoCoding, pixelPos, 11, 11);
-                targetArray.setByte(index, fraction);
+        final int minX = (int) (pixelPos.x) - shape[1] / 2;
+        final int maxX = (int)pixelPos.x + shape[1] / 2;
+        final int minY = (int) (pixelPos.y) - shape[1] / 2;
+        final int maxY = (int) pixelPos.y + shape[1] / 2;
+        for(int x = minX, xi = 0; x <= maxX; x++, xi++) {
+            for(int y = minY, yi = 0; y <= maxY; y++, yi++) {
+                if (x >= 0 && y >= 0 && x < observationReader.getElementCount() && y < observationReader.getScanLineCount()) {
+                    pixelPos.setLocation(x, y);
+                    index.set(0, xi, yi);
+                    // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
+                    final byte fraction = classifier.getWaterMaskFraction(geoCoding, pixelPos, 11, 11);
+                    targetArray.setByte(index, fraction);
+                }
             }
         }
         return targetArray;
