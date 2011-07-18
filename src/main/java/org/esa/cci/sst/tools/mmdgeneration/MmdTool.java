@@ -185,6 +185,7 @@ public class MmdTool extends BasicTool {
                                                                   "(select m.id id, f.path p, r.time t " +
                                                                   "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
                                                                   "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and r.referenceflag <> ?5 " +
                                                                   "and m.refobs_id = r.id " +
                                                                   "and m.pattern & ?2 = ?2 " +
                                                                   "and c.matchup_id = m.id " +
@@ -195,6 +196,7 @@ public class MmdTool extends BasicTool {
                                                                   "select m.id id, ' ' p, r.time t " +
                                                                   "from mm_matchup m, mm_observation r " +
                                                                   "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and r.referenceflag <> ?5 " +
                                                                   "and m.refobs_id = r.id " +
                                                                   "and m.pattern & ?2 = ?2 " +
                                                                   "and not exists (select f.id from mm_coincidence c, mm_observation o, mm_datafile f " +
@@ -211,6 +213,7 @@ public class MmdTool extends BasicTool {
                                                                   "(select m.id id, f.path p, r.time t " +
                                                                   "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
                                                                   "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and r.referenceflag <> ?5 " +
                                                                   "and m.refobs_id = r.id " +
                                                                   "and m.pattern & ?2 = ?2 " +
                                                                   "and c.matchup_id = m.id " +
@@ -221,6 +224,7 @@ public class MmdTool extends BasicTool {
                                                                   "select m.id id, f.path p, r.time t " +
                                                                   "from mm_matchup m, mm_observation r, mm_datafile f " +
                                                                   "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and r.referenceflag <> ?5 " +
                                                                   "and r.sensor = ?1 " +
                                                                   "and m.refobs_id = r.id " +
                                                                   "and m.pattern & ?2 = ?2 " +
@@ -232,6 +236,7 @@ public class MmdTool extends BasicTool {
                         getPersistenceManager().createNativeQuery("select m.id " +
                                                                   "from mm_matchup m, mm_observation r, mm_datafile f " +
                                                                   "where r.time >= ?3 and r.time < ?4 " +
+                                                                  "and r.referenceflag <> ?5 " +
                                                                   "and m.refobs_id = r.id " +
                                                                   "and m.pattern & ?2 = ?2 " +
                                                                   "and f.id = r.datafile_id " +
@@ -242,6 +247,7 @@ public class MmdTool extends BasicTool {
             query.setParameter(2, getTargetPattern());
             query.setParameter(3, getSourceStartTime());
             query.setParameter(4, getSourceStopTime());
+            query.setParameter(5, getDuplicateFlag());
             List<Matchup> matchups = query.getResultList();
             for (final Matchup matchup : matchups) {
                 try {
