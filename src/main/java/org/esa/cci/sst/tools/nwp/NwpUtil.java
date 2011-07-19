@@ -42,9 +42,9 @@ import java.util.Properties;
  * @author Ralf Quast
  * @author Thomas Storm
  */
-class NwpHelpers {
+class NwpUtil {
 
-    private NwpHelpers() {
+    private NwpUtil() {
     }
 
     private static final String AND_TARGET_LOCATION = "matchup.nwp.an.nc";
