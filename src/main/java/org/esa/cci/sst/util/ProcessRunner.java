@@ -39,7 +39,7 @@ public class ProcessRunner {
 
     public void execute(final String command) throws IOException, InterruptedException {
         try {
-            if (logger.isLoggable(Level.FINER)) {
+            if (logger.isLoggable(Level.INFO)) {
                 logger.entering(ProcessRunner.class.getName(), "execute");
             }
             if (command == null) {
@@ -48,7 +48,7 @@ public class ProcessRunner {
             if (command.isEmpty()) {
                 return;
             }
-            if (logger.isLoggable(Level.FINE)) {
+            if (logger.isLoggable(Level.INFO)) {
                 logger.fine(MessageFormat.format("executing process <code>{0}</code>", command));
             }
             final Process process = Runtime.getRuntime().exec(command);

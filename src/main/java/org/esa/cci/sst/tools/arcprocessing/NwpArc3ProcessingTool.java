@@ -50,7 +50,7 @@ import java.util.Properties;
  *
  * @author Thomas Storm
  */
-public class Arc3ProcessingTool extends BasicTool {
+public class NwpArc3ProcessingTool extends BasicTool {
 
     private static final String SHEBANG = "#!/bin/bash\n\n";
     private static final String SET_MMS_HOME = "if [ ! -d \"$CCI_SST_HOME\" ]\n" +
@@ -66,7 +66,7 @@ public class Arc3ProcessingTool extends BasicTool {
     private String cleanupScript;
 
     public static void main(String[] args) {
-        final Arc3ProcessingTool tool = new Arc3ProcessingTool();
+        final NwpArc3ProcessingTool tool = new NwpArc3ProcessingTool();
         tool.setCommandLineArgs(args);
         // do not initialize tool - no DB access needed
 //        tool.initialize();
@@ -80,7 +80,7 @@ public class Arc3ProcessingTool extends BasicTool {
         }
     }
 
-    Arc3ProcessingTool() {
+    NwpArc3ProcessingTool() {
         super("arc3processing.sh", "0.1");
     }
 
@@ -107,14 +107,14 @@ public class Arc3ProcessingTool extends BasicTool {
         final Date timeAsDate = TimeUtil.getConfiguredTimeOf(timeProperty);
         final String time = TimeUtil.formatCompactUtcFormat(timeAsDate);
 
-        String arc3CallFilename = String.format("mms-arc3-%s-submit.sh", time);
+        String arc3CallFilename = String.format("mms-nwp-arc3-%s-submit.sh", time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);
         setFileExecutable(arc3CallFile);
         arc3CallScript = arc3CallFile.getAbsolutePath();
         arc3CallWriter = new PrintWriter(arc3CallFile);
         arc3CallWriter.format(SHEBANG);
 
-        String reingestionCallFilename = String.format("mms-arc3-%s-reingest.sh", time);
+        String reingestionCallFilename = String.format("mms-nwp-arc3-%s-reingest.sh", time);
         final File reingestionFile = new File(tmpDir, reingestionCallFilename);
         setFileExecutable(reingestionFile);
         reingestionCallScript = reingestionFile.getAbsolutePath();
@@ -122,7 +122,7 @@ public class Arc3ProcessingTool extends BasicTool {
         reingestionCallWriter.format(SHEBANG);
         reingestionCallWriter.format(SET_MMS_HOME);
 
-        String cleanupCallFilename = String.format("mms-arc3-%s-cleanup.sh", time);
+        String cleanupCallFilename = String.format("mms-nwp-arc3-%s-cleanup.sh", time);
         final File cleanupFile = new File(tmpDir, cleanupCallFilename);
         setFileExecutable(cleanupFile);
         cleanupScript = cleanupFile.getAbsolutePath();

@@ -26,4 +26,4 @@ java \
     -Xmx1024M $MMS_OPTIONS \
     -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpa.version}.jar" \
     -classpath "$MMS_HOME/lib/*" \
-    org.esa.cci.sst.tools.arcprocessing.Arc3ProcessingTool "$@"
+    org.esa.cci.sst.tools.arcprocessing.NwpArc3ProcessingTool "$@"

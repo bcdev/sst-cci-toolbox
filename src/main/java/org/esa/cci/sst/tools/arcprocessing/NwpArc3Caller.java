@@ -43,7 +43,7 @@ class NwpArc3Caller {
                                         "    exit 2\n" +
                                         "fi\n\n" +
                                         "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/tstorm/opt/local/lib\n" +
-                                        "export PATH=${PATH}:/home/tstorm/opt/cdo-1.5.0/bin\n\n";
+                                        "export PATH=${PATH}:/home/tstorm/opt/local/bin\n\n";
     private final Properties configuration;
 
     NwpArc3Caller(Properties configuration) {
