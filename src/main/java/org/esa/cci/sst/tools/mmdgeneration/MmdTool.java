@@ -305,11 +305,11 @@ public class MmdTool extends BasicTool {
     }
 
     private Date getTime(String key) {
-        final String startTime = getConfiguration().getProperty(key);
+        final String time = getConfiguration().getProperty(key);
         try {
-            return TimeUtil.parseCcsdsUtcFormat(startTime);
+            return TimeUtil.parseCcsdsUtcFormat(time);
         } catch (ParseException e) {
-            throw new ToolException(MessageFormat.format("Cannot parse time string ''{0}''.", startTime), e,
+            throw new ToolException(MessageFormat.format("Cannot parse time string ''{0}''.", time), e,
                                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }

@@ -91,22 +91,24 @@ public class ShiftOp extends Operator {
 
         final MultiLevelImage sourceImage = sourceBand.getSourceImage();
         for (Tile.Pos pos : targetTile) {
-            int targetX = pos.x;
-            int targetY = pos.y;
-            int sourceX = pos.x - shiftX;
-            int sourceY = pos.y - shiftY;
-            int xIndex = sourceX - sourceImage.XToTileX(sourceX) * sourceImage.getTileWidth();
-            int yIndex = sourceY - sourceImage.YToTileY(sourceY) * sourceImage.getTileHeight();
+            final int targetX = pos.x;
+            final int targetY = pos.y;
+            final int sourceX = pos.x - shiftX;
+            final int sourceY = pos.y - shiftY;
+            final int tileX = sourceImage.XToTileX(sourceX);
+            final int tileY = sourceImage.YToTileY(sourceY);
             if(isPositionOutOfBounds(sourceX, sourceY)) {
                 targetTile.setSample(targetX, targetY, fillValue.doubleValue());
                 continue;
             }
-            final Raster sourceTile = sourceImage.getTile(sourceImage.XToTileX(sourceX), sourceImage.YToTileY(sourceY));
+            final Raster sourceTile = sourceImage.getTile(tileX, tileY);
             if(sourceTile == null) {
                 targetTile.setSample(targetX, targetY, fillValue.doubleValue());
                 continue;
             }
-            int index = yIndex * sourceTile.getWidth() + xIndex;
+            final int xIndex = sourceX - tileX * sourceImage.getTileWidth();
+            final int yIndex = sourceY - tileY * sourceImage.getTileHeight();
+            final int index = yIndex * sourceTile.getWidth() + xIndex;
             final float sample = sourceTile.getDataBuffer().getElemFloat(index);
             targetTile.setSample(targetX, targetY, sample);
         }
