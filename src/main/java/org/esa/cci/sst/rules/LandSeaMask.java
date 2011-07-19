@@ -79,16 +79,17 @@ class LandSeaMask extends AbstractImplicitRule {
         final double lon = point.getX();
         final double lat = point.getY();
         final PixelPos pixelPos = new PixelPos();
-        geoCoding.getPixelPos(new GeoPos((float)lat, (float) lon), pixelPos);
+        geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), pixelPos);
         final Array targetArray = Array.factory(DataType.BYTE, shape);
         final Index index = targetArray.getIndex();
         final int minX = (int) (pixelPos.x) - shape[1] / 2;
-        final int maxX = (int)pixelPos.x + shape[1] / 2;
+        final int maxX = (int) (pixelPos.x) + shape[1] / 2;
         final int minY = (int) (pixelPos.y) - shape[1] / 2;
-        final int maxY = (int) pixelPos.y + shape[1] / 2;
-        for(int x = minX, xi = 0; x <= maxX; x++, xi++) {
-            for(int y = minY, yi = 0; y <= maxY; y++, yi++) {
-                if (x >= 0 && y >= 0 && x < observationReader.getElementCount() && y < observationReader.getScanLineCount()) {
+        final int maxY = (int) (pixelPos.y) + shape[1] / 2;
+        for (int x = minX, xi = 0; x <= maxX; x++, xi++) {
+            for (int y = minY, yi = 0; y <= maxY; y++, yi++) {
+                if (x >= 0 && y >= 0 && x < observationReader.getElementCount() &&
+                    y < observationReader.getScanLineCount()) {
                     pixelPos.setLocation(x, y);
                     index.set(0, xi, yi);
                     // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
