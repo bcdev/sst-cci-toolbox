@@ -76,22 +76,22 @@ abstract class AbstractRescalingToShort extends Rule {
 
     protected abstract void configureTargetColumn(ColumnBuilder targetColumnBuilder);
 
-    protected short rescale(double d, double a, double b) {
-        return (short) Math.floor((a * d + (b - targetAddOffset)) / targetScaleFactor + 0.5);
+    protected short rescale(double number, double scaleFactor, double offset) {
+        return (short) Math.floor((scaleFactor * number + (offset - targetAddOffset)) / targetScaleFactor + 0.5);
     }
 
     private void apply(Array sourceArray, Array targetArray,
                        Number sourceScaleFactor,
                        Number sourceAddOffset,
                        Number sourceFillValue) {
-        final double a = getDouble(sourceScaleFactor, 1.0);
-        final double b = getDouble(sourceAddOffset, 0.0);
+        final double scaleFactor = getDouble(sourceScaleFactor, 1.0);
+        final double offset = getDouble(sourceAddOffset, 0.0);
         for (int i = 0; i < sourceArray.getSize(); i++) {
             final double number = sourceArray.getDouble(i);
             if (isInvalid(number, sourceFillValue)) {
                 targetArray.setShort(i, Short.MIN_VALUE);
             } else {
-                targetArray.setShort(i, rescale(number, a, b));
+                targetArray.setShort(i, rescale(number, scaleFactor, offset));
             }
         }
     }
