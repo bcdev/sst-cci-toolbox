@@ -48,7 +48,7 @@ class MmdObservationReader extends AbstractMmdReader {
 
     void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
         // todo - mb,ts 28Apr2011 - maybe other variable names
-        final Variable variable = findVariable(Constants.VARIABLE_OBSERVATION_TIME);
+        final Variable variable = findVariable(Constants.VARIABLE_NAME_OBSERVATION_TIME);
         if (variable != null) {
             final Date creationDate = getCreationDate(recordNo, variable);
             observation.setTime(creationDate);

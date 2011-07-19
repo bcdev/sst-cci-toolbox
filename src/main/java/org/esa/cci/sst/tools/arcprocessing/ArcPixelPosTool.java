@@ -71,8 +71,8 @@ public class ArcPixelPosTool extends BasicTool {
 
     void createPixelPositions() throws IOException {
         final Properties configuration = getConfiguration();
-        final String latlonFile = configuration.getProperty(Constants.LATLONFILE_PROPERTY);
-        final String locationFile = configuration.getProperty(Constants.LOCATIONFILE_PROPERTY);
+        final String latlonFile = configuration.getProperty(Constants.PROPERTY_LATLONFILE);
+        final String locationFile = configuration.getProperty(Constants.PROPERTY_LOCATIONFILE);
         validateInput(locationFile, latlonFile);
         final Product product = readProduct(locationFile);
         final GeoCoding geoCoding = product.getGeoCoding();
@@ -129,7 +129,7 @@ public class ArcPixelPosTool extends BasicTool {
     }
 
     private void createPixelPosFile() throws IOException {
-        final String latlonFilename = getConfiguration().getProperty(Constants.LATLONFILE_PROPERTY);
+        final String latlonFilename = getConfiguration().getProperty(Constants.PROPERTY_LATLONFILE);
         final String pixelposFilename;
         if (latlonFilename.endsWith(Arc1ProcessingTool.LATLON_FILE_EXTENSION)) {
             final int length = latlonFilename.length() - Arc1ProcessingTool.LATLON_FILE_EXTENSION.length();
@@ -152,9 +152,9 @@ public class ArcPixelPosTool extends BasicTool {
 
     private void validateInput(final String locationFile, final String latlonFile) {
         Assert.notNull(locationFile,
-                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
+                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.PROPERTY_LOCATIONFILE));
         Assert.notNull(latlonFile,
-                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.LOCATIONFILE_PROPERTY));
+                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.PROPERTY_LOCATIONFILE));
     }
 
     private void initBuffer(final String firstLine) {

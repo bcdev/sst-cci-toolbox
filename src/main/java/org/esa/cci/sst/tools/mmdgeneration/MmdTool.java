@@ -158,8 +158,8 @@ public class MmdTool extends BasicTool {
         final Map<Integer, Integer> recordOfMatchup = new HashMap<Integer, Integer>();
         {
             final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
-                                                               getTime(Constants.PROPERTY_MMD_START_TIME),
-                                                               getTime(Constants.PROPERTY_MMD_STOP_TIME),
+                                                               getTime(Constants.PROPERTY_TARGET_START_TIME),
+                                                               getTime(Constants.PROPERTY_TARGET_STOP_TIME),
                                                                getTargetPattern(),
                                                                getDuplicateFlag());
             for (int i = 0; i < matchups.size(); ++i) {
@@ -248,8 +248,8 @@ public class MmdTool extends BasicTool {
             }
             query.setParameter(1, sensorName);
             query.setParameter(2, getTargetPattern());
-            query.setParameter(3, getTime(Constants.PROPERTY_MMD_START_TIME));
-            query.setParameter(4, getTime(Constants.PROPERTY_MMD_STOP_TIME));
+            query.setParameter(3, getTime(Constants.PROPERTY_TARGET_START_TIME));
+            query.setParameter(4, getTime(Constants.PROPERTY_TARGET_STOP_TIME));
             query.setParameter(5, getDuplicateFlag());
             List<Matchup> matchups = query.getResultList();
             for (final Matchup matchup : matchups) {
@@ -344,8 +344,8 @@ public class MmdTool extends BasicTool {
 
     private void writeMmd(NetcdfFileWriteable mmd) {
         final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
-                                                              getTime(Constants.PROPERTY_MMD_START_TIME),
-                                                              getTime(Constants.PROPERTY_MMD_STOP_TIME),
+                                                              getTime(Constants.PROPERTY_TARGET_START_TIME),
+                                                              getTime(Constants.PROPERTY_TARGET_STOP_TIME),
                                                               getTargetPattern(),
                                                               getDuplicateFlag());
 
@@ -554,8 +554,8 @@ public class MmdTool extends BasicTool {
 
     private void defineDimensions(NetcdfFileWriteable mmdFile) {
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
-                                               getTime(Constants.PROPERTY_MMD_START_TIME),
-                                               getTime(Constants.PROPERTY_MMD_STOP_TIME),
+                                               getTime(Constants.PROPERTY_TARGET_START_TIME),
+                                               getTime(Constants.PROPERTY_TARGET_STOP_TIME),
                                                getTargetPattern());
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
