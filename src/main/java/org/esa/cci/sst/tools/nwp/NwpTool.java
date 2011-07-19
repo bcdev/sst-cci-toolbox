@@ -228,8 +228,7 @@ class NwpTool {
         }
     }
 
-    private void writeSensorNwpFile(NetcdfFile sensorMmdFile, NetcdfFile nwpFile, String sensorName) throws
-                                                                                                          IOException {
+    private void writeSensorNwpFile(NetcdfFile sensorMmdFile, NetcdfFile nwpFile, String sensorName) throws IOException {
         final Dimension matchupDimension = NwpUtil.findDimension(sensorMmdFile, "matchup");
         final Dimension yDimension = NwpUtil.findDimension(nwpFile, "y");
         final Dimension xDimension = NwpUtil.findDimension(nwpFile, "x");
@@ -283,7 +282,7 @@ class NwpTool {
                 final int[] sourceShape = {1, 0, gy, gx};
 
                 final int targetTime = targetTimes.getInt(i);
-                if(targetTime == (int)targetFillValue) {
+                if (targetTime == (int) targetFillValue) {
                     continue;
                 }
                 final FracIndex fi = NwpUtil.interpolationIndex(sourceTimes, targetTime);
@@ -451,7 +450,7 @@ class NwpTool {
                 final int[] sourceShape = {1, 0, gy, gx};
 
                 final int targetTime = targetTimes.getInt(i);
-                if(targetTime == (int)targetFillValue) {
+                if (targetTime == (int) targetFillValue) {
                     continue;
                 }
 
@@ -524,11 +523,13 @@ class NwpTool {
             if (sourceVariable.getRank() == 4) {
                 final Variable targetVariable;
                 if (sourceVariable.getDimension(1).getLength() == 1) {
-                    targetVariable = mmdNwp.addVariable(sensorName + ".nwp." + sourceVariable.getName(), sourceVariable.getDataType(),
-                                        String.format("matchup %s.nwp.ny %s.nwp.nx", sensorName, sensorName));
+                    targetVariable = mmdNwp.addVariable(
+                            sensorName + ".nwp." + sourceVariable.getName(), sourceVariable.getDataType(),
+                            String.format("matchup %s.nwp.ny %s.nwp.nx", sensorName, sensorName));
                 } else {
-                    targetVariable = mmdNwp.addVariable(sensorName + ".nwp." + sourceVariable.getName(), sourceVariable.getDataType(),
-                                        String.format("matchup %s.nwp.nz %s.nwp.ny %s.nwp.nx", sensorName, sensorName, sensorName));
+                    targetVariable = mmdNwp.addVariable(
+                            sensorName + ".nwp." + sourceVariable.getName(), sourceVariable.getDataType(),
+                            String.format("matchup %s.nwp.nz %s.nwp.ny %s.nwp.nx", sensorName, sensorName, sensorName));
                 }
                 for (final Attribute attribute : sourceVariable.getAttributes()) {
                     targetVariable.addAttribute(attribute);
@@ -548,7 +549,7 @@ class NwpTool {
         try {
             for (Variable targetVariable : mmdNwp.getVariables()) {
                 final Variable sourceVariable = mmd.findVariable(targetVariable.getNameEscaped());
-                if(sourceVariable == null) {
+                if (sourceVariable == null) {
                     continue;
                 }
                 int[] sourceOrigin = new int[targetVariable.getRank()];
@@ -571,11 +572,12 @@ class NwpTool {
         final int matchupCount = matchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
         for (Dimension dimension : mmd.getDimensions()) {
             final String dimensionName = dimension.getName();
-            if (dimensionName.startsWith(sensorName.substring(0, sensorName.indexOf('.'))) && !dimensionName.equals("matchup")) {
+            if (dimensionName.startsWith(sensorName.substring(0, sensorName.indexOf('.'))) &&
+                !dimensionName.equals("matchup")) {
                 mmdNwp.addDimension(null, dimension);
-            } else if(dimensionName.equals("matchup")) {
+            } else if (dimensionName.equals("matchup")) {
                 mmdNwp.addDimension(dimensionName, matchupCount);
-            } else if(dimensionName.equals("filename_length")) {
+            } else if (dimensionName.equals("filename_length")) {
                 mmdNwp.addDimension(dimensionName, dimension.getLength());
             }
         }
@@ -777,10 +779,8 @@ class NwpTool {
         geoFile.addDimension("grid_rank", 2);
 
         geoFile.addVariable("grid_dims", DataType.INT, "grid_rank");
-        geoFile.addVariable("grid_center_lat", DataType.FLOAT, "grid_size").addAttribute(
-                new Attribute("units", "degrees"));
-        geoFile.addVariable("grid_center_lon", DataType.FLOAT, "grid_size").addAttribute(
-                new Attribute("units", "degrees"));
+        geoFile.addVariable("grid_center_lat", DataType.FLOAT, "grid_size").addAttribute(new Attribute("units", "degrees"));
+        geoFile.addVariable("grid_center_lon", DataType.FLOAT, "grid_size").addAttribute(new Attribute("units", "degrees"));
         geoFile.addVariable("grid_imask", DataType.INT, "grid_size");
         geoFile.addVariable("grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
         geoFile.addVariable("grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");

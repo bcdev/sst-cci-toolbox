@@ -19,7 +19,6 @@ package org.esa.cci.sst.tools.arcprocessing;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
-import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
@@ -103,9 +103,8 @@ public class NwpArc3ProcessingTool extends BasicTool {
         final File tmpDir = new File(tmpPath);
         createDirectory(destDir);
         createDirectory(tmpDir);
-        final String timeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
-        final Date timeAsDate = TimeUtil.getConfiguredTimeOf(timeProperty);
-        final String time = TimeUtil.formatCompactUtcFormat(timeAsDate);
+        final Date date = new Date();
+        final String time = new SimpleDateFormat("yyyyMMddHHmm").format(date);
 
         String arc3CallFilename = String.format("mms-nwp-arc3-%s-submit.sh", time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);

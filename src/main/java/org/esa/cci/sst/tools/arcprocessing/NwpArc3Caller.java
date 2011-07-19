@@ -18,6 +18,8 @@ package org.esa.cci.sst.tools.arcprocessing;
 
 import org.esa.cci.sst.tools.Constants;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -31,7 +33,8 @@ class NwpArc3Caller {
                                         "then\n" +
                                         "    PRGDIR=`dirname $0`\n" +
                                         "    export MMS_HOME=`cd \"$PRGDIR/..\" ; pwd`\n" +
-                                        "fi\n" +
+                                        "fi\n\n" +
+                                        "set -e # one fails, all fail\n\n" +
                                         '\n' +
                                         "if [ -z \"$MMS_HOME\" ]; then\n" +
                                         "    echo\n" +
@@ -55,10 +58,10 @@ class NwpArc3Caller {
         final String configurationFilePath = String.format("config/mms-config_%s.properties", sensorName);
         final String sensorPattern = configuration.getProperty(Constants.PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN);
         final String nwpSourceDir = configuration.getProperty(Constants.PROPERTY_MMS_NWP_SOURCEDIR);
-        final String nwpOutput = configuration.getProperty(Constants.PROPERTY_MMS_NWP_TARGETFILE);
+        final String nwpOutput = getUniqueOutputName(Constants.PROPERTY_MMS_NWP_TARGETFILE);
         final String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
         final String arc3ConfigurationFile = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_CONFIG_FILE, "MMD_AATSR.INP");
-        final String arc3Output = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_OUTPUT);
+        final String arc3Output = getUniqueOutputName(Constants.PROPERTY_MMS_ARC3_OUTPUT);
         final String nwpSourceFile = configuration.getProperty(Constants.PROPERTY_MMS_NWP_SOURCEFILE);
 
         final StringBuilder nwpArc3Call = new StringBuilder();
@@ -87,9 +90,9 @@ class NwpArc3Caller {
         final String sensorName = configuration.getProperty(Constants.PROPERTY_MMS_NWP_ARC3_SENSOR);
         final String configurationFilePath = String.format("config/mms-config_%s.properties", sensorName);
         final String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
-        final String arc3Output = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_OUTPUT);
+        final String arc3Output = getUniqueOutputName(Constants.PROPERTY_MMS_ARC3_OUTPUT);
         final String arc3Pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "0");
-        final String nwpOutput = configuration.getProperty(Constants.PROPERTY_MMS_NWP_TARGETFILE);
+        final String nwpOutput = getUniqueOutputName(Constants.PROPERTY_MMS_NWP_TARGETFILE);
         final String nwpPattern = configuration.getProperty(Constants.PROPERTY_MMS_NWP_PATTERN, "0");
 
         final StringBuilder builder = new StringBuilder();
@@ -125,8 +128,17 @@ class NwpArc3Caller {
             builder.append(String.format("rm %s\n", script));
         }
         final String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
-        final String arc3Output = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_OUTPUT);
+        final String arc3Output = getUniqueOutputName(Constants.PROPERTY_MMS_ARC3_OUTPUT);
         builder.append(String.format("\nssh eddie.ecdf.ed.ac.uk \"cd %s ; rm %s", arc3home, arc3Output));
+        return builder.toString();
+    }
+
+    String getUniqueOutputName(String sourceOutputName) {
+        String outputName = configuration.getProperty(sourceOutputName);
+        final StringBuilder builder = new StringBuilder(outputName);
+        final Date date = new Date();
+        final String time = new SimpleDateFormat("yyyyMMddHHmm").format(date);
+        builder.insert(outputName.lastIndexOf('.'), '_' + time);
         return builder.toString();
     }
 }
