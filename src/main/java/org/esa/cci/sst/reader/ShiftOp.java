@@ -17,9 +17,9 @@
 package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.ProgressMonitor;
+import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.gpf.Operator;
 import org.esa.beam.framework.gpf.OperatorException;
 import org.esa.beam.framework.gpf.OperatorSpi;
@@ -30,8 +30,7 @@ import org.esa.beam.framework.gpf.annotations.SourceProduct;
 import org.esa.beam.framework.gpf.annotations.TargetProduct;
 import org.esa.beam.util.ProductUtils;
 
-import javax.media.jai.PlanarImage;
-import java.awt.Rectangle;
+import java.awt.image.Raster;
 
 /**
  * Allows to shift the images of a product.
@@ -90,22 +89,25 @@ public class ShiftOp extends Operator {
             return;
         }
 
-        final Rectangle rectangle = computeSourceRect(targetTile);
-        final Tile sourceTile = getSourceTile(sourceBand, rectangle);
-        final ProductData rawSamples = sourceTile.getRawSamples();
+        final MultiLevelImage sourceImage = sourceBand.getSourceImage();
         for (Tile.Pos pos : targetTile) {
             int targetX = pos.x;
             int targetY = pos.y;
-            int xPos = pos.x - shiftX;
-            int yPos = pos.y - shiftY;
-            if (isPositionOutOfBounds(xPos, yPos)) {
-                targetTile.setSample(pos.x, pos.y, fillValue.doubleValue());
+            int sourceX = pos.x - shiftX;
+            int sourceY = pos.y - shiftY;
+            int xIndex = sourceX - sourceImage.XToTileX(sourceX) * sourceImage.getTileWidth();
+            int yIndex = sourceY - sourceImage.YToTileY(sourceY) * sourceImage.getTileHeight();
+            if(isPositionOutOfBounds(sourceX, sourceY)) {
+                targetTile.setSample(targetX, targetY, fillValue.doubleValue());
                 continue;
             }
-            final PlanarImage sourceImage = targetBand.getSourceImage();
-            xPos -= sourceImage.XToTileX(xPos) * sourceTile.getWidth();
-            yPos -= sourceImage.YToTileY(yPos) * sourceTile.getHeight();
-            final float sample = rawSamples.getElemFloatAt(sourceTile.getWidth() * yPos + xPos);
+            final Raster sourceTile = sourceImage.getTile(sourceImage.XToTileX(sourceX), sourceImage.YToTileY(sourceY));
+            if(sourceTile == null) {
+                targetTile.setSample(targetX, targetY, fillValue.doubleValue());
+                continue;
+            }
+            int index = yIndex * sourceTile.getWidth() + xIndex;
+            final float sample = sourceTile.getDataBuffer().getElemFloat(index);
             targetTile.setSample(targetX, targetY, sample);
         }
     }
@@ -118,29 +120,11 @@ public class ShiftOp extends Operator {
         super.dispose();
     }
 
-    private Rectangle computeSourceRect(Tile targetTile) {
-        final Rectangle rectangle = targetTile.getRectangle();
-        int x = rectangle.x - shiftX;
-        int width = rectangle.width;
-        if (x < 0) {
-            x = rectangle.x;
-            width -= shiftX;
-        }
-        int y = rectangle.y - shiftY;
-        int height = rectangle.height;
-        if (y < 0) {
-            y = rectangle.y;
-            height -= shiftY;
-        }
-        rectangle.setBounds(x, y, width, height);
-        return rectangle;
-    }
-
-    private boolean isPositionOutOfBounds(int xPos, int yPos) {
-        return xPos < 0 ||
-               yPos < 0 ||
-               xPos >= sourceProduct.getSceneRasterWidth() ||
-               yPos >= sourceProduct.getSceneRasterHeight();
+    private boolean isPositionOutOfBounds(int sourceX, int sourceY) {
+        return sourceX < 0 ||
+               sourceY < 0 ||
+               sourceX >= sourceProduct.getSceneRasterWidth() ||
+               sourceY >= sourceProduct.getSceneRasterHeight();
     }
 
     private void validateParameters() {
