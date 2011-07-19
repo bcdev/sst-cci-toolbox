@@ -40,6 +40,7 @@ import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.Cache;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +108,8 @@ public class MmdTool extends BasicTool {
             mmd = tool.createMmd();
             mmd = tool.defineMmd(mmd);
             // shuffled becomes the default, now
-            if (!"false".equals(tool.getConfiguration().get("mms.target.shuffled"))) {
+            final String writeShuffled = tool.getConfiguration().getProperty("mms.target.shuffled", "true");
+            if (!"false".equals(writeShuffled)) {
                 tool.writeMmdShuffled(mmd);
             } else {
                 tool.writeMmd(mmd);
@@ -155,8 +158,8 @@ public class MmdTool extends BasicTool {
         final Map<Integer, Integer> recordOfMatchup = new HashMap<Integer, Integer>();
         {
             final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
-                                                               getSourceStartTime(),
-                                                               getSourceStopTime(),
+                                                               getTime(Constants.PROPERTY_MMD_START_TIME),
+                                                               getTime(Constants.PROPERTY_MMD_STOP_TIME),
                                                                getTargetPattern(),
                                                                getDuplicateFlag());
             for (int i = 0; i < matchups.size(); ++i) {
@@ -245,8 +248,8 @@ public class MmdTool extends BasicTool {
             }
             query.setParameter(1, sensorName);
             query.setParameter(2, getTargetPattern());
-            query.setParameter(3, getSourceStartTime());
-            query.setParameter(4, getSourceStopTime());
+            query.setParameter(3, getTime(Constants.PROPERTY_MMD_START_TIME));
+            query.setParameter(4, getTime(Constants.PROPERTY_MMD_STOP_TIME));
             query.setParameter(5, getDuplicateFlag());
             List<Matchup> matchups = query.getResultList();
             for (final Matchup matchup : matchups) {
@@ -254,7 +257,8 @@ public class MmdTool extends BasicTool {
                     final int targetRecordNo = recordOfMatchup.get(matchup.getId());
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup);
-                    if (observation != null && observation.getDatafile() != null && !observation.getDatafile().equals(previousDataFile)) {
+                    if (observation != null && observation.getDatafile() != null &&
+                        !observation.getDatafile().equals(previousDataFile)) {
                         if (previousDataFile != null) {
                             closeReader(previousDataFile);
                         }
@@ -300,6 +304,16 @@ public class MmdTool extends BasicTool {
 
     }
 
+    private Date getTime(String key) {
+        final String startTime = getConfiguration().getProperty(key);
+        try {
+            return TimeUtil.parseCcsdsUtcFormat(startTime);
+        } catch (ParseException e) {
+            throw new ToolException(MessageFormat.format("Cannot parse time string ''{0}''.", startTime), e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
     private boolean shouldFilter(ReferenceObservation refObs, Reader reader, Observation observation) {
         final GeoCoding geoCoding;
         try {
@@ -307,19 +321,19 @@ public class MmdTool extends BasicTool {
         } catch (IOException e) {
             throw new ToolException("Unable to get geo coding.", e, ToolException.TOOL_ERROR);
         }
-        if(geoCoding == null) {
+        if (geoCoding == null) {
             return false;
         }
         final Point location = refObs.getPoint().getGeometry().getFirstPoint();
-        final GeoPos geoPos = new GeoPos((float) location.y, (float)location.x);
+        final GeoPos geoPos = new GeoPos((float) location.y, (float) location.x);
         final PixelPos pixelPos = new PixelPos();
         geoCoding.getPixelPos(geoPos, pixelPos);
-        if(pixelPos.x < 0 || pixelPos.y < 0) {
+        if (pixelPos.x < 0 || pixelPos.y < 0) {
             final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             getLogger().warning(msg);
             return true;
         }
-        if(pixelPos.x >= reader.getElementCount() || pixelPos.y >= reader.getScanLineCount()) {
+        if (pixelPos.x >= reader.getElementCount() || pixelPos.y >= reader.getScanLineCount()) {
             final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             getLogger().warning(msg);
             return true;
@@ -330,12 +344,13 @@ public class MmdTool extends BasicTool {
 
     private void writeMmd(NetcdfFileWriteable mmd) {
         final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
-                                                              getSourceStartTime(),
-                                                              getSourceStopTime(),
+                                                              getTime(Constants.PROPERTY_MMD_START_TIME),
+                                                              getTime(Constants.PROPERTY_MMD_STOP_TIME),
                                                               getTargetPattern(),
                                                               getDuplicateFlag());
 
-        for (int targetRecordNo = 0, matchupListSize = matchupList.size(); targetRecordNo < matchupListSize; targetRecordNo++) {
+        for (int targetRecordNo = 0, matchupListSize = matchupList.size();
+             targetRecordNo < matchupListSize; targetRecordNo++) {
             final Matchup matchup = matchupList.get(targetRecordNo);
             final ReferenceObservation referenceObservation = matchup.getRefObs();
 
@@ -538,7 +553,9 @@ public class MmdTool extends BasicTool {
     }
 
     private void defineDimensions(NetcdfFileWriteable mmdFile) {
-        matchupCount = Queries.getMatchupCount(getPersistenceManager(), getSourceStartTime(), getSourceStopTime(),
+        matchupCount = Queries.getMatchupCount(getPersistenceManager(),
+                                               getTime(Constants.PROPERTY_MMD_START_TIME),
+                                               getTime(Constants.PROPERTY_MMD_STOP_TIME),
                                                getTargetPattern());
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);

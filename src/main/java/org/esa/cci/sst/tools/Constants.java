@@ -169,6 +169,8 @@ public class Constants {
     public static final String PROPERTY_MMS_NWP_SOURCEDIR = "mms.nwp.sourceDir";
     public static final String PROPERTY_MMS_NWP_TARGETFILE = "mms.nwp.targetfile";
     public static final String PROPERTY_MMS_ARC3_CONFIG_FILE = "mms.arc3.configFile";
+    public static final String PROPERTY_MMD_START_TIME = "mms.target.startTime";
+    public static final String PROPERTY_MMD_STOP_TIME = "mms.target.stopTime";
 
     private Constants() {
     }
