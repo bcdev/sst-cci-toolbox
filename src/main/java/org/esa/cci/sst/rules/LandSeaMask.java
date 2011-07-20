@@ -78,6 +78,13 @@ class LandSeaMask extends AbstractImplicitRule {
         final Point point = getContext().getMatchup().getRefObs().getPoint().getGeometry().getFirstPoint();
         final double lon = point.getX();
         final double lat = point.getY();
+        if (lat < -60.0f) {
+            final Array targetArray = Array.factory(DataType.BYTE, shape);
+            for (int i = 0; i < targetArray.getSize(); i++) {
+                targetArray.setByte(i, (byte) 100);
+            }
+            return targetArray;
+        }
         final PixelPos pixelPos = new PixelPos();
         geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), pixelPos);
         final Array targetArray = Array.factory(DataType.BYTE, shape);
