@@ -48,10 +48,10 @@ public class Constants {
     public static final String PROPERTY_SOURCE_START_TIME = "mms.source.startTime";
     public static final String PROPERTY_SOURCE_END_TIME = "mms.source.endTime";
 
-    public static final String PROPERTY_OUTPUT_START_TIME = "mms.output.startTime";
-    public static final String PROPERTY_OUTPUT_END_TIME = "mms.output.endTime";
-    public static final String PROPERTY_OUTPUT_TMPDIR = "mms.output.tmpdir";
-    public static final String PROPERTY_OUTPUT_DESTDIR = "mms.output.destdir";
+    public static final String PROPERTY_OUTPUT_START_TIME = "mms.arc1x2.startTime";
+    public static final String PROPERTY_OUTPUT_END_TIME = "mms.arc1x2.endTime";
+    public static final String PROPERTY_OUTPUT_TMPDIR = "mms.arc1x2.tmpdir";
+    public static final String PROPERTY_OUTPUT_DESTDIR = "mms.arc1x2.destdir";
 
     public static final String PROPERTY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
     public static final String PROPERTY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
