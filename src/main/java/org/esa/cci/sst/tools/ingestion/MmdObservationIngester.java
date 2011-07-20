@@ -28,6 +28,7 @@ import org.esa.cci.sst.util.TimeUtil;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.List;
 
 /**
  * Responsible for re-ingesting observations and coincidences from an mmd file into the database.
@@ -76,6 +77,9 @@ class MmdObservationIngester {
                                     final Observation observation) throws  IOException {
         final int matchupId = reader.getMatchupId(recordNo);
         final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
+        if(matchup == null) {
+            return;
+        }
         final Coincidence coincidence = createCoincidence(matchup, observation);
         tool.getPersistenceManager().persist(coincidence);
         matchup.setPattern(matchup.getPattern() | pattern);
@@ -100,7 +104,11 @@ class MmdObservationIngester {
     private Object getDatabaseObjectById(final String baseQuery, final int id) {
         final String queryString = String.format(baseQuery, id);
         final Query query = tool.getPersistenceManager().createQuery(queryString);
-        return query.getSingleResult();
+        final List resultList = query.getResultList();
+        if(!resultList.isEmpty()) {
+            return resultList.get(0);
+        }
+        return null;
     }
 
 }
