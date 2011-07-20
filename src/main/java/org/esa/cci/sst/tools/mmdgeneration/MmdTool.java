@@ -556,7 +556,8 @@ public class MmdTool extends BasicTool {
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
                                                getTime(Constants.PROPERTY_TARGET_START_TIME),
                                                getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                               getTargetPattern());
+                                               getTargetPattern(),
+                                               getDuplicateFlag());
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
         } else {
