@@ -45,6 +45,10 @@ class NwpArc3Caller {
                                         "    echo\n" +
                                         "    exit 2\n" +
                                         "fi\n\n" +
+                                        "MMS_OPTIONS=\"\"\n" +
+                                        "if [ ! -z $MMS_DEBUG ]; then\n" +
+                                        "    MMS_OPTIONS=\"-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=y\"\n" +
+                                        "fi\n\n" +
                                         "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/tstorm/opt/local/lib\n" +
                                         "export PATH=${PATH}:/home/tstorm/opt/local/bin\n\n";
     private final Properties configuration;
@@ -71,8 +75,8 @@ class NwpArc3Caller {
         final String nwpCall = String.format(
                 "java \\\n" +
                 "    -Dmms.home=\"$MMS_HOME\" \\\n" +
-                "    -Xmx1024M \\\n" +
                 "    -javaagent:\"$MMS_HOME/lib/openjpa-all-2.1.0.jar\" \\\n" +
+                "    -Xmx1024M $MMS_OPTIONS \\\n" +
                 "    -classpath \"$MMS_HOME/lib/*\" \\\n" +
                 "    org.esa.cci.sst.tools.nwp.Nwp \"%s\" \"%s\" \"false\" \"%s\" \"%s\" \"%s\"\n\n", sensorName, sensorPattern, nwpSourceFile, nwpSourceDir, nwpOutput);
         final String copyNwpOutputToEddie = String.format("scp %s eddie.ecdf.ed.ac.uk:%s\n\n", nwpOutput, arc3home);
