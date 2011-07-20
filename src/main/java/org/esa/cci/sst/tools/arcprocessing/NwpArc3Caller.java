@@ -64,7 +64,7 @@ class NwpArc3Caller {
         final String nwpSourceDir = configuration.getProperty(Constants.PROPERTY_MMS_NWP_SOURCEDIR);
         final String nwpOutput = getUniqueOutputName(Constants.PROPERTY_MMS_NWP_TARGETFILE);
         final String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
-        final String arc3ConfigurationFile = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_CONFIG_FILE, "MMD_AATSR.INP");
+        final String arc3ConfigurationFile = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_CONFIG_FILE, "MMD_AATSR.inp");
         final String arc3Output = getUniqueOutputName(Constants.PROPERTY_MMS_ARC3_OUTPUT);
         final String nwpSourceFile = configuration.getProperty(Constants.PROPERTY_MMS_NWP_SOURCEFILE);
 
