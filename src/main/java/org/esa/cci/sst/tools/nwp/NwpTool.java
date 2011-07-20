@@ -396,8 +396,11 @@ class NwpTool {
             throw new IOException(e);
         }
         final Date startDate = TimeUtil.secondsSince1978ToDate(startTime);
-        final Date endDate = TimeUtil.secondsSince1978ToDate(endTime);
+        Date endDate = TimeUtil.secondsSince1978ToDate(endTime);
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.setTime(endDate);
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        endDate = calendar.getTime();
         calendar.setTime(startDate);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
