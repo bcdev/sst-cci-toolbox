@@ -129,7 +129,7 @@ class NwpArc3Caller {
         }
         final String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
         final String arc3Output = getUniqueOutputName(Constants.PROPERTY_MMS_ARC3_OUTPUT);
-        builder.append(String.format("\nssh eddie.ecdf.ed.ac.uk \"cd %s ; rm %s", arc3home, arc3Output));
+        builder.append(String.format("\nssh eddie.ecdf.ed.ac.uk \"cd %s ; rm %s\"", arc3home, arc3Output));
         return builder.toString();
     }
 
