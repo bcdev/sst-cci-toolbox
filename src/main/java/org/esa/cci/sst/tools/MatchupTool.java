@@ -106,6 +106,14 @@ public class MatchupTool extends BasicTool {
             "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
             "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
 
+    private static final String DUPLICATES_DELETE_QUERY = "delete from mm_observation o " +
+            "where o.sensor=?1 " +
+            "and o.time >= ?2 and o.time < ?3 " +
+            "and exists ( select p.id from mm_observation p " +
+            "where p.sensor = o.sensor and p.name = o.name " +
+            "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
+            "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
+
     private static final int CHUNK_SIZE = 1024; //*16;
 
     private static final String ATSR_MD = "atsr_md";
@@ -162,6 +170,9 @@ public class MatchupTool extends BasicTool {
         if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.markduplicates"))) {
             markDuplicates();
         }
+        else if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.dropduplicates"))) {
+            dropDuplicates();
+        }
         if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.atsr_md"))) {
             findAtsrMultiSensorMatchups();
         }
@@ -214,6 +225,44 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI,
+                                                  System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
+        } catch (Exception e) {
+            getPersistenceManager().rollback();
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
+        }
+    }
+
+    private void dropDuplicates() {
+        try {
+            getPersistenceManager().transaction();
+            Query query = getPersistenceManager().createNativeQuery(DUPLICATES_DELETE_QUERY);
+            query.setParameter(2, matchupStartTime);
+            query.setParameter(3, matchupStopTime);
+
+            long time = System.currentTimeMillis();
+            query.setParameter(1, ATSR_MD);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", ATSR_MD,
+                                                  System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
+            getPersistenceManager().transaction();
+
+            time = System.currentTimeMillis();
+            query.setParameter(1, METOP);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", METOP,
+                                                  System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
+            getPersistenceManager().transaction();
+
+            time = System.currentTimeMillis();
+            query.setParameter(1, SEVIRI);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI,
                                                   System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
