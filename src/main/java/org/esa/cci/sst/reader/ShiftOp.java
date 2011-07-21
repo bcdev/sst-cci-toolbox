@@ -69,6 +69,7 @@ public class ShiftOp extends Operator {
         targetProduct = new Product(sourceProduct.getName(), sourceProduct.getProductType(), sceneWidth, sceneHeight);
         ProductUtils.copyTiePointGrids(sourceProduct, targetProduct);
         ProductUtils.copyGeoCoding(sourceProduct, targetProduct);
+        ProductUtils.copyMetadata(sourceProduct, targetProduct);
         for (String bandName : sourceProduct.getBandNames()) {
             ProductUtils.copyBand(bandName, sourceProduct, targetProduct);
             final Band band = targetProduct.getBand(bandName);

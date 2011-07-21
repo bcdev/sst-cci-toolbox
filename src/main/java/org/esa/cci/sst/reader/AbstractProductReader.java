@@ -88,6 +88,7 @@ abstract class AbstractProductReader implements Reader {
         product = null;
     }
 
+    @Override
     public final Product getProduct() {
         return product;
     }

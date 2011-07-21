@@ -17,6 +17,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -153,4 +154,13 @@ public interface Reader {
     int getScanLineCount();
 
     int getElementCount();
+
+    /**
+     * If the reader is a product reader, this method returns the product the reader has read. Otherwise,
+     * <code>null</code> is returned.
+     *
+     * @return The product the reader has read, or <code>null</code> if there is no product.
+     */
+    Product getProduct();
+
 }
