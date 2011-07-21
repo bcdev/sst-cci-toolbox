@@ -34,8 +34,8 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder
-                .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD")
-                .flagValues(new byte[] {0, 1, 2});
+                .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD AVHRR_MD")
+                .flagValues(new byte[] {0, 1, 2, 3});
     }
 
     @SuppressWarnings({"IfStatementWithTooManyBranches"})
@@ -50,6 +50,8 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
             flag = 1;
         } else if ("seviri".equalsIgnoreCase(sensor)) {
             flag = 2;
+        } else if("avhrr_md".equalsIgnoreCase(sensor)) {
+            flag = 3;
         } else {
             throw new RuleException(MessageFormat.format("Unknown primary sensor ''{0}''.", sensor));
         }
