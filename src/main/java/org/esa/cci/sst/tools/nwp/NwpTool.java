@@ -384,16 +384,17 @@ class NwpTool {
 
     private List<String> getNwpSubDirectories(NetcdfFile sensorMmdFile, String timeVariableName) throws IOException {
         final Variable variable = sensorMmdFile.findVariable(NetcdfFile.escapeName(timeVariableName));
-        final int[] origin = {0};
-        final int[] shape = {1};
-        final int startTime;
-        final int endTime;
-        try {
-            startTime = variable.read(origin, shape).getInt(0);
-            origin[0] = variable.getShape(0) - 1;
-            endTime = variable.read(origin, shape).getInt(0);
-        } catch (InvalidRangeException e) {
-            throw new IOException(e);
+        final Number fillValue = variable.findAttribute("_FillValue").getNumericValue();
+        int startTime = Integer.MAX_VALUE;
+        int endTime = Integer.MIN_VALUE;
+        final Array times = variable.read();
+        for(int i = 0; i < times.getSize(); i++) {
+            final int currentTime = times.getInt(i);
+            if(currentTime < startTime && currentTime != fillValue.intValue()) {
+                startTime = currentTime;
+            } else if(currentTime > endTime) {
+                endTime = currentTime;
+            }
         }
         final Date startDate = TimeUtil.secondsSince1978ToDate(startTime);
         Date endDate = TimeUtil.secondsSince1978ToDate(endTime);
