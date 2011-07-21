@@ -56,6 +56,8 @@ public class Constants {
     public static final String PROPERTY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
     public static final String PROPERTY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
 
+    public static final String PROPERTY_NWP_ARC3_TMPDIR = "mms.nwp_arc3.tmpdir";
+    public static final String PROPERTY_NWP_ARC3_DESTDIR = "mms.nwp_arc3.destdir";
     public static final String PROPERTY_MMS_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN = "mms.nwp_arc3.pattern";
     public static final String PROPERTY_MMS_NWP_PATTERN = "mms.nwp.pattern";

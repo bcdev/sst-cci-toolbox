@@ -86,7 +86,8 @@ public class NwpArc3ProcessingTool extends BasicTool {
 
     private void writeCalls() throws IOException {
         final Properties configuration = getConfiguration();
-        final NwpArc3Caller nwpArc3Caller = new NwpArc3Caller(configuration);
+        final NwpArc3Caller nwpArc3Caller = new UniqueNwpArc3Caller(configuration);
+//        final NwpArc3Caller nwpArc3Caller = new SplittedNwpArc3Caller(configuration);
         final String arc3Call = nwpArc3Caller.createNwpArc3Call();
         final String reingestionCall = nwpArc3Caller.createReingestionCall();
         final String cleanupCall = nwpArc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
@@ -97,9 +98,9 @@ public class NwpArc3ProcessingTool extends BasicTool {
     }
 
     private void setupWriters() throws IOException {
-        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
+        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_NWP_ARC3_DESTDIR, ".");
         final File destDir = new File(destPath);
-        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
+        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_NWP_ARC3_TMPDIR, ".");
         final File tmpDir = new File(tmpPath);
         createDirectory(destDir);
         createDirectory(tmpDir);

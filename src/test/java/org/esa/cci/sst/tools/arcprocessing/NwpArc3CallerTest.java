@@ -34,7 +34,7 @@ public class NwpArc3CallerTest {
     public void testGetArc3OutputName() throws Exception {
         final Properties configuration = new Properties();
         configuration.setProperty(Constants.PROPERTY_MMS_ARC3_OUTPUT, "arc3_mmd_atsr.nc");
-        final NwpArc3Caller caller = new NwpArc3Caller(configuration);
+        final SplittedNwpArc3Caller caller = new SplittedNwpArc3Caller(configuration);
         final String arc3OutputName = caller.getUniqueOutputName(Constants.PROPERTY_MMS_ARC3_OUTPUT);
         final Date date = new Date();
         final String time = new SimpleDateFormat("yyyyMMddHHmm").format(date);
