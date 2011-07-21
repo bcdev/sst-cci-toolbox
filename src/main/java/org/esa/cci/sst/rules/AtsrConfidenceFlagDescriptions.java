@@ -28,19 +28,19 @@ import org.esa.cci.sst.data.Item;
 public class AtsrConfidenceFlagDescriptions extends AbstractAttributeModification {
 
     private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    private static final String FLAG_MEANINGS = "Pixel_is_over_land " +
-                                                "Pixel_is_cloudy " +
-                                                "Sunglint_detected_in_pixel " +
-                                                "1.6_micron_reflectance_histogram_test_shows_pixel_cloudy " +
-                                                "1.6_micron_spatial_coherence_test_shows_pixel_cloudy " +
-                                                "11_micron_spatial_coherence_test_shows_pixel_cloudy " +
-                                                "12_micron_gross_cloud_test_shows_pixel_cloudy " +
-                                                "11_12_micron_thin_cirrus_test_shows_pixel_cloudy " +
-                                                "3.7_12_micron_medium_high_level_test_shows_pixel_cloudy " +
-                                                "11_3.7_micron_fog_low_stratus_test_shows_pixel_cloudy " +
-                                                "11_12_micron_view_difference_test_shows_pixel_cloudy " +
-                                                "3.7_11_micron_view_difference_test_shows_pixel_cloudy " +
-                                                "11_12_micron_thermal_histogram_test_shows_pixel_cloudy";
+    private static final String FLAG_MEANINGS = "Over_land " +
+                                                "Cloudy " +
+                                                "Sunglint " +
+                                                "1.6_micron_reflectance_histogram_cloudy " +
+                                                "1.6_micron_spatial_coherence_cloudy " +
+                                                "11_micron_spatial_coherence_cloudy " +
+                                                "12_micron_gross_cloud_cloudy " +
+                                                "11_12_micron_thin_cirrus_cloudy " +
+                                                "3.7_12_micron_medium_high_level_cloudy " +
+                                                "11_3.7_micron_fog_low_stratus_cloudy " +
+                                                "11_12_micron_view_difference_cloudy " +
+                                                "3.7_11_micron_view_difference_cloudy " +
+                                                "11_12_micron_thermal_histogram_cloudy";
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
