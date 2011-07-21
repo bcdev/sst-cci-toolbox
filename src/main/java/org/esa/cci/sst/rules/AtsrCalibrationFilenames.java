@@ -19,10 +19,12 @@ package org.esa.cci.sst.rules;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.reader.Reader;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
+import ucar.ma2.Index;
 
 /**
  * @author Thomas Storm
@@ -38,7 +40,7 @@ abstract class AtsrCalibrationFilenames extends Rule {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
-        return sourceColumn;
+        return new ColumnBuilder(sourceColumn).type(DataType.CHAR).build();
     }
 
     @Override
@@ -53,8 +55,10 @@ abstract class AtsrCalibrationFilenames extends Rule {
         final MetadataElement element = dsdElement.getElement(elementId);
         final MetadataAttribute filenameAttribute = element.getAttribute("FILE_NAME");
         final String calibrationFilename = filenameAttribute.getData().getElemString();
+        final Index index = array.getIndex();
         for(int i = 0; i < Math.min(calibrationFilename.length(), 80); i++) {
-            array.setChar(i, calibrationFilename.charAt(i));
+            index.set(0, i);
+            array.setChar(index, calibrationFilename.charAt(i));
         }
         return array;
     }
