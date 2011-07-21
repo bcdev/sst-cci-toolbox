@@ -114,7 +114,7 @@ class LandSeaMask extends AbstractImplicitRule {
 
     private WatermaskClassifier createWatermaskClassifier() {
         try {
-            return new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50);
+            return new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50, WatermaskClassifier.MODE_GC);
         } catch (IOException e) {
             throw new ToolException("Unable to create watermask classifier.", e, ToolException.UNKNOWN_ERROR);
         }
