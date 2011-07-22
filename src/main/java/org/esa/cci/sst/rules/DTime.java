@@ -72,11 +72,11 @@ class DTime extends AbstractImplicitRule {
         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
         try {
             final int refScanLine = (int) reader.getGeoCoding(recordNo).getPixelPos(geoPos, null).y;
-            final double time = reader.getTime(recordNo, refScanLine);
+            final long time = reader.getTime(recordNo, refScanLine);
             for (int i = 0; i < array.getSize(); i++) {
                 final int scanLine = (int) (refScanLine - array.getSize() / 2) + i;
                 if (scanLine >= 0 && scanLine < reader.getScanLineCount()) {
-                    array.setDouble(i, reader.getTime(recordNo, scanLine) - time);
+                    array.setShort(i, (short) (reader.getTime(recordNo, scanLine) - time));
                 }
             }
         } catch (IOException e) {
