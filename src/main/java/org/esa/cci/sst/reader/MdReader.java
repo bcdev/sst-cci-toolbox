@@ -17,7 +17,6 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.util.PixelLocator;
-import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.SampleSource;
 import org.esa.beam.util.SimplePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
@@ -93,6 +92,14 @@ abstract class MdReader extends NetcdfReader {
 
         if (variable.getDataType().isString()) {
             return getData(variable, recordNo);
+        }
+
+        if(variable.getRank() == 1) {
+            try {
+                return variable.read(new int[]{recordNo}, new int[]{1});
+            } catch (InvalidRangeException e) {
+                throw new IOException(e);
+            }
         }
 
         final PixelLocator pixelLocator = getPixelLocator(recordNo);
