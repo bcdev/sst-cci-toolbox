@@ -65,7 +65,7 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         final String goToArc3Home = String.format("cd %s\n\n", arc3home);
         final String callArc3 = String.format("./MMD_SCREEN_Linux %s %s %s %s\n\n", arc3ConfigurationFile, nwpOutput, nwpOutput, arc3Output);
 
-        final String copyArc3OutputToDestDir = String.format("cp %s/%s %s\n\n", arc3home, arc3Output, destDir);
+        final String copyArc3OutputToDestDir = String.format("cp %s/%s %s/%s\n\n", arc3home, arc3Output, destDir, arc3Output);
         final String reingestArc3Output = String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh \\\n" +
                                                         " -Dmms.reingestion.filename=%s/%s \\\n" +
                                                         " -Dmms.reingestion.located=no \\\n" +
@@ -73,7 +73,7 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
                                                         " -Dmms.reingestion.pattern=%s \\\n" +
                                                         " -c $CCI_SST_HOME/%s\n\n", destDir, arc3Output, arc3Pattern, configurationFilePath);
 
-        final String copyNwpOutputToDestDir = String.format("cp %s %s\n\n", nwpOutput, destDir);
+        final String copyNwpOutputToDestDir = String.format("cp %s %s/%s\n\n", nwpOutput, destDir, nwpOutput);
         final String reingestNwpOutput = String.format("$CCI_SST_HOME/bin/mmsreingestmmd.sh \\\n" +
                                                        " -Dmms.reingestion.filename=%s/%s \\\n" +
                                                        " -Dmms.reingestion.located=no \\\n" +
