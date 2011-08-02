@@ -60,11 +60,14 @@ public final class TimeUtil {
             "yyyyMMddHHmmss");
     private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss,SSS");
+    private static final SimpleDateFormat DAY_UTC_FORMAT = new SimpleDateFormat(
+            "yyyy-MM-dd");
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         CCSDS_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         COMPACT_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        DAY_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private TimeUtil() {
@@ -179,5 +182,22 @@ public final class TimeUtil {
     @Deprecated
     public static int secondsSince1981ToSecondsSince1978(int startTime) {
         return (int) secondsSince1981ToSecondsSinceEpoch(startTime);
+    }
+
+    public static String dateOf(Date time) {
+        if (time == null) {
+            return "";
+        }
+        return DAY_UTC_FORMAT.format(time);
+    }
+
+    public static GregorianCalendar calendarDayOf(Date time) {
+        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.setTime(time);
+        calendar.set(Calendar.MILLISECOND, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        return calendar;
     }
 }
