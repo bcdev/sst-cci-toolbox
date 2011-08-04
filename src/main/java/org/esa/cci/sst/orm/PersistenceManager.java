@@ -105,4 +105,8 @@ public class PersistenceManager {
     public void detach(Object entity) {
         entityManager.detach(entity);
     }
+
+    public void clear() {
+        entityManager.clear();
+    }
 }

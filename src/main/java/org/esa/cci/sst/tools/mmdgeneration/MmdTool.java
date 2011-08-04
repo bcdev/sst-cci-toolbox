@@ -80,7 +80,7 @@ public class MmdTool extends BasicTool {
     private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
     private final List<String> targetColumnNames = new ArrayList<String>(500);
 
-    private final Cache<String, Reader> readerCache = new Cache<String, Reader>(50);
+    private final Cache<String, Reader> readerCache = new Cache<String, Reader>(10);
 
     private int matchupCount;
 
@@ -179,6 +179,7 @@ public class MmdTool extends BasicTool {
 //        }
         // memorise previous datafile
         DataFile previousDataFile = null;
+        DataFile previousRefObsDataFile = null;
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         for (String sensorName : variablesOfSensors.keySet()) {
             final Query query;
@@ -243,7 +244,7 @@ public class MmdTool extends BasicTool {
                                                                   "and m.refobs_id = r.id " +
                                                                   "and m.pattern & ?2 = ?2 " +
                                                                   "and f.id = r.datafile_id " +
-                                                                  "order by f.name, r.time", Matchup.class);
+                                                                  "order by f.path, r.time", Matchup.class);
 
             }
             query.setParameter(1, sensorName);
@@ -291,6 +292,13 @@ public class MmdTool extends BasicTool {
                                             referenceObservation);
                             }
                         }
+                    }
+                    getPersistenceManager().detach(matchup);
+                    if (observation != null) {
+                        getPersistenceManager().detach(observation);
+                    }
+                    if (referenceObservation != null) {
+                        getPersistenceManager().detach(referenceObservation);
                     }
                 } catch (IOException e) {
                     final String message = MessageFormat.format("matchup {0}: {1}",
@@ -663,7 +671,7 @@ public class MmdTool extends BasicTool {
         columnRegistry.register(new ColumnBuilder().build());
     }
 
-    private static Observation findObservation(String sensorName, Matchup matchup) {
+    private Observation findObservation(String sensorName, Matchup matchup) {
         final ReferenceObservation referenceObservation = matchup.getRefObs();
         if (sensorName.equals(referenceObservation.getSensor())) {
             return referenceObservation;
@@ -672,6 +680,9 @@ public class MmdTool extends BasicTool {
             final Observation observation = coincidence.getObservation();
             if (sensorName.equals(observation.getSensor())) {
                 return observation;
+            } else {
+                getPersistenceManager().detach(observation);
+                getPersistenceManager().detach(coincidence);
             }
         }
         return null;
