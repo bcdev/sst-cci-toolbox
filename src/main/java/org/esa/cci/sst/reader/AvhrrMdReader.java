@@ -40,8 +40,10 @@ class AvhrrMdReader extends MdReader {
     @Override
     public Observation readObservation(int recordNo) throws IOException {
         ReferenceObservation observation = new ReferenceObservation();
-        final PGgeometry location = new PGgeometry(new Point(getFloat("avhrr.longitude", recordNo),
-                                                             getFloat("avhrr.latitude", recordNo)));
+        // decision to use insitu lat/lon as reference since GAC coordinates will go through ARC1
+        // correction [Boe, 2011-08-04 after email discussion with GC]
+        final PGgeometry location = new PGgeometry(new Point(getFloat("insitu.longitude", recordNo),
+                                                             getFloat("insitu.latitude", recordNo)));
         observation.setName(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
         observation.setReferenceFlag((byte) 4);
