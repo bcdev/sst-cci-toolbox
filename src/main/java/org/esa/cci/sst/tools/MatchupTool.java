@@ -101,6 +101,7 @@ public class MatchupTool extends BasicTool {
     private static final String DUPLICATES_QUERY = "update mm_observation o set referenceflag = 5 " +
             "where o.sensor=?1 " +
             "and o.time >= ?2 and o.time < ?3 " +
+            "and o.dataset != 6 and o.dataset != 7 " +
             "and exists ( select p.id from mm_observation p " +
             "where p.sensor = o.sensor and p.name = o.name " +
             "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
@@ -109,6 +110,7 @@ public class MatchupTool extends BasicTool {
     private static final String DUPLICATES_DELETE_QUERY = "delete from mm_observation o " +
             "where o.sensor=?1 " +
             "and o.time >= ?2 and o.time < ?3 " +
+            "and o.dataset != 6 and o.dataset != 7 " +
             "and exists ( select p.id from mm_observation p " +
             "where p.sensor = o.sensor and p.name = o.name " +
             "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
@@ -119,12 +121,14 @@ public class MatchupTool extends BasicTool {
     private static final String ATSR_MD = "atsr_md";
     private static final String METOP = "metop";
     private static final String SEVIRI = "seviri";
+    private static final String AVHRR_MD = "avhrr_md";
     private static final Map<Class<? extends Observation>, String> OBSERVATION_QUERY_MAP =
             new HashMap<Class<? extends Observation>, String>(12);
 
     private Sensor atsrSensor;
     private Sensor metopSensor;
     private Sensor seviriSensor;
+    private Sensor avhrrSensor;
     private Date matchupStartTime;
     private Date matchupStopTime;
 
@@ -160,6 +164,7 @@ public class MatchupTool extends BasicTool {
         atsrSensor = getSensor(ATSR_MD);
         metopSensor = getSensor(METOP);
         seviriSensor = getSensor(SEVIRI);
+        avhrrSensor = getSensor(AVHRR_MD);
         getMatchupStartTime();
     }
 
@@ -187,6 +192,9 @@ public class MatchupTool extends BasicTool {
         }
         if (configurationIndexOf("seviri") != -1) {
             findSingleSensorMatchups(SEVIRI, seviriSensor);
+        }
+        if (configurationIndexOf("avhrr_md") != -1) {
+            findSingleSensorMatchups(AVHRR_MD, avhrrSensor);
         }
         findRelatedObservations();
     }
@@ -228,6 +236,15 @@ public class MatchupTool extends BasicTool {
                                                   System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
+            getPersistenceManager().transaction();
+
+            time = System.currentTimeMillis();
+            query.setParameter(1, AVHRR_MD);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", AVHRR_MD,
+                                                  System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
         } catch (Exception e) {
             getPersistenceManager().rollback();
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
@@ -263,6 +280,15 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI,
+                                                  System.currentTimeMillis() - time));
+
+            getPersistenceManager().commit();
+            getPersistenceManager().transaction();
+
+            time = System.currentTimeMillis();
+            query.setParameter(1, AVHRR_MD);
+            query.executeUpdate();
+            getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", AVHRR_MD,
                                                   System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
@@ -332,6 +358,19 @@ public class MatchupTool extends BasicTool {
                         }
                     }
 
+                    // determine corresponding avhrr_md observation if any
+                    if (avhrrSensor != null) {
+                        final Observation avhrrObservation = findCoincidingObservation(atsrObservation, avhrrSensor);
+                        if (avhrrObservation != null) {
+                            if (matchup == null) {
+                                matchup = createMatchup(atsrObservation, atsrSensor.getPattern() | avhrrSensor.getPattern());
+                            } else {
+                                matchup.setPattern(matchup.getPattern() | avhrrSensor.getPattern());
+                            }
+                            createCoincidence(matchup, avhrrObservation);
+                        }
+                    }
+
                     ++count;
                     if (count % 1024 == 0) {
                         getPersistenceManager().commit();
@@ -356,6 +395,7 @@ public class MatchupTool extends BasicTool {
      * Loops over METOP reference observations and inquires SEVIRI
      * fulfilling the coincidence criterion by a spatio-temporal database query.
      * Creates matchups for the temporally nearest coincidences.
+     * (currently, there is no temporal overlap of AVHRR and METOP.)
      */
     private void findMetopMultiSensorMatchups() {
         if (seviriSensor == null) {
