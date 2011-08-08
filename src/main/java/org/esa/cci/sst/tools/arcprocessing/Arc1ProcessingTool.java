@@ -101,25 +101,33 @@ public class Arc1ProcessingTool extends BasicTool {
 
     private void run() throws IOException {
         final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
+        final String archiveRootPath = getConfiguration().getProperty(Constants.PROPERTY_ARCHIVE_ROOT, ".");
+        final File archiveRoot = new File(archiveRootPath);
         final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
         final String startTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
         final String endTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_END_TIME);
+        final String configurationPath = getConfiguration().getProperty(Constants.PROPERTY_CONFIGURATION);
         final Date startTime = TimeUtil.getConfiguredTimeOf(startTimeProperty);
         final Date endTime = TimeUtil.getConfiguredTimeOf(endTimeProperty);
 
-        prepareCommandFiles(tmpPath, destPath, TimeUtil.formatCompactUtcFormat(startTime));
+        prepareCommandFiles(tmpPath, archiveRoot, destPath, TimeUtil.formatCompactUtcFormat(startTime));
 
         final List<MatchingObservationInfo> avhrrObservationInfos = inquireMatchingAvhrrObservations(startTime, endTime);
-        generateCallsAndLatlonFiles(avhrrObservationInfos, destPath, tmpPath);
+        generateCallsAndLatlonFiles(avhrrObservationInfos, archiveRoot, destPath, tmpPath, configurationPath);
 
         closeCommandFiles(tmpPath);
     }
 
-    private void prepareCommandFiles(String tmpPath, String destPath, String outputStartTime) throws IOException {
+    private void prepareCommandFiles(String tmpPath, File archiveRoot, String destPath, String outputStartTime) throws IOException {
         getLogger().info(String.format("generating scripts in tmp dir '%s'", tmpPath));
         final File tmpDir = new File(tmpPath);
         tmpDir.mkdirs();
-        final File destDir = new File(destPath);
+        final File destDir;
+        if (destPath.startsWith(File.separator)) {
+            destDir = new File(destPath);
+        } else {
+            destDir = new File(archiveRoot, destPath);
+        }
         destDir.mkdirs();
 
         submitCallFilename = String.format("mms-arc1x2-%s-submit.sh", outputStartTime);
@@ -179,7 +187,7 @@ public class Arc1ProcessingTool extends BasicTool {
     }
 
     private void generateCallsAndLatlonFiles(List<MatchingObservationInfo> observationInfos,
-                                             String destPath, String tmpPath) throws IOException {
+                                             File archiveRoot, String destPath, String tmpPath, String configurationPath) throws IOException {
         final List<String> geoPositions = new ArrayList<String>();
         final List<String> matchupIds = new ArrayList<String>();
         String currentFilename = null;
@@ -192,8 +200,8 @@ public class Arc1ProcessingTool extends BasicTool {
                 if (currentFilename != null) {
                     final File latLonFile = latLonFileOf(currentFilename, tmpPath);
                     writeLatLonFile(matchupIds, geoPositions, latLonFile);
-                    generateCalls(currentFilename, latLonFile, destPath,
-                                  targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern));
+                    generateCalls(currentFilename, latLonFile, archiveRoot, destPath,
+                                  targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern), configurationPath);
                     // clear for next set of matching observations
                     geoPositions.clear();
                     matchupIds.clear();
@@ -210,8 +218,8 @@ public class Arc1ProcessingTool extends BasicTool {
         if (!geoPositions.isEmpty()) {
             final File latLonFile = latLonFileOf(currentFilename, tmpPath);
             writeLatLonFile(matchupIds, geoPositions, latLonFile);
-            generateCalls(currentFilename, latLonFile, destPath,
-                          targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern));
+            generateCalls(currentFilename, latLonFile, archiveRoot, destPath,
+                          targetSensorNameOf(currentSensor), nonOrbPatternOf(currentPattern), configurationPath);
         }
     }
 
@@ -233,24 +241,31 @@ public class Arc1ProcessingTool extends BasicTool {
         writer.close();
     }
 
-    private void generateCalls(final String l1bPath, final File latlonFile, final String destPath,
-                               String sensor, long pattern) {
+    private void generateCalls(final String l1bPath, final File latlonFile, File archiveRoot, final String destPath,
+                               String sensor, long pattern, String configurationPath) {
         final String basename = basenameOf(l1bPath);
         final String latLonFilePath = latlonFile.getPath();
         final String latLonFileName = latlonFile.getName();
+
+        final String effectiveDestPath;
+        if (destPath.startsWith(File.separator)) {
+            effectiveDestPath = destPath;
+        } else {
+            effectiveDestPath = archiveRoot.getPath() + File.separator + destPath;
+        }
         submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
         submitCallsWriter.format(
                 "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
                 l1bPath, latLonFileName);
-        collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
-        collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", destPath, basename);
+        collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, effectiveDestPath);
+        collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", effectiveDestPath, basename);
         collectCallsWriter.format(
                 "bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
                         + "  -Dmms.reingestion.located=no \\\n"
                         + "  -Dmms.reingestion.sensor=%s \\\n"
                         + "  -Dmms.reingestion.pattern=%s \\\n"
-                        + "  -c config/mms-config-eddie1.properties\n",
-                destPath, basename, sensor, Long.toString(pattern, 16));
+                        + "  -c %s\n",
+                destPath, basename, sensor, Long.toString(pattern, 16), configurationPath);
         cleanupCallsWriter.format("ssh eddie.ecdf.ed.ac.uk rm -r mms/task-%s tmp/%s.latlon.txt\n", basename, basename);
         cleanupCallsWriter.format("rm %s\n", latLonFilePath);
         getLogger().info(String.format("call for avhrr orbit %s added", basename));

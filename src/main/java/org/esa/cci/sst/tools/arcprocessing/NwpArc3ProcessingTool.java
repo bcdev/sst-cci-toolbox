@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
@@ -75,6 +76,8 @@ public class NwpArc3ProcessingTool extends BasicTool {
             tool.writeCalls();
         } catch (IOException e) {
             tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.TOOL_IO_ERROR));
+        } catch (ParseException e) {
+            tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.TOOL_CONFIGURATION_ERROR));
         } finally {
             tool.close();
         }
@@ -84,7 +87,7 @@ public class NwpArc3ProcessingTool extends BasicTool {
         super("arc3processing.sh", "0.1");
     }
 
-    private void writeCalls() throws IOException {
+    private void writeCalls() throws IOException, ParseException {
         final Properties configuration = getConfiguration();
         final NwpArc3Caller nwpArc3Caller = new UniqueNwpArc3Caller(configuration);
 //        final NwpArc3Caller nwpArc3Caller = new SplittedNwpArc3Caller(configuration);
@@ -98,11 +101,14 @@ public class NwpArc3ProcessingTool extends BasicTool {
     }
 
     private void setupWriters() throws IOException {
-        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_NWP_ARC3_DESTDIR, ".");
-        final File destDir = new File(destPath);
+        final String nwpDestPath = getConfiguration().getProperty(Constants.PROPERTY_NWP_DESTDIR, ".");
+        final String arc3DestPath = getConfiguration().getProperty(Constants.PROPERTY_ARC3_DESTDIR, ".");
+        final File nwpDestDir = new File(nwpDestPath);
+        final File arc3DestDir = new File(arc3DestPath);
         final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_NWP_ARC3_TMPDIR, ".");
         final File tmpDir = new File(tmpPath);
-        createDirectory(destDir);
+        createDirectory(nwpDestDir);
+        createDirectory(arc3DestDir);
         createDirectory(tmpDir);
         final Date date = new Date();
         final String time = new SimpleDateFormat("yyyyMMddHHmm").format(date);

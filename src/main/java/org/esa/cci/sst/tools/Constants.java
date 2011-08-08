@@ -57,21 +57,23 @@ public class Constants {
     public static final String PROPERTY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
 
     public static final String PROPERTY_NWP_ARC3_TMPDIR = "mms.nwp_arc3.tmpdir";
-    public static final String PROPERTY_NWP_ARC3_DESTDIR = "mms.nwp_arc3.destdir";
+    public static final String PROPERTY_NWP_DESTDIR = "mms.nwp.destdir";
+    public static final String PROPERTY_ARC3_DESTDIR = "mms.arc3.destdir";
     public static final String PROPERTY_MMS_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN = "mms.nwp_arc3.pattern";
     public static final String PROPERTY_MMS_NWP_PATTERN = "mms.nwp.pattern";
-    public static final String PROPERTY_MMS_NWP_SOURCEFILE = "mms.nwp.sourcefile";
     public static final String PROPERTY_MMS_NWP_SOURCEDIR = "mms.nwp.sourceDir";
-    public static final String PROPERTY_MMS_NWP_TARGETFILE = "mms.nwp.targetfile";
 
-    public static final String PROPERTY_MMS_ARC3_OUTPUT = "mms.arc3.targetfile";
     public static final String PROPERTY_MMS_ARC3_PATTERN = "mms.arc3.pattern";
     public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
     public static final String PROPERTY_MMS_ARC3_CONFIG_FILE = "mms.arc3.configFile";
 
     public static final String PROPERTY_TARGET_START_TIME = "mms.target.startTime";
     public static final String PROPERTY_TARGET_STOP_TIME = "mms.target.stopTime";
+    public static final String PROPERTY_ARCHIVE_ROOT = "mms.archive.root";
+    public static final String PROPERTY_CONFIGURATION = "mms.configuration";
+    public static final String PROPERTY_NWP_ARC3_START_TIME = "mms.nwp_arc3.startTime";
+    public static final String PROPERTY_NWP_ARC3_STOP_TIME = "mms.nwp_arc3.stopTime";
 
     private Constants() {
     }

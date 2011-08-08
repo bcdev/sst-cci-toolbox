@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
+import java.text.ParseException;
+
 /**
  * Interface for generating nwp/arc3 calls.
  *
@@ -46,7 +48,7 @@ public interface NwpArc3Caller {
                                     "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/tstorm/opt/local/lib\n" +
                                     "export PATH=${PATH}:/home/tstorm/opt/local/bin\n\n";
 
-    String createNwpArc3Call();
+    String createNwpArc3Call() throws ParseException;
 
     String createReingestionCall();
 

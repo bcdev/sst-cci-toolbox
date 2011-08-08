@@ -209,10 +209,13 @@ public abstract class BasicTool {
                 configurationFile = new File(DEFAULT_CONFIGURATION_FILE_NAME);
                 if (configurationFile.exists()) {
                     addConfigurationProperties(configurationFile);
+                    configuration.put(Constants.PROPERTY_CONFIGURATION, configurationFile.getPath());
                 }
             } else {
                 addConfigurationProperties(configurationFile);
+                configuration.put(Constants.PROPERTY_CONFIGURATION, configurationFile.getPath());
             }
+
             final Properties optionProperties = commandLine.getOptionProperties("D");
             if (optionProperties.size() > 0) {
                 addConfigurationProperties(optionProperties);
