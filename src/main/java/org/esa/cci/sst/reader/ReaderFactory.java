@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -52,8 +53,11 @@ public class ReaderFactory {
     public static Reader open(DataFile datafile, Properties configuration) throws IOException {
         final String sensorName = datafile.getSensor().getName();
         final String readerSpec = configuration.getProperty("mms.reader." + sensorName, DEFAULT_READER_SPEC);
+        final String archiveRootPath = configuration.getProperty("mms.archive.rootdir", ".");
+        final File archiveRoot = new File(archiveRootPath);
+
         final Reader reader = createReader(readerSpec, sensorName);
-        reader.init(datafile);
+        reader.init(datafile, archiveRoot);
 
         return reader;
     }

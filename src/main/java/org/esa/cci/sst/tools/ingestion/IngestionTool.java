@@ -31,6 +31,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -86,14 +87,15 @@ public class IngestionTool extends BasicTool {
      * every 65536 records. If ingestion fails rollback is only performed to
      * the respective checkpoint.
      *
-     * @param file            The input file with records to be read and made persistent as observations.
+     * @param path            The input file with records to be read and made persistent as observations.
+     * @param archiveRoot     The directory prefix to be used for relative paths
      * @param readerSpec      The specification string for the reader.
      * @param sensorName      The sensor name.
      * @param observationType The observation type (simple name of observation class)
      * @param pattern         The sensor pattern.
      */
-    private void ingest(File file, String readerSpec, String sensorName, String observationType, long pattern) {
-        getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", file.getPath()));
+    private void ingest(String path, File archiveRoot, String readerSpec, String sensorName, String observationType, long pattern) {
+        getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", path));
         final PersistenceManager persistenceManager = getPersistenceManager();
         final Reader reader = getReader(readerSpec, sensorName);
         try {
@@ -106,8 +108,8 @@ public class IngestionTool extends BasicTool {
                 addVariables = true;
                 sensor = ingester.createSensor(sensorName, observationType, pattern);
             }
-            final DataFile dataFile = new DataFile(file, sensor);
-            reader.init(dataFile);
+            final DataFile dataFile = new DataFile(path, sensor);
+            reader.init(dataFile, archiveRoot);
 
             persistenceManager.persist(dataFile);
             if (addVariables) {
@@ -126,7 +128,7 @@ public class IngestionTool extends BasicTool {
             } catch (Exception ignored) {
                 // ignored, because surrounding exception is propagated
             }
-            getErrorHandler().warn(e, MessageFormat.format("Failed to ingest file ''{0}''.", file));
+            getErrorHandler().warn(e, MessageFormat.format("Failed to ingest file ''{0}''.", path));
         } finally {
             reader.close();
         }
@@ -150,6 +152,8 @@ public class IngestionTool extends BasicTool {
     private void ingest() {
         ingester = new Ingester(this);
         final Properties configuration = getConfiguration();
+        final String archiveRootPath = configuration.getProperty("mms.archive.rootdir");
+        final File archiveRoot = new File(archiveRootPath);
         int directoryCount = 0;
         for (int i = 0; i < 100; i++) {
             final String inputDirPath = configuration.getProperty(
@@ -169,17 +173,24 @@ public class IngestionTool extends BasicTool {
             getLogger().info("Looking for " + sensor + " files");
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.source.%d.filenamePattern", i), ".*");
-            final File inputDir = new File(inputDirPath);
+            final File inputDir = new File(archiveRoot, inputDirPath);
             List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
             if (inputFileList.isEmpty()) {
                 inputFileList = getInputFiles(filenamePattern + "\\.gz", inputDir);
                 if (inputFileList.isEmpty()) {
-                    getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}''.",
-                                                             inputDirPath));
+                    getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}/{1}''.",
+                                                             archiveRootPath, inputDirPath));
                 }
             }
             for (final File inputFile : inputFileList) {
-                ingest(inputFile, readerSpec, sensor, observationType, pattern);
+                final String path;
+                // TODO: relative path to archive root would be better than File to avoid subtraction here [Boe]
+                if (inputFile.getPath().startsWith(archiveRootPath + File.separator)) {
+                    path = inputFile.getPath().substring(archiveRootPath.length() + 1);
+                } else {
+                    path = inputFile.getPath();
+                }
+                ingest(path, archiveRoot, readerSpec, sensor, observationType, pattern);
                 directoryCount++;
             }
         }
@@ -283,6 +294,7 @@ public class IngestionTool extends BasicTool {
                     return file.isFile() && file.getName().matches(filenamePattern);
                 }
             });
+            Arrays.sort(inputFiles);
             Collections.addAll(inputFileList, inputFiles);
             final File[] subDirs = inputDir.listFiles(new FileFilter() {
                 @Override
@@ -290,6 +302,7 @@ public class IngestionTool extends BasicTool {
                     return file.isDirectory();
                 }
             });
+            Arrays.sort(subDirs);
             for (final File subDir : subDirs) {
                 collectInputFiles(subDir, filenamePattern, inputFileList);
             }

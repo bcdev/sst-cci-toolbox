@@ -60,6 +60,7 @@ abstract class AbstractProductReader implements Reader {
 
     private DataFile datafile;
     private Product product;
+    private File archiveRoot;
 
     static {
         System.setProperty("beam.pixelGeoCoding.useTiling", "true");
@@ -72,11 +73,12 @@ abstract class AbstractProductReader implements Reader {
     }
 
     @Override
-    public final void init(DataFile datafile) throws IOException {
+    public final void init(DataFile datafile, File archiveRoot) throws IOException {
         Assert.state(product == null, "product != null");
 
-        this.product = readProduct(datafile);
         this.datafile = datafile;
+        this.archiveRoot = archiveRoot;
+        this.product = readProduct(datafile);
     }
 
     @Override
@@ -194,7 +196,13 @@ abstract class AbstractProductReader implements Reader {
     }
 
     protected Product readProduct(DataFile dataFile) throws IOException {
-        Product product = ProductIO.readProduct(new File(dataFile.getPath()), formatNames);
+        final File file;
+        if (archiveRoot == null || dataFile.getPath().startsWith(File.separator)) {
+            file = new File(datafile.getPath());
+        } else {
+            file = new File(archiveRoot, datafile.getPath());
+        }
+        Product product = ProductIO.readProduct(file, formatNames);
         if (product == null) {
             throw new IOException(
                     MessageFormat.format("Cannot read product file ''{0}''.", dataFile.getPath()));

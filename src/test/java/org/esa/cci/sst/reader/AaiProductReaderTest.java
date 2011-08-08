@@ -57,7 +57,7 @@ public class AaiProductReaderTest {
                 observationType(GlobalObservation.class).
                 build();
         dataFile.setSensor(sensor);
-        reader.init(dataFile);
+        reader.init(dataFile, null);
     }
 
     @AfterClass

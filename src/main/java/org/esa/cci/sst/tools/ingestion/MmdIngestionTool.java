@@ -142,8 +142,10 @@ public class MmdIngestionTool extends BasicTool {
     private void initReader(final DataFile dataFile) {
         reader = new MmdReader(dataFile.getSensor().getName());
         reader.setConfiguration(getConfiguration());
+        final String archiveRootPath = getConfiguration().getProperty("mms.archive.rootdir", ".");
+        final File archiveRoot = new File(archiveRootPath);
         try {
-            reader.init(dataFile);
+            reader.init(dataFile, archiveRoot);
         } catch (IOException e) {
             throw new ToolException("Error initializing Reader for mmd file.", e, ToolException.TOOL_ERROR);
         }

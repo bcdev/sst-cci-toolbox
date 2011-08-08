@@ -937,7 +937,7 @@ public class InsituReaderTest {
         dataFile.setPath(path);
 
         final InsituReader reader = new InsituReader("history");
-        reader.init(dataFile);
+        reader.init(dataFile, null);
 
         return reader;
     }

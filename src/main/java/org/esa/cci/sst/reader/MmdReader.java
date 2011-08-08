@@ -29,6 +29,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Calendar;
@@ -38,7 +39,7 @@ import java.util.Properties;
 import java.util.TimeZone;
 
 /**
- * Reader for reading from and an mmd file.
+ * Reader for reading from an mmd file.
  *
  * @author Thomas Storm
  */
@@ -56,9 +57,14 @@ public class MmdReader implements Reader {
     }
 
     @Override
-    public void init(final DataFile dataFile) throws IOException {
+    public void init(final DataFile dataFile, File archiveRoot) throws IOException {
         this.dataFile = dataFile;
-        final String fileLocation = dataFile.getPath();
+        final String fileLocation;
+        if (archiveRoot == null || dataFile.getPath().startsWith(File.separator)) {
+            fileLocation = dataFile.getPath();
+        } else {
+            fileLocation = archiveRoot.getPath() + File.separator + dataFile.getPath();
+        }
         validateFileLocation(fileLocation);
         ncFile = NetcdfFile.open(fileLocation);
         matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));

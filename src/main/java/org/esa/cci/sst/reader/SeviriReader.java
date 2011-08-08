@@ -29,6 +29,7 @@ import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -52,8 +53,8 @@ class SeviriReader extends MdReader implements InsituSource {
     }
 
     @Override
-    public void init(DataFile datafile) throws IOException {
-        super.init(datafile);
+    public void init(DataFile datafile, File archiveRoot) throws IOException {
+        super.init(datafile, archiveRoot);
         final NetcdfFile ncFile = getNetcdfFile();
         noOfLines = ncFile.findDimension("ny").getLength();
         noOfColumns = ncFile.findDimension("nx").getLength();

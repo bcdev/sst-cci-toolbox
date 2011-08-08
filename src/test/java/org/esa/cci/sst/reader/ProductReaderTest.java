@@ -67,7 +67,7 @@ public class ProductReaderTest {
                 build();
         dataFile.setSensor(sensor);
         handler = new GunzipDecorator(productReader);
-        handler.init(dataFile);
+        handler.init(dataFile, null);
     }
 
     @AfterClass

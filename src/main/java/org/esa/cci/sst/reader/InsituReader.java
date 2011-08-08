@@ -31,6 +31,7 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,8 +61,8 @@ class InsituReader extends NetcdfReader {
     }
 
     @Override
-    public void init(DataFile datafile) throws IOException {
-        super.init(datafile);
+    public void init(DataFile datafile, File archiveRoot) throws IOException {
+        super.init(datafile, archiveRoot);
         historyTimes = readHistoryTimes();
     }
 

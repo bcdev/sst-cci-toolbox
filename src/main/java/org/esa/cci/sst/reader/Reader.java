@@ -23,6 +23,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import ucar.ma2.Array;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -38,10 +39,11 @@ public interface Reader {
      * {@link #readObservation(int)}.
      *
      * @param dataFile The data file entry to be referenced in each observation created by reader.
+     * @param archiveRoot  archive root directory to be used as prefix for relative paths in datafiles
      *
      * @throws java.io.IOException when an error has occurred.
      */
-    void init(DataFile dataFile) throws IOException;
+    void init(DataFile dataFile, File archiveRoot) throws IOException;
 
     /**
      * Closes observation file
@@ -60,7 +62,7 @@ public interface Reader {
      * Sets geo-location to polygon enclosing subscene.
      * Sets reference point to pixel corresponding to in-situ measurement.
      * The returned {@link org.esa.cci.sst.data.ReferenceObservation} instance shall have a reference to {@code dataFileEntry}
-     * passed into {@link #init(org.esa.cci.sst.data.DataFile)}.
+     * passed into {@link #init(org.esa.cci.sst.data.DataFile,java.io.File)}.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords.
      *

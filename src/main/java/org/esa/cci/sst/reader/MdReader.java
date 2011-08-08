@@ -33,6 +33,7 @@ import ucar.nc2.Dimension;
 import ucar.nc2.Variable;
 
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -65,8 +66,8 @@ abstract class MdReader extends NetcdfReader {
     }
 
     @Override
-    public void init(DataFile datafile) throws IOException {
-        super.init(datafile);
+    public void init(DataFile datafile, File archiveRoot) throws IOException {
+        super.init(datafile, archiveRoot);
 
         //noinspection LoopStatementThatDoesntLoop
         for (final Variable variable : getVariables()) {

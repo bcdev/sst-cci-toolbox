@@ -68,7 +68,7 @@ public class PersistenceManager {
         return entityManager.createNativeQuery(queryString, resultClass);
     }
 
-    public Object pick(String queryString, String... parameter) {
+    public Object pick(String queryString, Object... parameter) {
         final Query query = createQuery(queryString);
         for (int i = 0; i < parameter.length; ++i) {
             query.setParameter(i + 1, parameter[i]);

@@ -25,6 +25,7 @@ import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,11 +60,17 @@ abstract class NetcdfReader implements Reader {
      * @throws IOException if file access fails.
      */
     @Override
-    public void init(DataFile datafile) throws IOException {
+    public void init(DataFile datafile, File archiveRoot) throws IOException {
         Assert.state(netcdfFile == null, "netcdfFile != null");
 
         this.datafile = datafile;
-        this.netcdfFile = NetcdfFile.open(datafile.getPath());
+        String path;
+        if (archiveRoot == null || datafile.getPath().startsWith(File.separator)) {
+            path = datafile.getPath();
+        } else {
+            path = archiveRoot.getPath() + File.separator + datafile.getPath();
+        }
+        this.netcdfFile = NetcdfFile.open(path);
 
         final List<Variable> variables = netcdfFile.getVariables();
         for (final Variable variable : variables) {

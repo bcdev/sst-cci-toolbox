@@ -60,23 +60,29 @@ class GunzipDecorator implements Reader {
      * @throws IOException if decompressing or opening the file with the decorated reader fails.
      */
     @Override
-    public final void init(DataFile dataFile) throws IOException {
+    public final void init(DataFile dataFile, File archiveRoot) throws IOException {
         if (dataFile.getPath().endsWith(".gz")) {
             // deflate product to tmp file in tmp dir
-            tmpFile = tmpFileFor(dataFile.getPath(), true);
-            decompress(new File(dataFile.getPath()), tmpFile);
+            String path;
+            if (archiveRoot == null || dataFile.getPath().startsWith(File.separator)) {
+                path = dataFile.getPath();
+            } else {
+                path = archiveRoot.getPath() + File.separator + dataFile.getPath();
+            }
+            tmpFile = tmpFileFor(path, true);
+            decompress(new File(path), tmpFile);
 
             // temporarily read from tmp path
             final String origPath = dataFile.getPath();
             try {
                 dataFile.setPath(tmpFile.getPath());
-                delegate.init(dataFile);
+                delegate.init(dataFile, null);
             } finally {
                 dataFile.setPath(origPath);
             }
         } else {
             tmpFile = null;
-            delegate.init(dataFile);
+            delegate.init(dataFile, archiveRoot);
         }
     }
 

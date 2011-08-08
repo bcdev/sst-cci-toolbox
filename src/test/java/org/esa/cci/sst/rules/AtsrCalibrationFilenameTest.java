@@ -30,6 +30,7 @@ import org.junit.Test;
 import ucar.ma2.Array;
 import ucar.nc2.Variable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -58,7 +59,7 @@ public class AtsrCalibrationFilenameTest {
             public Reader getObservationReader() {
                 return new Reader() {
                     @Override
-                    public void init(DataFile dataFile) throws IOException {
+                    public void init(DataFile dataFile, File archiveRoot) throws IOException {
                     }
 
                     @Override

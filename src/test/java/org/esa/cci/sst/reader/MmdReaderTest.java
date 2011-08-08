@@ -63,7 +63,7 @@ public class MmdReaderTest {
     public void testFailingInit() throws Exception {
         final DataFile dataFile = new DataFile();
         dataFile.setPath("pom.xml");
-        mmdReader.init(dataFile);
+        mmdReader.init(dataFile, null);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -91,7 +91,7 @@ public class MmdReaderTest {
         final DataFile dataFile = new DataFile();
         final File file = new File(getClass().getResource(filename).getFile());
         dataFile.setPath(file.getPath());
-        mmdReader.init(dataFile);
+        mmdReader.init(dataFile, null);
     }
 
 }
