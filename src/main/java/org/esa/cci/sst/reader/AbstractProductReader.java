@@ -219,8 +219,7 @@ abstract class AbstractProductReader implements Reader {
         if (endTime == null) {
             return startTime.getAsDate();
         }
-        final ProductData.UTC centerTime = new ProductData.UTC(0.5 * (startTime.getMJD() + endTime.getMJD()));
-        return centerTime.getAsDate();
+        return new Date((long) (0.5 * (startTime.getAsDate().getTime() + endTime.getAsDate().getTime())));
     }
 
     private Item createColumn(final RasterDataNode node) {
