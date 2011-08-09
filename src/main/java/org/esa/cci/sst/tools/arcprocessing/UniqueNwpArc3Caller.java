@@ -62,10 +62,6 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         if (!nwpDestDir.startsWith(File.separator)) {
             nwpDestDir = archiveRootPath + File.separator + nwpDestDir;
         }
-//        configurationFilePath = new File(configurationFilePath).getAbsolutePath();
-//        if (! new File(mmdVariablesPath).exists()) {
-//            throw new ToolException(String.format("missing configuration %s", mmdVariablesPath), ToolException.TOOL_CONFIGURATION_ERROR);
-//        }
 
         final StringBuilder nwpArc3Call = new StringBuilder();
 
