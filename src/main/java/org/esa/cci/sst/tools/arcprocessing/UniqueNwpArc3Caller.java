@@ -56,13 +56,13 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         final String nwpPattern = configuration.getProperty(Constants.PROPERTY_MMS_NWP_PATTERN, "0");
         final String mmdVariablesPath = String.format("config/mmd-variables_%s.config", sensorName);
 
-        if (! arc3DestDir.startsWith(File.separator)) {
+        if (!arc3DestDir.startsWith(File.separator)) {
             arc3DestDir = archiveRootPath + File.separator + arc3DestDir;
         }
-        if (! nwpDestDir.startsWith(File.separator)) {
+        if (!nwpDestDir.startsWith(File.separator)) {
             nwpDestDir = archiveRootPath + File.separator + nwpDestDir;
         }
-        configurationFilePath = new File(configurationFilePath).getAbsolutePath();
+//        configurationFilePath = new File(configurationFilePath).getAbsolutePath();
 //        if (! new File(mmdVariablesPath).exists()) {
 //            throw new ToolException(String.format("missing configuration %s", mmdVariablesPath), ToolException.TOOL_CONFIGURATION_ERROR);
 //        }
@@ -70,9 +70,11 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         final StringBuilder nwpArc3Call = new StringBuilder();
 
         nwpArc3Call.append(SETUP);
-        final String mmdCall = String.format("bin/mmsmmd.sh -c %s -Dmms.target.filename=%s -Dmms.target.variables=$MMS_HOME/%s " +
-                                                     "-Dmms.target.startTime=%s -Dmms.target.stopTime=%s\n\n",
-                                             configurationFilePath, nwpSourceFile, mmdVariablesPath, startTime, stopTime);
+        final String mmdCall = String.format(
+                "$MMS_HOME/bin/mmsmmd.sh -c %s -Dmms.target.filename=%s -Dmms.target.variables=$MMS_HOME/%s " +
+                "-Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties " +
+                "-Dmms.target.startTime=%s -Dmms.target.stopTime=%s\n\n",
+                configurationFilePath, nwpSourceFile, mmdVariablesPath, startTime, stopTime);
         final String nwpCall = String.format(
                 "java \\\n" +
                 "    -Dmms.home=\"$MMS_HOME\" \\\n" +
@@ -129,7 +131,7 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
 
     String createOutputFilename(String sensor, String type, String startTime, String stopTime) throws ParseException {
         String start = TimeUtil.formatCompactUtcFormat(TimeUtil.parseCcsdsUtcFormat(startTime));
-        String stop  = TimeUtil.formatCompactUtcFormat(TimeUtil.parseCcsdsUtcFormat(stopTime));
+        String stop = TimeUtil.formatCompactUtcFormat(TimeUtil.parseCcsdsUtcFormat(stopTime));
         // atsr.3-nwp-20100602015655-20100602020155.nc, types nwp, arc3, sub
         return String.format("%s-%s-%s-%s.nc", sensor, type, start, stop);
     }
