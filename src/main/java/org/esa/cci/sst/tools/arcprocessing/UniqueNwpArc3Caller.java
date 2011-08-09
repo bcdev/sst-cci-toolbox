@@ -17,13 +17,10 @@
 package org.esa.cci.sst.tools.arcprocessing;
 
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -130,7 +127,7 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         return builder.toString();
     }
 
-    String createOutputFilename(String sensor, String startTime, String stopTime, String type) throws ParseException {
+    String createOutputFilename(String sensor, String type, String startTime, String stopTime) throws ParseException {
         String start = TimeUtil.formatCompactUtcFormat(TimeUtil.parseCcsdsUtcFormat(startTime));
         String stop  = TimeUtil.formatCompactUtcFormat(TimeUtil.parseCcsdsUtcFormat(stopTime));
         // atsr.3-nwp-20100602015655-20100602020155.nc, types nwp, arc3, sub
