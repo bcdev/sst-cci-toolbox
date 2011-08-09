@@ -101,7 +101,7 @@ public class Arc1ProcessingTool extends BasicTool {
 
     private void run() throws IOException {
         final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
-        final String archiveRootPath = getConfiguration().getProperty(Constants.PROPERTY_ARCHIVE_ROOT, ".");
+        final String archiveRootPath = getConfiguration().getProperty(Constants.PROPERTY_ARCHIVE_ROOTDIR, ".");
         final File archiveRoot = new File(archiveRootPath);
         final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
         final String startTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
@@ -241,7 +241,7 @@ public class Arc1ProcessingTool extends BasicTool {
         writer.close();
     }
 
-    private void generateCalls(final String l1bPath, final File latlonFile, File archiveRoot, final String destPath,
+    private void generateCalls(String l1bPath, final File latlonFile, File archiveRoot, final String destPath,
                                String sensor, long pattern, String configurationPath) {
         final String basename = basenameOf(l1bPath);
         final String latLonFilePath = latlonFile.getPath();
@@ -253,9 +253,11 @@ public class Arc1ProcessingTool extends BasicTool {
         } else {
             effectiveDestPath = archiveRoot.getPath() + File.separator + destPath;
         }
+        if(!l1bPath.startsWith(File.separator)) {
+            l1bPath = archiveRoot.getPath() + File.separator + l1bPath;
+        }
         submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
-        submitCallsWriter.format(
-                "ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
+        submitCallsWriter.format("ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
                 l1bPath, latLonFileName);
         collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, effectiveDestPath);
         collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", effectiveDestPath, basename);
