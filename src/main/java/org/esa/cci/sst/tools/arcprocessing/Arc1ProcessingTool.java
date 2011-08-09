@@ -141,6 +141,11 @@ public class Arc1ProcessingTool extends BasicTool {
         collectCallFile.setExecutable(true);
         collectCallsWriter = new PrintWriter(new BufferedWriter(new FileWriter(collectCallFile)));
         collectCallsWriter.format("#!/bin/bash\n\n");
+        collectCallsWriter.format("if [ ! -d \"$MMS_HOME\" ]\n" +
+                                    "then\n" +
+                                    "    PRGDIR=`dirname $0`\n" +
+                                    "    export MMS_HOME=`cd \"$PRGDIR/..\" ; pwd`\n" +
+                                    "fi\n\n");
 
         cleanupCallFilename = String.format("mms-arc1x2-%s-cleanup.sh", outputStartTime);
         final File cleanupCallFile = new File(tmpDir, cleanupCallFilename);
@@ -241,17 +246,14 @@ public class Arc1ProcessingTool extends BasicTool {
         writer.close();
     }
 
-    private void generateCalls(String l1bPath, final File latlonFile, File archiveRoot, final String destPath,
+    private void generateCalls(String l1bPath, final File latlonFile, File archiveRoot, String destPath,
                                String sensor, long pattern, String configurationPath) {
         final String basename = basenameOf(l1bPath);
         final String latLonFilePath = latlonFile.getPath();
         final String latLonFileName = latlonFile.getName();
 
-        final String effectiveDestPath;
-        if (destPath.startsWith(File.separator)) {
-            effectiveDestPath = destPath;
-        } else {
-            effectiveDestPath = archiveRoot.getPath() + File.separator + destPath;
+        if (!destPath.startsWith(File.separator)) {
+            destPath = archiveRoot.getPath() + File.separator + destPath;
         }
         if(!l1bPath.startsWith(File.separator)) {
             l1bPath = archiveRoot.getPath() + File.separator + l1bPath;
@@ -259,10 +261,10 @@ public class Arc1ProcessingTool extends BasicTool {
         submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
         submitCallsWriter.format("ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
                 l1bPath, latLonFileName);
-        collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, effectiveDestPath);
-        collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", effectiveDestPath, basename);
+        collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
+        collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", destPath, basename);
         collectCallsWriter.format(
-                "bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
+                "$MMS_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
                         + "  -Dmms.reingestion.located=no \\\n"
                         + "  -Dmms.reingestion.sensor=%s \\\n"
                         + "  -Dmms.reingestion.pattern=%s \\\n"
