@@ -47,9 +47,6 @@ class NwpUtil {
     private NwpUtil() {
     }
 
-    private static final String AND_TARGET_LOCATION = "matchup.nwp.an.nc";
-    private static final String FCD_TARGET_LOCATION = "matchup.nwp.fc.nc";
-
     static float getAttribute(Variable s, String name, float defaultValue) {
         final Attribute a = s.findAttribute(name);
         if (a == null) {
@@ -76,7 +73,7 @@ class NwpUtil {
     }
 
     static void writeAnalysisMmdFile(NetcdfFile mmd, NetcdfFile analysisFile,
-                                     int pastTimeStepCount, int futureTimeStepCount) throws IOException {
+                                     String anTargetLocation, int pastTimeStepCount, int futureTimeStepCount) throws IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
         final Dimension yDimension = findDimension(analysisFile, "y");
         final Dimension xDimension = findDimension(analysisFile, "x");
@@ -85,7 +82,7 @@ class NwpUtil {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable anMmd = NetcdfFileWriteable.createNew(AND_TARGET_LOCATION, true);
+        final NetcdfFileWriteable anMmd = NetcdfFileWriteable.createNew(anTargetLocation, true);
         anMmd.addDimension(matchupDimension.getName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
@@ -153,7 +150,7 @@ class NwpUtil {
     }
 
     static void writeForecastMmdFile(NetcdfFile mmd, NetcdfFile forecastFile,
-                                     int pastTimeStepCount, int futureTimeStepCount) throws IOException {
+                                     String fcTargetLocation, int pastTimeStepCount, int futureTimeStepCount) throws IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
         final Dimension yDimension = findDimension(forecastFile, "y");
         final Dimension xDimension = findDimension(forecastFile, "x");
@@ -162,7 +159,7 @@ class NwpUtil {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable fcMmd = NetcdfFileWriteable.createNew(FCD_TARGET_LOCATION, true);
+        final NetcdfFileWriteable fcMmd = NetcdfFileWriteable.createNew(fcTargetLocation, true);
         fcMmd.addDimension(matchupDimension.getName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;

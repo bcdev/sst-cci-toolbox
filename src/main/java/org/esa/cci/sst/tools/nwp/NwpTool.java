@@ -76,23 +76,25 @@ class NwpTool {
     private final String mmdSourceLocation;
     private final String nwpSourceLocation;
     private final String nwpTargetLocation;
+    private String geoFileLocation;
+    private final String anTargetLocation;
+    private final String fcTargetLocation;
 
     private static final int SENSOR_NWP_NX = 1;
     private static final int SENSOR_NWP_NY = 1;
     private static final int SENSOR_NWP_STRIDE_X = 1;
+
     private static final int SENSOR_NWP_STRIDE_Y = 1;
-
     private static final int MATCHUP_AN_PAST_TIME_STEP_COUNT = 8;
-    private static final int MATCHUP_AN_FUTURE_TIME_STEP_COUNT = 4;
 
+    private static final int MATCHUP_AN_FUTURE_TIME_STEP_COUNT = 4;
     private static final int MATCHUP_FC_PAST_TIME_STEP_COUNT = 16;
     private static final int MATCHUP_FC_FUTURE_TIME_STEP_COUNT = 8;
-    private String geoFileLocation;
 
     NwpTool(String[] args) {
-        if (args.length != 6) {
+        if (args.length != 8) {
             System.out.println("Usage:");
-            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation nwpSourceLocation nwpTargetLocation");
+            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation nwpSourceLocation nwpTargetLocation anTargetLocation fcTargetLocation");
             System.exit(1);
         }
         sensorName = args[0];
@@ -101,6 +103,8 @@ class NwpTool {
         mmdSourceLocation = args[3];
         nwpSourceLocation = args[4];
         nwpTargetLocation = args[5];
+        anTargetLocation = args[6];
+        fcTargetLocation = args[7];
     }
 
     void createSensorNwpFile() throws IOException, InterruptedException {
@@ -170,7 +174,7 @@ class NwpTool {
 
             final NetcdfFile anFile = NetcdfFile.open(properties.getProperty("AN_TIME_SERIES"));
             try {
-                NwpUtil.writeAnalysisMmdFile(mmdFile, anFile, MATCHUP_AN_PAST_TIME_STEP_COUNT,
+                NwpUtil.writeAnalysisMmdFile(mmdFile, anFile, anTargetLocation, MATCHUP_AN_PAST_TIME_STEP_COUNT,
                                              MATCHUP_AN_FUTURE_TIME_STEP_COUNT);
             } finally {
                 try {
@@ -212,7 +216,7 @@ class NwpTool {
 
             final NetcdfFile fcFile = NetcdfFile.open(properties.getProperty("FC_TIME_SERIES"));
             try {
-                NwpUtil.writeForecastMmdFile(mmdFile, fcFile, MATCHUP_FC_PAST_TIME_STEP_COUNT,
+                NwpUtil.writeForecastMmdFile(mmdFile, fcFile, fcTargetLocation, MATCHUP_FC_PAST_TIME_STEP_COUNT,
                                              MATCHUP_FC_FUTURE_TIME_STEP_COUNT);
             } finally {
                 try {
