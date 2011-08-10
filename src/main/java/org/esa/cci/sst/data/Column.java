@@ -143,6 +143,7 @@ public class Column implements Item {
     }
 
     @Override
+    @javax.persistence.Column(length=512)
     public String getFlagMeanings() {
         return flagMeanings;
     }
@@ -280,5 +281,18 @@ public class Column implements Item {
     @Deprecated
     public void setUnsigned(boolean unsigned) {
         this.unsigned = unsigned;
+    }
+
+    @Override
+    public String toString() {
+        return "Column{" +
+               "flagMasks='" + getFlagMasks() + '\'' +
+               ", flagMeanings='" + getFlagMeanings() + '\'' +
+               ", flagValues='" + getFlagValues() + '\'' +
+               ", longName='" + getLongName() + '\'' +
+               ", name='" + getName() + '\'' +
+               ", standardName='" + getStandardName() + '\'' +
+               ", sensor=" + getSensor() +
+               '}';
     }
 }
