@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
  * 
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -17,15 +17,16 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Replaces the second and third dimension of the column with "avhrr.ny" and "avhrr.nx", respectively.
+ * Replaces the second and third dimension with avhrr.nwp.ny and avhrr.nwp.nx, respectively.
  *
  * @author Thomas Storm
  */
-class AvhrrImageDimensions extends AbstractDimensionReplacement {
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
+public class AvhrrNwpXyDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "avhrr.ny");
-        builder.replace(2, "avhrr.nx");
+        builder.replace(1, "avhrr.nwp.ny");
+        builder.replace(2, "avhrr.nwp.nx");
     }
 }
