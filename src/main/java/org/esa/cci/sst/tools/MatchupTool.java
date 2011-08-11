@@ -171,6 +171,8 @@ public class MatchupTool extends BasicTool {
     private void run() {
         if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.cleanup"))) {
             cleanup();
+        } else if  (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.cleanupinterval"))) {
+            cleanupInterval();
         }
         if (Boolean.parseBoolean(getConfiguration().getProperty("mms.matchup.markduplicates"))) {
             markDuplicates();
@@ -510,9 +512,10 @@ public class MatchupTool extends BasicTool {
                     for (final Matchup matchup : matchups) {
                         addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
                     }
-                    getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
+                    getLogger().info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
                                                           matchups.size(),
                                                           sensorName,
+                                                          TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
                                                           System.currentTimeMillis() - time));
                     time = System.currentTimeMillis();
                 }
@@ -726,6 +729,21 @@ public class MatchupTool extends BasicTool {
         Query delete = getPersistenceManager().createQuery("delete from Coincidence c");
         delete.executeUpdate();
         delete = getPersistenceManager().createQuery("delete from Matchup m");
+        delete.executeUpdate();
+
+        getPersistenceManager().commit();
+    }
+
+    private void cleanupInterval() {
+        getPersistenceManager().transaction();
+
+        Query delete = getPersistenceManager().createQuery("delete from Coincidence c where exists ( select r from ReferenceObservation r, Matchup m where c.matchup = m and m.refObs = r and r.time >= :start and r.time < :stop )");
+        delete.setParameter("start", matchupStartTime);
+        delete.setParameter("stop", matchupStopTime);
+        delete.executeUpdate();
+        delete = getPersistenceManager().createQuery("delete from Matchup m where exists ( select r from ReferenceObservation r where m.refObs = r and r.time >= :start and r.time < :stop )");
+        delete.setParameter("start", matchupStartTime);
+        delete.setParameter("stop", matchupStopTime);
         delete.executeUpdate();
 
         getPersistenceManager().commit();

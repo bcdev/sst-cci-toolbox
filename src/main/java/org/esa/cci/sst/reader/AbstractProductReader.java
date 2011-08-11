@@ -210,6 +210,8 @@ abstract class AbstractProductReader implements Reader {
         return product;
     }
 
+    // currently not used, replaced by start time to align with file name time
+    // used as filter during ingestion [boe, 09.08.2011]
     protected final Date getCenterTimeAsDate() throws IOException {
         final ProductData.UTC startTime = product.getStartTime();
         if (startTime == null) {
@@ -220,6 +222,14 @@ abstract class AbstractProductReader implements Reader {
             return startTime.getAsDate();
         }
         return new Date((long) (0.5 * (startTime.getAsDate().getTime() + endTime.getAsDate().getTime())));
+    }
+
+    protected final Date getStartTimeAsDate() throws IOException {
+        final ProductData.UTC startTime = product.getStartTime();
+        if (startTime == null) {
+            throw new IOException("Unable to get start time for product '" + product.getName() + "'.");
+        }
+        return startTime.getAsDate();
     }
 
     private Item createColumn(final RasterDataNode node) {

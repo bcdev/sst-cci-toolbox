@@ -93,10 +93,13 @@ class InsituReader extends NetcdfReader {
         observation.setTimeRadius(TimeUtil.timeRadius(startTime, endTime));
 
         try {
-            final double startLon = parseDouble("start_lon");
+            final double startLon = (parseDouble("start_lon") + 180.0) % 360.0 - 180.0;
             final double startLat = parseDouble("start_lat");
-            final double endLon = parseDouble("end_lon");
+            final double endLon = (parseDouble("end_lon") + 180.0) % 360.0 - 180.0;
             final double endLat = parseDouble("end_lat");
+            if (startLat < -90.0 || startLat > 90.0 || endLat < -90.0 || endLat > 90.0) {
+                throw new IOException(String.format("latitude attributes (%g .. %g) out of range (-90.0 .. 90.0)", startLat, endLat));
+            }
             observation.setLocation(createLineGeometry(startLon, startLat, endLon, endLat));
         } catch (ParseException e) {
             throw new IOException("Unable to set location.", e);

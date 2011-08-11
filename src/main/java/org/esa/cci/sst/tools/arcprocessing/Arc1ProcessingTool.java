@@ -236,7 +236,7 @@ public class Arc1ProcessingTool extends BasicTool {
         for (int i = 0; i < geoPositions.size(); i++) {
             final String geoPosition = geoPositions.get(i);
             final String matchupId = matchupIds.get(i);
-            final Pattern pattern = Pattern.compile("POINT\\(([0-9.-]*) ([0-9.-]*)\\)");
+            final Pattern pattern = Pattern.compile("POINT\\(([0-9.e-]*) ([0-9.e-]*)\\)");
             final Matcher matcher = pattern.matcher(geoPosition);
             matcher.matches();
             final String lon = matcher.group(1);
