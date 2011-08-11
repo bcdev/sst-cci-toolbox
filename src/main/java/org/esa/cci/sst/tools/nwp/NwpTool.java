@@ -400,8 +400,8 @@ class NwpTool {
                 endTime = currentTime;
             }
         }
-        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - 60 * 60 * 24 * 2);
-        final Date endDate = TimeUtil.secondsSince1978ToDate(endTime + 60 * 60 * 24);
+        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - 60 * 60 * 24 * 3);
+        final Date endDate = TimeUtil.secondsSince1978ToDate(endTime + 60 * 60 * 24 * 2);
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTime(startDate);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
