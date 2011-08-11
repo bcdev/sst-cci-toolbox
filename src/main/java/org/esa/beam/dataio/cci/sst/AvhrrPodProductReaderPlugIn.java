@@ -74,17 +74,17 @@ public class AvhrrPodProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String[] getDefaultFileExtensions() {
-        return new String[0];
+        return new String[]{"GC", "WI", "SO", "WE"};
     }
 
     @Override
     public String getDescription(Locale locale) {
-        return null;
+        return "AVHRR GAC POD Product";
     }
 
     @Override
     public BeamFileFilter getProductFileFilter() {
-        return null;
+        return new BeamFileFilter(getFormatNames()[0], getDefaultFileExtensions(), getDescription(null));
     }
 
     private static class DecodeQualificationTester {

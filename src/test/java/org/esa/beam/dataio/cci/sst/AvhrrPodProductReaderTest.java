@@ -16,24 +16,13 @@
 
 package org.esa.beam.dataio.cci.sst;
 
-import com.bc.ceres.binio.CompoundData;
-import com.bc.ceres.binio.CompoundType;
-import com.bc.ceres.binio.DataContext;
-import com.bc.ceres.binio.DataFormat;
-import com.bc.ceres.binio.SequenceData;
-import com.bc.ceres.binio.util.RandomAccessFileIOHandler;
 import org.esa.beam.framework.datamodel.Product;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.RandomAccessFile;
-import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.bc.ceres.binio.TypeBuilder.*;
 import static org.junit.Assert.*;
 
 /**
@@ -42,7 +31,6 @@ import static org.junit.Assert.*;
 public class AvhrrPodProductReaderTest {
 
     private AvhrrPodProductReader reader;
-    private File file;
 
     @Before
     public void setUp() throws Exception {
@@ -50,7 +38,6 @@ public class AvhrrPodProductReaderTest {
         reader = (AvhrrPodProductReader) plugIn.createReaderInstance();
         final String fileName = getClass().getResource("NSS.GHRR.NH.D91246.S0013.E0154.B1514546.GC").getFile();
         reader.readProductNodes(fileName, null);
-        file = new File(fileName);
     }
 
     @Test
@@ -90,48 +77,5 @@ public class AvhrrPodProductReaderTest {
     @Test
     public void testGetNumRecords() throws Exception {
         assertEquals(12112, reader.getNumRecords());
-    }
-
-    @Test
-    @Ignore
-    public void testDataRecord() throws Exception {
-        final long fileLength = file.length();
-        final int recordSize = AvhrrPodProductReader.GAC_DATA_RECORD.getSize();
-        assertEquals(3220, recordSize);
-
-        final int numRecords = (int) (fileLength / recordSize);
-        final CompoundType gacFileType = COMPOUND("file", MEMBER("gac file", SEQUENCE(AvhrrPodProductReader.GAC_DATA_RECORD, numRecords)));
-        final CompoundType headerType = COMPOUND("file", MEMBER("header", SEQUENCE(AvhrrPodProductReader.HEADER_RECORD, numRecords)));
-
-        DataFormat headerDataFormat = new DataFormat(headerType, ByteOrder.BIG_ENDIAN);
-        DataFormat dataFormat = new DataFormat(gacFileType, ByteOrder.BIG_ENDIAN);
-
-        final RandomAccessFile raf = new RandomAccessFile(file, "r");
-        final RandomAccessFileIOHandler ioHandler = new RandomAccessFileIOHandler(raf);
-        DataContext dataContext = dataFormat.createContext(ioHandler);
-
-        DataContext headerContext = headerDataFormat.createContext(ioHandler);
-        final SequenceData headerRecords = headerContext.getData().getSequence("header");
-        final CompoundData header = headerRecords.getCompound(0);
-        System.out.println(header.getShort("number of scans"));
-
-        final SequenceData records = dataContext.getData().getSequence("gac file");
-        for (int i = 0; i < records.getElementCount(); i++) {
-//            System.out.println("record# = " + i);
-//
-//            final CompoundData aRecord = records.getCompound(i);
-//            final short scanLineNumber = aRecord.getShort(0);
-//            System.out.println("scanLineNumber = " + scanLineNumber);
-
-//                System.out.println("#" + String.format("%32s", Integer.toBinaryString(aRecord.getInt("quality indicators"))));
-//                System.out.println(aRecord.getInt("validCount"));
-//                System.out.println("===================================");
-        }
-
-//
-//            final TiePointGrid latGrid = new TiePointGrid("lat", 409, 0, 4, 0, 8, 0, null);
-//            final TiePointGrid lonGrid = new TiePointGrid("lon", 409, 0, 4, 0, 8, 0, null);
-//            new TiePointGeoCoding(latGrid, lonGrid);
-
     }
 }

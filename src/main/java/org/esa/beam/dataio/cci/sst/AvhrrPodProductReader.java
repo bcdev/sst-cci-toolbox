@@ -46,7 +46,8 @@ import java.util.GregorianCalendar;
 import static com.bc.ceres.binio.TypeBuilder.*;
 
 /**
- * TODO fill out or delete
+ * Reads NOAA POD AVHRR GAC files as BEAM products, according to specification provided in the NOAA Polar Orbiter Data
+ * User's Guide, Section 3.1 (http://www.ncdc.noaa.gov/oa/pod-guide/ncdc/docs/podug/html/c3/sec3-1.htm).
  *
  * @author Thomas Storm
  */
@@ -61,7 +62,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
                      MEMBER("calibration coefficients", SEQUENCE(BYTE, 40)),
                      MEMBER("validCount", UBYTE),
                      MEMBER("sza", SEQUENCE(BYTE, 51)),
-                     MEMBER("earth locations", SEQUENCE(BYTE, 204)),
+                     MEMBER("earth locations", SEQUENCE(SHORT, 102)),
                      MEMBER("telemetry", SEQUENCE(BYTE, 140)),
                      MEMBER("video", SEQUENCE(BYTE, 2728)),
                      MEMBER("sza plus", SEQUENCE(BYTE, 20)),
@@ -121,35 +122,6 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         return product;
     }
 
-    private void setGeoCoding(Product product) throws IOException {
-        TiePointGrid[] grids = createTiePointGrids(product);
-        final TiePointGrid latGrid = grids[0];
-        final TiePointGrid lonGrid = grids[1];
-        product.addTiePointGrid(latGrid);
-        product.addTiePointGrid(lonGrid);
-        product.setGeoCoding(new TiePointGeoCoding(latGrid, lonGrid));
-    }
-
-    private TiePointGrid[] createTiePointGrids(Product product) throws IOException {
-        final int width = product.getSceneRasterWidth() / 8;
-        final int height = product.getSceneRasterHeight();
-
-        float[] latPoints = new float[width * height];
-        float[] lonPoints = new float[latPoints.length];
-        for(int i = 0; i < getRecords().getElementCount(); i++) {
-            final SequenceData sequenceData = getRecords().getCompound(i).getSequence("earth locations");
-            for (int j = 0, k = 0; j < sequenceData.getElementCount(); j += 2, k++) {
-                latPoints[k] = sequenceData.getByte(j);
-                lonPoints[k] = sequenceData.getByte(j + 1);
-            }
-        }
-
-        final TiePointGrid[] grids = new TiePointGrid[2];
-        grids[0] = createTiePointGrid("latitude", width, height, 5, 0, 8, 1, latPoints);
-        grids[1] = createTiePointGrid("longitude", width, height, 5, 0, 8, 1, lonPoints);
-        return grids;
-    }
-
     ProductData.UTC getStartTime() throws IOException {
         final CompoundData firstRealRecord = getFirstRealRecord();
 
@@ -194,6 +166,37 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         return ProductData.UTC.create(calendar.getTime(), 0);
     }
 
+    private void setGeoCoding(Product product) throws IOException {
+        TiePointGrid[] grids = createTiePointGrids(product);
+        final TiePointGrid latGrid = grids[0];
+        final TiePointGrid lonGrid = grids[1];
+        product.addTiePointGrid(latGrid);
+        product.addTiePointGrid(lonGrid);
+        product.setGeoCoding(new TiePointGeoCoding(latGrid, lonGrid));
+    }
+
+    private TiePointGrid[] createTiePointGrids(Product product) throws IOException {
+        final int width = product.getSceneRasterWidth() / 8;
+        final int height = product.getSceneRasterHeight();
+
+        float[] latPoints = new float[width * height];
+        float[] lonPoints = new float[latPoints.length];
+        int k = 0;
+        for (int i = 2; i < height; i++) {
+            final SequenceData scanLineData = getRecords().getCompound(i).getSequence("earth locations");
+            for (int j = 0; j < scanLineData.getElementCount(); j += 2) {
+                latPoints[k] = scanLineData.getShort(j) / 128.0f;
+                lonPoints[k] = scanLineData.getShort(j + 1) / 128.0f;
+                k++;
+            }
+        }
+
+        final TiePointGrid[] grids = new TiePointGrid[2];
+        grids[0] = createTiePointGrid("latitude", width, height, 5, 0, 8, 1, latPoints);
+        grids[1] = createTiePointGrid("longitude", width, height, 5, 0, 8, 1, lonPoints);
+        return grids;
+    }
+
     private CompoundData getFirstRealRecord() throws IOException {
         final CompoundData firstRealRecord = getRecords().getCompound(2);
         validateScanLine(firstRealRecord);
@@ -211,27 +214,6 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         return context.getData().getSequence("gac file");
     }
 
-    private int getYear(byte firstByte) {
-        String s = AvhrrReaderUtils.toBinaryString(firstByte);
-        s = s.substring(0, 7);
-        s = '0' + s;
-        int year = Integer.parseInt(s, 2);
-        year += year > 90 ? 1900 : 2000;
-        return year;
-    }
-
-    private int getDay(byte firstByte, byte secondByte) {
-        final String s = String.valueOf(AvhrrReaderUtils.toBinaryString(firstByte).charAt(7));
-        String s1 = AvhrrReaderUtils.toBinaryString(secondByte);
-        s1 = s + s1;
-        return Integer.parseInt(s1, 2);
-    }
-
-    private void validateScanLine(CompoundData firstRealRecord) throws IOException {
-        final short scanLineNumber = firstRealRecord.getShort("scan line number from 1 to n");
-        Assert.state(scanLineNumber == 1, "scanLineNumber == 1");
-    }
-
     int getSceneRasterHeight() throws IOException {
         final int numRecords = getNumRecords();
         final CompoundType headerType = COMPOUND("file", MEMBER("header", SEQUENCE(HEADER_RECORD, numRecords)));
@@ -246,5 +228,26 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         final long fileLength = file.length();
         final int recordSize = GAC_DATA_RECORD.getSize();
         return (int) (fileLength / recordSize);
+    }
+
+    private static int getYear(byte firstByte) {
+        String s = AvhrrReaderUtils.toBinaryString(firstByte);
+        s = s.substring(0, 7);
+        s = '0' + s;
+        int year = Integer.parseInt(s, 2);
+        year += year > 90 ? 1900 : 2000;
+        return year;
+    }
+
+    private static int getDay(byte firstByte, byte secondByte) {
+        final String s = String.valueOf(AvhrrReaderUtils.toBinaryString(firstByte).charAt(7));
+        String s1 = AvhrrReaderUtils.toBinaryString(secondByte);
+        s1 = s + s1;
+        return Integer.parseInt(s1, 2);
+    }
+
+    private static void validateScanLine(CompoundData firstRealRecord) throws IOException {
+        final short scanLineNumber = firstRealRecord.getShort("scan line number from 1 to n");
+        Assert.state(scanLineNumber == 1, "scanLineNumber == 1");
     }
 }
