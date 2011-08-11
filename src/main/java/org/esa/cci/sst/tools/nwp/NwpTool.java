@@ -160,7 +160,7 @@ class NwpTool {
             writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
-            properties.setProperty("CDO", "/usr/local/bin/cdo");
+            properties.setProperty("CDO", "cdo");
             properties.setProperty("CDO_OPTS", "-M");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
@@ -199,7 +199,7 @@ class NwpTool {
             writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
-            properties.setProperty("CDO", "/usr/local/bin/cdo");
+            properties.setProperty("CDO", "cdo");
             properties.setProperty("CDO_OPTS", "-M");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
@@ -400,12 +400,9 @@ class NwpTool {
                 endTime = currentTime;
             }
         }
-        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime);
-        Date endDate = TimeUtil.secondsSince1978ToDate(endTime);
+        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - 60 * 60 * 24 * 2);
+        final Date endDate = TimeUtil.secondsSince1978ToDate(endTime + 60 * 60 * 24);
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-        calendar.setTime(endDate);
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        endDate = calendar.getTime();
         calendar.setTime(startDate);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
