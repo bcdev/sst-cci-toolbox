@@ -27,9 +27,12 @@ import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.util.TimeUtil;
 
+import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * @author Thomas Storm
@@ -62,10 +65,17 @@ class Ingester {
 
     void persistColumns(final String sensorName, final Reader reader) throws IOException {
         final Item[] columns = reader.getColumns();
-        tool.getLogger().info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
-                                              sensorName, columns.length));
+        final Logger logger = tool.getLogger();
+        logger.info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
+                                         sensorName, columns.length));
+        final Query query = tool.getPersistenceManager().createQuery("select c.name from Column c");
+        final List<String> existingVariables = query.getResultList();
         for (final Item column : columns) {
-            tool.getPersistenceManager().persist(column);
+            if (existingVariables.contains(column.getName())) {
+                logger.info(String.format("Variable %s already ingested.", column.getName()));
+            } else {
+                tool.getPersistenceManager().persist(column);
+            }
         }
     }
 

@@ -82,15 +82,13 @@ public class MmdIngestionTool extends BasicTool {
         final long pattern = Long.parseLong(patternProperty, 16);
         final boolean located = "yes".equals(getConfiguration().getProperty("mms.reingestion.located", "no"));
         Sensor sensor = getSensor(sensorName);
-        final boolean persistVariables = (sensor == null);
-        if (persistVariables) {
+        final boolean persistSensor = (sensor == null);
+        if (persistSensor) {
             sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
         }
         DataFile dataFile = createDataFile(sensor);
         initReader(dataFile);
-        if (persistVariables) {
-            persistColumns(sensorName);
-        }
+        persistColumns(sensorName);
         ingestObservations(pattern);
     }
 
