@@ -72,8 +72,8 @@ class NwpUtil {
         throw new ToolException("Not enough time steps in NWP time series.", ToolException.TOOL_ERROR);
     }
 
-    static void writeAnalysisMmdFile(NetcdfFile mmd, NetcdfFile analysisFile,
-                                     String anTargetLocation, int pastTimeStepCount, int futureTimeStepCount) throws IOException {
+    static void writeAnalysisMmdFile(NetcdfFile mmd, NetcdfFile analysisFile, String anTargetLocation,
+                                     int pastTimeStepCount, int futureTimeStepCount) throws IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
         final Dimension yDimension = findDimension(analysisFile, "y");
         final Dimension xDimension = findDimension(analysisFile, "x");
