@@ -101,11 +101,13 @@ public class NwpArc3ProcessingTool extends BasicTool {
     }
 
     private void setupWriters() throws IOException {
-        final String nwpDestPath = getConfiguration().getProperty(Constants.PROPERTY_NWP_DESTDIR, ".");
-        final String arc3DestPath = getConfiguration().getProperty(Constants.PROPERTY_ARC3_DESTDIR, ".");
+        final Properties configuration = getConfiguration();
+        final String sensorName = configuration.getProperty(Constants.PROPERTY_MMS_NWP_ARC3_SENSOR);
+        final String nwpDestPath = configuration.getProperty(Constants.PROPERTY_NWP_DESTDIR, ".");
+        final String arc3DestPath = configuration.getProperty(Constants.PROPERTY_ARC3_DESTDIR, ".");
         final File nwpDestDir = new File(nwpDestPath);
         final File arc3DestDir = new File(arc3DestPath);
-        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_NWP_ARC3_TMPDIR, ".");
+        final String tmpPath = configuration.getProperty(Constants.PROPERTY_NWP_ARC3_TMPDIR, ".");
         final File tmpDir = new File(tmpPath);
         createDirectory(nwpDestDir);
         createDirectory(arc3DestDir);
@@ -113,14 +115,14 @@ public class NwpArc3ProcessingTool extends BasicTool {
         final Date date = new Date();
         final String time = new SimpleDateFormat("yyyyMMddHHmm").format(date);
 
-        String arc3CallFilename = String.format("mms-nwp-arc3-%s-submit.sh", time);
+        String arc3CallFilename = String.format("mms-nwp-arc3-%s-%s-submit.sh", sensorName, time);
         final File arc3CallFile = new File(tmpDir, arc3CallFilename);
         setFileExecutable(arc3CallFile);
         arc3CallScript = arc3CallFile.getAbsolutePath();
         arc3CallWriter = new PrintWriter(arc3CallFile);
         arc3CallWriter.format(SHEBANG);
 
-        String reingestionCallFilename = String.format("mms-nwp-arc3-%s-reingest.sh", time);
+        String reingestionCallFilename = String.format("mms-nwp-arc3-%s-%s-reingest.sh", sensorName, time);
         final File reingestionFile = new File(tmpDir, reingestionCallFilename);
         setFileExecutable(reingestionFile);
         reingestionCallScript = reingestionFile.getAbsolutePath();
@@ -128,7 +130,7 @@ public class NwpArc3ProcessingTool extends BasicTool {
         reingestionCallWriter.format(SHEBANG);
         reingestionCallWriter.format(SET_MMS_HOME);
 
-        String cleanupCallFilename = String.format("mms-nwp-arc3-%s-cleanup.sh", time);
+        String cleanupCallFilename = String.format("mms-nwp-arc3-%s-%s-cleanup.sh", sensorName, time);
         final File cleanupFile = new File(tmpDir, cleanupCallFilename);
         setFileExecutable(cleanupFile);
         cleanupScript = cleanupFile.getAbsolutePath();
