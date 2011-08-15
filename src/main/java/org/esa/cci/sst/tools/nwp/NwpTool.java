@@ -188,7 +188,7 @@ class NwpTool {
         }
     }
 
-    void createMashupFile() throws IOException, InterruptedException {
+    void createMergedFile() throws IOException, InterruptedException {
         final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(sensorName, sensorPattern));
 
         final Variable timeVariable = NwpUtil.findVariable(sensorMmdFile, sensorName + ".time", getAlternativeSensorName(sensorName) + ".time");

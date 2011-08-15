@@ -33,7 +33,7 @@ public class Nwp {
             nwpTool.createMatchupFcFile();
         }
 //        nwpTool.createSensorNwpFile();
-        nwpTool.createMashupFile();
+        nwpTool.createMergedFile();
     }
 
     private Nwp() {
