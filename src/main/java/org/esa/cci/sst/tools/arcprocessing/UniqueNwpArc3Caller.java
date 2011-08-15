@@ -76,12 +76,13 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         final String nwpCall = String.format(
                 "java \\\n" +
                 "    -Dmms.home=\"$MMS_HOME\" \\\n" +
+                "    -Djava.io.tmpdir=\"/home/tstorm/tmp\" \\\n" +
                 "    -javaagent:\"$MMS_HOME/lib/openjpa-all-2.1.0.jar\" \\\n" +
                 "    -Xmx1024M $MMS_OPTIONS \\\n" +
                 "    -classpath \"$MMS_HOME/lib/*\" \\\n" +
                 "    org.esa.cci.sst.tools.nwp.Nwp \"%s\" \"%s\" \"true\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \n\n",
                 sensorName, sensorPattern, nwpSourceFile, nwpSourceDir, nwpOutput, anOutput, fcOutput);
-        final String copyNwpOutputToArc3Home = String.format("cp %s %s\n\n", nwpOutput, arc3home);
+        final String copyNwpOutputToArc3Home = String.format("cp %s %s/%s\n\n", nwpOutput, arc3home, nwpOutput);
         final String goToArc3Home = String.format("cd %s\n\n", arc3home);
         final String callArc3 = String.format("./MMD_SCREEN_Linux %s %s %s %s\n\n", arc3ConfigurationFile, nwpOutput, nwpOutput, arc3Output);
 
