@@ -106,13 +106,14 @@ public class Arc1ProcessingTool extends BasicTool {
         final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
         final String startTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
         final String endTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_END_TIME);
+        final String sensorName = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "avhrr_orb.n18"
         final String configurationPath = getConfiguration().getProperty(Constants.PROPERTY_CONFIGURATION);
         final Date startTime = TimeUtil.getConfiguredTimeOf(startTimeProperty);
         final Date endTime = TimeUtil.getConfiguredTimeOf(endTimeProperty);
 
         prepareCommandFiles(tmpPath, archiveRoot, destPath, TimeUtil.formatCompactUtcFormat(startTime));
 
-        final List<MatchingObservationInfo> avhrrObservationInfos = inquireMatchingAvhrrObservations(startTime, endTime);
+        final List<MatchingObservationInfo> avhrrObservationInfos = inquireMatchingAvhrrObservations(startTime, endTime, sensorName);
         generateCallsAndLatlonFiles(avhrrObservationInfos, archiveRoot, destPath, tmpPath, configurationPath);
 
         closeCommandFiles(tmpPath);
@@ -170,9 +171,17 @@ public class Arc1ProcessingTool extends BasicTool {
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<MatchingObservationInfo> inquireMatchingAvhrrObservations(Date startTime, Date endTime) {
-        final Query allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHING_OBSERVATIONS_QUERY,
-                                                                               Object[].class);
+    private List<MatchingObservationInfo> inquireMatchingAvhrrObservations(Date startTime, Date endTime, String sensorName) {
+        final Query allPointsQuery;
+        if ("%".equals(sensorName)) {
+            allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHING_OBSERVATIONS_QUERY,
+                                                                                Object[].class);
+        } else {
+            String sensorSpecificQueryString = AVHRR_MATCHING_OBSERVATIONS_QUERY.replace("LIKE 'avhrr_orb.%'",
+                                                                                         String.format("= '%s'", sensorName));
+            allPointsQuery = getPersistenceManager().createNativeQuery(sensorSpecificQueryString, Object[].class);
+            getLogger().info(String.format("sensor specific query %s", sensorSpecificQueryString));
+        }
         allPointsQuery.setParameter(1, startTime);
         allPointsQuery.setParameter(2, endTime);
         final List<Object[]> queryResults = allPointsQuery.getResultList();
