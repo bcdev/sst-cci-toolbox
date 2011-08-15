@@ -305,11 +305,16 @@ class NwpUtil {
         return d;
     }
 
-    static Variable findVariable(NetcdfFile file, String name) throws IOException {
-        final Variable v = file.findVariable(NetcdfFile.escapeName(name));
-        if (v == null) {
-            throw new IOException(MessageFormat.format("Expected variable ''{0}''.", name));
+    static Variable findVariable(NetcdfFile file, String... names) throws IOException {
+        final StringBuilder expectedNames = new StringBuilder("{ ");
+        for (String name : names) {
+            Variable v = file.findVariable(NetcdfFile.escapeName(name));
+            if (v != null) {
+                return v;
+            }
+            expectedNames.append(name).append(' ');
         }
-        return v;
+        expectedNames.append('}');
+        throw new IOException(MessageFormat.format("Expected variable in ''{0}''.", expectedNames.toString()));
     }
 }
