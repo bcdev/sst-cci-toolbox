@@ -71,9 +71,7 @@ class Ingester {
         final Query query = tool.getPersistenceManager().createQuery("select c.name from Column c");
         final List<String> existingVariables = query.getResultList();
         for (final Item column : columns) {
-            if (existingVariables.contains(column.getName())) {
-                logger.info(String.format("Variable %s already ingested.", column.getName()));
-            } else {
+            if (!existingVariables.contains(column.getName())) {
                 tool.getPersistenceManager().persist(column);
             }
         }
