@@ -106,7 +106,7 @@ public class ArcPixelPosTool extends BasicTool {
     }
 
     GeoPos parseGeoPos(final String line) {
-        final Pattern pattern = Pattern.compile("(\\s*[0-9]*)\\s*([0-9.-]*)\\s*([0-9.-]*)");
+        final Pattern pattern = Pattern.compile("(\\s*[0-9]*)\\s*([0-9.e-]*)\\s*([0-9.e-]*)");
         final Matcher matcher = pattern.matcher(line);
         matcher.matches();
         final String lon = matcher.group(2);
