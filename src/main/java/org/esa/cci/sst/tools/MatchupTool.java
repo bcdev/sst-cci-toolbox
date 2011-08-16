@@ -734,7 +734,7 @@ public class MatchupTool extends BasicTool {
         getPersistenceManager().commit();
     }
 
-    private void cleanupInterval() {
+    private void cleanupIntervalJpa() {
         getPersistenceManager().transaction();
 
         Query delete = getPersistenceManager().createQuery("delete from Coincidence c where exists ( select r from ReferenceObservation r, Matchup m where c.matchup = m and m.refObs = r and r.time >= :start and r.time < :stop )");
@@ -744,6 +744,21 @@ public class MatchupTool extends BasicTool {
         delete = getPersistenceManager().createQuery("delete from Matchup m where exists ( select r from ReferenceObservation r where m.refObs = r and r.time >= :start and r.time < :stop )");
         delete.setParameter("start", matchupStartTime);
         delete.setParameter("stop", matchupStopTime);
+        delete.executeUpdate();
+
+        getPersistenceManager().commit();
+    }
+
+    private void cleanupInterval() {
+        getPersistenceManager().transaction();
+
+        Query delete = getPersistenceManager().createNativeQuery("delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 )");
+        delete.setParameter(1, matchupStartTime);
+        delete.setParameter(2, matchupStopTime);
+        delete.executeUpdate();
+        delete = getPersistenceManager().createNativeQuery("delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 )");
+        delete.setParameter(1, matchupStartTime);
+        delete.setParameter(2, matchupStopTime);
         delete.executeUpdate();
 
         getPersistenceManager().commit();
