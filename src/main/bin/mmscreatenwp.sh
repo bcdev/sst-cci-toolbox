@@ -1,5 +1,11 @@
 #! /bin/sh
 
+# mmscreatenwp.sh atsr.1 8 true atsr.1-sub-19960602000000-19960603000000.nc \
+#     /exports/nas/exports/cse/geos/scratch/gc/sst-cci/ecmwf-era-interim/v01 \
+#     atsr.1-nwp-19960602000000-19960603000000.nc \
+#     atsr.1-nwpAn-19960602000000-19960603000000.nc \
+#     atsr.1-nwpFc-19960602000000-19960603000000.nc
+
 if [ ! -d "$MMS_HOME" ]
 then
     PRGDIR=`dirname $0`
@@ -29,4 +35,4 @@ java \
     -Xmx1024M $MMS_OPTIONS \
     -javaagent:"$MMS_HOME/lib/openjpa-all-2.1.0.jar" \
     -classpath "$MMS_HOME/lib/*" \
-    org.esa.cci.sst.tools.nwp.Nwp "atsr.3" "16" "false" "mmd.nc" "/exports/nas/exports/cse/geos/scratch/gc/sst-cci/ecmwf-era-interim/v01"
+    org.esa.cci.sst.tools.nwp.Nwp $@
