@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools.ingestion;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.reader.GunzipDecorator;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
@@ -139,11 +140,12 @@ public class MmdIngestionTool extends BasicTool {
 
     private void initReader(final DataFile dataFile) {
         reader = new MmdReader(dataFile.getSensor().getName());
+        GunzipDecorator decorator = new GunzipDecorator(reader);
         reader.setConfiguration(getConfiguration());
         final String archiveRootPath = getConfiguration().getProperty("mms.archive.rootdir", ".");
         final File archiveRoot = new File(archiveRootPath);
         try {
-            reader.init(dataFile, archiveRoot);
+            decorator.init(dataFile, archiveRoot);
         } catch (IOException e) {
             throw new ToolException("Error initializing Reader for mmd file.", e, ToolException.TOOL_ERROR);
         }

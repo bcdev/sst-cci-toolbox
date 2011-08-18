@@ -43,12 +43,12 @@ import java.util.zip.GZIPInputStream;
  *
  * @author Martin Boettcher
  */
-class GunzipDecorator implements Reader {
+public class GunzipDecorator implements Reader {
 
     private final Reader delegate;
     private File tmpFile;
 
-    GunzipDecorator(Reader delegate) {
+    public GunzipDecorator(Reader delegate) {
         this.delegate = delegate;
     }
 
