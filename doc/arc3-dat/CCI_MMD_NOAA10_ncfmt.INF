@@ -1,0 +1,100 @@
+[GLOBALS]
+Conventions = CF-1.4, Unidata Observation Dataset v1.0
+institution = ESACCI
+comment = These data were produced at University of Edinburgh as part of the ESA SST CCI project.
+licence = GHRSST protocol describes data use as free and open.
+product_version = 0.1
+gds_version_id = 2.0
+metadata_conventions = Unidata Dataset Discovery v1.0
+keywords = Oceans > Ocean Temperature > Sea Surface Temperature
+keywords_vocabulary = NASA Global change Master Directory (GCMD) Science Keywords
+standard_name_vocabulary = NetCDF Climate and Forecast (CF) Metadata Convention
+acknowledgment = Funded by ESA
+creator_name = ESA SST CCI
+creator_email = science.leader@esa-sst-cci.org
+creator_url = http://www.esa-sst-cci.org/
+project = European Space Agency Sea Surface Temperature Climate Change Initiative
+publisher_name = The GHRSST Project Office
+publisher_url = http://www.ghrsst.org
+publisher_email = ghrsst-po@nceo.ac.uk
+
+[DIMENSIONS]
+ni = elem
+nj = line
+record = record
+depth = 3
+avhrr.nwp.nx = 1
+avhrr.nwp.ny = 1
+
+[matchup.id]
+type = int
+dims = record
+
+[lon]
+type = float
+dims = ni nj record
+long_name = Longitude coordinates
+standard_name = longitude
+units = degrees_east
+valid_min = -180
+valid_max = 180
+
+[lat]
+type = float
+dims = ni nj record
+long_name = Latitude coordinates
+standard_name = latitude
+units = degrees_north
+valid_min = -90
+valid_max = 90
+
+
+[avhrr.10.ffm.brightness_temperature_3b]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+units = kelvin
+_FillValue = -999.
+
+[avhrr.10.ffm.brightness_temperature_4]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+units = kelvin
+_FillValue = -999.
+
+[avhrr.10.ffm.brightness_temperature_5]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+units = kelvin
+_FillValue = -999.
+
+
+[avhrr.10.ffm.dbt_dsst_3b]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+_FillValue = -999.
+
+[avhrr.10.ffm.dbt_dsst_4]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+_FillValue = -999.
+
+[avhrr.10.ffm.dbt_dsst_5]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+_FillValue = -999.
+
+
+[avhrr.10.ffm.dbt_dtcwv_3b]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+_FillValue = -999.
+
+[avhrr.10.ffm.dbt_dtcwv_4]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+_FillValue = -999.
+
+[avhrr.10.ffm.dbt_dtcwv_5]
+type = float
+dims = avhrr.nwp.nx avhrr.nwp.ny record
+_FillValue = -999.
