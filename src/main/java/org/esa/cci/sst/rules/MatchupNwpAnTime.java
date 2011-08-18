@@ -17,7 +17,8 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Replaces the fourth dimension with the dimension "matchup.nwp.an.time".
+ * Replaces the fourth dimension with the dimension "matchup.nwp.an.time", and the second and third dimensions
+ * with the dimensions "matchup.nwp.ny" and "matchup.nwp.nx", respectively.
  *
  * @author Thomas Storm
  */
@@ -26,6 +27,8 @@ final class MatchupNwpAnTime extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(3, "matchup.nwp.an.time");
+        builder.replace(1, "matchup.nwp.an.time");
+        builder.replace(2, "matchup.nwp.ny");
+        builder.replace(3, "matchup.nwp.nx");
     }
 }
