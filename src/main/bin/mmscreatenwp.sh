@@ -32,6 +32,7 @@ export PATH=${PATH}:/home/tstorm/opt/cdo-1.5.0/bin
 
 java \
     -Dmms.home="$MMS_HOME" \
+    -Djava.io.tmpdir=`pwd` \
     -Xmx1024M $MMS_OPTIONS \
     -javaagent:"$MMS_HOME/lib/openjpa-all-2.1.0.jar" \
     -classpath "$MMS_HOME/lib/*" \
