@@ -1,5 +1,5 @@
 [NWP_INFO]
 [DIMENSIONS]
-x=    avhrr.16.nwp.nx
-y=    avhrr.16.nwp.ny
-z=    avhrr.16.nwp.nz
+x=    avhrr.n16.nwp.nx
+y=    avhrr.n16.nwp.ny
+z=    avhrr.n16.nwp.nz

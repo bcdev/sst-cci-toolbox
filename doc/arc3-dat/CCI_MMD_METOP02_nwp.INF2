@@ -1,5 +1,5 @@
 [NWP_INFO]
 [DIMENSIONS]
-x=    avhrr.M2.nwp.nx
-y=    avhrr.M2.nwp.ny
-z=    avhrr.M2.nwp.nz
+x=    avhrr.m02.nwp.nx
+y=    avhrr.m02.nwp.ny
+z=    avhrr.m02.nwp.nz

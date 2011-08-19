@@ -261,6 +261,9 @@ class NwpUtil {
         for (String subDirectory : subDirectories) {
             final File dir = new File(dirPath, subDirectory);
             final File[] files = dir.listFiles(filter);
+            if (files == null) {
+                throw new RuntimeException(String.format("%s directory does not exist", dir.getPath()));
+            }
             for (final File file : files) {
                 if (sb.length() > 0) {
                     sb.append(' ');

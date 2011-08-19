@@ -49,52 +49,52 @@ valid_min = -90
 valid_max = 90
 
 
-[avhrr.17.ffm.brightness_temperature_3b]
+[avhrr.n17.ffm.brightness_temperature_3b]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 units = kelvin
 _FillValue = -999.
 
-[avhrr.17.ffm.brightness_temperature_4]
+[avhrr.n17.ffm.brightness_temperature_4]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 units = kelvin
 _FillValue = -999.
 
-[avhrr.17.ffm.brightness_temperature_5]
+[avhrr.n17.ffm.brightness_temperature_5]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 units = kelvin
 _FillValue = -999.
 
 
-[avhrr.17.ffm.dbt_dsst_3b]
+[avhrr.n17.ffm.dbt_dsst_3b]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 _FillValue = -999.
 
-[avhrr.17.ffm.dbt_dsst_4]
+[avhrr.n17.ffm.dbt_dsst_4]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 _FillValue = -999.
 
-[avhrr.17.ffm.dbt_dsst_5]
+[avhrr.n17.ffm.dbt_dsst_5]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 _FillValue = -999.
 
 
-[avhrr.17.ffm.dbt_dtcwv_3b]
+[avhrr.n17.ffm.dbt_dtcwv_3b]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 _FillValue = -999.
 
-[avhrr.17.ffm.dbt_dtcwv_4]
+[avhrr.n17.ffm.dbt_dtcwv_4]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 _FillValue = -999.
 
-[avhrr.17.ffm.dbt_dtcwv_5]
+[avhrr.n17.ffm.dbt_dtcwv_5]
 type = float
 dims = avhrr.nwp.nx avhrr.nwp.ny record
 _FillValue = -999.

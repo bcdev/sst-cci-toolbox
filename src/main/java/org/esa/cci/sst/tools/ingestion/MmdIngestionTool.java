@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
+import javax.persistence.EntityExistsException;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
@@ -45,20 +46,7 @@ public class MmdIngestionTool extends BasicTool {
             return;
         }
         tool.initialize();
-
-        final PersistenceManager persistenceManager = tool.getPersistenceManager();
-        try {
-            persistenceManager.transaction();
-            tool.ingest();
-            persistenceManager.commit();
-        } catch (Exception e) {
-            try {
-                persistenceManager.rollback();
-            } catch (Exception _) {
-                // ignore
-            }
-            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
-        }
+        tool.ingest();
     }
 
 
@@ -82,15 +70,39 @@ public class MmdIngestionTool extends BasicTool {
         final String patternProperty = getConfiguration().getProperty(MMS_REINGESTION_PATTERN_PROPERTY, "0");
         final long pattern = Long.parseLong(patternProperty, 16);
         final boolean located = "yes".equals(getConfiguration().getProperty("mms.reingestion.located", "no"));
-        Sensor sensor = getSensor(sensorName);
-        final boolean persistSensor = (sensor == null);
-        if (persistSensor) {
-            sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
+        try {
+            getPersistenceManager().transaction();
+            Sensor sensor = getSensor(sensorName);
+            final boolean persistSensor = (sensor == null);
+            if (persistSensor) {
+                try {
+                    sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
+                    // make sensor entry visible to concurrent processes to avoid duplicate creation
+                } catch (EntityExistsException e) {
+                    sensor = getSensor(sensorName);
+                }
+            }
+            getPersistenceManager().commit();
+
+            createDataFile(sensor);
+            initReader(dataFile);
+
+            getPersistenceManager().transaction();
+            persistColumns(sensorName);
+            getPersistenceManager().commit();
+
+            getPersistenceManager().transaction();
+            storeDataFile();
+            ingestObservations(pattern);
+            getPersistenceManager().commit();
+        } catch (Exception e) {
+            try {
+                getPersistenceManager().rollback();
+            } catch (Exception _) {
+                // ignore
+            }
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
-        DataFile dataFile = createDataFile(sensor);
-        initReader(dataFile);
-        persistColumns(sensorName);
-        ingestObservations(pattern);
     }
 
     private void ingestObservations(long pattern) {
@@ -112,7 +124,6 @@ public class MmdIngestionTool extends BasicTool {
     private DataFile createDataFile(Sensor sensor) {
         final File mmdFile = getMmdFile();
         dataFile = new DataFile(mmdFile, sensor);
-        storeDataFile();
         return dataFile;
     }
 

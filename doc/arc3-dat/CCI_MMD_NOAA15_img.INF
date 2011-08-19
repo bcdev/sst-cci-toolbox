@@ -8,17 +8,17 @@ x=    avhrr.nx
 y=    avhrr.ny
 [STANDARD_NAMES]
 id=     matchup.id
-lat=    avhrr.15.latitude
-lon=    avhrr.15.longitude
-lsm=    avhrr.15.land_sea_mask
-satzen= avhrr.15.satellite_zenith_angle
-solzen= avhrr.15.solar_zenith_angle
-relaz=  avhrr.15.relative_azimuth_angle
-time=   avhrr.15.time
+lat=    avhrr.n15.latitude
+lon=    avhrr.n15.longitude
+lsm=    avhrr.n15.land_sea_mask
+satzen= avhrr.n15.satellite_zenith_angle
+solzen= avhrr.n15.solar_zenith_angle
+relaz=  avhrr.n15.relative_azimuth_angle
+time=   avhrr.n15.time
 [CHANNELS]
-    3   avhrr.15.reflectance_1
-    4   avhrr.15.reflectance_2
-    5   avhrr.15.reflectance_3a
-    6   avhrr.15.brightness_temperature_3b
-    8   avhrr.15.brightness_temperature_4
-    9   avhrr.15.brightness_temperature_5
+    3   avhrr.n15.reflectance_1
+    4   avhrr.n15.reflectance_2
+    5   avhrr.n15.reflectance_3a
+    6   avhrr.n15.brightness_temperature_3b
+    8   avhrr.n15.brightness_temperature_4
+    9   avhrr.n15.brightness_temperature_5
