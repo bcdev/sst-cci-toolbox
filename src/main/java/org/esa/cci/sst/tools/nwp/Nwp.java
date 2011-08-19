@@ -28,12 +28,12 @@ public class Nwp {
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
         final NwpTool nwpTool = new NwpTool(args);
-        if (nwpTool.isMatchupRequested()) {
+        if (nwpTool.computeMatchups()) {
             nwpTool.createMatchupAnFile();
             nwpTool.createMatchupFcFile();
+        } else {
+            nwpTool.createMergedFile();
         }
-//        nwpTool.createSensorNwpFile();
-        nwpTool.createMergedFile();
     }
 
     private Nwp() {

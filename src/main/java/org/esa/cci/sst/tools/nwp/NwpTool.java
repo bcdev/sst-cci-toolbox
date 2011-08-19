@@ -69,16 +69,16 @@ class NwpTool {
             "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
 
-    private final String sensorName;
-    private final int sensorPattern;
     private final boolean matchupRequested;
+    private String sensorName;
+    private int sensorPattern;
 
-    private final String mmdSourceLocation;
-    private final String nwpSourceLocation;
-    private final String nwpTargetLocation;
+    private String mmdSourceLocation;
+    private String nwpSourceLocation;
+    private String nwpTargetLocation;
     private String geoFileLocation;
-    private final String anTargetLocation;
-    private final String fcTargetLocation;
+    private String anTargetLocation;
+    private String fcTargetLocation;
 
     private static final int SENSOR_NWP_NX = 1;
     private static final int SENSOR_NWP_NY = 1;
@@ -92,19 +92,37 @@ class NwpTool {
     private static final int MATCHUP_FC_FUTURE_TIME_STEP_COUNT = 8;
 
     NwpTool(String[] args) {
-        if (args.length != 8) {
+        if (args.length != 5 && args.length != 6) {
             System.out.println("Usage:");
-            System.out.println("\tNwpTool sensorName sensorPattern matchupRequested mmdSourceLocation nwpSourceLocation nwpTargetLocation anTargetLocation fcTargetLocation");
+            System.out.println("\tNwpTool true mmdSourceLocation nwpSourceLocation anTargetLocation fcTargetLocation");
+            System.out.println("\tNwpTool false sensorName sensorPattern mmdSourceLocation nwpSourceLocation nwpTargetLocation");
             System.exit(1);
         }
-        sensorName = args[0];
-        sensorPattern = Integer.parseInt(args[1]);
-        matchupRequested = Boolean.parseBoolean(args[2]);
-        mmdSourceLocation = args[3];
-        nwpSourceLocation = args[4];
-        nwpTargetLocation = args[5];
-        anTargetLocation = args[6];
-        fcTargetLocation = args[7];
+        matchupRequested = Boolean.parseBoolean(args[0]);
+        if(matchupRequested) {
+            if(args.length != 5) {
+                System.out.println("Usage:");
+                System.out.println("\tNwpTool true mmdSourceLocation nwpSourceLocation anTargetLocation fcTargetLocation");
+                System.out.println("\tNwpTool false sensorName sensorPattern mmdSourceLocation nwpSourceLocation nwpTargetLocation");
+                System.exit(1);
+            }
+            mmdSourceLocation = args[1];
+            nwpSourceLocation = args[2];
+            anTargetLocation = args[3];
+            fcTargetLocation = args[4];
+        } else {
+            if(args.length != 6) {
+                System.out.println("Usage:");
+                System.out.println("\tNwpTool true mmdSourceLocation nwpSourceLocation anTargetLocation fcTargetLocation");
+                System.out.println("\tNwpTool false sensorName sensorPattern mmdSourceLocation nwpSourceLocation nwpTargetLocation");
+                System.exit(1);
+            }
+            sensorName = args[1];
+            sensorPattern = Integer.parseInt(args[2], 16);
+            mmdSourceLocation = args[3];
+            nwpSourceLocation = args[4];
+            nwpTargetLocation = args[5];
+        }
     }
 
     void createMatchupAnFile() throws IOException, InterruptedException {
@@ -700,7 +718,7 @@ class NwpTool {
         return matchupCount;
     }
 
-    boolean isMatchupRequested() {
+    boolean computeMatchups() {
         return matchupRequested;
     }
 }
