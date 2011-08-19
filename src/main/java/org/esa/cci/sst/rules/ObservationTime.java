@@ -43,6 +43,8 @@ class ObservationTime extends AbstractImplicitRule {
         final Long time = getTime();
         if (time != null && time != Short.MIN_VALUE) {
             array.setDouble(0, TimeUtil.millisToSecondsSinceEpoch(time));
+        } else {
+            array.setDouble(0, Short.MIN_VALUE);
         }
         return array;
     }
