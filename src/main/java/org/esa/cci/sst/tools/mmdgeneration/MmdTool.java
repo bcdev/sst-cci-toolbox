@@ -586,7 +586,7 @@ public class MmdTool extends BasicTool {
 
     private int getTargetPattern() {
         try {
-            return Integer.parseInt(getConfiguration().getProperty("mms.target.pattern", "0"));
+            return Integer.parseInt(getConfiguration().getProperty("mms.target.pattern", "0"), 16);
         } catch (NumberFormatException e) {
             throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
                                     ToolException.TOOL_CONFIGURATION_ERROR);
