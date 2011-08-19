@@ -259,10 +259,12 @@ class NwpTool {
         final Array times = variable.read();
         for(int i = 0; i < times.getSize(); i++) {
             final int currentTime = times.getInt(i);
-            if(currentTime < startTime && currentTime != fillValue.intValue()) {
-                startTime = currentTime;
-            } else if(currentTime > endTime) {
-                endTime = currentTime;
+            if(currentTime != fillValue.intValue()) {
+                if(currentTime < startTime) {
+                    startTime = currentTime;
+                } else if(currentTime > endTime) {
+                    endTime = currentTime;
+                }
             }
         }
         final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - 60 * 60 * 24 * 3);
