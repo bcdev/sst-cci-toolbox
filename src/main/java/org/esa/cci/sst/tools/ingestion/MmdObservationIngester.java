@@ -55,7 +55,7 @@ class MmdObservationIngester {
     void ingestObservations() {
         final int numRecords = reader.getNumRecords();
         for (int i = 0; i < numRecords; i++) {
-            tool.getLogger().info(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
+            tool.getLogger().fine(String.format("ingestion of record '%d/%d\'", (i + 1), numRecords));
             persistObservation(reader, i);
         }
     }
