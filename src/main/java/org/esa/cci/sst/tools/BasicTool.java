@@ -37,8 +37,6 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,8 +60,6 @@ public abstract class BasicTool {
     private Logger logger;
     private ErrorHandler errorHandler;
 
-    private boolean verbose;
-    private boolean debug;
     private boolean initialised;
     private PersistenceManager persistenceManager;
 
@@ -101,12 +97,7 @@ public abstract class BasicTool {
             synchronized (this) {
                 if (logger == null) {
                     logger = Logger.getLogger("org.esa.cci.sst");
-                    logger.setLevel(Level.WARNING);
-                    try {
-                        logger.addHandler(new FileHandler(name.replace(".sh", ".log")));
-                    } catch (IOException ignored) {
-                        logger.addHandler(new ConsoleHandler());
-                    }
+                    logger.setLevel(Level.INFO);
                 }
             }
         }
@@ -150,29 +141,19 @@ public abstract class BasicTool {
         return configuration;
     }
 
-    public final boolean isDebug() {
-        return debug;
-    }
-
     private void setDebug(boolean debug) {
-        this.debug = debug;
         if (debug) {
             getLogger().setLevel(Level.ALL);
         }
     }
 
-    public final boolean isVerbose() {
-        return verbose;
-    }
-
-    private void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-        if (verbose) {
-            getLogger().setLevel(Level.INFO);
+    private void setSilent(boolean silent) {
+        if (silent) {
+            getLogger().setLevel(Level.WARNING);
         }
     }
 
-    public final Options getOptions() {
+    private Options getOptions() {
         return options;
     }
 
@@ -189,13 +170,10 @@ public abstract class BasicTool {
     }
 
     public final boolean setCommandLineArgs(String[] args) {
-        if (isVerbose() || isDebug()) {
-            getLogger().info("parsing command line and setting parameters");
-        }
         final CommandLineParser parser = new PosixParser();
         try {
             final CommandLine commandLine = parser.parse(getOptions(), args);
-            setVerbose(commandLine.hasOption("verbose"));
+            setSilent(commandLine.hasOption("silent"));
             setDebug(commandLine.hasOption("debug"));
             if (commandLine.hasOption("version")) {
                 printVersion();
@@ -242,9 +220,7 @@ public abstract class BasicTool {
         if (initialised) {
             return;
         }
-        if (isVerbose() || isDebug()) {
-            getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
-        }
+        getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, getConfiguration());
 
         final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
