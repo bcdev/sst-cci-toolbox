@@ -31,8 +31,6 @@ public class IngestionToolTest {
     public void testCommandLineArgs() throws URISyntaxException {
         IngestionTool noArgs = new IngestionTool();
         assertTrue(noArgs.setCommandLineArgs(new String[]{}));
-        assertEquals(false, noArgs.isDebug());
-        assertEquals(false, noArgs.isVerbose());
         if (new File(BasicTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
             assertNotNull(noArgs.getConfiguration().getProperty("openjpa.ConnectionURL"));
         }
