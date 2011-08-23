@@ -23,7 +23,6 @@ import com.bc.ceres.binio.DataFormat;
 import com.bc.ceres.binio.IOHandler;
 import com.bc.ceres.binio.SequenceData;
 import com.bc.ceres.binio.util.RandomAccessFileIOHandler;
-import com.bc.ceres.core.Assert;
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
@@ -40,8 +39,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import static com.bc.ceres.binio.TypeBuilder.*;
 
@@ -53,6 +61,8 @@ import static com.bc.ceres.binio.TypeBuilder.*;
  */
 public class AvhrrPodProductReader extends AbstractProductReader {
 
+    private static final String EARTH_LOCATIONS = "earth locations";
+
     static final CompoundType GAC_DATA_RECORD =
             COMPOUND("GAC record",
                      MEMBER("scan line number from 1 to n", SHORT),
@@ -60,9 +70,9 @@ public class AvhrrPodProductReader extends AbstractProductReader {
                      MEMBER("milliseconds", INT),
                      MEMBER("quality indicators", INT),
                      MEMBER("calibration coefficients", SEQUENCE(BYTE, 40)),
-                     MEMBER("validCount", UBYTE),
+                     MEMBER("valid count", UBYTE),
                      MEMBER("sza", SEQUENCE(BYTE, 51)),
-                     MEMBER("earth locations", SEQUENCE(SHORT, 102)),
+                     MEMBER(EARTH_LOCATIONS, SEQUENCE(SHORT, 102)),
                      MEMBER("telemetry", SEQUENCE(BYTE, 140)),
                      MEMBER("video", SEQUENCE(BYTE, 2728)),
                      MEMBER("sza plus", SEQUENCE(BYTE, 20)),
@@ -84,6 +94,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
 
     private File file;
     private IOHandler ioHandler;
+    private final List<CompoundData> scanlines = new ArrayList<CompoundData>(14000);
 
     /**
      * Constructs a new abstract product reader.
@@ -100,6 +111,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         file = new File(getInput().toString());
         final RandomAccessFile raf = new RandomAccessFile(file, "r");
         ioHandler = new RandomAccessFileIOHandler(raf);
+        readRecords();
         return createProduct();
     }
 
@@ -114,24 +126,33 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     }
 
     Product createProduct() throws IOException {
-        final Product product = new Product(file.getName(), getReaderPlugIn().getFormatNames()[0], 409, getSceneRasterHeight(), this);
+        final Product product = new Product(file.getName(), getReaderPlugIn().getFormatNames()[0], 409, getNumScans(), this);
         product.setFileLocation(file);
         product.setStartTime(getStartTime());
         product.setEndTime(getEndTime());
         setGeoCoding(product);
+//        addBands(product);
         return product;
     }
 
-    ProductData.UTC getStartTime() throws IOException {
-        final CompoundData firstRealRecord = getFirstRealRecord();
+    void addBands(Product product) throws IOException {
+        final String spaceCraftIdFileName = file.getName().substring(9, 11);
+        int bandCount = (Arrays.asList("TN", "NA", "NE", "NG").contains(spaceCraftIdFileName)) ? 4 : 5;
+        for (int i = 0; i < bandCount; i++) {
+            product.addBand("Channel " + (i + 1), ProductData.TYPE_FLOAT32);
+        }
+    }
 
-        final SequenceData dateSequence = firstRealRecord.getSequence(1);
+    ProductData.UTC getStartTime() throws IOException {
+        final CompoundData firstRecord = getFirstRecord();
+
+        final SequenceData dateSequence = firstRecord.getSequence(1);
         final byte firstByte = dateSequence.getByte(0);
         final byte secondByte = dateSequence.getByte(1);
 
         final int year = getYear(firstByte);
         final int day = getDay(firstByte, secondByte);
-        final int milliseconds = firstRealRecord.getInt("milliseconds");
+        final int milliseconds = firstRecord.getInt("milliseconds");
 
         final GregorianCalendar calendar = new GregorianCalendar();
         calendar.set(Calendar.YEAR, year);
@@ -166,6 +187,59 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         return ProductData.UTC.create(calendar.getTime(), 0);
     }
 
+    void readRecords() throws IOException {
+        final CompoundType gacFileType = COMPOUND("file",
+                                                  MEMBER("header", HEADER_RECORD),
+                                                  MEMBER("gac file", SEQUENCE(GAC_DATA_RECORD, getNumRecords())));
+        DataFormat dataFormat = new DataFormat(gacFileType, ByteOrder.BIG_ENDIAN);
+        final DataContext context = dataFormat.createContext(ioHandler);
+        final SequenceData records = context.getData().getSequence("gac file");
+        for (int i = 0; i < records.getElementCount(); i++) {
+            final CompoundData compound = records.getCompound(i);
+            scanlines.add(compound);
+        }
+        sortScanlines();
+        removeInvalidScanlines();
+    }
+
+    private void sortScanlines() {
+        Collections.sort(scanlines, new Comparator<CompoundData>() {
+            @Override
+            public int compare(CompoundData o1, CompoundData o2) {
+                try {
+                    final String byteName = "scan line number from 1 to n";
+                    return o1.getShort(byteName) < o2.getShort(byteName) ? -1 : 1;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    private void removeInvalidScanlines() throws IOException {
+        final List<CompoundData> invalids = new ArrayList<CompoundData>(3);
+        final Set<Short> scanlineNumbers = new HashSet<Short>(14000);
+        for (CompoundData scanline : scanlines) {
+            final short scanlineNumber = scanline.getShort("scan line number from 1 to n");
+            if(scanlineNumbers.contains(scanlineNumber) || scanlineNumber < 1) {
+                invalids.add(scanline);
+            } else {
+                scanlineNumbers.add(scanlineNumber);
+            }
+        }
+        scanlines.removeAll(invalids);
+    }
+
+    int getNumScans() throws IOException {
+        return readHeader().getShort("number of scans");
+    }
+
+    int getNumRecords() {
+        final long recordsLength = file.length() - HEADER_RECORD.getSize();
+        final int recordSize = GAC_DATA_RECORD.getSize();
+        return (int) (recordsLength / recordSize);
+    }
+
     private void setGeoCoding(Product product) throws IOException {
         TiePointGrid[] grids = createTiePointGrids(product);
         final TiePointGrid latGrid = grids[0];
@@ -182,8 +256,9 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         float[] latPoints = new float[width * height];
         float[] lonPoints = new float[latPoints.length];
         int k = 0;
-        for (int i = 2; i < height; i++) {
-            final SequenceData scanLineData = getRecords().getCompound(i).getSequence("earth locations");
+        for (int i = 0; i < scanlines.size(); i++) {
+            validateCompound(i);
+            final SequenceData scanLineData = scanlines.get(i).getSequence(EARTH_LOCATIONS);
             for (int j = 0; j < scanLineData.getElementCount(); j += 2) {
                 latPoints[k] = scanLineData.getShort(j) / 128.0f;
                 lonPoints[k] = scanLineData.getShort(j + 1) / 128.0f;
@@ -197,37 +272,31 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         return grids;
     }
 
-    private CompoundData getFirstRealRecord() throws IOException {
-        final CompoundData firstRealRecord = getRecords().getCompound(2);
-        validateScanLine(firstRealRecord);
-        return firstRealRecord;
+    private void validateCompound(int i) throws IOException {
+        final int validCount = scanlines.get(i).getUByte("valid count");
+        if (validCount != 51) {
+            final Logger logger = Logger.getLogger("org.esa.cci.sst");
+            logger.warning(MessageFormat.format("Invalid geo-location data in file {0} and scanline {1}{2}",
+                                                getInput().toString(), i, '.'));
+        }
+    }
+
+    private CompoundData getFirstRecord() throws IOException {
+        final CompoundData firstRecord = scanlines.get(0);
+        validateScanLine(firstRecord, 1);
+        return firstRecord;
     }
 
     private CompoundData getLastRealRecord() throws IOException {
-        return getRecords().getCompound(getSceneRasterHeight() + 1);
+        return scanlines.get(scanlines.size() - 1);
     }
 
-    private SequenceData getRecords() throws IOException {
-        final CompoundType gacFileType = COMPOUND("file", MEMBER("gac file", SEQUENCE(GAC_DATA_RECORD, getNumRecords())));
-        DataFormat dataFormat = new DataFormat(gacFileType, ByteOrder.BIG_ENDIAN);
-        final DataContext context = dataFormat.createContext(ioHandler);
-        return context.getData().getSequence("gac file");
-    }
-
-    int getSceneRasterHeight() throws IOException {
-        final int numRecords = getNumRecords();
-        final CompoundType headerType = COMPOUND("file", MEMBER("header", SEQUENCE(HEADER_RECORD, numRecords)));
+    private CompoundData readHeader() throws IOException {
+        final CompoundType headerType = COMPOUND("file", MEMBER("header", SEQUENCE(HEADER_RECORD, 1)));
         DataFormat headerDataFormat = new DataFormat(headerType, ByteOrder.BIG_ENDIAN);
         DataContext headerContext = headerDataFormat.createContext(ioHandler);
         final SequenceData headerRecords = headerContext.getData().getSequence("header");
-        final CompoundData header = headerRecords.getCompound(0);
-        return header.getShort("number of scans");
-    }
-
-    int getNumRecords() {
-        final long fileLength = file.length();
-        final int recordSize = GAC_DATA_RECORD.getSize();
-        return (int) (fileLength / recordSize);
+        return headerRecords.getCompound(0);
     }
 
     private static int getYear(byte firstByte) {
@@ -246,8 +315,9 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         return Integer.parseInt(s1, 2);
     }
 
-    private static void validateScanLine(CompoundData firstRealRecord) throws IOException {
-        final short scanLineNumber = firstRealRecord.getShort("scan line number from 1 to n");
-        Assert.state(scanLineNumber == 1, "scanLineNumber == 1");
+    private static void validateScanLine(CompoundData record, int number) throws IOException {
+        final short scanLineNumber = record.getShort("scan line number from 1 to n");
+//        Assert.state(scanLineNumber ==
+//                     number, String.format("scanLineNumber expected: %d, actual == %s.", number, scanLineNumber));
     }
 }
