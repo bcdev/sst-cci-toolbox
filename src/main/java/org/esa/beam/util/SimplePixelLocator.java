@@ -18,15 +18,7 @@ package org.esa.beam.util;
 
 import org.esa.beam.util.math.MathUtils;
 
-import javax.persistence.NamedNativeQueries;
-import java.awt.Rectangle;
 import java.awt.geom.Point2D;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
 
 /**
  * A {@link org.esa.beam.util.PixelLocator} implementation using a quad-tree algorithm.
@@ -41,6 +33,10 @@ public class SimplePixelLocator implements PixelLocator {
 
     private final SampleSource lonSource;
     private final SampleSource latSource;
+
+    private Point2D cachedPoint = null;
+    private double cachedLon = Double.MAX_VALUE;
+    private double cachedLat = Double.MAX_VALUE;
 
     /**
      * Constructs a new instance of this class.
@@ -94,11 +90,6 @@ public class SimplePixelLocator implements PixelLocator {
 
         return false;
     }
-
-    private Point2D cachedPoint = null;
-    private double cachedLon = Double.MAX_VALUE;
-    private double cachedLat = Double.MAX_VALUE;
-
 
     @Override
     public boolean getPixelLocation(double lon, double lat, Point2D p) {

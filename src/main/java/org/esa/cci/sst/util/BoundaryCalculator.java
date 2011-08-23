@@ -40,41 +40,6 @@ import java.util.List;
 public class BoundaryCalculator {
 
     /**
-     * Returns the pixel boundary of a product. The pixel boundary shall enclose only
-     * pixels where the geo-location is valid.
-     *
-     * @param product The product.
-     *
-     * @return the pixel boundary of the product supplied as argument.
-     *
-     * @throws Exception when the pixel boundary cannot not be calculated.
-     */
-    public Rectangle getPixelBoundary(Product product) throws Exception {
-        final GeoCoding geoCoding = product.getGeoCoding();
-        if (geoCoding == null) {
-            throw new Exception("Unable to get geo-coding for product '" + product.getName() + "'.");
-        }
-        final int w = product.getSceneRasterWidth();
-        final int h = product.getSceneRasterHeight();
-        int minX = getMinX(product);
-        int maxX = getMaxX(product);
-        int minY = 0;
-        int maxY = h - 1;
-        if (minX == -1 || maxX == -1) {
-            // no pair of opposing geo-coordinates at the horizontal boundaries is valid, try vertical boundaries
-            minX = 0;
-            maxX = w - 1;
-            minY = getMinY(product);
-            maxY = getMaxY(product);
-            if (minY == -1 || maxY == -1) {
-                // no pair of opposing geo-coordinates at the vertical boundaries is valid
-                throw new Exception("Unable to get pixel-boundary for product '" + product.getName() + "'.");
-            }
-        }
-        return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
-    }
-
-    /**
      * Returns the geo-boundary of a product. The geo-boundary shall enclose only
      * pixels where the geo-location is valid.
      *
@@ -138,6 +103,41 @@ public class BoundaryCalculator {
         }
 
         return createGeometry(geoBoundary.toArray(new Point[geoBoundary.size()]));
+    }
+
+    /**
+     * Returns the pixel boundary of a product. The pixel boundary shall enclose only
+     * pixels where the geo-location is valid.
+     *
+     * @param product The product.
+     *
+     * @return the pixel boundary of the product supplied as argument.
+     *
+     * @throws Exception when the pixel boundary cannot not be calculated.
+     */
+    private Rectangle getPixelBoundary(Product product) throws Exception {
+        final GeoCoding geoCoding = product.getGeoCoding();
+        if (geoCoding == null) {
+            throw new Exception("Unable to get geo-coding for product '" + product.getName() + "'.");
+        }
+        final int w = product.getSceneRasterWidth();
+        final int h = product.getSceneRasterHeight();
+        int minX = getMinX(product);
+        int maxX = getMaxX(product);
+        int minY = 0;
+        int maxY = h - 1;
+        if (minX == -1 || maxX == -1) {
+            // no pair of opposing geo-coordinates at the horizontal boundaries is valid, try vertical boundaries
+            minX = 0;
+            maxX = w - 1;
+            minY = getMinY(product);
+            maxY = getMaxY(product);
+            if (minY == -1 || maxY == -1) {
+                // no pair of opposing geo-coordinates at the vertical boundaries is valid
+                throw new Exception("Unable to get pixel-boundary for product '" + product.getName() + "'.");
+            }
+        }
+        return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
     }
 
     private static PGgeometry createGeometry(Point[] points) {
