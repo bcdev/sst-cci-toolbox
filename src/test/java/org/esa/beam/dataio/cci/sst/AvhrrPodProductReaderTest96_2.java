@@ -18,6 +18,7 @@ package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.datamodel.Product;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
