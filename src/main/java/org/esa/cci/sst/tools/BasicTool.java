@@ -33,11 +33,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
@@ -48,6 +53,38 @@ import java.util.logging.Logger;
  * @author Ralf Quast
  */
 public abstract class BasicTool {
+
+    static class SstLogFormatter extends Formatter {
+
+        private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+        @Override
+        public String format(LogRecord record) {
+            StringBuilder sb = new StringBuilder();
+
+            sb.append(TimeUtil.formatCcsdsUtcMillisFormat(new Date(record.getMillis())))
+                    .append(" ")
+                    .append(record.getLevel().getLocalizedName())
+                    .append(": ")
+                    .append(formatMessage(record))
+                    .append(LINE_SEPARATOR);
+
+            if (record.getThrown() != null) {
+                try {
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    record.getThrown().printStackTrace(pw);
+                    pw.close();
+                    sb.append(sw.toString());
+                } catch (Exception ex) {
+                    // ignore
+                }
+            }
+
+            return sb.toString();
+        }
+    }
+
 
     public static final String CONFIG_FILE_OPTION_NAME = "c";
     public static final String DEFAULT_CONFIGURATION_FILE_NAME = "mms-config.properties";
@@ -98,6 +135,10 @@ public abstract class BasicTool {
                 if (logger == null) {
                     logger = Logger.getLogger("org.esa.cci.sst");
                     logger.setLevel(Level.INFO);
+                    final SstLogFormatter formatter = new SstLogFormatter();
+                    for (Handler handler : logger.getHandlers()) {
+                        handler.setFormatter(formatter);
+                    }
                 }
             }
         }

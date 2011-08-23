@@ -142,6 +142,7 @@ public class MmdTool extends BasicTool {
      * @param mmd
      */
     private void writeMmdShuffled(NetcdfFileWriteable mmd) {
+        String condition = getCondition();
         // group variables by sensors
         Map<String, List<Variable>> variablesOfSensors = new HashMap<String, List<Variable>>();
         for (final Variable variable : mmd.getVariables()) {
@@ -160,8 +161,8 @@ public class MmdTool extends BasicTool {
             final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
                                                                getTime(Constants.PROPERTY_TARGET_START_TIME),
                                                                getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                                               getTargetPattern(),
-                                                               getDuplicateFlag());
+                                                               condition);
+            getLogger().info(String.format("%d matchups retrieved", matchups.size()));
             for (int i = 0; i < matchups.size(); ++i) {
                 recordOfMatchup.put(matchups.get(i).getId(), i);
             }
@@ -183,76 +184,69 @@ public class MmdTool extends BasicTool {
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         for (String sensorName : variablesOfSensors.keySet()) {
             final Query query;
+            String queryString;
             if ("history".equals(sensorName)) {
                 // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
-                query = getPersistenceManager().createNativeQuery("select u.id from (" +
-                                                                  "(select m.id id, f.path p, r.time t " +
-                                                                  "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                                                                  "where r.time >= ?3 and r.time < ?4 " +
-                                                                  "and r.referenceflag <> ?5 " +
-                                                                  "and m.refobs_id = r.id " +
-                                                                  "and m.pattern & ?2 = ?2 " +
-                                                                  "and c.matchup_id = m.id " +
-                                                                  "and o.id = c.observation_id " +
-                                                                  "and o.sensor = ?1 " +
-                                                                  "and f.id = o.datafile_id " +
-                                                                  ") union (" +
-                                                                  "select m.id id, ' ' p, r.time t " +
-                                                                  "from mm_matchup m, mm_observation r " +
-                                                                  "where r.time >= ?3 and r.time < ?4 " +
-                                                                  "and r.referenceflag <> ?5 " +
-                                                                  "and m.refobs_id = r.id " +
-                                                                  "and m.pattern & ?2 = ?2 " +
-                                                                  "and not exists (select f.id from mm_coincidence c, mm_observation o, mm_datafile f " +
-                                                                  "where c.matchup_id = m.id " +
-                                                                  "and o.id = c.observation_id " +
-                                                                  "and o.sensor = ?1 " +
-                                                                  "and f.id = o.datafile_id) " +
-                                                                  ") " +
-                                                                  "order by p, t) as u", Matchup.class);
+                queryString = "select u.id from (" +
+                        "(select m.id id, f.path p, r.time t " +
+                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "where r.time >= ?2 and r.time < ?3 " +
+                        "and m.refobs_id = r.id " +
+                        "and c.matchup_id = m.id " +
+                        "and o.id = c.observation_id " +
+                        "and o.sensor = ?1 " +
+                        "and f.id = o.datafile_id " +
+                        ") union (" +
+                        "select m.id id, ' ' p, r.time t " +
+                        "from mm_matchup m, mm_observation r " +
+                        "where r.time >= ?2 and r.time < ?3 " +
+                        "and m.refobs_id = r.id " +
+                        "and not exists (select f.id from mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "where c.matchup_id = m.id " +
+                        "and o.id = c.observation_id " +
+                        "and o.sensor = ?1 " +
+                        "and f.id = o.datafile_id) " +
+                        ") " +
+                        "order by p, t) as u";
 
             } else if (!"Implicit".equals(sensorName)) {
                 // second part of union introduced to access data for metop variables via refobs observation if metop is primary
-                query = getPersistenceManager().createNativeQuery("select u.id from (" +
-                                                                  "(select m.id id, f.path p, r.time t " +
-                                                                  "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                                                                  "where r.time >= ?3 and r.time < ?4 " +
-                                                                  "and r.referenceflag <> ?5 " +
-                                                                  "and m.refobs_id = r.id " +
-                                                                  "and m.pattern & ?2 = ?2 " +
-                                                                  "and c.matchup_id = m.id " +
-                                                                  "and o.id = c.observation_id " +
-                                                                  "and o.sensor = ?1 " +
-                                                                  "and f.id = o.datafile_id " +
-                                                                  ") union (" +
-                                                                  "select m.id id, f.path p, r.time t " +
-                                                                  "from mm_matchup m, mm_observation r, mm_datafile f " +
-                                                                  "where r.time >= ?3 and r.time < ?4 " +
-                                                                  "and r.referenceflag <> ?5 " +
-                                                                  "and r.sensor = ?1 " +
-                                                                  "and m.refobs_id = r.id " +
-                                                                  "and m.pattern & ?2 = ?2 " +
-                                                                  "and f.id = r.datafile_id) " +
-                                                                  "order by p, t) as u", Matchup.class);
+                queryString = "select u.id from (" +
+                        "(select m.id id, f.path p, r.time t " +
+                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "where r.time >= ?2 and r.time < ?3 " +
+                        "and m.refobs_id = r.id " +
+                        "and c.matchup_id = m.id " +
+                        "and o.id = c.observation_id " +
+                        "and o.sensor = ?1 " +
+                        "and f.id = o.datafile_id " +
+                        ") union (" +
+                        "select m.id id, f.path p, r.time t " +
+                        "from mm_matchup m, mm_observation r, mm_datafile f " +
+                        "where r.time >= ?2 and r.time < ?3 " +
+                        "and r.sensor = ?1 " +
+                        "and m.refobs_id = r.id " +
+                        "and f.id = r.datafile_id) " +
+                        "order by p, t) as u";
 
             } else {
-                query =
-                        getPersistenceManager().createNativeQuery("select m.id " +
-                                                                  "from mm_matchup m, mm_observation r, mm_datafile f " +
-                                                                  "where r.time >= ?3 and r.time < ?4 " +
-                                                                  "and r.referenceflag <> ?5 " +
-                                                                  "and m.refobs_id = r.id " +
-                                                                  "and m.pattern & ?2 = ?2 " +
-                                                                  "and f.id = r.datafile_id " +
-                                                                  "order by f.path, r.time", Matchup.class);
+                queryString = "select m.id " +
+                        "from mm_matchup m, mm_observation r, mm_datafile f " +
+                        "where r.time >= ?2 and r.time < ?3 " +
+                        "and m.refobs_id = r.id " +
+                        "and f.id = r.datafile_id " +
+                        "order by f.path, r.time";
 
             }
+            if (condition != null) {
+                queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
+            }
+            query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
             query.setParameter(1, sensorName);
-            query.setParameter(2, getTargetPattern());
-            query.setParameter(3, getTime(Constants.PROPERTY_TARGET_START_TIME));
-            query.setParameter(4, getTime(Constants.PROPERTY_TARGET_STOP_TIME));
-            query.setParameter(5, getDuplicateFlag());
+            query.setParameter(2, getTime(Constants.PROPERTY_TARGET_START_TIME));
+            query.setParameter(3, getTime(Constants.PROPERTY_TARGET_STOP_TIME));
             List<Matchup> matchups = query.getResultList();
+            getLogger().info(String.format("%d matchups retrieved for %s", matchups.size(), sensorName));
             for (final Matchup matchup : matchups) {
                 try {
                     final int targetRecordNo = recordOfMatchup.get(matchup.getId());
@@ -354,8 +348,7 @@ public class MmdTool extends BasicTool {
         final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
                                                               getTime(Constants.PROPERTY_TARGET_START_TIME),
                                                               getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                                              getTargetPattern(),
-                                                              getDuplicateFlag());
+                                                              getCondition());
 
         for (int targetRecordNo = 0, matchupListSize = matchupList.size();
              targetRecordNo < matchupListSize; targetRecordNo++) {
@@ -363,7 +356,7 @@ public class MmdTool extends BasicTool {
             final ReferenceObservation referenceObservation = matchup.getRefObs();
 
             if (getLogger().isLoggable(Level.INFO)) {
-                getLogger().info(MessageFormat.format(
+                getLogger().fine(MessageFormat.format(
                         "writing data for matchup {0} ({1}/{2})", matchup.getId(), targetRecordNo + 1,
                         matchupListSize));
             }
@@ -506,7 +499,7 @@ public class MmdTool extends BasicTool {
         if (removedReader != null) {
             removedReader.close();
             final String message = MessageFormat.format("closing input file {0}", datafile.getPath());
-            getLogger().info(message);
+            getLogger().fine(message);
             //final String message2 = MessageFormat.format("mem max {0} total {1} free {2})", Runtime.getRuntime().maxMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().freeMemory());
             //getLogger().info(message2);
         } else {
@@ -564,8 +557,8 @@ public class MmdTool extends BasicTool {
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
                                                getTime(Constants.PROPERTY_TARGET_START_TIME),
                                                getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                               getTargetPattern(),
-                                               getDuplicateFlag());
+                                               getCondition());
+        getLogger().info(String.format("%d matchups in time interval", matchupCount));
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
         } else {
@@ -584,18 +577,12 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private int getTargetPattern() {
-        try {
-            return Integer.parseInt(getConfiguration().getProperty("mms.target.pattern", "0"), 16);
-        } catch (NumberFormatException e) {
-            throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-    }
-
-    private int getDuplicateFlag() {
-        final String duplicateFlagProperty = getConfiguration().getProperty("mms.target.duplicateFlag", "-1");
-        return Integer.parseInt(duplicateFlagProperty);
+    // e.g. "m.pattern & ?2 = ?2"  (select matchups with certain sensors)
+    // or   "r.referenceflag <> 4"  (avoid marked duplicates)
+    // or   "r.dataset = 0 and (r.referenceflag = 0 or r.referenceflag = 1)"  (rrdp test dataset)
+    // or   "r.dataset = 0 and r.referenceflag = 2"  (rrdp algsel dataset)
+    private String getCondition() {
+        return getConfiguration().getProperty("mms.target.condition", null);
     }
 
     private void defineVariables(NetcdfFileWriteable mmdFile) {

@@ -76,7 +76,7 @@ public class FlagsUpdateTool extends BasicTool {
         // determine MMD' variables
         final Item referenceFlagColumn = reader.getColumn("matchup.reference_flag");
         if (referenceFlagColumn != null) {
-            getLogger().info("going to update column referenceflag of matchup reference observations");
+            getLogger().fine("going to update column referenceflag of matchup reference observations");
         }
         // loop over matchups
         final int numRecords = reader.getNumRecords();

@@ -88,6 +88,13 @@ public final class TimeUtil {
         return CCSDS_UTC_FORMAT.format(time);
     }
 
+    public static String formatCcsdsUtcMillisFormat(Date time) {
+        if (time == null) {
+            return "";
+        }
+        return CCSDS_UTC_MILLIS_FORMAT.format(time);
+    }
+
     public static Date parseCcsdsUtcFormat(String timeString) throws ParseException {
         if (timeString.length() == 20) {
             return CCSDS_UTC_FORMAT.parse(timeString);

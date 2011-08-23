@@ -170,7 +170,7 @@ public class IngestionTool extends BasicTool {
             if (readerSpec == null || inputDirPath == null || sensor == null) {
                 continue;
             }
-            getLogger().info("Looking for " + sensor + " files");
+            getLogger().fine("Looking for " + sensor + " files");
             final String filenamePattern = configuration.getProperty(
                     String.format("mms.source.%d.filenamePattern", i), ".*");
             final File inputDir = new File(archiveRoot, inputDirPath);
@@ -205,7 +205,7 @@ public class IngestionTool extends BasicTool {
         // loop over records
         for (int recordNo = 0; recordNo < reader.getNumRecords(); ++recordNo) {
             if (recordNo % 65536 == 0 && recordNo > 0) {
-                getLogger().info(MessageFormat.format("Reading record {0} {1}.", sensorName, recordNo));
+                getLogger().fine(MessageFormat.format("Reading record {0} {1}.", sensorName, recordNo));
             }
             try {
                 final Observation observation = reader.readObservation(recordNo);

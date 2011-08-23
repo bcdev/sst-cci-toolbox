@@ -180,7 +180,7 @@ public class Arc1ProcessingTool extends BasicTool {
             String sensorSpecificQueryString = AVHRR_MATCHING_OBSERVATIONS_QUERY.replace("LIKE 'avhrr_orb.%'",
                                                                                          String.format("= '%s'", sensorName));
             allPointsQuery = getPersistenceManager().createNativeQuery(sensorSpecificQueryString, Object[].class);
-            getLogger().info(String.format("sensor specific query %s", sensorSpecificQueryString));
+            getLogger().fine(String.format("sensor specific query %s", sensorSpecificQueryString));
         }
         allPointsQuery.setParameter(1, startTime);
         allPointsQuery.setParameter(2, endTime);
