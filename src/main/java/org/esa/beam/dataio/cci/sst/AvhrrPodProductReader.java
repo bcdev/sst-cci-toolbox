@@ -133,7 +133,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     }
 
     Product createProduct() throws IOException {
-        final Product product = new Product(file.getName(), getReaderPlugIn().getFormatNames()[0], 409, getNumScans(), this);
+        final Product product = new Product(file.getName(), getReaderPlugIn().getFormatNames()[0], 409, scanlines.size(), this);
         product.setFileLocation(file);
         product.setStartTime(getStartTime());
         product.setEndTime(getEndTime());
@@ -151,7 +151,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     }
 
     ProductData.UTC getStartTime() throws IOException {
-        final CompoundData firstRecord = getFirstRecord();
+        final CompoundData firstRecord = scanlines.get(0);
 
         final SequenceData dateSequence = firstRecord.getSequence(1);
         final byte firstByte = dateSequence.getByte(0);
@@ -173,7 +173,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     }
 
     ProductData.UTC getEndTime() throws IOException {
-        final CompoundData lastRealRecord = getLastRealRecord();
+        final CompoundData lastRealRecord = scanlines.get(scanlines.size() - 1);
 
         final SequenceData dateSequence = lastRealRecord.getSequence(1);
         final byte firstByte = dateSequence.getByte(0);
@@ -205,8 +205,8 @@ public class AvhrrPodProductReader extends AbstractProductReader {
             final CompoundData compound = records.getCompound(i);
             scanlines.add(compound);
         }
-        sortScanlines();
         removeInvalidScanlines();
+        sortScanlines();
     }
 
     private void sortScanlines() {
@@ -230,7 +230,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
             final short scanlineNumber = scanline.getShort(SCAN_LINE_NUMBER);
             final boolean isDuplicate = scanlineNumbers.contains(scanlineNumber);
             final boolean isInvalid = scanlineNumber < 1;
-            final String qualityString = Integer.toBinaryString(scanline.getInt(QUALITY_INDICATORS));
+            final String qualityString = getQualityString(scanline);
             final boolean isFatal = qualityString.startsWith("1");
             final boolean hasNoEarthLocation = qualityString.charAt(5) == '1';
             if(isDuplicate || isInvalid || isFatal || hasNoEarthLocation) {
@@ -242,8 +242,15 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         scanlines.removeAll(toRemove);
     }
 
-    int getNumScans() throws IOException {
-        return readHeader().getShort(NUMBER_OF_SCANS);
+    private static String getQualityString(CompoundData scanline) throws IOException {
+        final StringBuilder qualityString = new StringBuilder(Integer.toBinaryString(scanline.getInt(QUALITY_INDICATORS)));
+        final int length = qualityString.length();
+        if (length < 32) {
+            for (int i = 0; i < 32 - length; i++) {
+                qualityString.insert(0, '0');
+            }
+        }
+        return qualityString.toString();
     }
 
     int getNumRecords() {
@@ -293,16 +300,6 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         }
     }
 
-    private CompoundData getFirstRecord() throws IOException {
-        final CompoundData firstRecord = scanlines.get(0);
-        validateScanLine(firstRecord, 1);
-        return firstRecord;
-    }
-
-    private CompoundData getLastRealRecord() throws IOException {
-        return scanlines.get(scanlines.size() - 1);
-    }
-
     private CompoundData readHeader() throws IOException {
         final CompoundType headerType = COMPOUND("file", MEMBER("header", SEQUENCE(HEADER_RECORD, 1)));
         DataFormat headerDataFormat = new DataFormat(headerType, ByteOrder.BIG_ENDIAN);
@@ -325,11 +322,5 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         String s1 = AvhrrReaderUtils.toBinaryString(secondByte);
         s1 = s + s1;
         return Integer.parseInt(s1, 2);
-    }
-
-    private static void validateScanLine(CompoundData record, int number) throws IOException {
-        final short scanLineNumber = record.getShort(SCAN_LINE_NUMBER);
-//        Assert.state(scanLineNumber ==
-//                     number, String.format("scanLineNumber expected: %d, actual == %s.", number, scanLineNumber));
     }
 }
