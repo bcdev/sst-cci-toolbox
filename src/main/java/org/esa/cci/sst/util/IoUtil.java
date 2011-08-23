@@ -146,7 +146,11 @@ public class IoUtil {
         array.setUnsigned(v.isUnsigned());
         final Attribute attribute = v.addAttribute(new Attribute(name, array));
         for (int i = 0; i < values.length; i++) {
-            array.setInt(i, Integer.valueOf(values[i]));
+            try {
+                array.setInt(i, Integer.valueOf(values[i]));
+            } catch (NumberFormatException e) {
+                array.setInt(i, -1);
+            }
         }
         return attribute;
     }
