@@ -211,9 +211,10 @@ public final class ColumnBuilder {
     }
 
     public ColumnBuilder flagValues(String flagValues) {
-        Assert.argument(flagValues == null ||
-                        flagValues.matches(FLAG_MASKS_PATTERN),
-                        "Illegal flag values string '" + flagValues + "'.");
+//        Assert.argument(flagValues == null ||
+//                        flagValues.matches(FLAG_MASKS_PATTERN),
+//                        "Illegal flag values string '" + flagValues + "'.");
+        // todo - ts23Aug11 - find way to express flag values correctly
         this.flagValues = flagValues;
         return this;
     }

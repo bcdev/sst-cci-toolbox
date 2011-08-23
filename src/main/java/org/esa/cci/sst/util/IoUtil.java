@@ -21,7 +21,6 @@ import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
-import ucar.ma2.Index;
 import ucar.nc2.Attribute;
 import ucar.nc2.Group;
 import ucar.nc2.NetcdfFileWriteable;
@@ -88,14 +87,19 @@ public class IoUtil {
     private static void setFlagValues(final Variable variable, final ColumnBuilder cb) {
         final Attribute attribute = variable.findAttribute("flag_values");
         if (attribute != null) {
-            final StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < attribute.getLength(); i++) {
-                if (i > 0) {
-                    sb.append(" ");
+            if(attribute.getDataType().equals(DataType.STRING) || attribute.getDataType().equals(DataType.CHAR) ) {
+                final String stringValue = attribute.getStringValue();
+                cb.flagValues(stringValue);
+            } else {
+                final StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < attribute.getLength(); i++) {
+                    if (i > 0) {
+                        sb.append(" ");
+                    }
+                    sb.append(attribute.getNumericValue(i));
                 }
-                sb.append(attribute.getNumericValue(i));
+                cb.flagValues(sb.toString());
             }
-            cb.flagValues(sb.toString());
         }
     }
 
