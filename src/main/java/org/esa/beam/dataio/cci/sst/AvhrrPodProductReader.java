@@ -62,19 +62,26 @@ import static com.bc.ceres.binio.TypeBuilder.*;
 public class AvhrrPodProductReader extends AbstractProductReader {
 
     private static final String EARTH_LOCATIONS = "earth locations";
+    private static final String SCAN_LINE_NUMBER = "scan line number from 1 to n";
+    private static final String QUALITY_INDICATORS = "quality indicators";
+    private static final String DATE = "date";
+    private static final String MILLISECONDS = "milliseconds";
+    private static final String VALID_COUNT = "valid count";
+    private static final String VIDEO = "video";
+    private static final String NUMBER_OF_SCANS = "number of scans";
 
     static final CompoundType GAC_DATA_RECORD =
             COMPOUND("GAC record",
-                     MEMBER("scan line number from 1 to n", SHORT),
-                     MEMBER("date", SEQUENCE(BYTE, 2)),
-                     MEMBER("milliseconds", INT),
-                     MEMBER("quality indicators", INT),
+                     MEMBER(SCAN_LINE_NUMBER, SHORT),
+                     MEMBER(DATE, SEQUENCE(BYTE, 2)),
+                     MEMBER(MILLISECONDS, INT),
+                     MEMBER(QUALITY_INDICATORS, INT),
                      MEMBER("calibration coefficients", SEQUENCE(BYTE, 40)),
-                     MEMBER("valid count", UBYTE),
+                     MEMBER(VALID_COUNT, UBYTE),
                      MEMBER("sza", SEQUENCE(BYTE, 51)),
                      MEMBER(EARTH_LOCATIONS, SEQUENCE(SHORT, 102)),
                      MEMBER("telemetry", SEQUENCE(BYTE, 140)),
-                     MEMBER("video", SEQUENCE(BYTE, 2728)),
+                     MEMBER(VIDEO, SEQUENCE(BYTE, 2728)),
                      MEMBER("sza plus", SEQUENCE(BYTE, 20)),
                      MEMBER("clock drift", SEQUENCE(BYTE, 2)),
                      MEMBER("spare", SEQUENCE(BYTE, 22))
@@ -84,9 +91,9 @@ public class AvhrrPodProductReader extends AbstractProductReader {
             COMPOUND("header record",
                      MEMBER("spacecraft id", BYTE),
                      MEMBER("datatype", BYTE),
-                     MEMBER("date", SEQUENCE(BYTE, 2)),
+                     MEMBER(DATE, SEQUENCE(BYTE, 2)),
                      MEMBER("milliseconds", INT),
-                     MEMBER("number of scans", SHORT),
+                     MEMBER(NUMBER_OF_SCANS, SHORT),
                      MEMBER("fill", SEQUENCE(BYTE, 14)),
                      MEMBER("number of data gaps", SHORT),
                      MEMBER("fill", SEQUENCE(BYTE, 3194))
@@ -207,7 +214,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
             @Override
             public int compare(CompoundData o1, CompoundData o2) {
                 try {
-                    final String byteName = "scan line number from 1 to n";
+                    final String byteName = SCAN_LINE_NUMBER;
                     return o1.getShort(byteName) < o2.getShort(byteName) ? -1 : 1;
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -217,21 +224,26 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     }
 
     private void removeInvalidScanlines() throws IOException {
-        final List<CompoundData> invalids = new ArrayList<CompoundData>(3);
+        final List<CompoundData> toRemove = new ArrayList<CompoundData>(3);
         final Set<Short> scanlineNumbers = new HashSet<Short>(14000);
         for (CompoundData scanline : scanlines) {
-            final short scanlineNumber = scanline.getShort("scan line number from 1 to n");
-            if(scanlineNumbers.contains(scanlineNumber) || scanlineNumber < 1) {
-                invalids.add(scanline);
+            final short scanlineNumber = scanline.getShort(SCAN_LINE_NUMBER);
+            final boolean isDuplicate = scanlineNumbers.contains(scanlineNumber);
+            final boolean isInvalid = scanlineNumber < 1;
+            final String qualityString = Integer.toBinaryString(scanline.getInt(QUALITY_INDICATORS));
+            final boolean isFatal = qualityString.startsWith("1");
+            final boolean hasNoEarthLocation = qualityString.charAt(5) == '1';
+            if(isDuplicate || isInvalid || isFatal || hasNoEarthLocation) {
+                toRemove.add(scanline);
             } else {
                 scanlineNumbers.add(scanlineNumber);
             }
         }
-        scanlines.removeAll(invalids);
+        scanlines.removeAll(toRemove);
     }
 
     int getNumScans() throws IOException {
-        return readHeader().getShort("number of scans");
+        return readHeader().getShort(NUMBER_OF_SCANS);
     }
 
     int getNumRecords() {
@@ -273,7 +285,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     }
 
     private void validateCompound(int i) throws IOException {
-        final int validCount = scanlines.get(i).getUByte("valid count");
+        final int validCount = scanlines.get(i).getUByte(VALID_COUNT);
         if (validCount != 51) {
             final Logger logger = Logger.getLogger("org.esa.cci.sst");
             logger.warning(MessageFormat.format("Invalid geo-location data in file {0} and scanline {1}{2}",
@@ -316,7 +328,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     }
 
     private static void validateScanLine(CompoundData record, int number) throws IOException {
-        final short scanLineNumber = record.getShort("scan line number from 1 to n");
+        final short scanLineNumber = record.getShort(SCAN_LINE_NUMBER);
 //        Assert.state(scanLineNumber ==
 //                     number, String.format("scanLineNumber expected: %d, actual == %s.", number, scanLineNumber));
     }
