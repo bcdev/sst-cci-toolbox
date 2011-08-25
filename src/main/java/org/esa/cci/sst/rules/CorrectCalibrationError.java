@@ -39,7 +39,9 @@ class CorrectCalibrationError extends Rule {
         final double correction = 0.2 / sourceColumn.getScaleFactor().doubleValue();
         for (int i = 0; i < sourceArray.getSize(); i++) {
             final Number value = (Number) sourceArray.getObject(i);
-            array.setShort(i, (short) (value.shortValue() + correction));
+            if (!value.equals(sourceColumn.getFillValue())) {
+                array.setShort(i, (short) (value.shortValue() + correction));
+            }
         }
         return array;
     }
