@@ -46,7 +46,7 @@ public class ArcBandPartReader extends CfBandPart {
 
     private static final String LONGITUDE_BAND_NAME = "lon";
     private static final String DIMENSION_NAME_WIDTH = "scan_elem";
-    private static final String DIMENSION_NAME_HEIGHT = "scan_line";
+    private static final String DIMENSION_NAME_HEIGHT = "l1b_record";
     private static final double FILL_VALUE = -1.0E30;
     private final String locationFile;
 
