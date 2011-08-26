@@ -81,6 +81,7 @@ public class MmdTool extends BasicTool {
     private final List<String> targetColumnNames = new ArrayList<String>(500);
 
     private final Cache<String, Reader> readerCache = new Cache<String, Reader>(10);
+    private Reader cachedObservationReader;
 
     private int matchupCount;
 
@@ -107,13 +108,7 @@ public class MmdTool extends BasicTool {
 
             mmd = tool.createMmd();
             mmd = tool.defineMmd(mmd);
-            // shuffled becomes the default, now
-            final String writeShuffled = tool.getConfiguration().getProperty("mms.target.shuffled", "true");
-            if (!"false".equals(writeShuffled)) {
-                tool.writeMmdShuffled(mmd);
-            } else {
-                tool.writeMmd(mmd);
-            }
+            tool.writeMmdShuffled(mmd);
         } catch (ToolException e) {
             tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -179,11 +174,12 @@ public class MmdTool extends BasicTool {
 //            }
 //        }
         // memorise previous datafile
-        DataFile previousDataFile = null;
-        DataFile previousRefObsDataFile = null;
+        final Set<String> keys = variablesOfSensors.keySet();
+        final String[] sensorNames = keys.toArray(new String[keys.size()]);
+        Arrays.sort(sensorNames);
         // loop over sensors, matchups ordered by sensor files, variables of sensor
-        for (String sensorName : variablesOfSensors.keySet()) {
-            final Query query;
+        DataFile previousDataFile = null;
+        for (String sensorName : sensorNames) {
             String queryString;
             if ("history".equals(sensorName)) {
                 // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
@@ -241,7 +237,7 @@ public class MmdTool extends BasicTool {
             if (condition != null) {
                 queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
             }
-            query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
+            final Query query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
             query.setParameter(1, sensorName);
             query.setParameter(2, getTime(Constants.PROPERTY_TARGET_START_TIME));
             query.setParameter(3, getTime(Constants.PROPERTY_TARGET_STOP_TIME));
@@ -262,7 +258,7 @@ public class MmdTool extends BasicTool {
                     for (final Variable variable : variablesOfSensors.get(sensorName)) {
                         Reader observationReader = null;
                         if (observation != null) {
-                            observationReader = getReader(observation.getDatafile());
+                            observationReader = getReader(observation.getDatafile(), false);
                             if (shouldFilter(referenceObservation, observationReader, observation)) {
                                 continue;
                             }
@@ -270,7 +266,7 @@ public class MmdTool extends BasicTool {
                         final Item targetColumn = columnRegistry.getColumn(variable.getName());
                         final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                         if ("Implicit".equals(sourceColumn.getName())) {
-                            final Reader referenceObservationReader = getReader(referenceObservation.getDatafile());
+                            final Reader referenceObservationReader = getReader(referenceObservation.getDatafile(), true);
                             final Context context = new ContextBuilder()
                                     .matchup(matchup)
                                     .observation(observation)
@@ -344,70 +340,6 @@ public class MmdTool extends BasicTool {
         return false;
     }
 
-    private void writeMmd(NetcdfFileWriteable mmd) {
-        final List<Matchup> matchupList = Queries.getMatchups(getPersistenceManager(),
-                                                              getTime(Constants.PROPERTY_TARGET_START_TIME),
-                                                              getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                                              getCondition());
-
-        for (int targetRecordNo = 0, matchupListSize = matchupList.size();
-             targetRecordNo < matchupListSize; targetRecordNo++) {
-            final Matchup matchup = matchupList.get(targetRecordNo);
-            final ReferenceObservation referenceObservation = matchup.getRefObs();
-
-            if (getLogger().isLoggable(Level.INFO)) {
-                getLogger().fine(MessageFormat.format(
-                        "writing data for matchup {0} ({1}/{2})", matchup.getId(), targetRecordNo + 1,
-                        matchupListSize));
-            }
-
-            for (final Variable variable : mmd.getVariables()) {
-                final Item targetColumn = columnRegistry.getColumn(variable.getName());
-                final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
-                if ("Implicit".equals(sourceColumn.getName())) {
-                    final String sensorName = targetColumn.getSensor().getName();
-                    final Observation observation = findObservation(sensorName, matchup);
-                    Reader observationReader = null;
-                    if (observation != null) {
-                        try {
-                            observationReader = getReader(observation.getDatafile());
-                        } catch (IOException e) {
-                            final String message = MessageFormat.format("observation {0}: {1}",
-                                                                        observation.getId(),
-                                                                        e.getMessage());
-                            getLogger().warning(message);
-                        }
-                    }
-                    final Reader referenceObservationReader;
-                    try {
-                        referenceObservationReader = getReader(referenceObservation.getDatafile());
-                    } catch (IOException e) {
-                        final String message = MessageFormat.format("observation {0}: {1}",
-                                                                    referenceObservation.getId(),
-                                                                    e.getMessage());
-                        throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
-                    }
-                    final Context context = new ContextBuilder()
-                            .matchup(matchup)
-                            .observation(observation)
-                            .observationReader(observationReader)
-                            .referenceObservationReader(referenceObservationReader)
-                            .targetVariable(variable)
-                            .dimensionConfiguration(dimensionConfiguration)
-                            .build();
-                    writeImplicitColumn(mmd, variable, targetRecordNo, targetColumn, context);
-                } else {
-                    final String sensorName = targetColumn.getSensor().getName();
-                    final Observation observation = findObservation(sensorName, matchup);
-                    if (observation != null) {
-                        writeColumn(mmd, variable, targetRecordNo, targetColumn, sourceColumn, observation,
-                                    referenceObservation);
-                    }
-                }
-            }
-        }
-    }
-
     private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int targetRecordNo, Item targetColumn,
                                      Context context) {
         try {
@@ -437,7 +369,7 @@ public class MmdTool extends BasicTool {
     private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
-            final Reader reader = getReader(observation.getDatafile());
+            final Reader reader = getReader(observation.getDatafile(), true);
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
@@ -475,36 +407,43 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private Reader getReader(DataFile datafile) throws IOException {
+    private Reader getReader(DataFile datafile, boolean useCache) throws IOException {
         final String path = datafile.getPath();
-        if (!readerCache.contains(path)) {
-            final Reader reader;
-            try {
-                final String message = MessageFormat.format("opening input file {0}", datafile.getPath());
+        if(readerCache.contains(path)) {
+            return readerCache.get(path);
+        } else if (cachedObservationReader != null && path.equals(cachedObservationReader.getDatafile().getPath())) {
+            return cachedObservationReader;
+        } else {
+            if(useCache) {
+                final Reader reader;
+                try {
+                    final String message = MessageFormat.format("opening input file {0}", path);
+                    getLogger().info(message);
+                    reader = ReaderFactory.open(datafile, getConfiguration());
+                } catch (Exception e) {
+                    throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
+                }
+                final Reader removedReader = readerCache.add(path, reader);
+                if (removedReader != null) {
+                    removedReader.close();
+                }
+                return reader;
+            } else {
+                if (cachedObservationReader != null) {
+                    cachedObservationReader.close();
+                }
+                final String message = MessageFormat.format("opening input file {0}", path);
                 getLogger().info(message);
-                reader = ReaderFactory.open(datafile, getConfiguration());
-            } catch (Exception e) {
-                throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
-            }
-            final Reader removedReader = readerCache.add(path, reader);
-            if (removedReader != null) {
-                removedReader.close();
+                cachedObservationReader = ReaderFactory.open(datafile, getConfiguration());
+                return cachedObservationReader;
             }
         }
-        return readerCache.get(path);
     }
 
     private void closeReader(DataFile datafile) {
-        final Reader removedReader = readerCache.remove(datafile.getPath());
-        if (removedReader != null) {
-            removedReader.close();
-            final String message = MessageFormat.format("closing input file {0}", datafile.getPath());
-            getLogger().fine(message);
-            //final String message2 = MessageFormat.format("mem max {0} total {1} free {2})", Runtime.getRuntime().maxMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().freeMemory());
-            //getLogger().info(message2);
-        } else {
-            final String message = MessageFormat.format("failed closing input file {0}", datafile.getPath());
-            getLogger().warning(message);
+        if (cachedObservationReader != null && datafile.getPath().equals(cachedObservationReader.getDatafile().getPath())) {
+            cachedObservationReader.close();
+            cachedObservationReader = null;
         }
     }
 
