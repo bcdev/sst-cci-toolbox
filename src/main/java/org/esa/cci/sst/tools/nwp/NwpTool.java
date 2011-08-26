@@ -304,7 +304,7 @@ class NwpTool {
         final Dimension yDimension = NwpUtil.findDimension(nwpSourceFile, "y");
         final Dimension xDimension = NwpUtil.findDimension(nwpSourceFile, "x");
 
-        final int matchupCount = matchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
+        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
@@ -382,7 +382,7 @@ class NwpTool {
         final Dimension xDimension = NwpUtil.findDimension(nwpSourceFile, "x");
         final Dimension levDimension = NwpUtil.findDimension(nwpSourceFile, "lev");
 
-        final int matchupCount = matchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
+        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
         final int gz = levDimension.getLength();
@@ -441,7 +441,7 @@ class NwpTool {
     }
 
     private void copySensorVariablesStructure(String sensorName, NetcdfFile mmd, NetcdfFileWriteable mmdNwp) throws IOException {
-        final int matchupCount = matchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
+        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
         for (Dimension dimension : mmd.getDimensions()) {
             final String dimensionName = dimension.getName();
             if (dimensionName.startsWith(sensorName.substring(0, sensorName.indexOf('.'))) &&
@@ -487,7 +487,7 @@ class NwpTool {
             final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".nx");
 
             final Array sensorPatterns = NwpUtil.findVariable(mmd, "matchup.sensor_list").read();
-            final int matchupCount = matchupCount(sensorPatterns);
+            final int matchupCount = getMatchupCount(sensorPatterns);
             final String sensorMmdLocation = NwpUtil.createTempFile("mmd", ".nc", true).getPath();
             final NetcdfFileWriteable sensorMmd = NetcdfFileWriteable.createNew(sensorMmdLocation, true);
 
@@ -709,7 +709,7 @@ class NwpTool {
                 .append(sensorName.substring(sensorName.indexOf(".") + 2)).toString();
     }
 
-    private int matchupCount(Array sensorPatterns) {
+    private int getMatchupCount(Array sensorPatterns) {
         int matchupCount = 0;
         for (int i = 0; i < sensorPatterns.getSize(); ++i) {
 //            if ((sensorPatterns.getInt(i) & sensorPattern) != 0) {
