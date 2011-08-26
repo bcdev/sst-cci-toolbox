@@ -84,7 +84,7 @@ final class MatchupPattern extends AbstractImplicitRule {
             "avhrr_noaa_19 " +
             "avhrr_metop_02 " +
             "amsre " +
-            "tmi" +
+            "tmi " +
             "avhrr_md";
 
     @Override
