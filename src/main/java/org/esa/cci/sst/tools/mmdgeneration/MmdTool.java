@@ -80,7 +80,7 @@ public class MmdTool extends BasicTool {
     private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
     private final List<String> targetColumnNames = new ArrayList<String>(500);
 
-    private final Cache<String, Reader> readerCache = new Cache<String, Reader>(10);
+    private Cache<String, Reader> readerCache;
     private Reader cachedObservationReader;
 
     private int matchupCount;
@@ -467,6 +467,8 @@ public class MmdTool extends BasicTool {
         }
 
         readDimensionConfiguration(dimensionNames);
+        final int readerCacheSize = Integer.parseInt(getConfiguration().getProperty(Constants.PROPERTY_TARGET_READERCACHESIZE, "10"));
+        readerCache = new Cache<String, Reader>(readerCacheSize);
     }
 
     private NetcdfFileWriteable createMmd() throws IOException {
