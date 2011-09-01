@@ -129,7 +129,7 @@ public abstract class BasicTool {
         return name;
     }
 
-    public final Logger getLogger() {
+    public Logger getLogger() {
         if (logger == null) {
             synchronized (this) {
                 if (logger == null) {
@@ -178,7 +178,7 @@ public abstract class BasicTool {
         return errorHandler;
     }
 
-    public final Properties getConfiguration() {
+    public Properties getConfiguration() {
         return configuration;
     }
 
