@@ -22,6 +22,7 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 
@@ -31,7 +32,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class AvhrrMdReader extends MdReader {
+class AvhrrMdReader extends MdReader implements InsituSource {
 
     protected AvhrrMdReader(String sensorName) {
         super(sensorName);
@@ -72,7 +73,7 @@ class AvhrrMdReader extends MdReader {
 
     @Override
     public InsituSource getInsituSource() {
-        return null;
+        return this;
     }
 
     @Override
@@ -88,5 +89,31 @@ class AvhrrMdReader extends MdReader {
     @Override
     public int getElementCount() {
         return 0;
+    }
+
+    @Override
+    public final double readInsituLon(int recordNo) throws IOException {
+        return getFloat("insitu.longitude", recordNo);
+    }
+
+    @Override
+    public final double readInsituLat(int recordNo) throws IOException {
+        return getFloat("insitu.latitude", recordNo);
+    }
+
+    @Override
+    public final double readInsituTime(int recordNo) throws IOException {
+        return TimeUtil.secondsSince1981ToSecondsSinceEpoch(getInt("insitu.time", recordNo));
+    }
+
+    @Override
+    public final double readInsituSst(int recordNo) throws IOException {
+        final Variable sstVariable = getVariable("insitu.sea_surface_temperature");
+        final String unit = sstVariable.findAttribute("units").getStringValue();
+        if("celcius".equals(unit)) {
+            return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue() + 273.15;
+        } else {
+            return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue();
+        }
     }
 }
