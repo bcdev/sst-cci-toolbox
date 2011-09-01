@@ -108,7 +108,7 @@ public class MmdTool extends BasicTool {
 
             mmd = tool.createMmd();
             mmd = tool.defineMmd(mmd);
-            tool.writeMmdShuffled(mmd);
+            tool.writeMmdShuffled(mmd, mmd.getVariables());
         } catch (ToolException e) {
             tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -135,12 +135,13 @@ public class MmdTool extends BasicTool {
      * Writes MMD by having the input files in the outermost loop to avoid re-opening them.
      *
      * @param mmd
+     * @param mmdVariables
      */
-    private void writeMmdShuffled(NetcdfFileWriteable mmd) {
+    void writeMmdShuffled(NetcdfFileWriteable mmd, List<Variable> mmdVariables) {
         String condition = getCondition();
         // group variables by sensors
         Map<String, List<Variable>> variablesOfSensors = new HashMap<String, List<Variable>>();
-        for (final Variable variable : mmd.getVariables()) {
+        for (final Variable variable : mmdVariables) {
             final Item targetColumn = columnRegistry.getColumn(variable.getName());
             final String sensorName = targetColumn.getSensor().getName();
             List<Variable> variables = variablesOfSensors.get(sensorName);
@@ -298,8 +299,6 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
-
-
     }
 
     private Date getTime(String key) {
