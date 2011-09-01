@@ -69,7 +69,7 @@ public class SeviriMatchupElem extends Rule {
         }
         final GeoCoding geoCoding;
         try {
-            geoCoding = observationReader.getGeoCoding(refObs.getRecordNo());
+            geoCoding = observationReader.getGeoCoding(context.getObservation().getRecordNo());
         } catch (IOException e) {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
