@@ -21,6 +21,7 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Date;
@@ -115,7 +116,13 @@ class AtsrMdReader extends MdReader implements InsituSource {
 
     @Override
     public final double readInsituSst(int recordNo) throws IOException {
-        return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue();
+        final Variable sstVariable = getVariable("insitu.sea_surface_temperature");
+        final String unit = sstVariable.findAttribute("units").getStringValue();
+        if("celcius".equals(unit)) {
+            return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue() + 273.15;
+        } else {
+            return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue();
+        }
     }
 
     @Override
