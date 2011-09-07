@@ -28,6 +28,7 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.util.TimeUtil;
 
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -674,13 +675,28 @@ public class MatchupTool extends BasicTool {
         query.setParameter(3, refObs.getPoint().toString());
         query.setParameter(4, refObs.getName());
         query.setMaxResults(1);
-        @SuppressWarnings({"unchecked"})
-        final List<? extends Observation> observations = query.getResultList();
-        if (!observations.isEmpty()) {
-            // select temporally nearest common observation
-            return observations.get(0);
-        } else {
-            return null;
+        try {
+            @SuppressWarnings({"unchecked"})
+            final List<? extends Observation> observations = query.getResultList();
+            if (!observations.isEmpty()) {
+                // select temporally nearest common observation
+                return observations.get(0);
+            } else {
+                return null;
+            }
+        } catch (PersistenceException e) {
+            if (e.getMessage().startsWith("ERROR: BOOM! Could not generate outside point!")) {
+                getLogger().warning("skipping chunk up to " + sensorName + " for matchup " + refObs.getId() + ": " + e.getMessage());
+                try {
+                    getPersistenceManager().rollback();
+                } catch (Exception _) {
+                    // ignore
+                }
+                getPersistenceManager().transaction();
+                return null;
+            } else {
+                throw e;
+            }
         }
     }
 

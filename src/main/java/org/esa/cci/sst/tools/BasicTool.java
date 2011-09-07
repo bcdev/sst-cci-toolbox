@@ -24,6 +24,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.esa.beam.framework.gpf.GPF;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.TimeUtil;
@@ -255,6 +256,10 @@ public abstract class BasicTool {
 
     public final Sensor getSensor(final String sensorName) {
         return (Sensor) getPersistenceManager().pick("select s from Sensor s where s.name = ?1", sensorName);
+    }
+
+    public final DataFile getDataFile(final String path) {
+        return (DataFile) getPersistenceManager().pick("select f from DataFile f where f.path = ?1", path);
     }
 
     public void initialize() {

@@ -52,19 +52,31 @@ import java.util.regex.Pattern;
  */
 public class Arc1ProcessingTool extends BasicTool {
 
+//    private static final String AVHRR_MATCHING_OBSERVATIONS_QUERY =
+//            "SELECT m.id, ST_astext(ref.point), f.path, s.name, s.pattern " +
+//                    "FROM mm_observation o, mm_coincidence c, mm_matchup m, " +
+//                    "     mm_observation ref, mm_datafile f, mm_sensor s " +
+//                    "WHERE o.sensor LIKE 'avhrr_orb.%' " +
+//                    "AND c.observation_id = o.id " +
+//                    "AND m.id = c.matchup_id " +
+//                    "AND ref.id = m.refobs_id " +
+//                    "AND ref.time >= ? " +
+//                    "AND ref.time < ? " +
+//                    "AND f.id = o.datafile_id " +
+//                    "AND s.id = f.sensor_id " +
+//                    "ORDER BY f.path";
     private static final String AVHRR_MATCHING_OBSERVATIONS_QUERY =
-            "SELECT m.id, ST_astext(ref.point), f.path, s.name, s.pattern " +
+            "SELECT ref.id, ST_astext(ref.point), f.path, s.name, s.pattern " +
                     "FROM mm_observation o, mm_coincidence c, mm_matchup m, " +
                     "     mm_observation ref, mm_datafile f, mm_sensor s " +
                     "WHERE o.sensor LIKE 'avhrr_orb.%' " +
                     "AND c.observation_id = o.id " +
-                    "AND m.id = c.matchup_id " +
-                    "AND ref.id = m.refobs_id " +
+                    "AND ref.id = c.matchup_id " +
                     "AND ref.time >= ? " +
                     "AND ref.time < ? " +
                     "AND f.id = o.datafile_id " +
                     "AND s.id = f.sensor_id " +
-                    "ORDER BY f.path";
+                    "ORDER BY f.path, ref.time, ref.id";
     public static final String LATLON_FILE_EXTENSION = ".latlon.txt";
 
     private static class MatchingObservationInfo {

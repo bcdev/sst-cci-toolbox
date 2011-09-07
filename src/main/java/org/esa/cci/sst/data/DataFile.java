@@ -16,6 +16,8 @@
 
 package org.esa.cci.sst.data;
 
+import org.apache.openjpa.persistence.jdbc.Index;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -63,6 +65,7 @@ public class DataFile {
         this.id = id;
     }
 
+    @Index
     public String getPath() {
         return path;
     }

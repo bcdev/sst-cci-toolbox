@@ -17,14 +17,20 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Re-writes given variables to given MMD file.
@@ -62,7 +68,38 @@ public class MmdUpdater extends BasicTool {
         final MmdTool mmdTool = new MmdTool();
         mmdTool.setCommandLineArgs(args);
         mmdTool.initialize();
-        mmdTool.writeMmdShuffled(mmd, variables);
+        final String mmdLocation = getConfiguration().getProperty("mms.mmdupdate.mmd");
+        final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(mmdLocation, null);
+        mmdTool.writeMmdShuffled(mmd, variables, recordOfMatchupMap);
+    }
+
+    private Map<Integer, Integer> createInvertedIndexOfMatchups(String path, File archiveRoot) {
+        try {
+            final String fileLocation;
+            if (archiveRoot == null || path.startsWith(File.separator)) {
+                fileLocation = path;
+            } else {
+                fileLocation = archiveRoot.getPath() + File.separator + path;
+            }
+            //validateFileLocation(fileLocation);
+            NetcdfFile ncFile = NetcdfFile.open(fileLocation);
+            Variable matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+            // allow for matchup_id instead of matchup.id to support ARC2 output
+            if (matchupIds == null) {
+                matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
+            }
+            int noOfRecords = matchupIds.getShape()[0];
+            final Array matchupId = matchupIds.read(new int[]{0}, matchupIds.getShape());
+            final HashMap<Integer, Integer> recordOfMatchupMap = new HashMap<Integer, Integer>();
+            for (int recordNo = 0; recordNo < noOfRecords; ++recordNo) {
+                int matchupIdx = matchupId.getInt(recordNo);
+                recordOfMatchupMap.put(matchupIdx, recordNo);
+            }
+            ncFile.close();
+            return recordOfMatchupMap;
+        } catch (Exception e) {
+            throw new ToolException("error reading matchup index from existing mmd " + path + ": " + e.getMessage(), e, ToolException.TOOL_ERROR);
+        }
     }
 
     private void close() {

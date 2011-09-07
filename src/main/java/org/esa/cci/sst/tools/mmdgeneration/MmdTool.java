@@ -108,7 +108,8 @@ public class MmdTool extends BasicTool {
 
             mmd = tool.createMmd();
             mmd = tool.defineMmd(mmd);
-            tool.writeMmdShuffled(mmd, mmd.getVariables());
+            final Map<Integer, Integer> recordOfMatchupMap = tool.createInvertedIndexOfMatchups(tool.getCondition());
+            tool.writeMmdShuffled(mmd, mmd.getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -136,8 +137,10 @@ public class MmdTool extends BasicTool {
      *
      * @param mmd
      * @param mmdVariables
+     * @param recordOfMatchup
+     * @param recordOfMatchup  inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
-    void writeMmdShuffled(NetcdfFileWriteable mmd, List<Variable> mmdVariables) {
+    void writeMmdShuffled(NetcdfFileWriteable mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
         String condition = getCondition();
         // group variables by sensors
         Map<String, List<Variable>> variablesOfSensors = new HashMap<String, List<Variable>>();
@@ -150,18 +153,6 @@ public class MmdTool extends BasicTool {
                 variablesOfSensors.put(sensorName, variables);
             }
             variables.add(variable);
-        }
-        // create inverted index of matchups
-        final Map<Integer, Integer> recordOfMatchup = new HashMap<Integer, Integer>();
-        {
-            final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
-                                                               getTime(Constants.PROPERTY_TARGET_START_TIME),
-                                                               getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                                               condition);
-            getLogger().info(String.format("%d matchups retrieved", matchups.size()));
-            for (int i = 0; i < matchups.size(); ++i) {
-                recordOfMatchup.put(matchups.get(i).getId(), i);
-            }
         }
         // trace output
 //        for (String sensorName : variablesOfSensors.keySet()) {
@@ -299,6 +290,21 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
+    }
+
+    private Map<Integer, Integer> createInvertedIndexOfMatchups(String condition) {
+        final Map<Integer, Integer> recordOfMatchup = new HashMap<Integer, Integer>();
+        {
+            final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
+                                                               getTime(Constants.PROPERTY_TARGET_START_TIME),
+                                                               getTime(Constants.PROPERTY_TARGET_STOP_TIME),
+                                                               condition);
+            getLogger().info(String.format("%d matchups retrieved", matchups.size()));
+            for (int i = 0; i < matchups.size(); ++i) {
+                recordOfMatchup.put(matchups.get(i).getId(), i);
+            }
+        }
+        return recordOfMatchup;
     }
 
     private Date getTime(String key) {

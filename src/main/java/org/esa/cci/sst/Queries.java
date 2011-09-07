@@ -50,7 +50,7 @@ public class Queries {
             " from mm_matchup m, mm_observation r" +
             " where r.time >= ?1 and r.time < ?2" +
             " and r.id = m.refobs_id" +
-            " order by r.time";
+            " order by r.time, r.id";
 
     @SuppressWarnings({"unchecked"})
     public static List<? extends Item> getAllColumns(PersistenceManager pm) {
