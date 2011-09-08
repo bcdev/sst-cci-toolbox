@@ -122,6 +122,7 @@ public class MmdTool extends BasicTool {
                 } catch (IOException ignored) {
                 }
             }
+            tool.getPersistenceManager().close();
         }
     }
 
@@ -195,7 +196,7 @@ public class MmdTool extends BasicTool {
                         "and o.sensor = ?1 " +
                         "and f.id = o.datafile_id) " +
                         ") " +
-                        "order by p, t) as u";
+                        "order by p, t, id) as u";
 
             } else if (!"Implicit".equals(sensorName)) {
                 // second part of union introduced to access data for metop variables via refobs observation if metop is primary
@@ -215,7 +216,7 @@ public class MmdTool extends BasicTool {
                         "and r.sensor = ?1 " +
                         "and m.refobs_id = r.id " +
                         "and f.id = r.datafile_id) " +
-                        "order by p, t) as u";
+                        "order by p, t, id) as u";
 
             } else {
                 queryString = "select m.id " +
@@ -223,12 +224,13 @@ public class MmdTool extends BasicTool {
                         "where r.time >= ?2 and r.time < ?3 " +
                         "and m.refobs_id = r.id " +
                         "and f.id = r.datafile_id " +
-                        "order by f.path, r.time";
+                        "order by f.path, r.time, m.id";
 
             }
             if (condition != null) {
                 queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
             }
+            getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
             final Query query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
             query.setParameter(1, sensorName);
             query.setParameter(2, getTime(Constants.PROPERTY_TARGET_START_TIME));

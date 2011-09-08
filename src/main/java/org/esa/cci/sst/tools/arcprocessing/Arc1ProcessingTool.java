@@ -66,17 +66,17 @@ public class Arc1ProcessingTool extends BasicTool {
 //                    "AND s.id = f.sensor_id " +
 //                    "ORDER BY f.path";
     private static final String AVHRR_MATCHING_OBSERVATIONS_QUERY =
-            "SELECT ref.id, ST_astext(ref.point), f.path, s.name, s.pattern " +
-                    "FROM mm_observation o, mm_coincidence c, mm_matchup m, " +
-                    "     mm_observation ref, mm_datafile f, mm_sensor s " +
+            "SELECT r.id, ST_astext(r.point), f.path, s.name, s.pattern " +
+                    "FROM mm_observation o, mm_coincidence c, " +
+                    "     mm_observation r, mm_datafile f, mm_sensor s " +
                     "WHERE o.sensor LIKE 'avhrr_orb.%' " +
                     "AND c.observation_id = o.id " +
-                    "AND ref.id = c.matchup_id " +
-                    "AND ref.time >= ? " +
-                    "AND ref.time < ? " +
+                    "AND r.id = c.matchup_id " +
+                    "AND r.time >= ? " +
+                    "AND r.time < ? " +
                     "AND f.id = o.datafile_id " +
                     "AND s.id = f.sensor_id " +
-                    "ORDER BY f.path, ref.time, ref.id";
+                    "ORDER BY f.path, r.time, r.id";
     public static final String LATLON_FILE_EXTENSION = ".latlon.txt";
 
     private static class MatchingObservationInfo {
@@ -108,6 +108,8 @@ public class Arc1ProcessingTool extends BasicTool {
             tool.getErrorHandler().terminate(e);
         } catch (Exception e) {
             tool.getErrorHandler().terminate(new ToolException("Tool failed.", e, ToolException.TOOL_ERROR));
+        } finally {
+            tool.getPersistenceManager().close();
         }
     }
 

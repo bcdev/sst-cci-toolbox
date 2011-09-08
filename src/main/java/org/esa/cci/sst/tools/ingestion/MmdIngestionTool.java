@@ -99,9 +99,11 @@ public class MmdIngestionTool extends BasicTool {
                 }
                 getPersistenceManager().commit();
             }
-            if (dataFile == null) {
+            boolean isNewDatafile = dataFile == null;
+            if (isNewDatafile) {
                 createDataFile(sensor, path);
             }
+
             initReader(dataFile, archiveRoot);
 
             getPersistenceManager().transaction();
@@ -109,7 +111,9 @@ public class MmdIngestionTool extends BasicTool {
             getPersistenceManager().commit();
 
             getPersistenceManager().transaction();
-            storeDataFile();
+            if (isNewDatafile) {
+                storeDataFile();
+            }
             ingestObservations(pattern);
             getPersistenceManager().commit();
         } catch (Exception e) {

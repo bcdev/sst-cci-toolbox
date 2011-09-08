@@ -40,6 +40,12 @@ public class PersistenceManager {
         entityManager = emFactory.createEntityManager();
     }
 
+    public void close() {
+        if (entityManager != null) {
+            entityManager.close();
+        }
+    }
+
     public void transaction() {
         entityManager.getTransaction().begin();
     }
