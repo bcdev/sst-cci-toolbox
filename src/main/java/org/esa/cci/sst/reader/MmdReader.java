@@ -163,6 +163,9 @@ public class MmdReader implements Reader {
         //calendar.set(GregorianCalendar.MINUTE, minute);
         //calendar.set(GregorianCalendar.SECOND, second);
         //calendar.set(GregorianCalendar.MILLISECOND, millisecond);
+        calendar.set(GregorianCalendar.HOUR_OF_DAY, 0);
+        calendar.set(GregorianCalendar.MINUTE, 0);
+        calendar.set(GregorianCalendar.SECOND, 0);
         calendar.set(GregorianCalendar.MILLISECOND, milliseconds);
         return calendar.getTimeInMillis();
     }
