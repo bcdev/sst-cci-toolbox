@@ -127,7 +127,7 @@ public class MmdUpdater extends BasicTool {
         final String updateVariables = getConfiguration().getProperty("mms.mmdupdate.variables");
         for (String updateVariable : updateVariables.split(",")) {
             final Variable variable = mmd.findVariable(NetcdfFile.escapeName(updateVariable));
-            if(variable == null) {
+            if (variable == null) {
                 getLogger().warning("Variable '" + updateVariable + "' not found in mmd file.");
             }
             variables.add(variable);

@@ -97,32 +97,35 @@ public class MmdTool extends BasicTool {
      */
     public static void main(String[] args) {
         final MmdTool tool = new MmdTool();
+        tool.run(args);
+    }
 
+    private void run(String[] args) {
         NetcdfFileWriteable mmd = null;
         try {
-            final boolean performWork = tool.setCommandLineArgs(args);
+            final boolean performWork = setCommandLineArgs(args);
             if (!performWork) {
                 return;
             }
-            tool.initialize();
+            initialize();
 
-            mmd = tool.createMmd();
-            mmd = tool.defineMmd(mmd);
-            final Map<Integer, Integer> recordOfMatchupMap = tool.createInvertedIndexOfMatchups(tool.getCondition());
-            tool.writeMmdShuffled(mmd, mmd.getVariables(), recordOfMatchupMap);
+            mmd = createMmd();
+            mmd = defineMmd(mmd);
+            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition());
+            writeMmdShuffled(mmd, mmd.getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
-            tool.getErrorHandler().terminate(e);
+            getErrorHandler().terminate(e);
         } catch (Throwable t) {
-            tool.getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
+            getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
             if (mmd != null) {
                 try {
-                    tool.closeReaders();
+                    closeReaders();
                     mmd.close();
                 } catch (IOException ignored) {
                 }
             }
-            tool.getPersistenceManager().close();
+            getPersistenceManager().close();
         }
     }
 
@@ -144,30 +147,8 @@ public class MmdTool extends BasicTool {
     void writeMmdShuffled(NetcdfFileWriteable mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
         String condition = getCondition();
         // group variables by sensors
-        Map<String, List<Variable>> variablesOfSensors = new HashMap<String, List<Variable>>();
-        for (final Variable variable : mmdVariables) {
-            final Item targetColumn = columnRegistry.getColumn(variable.getName());
-            final String sensorName = targetColumn.getSensor().getName();
-            List<Variable> variables = variablesOfSensors.get(sensorName);
-            if (variables == null) {
-                variables = new ArrayList();
-                variablesOfSensors.put(sensorName, variables);
-            }
-            variables.add(variable);
-        }
-        // trace output
-//        for (String sensorName : variablesOfSensors.keySet()) {
-//            System.out.println("sensor |" + sensorName + "|");
-//            for (Variable variable : variablesOfSensors.get(sensorName)) {
-//                final Item targetColumn = columnRegistry.getColumn(variable.getName());
-//                final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
-//                final String targetSensorName = targetColumn.getSensor().getName();
-//                final String sourceSensorName = sourceColumn.getSensor().getName();
-//                System.out.println("v=" + variable.getName() + " t=" + targetColumn.getName() + "/" + targetSensorName + " s=" + sourceColumn.getName() + "/" + sourceSensorName);
-//            }
-//        }
-        // memorise previous datafile
-        final Set<String> keys = variablesOfSensors.keySet();
+        Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
+        final Set<String> keys = sensorMap.keySet();
         final String[] sensorNames = keys.toArray(new String[keys.size()]);
         Arrays.sort(sensorNames);
         // loop over sensors, matchups ordered by sensor files, variables of sensor
@@ -177,54 +158,68 @@ public class MmdTool extends BasicTool {
             if ("history".equals(sensorName)) {
                 // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
                 queryString = "select u.id from (" +
-                        "(select m.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        // matchup (here coincidence) with history observation uses history file
+                        "(select r.id id, f.path p, r.time t " +
+                        "from mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.refobs_id = r.id " +
-                        "and c.matchup_id = m.id " +
-                        "and o.id = c.observation_id " +
+                        "and c.matchup_id = r.id " +
+                        "and c.observation_id = o.id " +
                         "and o.sensor = ?1 " +
-                        "and f.id = o.datafile_id " +
+                        "and o.datafile_id = f.id " +
                         ") union (" +
-                        "select m.id id, ' ' p, r.time t " +
-                        "from mm_matchup m, mm_observation r " +
+                        // matchup without history uses file of reference observation
+                        "select r.id id, f.path p, r.time t " +
+                        "from mm_matchup m, mm_observation r, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.refobs_id = r.id " +
-                        "and not exists (select f.id from mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "and m.id = r.id " +
+                        "and f.id = r.datafile_id " +
+                        "and not exists ( select o.id from mm_coincidence c, mm_observation o " +
                         "where c.matchup_id = m.id " +
-                        "and o.id = c.observation_id " +
-                        "and o.sensor = ?1 " +
-                        "and f.id = o.datafile_id) " +
+                        "and c.observation_id = o.id " +
+                        "and o.sensor = ?1 ) " +
                         ") " +
                         "order by p, t, id) as u";
 
-            } else if (!"Implicit".equals(sensorName)) {
+            } else if ("atsr_md".equals(sensorName) || "metop".equals(sensorName) || "avhrr_md".equals(sensorName)) {
                 // second part of union introduced to access data for metop variables via refobs observation if metop is primary
                 queryString = "select u.id from (" +
-                        "(select m.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        // matchup with sensor as related observation uses related observation file
+                        "(select r.id id, f.path p, r.time t " +
+                        "from mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.refobs_id = r.id " +
-                        "and c.matchup_id = m.id " +
-                        "and o.id = c.observation_id " +
+                        "and c.matchup_id = r.id " +
+                        "and c.observation_id = o.id " +
                         "and o.sensor = ?1 " +
-                        "and f.id = o.datafile_id " +
+                        "and o.datafile_id = f.id " +
                         ") union (" +
-                        "select m.id id, f.path p, r.time t " +
+                        // matchup with sensor as reference uses refobs file
+                        "select r.id id, f.path p, r.time t " +
                         "from mm_matchup m, mm_observation r, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
                         "and r.sensor = ?1 " +
-                        "and m.refobs_id = r.id " +
+                        "and m.id = r.id " +
                         "and f.id = r.datafile_id) " +
                         "order by p, t, id) as u";
 
+           } else if (!"Implicit".equals(sensorName)) {
+                // satellite observations use related observation file
+                queryString = "select r.id " +
+                        "from mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "where r.time >= ?2 and r.time < ?3 " +
+                        "and c.matchup_id = r.id " +
+                        "and c.observation_id = o.id " +
+                        "and o.sensor = ?1 " +
+                        "and o.datafile_id = f.id " +
+                        "order by f.path, r.time, r.id";
+
             } else {
-                queryString = "select m.id " +
+                // implicit rules use reference observation file
+                queryString = "select r.id " +
                         "from mm_matchup m, mm_observation r, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.refobs_id = r.id " +
+                        "and m.id = r.id " +
                         "and f.id = r.datafile_id " +
-                        "order by f.path, r.time, m.id";
+                        "order by f.path, r.time, r.id";
 
             }
             if (condition != null) {
@@ -249,7 +244,7 @@ public class MmdTool extends BasicTool {
                         }
                         previousDataFile = observation.getDatafile();
                     }
-                    for (final Variable variable : variablesOfSensors.get(sensorName)) {
+                    for (final Variable variable : sensorMap.get(sensorName)) {
                         Reader observationReader = null;
                         if (observation != null) {
                             observationReader = getReader(observation.getDatafile(), false);
@@ -307,6 +302,21 @@ public class MmdTool extends BasicTool {
             }
         }
         return recordOfMatchup;
+    }
+
+    private Map<String, List<Variable>> createSensorMap(List<Variable> mmdVariables) {
+        Map<String, List<Variable>> sensorMap = new HashMap<String, List<Variable>>();
+        for (final Variable variable : mmdVariables) {
+            final Item targetColumn = columnRegistry.getColumn(variable.getName());
+            final String sensorName = targetColumn.getSensor().getName();
+            List<Variable> variables = sensorMap.get(sensorName);
+            if (variables == null) {
+                variables = new ArrayList();
+                sensorMap.put(sensorName, variables);
+            }
+            variables.add(variable);
+        }
+        return sensorMap;
     }
 
     private Date getTime(String key) {
