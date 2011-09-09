@@ -74,19 +74,21 @@ class SeviriMatchupLine extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
 
-        short centerY;
-        try {
-            final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                    .referenceObservation(refObs)
-                    .recordNo(context.getObservation().getRecordNo())
-                    .shape(new int[]{1})
-                    .build();
-            centerY = observationReader.read("box_center_y_coord", extractDefinition).getShort(0);
-        } catch (IOException e) {
-            throw new RuleException(e);
-        }
+// position in sub-scene instead of position in orbit data requested
+//        short centerY;
+//        try {
+//            final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
+//                    .referenceObservation(refObs)
+//                    .recordNo(context.getObservation().getRecordNo())
+//                    .shape(new int[]{1})
+//                    .build();
+//            centerY = observationReader.read("box_center_y_coord", extractDefinition).getShort(0);
+//        } catch (IOException e) {
+//            throw new RuleException(e);
+//        }
 
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
-        return (int) pixelPos.getY() + centerY - 2;
+//        return (int) pixelPos.getY() + centerY - 2;
+        return (int) pixelPos.getY();
     }
 }

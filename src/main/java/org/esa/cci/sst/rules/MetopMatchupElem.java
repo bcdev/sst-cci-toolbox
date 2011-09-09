@@ -74,20 +74,22 @@ public class MetopMatchupElem extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
 
-        short centerX;
-        try {
-            final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                    .referenceObservation(refObs)
-                    .recordNo(context.getObservation().getRecordNo())
-                    .shape(new int[]{1})
-                    .build();
-            centerX = observationReader.read("box_center_x_coord", extractDefinition).getShort(0);
-        } catch (IOException e) {
-            throw new RuleException(e);
-        }
+// position in sub-scene instead of position in orbit data requested
+//        short centerX;
+//        try {
+//            final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
+//                    .referenceObservation(refObs)
+//                    .recordNo(context.getObservation().getRecordNo())
+//                    .shape(new int[]{1})
+//                    .build();
+//            centerX = observationReader.read("box_center_x_coord", extractDefinition).getShort(0);
+//        } catch (IOException e) {
+//            throw new RuleException(e);
+//        }
 
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
-        return (int) pixelPos.getX() + centerX - 10;
+//        return (int) pixelPos.getX() + centerX - 10;
+        return (int) pixelPos.getX();
     }
 
 }
