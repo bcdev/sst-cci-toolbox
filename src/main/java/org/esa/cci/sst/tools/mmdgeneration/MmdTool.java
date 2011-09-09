@@ -234,7 +234,12 @@ public class MmdTool extends BasicTool {
             getLogger().info(String.format("%d matchups retrieved for %s", matchups.size(), sensorName));
             for (final Matchup matchup : matchups) {
                 try {
-                    final int targetRecordNo = recordOfMatchup.get(matchup.getId());
+                    final Integer recordNo = recordOfMatchup.get(matchup.getId());
+                    if (recordNo == null) {
+                        getLogger().warning(String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
+                        continue;
+                    }
+                    final int targetRecordNo = recordNo;
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup);
                     if (observation != null && observation.getDatafile() != null &&

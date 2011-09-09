@@ -26,4 +26,15 @@ public class CalendarTest {
         calendar.set(Calendar.MILLISECOND, 46800000);
         assertEquals("2010-01-01T13:00:00.000Z", TimeUtil.formatCcsdsUtcMillisFormat(calendar.getTime()));
     }
+    @Test
+    public void testSomeDate() {
+        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.set(Calendar.YEAR, 2010);
+        calendar.set(Calendar.DAY_OF_YEAR, 334);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 83019029);
+        assertEquals("1038697419", String.valueOf((long) TimeUtil.dateToSecondsSinceEpoch(calendar.getTime())));
+    }
 }
