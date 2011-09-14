@@ -30,6 +30,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.media.jai.JAI;
+import javax.persistence.Query;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -268,6 +269,16 @@ public abstract class BasicTool {
         }
         getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
         persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, getConfiguration());
+        if (Boolean.parseBoolean((String) getConfiguration().get("mms.db.useindex"))) {
+            try {
+                persistenceManager.transaction();
+                final Query setSeqScanOff = persistenceManager.createNativeQuery("set enable_seqscan to off");
+                setSeqScanOff.executeUpdate();
+                persistenceManager.commit();
+            } catch (Exception e) {
+                getLogger().warning("failed setting seqscan to off: " + e.getMessage());
+            }
+        }
 
         final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
                                                            "1978-01-01T00:00:00Z");
