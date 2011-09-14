@@ -24,6 +24,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.ToolException;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
@@ -184,6 +185,9 @@ public class MmdReader implements Reader {
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(role));
+        if (variable == null) {
+            throw new ToolException("cannot find variable " + role + " in MMD'", ToolException.TOOL_CONFIGURATION_ERROR);
+        }
         final int recordNo = extractDefinition.getRecordNo();
 
         if (variable.getDataType().isString()) {

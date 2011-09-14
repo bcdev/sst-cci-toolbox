@@ -80,6 +80,7 @@ public class NwpArc3ProcessingTool extends BasicTool {
             tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.TOOL_CONFIGURATION_ERROR));
         } finally {
             tool.close();
+            tool.getPersistenceManager().close();
         }
     }
 

@@ -47,6 +47,7 @@ public class MmdIngestionTool extends BasicTool {
         }
         tool.initialize();
         tool.ingest();
+        tool.getPersistenceManager().close();
     }
 
 
