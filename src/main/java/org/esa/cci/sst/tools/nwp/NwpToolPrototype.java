@@ -215,7 +215,7 @@ public class NwpToolPrototype {
                         } else if (invalid2) {
                             slice2.setFloat(k, v1);
                         } else {
-                            slice2.setDouble(k, fi.f * v1 + (1.0 - fi.f) * v2);
+                            slice2.setDouble(k, (1.0 - fi.f) * v1 + fi.f * v2);
                         }
                     }
 
