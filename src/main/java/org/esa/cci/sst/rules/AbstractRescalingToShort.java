@@ -77,7 +77,11 @@ abstract class AbstractRescalingToShort extends Rule {
     protected abstract void configureTargetColumn(ColumnBuilder targetColumnBuilder);
 
     protected short rescale(double number, double scaleFactor, double offset) {
-        return (short) Math.floor((scaleFactor * number + (offset - targetAddOffset)) / targetScaleFactor + 0.5);
+        final double result = Math.floor((scaleFactor * number + (offset - targetAddOffset)) / targetScaleFactor + 0.5);
+        if (result > Short.MIN_VALUE && result <= Short.MAX_VALUE)
+            return (short) result;
+        else
+            return Short.MIN_VALUE;
     }
 
     private void apply(Array sourceArray, Array targetArray,
