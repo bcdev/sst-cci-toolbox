@@ -1,0 +1,15 @@
+#!/bin/bash
+
+source /etc/profile
+export MODULEPATH=/exports/work/geos_gits/geos_applications/modulefiles/SL5:$MODULEPATH
+module load python
+
+export MMS_HOME=/exports/home/v1mbottc/sst-cci-toolbox-0.2-SNAPSHOT
+MMS_INST=`pwd`
+export PYTHONPATH=$MMS_INST:$MMS_HOME/python:$PYTHONPATH
+export PATH=$MMS_INST:$MMS_HOME/bin:$PATH
+
+echo "using MMS instance $MMS_INST"
+echo "using MMS software $MMS_HOME"
+
+$*

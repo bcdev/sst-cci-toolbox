@@ -62,7 +62,7 @@ public class MmdIngestionTool extends BasicTool {
     private DataFile dataFile;
 
     private MmdIngestionTool() {
-        super("mmsingest.sh", "0.1");
+        super("reingestion-tool.sh", "0.1");
     }
 
     void ingest() {

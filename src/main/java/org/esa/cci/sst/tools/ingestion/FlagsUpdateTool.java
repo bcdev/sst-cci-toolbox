@@ -65,7 +65,7 @@ public class FlagsUpdateTool extends BasicTool {
     }
 
     private FlagsUpdateTool() {
-        super("mmsupdate.sh", "0.1");
+        super("flags-tool.sh", "0.1");
     }
 
     private void run() throws IOException {

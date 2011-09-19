@@ -43,7 +43,7 @@ public class MmdUpdater extends BasicTool {
     NetcdfFileWriteable mmd;
 
     protected MmdUpdater() {
-        super("mmdupdate.sh", "0.1");
+        super("mmdupdate-tool.sh", "0.1");
     }
 
     public static void main(String[] args) {

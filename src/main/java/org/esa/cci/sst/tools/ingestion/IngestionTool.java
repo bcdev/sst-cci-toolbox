@@ -69,7 +69,7 @@ public class IngestionTool extends BasicTool {
     }
 
     IngestionTool() {
-        super("mmsingest.sh", "0.1");
+        super("ingestion-tool.sh", "0.1");
     }
 
     /**

@@ -38,10 +38,10 @@ import java.util.regex.Pattern;
  * Tool responsible for extracting subscenes using the ARC1 and ARC2 processor.
  * Preconditions:
  * <ul>
- *     <li>thetis:mms/sst-cci-toolbox-0.1-SNAPSHOT/ installed</li>
+ *     <li>thetis:mms/sst-cci-toolbox-0.2-SNAPSHOT/ installed</li>
  *     <li>configured tmp dir and output dir on thetis exist</li>
  *     <li>eddie:mms linked to /exports/work/geos_gc_sst_cci/mms/ visible from eddie nodes</li>
- *     <li>eddie:mms/sst-cci-toolbox-0.1-SNAPSHOT/ installed</li>
+ *     <li>eddie:mms/sst-cci-toolbox-0.2-SNAPSHOT/ installed</li>
  *     <li>eddie:mms/ dir writable for temporary subdirectories</li>
  *     <li>eddie:tmp/ exists</li>
  *     <li>ssh key for login from thetis to eddie installed
@@ -95,7 +95,7 @@ public class Arc1ProcessingTool extends BasicTool {
     private PrintWriter cleanupCallsWriter = null;
 
     public Arc1ProcessingTool() {
-        super("mmsarc1x2calls.sh", "0.1");
+        super("arc12-tool.sh", "0.1");
     }
 
     public static void main(String[] args) {
@@ -282,7 +282,7 @@ public class Arc1ProcessingTool extends BasicTool {
             l1bPath = archiveRoot.getPath() + File.separator + l1bPath;
         }
         submitCallsWriter.format("scp %s eddie.ecdf.ed.ac.uk:tmp/\n", latLonFilePath);
-        submitCallsWriter.format("ssh eddie.ecdf.ed.ac.uk mms/sst-cci-toolbox-0.1-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
+        submitCallsWriter.format("ssh eddie.ecdf.ed.ac.uk sst-cci-toolbox-0.2-SNAPSHOT/bin/start_arc1x2.sh %s tmp/%s\n",
                 l1bPath, latLonFileName);
         collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
         collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", destPath, basename);

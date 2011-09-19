@@ -85,7 +85,7 @@ public class NwpArc3ProcessingTool extends BasicTool {
     }
 
     NwpArc3ProcessingTool() {
-        super("arc3processing.sh", "0.1");
+        super("arc3processing-notinuse.sh", "0.1");
     }
 
     private void writeCalls() throws IOException, ParseException {

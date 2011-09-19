@@ -86,7 +86,7 @@ public class MmdTool extends BasicTool {
     private int matchupCount;
 
     public MmdTool() {
-        super("mmsmmd.sh", "0.1");
+        super("mmd-tool.sh", "0.1");
     }
 
     /**

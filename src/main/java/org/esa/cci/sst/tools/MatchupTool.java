@@ -156,7 +156,7 @@ public class MatchupTool extends BasicTool {
     }
 
     private MatchupTool() {
-        super("mmsmatchup.sh", "0.1");
+        super("matchup-tool.sh", "0.1");
     }
 
     @Override

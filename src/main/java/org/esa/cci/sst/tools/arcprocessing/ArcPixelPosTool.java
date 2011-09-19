@@ -66,7 +66,7 @@ public class ArcPixelPosTool extends BasicTool {
     }
 
     public ArcPixelPosTool() {
-        super("arcpixelpos.sh", "0.1");
+        super("pixelpos-tool.sh", "0.1");
     }
 
     void createPixelPositions() throws IOException {
