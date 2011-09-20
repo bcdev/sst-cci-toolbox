@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. `dirname $0`/mms-env.sh
+. mymms
+. $MMS_HOME/bin/mms-env.sh
 
 # call pattern: nwparc3-run.sh <year> <month> <part-a-b-c-d-e-f> <sensor>
 # call example: nwparc3-run.sh 2010 12 a avhrr.n18

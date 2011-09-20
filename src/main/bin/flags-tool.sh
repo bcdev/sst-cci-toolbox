@@ -1,6 +1,7 @@
 #! /bin/sh
 
-. `dirname $0`/mms-env.sh
+. $MMS_INST/mymms
+. $MMS_HOME/bin/mms-env.sh
 
 # flags-tool.sh expects the following configuration parameters:
 #   mms.reingestion.filename  path to MMD' file

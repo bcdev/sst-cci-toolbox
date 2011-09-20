@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. `dirname $0`/mms-env.sh
+. mymms
+. $MMS_HOME/bin/mms-env.sh
 
 # call pattern: reingest12-run.sh <year> <month> <part-a-b-c-d>
 # call example: reingest12-run.sh 2010 12 a

@@ -1,42 +1,15 @@
 #!/bin/bash
-# sets MMS_ variables for -start.sh, -run.sh, -tool.sh scripts
+
+# MMS function definitions
+# useage: . $MMS_HOME/bin/mms-env.sh  (in xxx-start.sh and xxx-run.sh)
 
 set -e # one fails, all fail
-set -a
-ulimit -s unlimited
-umask 007
+#set -a # auto-export variables
 
-test $MMS_INST    || MMS_INST=`pwd`
-
-if [ -z $MMS_HOME ]; then
-    bindir=`dirname $0`
-    basedir=`cd $bindir/..; pwd`
-    export MMS_HOME="$basedir"
-fi
-
-if [ $MMS_CONFIG ]; then
-    continue
-elif [ -e $MMS_INST/mms-eddie.properties ]; then
-    MMS_CONFIG=$MMS_INST/mms-eddie.properties
-else
-    MMS_CONFIG=$MMS_HOME/config/mms-eddie.properties
-fi
-
-test $MMS_ARCHIVE || MMS_ARCHIVE=/exports/work/geos_gc_sst_cci/stagingarea
-test $MMS_TEMP    || MMS_TEMP=/exports/work/geos_gc_sst_cci/temparea
-
-test $MMS_GBCS    || MMS_GBCS=/exports/work/geos_gc_sst_cci/avhrr/GBCS
-test $MMS_CDO     || MMS_CDO=/exports/work/geos_gc_sst_cci/mms
-test $MMS_ARC3    || MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3
-
-if [ $MMS_DEBUG ]; then
+MMS_OPTIONS=""
+if [ ! -z $MMS_DEBUG ]; then
     MMS_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=y"
-else
-    MMS_OPTIONS=
 fi
-
-MMS_TASKS=$MMS_INST/tasks
-MMS_LOG=$MMS_INST/log
 
 read_task_jobs() {
     step=$1

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. `dirname $0`/mms-env.sh
+. mymms
+. $MMS_HOME/bin/mms-env.sh
 
 year=$1
 month=$2

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -z "$MMS_INST" ]; then
+    MMS_INST=`pwd`
+fi
+
+. $MMS_INST/mymms
+
+nohup python $MMS_INST/mms.py > $MMS_INST/mms.out &
+echo $! > $MMS_INST/mms.pid
+sleep 2
+cat $MMS_INST/mms.status

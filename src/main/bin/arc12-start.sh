@@ -1,12 +1,15 @@
 #!/bin/bash
 
-. `dirname $0`/mms-env.sh
+. $MMS_HOME/bin/mms-env.sh
+cd $MMS_INST
 
 year=$1
 month=$2
 # optional parameters
-parts=${3:-a b c d}
-sensors=${4:-n10 n11 n12 n14 n15 n16 n17 n18 n19 m02}
+#parts=${3:-a b c d}
+#sensors=${4:-n10 n11 n12 n14 n15 n16 n17 n18 n19 m02}
+parts='a b c d'
+sensors='n10 n11 n12 n14 n15 n16 n17 n18 n19 m02'
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting tasks for arc12 $year/$month"
 
@@ -27,7 +30,7 @@ if [ -z $jobs ]; then
         do
             echo "`date -u +%Y%m%d-%H%M%S` submitting job arc12 $year/$month quartal $part sensor $sensor"
 
-            line=`qsub -l h_rt=24:00:00 -j y -cwd -o $MMS_LOG/arc12-$year-$month-$part-$sensor.out -N a1-$year$month$part-$sensor $MMS_HOME/bin/arc12-run.sh $year $month $part avhrr_orb.$sensor`
+            line=`qsub -l h_rt=24:00:00,sages_1ppn=1 -j y -cwd -o $MMS_LOG/arc12-$year-$month-$part-$sensor.out -N a1-$year$month$part-$sensor $MMS_HOME/bin/arc12-run.sh $year $month $part avhrr_orb.$sensor`
             echo $line
             job=`echo $line | awk '{ print $3 }'`
             if [ "$jobs" != "" ]

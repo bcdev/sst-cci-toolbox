@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. `dirname $0`/mms-env.sh
+. mymms
+. $MMS_HOME/bin/mms-env.sh
 
 year=$1
 month=$2
@@ -48,7 +49,9 @@ $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG \
     -Dmms.db.useindex=false \
     -Dmms.target.dimensions=$MMD_HOME/config/mmd-dimensions.properties \
     -Dmms.target.variables=$MMD_HOME/config/mmd-variables.config \
-    -Dmms.target.dir=$MMS_ARCHIVE/mmd/v1/$year \
+    -Dmms.target.dir=$TMPDIR \
     -Dmms.target.filename=mmd-$year-$month.nc
+
+mv -f $TMPDIR/mmd-$year-$month.nc $archiveroot/mmd/v1/$year
 
 echo "`date -u +%Y%m%d-%H%M%S` mmd $year/$month ... done"

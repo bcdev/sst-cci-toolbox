@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ -z "$MMS_INST" ]; then
+    MMS_INST=`pwd`
+fi
+
+. $MMS_INST/mymms
+
+if [ ! -e $MMS_INST/mms.pid ]; then
+    echo "missing mms.pid file in $MMS_INST"
+    ps -elf|grep python
+    exit 1
+fi
+
+kill `cat $MMS_INST/mms.pid`

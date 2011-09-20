@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. `dirname $0`/mms-env.sh
+. mymms
+. $MMS_HOME/bin/mms-env.sh
 
 # call pattern: arc12-run.sh <year> <month> <part-a-b-c-d> <sensor>
 # call example: arc12-run.sh 2010 12 a avhrr_orb.n18

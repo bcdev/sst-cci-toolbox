@@ -31,7 +31,7 @@ types  = [('staging-start.sh',2), \
 pm = PMonitor(inputs, \
               request='mms', \
               swd='/exports/home/v1mbottc/sst-cci-toolbox-0.2-SNAPSHOT/bin', \
-              logdir='/exports/home/v1mbottc/inst/log', \
+              logdir='/exports/home/v1mbottc/inst/trash', \
               hosts=hosts, \
               types=types)
 

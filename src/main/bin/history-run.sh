@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. `dirname $0`/mms-env.sh
+. mymms
+. $MMS_HOME/bin/mms-env.sh
 
 echo "`date -u +%Y%m%d-%H%M%S` ingesting history ..."
 

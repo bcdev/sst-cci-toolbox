@@ -1,6 +1,7 @@
 #! /bin/sh
 
-. `dirname $0`/mms-env.sh
+. $MMS_INST/mymms
+. $MMS_HOME/bin/mms-env.sh
 
 # nwp-tool.sh atsr.1 8 true atsr.1-sub-19960602000000-19960603000000.nc \
 #     /exports/nas/exports/cse/geos/scratch/gc/sst-cci/ecmwf-era-interim/v01 \

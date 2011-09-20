@@ -1,15 +1,7 @@
 #! /bin/sh
 
-if [ ! -d "$MMS_HOME" ]
-then
-    PRGDIR=`dirname $0`
-    export MMS_HOME=`cd "$PRGDIR/.." ; pwd`
-fi
-
-MMS_OPTIONS=""
-if [ ! -z $MMS_DEBUG ]; then
-    MMS_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=y"
-fi
+. $MMS_INST/mymms
+. $MMS_HOME/bin/mms-env.sh
 
 java \
     -Dmms.home="$MMS_HOME" \
