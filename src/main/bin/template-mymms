@@ -3,7 +3,7 @@
 # usage:  . mymms
 
 umask 007
-ulimit -s unlimited
+ulimit unlimited
 
 source /etc/profile
 export MODULEPATH=/exports/work/geos_gits/geos_applications/modulefiles/SL5:$MODULEPATH
@@ -15,7 +15,7 @@ export MMS_ARCHIVE=/exports/work/geos_gc_sst_cci/stagingarea
 export MMS_TEMP=/exports/work/geos_gc_sst_cci/temparea
 export MMS_GBCS=/exports/work/geos_gc_sst_cci/avhrr/GBCS
 export MMS_CDO=/exports/work/geos_gc_sst_cci/mms
-export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3
+export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3-20110914
 
 export MMS_CONFIG=$MMS_INST/mms-eddie.properties
 export MMS_TASKS=$MMS_INST/tasks

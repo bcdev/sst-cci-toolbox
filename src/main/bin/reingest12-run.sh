@@ -13,7 +13,7 @@ sensors=${4:-n10 n11 n12 n14 n15 n16 n17 n18 n19 m02}
 
 echo "`date -u +%Y%m%d-%H%M%S` re-ingesting arc12 $year/$month-$part ..."
 
-if [ "$year" = "" -or "$month" = "" -or "$part" = "" ]; then
+if [ "$year" = "" -o "$month" = "" -o "$part" = "" ]; then
     echo "missing parameter, use $0 year month part"
     exit 1
 fi

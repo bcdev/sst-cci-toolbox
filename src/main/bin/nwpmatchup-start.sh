@@ -16,7 +16,7 @@ read_task_jobs nwpmatchup
 if [ -z $jobs ]; then
     for part in $parts
     do
-        echo "`date -u +%Y%m%d-%H%M%S` submitting job nwpmatchup $year/$month quartal $part sensor $sensor"
+        echo "`date -u +%Y%m%d-%H%M%S` submitting job nwpmatchup $year/$month quartal $part"
         
         line=`qsub -l h_rt=24:00:00,sages_1ppn=1 -j y -cwd -o $MMS_LOG/nwpmatchup-$year-$month-$part.out -N nm-$year$month$part $MMS_HOME/bin/nwpmatchup-run.sh $year $month $part`
         echo $line
@@ -27,7 +27,7 @@ if [ -z $jobs ]; then
         else
             jobs="$job"
         fi
-        echo "$MMS_LOG/nwpmatchup-$year-$month-$part-$sensor.out/$job" >> $MMS_TASKS/nwpmatchup-$year-$month.tasks
+        echo "$MMS_LOG/nwpmatchup-$year-$month-$part.out/$job" >> $MMS_TASKS/nwpmatchup-$year-$month.tasks
     done
 fi
 

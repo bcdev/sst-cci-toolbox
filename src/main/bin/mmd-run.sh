@@ -8,7 +8,7 @@ month=$2
 
 echo "`date -u +%Y%m%d-%H%M%S` mmd $year/$month ..."
 
-if [ "$year" = "" -or "$month" = "" ]; then
+if [ "$year" = "" -o "$month" = "" ]; then
     echo "missing parameter, use $0 year month"
     exit 1
 fi
@@ -43,15 +43,13 @@ fi
 
 mkdir -p $MMS_ARCHIVE/mmd/v1/$year
 
-$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG \
+$MMS_HOME/bin/mmd2-tool.sh -c $MMS_CONFIG \
     -Dmms.target.startTime=$year-$month-01T00:00:00Z \
     -Dmms.target.stopTime=$stopyear-$stopmonth-01T00:00:00Z \
     -Dmms.db.useindex=false \
     -Dmms.target.dimensions=$MMD_HOME/config/mmd-dimensions.properties \
     -Dmms.target.variables=$MMD_HOME/config/mmd-variables.config \
-    -Dmms.target.dir=$TMPDIR \
+    -Dmms.target.dir=$archiveroot/mmd/v1/$year \
     -Dmms.target.filename=mmd-$year-$month.nc
-
-mv -f $TMPDIR/mmd-$year-$month.nc $archiveroot/mmd/v1/$year
 
 echo "`date -u +%Y%m%d-%H%M%S` mmd $year/$month ... done"

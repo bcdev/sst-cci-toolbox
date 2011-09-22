@@ -8,7 +8,7 @@ month=$2
 
 echo "`date -u +%Y%m%d-%H%M%S` ingesting $year/$month ..."
 
-if [ "$year" = "" -or "$month" = "" ]; then
+if [ "$year" = "" -o "$month" = "" ]; then
     echo "missing parameter, use $0 year month"
     exit 1
 fi

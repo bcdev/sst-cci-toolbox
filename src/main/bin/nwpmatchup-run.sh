@@ -12,7 +12,7 @@ part=$3
 
 echo "`date -u +%Y%m%d-%H%M%S` nwp-matchup $year/$month-$part ..."
 
-if [ "$year" = "" -or "$month" = "" -or "$part" = "" ]; then
+if [ "$year" = "" -o "$month" = "" -o "$part" = "" ]; then
     echo "missing parameter, use $0 year month part"
     exit 1
 fi

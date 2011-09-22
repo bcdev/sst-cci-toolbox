@@ -13,7 +13,7 @@ sensor=$4
 
 echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 $year/$month-$part $sensor ..."
 
-if [ "$year" = "" -or "$month" = "" -or "$part" = "" -or "$sensor" = "" ]; then
+if [ "$year" = "" -o "$month" = "" -o "$part" = "" -o "$sensor" = "" ]; then
     echo "missing parameter, use $0 year month part sensor"
     exit 1
 fi
