@@ -52,8 +52,9 @@ public class Constants {
     public static final String PROPERTY_OUTPUT_END_TIME = "mms.arc1x2.endTime";
     public static final String PROPERTY_OUTPUT_TMPDIR = "mms.arc1x2.tmpdir";
     public static final String PROPERTY_OUTPUT_DESTDIR = "mms.arc1x2.destdir";
-    public static final String PROPERTY_OUTPUT_SENSOR = "mms.arc1x2.sensor";
+    public static final String PROPERTY_ARC1x2_CONDITION = "mms.arc1x2.condition";
 
+    public static final String PROPERTY_OUTPUT_SENSOR = "mms.arc1x2.sensor";
     public static final String PROPERTY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
     public static final String PROPERTY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
     public static final String PROPERTY_NWP_ARC3_TMPDIR = "mms.nwp_arc3.tmpdir";
@@ -61,12 +62,12 @@ public class Constants {
     public static final String PROPERTY_ARC3_DESTDIR = "mms.arc3.destdir";
     public static final String PROPERTY_MMS_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN = "mms.nwp_arc3.pattern";
-    public static final String PROPERTY_MMS_NWP_PATTERN = "mms.nwp.pattern";
 
+    public static final String PROPERTY_MMS_NWP_PATTERN = "mms.nwp.pattern";
     public static final String PROPERTY_MMS_NWP_SOURCEDIR = "mms.nwp.sourceDir";
     public static final String PROPERTY_MMS_ARC3_PATTERN = "mms.arc3.pattern";
-    public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
 
+    public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
     public static final String PROPERTY_MMS_ARC3_CONFIG_FILE = "mms.arc3.configFile";
     public static final String PROPERTY_TARGET_START_TIME = "mms.target.startTime";
     public static final String PROPERTY_TARGET_STOP_TIME = "mms.target.stopTime";

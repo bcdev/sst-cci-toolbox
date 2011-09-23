@@ -13,6 +13,7 @@ export MMS_HOME=/exports/home/v1mbottc/sst-cci-toolbox-0.2-SNAPSHOT
 export MMS_INST=/exports/home/v1mbottc/inst
 export MMS_ARCHIVE=/exports/work/geos_gc_sst_cci/stagingarea
 export MMS_TEMP=/exports/work/geos_gc_sst_cci/temparea
+export MMS_NAS=/exports/nas/exports/cse/geos/scratch/gc/sst-cci/archive
 export MMS_GBCS=/exports/work/geos_gc_sst_cci/avhrr/GBCS
 export MMS_CDO=/exports/work/geos_gc_sst_cci/mms
 export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3-20110914

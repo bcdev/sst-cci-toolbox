@@ -122,12 +122,13 @@ public class Arc1ProcessingTool extends BasicTool {
         final String endTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_END_TIME);
         final String sensorName = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "avhrr_orb.n18"
         final String configurationPath = getConfiguration().getProperty(Constants.PROPERTY_CONFIGURATION);
+        final String condition = getConfiguration().getProperty(Constants.PROPERTY_ARC1x2_CONDITION, null);
         final Date startTime = TimeUtil.getConfiguredTimeOf(startTimeProperty);
         final Date endTime = TimeUtil.getConfiguredTimeOf(endTimeProperty);
 
         prepareCommandFiles(tmpPath, archiveRoot, destPath, TimeUtil.formatCompactUtcFormat(startTime));
 
-        final List<MatchingObservationInfo> avhrrObservationInfos = inquireMatchingAvhrrObservations(startTime, endTime, sensorName);
+        final List<MatchingObservationInfo> avhrrObservationInfos = inquireMatchingAvhrrObservations(startTime, endTime, sensorName, condition);
         generateCallsAndLatlonFiles(avhrrObservationInfos, archiveRoot, destPath, tmpPath, configurationPath);
 
         closeCommandFiles(tmpPath);
@@ -185,14 +186,18 @@ public class Arc1ProcessingTool extends BasicTool {
     }
 
     @SuppressWarnings({"unchecked"})
-    private List<MatchingObservationInfo> inquireMatchingAvhrrObservations(Date startTime, Date endTime, String sensorName) {
+    private List<MatchingObservationInfo> inquireMatchingAvhrrObservations(Date startTime, Date endTime, String sensorName, String condition) {
         final Query allPointsQuery;
-        if ("%".equals(sensorName)) {
-            allPointsQuery = getPersistenceManager().createNativeQuery(AVHRR_MATCHING_OBSERVATIONS_QUERY,
-                                                                                Object[].class);
+        String queryString;
+        if (condition != null) {
+            queryString = AVHRR_MATCHING_OBSERVATIONS_QUERY.replace("WHERE", "WHERE " + condition + " AND");
         } else {
-            String sensorSpecificQueryString = AVHRR_MATCHING_OBSERVATIONS_QUERY.replace("LIKE 'avhrr_orb.%'",
-                                                                                         String.format("= '%s'", sensorName));
+            queryString = AVHRR_MATCHING_OBSERVATIONS_QUERY;
+        }
+        if ("%".equals(sensorName)) {
+            allPointsQuery = getPersistenceManager().createNativeQuery(queryString, Object[].class);
+        } else {
+            String sensorSpecificQueryString = queryString.replace("LIKE 'avhrr_orb.%'", String.format("= '%s'", sensorName));
             allPointsQuery = getPersistenceManager().createNativeQuery(sensorSpecificQueryString, Object[].class);
             getLogger().fine(String.format("sensor specific query %s", sensorSpecificQueryString));
         }

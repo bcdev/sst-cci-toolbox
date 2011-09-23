@@ -14,7 +14,7 @@ if [ -z $jobs ]; then
     line=`qsub -l h_rt=24:00:00 -pe staging 1 -j y -cwd -o $MMS_LOG/staging-$year-$month.out -N st-$year$month $MMS_HOME/bin/staging-run.sh $year $month`
     echo $line
     jobs=`echo $line | awk '{ print $3 }'`
-    echo "$MMS_LOG/staging-$year-$month.out/$job" > $MMS_TASKS/staging-$year-$month.tasks
+    echo "$MMS_LOG/staging-$year-$month.out/$jobs" > $MMS_TASKS/staging-$year-$month.tasks
 fi
 
 wait_for_task_jobs_completion staging

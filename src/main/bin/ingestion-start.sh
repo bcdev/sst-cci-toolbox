@@ -14,7 +14,7 @@ if [ -z $jobs ]; then
     line=`qsub -l h_rt=24:00:00,sages_1ppn=1 -j y -cwd -o $MMS_LOG/ingestion-$year-$month.out -N in-$year$month $MMS_HOME/bin/ingestion-run.sh $year $month`
     echo $line
     jobs=`echo $line | awk '{ print $3 }'`
-    echo "$MMS_LOG/ingestion-$year-$month.out/$job" > $MMS_TASKS/ingestion-$year-$month.tasks
+    echo "$MMS_LOG/ingestion-$year-$month.out/$jobs" > $MMS_TASKS/ingestion-$year-$month.tasks
 fi
 
 wait_for_task_jobs_completion ingestion
