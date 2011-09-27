@@ -42,7 +42,7 @@ public class NcOsiProductReaderPlugIn implements ProductReaderPlugIn {
         if (!inputFileName.endsWith(FILE_EXTENSION_NC)) {
             return DecodeQualification.UNABLE;
         }
-        if(inputFileName.matches("ice_conc_[ns]h_.*]")) {
+        if(inputFileName.matches("ice_conc_[ns]h_.*")) {
             return DecodeQualification.INTENDED;
         }
         return DecodeQualification.UNABLE;
