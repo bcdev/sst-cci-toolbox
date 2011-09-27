@@ -61,10 +61,18 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
         for (final Variable variable : getNetcdfFile().getVariables()) {
             final String dimensionsString = variable.getDimensionsString();
             if (dimensionsString.contains("yc xc")) {
-                final Band band = product.addBand(variable.getName(), DataTypeUtils.getRasterDataType(variable));
+                final Band band = product.addBand(externalNameOf(variable.getName()), DataTypeUtils.getRasterDataType(variable));
                 CfBandPart.readCfBandAttributes(variable, band);
             }
         }
+    }
+
+    private String externalNameOf(String name) {
+        return "ice_conc".equals(name) ? "sea_ice_concentration" : name;
+    }
+
+    private String internalNameOf(String name) {
+        return "sea_ice_concentration".equals(name) ? "ice_conc" : name;
     }
 
     @Override
@@ -118,7 +126,7 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected RenderedImage createSourceImage(Band band) {
-        final Variable variable = getNetcdfFile().findVariable(band.getName());
+        final Variable variable = getNetcdfFile().findVariable(internalNameOf(band.getName()));
         final int bufferType = ImageManager.getDataBufferType(band.getDataType());
         final int sourceWidth = band.getSceneRasterWidth();
         final int sourceHeight = band.getSceneRasterHeight();
