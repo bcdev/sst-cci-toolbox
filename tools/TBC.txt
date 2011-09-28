@@ -1,0 +1,9 @@
+More questions to Nick:
+
+1. Only work on calendar times?
+2. Other temp. tes. between daily and monthly, e.g. 10-days?
+3. Seasonal is meteorological?!
+
+To Chris:
+
+1. Can we expect different product types (L2P, L3U, L3C, L4) in different directories?
