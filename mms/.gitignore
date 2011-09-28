@@ -1,0 +1,13 @@
+.idea/
+postgres/
+target/
+testdata/
+/config/
+*.iml
+*.iws
+*.ipr
+/*.config
+/*.log
+/*.nc
+/*.properties
+/testdata

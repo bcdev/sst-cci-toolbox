@@ -1,0 +1,31 @@
+"ECMWF_MDB"                                            Forecast model name
+F                                                      Earth coordinate flag ( T , F )
+""                                                     Land/Sea Mask file name
+T                                                      Profiles in RTM format, i.e. don't need conversion ( T , F )
+   1                                                   Number of lines in grid
+   1                                                   Number of elements per line in grid
+   43                                                  Number of levels in grid
+F                                                      Profiles from surface up ( T , F )
+      1                                                Lower left corner latitude/image line        
+      6                                                Lower left corner longitude/image line element       
+     64                                                Latitude increment                
+     50                                                Longitude increment               
+ 0                                                     Grid data location (corner = 0 or centre = 1)
+ 14                                                    Number of 2D model fields available
+ 1    2     7   "hPa"     "atsr.3.nwp.MSL"                  2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 2    6     4   "K"       "atsr.3.nwp.T2"                    2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 3    7     4   "K"       "atsr.3.nwp.SSTK"                    2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 4    10    18  "kg/m2"   "atsr.3.nwp.TCWV"                   2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 5    13    17  "m/s"     "nwp_winds"                  2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 6    28    1   "deg"     "tiept_nzen"                   2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 7    27    1   "deg"     "tiept_fzen"                   2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 8    5     4   "K"       "atsr.3.nwp.SKT"                 2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 9    15    1   "deg"     "atsr.3.nwp.CI"                    2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 10   9     3   "ppmv"    "atsr.3.nwp.Q"
+ 11   26    1   "deg"     "tiept_nsol"                   2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 12   25    1   "deg"     "tiept_fsol"                   2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 13   30    1   "deg"     "tiept_nazim"                  2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 14   29    1   "deg"     "tiept_fazim"                  2D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+2                                                     Number of 3D model fields available
+ 1    3     4   "K"       "nwp_tt"                         3D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field
+ 2    4     3   "ppmv"    "nwp_wv"                         3D Field mapping :  Model ID , GBCS ID , GBCS Units ID , Units , Field

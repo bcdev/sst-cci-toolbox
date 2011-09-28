@@ -1,0 +1,5 @@
+[NWP_INFO]
+[DIMENSIONS]
+x=    avhrr.n10.nwp.nx
+y=    avhrr.n10.nwp.ny
+z=    avhrr.n10.nwp.nz

@@ -1,0 +1,43 @@
+[PRODUCT_INFO]
+    ncformat = CCI_MMD_NOAA16_ncfmt.INF
+
+[OUTPUTS]
+    id = matchup.id
+    lat = lat
+    lon = lon
+
+[PCLR]
+    nrec = 6
+    !avhrr.n16.cloud_mask.bayes_min
+    !avhrr.n16.cloud_mask.bayes_max
+    !avhrr.n16.cloud_mask.bayes_forward_min
+    !avhrr.n16.cloud_mask.bayes_forward_max
+    !avhrr.n16.cloud_mask.bayes_dual_min
+    !avhrr.n16.cloud_mask.bayes_dual_max
+
+[FFM_BT]
+    nrec=6
+    !avhrr.n16.ffm.reflectance_1
+    !avhrr.n16.ffm.reflectance_2
+    !avhrr.n16.ffm.reflectance_3a
+    avhrr.n16.ffm.brightness_temperature_3b
+    avhrr.n16.ffm.brightness_temperature_4
+    avhrr.n16.ffm.brightness_temperature_5
+
+[FFM_TLST]
+    nrec=6
+    !avhrr.n16.ffm.dbt_dsst_1
+    !avhrr.n16.ffm.dbt_dsst_2
+    !avhrr.n16.ffm.dbt_dsst_3a
+    avhrr.n16.ffm.dbt_dsst_3b
+    avhrr.n16.ffm.dbt_dsst_4
+    avhrr.n16.ffm.dbt_dsst_5
+
+[FFM_TLWV]
+    nrec=6
+    !avhrr.n16.ffm.dbt_dtcwv_1
+    !avhrr.n16.ffm.dbt_dtcwv_2
+    !avhrr.n16.ffm.dbt_dtcwv_3a
+    avhrr.n16.ffm.dbt_dtcwv_3b
+    avhrr.n16.ffm.dbt_dtcwv_4
+    avhrr.n16.ffm.dbt_dtcwv_5

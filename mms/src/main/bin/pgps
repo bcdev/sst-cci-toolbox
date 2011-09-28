@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/pgsql-9.0/bin/pg_ctl -D ~/mms/db status

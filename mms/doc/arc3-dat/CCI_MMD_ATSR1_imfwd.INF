@@ -1,0 +1,25 @@
+[IMAGERY_INFO]
+name=    Variable names for CCI MMD format files
+nchan=    6               ! number of channels defined
+angles as elevation = false
+[MULTIREC]
+[DIMENSIONS]
+x=    atsr.nx
+y=    atsr.ny
+[STANDARD_NAMES]
+id=matchup.id
+lat=    atsr.1.latitude
+lon=    atsr.1.longitude
+lsm=    atsr.1.land_sea_mask
+satzen= atsr.1.satellite_zenith_angle_forward
+solzen= atsr.1.solar_zenith_angle_forward
+sataz=  atsr.1.view_azimuth_angle_forward
+solaz=  atsr.1.sun_azimuth_angle_forward
+time=   atsr.1.time
+[CHANNELS]
+    3   atsr.1.reflectance_66_forward
+    4   atsr.1.reflectance_87_forward
+    5   atsr.1.reflectance_16_forward
+    6   atsr.1.brightness_temperature_37_forward
+    8   atsr.1.brightness_temperature_11_forward
+    9   atsr.1.brightness_temperature_12_forward

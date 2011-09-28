@@ -1,0 +1,5 @@
+[NWP_INFO]
+[DIMENSIONS]
+x=    atsr.3.nwp.nx
+y=    atsr.3.nwp.ny
+z=    atsr.3.nwp.nz
