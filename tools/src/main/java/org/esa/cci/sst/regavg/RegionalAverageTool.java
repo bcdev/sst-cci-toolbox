@@ -1,6 +1,10 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.tool.Configuration;
+import org.esa.cci.sst.tool.ExitCode;
+import org.esa.cci.sst.tool.Parameter;
+import org.esa.cci.sst.tool.Tool;
+import org.esa.cci.sst.tool.ToolException;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,13 +28,14 @@ public class RegionalAverageTool extends Tool {
             "the following:\n";
 
     public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "NUM", "0.2", "The SST depth in meters.");
-    public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION;...", "Global=-180,90,180,-90",
-                                                                    "A semicolon-separated list of NAME=REGION pairs. " +
-            "REGION may be given as coordinates in the format W,N,E,S or as name of a text file that provides a region mask." +
-                                                                            " The region mask file contains 72 columns x 36 lines where a zero character indicates 5-degree cells that shall not be used in the averaging process.");
-    public static final Parameter PARAM_REGION_NAME = new Parameter("regionName", "NAME", "Global", "The name of a predefined region.");
-    public static final Parameter PARAM_REGION_WKT = new Parameter("regionWKT", "WKT", "POLYGON((-180 -90, 180 -90, 180 90, -180 90, -180 -90))", "The region geometry given in geometry well-known-text (WKT) format");
-    public static final Parameter PARAM_REGION_MASK = new Parameter("regionMask", "FILE", null, "The region given as mask. Must be NetCDF file containing a global, numerical 0.05 degree mask named 'region_mask'. Zero values indicate grid cells that will not be used.");
+    public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]", "Global=-180,90,180,-90",
+                                                                    "A semicolon-separated list of NAME=REGION pairs. "
+                                                                            + "REGION may be given as coordinates in the format W,N,E,S "
+                                                                            + "or as name of a file that provides a region mask in plain text form. "
+                                                                            + "The region mask file contains 72 columns x 36 lines representing a "
+                                                                            + "global coverage of 2592 5-degree cells. Cells can be '0' or '1', where "
+                                                                            + "a '1' indicates that the region represented by the cell will be considered "
+                                                                            + "in the averaging process.");
     public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01", "The start date for the analysis given in the format YYYYMMDD");
     public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31", "The end date for the analysis given in the format YYYYMMDD");
     public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology", "The directory path to the reference climatology.");
@@ -70,9 +75,6 @@ public class RegionalAverageTool extends Tool {
                 PARAM_SST_DEPTH,
                 PARAM_TEMPORAL_RES,
                 PARAM_REGION_LIST,
-                PARAM_REGION_NAME,
-                PARAM_REGION_WKT,
-                PARAM_REGION_MASK,
                 PARAM_START_DATE,
                 PARAM_END_DATE,
                 PARAM_CLIMATOLOGY_DIR,
@@ -108,7 +110,7 @@ public class RegionalAverageTool extends Tool {
         }
     }
 
-    private RegionList parseRegionList(Configuration configuration) throws  ToolException {
+    private RegionList parseRegionList(Configuration configuration) throws ToolException {
         try {
             return RegionList.parse(configuration.getString(PARAM_REGION_LIST, false));
         } catch (Exception e) {
