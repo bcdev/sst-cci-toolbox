@@ -32,15 +32,9 @@ public abstract class Tool {
         try {
             run0(arguments);
         } catch (ToolException e) {
-            error(e.getMessage(), e.getExitCode());
-            if (dumpStackTrace) {
-                e.printStackTrace(System.out);
-            }
+            error(e, e.getExitCode());
         } catch (Throwable e) {
-            error(e.getMessage(), ExitCode.INTERNAL_ERROR);
-            if (dumpStackTrace) {
-                e.printStackTrace(System.out);
-            }
+            error(e, ExitCode.INTERNAL_ERROR);
         }
     }
 
@@ -141,8 +135,15 @@ public abstract class Tool {
         System.out.println("Warning: " + message);
     }
 
-    protected static void error(String message, ExitCode exitCode) {
-        System.err.println("Error: " + message);
+    private void error(Throwable error, ExitCode exitCode) {
+        if (ToolException.class.equals(error.getClass())) {
+            System.err.println("Error: " + error.getMessage());
+        } else {
+            System.err.println("Internal error: " + error.getClass().getName() + ": " + error.getMessage()  + (dumpStackTrace? " (use option -e to dump a full stack trace)"  :""));
+        }
+        if (dumpStackTrace) {
+            error.printStackTrace(System.err);
+        }
         System.exit(exitCode.ordinal());
     }
 
@@ -177,13 +178,13 @@ public abstract class Tool {
         }
 
         options.addOption(createOption("h", "help", null,
-                                       "print this help."));
+                                       "displays this help."));
         options.addOption(createOption("v", "version", null,
                                        "display the version of this program and exit."));
         options.addOption(createOption("c", "config", "FILE",
                                        "read configuration from given FILE."));
         options.addOption(createOption("e", "errors", null,
-                                       "print extended error information."));
+                                       "dumps full error stack trace."));
         return options;
     }
 
