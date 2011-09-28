@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A yyyy/MM/dd organized product tree.
+ * A yyyy/MM/dd organized file tree.
  *
  * @author Norman Fomferra
  */
-public class ProductTree {
+public class FileTree {
     private static final File[] EMPTY = new File[0];
     private Map<Integer, Map<Integer, Map<Integer, List<File>>>> yearMaps;
 
-    public ProductTree() {
+    public FileTree() {
         this.yearMaps = new HashMap<Integer, Map<Integer, Map<Integer, List<File>>>>(32);
     }
 

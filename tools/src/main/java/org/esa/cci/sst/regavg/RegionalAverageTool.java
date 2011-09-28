@@ -1,21 +1,11 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.util.ProductTree;
-import org.esa.cci.sst.util.UTC;
-import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
-import ucar.ma2.Array;
+import org.esa.cci.sst.tool.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -34,6 +24,10 @@ public class RegionalAverageTool extends Tool {
             "the following:\n";
 
     public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "NUM", "0.2", "The SST depth in meters.");
+    public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION;...", "Global=-180,90,180,-90",
+                                                                    "A semicolon-separated list of NAME=REGION pairs. " +
+            "REGION may be given as coordinates in the format W,N,E,S or as name of a text file that provides a region mask." +
+                                                                            " The region mask file contains 72 columns x 36 lines where a zero character indicates 5-degree cells that shall not be used in the averaging process.");
     public static final Parameter PARAM_REGION_NAME = new Parameter("regionName", "NAME", "Global", "The name of a predefined region.");
     public static final Parameter PARAM_REGION_WKT = new Parameter("regionWKT", "WKT", "POLYGON((-180 -90, 180 -90, 180 90, -180 90, -180 -90))", "The region geometry given in geometry well-known-text (WKT) format");
     public static final Parameter PARAM_REGION_MASK = new Parameter("regionMask", "FILE", null, "The region given as mask. Must be NetCDF file containing a global, numerical 0.05 degree mask named 'region_mask'. Zero values indicate grid cells that will not be used.");
@@ -75,6 +69,7 @@ public class RegionalAverageTool extends Tool {
         paramList.addAll(Arrays.asList(
                 PARAM_SST_DEPTH,
                 PARAM_TEMPORAL_RES,
+                PARAM_REGION_LIST,
                 PARAM_REGION_NAME,
                 PARAM_REGION_WKT,
                 PARAM_REGION_MASK,
@@ -85,11 +80,10 @@ public class RegionalAverageTool extends Tool {
                 PARAM_PRODUCT_TYPE,
                 PARAM_OUTPUT_DIR));
         ProductType[] values = ProductType.values();
-        for (int i = 0; i < values.length; i++) {
-            ProductType value = values[i];
+        for (ProductType value : values) {
             paramList.add(new Parameter(value.name() + ".dir", "DIR", null, "Directory that hosts the products of type '" + value.name() + "'."));
         }
-        return paramList.toArray(new Parameter[0]);
+        return paramList.toArray(new Parameter[paramList.size()]);
     }
 
     @Override
@@ -102,108 +96,24 @@ public class RegionalAverageTool extends Tool {
         Date endDate = configuration.getDate(PARAM_END_DATE, true);
         TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+        RegionList regionList = parseRegionList(configuration);
 
         Climatology climatology = Climatology.open(climatologyDir);
         Climatology.Dataset[] datasets = climatology.getDatasets();
-        ProductTree productTree = collectFiles(productType, productDir);
+        ProductStore productStore = ProductStore.create(productType, productDir);
         try {
-            average(productType, productTree, startDate, endDate, temporalResolution);
+            RegionalAverager.computeOutputTimeSteps(productStore, startDate, endDate, temporalResolution, regionList);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
     }
 
-    private void average(ProductType productType, ProductTree productTree, Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException {
-        Calendar calendar = UTC.createCalendar(startDate);
-        while (calendar.getTime().before(endDate)) {
-            Date date1 = calendar.getTime();
-            if (temporalResolution == TemporalResolution.daily) {
-                calendar.add(Calendar.DATE, 1);
-            } else if (temporalResolution == TemporalResolution.monthly) {
-                calendar.add(Calendar.MONTH, 1);
-            } else if (temporalResolution == TemporalResolution.seasonal) {
-                calendar.add(Calendar.MONTH, 3);
-            } else /*if (temporalResolution == TemporalResolution.anual)*/ {
-                calendar.add(Calendar.YEAR, 1);
-            }
-            Date date2 = calendar.getTime();
-
-            computeOutputTimePoint(productType, productTree, temporalResolution, date1, date2);
+    private RegionList parseRegionList(Configuration configuration) throws  ToolException {
+        try {
+            return RegionList.parse(configuration.getString(PARAM_REGION_LIST, false));
+        } catch (Exception e) {
+            throw new ToolException(e, ExitCode.USAGE_ERROR);
         }
     }
-
-    private void computeOutputTimePoint(ProductType productType, ProductTree productTree, TemporalResolution temporalResolution, Date date1, Date date2) throws IOException {
-        DateFormat isoDateFormat = UTC.getIsoFormat();
-        System.out.printf("Computing output point for time range from %s to %s%n",
-                          isoDateFormat.format(date1), isoDateFormat.format(date2));
-
-        if (temporalResolution.ordinal() <= TemporalResolution.monthly.ordinal()) {
-            Calendar calendar = UTC.createCalendar(date1);
-            while (calendar.getTime().before(date2)) {
-                File[] files = productTree.get(calendar.getTime());
-                if (files.length > 0) {
-                    System.out.println("  " + files.length + " file(s) found");
-                    Aggregator aggregator = new Aggregator();
-                    aggregator.add("sst_skin", new Aggregator.MeanAcccumulator());
-                    aggregator.add("uncertainty", new Aggregator.MeanSqrAcccumulator());
-                    aggregator.aggregate(files, new Aggregator.Processor() {
-                        @Override
-                        public void process(String name, int x, int y, int w, int h, Array result) {
-                            System.out.println("Computed average for " + name + ", line " + y);
-
-                        }
-                    });
-                }
-                calendar.add(Calendar.DATE, 1);
-            }
-        } else {
-            Calendar calendar = UTC.createCalendar(date1);
-            while (calendar.getTime().before(date2)) {
-                File[] files = productTree.get(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH));
-                new Aggregator().aggregate(files, new Aggregator.Processor() {
-                    @Override
-                    public void process(String name, int x, int y, int w, int h, Array result) {
-
-                    }
-                });
-                calendar.add(Calendar.MONTH, 1);
-            }
-        }
-    }
-
-    private ProductTree collectFiles(ProductType productType, String... inputPaths) {
-        ProductTree productTree = new ProductTree();
-
-        for (String inputPath : inputPaths) {
-            collectFiles(productType, new File(inputPath), productTree);
-        }
-
-        return productTree;
-    }
-
-    private void collectFiles(ProductType productType, File file, ProductTree productTree) {
-        if (file.isDirectory()) {
-            File[] files1 = file.listFiles(new InputFileFilter());
-            if (files1 != null) {
-                for (File file1 : files1) {
-                    collectFiles(productType, file1, productTree);
-                }
-            }
-        } else if (file.isFile()) {
-            productTree.add(productType.getDate(file.getName()), file);
-        } else {
-            warn("Not a file or file does not exist: " + file);
-        }
-    }
-
-    private static class InputFileFilter implements FileFilter {
-        @Override
-        public boolean accept(File file) {
-            return file.isDirectory()
-                    || file.getName().endsWith(".nc")
-                    || file.getName().endsWith(".nc.gz");
-        }
-    }
-
 
 }

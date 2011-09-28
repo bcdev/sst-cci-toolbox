@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.UTC;
 
 import java.text.DateFormat;
@@ -14,29 +15,39 @@ import java.util.regex.Pattern;
  */
 public enum ProductType {
     ARC {
-        public final DateFormat DATE_FORMAT = UTC.getDateFormat("yyyyMMdd");
-        public final String FILENAME_PREFIX = "AT2_AVG_3PAARC";
+        public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
+        public final String filenamePrefix = "AT2_AVG_3PAARC";
         // todo - Use regexp instead
-        public final Pattern  FILENAME_PATTERN = Pattern.compile("AT._AVG_3PAARC\\d\\d\\d\\d\\d\\d\\d.*\\.nc");
-
+        public final Pattern filenamePattern = Pattern.compile("AT._AVG_3PAARC\\d\\d\\d\\d\\d\\d\\d.*\\.nc");
+        public final Grid GRID = Grid.createGlobalGrid(3600, 1800);
 
         @Override
         public Date getDate(String filename) {
-            if (filename.startsWith(FILENAME_PREFIX)) {
-                String dateString = filename.substring(FILENAME_PREFIX.length(), FILENAME_PREFIX.length() + 8);
+            if (filename.startsWith(filenamePrefix)) {
+                String dateString = filename.substring(filenamePrefix.length(), filenamePrefix.length() + 8);
                 try {
-                    return DATE_FORMAT.parse(dateString);
+                    return dateFormat.parse(dateString);
                 } catch (ParseException e) {
                     // ok.
                 }
             }
             return null;
         }
+
+        @Override
+        public Grid getGrid() {
+            return GRID;
+        }
     },
 
     ARC_L3U {
         @Override
         public Date getDate(String filename) {
+            return null;
+        }
+
+        @Override
+        public Grid getGrid() {
             return null;
         }
     },
@@ -46,6 +57,12 @@ public enum ProductType {
         public Date getDate(String filename) {
             return null;
         }
+
+
+        @Override
+        public Grid getGrid() {
+            return null;
+        }
     },
 
     SST_CCI_L3C {
@@ -53,7 +70,14 @@ public enum ProductType {
         public Date getDate(String filename) {
             return null;
         }
+
+
+        @Override
+        public Grid getGrid() {
+            return null;
+        }
     };
 
     public abstract Date getDate(String filename);
+    public abstract Grid getGrid();
 }
