@@ -11,15 +11,15 @@ import java.util.StringTokenizer;
 /**
  * A list of regions.
  */
-public class RegionList extends ArrayList<RegionMask> {
+public class RegionMaskList extends ArrayList<RegionMask> {
 
-    public static RegionList parse(String value) throws ParseException, IOException {
+    public static RegionMaskList parse(String value) throws ParseException, IOException {
         StringTokenizer stringTokenizer = new StringTokenizer(value, ";");
-        RegionList regionList = new RegionList();
+        RegionMaskList regionMaskList = new RegionMaskList();
 
         while (stringTokenizer.hasMoreTokens()) {
             String entry = stringTokenizer.nextToken().trim();
-            int entryNo = regionList.size() + 1;
+            int entryNo = regionMaskList.size() + 1;
             int pos = entry.indexOf('=');
             if (pos == -1) {
                 throw new ParseException(String.format("Illegal region entry %d: is missing the '=' character.", entryNo), 0);
@@ -34,14 +34,14 @@ public class RegionList extends ArrayList<RegionMask> {
             }
             String[] splits = mask.split(",");
             if (splits.length == 4) {
-                fromWNES(name, splits, regionList);
+                fromWNES(name, splits, regionMaskList);
             } else if (splits.length == 1) {
-                fromMaskFile(name, splits[0], regionList);
+                fromMaskFile(name, splits[0], regionMaskList);
             } else {
                 throw new ParseException(String.format("Illegal region entry %d: Mask is empty.", entryNo), 0);
             }
         }
-        return regionList;
+        return regionMaskList;
     }
 
     private static void fromWNES(String name, String[] wnes, List<RegionMask> regionMasks) throws ParseException {

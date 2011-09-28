@@ -1,9 +1,14 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.FileTree;
+import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * A product store.
@@ -34,9 +39,17 @@ public class ProductStore {
         return inputPaths;
     }
 
-    public FileTree getFileTree() {
-        return fileTree;
+    public List<File> getFiles(Date date1, Date date2) {
+        Calendar calendar = UTC.createCalendar(date1);
+        ArrayList<File> files = new ArrayList<File>();
+        while (calendar.getTime().before(date2)) {
+            files.addAll(fileTree.get(calendar.getTime()));
+            calendar.add(Calendar.DATE, 1);
+        }
+        return files;
     }
+
+
 
     private static FileTree scanFiles(ProductType productType, String... inputPaths) {
         FileTree fileTree = new FileTree();

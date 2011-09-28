@@ -92,4 +92,21 @@ public class RegionMask {
         return samples[gridY * WIDTH + gridX];
     }
 
+    public static RegionMask combineMasks(RegionMaskList regionMaskList) {
+        if (regionMaskList.size() == 0) {
+            return null;
+        }
+        if (regionMaskList.size() == 1) {
+            return regionMaskList.get(0);
+        }
+        boolean[] samples = new boolean[WIDTH * HEIGHT];
+        for (RegionMask regionMask : regionMaskList) {
+            for (int i = 0; i < samples.length; i++) {
+                if (regionMask.samples[i]) {
+                    samples[i] = true;
+                }
+            }
+        }
+        return new RegionMask("Combined", samples) ;
+    }
 }

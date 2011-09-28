@@ -23,15 +23,15 @@ public class FileTreeTest {
         FileTree fileTree = new FileTree();
 
         fileTree.add(date("2007-05-11"), new File("a.nc"));
-        assertArrayEquals(new File[]{
+        assertArrayEquals(new Object[]{
                 new File("a.nc")},
-                          fileTree.get(date("2007-05-11")));
+                          fileTree.get(date("2007-05-11")).toArray());
 
         fileTree.add(date("2007-05-11"), new File("b.nc"));
-        assertArrayEquals(new File[]{
+        assertArrayEquals(new Object[]{
                 new File("a.nc"),
                 new File("b.nc")},
-                          fileTree.get(date("2007-05-11")));
+                          fileTree.get(date("2007-05-11")).toArray());
     }
 
     @Test
@@ -43,21 +43,21 @@ public class FileTreeTest {
         fileTree.add(date("2008-01-01"), new File("d.nc"));
         fileTree.add(date("2008-01-01"), new File("e.nc"));
 
-        assertArrayEquals(new File[]{
+        assertArrayEquals(new Object[]{
                 new File("a.nc"),
                 new File("b.nc"),
                 new File("c.nc")},
-                          fileTree.get(2007));
+                          fileTree.get(2007).toArray());
 
-        assertArrayEquals(new File[]{
+        assertArrayEquals(new Object[]{
                 new File("d.nc"),
                 new File("e.nc")},
-                          fileTree.get(2008));
+                          fileTree.get(2008).toArray());
 
-        assertArrayEquals(new File[]{
+        assertArrayEquals(new Object[]{
                 new File("a.nc"),
                 new File("b.nc")},
-                          fileTree.get(2007, 4));
+                          fileTree.get(2007, 4).toArray());
     }
 
     private Date date(String source) throws ParseException {

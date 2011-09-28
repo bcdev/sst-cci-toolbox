@@ -20,7 +20,7 @@ import java.util.Date;
 public class RegionalAverageTool extends Tool {
 
     private static final String TOOL_NAME = "regavg";
-    private static final String TOOL_VERSION = TOOL_NAME + ", version 0.1 (C) 2011-2013 by the ESA SST_cci project";
+    private static final String TOOL_VERSION = TOOL_NAME + ", version 1.0 (C) 2011-2013 by the ESA SST_cci project";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTION]...";
     private static final String TOOL_HEADER = "\n" +
             "This tool is used to generate regional average time-series from an input set of 0.05 deg. ARC files, " +
@@ -32,8 +32,10 @@ public class RegionalAverageTool extends Tool {
                                                                     "A semicolon-separated list of NAME=REGION pairs. "
                                                                             + "REGION may be given as coordinates in the format W,N,E,S "
                                                                             + "or as name of a file that provides a region mask in plain text form. "
-                                                                            + "The region mask file contains 72 columns x 36 lines representing a "
-                                                                            + "global coverage of 2592 5-degree cells. Cells can be '0' or '1', where "
+                                                                            + "The region mask file contains 72 x 36 5-degree grid cells. "
+                                                                            + "Colums correspond to range -180 (first column) to +180 (last column) degrees longitude, "
+                                                                            + "while lines correspond to +90 (first line) to -90 (last line) degrees latitude. "
+                                                                            + "Cells can be '0' or '1', where "
                                                                             + "a '1' indicates that the region represented by the cell will be considered "
                                                                             + "in the averaging process.");
     public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01", "The start date for the analysis given in the format YYYYMMDD");
@@ -98,21 +100,20 @@ public class RegionalAverageTool extends Tool {
         Date endDate = configuration.getDate(PARAM_END_DATE, true);
         TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        RegionList regionList = parseRegionList(configuration);
+        RegionMaskList regionMaskList = parseRegionList(configuration);
 
         Climatology climatology = Climatology.open(climatologyDir);
-        Climatology.Dataset[] datasets = climatology.getDatasets();
         ProductStore productStore = ProductStore.create(productType, productDir);
         try {
-            RegionalAverager.computeOutputTimeSteps(productStore, startDate, endDate, temporalResolution, regionList);
+            RegionalAveraging.computeOutputTimeSteps(productStore, climatology, regionMaskList, startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
     }
 
-    private RegionList parseRegionList(Configuration configuration) throws ToolException {
+    private RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
         try {
-            return RegionList.parse(configuration.getString(PARAM_REGION_LIST, false));
+            return RegionMaskList.parse(configuration.getString(PARAM_REGION_LIST, false));
         } catch (Exception e) {
             throw new ToolException(e, ExitCode.USAGE_ERROR);
         }

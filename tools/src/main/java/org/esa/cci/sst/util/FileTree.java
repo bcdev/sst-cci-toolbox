@@ -3,6 +3,7 @@ package org.esa.cci.sst.util;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.Map;
  * @author Norman Fomferra
  */
 public class FileTree {
-    private static final File[] EMPTY = new File[0];
+
     private Map<Integer, Map<Integer, Map<Integer, List<File>>>> yearMaps;
 
     public FileTree() {
@@ -45,11 +46,10 @@ public class FileTree {
             dayLists.put(day, dayList);
         }
 
-        System.out.println("file = " + file);
         dayList.add(file);
     }
 
-    public File[] get(Date date) {
+    public List<File> get(Date date) {
         Calendar calendar = UTC.createCalendar(date);
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
@@ -57,10 +57,10 @@ public class FileTree {
         return get(year, month, day);
     }
 
-    public File[] get(int year) {
+    public List<File> get(int year) {
         Map<Integer, Map<Integer, List<File>>> monthMaps = yearMaps.get(year);
         if (monthMaps == null) {
-            return EMPTY;
+            return Collections.emptyList();
         }
 
         ArrayList<File> entries = new ArrayList<File>();
@@ -70,18 +70,18 @@ public class FileTree {
             }
         }
 
-        return entries.toArray(new File[0]);
+        return entries;
     }
 
-    public File[] get(int year, int month) {
+    public List<File> get(int year, int month) {
         Map<Integer, Map<Integer, List<File>>> monthMaps = yearMaps.get(year);
         if (monthMaps == null) {
-            return EMPTY;
+            return Collections.emptyList();
         }
 
         Map<Integer, List<File>> dayLists = monthMaps.get(month);
         if (dayLists == null) {
-            return EMPTY;
+            return Collections.emptyList();
         }
 
         ArrayList<File> entries = new ArrayList<File>();
@@ -89,27 +89,27 @@ public class FileTree {
             entries.addAll(dayList);
         }
 
-        return entries.toArray(new File[0]);
+        return entries;
     }
 
-    public File[] get(int year, int month, int day) {
+    public List<File> get(int year, int month, int day) {
 
         Map<Integer, Map<Integer, List<File>>> monthMaps = yearMaps.get(year);
         if (monthMaps == null) {
-            return EMPTY;
+            return Collections.emptyList();
         }
 
         Map<Integer, List<File>> dayLists = monthMaps.get(month);
         if (dayLists == null) {
-            return EMPTY;
+            return Collections.emptyList();
         }
 
         List<File> dayList = dayLists.get(day);
         if (dayList == null) {
-            return EMPTY;
+            return Collections.emptyList();
         }
 
-        return dayList.toArray(new File[0]);
+        return Collections.unmodifiableList(dayList);
     }
 
 }
