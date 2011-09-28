@@ -42,7 +42,7 @@ public abstract class Tool {
         try {
             commandLine = parseCommandLine(arguments);
         } catch (ParseException e) {
-            throw new ToolException(e.getMessage() + " (use option --help for usage)", ExitCode.USAGE_ERROR);
+            throw new ToolException(e.getMessage() + " (use option -h for usage)", ExitCode.USAGE_ERROR);
         }
 
         dumpStackTrace = commandLine.hasOption("errors");
@@ -139,7 +139,7 @@ public abstract class Tool {
         if (ToolException.class.equals(error.getClass())) {
             System.err.println("Error: " + error.getMessage());
         } else {
-            System.err.println("Internal error: " + error.getClass().getName() + ": " + error.getMessage()  + (dumpStackTrace? " (use option -e to dump a full stack trace)"  :""));
+            System.err.println("Internal error: " + error.getClass().getName() + ": " + error.getMessage()  + (dumpStackTrace? "" : " (use option -e to dump a full stack trace)"));
         }
         if (dumpStackTrace) {
             error.printStackTrace(System.err);
