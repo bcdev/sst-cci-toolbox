@@ -42,7 +42,7 @@ public abstract class Tool {
         try {
             commandLine = parseCommandLine(arguments);
         } catch (ParseException e) {
-            throw new ToolException(e.getMessage() + " (use option -h for usage)", ExitCode.USAGE_ERROR);
+            throw new ToolException(e.getMessage(), ExitCode.USAGE_ERROR);
         }
 
         dumpStackTrace = commandLine.hasOption("errors");
@@ -138,8 +138,14 @@ public abstract class Tool {
     private void error(Throwable error, ExitCode exitCode) {
         if (ToolException.class.equals(error.getClass())) {
             System.err.println("Error: " + error.getMessage());
+            if (exitCode == ExitCode.USAGE_ERROR) {
+                System.err.println("       (Consider using option -h to display the usage help)");
+            }
         } else {
-            System.err.println("Internal error: " + error.getClass().getName() + ": " + error.getMessage()  + (dumpStackTrace? "" : " (use option -e to dump a full stack trace)"));
+            System.err.println("Internal error: " + error.getClass().getName() + ": " + error.getMessage());
+            if (!dumpStackTrace) {
+                System.err.println("                (Consider using option -e to display the error's full stack trace)");
+            }
         }
         if (dumpStackTrace) {
             error.printStackTrace(System.err);
