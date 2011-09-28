@@ -10,4 +10,5 @@ testdata/
 /*.log
 /*.nc
 /*.properties
+/out
 /testdata
