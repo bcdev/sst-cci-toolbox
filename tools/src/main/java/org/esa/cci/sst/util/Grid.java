@@ -23,7 +23,7 @@ public class Grid {
         return new Grid(width, height, -180.0, 90.0, 360.0 / width, 180.0 / height);
     }
 
-    private Grid(int width, int height, double northing, double easting, double resolutionX, double resolutionY) {
+    private Grid(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
         this.width = width;
         this.height = height;
         this.northing = northing;
@@ -45,10 +45,23 @@ public class Grid {
     }
 
     public final double getCenterLat(int y) {
-        return northing - resolutionY * (y + 0.5);
+        double lat = northing - resolutionY * (y + 0.5);
+        if (lat < -90.0) {
+            return -90.0;
+        }
+        if (lat > 90.0) {
+            return 90.0;
+        }
+        return lat;
     }
 
     public final int getGridX(double lon, boolean crop) {
+        if (lon < -180.0) {
+            throw new IllegalArgumentException("lon < -180.0");
+        }
+        if (lon > 180.0) {
+            throw new IllegalArgumentException("lon > 180.0");
+        }
         int gridX = (int) ((lon - easting) / resolutionX);
         if (crop) {
             if (gridX < 0) {
@@ -62,6 +75,12 @@ public class Grid {
     }
 
     public final int getGridY(double lat, boolean crop) {
+        if (lat < -90.0) {
+            throw new IllegalArgumentException("lat < -90.0");
+        }
+        if (lat > 90.0) {
+            throw new IllegalArgumentException("lat > 90.0");
+        }
         int gridY = (int) ((lat - northing) / -resolutionY);
         if (crop) {
             if (gridY < 0) {

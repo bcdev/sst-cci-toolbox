@@ -30,12 +30,14 @@ public class RegionMask {
                 if (line.length() != WIDTH) {
                     throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Line must contain exactly %d characters, but found %d.", name, lineNo, WIDTH, line.length()), 0);
                 }
-                for (int x = 0; x < 72; x++) {
+                for (int x = 0; x < WIDTH; x++) {
                     char c = line.charAt(x);
                     if (c != '0' && c != '1') {
                         throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Only use characters '0' and '1'.", name, lineNo), x);
                     }
-                    samples[y * 72 + x] = c != '0';
+                    if (c == '1') {
+                        samples[y * WIDTH + x] = true;
+                    }
                 }
                 y++;
             }
@@ -46,15 +48,15 @@ public class RegionMask {
         return new RegionMask(name, samples);
     }
 
-    public static RegionMask create(String name, double westing, double northing, double easting, double southing) {
-        if (northing < southing) {
-            throw new IllegalArgumentException("northing must not be less than southing");
+    public static RegionMask create(String name, double west, double north, double east, double south) {
+        if (north < south) {
+            throw new IllegalArgumentException("north < south");
         }
         final double eps = 1e-10;
-        int gridX1 = GRID.getGridX(westing, true);
-        int gridX2 = GRID.getGridX(easting - eps, true);
-        int gridY1 = GRID.getGridX(northing, true);
-        int gridY2 = GRID.getGridX(southing + eps, true);
+        int gridX1 = GRID.getGridX(west, true);
+        int gridX2 = GRID.getGridX(east - eps, true);
+        int gridY1 = GRID.getGridY(north, true);
+        int gridY2 = GRID.getGridY(south + eps, true);
         boolean[] samples = new boolean[WIDTH * HEIGHT];
         for (int y = gridY1; y <= gridY2; y++) {
             if (gridX1 <= gridX2) {

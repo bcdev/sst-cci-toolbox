@@ -46,22 +46,22 @@ public class RegionList extends ArrayList<RegionMask> {
 
     private static void fromWNES(String name, String[] wnes, List<RegionMask> regionMasks) throws ParseException {
         int entryNo = regionMasks.size() + 1;
-        double westing;
-        double northing;
-        double easting;
-        double southing;
+        double west;
+        double north;
+        double east;
+        double south;
         try {
-            westing = Double.parseDouble(wnes[0]);
-            northing = Double.parseDouble(wnes[1]);
-            easting = Double.parseDouble(wnes[2]);
-            southing = Double.parseDouble(wnes[3]);
+            west = Double.parseDouble(wnes[0]);
+            north = Double.parseDouble(wnes[1]);
+            east = Double.parseDouble(wnes[2]);
+            south = Double.parseDouble(wnes[3]);
         } catch (NumberFormatException e) {
             throw new ParseException(String.format("Illegal region entry %d: Failed to parse W,N,E,S coordinates.", entryNo), 0);
         }
-        if (northing < southing) {
+        if (north < south) {
             throw new ParseException(String.format("Illegal region entry %d: N must not be less than S.", entryNo), 0);
         }
-        regionMasks.add(RegionMask.create(name, westing, northing, easting, southing));
+        regionMasks.add(RegionMask.create(name, west, north, east, south));
     }
 
     private static void fromMaskFile(String name, String split,List<RegionMask> regionMasks) throws IOException, ParseException {
