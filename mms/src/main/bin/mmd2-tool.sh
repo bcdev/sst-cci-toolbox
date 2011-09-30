@@ -3,12 +3,13 @@
 . $MMS_INST/mymms
 . $MMS_HOME/bin/mms-env.sh
 
-ulimit -Sv unlimited
-ulimit unlimited
+ulimit -a
+echo $TMPDIR
 
-java \
+exec java \
     -Dmms.home="$MMS_HOME" \
-    -Xmx3072M $MMS_OPTIONS \
+    -Xmx3872M $MMS_OPTIONS \
+    -Djava.io.tmpdir=$TMPDIR \
     -javaagent:"$MMS_HOME/lib/openjpa-all-2.1.0.jar" \
     -classpath "$MMS_HOME/lib/*" \
     org.esa.cci.sst.tools.mmdgeneration.MmdTool "$@"

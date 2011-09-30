@@ -92,7 +92,7 @@ echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.target.startTime=$startTime \
 -Dmms.target.stopTime=$stopTime \
 -Djava.io.tmpdir=$wd \
--Dmms.db.useindex=true \
+-Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
 -Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
 -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \
@@ -102,7 +102,7 @@ $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.target.startTime=$startTime \
 -Dmms.target.stopTime=$stopTime \
 -Djava.io.tmpdir=$wd \
--Dmms.db.useindex=true \
+-Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
 -Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
 -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \

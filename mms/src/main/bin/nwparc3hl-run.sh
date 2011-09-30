@@ -67,8 +67,9 @@ pattern=`cat $MMS_CONFIG | awk "/mms.pattern.$sensor/ { print \\$3 }"`
 echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.target.startTime=$startTime \
 -Dmms.target.stopTime=$stopTime \
+-Dmms.target.condition='r.dataset = 6' \
 -Djava.io.tmpdir=$wd \
--Dmms.db.useindex=true \
+-Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
 -Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
 -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-highlat.properties \
@@ -77,8 +78,9 @@ echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.target.startTime=$startTime \
 -Dmms.target.stopTime=$stopTime \
+-Dmms.target.condition='r.dataset = 6' \
 -Djava.io.tmpdir=$wd \
--Dmms.db.useindex=true \
+-Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
 -Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
 -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-highlat.properties \

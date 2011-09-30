@@ -43,14 +43,14 @@ fi
 
 mkdir -p $MMS_ARCHIVE/mmd/v1/$year
 
-$MMS_HOME/bin/mmd2-tool.sh -c $MMS_CONFIG \
+$MMS_HOME/bin/mmdupdate-tool.sh -c $MMS_CONFIG \
     -Dmms.target.startTime=$year-$month-01T00:00:00Z \
     -Dmms.target.stopTime=$stopyear-$stopmonth-01T00:00:00Z \
+    -Dmms.target.condition='r.dataset = 0 and (r.referenceflag = 0 or r.referenceflag = 1)' \
     -Dmms.db.useindex=false \
     -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-rrdp.properties \
-    -Dmms.target.variables=$MMS_HOME/config/mmd-variables-rrdpalgsel.config \
-    -Dmms.target.condition='r.dataset = 0 and r.referenceflag = 2' \
-    -Dmms.target.dir=$MMS_ARCHIVE/mmd/v1/$year \
-    -Dmms.target.filename=mmd-rrdp_algsel-$year-$month.nc
+    -Dmms.target.variables=$MMS_HOME/config/mmd-variables-rrdptest.config \
+    -Dmms.mmdupdate.mmd=$MMS_ARCHIVE/mmd/v1/$year/mmd-rrdp_test-$year-$month.nc \
+    -Dmms.mmdupdate.variables=seaice.latitude,seaice.longitude,seaice.concentration,seaice.land_sea_mask,seaice.filename,seaice.matchup_elem,seaice.matchup_line
 
 echo "`date -u +%Y%m%d-%H%M%S` mmd rrdp test $year/$month ... done"
