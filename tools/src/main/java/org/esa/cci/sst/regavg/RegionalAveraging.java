@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -62,10 +63,12 @@ public class RegionalAveraging {
 
         RegionMask combinedMask = RegionMask.combineMasks(regionMaskList);
 
+        // todo - Aggregate all variables of all netcdfFile into 72x36 5deg grid boxes
         Aggregation aggregation = new Aggregation(combinedMask);
         aggregation.startAggregation();
         for (File file : files) {
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
+            netcdfFile.findTopVariable("time");
             // todo - get file day-of-year and fetch matching climatology
             try {
                 aggregation.aggregateVariables(netcdfFile);
@@ -77,6 +80,7 @@ public class RegionalAveraging {
 
         for (RegionMask regionMask : regionMaskList) {
             // todo - if we have multiple masks, split the aggregation results we've got to each region
+            // todo - check if region is Globe or Hemisphere (actually: check if we have fully covered 90 deg grid boxes), if so apply special averaging for all 90 deg grid boxes.
         }
 
         // put the per-region results into result
@@ -116,6 +120,23 @@ public class RegionalAveraging {
             //          Array array = var.read(offs, shape);
             //          aggregateVariable(var, array)
             //          ...
+        }
+    }
+
+    private static final Grid GLOBAL_5DEG_GRID = Grid.createGlobalGrid(5.0);
+
+    private static class Var {
+
+        final int width;
+        final int height;
+        final double[] samples;
+        final int[] counts;
+
+        private Var() {
+            this.width = GLOBAL_5DEG_GRID.getWidth();
+            this.height = GLOBAL_5DEG_GRID.getHeight();
+            samples = new double[width * height];
+            counts = new int[width * height];
         }
     }
 
