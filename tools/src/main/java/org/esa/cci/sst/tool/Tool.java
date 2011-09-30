@@ -68,6 +68,8 @@ public abstract class Tool {
 
     protected abstract String getHeader();
 
+    protected abstract String getFooter();
+
     protected abstract Parameter[] getParameters();
 
     protected abstract void run(Configuration configuration, String[] arguments) throws ToolException;
@@ -158,7 +160,7 @@ public abstract class Tool {
         helpFormatter.printHelp(getSyntax(),
                                 getHeader(),
                                 options,
-                                "", false);
+                                getFooter(), false);
     }
 
     private void printVersion() {
