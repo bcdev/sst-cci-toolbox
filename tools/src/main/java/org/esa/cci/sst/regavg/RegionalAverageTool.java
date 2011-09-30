@@ -21,11 +21,19 @@ public class RegionalAverageTool extends Tool {
 
     private static final String TOOL_NAME = "regavg";
     private static final String TOOL_VERSION = TOOL_NAME + ", version 1.0 (C) 2011-2013 by the ESA SST_cci project";
-    private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTION]...";
+    private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
-            "This tool is used to generate regional average time-series from an input set of 0.05 deg. ARC files, " +
-            "and SST_cci L3U and L3C given in the specified DIR or as list of FILEs. OPTION may be one or more of " +
-            "the following:\n";
+            "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
+            "SST_cci (L3U, L3P, L4) product files given a time interval and a list of regions. An output " +
+            "NetCDF file will be written for each region.\n" +
+            "OPTIONS may be one or more of the following:\n";
+
+    private static final String TOOL_FOOTER = "\n" +
+            "All parameter options may also be read from a key-value-pair file. The tool will always try " +
+            "to read settings in the default configuration file './regavg.properties'. Optionally, a " +
+            "configuration file may be provided using the -c <FILE> option (see above)." +
+            "Command-line options overwrite the settings given by -c, which again overwrite settings in " +
+            "default configuration file.\n";
 
     public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "NUM", "0.2", "The SST depth in meters.");
     public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]", "Global=-180,90,180,-90",
@@ -68,6 +76,11 @@ public class RegionalAverageTool extends Tool {
     @Override
     protected String getHeader() {
         return TOOL_HEADER;
+    }
+
+    @Override
+    protected String getFooter() {
+        return TOOL_FOOTER;
     }
 
     @Override
