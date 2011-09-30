@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * @author Norman Fomferra
  */
 public enum ProductType {
-    ARC {
+    ARC_L3U {
         public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
         public final String filenamePrefix = "AT2_AVG_3PAARC";
         // todo - Use regexp instead
@@ -40,7 +40,7 @@ public enum ProductType {
         }
     },
 
-    ARC_L3U {
+    ARC_L2P {
         @Override
         public Date getDate(String filename) {
             return null;
@@ -52,7 +52,7 @@ public enum ProductType {
         }
     },
 
-    SST_CCI_L3U {
+    CCI_L3U {
         @Override
         public Date getDate(String filename) {
             return null;
@@ -65,7 +65,20 @@ public enum ProductType {
         }
     },
 
-    SST_CCI_L3C {
+    CCI_L3C {
+        @Override
+        public Date getDate(String filename) {
+            return null;
+        }
+
+
+        @Override
+        public Grid getGrid() {
+            return null;
+        }
+    },
+
+    CCI_L4 {
         @Override
         public Date getDate(String filename) {
             return null;
