@@ -1,5 +1,8 @@
 package org.esa.cci.sst.util;
 
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+
 /**
  * Represents a lat/lon grid.
  *
@@ -40,12 +43,27 @@ public class Grid {
         return height;
     }
 
-    public final double getCenterLon(int x) {
-        return easting + resolutionX * (x + 0.5);
+    public final double getCenterLon(int gridX) {
+        return getLon(gridX + 0.5);
     }
 
-    public final double getCenterLat(int y) {
-        double lat = northing - resolutionY * (y + 0.5);
+    public final double getCenterLat(int gridY) {
+        return getLat(gridY + 0.5);
+    }
+
+    public final double getLon(double gridX) {
+        double lon = easting + resolutionX * gridX;
+        if (lon < -180.0) {
+            lon = 180.0 - (-lon % 180.0);
+        }
+        if (lon > 180.0) {
+            lon = -180.0 + (lon % 180.0);
+        }
+        return lon;
+    }
+
+    public final double getLat(double gridY) {
+        double lat = northing - resolutionY * gridY;
         if (lat < -90.0) {
             return -90.0;
         }
@@ -93,4 +111,26 @@ public class Grid {
         return gridY;
     }
 
+    public Rectangle2D getLonLatRectangle(int gridX, int gridY) {
+        double lon1 = getLon(gridX);
+        double lat1 = getLat(gridY + 1);
+        return new Rectangle2D.Double(lon1, lat1, resolutionX, resolutionY);
+    }
+
+    public Rectangle getGridRectangle(Rectangle2D lonLatRectangle) {
+        double lon1 = lonLatRectangle.getX();
+        double lat1 = lonLatRectangle.getY();
+        double lon2 = lon1 + lonLatRectangle.getWidth();
+        double lat2 = lat1 + lonLatRectangle.getHeight();
+        return getGridRectangle(lon1, lat1, lon2, lat2);
+    }
+
+    public Rectangle getGridRectangle(double lon1, double lat1, double lon2, double lat2) {
+        double eps = 1.0e-10;
+        int gridX1 = getGridX(lon1, true);
+        int gridX2 = getGridX(lon2 - eps, true);
+        int gridY1 = getGridY(lat2, true);
+        int gridY2 = getGridY(lat1 + eps, true);
+        return new Rectangle(gridX1, gridY1, gridX2 - gridX1 + 1, gridY2 - gridY1 + 1);
+    }
 }

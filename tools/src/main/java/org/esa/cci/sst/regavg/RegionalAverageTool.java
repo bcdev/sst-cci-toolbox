@@ -51,7 +51,7 @@ public class RegionalAverageTool extends Tool {
     public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology", "The directory path to the reference climatology.");
     public static final Parameter PARAM_LUT_DIR = new Parameter("lutPath", "DIR", "./lut", "The directory path to the variance LUTs.");
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "", "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
-    public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", "ARC", "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
+    public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null, "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
     public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
     public static void main(String[] arguments) {

@@ -17,15 +17,15 @@ public class RegionListTest {
         assertEquals(1, regionMaskList.size());
         RegionMask global = regionMaskList.get(0);
         assertEquals("Global", global.getName());
-        assertEquals(true, global.getSample(-180, 90));
-        assertEquals(true, global.getSample(0, 90));
-        assertEquals(true, global.getSample(+180, 90));
-        assertEquals(true, global.getSample(-180, 0));
-        assertEquals(true, global.getSample(0, 0));
-        assertEquals(true, global.getSample(+180, 0));
-        assertEquals(true, global.getSample(-180, -90));
-        assertEquals(true, global.getSample(0, -90));
-        assertEquals(true, global.getSample(+180, -90));
+        assertEquals(true, global.getSampleForPos(-180, 90));
+        assertEquals(true, global.getSampleForPos(0, 90));
+        assertEquals(true, global.getSampleForPos(+180, 90));
+        assertEquals(true, global.getSampleForPos(-180, 0));
+        assertEquals(true, global.getSampleForPos(0, 0));
+        assertEquals(true, global.getSampleForPos(+180, 0));
+        assertEquals(true, global.getSampleForPos(-180, -90));
+        assertEquals(true, global.getSampleForPos(0, -90));
+        assertEquals(true, global.getSampleForPos(+180, -90));
     }
 
     @Test
@@ -34,26 +34,26 @@ public class RegionListTest {
         assertEquals(2, regionMaskList.size());
         RegionMask nw = regionMaskList.get(0);
         assertEquals("NW", nw.getName());
-        assertEquals(true, nw.getSample(-180, 90));
-        assertEquals(false, nw.getSample(0, 90));
-        assertEquals(false, nw.getSample(+180, 90));
-        assertEquals(false, nw.getSample(-180, 0));
-        assertEquals(false, nw.getSample(0, 0));
-        assertEquals(false, nw.getSample(+180, 0));
-        assertEquals(false, nw.getSample(-180, -90));
-        assertEquals(false, nw.getSample(0, -90));
-        assertEquals(false, nw.getSample(+180, -90));
+        assertEquals(true, nw.getSampleForPos(-180, 90));
+        assertEquals(false, nw.getSampleForPos(0, 90));
+        assertEquals(false, nw.getSampleForPos(+180, 90));
+        assertEquals(false, nw.getSampleForPos(-180, 0));
+        assertEquals(false, nw.getSampleForPos(0, 0));
+        assertEquals(false, nw.getSampleForPos(+180, 0));
+        assertEquals(false, nw.getSampleForPos(-180, -90));
+        assertEquals(false, nw.getSampleForPos(0, -90));
+        assertEquals(false, nw.getSampleForPos(+180, -90));
         RegionMask se = regionMaskList.get(1);
         assertEquals("SE", se.getName());
-        assertEquals(false, se.getSample(-180, 90));
-        assertEquals(false, se.getSample(0, 90));
-        assertEquals(false, se.getSample(+180, 90));
-        assertEquals(false, se.getSample(-180, 0));
-        assertEquals(true, se.getSample(0, 0));
-        assertEquals(true, se.getSample(+180, 0));
-        assertEquals(false, se.getSample(-180, -90));
-        assertEquals(true, se.getSample(0, -90));
-        assertEquals(true, se.getSample(+180, -90));
+        assertEquals(false, se.getSampleForPos(-180, 90));
+        assertEquals(false, se.getSampleForPos(0, 90));
+        assertEquals(false, se.getSampleForPos(+180, 90));
+        assertEquals(false, se.getSampleForPos(-180, 0));
+        assertEquals(true, se.getSampleForPos(0, 0));
+        assertEquals(true, se.getSampleForPos(+180, 0));
+        assertEquals(false, se.getSampleForPos(-180, -90));
+        assertEquals(true, se.getSampleForPos(0, -90));
+        assertEquals(true, se.getSampleForPos(+180, -90));
     }
 
     @Test
@@ -62,16 +62,16 @@ public class RegionListTest {
         assertEquals(1, regionMaskList.size());
         RegionMask pacific = regionMaskList.get(0);
         assertEquals("Pacific", pacific.getName());
-        assertEquals(true, pacific.getSample(-180, 0));
-        assertEquals(true, pacific.getSample(-175, 0));
-        assertEquals(false, pacific.getSample(-170, 0));
-        assertEquals(false, pacific.getSample(-160, 0));
-        assertEquals(false, pacific.getSample(-90, 0));
-        assertEquals(false, pacific.getSample(-0, 0));
-        assertEquals(false, pacific.getSample(90, 0));
-        assertEquals(false, pacific.getSample(160, 0));
-        assertEquals(true, pacific.getSample(170, 0));
-        assertEquals(true, pacific.getSample(175, 0));
-        assertEquals(true, pacific.getSample(180, 0));
+        assertEquals(true, pacific.getSampleForPos(-180, 0));
+        assertEquals(true, pacific.getSampleForPos(-175, 0));
+        assertEquals(false, pacific.getSampleForPos(-170, 0));
+        assertEquals(false, pacific.getSampleForPos(-160, 0));
+        assertEquals(false, pacific.getSampleForPos(-90, 0));
+        assertEquals(false, pacific.getSampleForPos(-0, 0));
+        assertEquals(false, pacific.getSampleForPos(90, 0));
+        assertEquals(false, pacific.getSampleForPos(160, 0));
+        assertEquals(true, pacific.getSampleForPos(170, 0));
+        assertEquals(true, pacific.getSampleForPos(175, 0));
+        assertEquals(true, pacific.getSampleForPos(180, 0));
     }
 }

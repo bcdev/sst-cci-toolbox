@@ -2,8 +2,13 @@ package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.UTC;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -11,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+// todo - make it a parameterised algorithm object
 
 /**
  * Utility that performs the regional averaging.
@@ -53,7 +60,11 @@ public class RegionalAveraging {
         return null;
     }
 
-    private static Result computeOutputTimeStep(ProductStore productStore, Climatology climatology, RegionMaskList regionMaskList, Date date1, Date date2, TemporalResolution temporalResolution) throws IOException {
+    private static Result computeOutputTimeStep(ProductStore productStore,
+                                                Climatology climatology,
+                                                RegionMaskList regionMaskList,
+                                                Date date1, Date date2,
+                                                TemporalResolution temporalResolution) throws IOException {
         DateFormat isoDateFormat = UTC.getIsoFormat();
 
         List<File> files = productStore.getFiles(date1, date2);
@@ -61,22 +72,50 @@ public class RegionalAveraging {
         System.out.printf("Computing output time step from %s to %s. %d file(s) found.%n",
                           isoDateFormat.format(date1), isoDateFormat.format(date2), files.size());
 
-        RegionMask combinedMask = RegionMask.combineMasks(regionMaskList);
+        RegionMask combinedRegionMask = RegionMask.or(regionMaskList);
 
         // todo - Aggregate all variables of all netcdfFile into 72x36 5deg grid boxes
-        Aggregation aggregation = new Aggregation(combinedMask);
-        aggregation.startAggregation();
         for (File file : files) {
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
-            netcdfFile.findTopVariable("time");
-            // todo - get file day-of-year and fetch matching climatology
+            long t0 = System.currentTimeMillis();
+            System.out.printf("Aggregating file %s\n", netcdfFile.getLocation());
             try {
-                aggregation.aggregateVariables(netcdfFile);
+                // todo - generalise code: the following code is for ARC L2U
+
+                float time = netcdfFile.findTopVariable("time").readScalarFloat();
+                // todo - get climatology for time
+                Variable sstVar = netcdfFile.findTopVariable("sst_skin");
+                Variable uncertaintyVar = netcdfFile.findTopVariable("uncertainty");
+                Variable maskVar = netcdfFile.findTopVariable("mask");
+                Grid arcGrid = Grid.createGlobalGrid(3600, 1800);
+                // todo - check all variables exist and have the expected grid sizes
+
+                // todo - optimize: the following loop may be inefficient for Global or Hemispheric coverage
+                for (int cellY = 0; cellY < combinedRegionMask.getHeight(); cellY++) {
+                    for (int cellX = 0; cellX < combinedRegionMask.getWidth(); cellX++) {
+                          if (combinedRegionMask.getSampleForCell(cellX, cellY)) {
+                              Rectangle2D lonLatRectangle = combinedRegionMask.getGrid().getLonLatRectangle(cellX, cellY);
+                              Rectangle gridRectangle = arcGrid.getGridRectangle(lonLatRectangle);
+
+                              Array sstData;
+                              sstData = getArcL3UData(sstVar, gridRectangle);
+                              // System.out.println("sstData = " + sstData);
+
+                              // todo - for each uncertainty variables A-G: create a grid comprising max. 72 x 36 aggregation results.
+
+                          }
+                    }
+                }
             } finally {
                 netcdfFile.close();
             }
+
+            long t1 = System.currentTimeMillis();
+
+            long dt = t1 - t0;
+            System.out.println("reading took " + dt + " ms");
+
         }
-        aggregation.endAggregation();
 
         for (RegionMask regionMask : regionMaskList) {
             // todo - if we have multiple masks, split the aggregation results we've got to each region
@@ -87,40 +126,20 @@ public class RegionalAveraging {
         return new Result();
     }
 
-    public static class Result {
-        // todo
+    private static Array getArcL3UData(Variable sstVar, Rectangle gridRectangle) throws IOException {
+        //System.out.println("reading sstVar rect " + gridRectangle);
+        Array sstData;
+        try {
+            sstData = sstVar.read(new int[]{0, gridRectangle.y, gridRectangle.x},
+                                        new int[]{1, gridRectangle.height, gridRectangle.width});
+        } catch (InvalidRangeException e) {
+            throw new IllegalStateException(e);
+        }
+        return sstData;
     }
 
-    public static class Aggregation {
-        RegionMask mask;
-
-        public Aggregation(RegionMask mask) {
-            this.mask = mask;
-        }
-
-        public void startAggregation() {
-            // todo
-        }
-
-        public void endAggregation() {
-            // todo
-        }
-
-        public void aggregateVariables(NetcdfFile netcdfFile) {
-
-            // todo - for each SST variable and the uncertainty variables A-G: create a grid comprising max. 72 x 36 aggregation results.
-            System.out.printf("Aggregating file %s\n", netcdfFile.getLocation());
-            // for each SST variable and the uncertainty variables A-G:
-            //    create grid comprising max. 72 x 36 aggregation results.
-            //    Variable var = netcdfFile.findTopVariable(name)
-            //    int[] shape = getGridBoxShape(productType, mask);
-            //    for y=0...35, x=0...71
-            //       if mask.isValid(x, y)
-            //          int[] offs = getGridBoxOffs(productType, mask, x, y);
-            //          Array array = var.read(offs, shape);
-            //          aggregateVariable(var, array)
-            //          ...
-        }
+    public static class Result {
+        // todo
     }
 
     private static final Grid GLOBAL_5DEG_GRID = Grid.createGlobalGrid(5.0);

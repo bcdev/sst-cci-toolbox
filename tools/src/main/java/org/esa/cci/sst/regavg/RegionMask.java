@@ -2,6 +2,7 @@ package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.Grid;
 
+import java.awt.*;
 import java.text.ParseException;
 import java.util.StringTokenizer;
 
@@ -11,12 +12,23 @@ import java.util.StringTokenizer;
  * @author Norman
  */
 public class RegionMask {
+
+    public enum Coverage {
+        Empty,
+        Globe,
+        N_Hemisphere,
+        S_Hemisphere,
+        // may add: Ninty_deg_cells?
+        Other,
+    }
+
     private static final int WIDTH = 72;
     private static final int HEIGHT = 36;
     private static final Grid GRID = Grid.createGlobalGrid(WIDTH, HEIGHT);
 
     private final String name;
     private final boolean[] samples;
+    private final Coverage coverage;
 
     public static RegionMask create(String name, String data) throws ParseException {
         boolean[] samples = new boolean[WIDTH * HEIGHT];
@@ -52,11 +64,11 @@ public class RegionMask {
         if (north < south) {
             throw new IllegalArgumentException("north < south");
         }
-        final double eps = 1e-10;
-        int gridX1 = GRID.getGridX(west, true);
-        int gridX2 = GRID.getGridX(east - eps, true);
-        int gridY1 = GRID.getGridY(north, true);
-        int gridY2 = GRID.getGridY(south + eps, true);
+        Rectangle gridRectangle = GRID.getGridRectangle(west, south, east, north);
+        int gridX1 = gridRectangle.x;
+        int gridY1 = gridRectangle.y;
+        int gridX2 = gridRectangle.x + gridRectangle.width - 1;
+        int gridY2 = gridRectangle.y + gridRectangle.height - 1;
         boolean[] samples = new boolean[WIDTH * HEIGHT];
         for (int y = gridY1; y <= gridY2; y++) {
             if (gridX1 <= gridX2) {
@@ -80,19 +92,70 @@ public class RegionMask {
     public RegionMask(String name, boolean[] samples) {
         this.name = name;
         this.samples = samples;
+
+        int nG = 0;
+        int nN = 0;
+        int nS = 0;
+        for (int i = 0; i < samples.length; i++) {
+            boolean sample = samples[i];
+            if (sample) {
+                nG++;
+                if (i < samples.length / 2) {
+                    nN++;
+                } else {
+                    nS++;
+                }
+            }
+        }
+
+        if (nG == 0) {
+            coverage = Coverage.Empty;
+        } else if (nG == samples.length) {
+            coverage = Coverage.Globe;
+        } else if (nN == samples.length / 2) {
+            coverage = Coverage.N_Hemisphere;
+        } else if (nS == samples.length / 2) {
+            coverage = Coverage.S_Hemisphere;
+        } else {
+            coverage = Coverage.Other;
+        }
     }
 
     public String getName() {
         return name;
     }
 
-    public boolean getSample(double lon, double lat) {
+    public Coverage getCoverage() {
+        return coverage;
+    }
+
+    public boolean[] getSamples() {
+        return samples.clone();
+    }
+
+    public int getWidth() {
+        return WIDTH;
+    }
+
+    public int getHeight() {
+        return HEIGHT;
+    }
+
+    public Grid getGrid() {
+        return GRID;
+    }
+
+    public boolean getSampleForPos(double lon, double lat) {
         int gridX = GRID.getGridX(lon, true);
         int gridY = GRID.getGridY(lat, true);
         return samples[gridY * WIDTH + gridX];
     }
 
-    public static RegionMask combineMasks(RegionMaskList regionMaskList) {
+    public boolean getSampleForCell(int  gridX, int gridY) {
+        return samples[gridY * WIDTH + gridX];
+    }
+
+    public static RegionMask or(RegionMaskList regionMaskList) {
         if (regionMaskList.size() == 0) {
             return null;
         }
@@ -107,6 +170,6 @@ public class RegionMask {
                 }
             }
         }
-        return new RegionMask("Combined", samples) ;
+        return new RegionMask("Combined", samples);
     }
 }
