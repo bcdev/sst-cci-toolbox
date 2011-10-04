@@ -102,6 +102,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     private File file;
     private IOHandler ioHandler;
     private final List<CompoundData> scanlines = new ArrayList<CompoundData>(14000);
+    private RandomAccessFile raf;
 
     /**
      * Constructs a new abstract product reader.
@@ -116,7 +117,7 @@ public class AvhrrPodProductReader extends AbstractProductReader {
     @Override
     protected Product readProductNodesImpl() throws IOException {
         file = new File(getInput().toString());
-        final RandomAccessFile raf = new RandomAccessFile(file, "r");
+        raf = new RandomAccessFile(file, "r");
         ioHandler = new RandomAccessFileIOHandler(raf);
         readRecords();
         return createProduct();
@@ -130,6 +131,12 @@ public class AvhrrPodProductReader extends AbstractProductReader {
         final RenderedImage image = destBand.getSourceImage();
         final Raster data = image.getData(new Rectangle(destOffsetX, destOffsetY, destWidth, destHeight));
         data.getDataElements(destOffsetX, destOffsetY, destWidth, destHeight, destBuffer.getElems());
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        raf.close();
     }
 
     Product createProduct() throws IOException {
