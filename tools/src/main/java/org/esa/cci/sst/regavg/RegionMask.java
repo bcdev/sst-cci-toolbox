@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.util.Grid;
+import org.esa.cci.sst.util.GridDef;
 
 import java.awt.*;
 import java.text.ParseException;
@@ -24,7 +24,7 @@ public class RegionMask {
 
     private static final int WIDTH = 72;
     private static final int HEIGHT = 36;
-    private static final Grid GRID = Grid.createGlobalGrid(WIDTH, HEIGHT);
+    private static final GridDef GRID_DEF = GridDef.createGlobalGrid(WIDTH, HEIGHT);
 
     private final String name;
     private final boolean[] samples;
@@ -64,7 +64,7 @@ public class RegionMask {
         if (north < south) {
             throw new IllegalArgumentException("north < south");
         }
-        Rectangle gridRectangle = GRID.getGridRectangle(west, south, east, north);
+        Rectangle gridRectangle = GRID_DEF.getGridRectangle(west, south, east, north);
         int gridX1 = gridRectangle.x;
         int gridY1 = gridRectangle.y;
         int gridX2 = gridRectangle.x + gridRectangle.width - 1;
@@ -141,13 +141,13 @@ public class RegionMask {
         return HEIGHT;
     }
 
-    public Grid getGrid() {
-        return GRID;
+    public GridDef getGrid() {
+        return GRID_DEF;
     }
 
     public boolean getSampleForPos(double lon, double lat) {
-        int gridX = GRID.getGridX(lon, true);
-        int gridY = GRID.getGridY(lat, true);
+        int gridX = GRID_DEF.getGridX(lon, true);
+        int gridY = GRID_DEF.getGridY(lat, true);
         return samples[gridY * WIDTH + gridX];
     }
 

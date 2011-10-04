@@ -49,8 +49,6 @@ public class ProductStore {
         return files;
     }
 
-
-
     private static FileTree scanFiles(ProductType productType, String... inputPaths) {
         FileTree fileTree = new FileTree();
 
