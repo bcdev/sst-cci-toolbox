@@ -5,7 +5,7 @@ import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.Parameter;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
-import org.esa.cci.sst.util.GridCell;
+import org.esa.cci.sst.util.Cell;
 import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
@@ -39,7 +39,7 @@ public class RegionalAverageTool extends Tool {
             "Command-line options overwrite the settings given by -c, which again overwrite settings in " +
             "default configuration file.\n";
 
-    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "NUM", "0.2", "The SST depth in meters.");
+    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.SKIN + "", "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
     public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]", "Global=-180,90,180,-90",
                                                                     "A semicolon-separated list of NAME=REGION pairs. "
                                                                             + "REGION may be given as coordinates in the format W,N,E,S "
@@ -147,7 +147,7 @@ public class RegionalAverageTool extends Tool {
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         RegionMaskList regionMaskList = parseRegionList(configuration);
 
-        Climatology climatology = Climatology.open(climatologyDir);
+        Climatology climatology = Climatology.open(climatologyDir, productType.getGridDef());
         ProductStore productStore = ProductStore.create(productType, productDir);
         List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
         try {
@@ -177,8 +177,8 @@ public class RegionalAverageTool extends Tool {
             for (RegionalAveraging.OutputTimeStep outputTimeStep : outputTimeSteps) {
                 Date date1 = outputTimeStep.date1;
                 Date date2 = outputTimeStep.date2;
-                GridCell gridCell = outputTimeStep.regionalAverages.get(i);
-                System.out.printf("  %s - %s: %s\n", outputDataFormat.format(date1), outputDataFormat.format(date2), gridCell.getMean());
+                Cell cell = outputTimeStep.regionalAverages.get(i);
+                System.out.printf("  %s - %s: %s\n", outputDataFormat.format(date1), outputDataFormat.format(date2), cell.getMean());
             }
         }
     }

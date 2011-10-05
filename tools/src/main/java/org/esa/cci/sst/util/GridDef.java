@@ -1,10 +1,10 @@
 package org.esa.cci.sst.util;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
 /**
- * Represents a lat/lon grid.
+ * The layout and geo-coding of a {@link CellGrid}.
  *
  * @author Norman Fomferra
  */
@@ -26,7 +26,7 @@ public class GridDef {
         return new GridDef(width, height, -180.0, 90.0, 360.0 / width, 180.0 / height);
     }
 
-    private GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
+    public GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
         this.width = width;
         this.height = height;
         this.northing = northing;
@@ -132,5 +132,44 @@ public class GridDef {
         int gridY1 = getGridY(lat2, true);
         int gridY2 = getGridY(lat1 + eps, true);
         return new Rectangle(gridX1, gridY1, gridX2 - gridX1 + 1, gridY2 - gridY1 + 1);
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        GridDef gridDef = (GridDef) o;
+
+        return width != gridDef.width ? false
+                : height != gridDef.height ? false
+                : Double.compare(gridDef.easting, easting) != 0 ? false
+                : Double.compare(gridDef.northing, northing) != 0 ? false
+                : Double.compare(gridDef.resolutionX, resolutionX) != 0 ? false
+                : Double.compare(gridDef.resolutionY, resolutionY) != 0 ? false
+                : true;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = width;
+        result = 31 * result + height;
+        temp = northing != 0.0 ? Double.doubleToLongBits(northing) : 0L;
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = easting != 0.0 ? Double.doubleToLongBits(easting) : 0L;
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = resolutionX != 0.0 ? Double.doubleToLongBits(resolutionX) : 0L;
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = resolutionY != 0.0 ? Double.doubleToLongBits(resolutionY) : 0L;
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
     }
 }

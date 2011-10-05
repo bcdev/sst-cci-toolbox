@@ -4,16 +4,15 @@ import org.esa.cci.sst.util.GridDef;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * @author Norman Fomferra
  */
-public class GridTest {
+public class GridDefTest {
     GridDef gridDef90;
     GridDef gridDef5;
     GridDef gridDef05;
@@ -124,5 +123,28 @@ public class GridTest {
 
         assertEquals(new Rectangle2D.Double(0.0, 0.0, 0.05, 0.05),
                      gridDef05.getLonLatRectangle(gridDef05.getWidth() / 2, gridDef05.getHeight() / 2 - 1));
+    }
+
+    @Test
+    public void testEquals() throws Exception {
+
+        assertTrue(GridDef.createGlobalGrid(0.05).equals(
+                GridDef.createGlobalGrid(0.05)));
+
+        assertFalse(GridDef.createGlobalGrid(0.04).equals(
+                GridDef.createGlobalGrid(0.05)));
+
+        assertTrue(GridDef.createGlobalGrid(3600, 1800).equals(
+                GridDef.createGlobalGrid(3600, 1800)));
+
+        assertFalse(GridDef.createGlobalGrid(3600, 1800).equals(
+                GridDef.createGlobalGrid(3600, 1801)));
+
+        assertTrue(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03).equals(
+                new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03)));
+
+        assertFalse(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03).equals(
+                new GridDef(3, 6, 9.3, -8.4, 0.02, 0.03)));
+
     }
 }

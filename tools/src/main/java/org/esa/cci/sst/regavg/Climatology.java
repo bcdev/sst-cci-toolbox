@@ -1,8 +1,12 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.UTC;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -18,10 +22,10 @@ import java.util.*;
  */
 public class Climatology {
 
-    private final File dir;
-    private final Dataset[] datasets;
+    private final static GridDef GRID_DEF = GridDef.createGlobalGrid(0.05);
+    private final Array[] analysedSsts;
 
-    public static Climatology open(File dir) throws ToolException {
+    public static Climatology open(File dir, GridDef targetGridDef) throws ToolException {
         if (!dir.isDirectory()) {
             throw new ToolException("Not a directory or directory not found: " + dir, ExitCode.USAGE_ERROR);
         }
@@ -36,7 +40,7 @@ public class Climatology {
         }
         // todo - take this out (only for Norman's notebook)
         if (files.length == 1) {
-            return createStupidOneFileClimatology(dir, files);
+            return createStupidOneFileClimatology(files);
         }
         if (files.length != 365) {
             throw new ToolException(String.format("Climatology directory is expected to contain 365 files, but found %d. Missing %s.",
@@ -44,29 +48,62 @@ public class Climatology {
                                     ExitCode.USAGE_ERROR);
         }
         try {
-            Dataset[] datasets = new Dataset[365];
+            Array[] arrays = new Array[365];
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
                 NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
-                datasets[i] = new Dataset(netcdfFile);
+                try {
+                    Array array = readAnalysedSst(netcdfFile);
+                    if (!GRID_DEF.equals(targetGridDef)) {
+                       array = resample(array, GRID_DEF, targetGridDef);
+                    }
+                    arrays[i] = array;
+                } finally {
+                    netcdfFile.close();
+                }
             }
-            return new Climatology(dir, datasets);
+            return new Climatology(arrays);
         } catch (IOException e) {
             throw new ToolException("Failed to load climatology: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
     }
 
-    private static Climatology createStupidOneFileClimatology(File dir, File[] files) throws ToolException {
+    private static Array resample(Array array, GridDef sourceGridDef, GridDef targetGridDef) {
+        int sourceWidth = sourceGridDef.getWidth();
+        int sourceHeight = sourceGridDef.getHeight();
+        int targetWidth = targetGridDef.getWidth();
+        int targetHeight = targetGridDef.getHeight();
+
+        Array resampledArray = Array.factory(DataType.FLOAT, new int[]{targetHeight, targetWidth});
+        // todo
+        return null;
+    }
+
+    private static Climatology createStupidOneFileClimatology(File[] files) throws ToolException {
         try {
             NetcdfFile netcdfFile = NetcdfFile.open(files[0].getPath());
-            Dataset[] datasets = new Dataset[365];
-            for (int i = 0; i < datasets.length; i++) {
-                datasets[i] = new Dataset(netcdfFile);
+            Array analysedSst = readAnalysedSst(netcdfFile);
+            Array[] arrays = new Array[365];
+            for (int i = 0; i < arrays.length; i++) {
+                arrays[i] = analysedSst;
             }
-            return new Climatology(dir, datasets);
+            return new Climatology(arrays);
         } catch (IOException e) {
             throw new ToolException("Failed to load climatology: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
+    }
+
+    private static Array readAnalysedSst(NetcdfFile netcdfFile) throws IOException {
+        try {
+            return netcdfFile.findTopVariable("analysed_sst").read(new int[]{0, 0, 0},
+                                                                   new int[]{1, GRID_DEF.getHeight(), GRID_DEF.getWidth()});
+        } catch (InvalidRangeException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public Array getAnalysedSst(int day) {
+        return analysedSsts[day];
     }
 
     private static String[] getMissingDays(File[] files) {
@@ -83,17 +120,11 @@ public class Climatology {
     }
 
 
-    private Climatology(File dir, Dataset[] datasets) {
-        this.dir = dir;
-        if (datasets.length != 365) {
+    public Climatology(Array[] analysedSsts) {
+        if (analysedSsts.length != 365) {
             throw new IllegalArgumentException("datasets.length != 365");
         }
-        this.datasets = datasets;
-    }
-
-
-    public Dataset[] getDatasets() {
-        return datasets;
+        this.analysedSsts = analysedSsts;
     }
 
     /**

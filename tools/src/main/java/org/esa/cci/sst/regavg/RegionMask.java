@@ -155,7 +155,7 @@ public class RegionMask {
         return samples[gridY * WIDTH + gridX];
     }
 
-    public static RegionMask or(RegionMaskList regionMaskList) {
+    public static RegionMask combine(RegionMaskList regionMaskList) {
         if (regionMaskList.size() == 0) {
             return null;
         }
