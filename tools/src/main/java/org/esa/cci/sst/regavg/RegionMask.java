@@ -1,17 +1,20 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.Grid;
+import org.esa.cci.sst.util.GridDef;
 
 import java.awt.*;
 import java.text.ParseException;
 import java.util.StringTokenizer;
+
+// todo - turn into Grid
 
 /**
  * A global mask comprising 72 x 35 5-degree cells.
  *
  * @author Norman
  */
-public class RegionMask {
+public class RegionMask implements Grid {
 
     public enum Coverage {
         Empty,
@@ -24,14 +27,14 @@ public class RegionMask {
 
     private static final int WIDTH = 72;
     private static final int HEIGHT = 36;
-    private static final Grid GRID = Grid.createGlobalGrid(WIDTH, HEIGHT);
+    private static final GridDef GRID_DEF = GridDef.createGlobalGrid(WIDTH, HEIGHT);
 
     private final String name;
-    private final boolean[] samples;
+    private final boolean[][] samples;
     private final Coverage coverage;
 
     public static RegionMask create(String name, String data) throws ParseException {
-        boolean[] samples = new boolean[WIDTH * HEIGHT];
+        boolean[][] samples = new boolean[HEIGHT][WIDTH];
         StringTokenizer stringTokenizer = new StringTokenizer(data, "\n");
         int lineNo = 0;
         int y = 0;
@@ -48,7 +51,7 @@ public class RegionMask {
                         throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Only use characters '0' and '1'.", name, lineNo), x);
                     }
                     if (c == '1') {
-                        samples[y * WIDTH + x] = true;
+                        samples[y][x] = true;
                     }
                 }
                 y++;
@@ -64,46 +67,48 @@ public class RegionMask {
         if (north < south) {
             throw new IllegalArgumentException("north < south");
         }
-        Rectangle gridRectangle = GRID.getGridRectangle(west, south, east, north);
+        Rectangle gridRectangle = GRID_DEF.getGridRectangle(west, south, east, north);
         int gridX1 = gridRectangle.x;
         int gridY1 = gridRectangle.y;
         int gridX2 = gridRectangle.x + gridRectangle.width - 1;
         int gridY2 = gridRectangle.y + gridRectangle.height - 1;
-        boolean[] samples = new boolean[WIDTH * HEIGHT];
+        boolean[][] samples = new boolean[HEIGHT][WIDTH];
         for (int y = gridY1; y <= gridY2; y++) {
             if (gridX1 <= gridX2) {
                 // westing-->easting is within -180...180
                 for (int x = gridX1; x <= gridX2; x++) {
-                    samples[y * WIDTH + x] = true;
+                    samples[y][x] = true;
                 }
             } else {
                 // westing-->easting intersects with anti-meridian
                 for (int x = gridX1; x <= WIDTH - 1; x++) {
-                    samples[y * WIDTH + x] = true;
+                    samples[y][x] = true;
                 }
                 for (int x = 0; x <= gridX2; x++) {
-                    samples[y * WIDTH + x] = true;
+                    samples[y][x] = true;
                 }
             }
         }
         return new RegionMask(name, samples);
     }
 
-    public RegionMask(String name, boolean[] samples) {
+    public RegionMask(String name, boolean[][] samples) {
         this.name = name;
         this.samples = samples;
 
         int nG = 0;
         int nN = 0;
         int nS = 0;
-        for (int i = 0; i < samples.length; i++) {
-            boolean sample = samples[i];
-            if (sample) {
-                nG++;
-                if (i < samples.length / 2) {
-                    nN++;
-                } else {
-                    nS++;
+        for (int j = 0; j < HEIGHT; j++) {
+            for (int i = 0; i < WIDTH; i++) {
+                boolean sample = samples[j][i];
+                if (sample) {
+                    nG++;
+                    if (j < HEIGHT / 2) {
+                        nN++;
+                    } else {
+                        nS++;
+                    }
                 }
             }
         }
@@ -129,10 +134,6 @@ public class RegionMask {
         return coverage;
     }
 
-    public boolean[] getSamples() {
-        return samples.clone();
-    }
-
     public int getWidth() {
         return WIDTH;
     }
@@ -141,32 +142,40 @@ public class RegionMask {
         return HEIGHT;
     }
 
-    public Grid getGrid() {
-        return GRID;
+    @Override
+    public GridDef getGridDef() {
+        return GRID_DEF;
     }
 
-    public boolean getSampleForPos(double lon, double lat) {
-        int gridX = GRID.getGridX(lon, true);
-        int gridY = GRID.getGridY(lat, true);
-        return samples[gridY * WIDTH + gridX];
+    @Override
+    public boolean getSampleBoolean(int gridX, int gridY) {
+        return samples[gridY][gridX];
     }
 
-    public boolean getSampleForCell(int  gridX, int gridY) {
-        return samples[gridY * WIDTH + gridX];
+    @Override
+    public int getSampleInt(int gridX, int gridY) {
+        return samples[gridY][gridX] ? 1 : 0;
     }
 
-    public static RegionMask or(RegionMaskList regionMaskList) {
+    @Override
+    public double getSampleDouble(int gridX, int gridY) {
+        return samples[gridY][gridX] ? 1.0 : 0.0;
+    }
+
+    public static RegionMask combine(RegionMaskList regionMaskList) {
         if (regionMaskList.size() == 0) {
             return null;
         }
         if (regionMaskList.size() == 1) {
             return regionMaskList.get(0);
         }
-        boolean[] samples = new boolean[WIDTH * HEIGHT];
+        boolean[][] samples = new boolean[HEIGHT][WIDTH];
         for (RegionMask regionMask : regionMaskList) {
-            for (int i = 0; i < samples.length; i++) {
-                if (regionMask.samples[i]) {
-                    samples[i] = true;
+            for (int j = 0; j < HEIGHT; j++) {
+                for (int i = 0; i < WIDTH; i++) {
+                    if (regionMask.samples[j][i]) {
+                        samples[j][i] = true;
+                    }
                 }
             }
         }

@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.util.Grid;
+import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.UTC;
 
 import java.text.DateFormat;
@@ -19,7 +19,7 @@ public enum ProductType {
         public final String filenamePrefix = "AT2_AVG_3PAARC";
         // todo - Use regexp instead
         public final Pattern filenamePattern = Pattern.compile("AT._AVG_3PAARC\\d\\d\\d\\d\\d\\d\\d.*\\.nc");
-        public final Grid GRID = Grid.createGlobalGrid(3600, 1800);
+        public final GridDef GRID_DEF = GridDef.createGlobalGrid(3600, 1800);
 
         @Override
         public Date getDate(String filename) {
@@ -35,8 +35,13 @@ public enum ProductType {
         }
 
         @Override
-        public Grid getGrid() {
-            return GRID;
+        public GridDef getGridDef() {
+            return GRID_DEF;
+        }
+
+        @Override
+        public ProcessingLevel getProcessingLevel() {
+            return ProcessingLevel.L3U;
         }
     },
 
@@ -47,8 +52,12 @@ public enum ProductType {
         }
 
         @Override
-        public Grid getGrid() {
+        public GridDef getGridDef() {
             return null;
+        }
+        @Override
+        public ProcessingLevel getProcessingLevel() {
+            return ProcessingLevel.L2P;
         }
     },
 
@@ -60,8 +69,12 @@ public enum ProductType {
 
 
         @Override
-        public Grid getGrid() {
+        public GridDef getGridDef() {
             return null;
+        }
+        @Override
+        public ProcessingLevel getProcessingLevel() {
+            return ProcessingLevel.L3U;
         }
     },
 
@@ -73,8 +86,12 @@ public enum ProductType {
 
 
         @Override
-        public Grid getGrid() {
+        public GridDef getGridDef() {
             return null;
+        }
+        @Override
+        public ProcessingLevel getProcessingLevel() {
+            return ProcessingLevel.L3C;
         }
     },
 
@@ -86,11 +103,17 @@ public enum ProductType {
 
 
         @Override
-        public Grid getGrid() {
+        public GridDef getGridDef() {
             return null;
+        }
+
+        @Override
+        public ProcessingLevel getProcessingLevel() {
+            return ProcessingLevel.L4;
         }
     };
 
     public abstract Date getDate(String filename);
-    public abstract Grid getGrid();
+    public abstract GridDef getGridDef();
+    public abstract ProcessingLevel getProcessingLevel();
 }

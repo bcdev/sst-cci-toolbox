@@ -5,12 +5,16 @@ import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.Parameter;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.util.Cell;
+import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * The SST_cci Regional-Average tool.
@@ -35,7 +39,7 @@ public class RegionalAverageTool extends Tool {
             "Command-line options overwrite the settings given by -c, which again overwrite settings in " +
             "default configuration file.\n";
 
-    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "NUM", "0.2", "The SST depth in meters.");
+    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.SKIN + "", "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
     public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]", "Global=-180,90,180,-90",
                                                                     "A semicolon-separated list of NAME=REGION pairs. "
                                                                             + "REGION may be given as coordinates in the format W,N,E,S "
@@ -115,12 +119,44 @@ public class RegionalAverageTool extends Tool {
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         RegionMaskList regionMaskList = parseRegionList(configuration);
 
-        Climatology climatology = Climatology.open(climatologyDir);
+        Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         ProductStore productStore = ProductStore.create(productType, productDir);
+        List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
         try {
-            RegionalAveraging.computeOutputTimeSteps(productStore, climatology, regionMaskList, startDate, endDate, temporalResolution);
+            outputTimeSteps = RegionalAveraging.computeOutputTimeSteps(productStore, climatology, startDate, endDate, temporalResolution, regionMaskList);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+        }
+
+        writeOutputs(outputDir, productType, startDate, endDate, regionMaskList, outputTimeSteps);
+    }
+
+    private void writeOutputs(File outputDir, ProductType productType, Date startDate, Date endDate, RegionMaskList regionMaskList, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
+        DateFormat outputDataFormat = UTC.getDateFormat("yyyy-MM-dd");
+        for (int i = 0; i < regionMaskList.size(); i++) {
+            RegionMask regionMask = regionMaskList.get(i);
+            String outputFilename = RegionalAverageTool.getOutputFilename(outputDataFormat.format(startDate),
+                                                                          outputDataFormat.format(endDate),
+                                                                          regionMask.getName(),
+                                                                          productType.getProcessingLevel(),
+                                                                          "SSTskin",
+                                                                          "PS",
+                                                                          "DM",
+                                                                          "01.0");
+            File file = new File(outputDir, outputFilename);
+            System.out.printf("-------------------------------------\n");
+            System.out.printf("Output %s\n", file);
+            System.out.printf("%s\t%s\t%s\t%s\n", "region", "start", "end", "SST_mean");
+            for (RegionalAveraging.OutputTimeStep outputTimeStep : outputTimeSteps) {
+                Date date1 = outputTimeStep.date1;
+                Date date2 = outputTimeStep.date2;
+                Cell cell = outputTimeStep.regionalAverages.get(i);
+                System.out.printf("%s\t%s\t%s\t%s\n",
+                                  regionMask.getName(),
+                                  outputDataFormat.format(date1),
+                                  outputDataFormat.format(date2),
+                                  cell.getMean());
+            }
         }
     }
 
@@ -132,4 +168,31 @@ public class RegionalAverageTool extends Tool {
         }
     }
 
+    /**
+     * Generates a filename of the form
+     * <code>
+     * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_average-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
+     * </code>
+     *
+     * @param startOfPeriod        Start of period = YYYYMMDD
+     * @param endOfPeriod          End of period = YYYYMMDD
+     * @param regionName           Region Name or Description
+     * @param processingLevel      Processing Level = L3C, L3U or L4
+     * @param sstType              SST Type (see Table 4)
+     * @param productString        Product String (see Table 5 in PSD)
+     * @param additionalSegregator Additional Segregator = LT or DM
+     * @param fileVersion          File Version, e.g. 0.10
+     * @return The filename.
+     */
+    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator, String fileVersion) {
+        return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v02.0-fv%s.nc",
+                             startOfPeriod,
+                             endOfPeriod,
+                             regionName,
+                             processingLevel,
+                             sstType,
+                             productString,
+                             additionalSegregator,
+                             fileVersion);
+    }
 }

@@ -1,10 +1,10 @@
 package org.esa.cci.sst.regavg.regavg;
 
-import org.esa.cci.sst.regavg.RegionMaskList;
 import org.esa.cci.sst.regavg.RegionMask;
+import org.esa.cci.sst.regavg.RegionMaskList;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Norman
@@ -17,43 +17,33 @@ public class RegionListTest {
         assertEquals(1, regionMaskList.size());
         RegionMask global = regionMaskList.get(0);
         assertEquals("Global", global.getName());
-        assertEquals(true, global.getSampleForPos(-180, 90));
-        assertEquals(true, global.getSampleForPos(0, 90));
-        assertEquals(true, global.getSampleForPos(+180, 90));
-        assertEquals(true, global.getSampleForPos(-180, 0));
-        assertEquals(true, global.getSampleForPos(0, 0));
-        assertEquals(true, global.getSampleForPos(+180, 0));
-        assertEquals(true, global.getSampleForPos(-180, -90));
-        assertEquals(true, global.getSampleForPos(0, -90));
-        assertEquals(true, global.getSampleForPos(+180, -90));
+        for (int j = 0; j < 36; j++) {
+            for (int i = 0; i < 72; i++) {
+                assertEquals(true, global.getSampleBoolean(i, j));
+            }
+        }
     }
 
     @Test
     public void testTwo() throws Exception {
         RegionMaskList regionMaskList = RegionMaskList.parse("NW=-180,90,0,0;SE=0,0,180,-90");
         assertEquals(2, regionMaskList.size());
+
         RegionMask nw = regionMaskList.get(0);
         assertEquals("NW", nw.getName());
-        assertEquals(true, nw.getSampleForPos(-180, 90));
-        assertEquals(false, nw.getSampleForPos(0, 90));
-        assertEquals(false, nw.getSampleForPos(+180, 90));
-        assertEquals(false, nw.getSampleForPos(-180, 0));
-        assertEquals(false, nw.getSampleForPos(0, 0));
-        assertEquals(false, nw.getSampleForPos(+180, 0));
-        assertEquals(false, nw.getSampleForPos(-180, -90));
-        assertEquals(false, nw.getSampleForPos(0, -90));
-        assertEquals(false, nw.getSampleForPos(+180, -90));
+        for (int j = 0; j < 36; j++) {
+            for (int i = 0; i < 72; i++) {
+                assertEquals(String.format("i=%d,j=%d", i, j), i < 36 && j < 18, nw.getSampleBoolean(i, j));
+            }
+        }
+
         RegionMask se = regionMaskList.get(1);
         assertEquals("SE", se.getName());
-        assertEquals(false, se.getSampleForPos(-180, 90));
-        assertEquals(false, se.getSampleForPos(0, 90));
-        assertEquals(false, se.getSampleForPos(+180, 90));
-        assertEquals(false, se.getSampleForPos(-180, 0));
-        assertEquals(true, se.getSampleForPos(0, 0));
-        assertEquals(true, se.getSampleForPos(+180, 0));
-        assertEquals(false, se.getSampleForPos(-180, -90));
-        assertEquals(true, se.getSampleForPos(0, -90));
-        assertEquals(true, se.getSampleForPos(+180, -90));
+        for (int j = 0; j < 36; j++) {
+            for (int i = 0; i < 72; i++) {
+                assertEquals(String.format("i=%d,j=%d", i, j), i >= 36 && j >= 18, se.getSampleBoolean(i, j));
+            }
+        }
     }
 
     @Test
@@ -62,16 +52,14 @@ public class RegionListTest {
         assertEquals(1, regionMaskList.size());
         RegionMask pacific = regionMaskList.get(0);
         assertEquals("Pacific", pacific.getName());
-        assertEquals(true, pacific.getSampleForPos(-180, 0));
-        assertEquals(true, pacific.getSampleForPos(-175, 0));
-        assertEquals(false, pacific.getSampleForPos(-170, 0));
-        assertEquals(false, pacific.getSampleForPos(-160, 0));
-        assertEquals(false, pacific.getSampleForPos(-90, 0));
-        assertEquals(false, pacific.getSampleForPos(-0, 0));
-        assertEquals(false, pacific.getSampleForPos(90, 0));
-        assertEquals(false, pacific.getSampleForPos(160, 0));
-        assertEquals(true, pacific.getSampleForPos(170, 0));
-        assertEquals(true, pacific.getSampleForPos(175, 0));
-        assertEquals(true, pacific.getSampleForPos(180, 0));
+        for (int j = 0; j < 36; j++) {
+            for (int i = 0; i < 72; i++) {
+                boolean iOk1 = i >= 0 && i <= 1;
+                boolean iOk2 = i >= 70 && i <= 71;
+                boolean jOk = j >= 16 && j <= 19;
+                boolean expected = (iOk1  || iOk2) && jOk;
+                assertEquals(String.format("i=%d,j=%d", i, j), expected, pacific.getSampleBoolean(i, j));
+            }
+        }
     }
 }

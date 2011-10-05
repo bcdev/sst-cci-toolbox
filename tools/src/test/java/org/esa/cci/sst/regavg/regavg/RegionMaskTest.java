@@ -24,32 +24,18 @@ public class RegionMaskTest {
         set(data, 36, 18, '1');
 
         RegionMask mask = RegionMask.create("test", new String(data));
-        assertEquals(false, mask.getSampleForPos(-0.01, -0.01));
-        assertEquals(true, mask.getSampleForPos(0.0, 0.0));
-        assertEquals(true, mask.getSampleForPos(1.0, -1.0));
-        assertEquals(true, mask.getSampleForPos(2.0, -2.0));
-        assertEquals(true, mask.getSampleForPos(3.0, -3.0));
-        assertEquals(true, mask.getSampleForPos(4.0, -4.0));
-        assertEquals(true, mask.getSampleForPos(4.99, -4.99));
-        assertEquals(false, mask.getSampleForPos(5.0, -5.0));
 
-        assertEquals(false, mask.getSampleForPos(0.0, 0.01));
-        assertEquals(true, mask.getSampleForPos(0.0, 0.0));
-        assertEquals(true, mask.getSampleForPos(0.0, -1.0));
-        assertEquals(true, mask.getSampleForPos(0.0, -2.0));
-        assertEquals(true, mask.getSampleForPos(0.0, -3.0));
-        assertEquals(true, mask.getSampleForPos(0.0, -4.0));
-        assertEquals(true, mask.getSampleForPos(0.0, -4.99));
-        assertEquals(false, mask.getSampleForPos(0.0, -5.0));
+        assertEquals(false, mask.getSampleBoolean(35, 17));
+        assertEquals(false, mask.getSampleBoolean(36, 17));
+        assertEquals(false, mask.getSampleBoolean(37, 17));
 
-        assertEquals(false, mask.getSampleForPos(-0.01, 0.0));
-        assertEquals(true,  mask.getSampleForPos(0.0, 0.0));
-        assertEquals(true,  mask.getSampleForPos(1.0, 0.0));
-        assertEquals(true,  mask.getSampleForPos(2.0, 0.0));
-        assertEquals(true,  mask.getSampleForPos(3.0, 0.0));
-        assertEquals(true,  mask.getSampleForPos(4.0, 0.0));
-        assertEquals(true,  mask.getSampleForPos(4.99, 0.0));
-        assertEquals(false, mask.getSampleForPos(5.0, 0.0));
+        assertEquals(false, mask.getSampleBoolean(35, 18));
+        assertEquals(true, mask.getSampleBoolean(36, 18));
+        assertEquals(false, mask.getSampleBoolean(37, 18));
+
+        assertEquals(false, mask.getSampleBoolean(35, 19));
+        assertEquals(false, mask.getSampleBoolean(36, 19));
+        assertEquals(false, mask.getSampleBoolean(37, 19));
     }
 
     private void set(char[] data, int x, int y, char c) {
