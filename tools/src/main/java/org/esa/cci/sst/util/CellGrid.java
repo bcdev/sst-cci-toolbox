@@ -1,7 +1,5 @@
 package org.esa.cci.sst.util;
 
-// todo - make it applicable to multiple variables
-
 /**
  * A sparsely filled, regular, rectangular arrangement of {@link Cell}s used for averaging.
  *
