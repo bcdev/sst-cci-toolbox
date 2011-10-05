@@ -8,8 +8,8 @@ package org.esa.cci.sst.util;
 public class Cell {
     private double sumX;
     private double sumXX;
-    private long nAcc;
-    private long nTotal;
+    private long accuCount;
+    private long totalCount;
 
     public void accumulate(double sample) {
         accumulate(sample, 1L);
@@ -19,32 +19,40 @@ public class Cell {
         if (!Double.isNaN(sample) && n > 0) {
             this.sumX += sample;
             this.sumXX += sample * sample;
-            this.nAcc++;
-            this.nTotal += n;
+            this.accuCount++;
+            this.totalCount += n;
         }
     }
 
     public void accumulate(Cell cell) {
-        if (cell.nAcc > 0) {
-            accumulate(cell.getMean(), cell.nTotal);
+        if (cell.accuCount > 0) {
+            accumulate(cell.getMean(), cell.totalCount);
         }
     }
 
     public double getMean() {
-        if (nAcc > 0) {
-            return sumX / nAcc;
+        if (accuCount > 0) {
+            return sumX / accuCount;
         } else {
             return Double.NaN;
         }
     }
 
     public double getSigma() {
-        if (nAcc > 0) {
-            final double mean = sumX / nAcc;
-            final double sigmaSqr = sumXX / nAcc - mean * mean;
+        if (accuCount > 0) {
+            final double mean = sumX / accuCount;
+            final double sigmaSqr = sumXX / accuCount - mean * mean;
             return sigmaSqr > 0.0 ? Math.sqrt(sigmaSqr) : 0.0;
         } else {
             return Double.NaN;
         }
+    }
+
+    public long getAccuCount() {
+        return accuCount;
+    }
+
+    public long getTotalCount() {
+        return totalCount;
     }
 }
