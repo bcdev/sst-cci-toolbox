@@ -19,6 +19,7 @@ package org.esa.cci.sst;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.tools.ToolException;
 
 import javax.persistence.Query;
 import java.util.Date;
@@ -57,28 +58,40 @@ public class Queries {
         return pm.createQuery(QUERY_STRING_SELECT_ALL_COLUMNS).getResultList();
     }
 
-    public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate, String condition) {
+    public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate, String condition, int pattern) {
         String queryString = QUERY_STRING_COUNT_MATCHUPS_FOR_SENSOR;
         if (condition != null) {
             queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
         }
+        if (pattern != 0) {
+            queryString = queryString.replaceAll(" where ", " where m.pattern & ?3 = ?3 and ");
+        }
         final Query query = pm.createNativeQuery(queryString);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
+        if (pattern != 0) {
+            query.setParameter(3, pattern);
+        }
 
         final Number matchupCount = (Number) query.getSingleResult();
         return matchupCount.intValue();
     }
 
     @SuppressWarnings({"unchecked"})
-    public static List<Matchup> getMatchups(PersistenceManager pm, Date startDate, Date stopDate, String condition) {
+    public static List<Matchup> getMatchups(PersistenceManager pm, Date startDate, Date stopDate, String condition, int pattern) {
         String queryString = QUERY_STRING_SELECT_MATCHUPS_FOR_SENSOR;
         if (condition != null) {
             queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
         }
+        if (pattern != 0) {
+            queryString = queryString.replaceAll("order by", "and m.pattern & ?3 = ?3 order by");
+        }
         final Query query = pm.createNativeQuery(queryString, Matchup.class);
         query.setParameter(1, startDate);
         query.setParameter(2, stopDate);
+        if (pattern != 0) {
+            query.setParameter(3, pattern);
+        }
 
         return query.getResultList();
     }

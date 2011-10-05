@@ -92,7 +92,7 @@ echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.target.startTime=$startTime \
 -Dmms.target.stopTime=$stopTime \
 -Djava.io.tmpdir=$wd \
--Dmms.db.useindex=false \
+-Dmms.db.useindex=true \
 -Dmms.target.pattern=$pattern \
 -Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
 -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \
@@ -129,7 +129,9 @@ mkdir -p dat
 ln -f $MMS_ARC3/dat/* dat
 
 case $sensor in
-    atsr.1 | atsr.2 | atsr.3) inp=MMD_AATSR.inp ;;
+    atsr.1) inp=MMD_ATSR1.inp ;;
+    atsr.2) inp=MMD_ATSR2.inp ;;
+    atsr.3) inp=MMD_AATSR.inp ;;
     avhrr.n10) inp=MMD_NOAA10.inp ;;
     avhrr.n11) inp=MMD_NOAA11.inp ;;
     avhrr.n12) inp=MMD_NOAA12.inp ;;

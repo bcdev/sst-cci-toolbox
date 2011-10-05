@@ -42,7 +42,7 @@ else
     echo "`date -u +%Y%m%d-%H%M%S` skipping non-existing ecmwf-era-interim/v01/$year/$month"
 fi
 
-if [ "$month" = "12" ]
+if [ "$month" = "12" -o \( "$year" = "2003" -a "$month" = "07" \) -o \( "$year" = "1996" -a "$month" = "01" \) -o \( "$year" = "1992" -a "$month" = "06" \) ]
 then
     for d in clavrx/{cld,prb,nav}/*/$year
     do
