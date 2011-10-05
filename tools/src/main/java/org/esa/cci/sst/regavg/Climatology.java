@@ -64,7 +64,7 @@ public class Climatology {
     }
 
     // todo - reuse / move to NcUtils
-    private static ArrayGrid readSstGrid(NetcdfFile netcdfFile) throws IOException {
+    private static ArrayGrid readAnalysedSstGrid(NetcdfFile netcdfFile) throws IOException {
         String variableName = "analysed_sst";
         try {
             Variable variable = netcdfFile.findTopVariable(variableName);
@@ -95,9 +95,11 @@ public class Climatology {
                 System.out.printf("Reading climatology from '%s'...\n", file.getPath());
                 NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
                 try {
-                    ArrayGrid grid = readSstGrid(netcdfFile);
+                    ArrayGrid grid = readAnalysedSstGrid(netcdfFile);
                     if (!SOURCE_GRID_DEF.equals(gridDef)) {
-                        System.out.printf("Resampling climatology grid...\n");
+                        System.out.printf("Resampling climatology grid from %d x %d --> %d x %d...\n",
+                                          SOURCE_GRID_DEF.getWidth(), SOURCE_GRID_DEF.getHeight(),
+                                          gridDef.getWidth(), gridDef.getHeight());
                         grid = grid.resample(gridDef);
                     }
                     cachedGrid.dayOfYear = dayOfYear;

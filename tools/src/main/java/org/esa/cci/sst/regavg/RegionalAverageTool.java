@@ -129,11 +129,10 @@ public class RegionalAverageTool extends Tool {
         }
 
         writeOutputs(outputDir, productType, startDate, endDate, regionMaskList, outputTimeSteps);
-
     }
 
     private void writeOutputs(File outputDir, ProductType productType, Date startDate, Date endDate, RegionMaskList regionMaskList, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
-        DateFormat outputDataFormat = UTC.getDateFormat("yyyyMMdd");
+        DateFormat outputDataFormat = UTC.getDateFormat("yyyy-MM-dd");
         for (int i = 0; i < regionMaskList.size(); i++) {
             RegionMask regionMask = regionMaskList.get(i);
             String outputFilename = RegionalAverageTool.getOutputFilename(outputDataFormat.format(startDate),
@@ -145,12 +144,18 @@ public class RegionalAverageTool extends Tool {
                                                                           "DM",
                                                                           "01.0");
             File file = new File(outputDir, outputFilename);
-            System.out.println("Output " + file + ":");
+            System.out.printf("-------------------------------------\n");
+            System.out.printf("Output %s\n", file);
+            System.out.printf("%s\t%s\t%s\t%s\n", "region", "start", "end", "SST_mean");
             for (RegionalAveraging.OutputTimeStep outputTimeStep : outputTimeSteps) {
                 Date date1 = outputTimeStep.date1;
                 Date date2 = outputTimeStep.date2;
                 Cell cell = outputTimeStep.regionalAverages.get(i);
-                System.out.printf("  %s - %s: %s\n", outputDataFormat.format(date1), outputDataFormat.format(date2), cell.getMean());
+                System.out.printf("%s\t%s\t%s\t%s\n",
+                                  regionMask.getName(),
+                                  outputDataFormat.format(date1),
+                                  outputDataFormat.format(date2),
+                                  cell.getMean());
             }
         }
     }

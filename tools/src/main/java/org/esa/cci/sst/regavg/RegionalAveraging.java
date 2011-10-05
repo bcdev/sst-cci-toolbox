@@ -163,8 +163,8 @@ public class RegionalAveraging {
             long t0 = System.currentTimeMillis();
             System.out.printf("Aggregating file %s\n", netcdfFile.getLocation());
             try {
-                // todo - generalise code: the following code is for ARC L2U
-
+                // todo - generalise code: the following code is for ARC L3U
+                // {{{<<<
                 float time = netcdfFile.findTopVariable("time").readScalarFloat();
                 int secondsSince1981 = Math.round(time);
                 Calendar calendar = UTC.createCalendar(1981);
@@ -173,32 +173,38 @@ public class RegionalAveraging {
                 if (dayOfYear == 366) {
                     dayOfYear = 365; // Leap year
                 }
-                System.out.println("dayOfYear = " + dayOfYear);
-                Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
-
+                System.out.println("Day of year is " + dayOfYear);
                 Variable sstVar = netcdfFile.findTopVariable("sst_skin");
                 Variable uncertaintyVar = netcdfFile.findTopVariable("uncertainty");
                 Variable maskVar = netcdfFile.findTopVariable("mask");
-                GridDef arcGridDef = GridDef.createGlobalGrid(3600, 1800);
+                // todo - check sstVar,uncertaintyVar,maskVar exist and have the expected grid sizes
                 Reader reader = new ArcL3Reader();
                 Aggregator aggregator = new ArcL3Aggregator();
-                // todo - check all variables exist and have the expected grid sizes
+                // >>>}}}
+
+                Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
+                // todo - use analysed SST to compute anomaly
+
+                GridDef sourceGridDef = productStore.getProductType().getGridDef();
 
                 // note: the following loop may be inefficient for Global or Hemispheric coverage
                 for (int cellY = 0; cellY < combinedRegionMask.getHeight(); cellY++) {
                     for (int cellX = 0; cellX < combinedRegionMask.getWidth(); cellX++) {
                         if (combinedRegionMask.getSampleBoolean(cellX, cellY)) {
                             Rectangle2D lonLatRectangle = combinedRegionMask.getGridDef().getLonLatRectangle(cellX, cellY);
-                            Rectangle gridRectangle = arcGridDef.getGridRectangle(lonLatRectangle);
-
+                            Rectangle gridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
 
                             // todo - use ArrayGrid class
                             Array sstData = reader.read(sstVar, gridRectangle);
                             Array maskData = reader.read(maskVar, gridRectangle);
                             // System.out.println("sstData = " + sstData);
 
-                            Cell combined5DCell = combined5DGrid.getCellSafe(cellX, cellY);
+                            Cell combined5DCell = combined5DGrid.createCell();
                             aggregator.aggregate(sstData, maskData, NcUtils.getFillValue(sstVar), combined5DCell);
+                            if (combined5DCell.getAccuCount() > 0) {
+                                combined5DGrid.setCell(cellX, cellY, combined5DCell);
+                            }
+
                             // todo - for each uncertainty variables A-G: create a grid comprising max. 72 x 36 aggregation results.
                         }
                     }
@@ -208,9 +214,8 @@ public class RegionalAveraging {
             }
 
             long t1 = System.currentTimeMillis();
-
             long dt = t1 - t0;
-            System.out.println("reading took " + dt + " ms");
+            System.out.println("Aggregating completed after " + dt + " ms");
         }
         return combined5DGrid;
     }

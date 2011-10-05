@@ -89,8 +89,8 @@ public class ArrayGrid implements Grid {
         int sourceHeight = gridDef.getHeight();
         int targetWidth = targetGridDef.getWidth();
         int targetHeight = targetGridDef.getHeight();
-        System.out.printf("Resampling from %d x %d --> %d x %d (NOT IMPLEMENTED YET!)...\n", sourceWidth, sourceHeight, targetWidth, targetHeight);
         // todo implement resampling by averaging
+        // System.out.println("ArrayGrid.resample() --> NOT IMPLEMENTED YET!");
         return this;
     }
 

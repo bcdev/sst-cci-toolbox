@@ -56,7 +56,7 @@ public class CellGrid implements Grid {
         cells[cellY][cellX] = cell;
     }
 
-    private Cell createCell() {
+    public Cell createCell() {
         return new Cell();
     }
 
