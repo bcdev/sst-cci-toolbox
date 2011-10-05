@@ -15,7 +15,7 @@ public class ArrayGrid implements Grid {
     final Number fillValue;
     final FillTest fillTest;
 
-    public ArrayGrid(GridDef gridDef, Array data, double scaling, double offset, final Number fillValue) {
+    public ArrayGrid(GridDef gridDef, double scaling, double offset, final Number fillValue, Array data) {
         this.gridDef = gridDef;
         this.data = data;
         this.scaling = scaling;
@@ -30,9 +30,21 @@ public class ArrayGrid implements Grid {
     }
 
     @Override
-    public double getSample(int x, int y) {
-        int i = y * gridDef.getWidth() + x;
-        double sample = data.getDouble(i);
+    public boolean getSampleBoolean(int x, int y) {
+        int index = y * gridDef.getWidth() + x;
+        return data.getBoolean(index);
+    }
+
+    @Override
+    public int getSampleInt(int x, int y) {
+        int index = y * gridDef.getWidth() + x;
+        return data.getInt(index);
+    }
+
+    @Override
+    public double getSampleDouble(int x, int y) {
+        int index = y * gridDef.getWidth() + x;
+        double sample = data.getDouble(index);
         if (fillTest.isFill(sample)) {
             return Double.NaN;
         }
@@ -70,6 +82,16 @@ public class ArrayGrid implements Grid {
                 };
             }
         }
+    }
+
+    public ArrayGrid resample(GridDef targetGridDef) {
+        int sourceWidth = gridDef.getWidth();
+        int sourceHeight = gridDef.getHeight();
+        int targetWidth = targetGridDef.getWidth();
+        int targetHeight = targetGridDef.getHeight();
+        System.out.printf("Resampling from %d x %d --> %d x %d (NOT IMPLEMENTED YET!)...\n", sourceWidth, sourceHeight, targetWidth, targetHeight);
+        // todo implement resampling by averaging
+        return this;
     }
 
 }

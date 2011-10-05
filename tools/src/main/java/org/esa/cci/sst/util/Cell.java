@@ -5,7 +5,7 @@ package org.esa.cci.sst.util;
  *
  * @author Norman Fomferra
  */
-public class Cell {
+public class Cell implements Cloneable {
     private double sumX;
     private double sumXX;
     private long accuCount;
@@ -54,5 +54,14 @@ public class Cell {
 
     public long getTotalCount() {
         return totalCount;
+    }
+
+    @Override
+    public Cell clone() {
+        try {
+            return (Cell) super.clone();
+        } catch (CloneNotSupportedException e) {
+             throw new RuntimeException(e);
+        }
     }
 }

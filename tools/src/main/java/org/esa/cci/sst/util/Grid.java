@@ -8,5 +8,9 @@ package org.esa.cci.sst.util;
 public interface Grid {
     GridDef getGridDef();
 
-    double getSample(int x, int y);
+    double getSampleDouble(int x, int y);
+
+    int getSampleInt(int x, int y);
+
+    boolean getSampleBoolean(int x, int y);
 }

@@ -47,9 +47,10 @@ public class UTC {
      * @return a new Gregorian calendar
      */
     public static Calendar createCalendar(int year) {
-        GregorianCalendar calendar = new GregorianCalendar(TIME_ZONE, Locale.ENGLISH);
+        final Calendar calendar = createCalendar();
+        calendar.clear();
         calendar.set(Calendar.YEAR, year);
-        calendar.set(Calendar.MONTH, 1);
+        calendar.set(Calendar.MONTH, 0);
         calendar.set(Calendar.DATE, 1);
         return calendar;
     }

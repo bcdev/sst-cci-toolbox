@@ -62,34 +62,6 @@ public class RegionalAverageTool extends Tool {
         new RegionalAverageTool().run(arguments);
     }
 
-    /**
-     * Generates a filename of the form
-     * <code>
-     * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_average-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
-     * </code>
-     *
-     * @param startOfPeriod        Start of period = YYYYMMDD
-     * @param endOfPeriod          End of period = YYYYMMDD
-     * @param regionName           Region Name or Description
-     * @param processingLevel      Processing Level = L3C, L3U or L4
-     * @param sstType              SST Type (see Table 4)
-     * @param productString        Product String (see Table 5 in PSD)
-     * @param additionalSegregator Additional Segregator = LT or DM
-     * @param fileVersion          File Version, e.g. 0.10
-     * @return The filename.
-     */
-    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator, String fileVersion) {
-        return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v02.0-fv%s.nc",
-                             startOfPeriod,
-                             endOfPeriod,
-                             regionName,
-                             processingLevel,
-                             sstType,
-                             productString,
-                             additionalSegregator,
-                             fileVersion);
-    }
-
     @Override
     protected String getName() {
         return TOOL_NAME;
@@ -147,7 +119,7 @@ public class RegionalAverageTool extends Tool {
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         RegionMaskList regionMaskList = parseRegionList(configuration);
 
-        Climatology climatology = Climatology.open(climatologyDir, productType.getGridDef());
+        Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         ProductStore productStore = ProductStore.create(productType, productDir);
         List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
         try {
@@ -191,4 +163,31 @@ public class RegionalAverageTool extends Tool {
         }
     }
 
+    /**
+     * Generates a filename of the form
+     * <code>
+     * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_average-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
+     * </code>
+     *
+     * @param startOfPeriod        Start of period = YYYYMMDD
+     * @param endOfPeriod          End of period = YYYYMMDD
+     * @param regionName           Region Name or Description
+     * @param processingLevel      Processing Level = L3C, L3U or L4
+     * @param sstType              SST Type (see Table 4)
+     * @param productString        Product String (see Table 5 in PSD)
+     * @param additionalSegregator Additional Segregator = LT or DM
+     * @param fileVersion          File Version, e.g. 0.10
+     * @return The filename.
+     */
+    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator, String fileVersion) {
+        return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v02.0-fv%s.nc",
+                             startOfPeriod,
+                             endOfPeriod,
+                             regionName,
+                             processingLevel,
+                             sstType,
+                             productString,
+                             additionalSegregator,
+                             fileVersion);
+    }
 }

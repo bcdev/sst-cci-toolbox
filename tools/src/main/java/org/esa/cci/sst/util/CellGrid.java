@@ -20,7 +20,17 @@ public class CellGrid implements Grid {
     }
 
     @Override
-    public double getSample(int x, int y) {
+    public boolean getSampleBoolean(int x, int y) {
+        return getSampleDouble(x , y) != 0.0;
+    }
+
+    @Override
+    public int getSampleInt(int x, int y) {
+        return (int) Math.round(getSampleDouble(x , y));
+    }
+
+    @Override
+    public double getSampleDouble(int x, int y) {
         Cell cell = getCell(x, y);
         if (cell == null) {
             return Double.NaN;
