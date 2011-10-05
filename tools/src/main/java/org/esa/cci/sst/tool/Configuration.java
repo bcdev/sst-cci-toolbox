@@ -33,11 +33,11 @@ public class Configuration {
     }
 
     public File getFile(Parameter parameter, boolean mandatory) throws ToolException {
-        String pathname = getString(parameter, mandatory);
-        if (pathname == null) {
+        String path = getString(parameter, mandatory);
+        if (path == null) {
             return null;
         }
-        return new File(pathname);
+        return new File(path);
     }
 
     public File getExistingFile(Parameter parameter, boolean mandatory) throws ToolException {
