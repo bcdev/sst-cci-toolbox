@@ -111,7 +111,7 @@ public class MmdTool extends BasicTool {
 
             mmd = createMmd();
             mmd = defineMmd(mmd);
-            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition());
+            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(), getPattern());
             writeMmdShuffled(mmd, mmd.getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
@@ -145,7 +145,8 @@ public class MmdTool extends BasicTool {
      * @param recordOfMatchup  inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
     void writeMmdShuffled(NetcdfFileWriteable mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
-        String condition = getCondition();
+        final String condition = getCondition();
+        final int pattern = getPattern();
         // group variables by sensors
         Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
         final Set<String> keys = sensorMap.keySet();
@@ -160,8 +161,9 @@ public class MmdTool extends BasicTool {
                 queryString = "select u.id from (" +
                         // matchup (here coincidence) with history observation uses history file
                         "(select r.id id, f.path p, r.time t " +
-                        "from mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
+                        "and m.id = r.id " +
                         "and c.matchup_id = r.id " +
                         "and c.observation_id = o.id " +
                         "and o.sensor = ?1 " +
@@ -185,8 +187,9 @@ public class MmdTool extends BasicTool {
                 queryString = "select u.id from (" +
                         // matchup with sensor as related observation uses related observation file
                         "(select r.id id, f.path p, r.time t " +
-                        "from mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
+                        "and m.id = r.id " +
                         "and c.matchup_id = r.id " +
                         "and c.observation_id = o.id " +
                         "and o.sensor = ?1 " +
@@ -204,8 +207,9 @@ public class MmdTool extends BasicTool {
            } else if (!"Implicit".equals(sensorName)) {
                 // satellite observations use related observation file
                 queryString = "select r.id " +
-                        "from mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
                         "where r.time >= ?2 and r.time < ?3 " +
+                        "and m.id = r.id " +
                         "and c.matchup_id = r.id " +
                         "and c.observation_id = o.id " +
                         "and o.sensor = ?1 " +
@@ -223,13 +227,22 @@ public class MmdTool extends BasicTool {
 
             }
             if (condition != null) {
-                queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
+                if (pattern != 0) {
+                    queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and " + condition + " and r.time");
+                } else {
+                    queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
+                }
+            } else if (pattern != 0) {
+                queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and r.time");
             }
             getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
             final Query query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
             query.setParameter(1, sensorName);
             query.setParameter(2, getTime(Constants.PROPERTY_TARGET_START_TIME));
             query.setParameter(3, getTime(Constants.PROPERTY_TARGET_STOP_TIME));
+            if (pattern != 0) {
+                query.setParameter(4, pattern);
+            }
             List<Matchup> matchups = query.getResultList();
             getLogger().info(String.format("%d matchups retrieved for %s", matchups.size(), sensorName));
             for (final Matchup matchup : matchups) {
@@ -294,13 +307,13 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private Map<Integer, Integer> createInvertedIndexOfMatchups(String condition) {
+    private Map<Integer, Integer> createInvertedIndexOfMatchups(String condition, int pattern) {
         final Map<Integer, Integer> recordOfMatchup = new HashMap<Integer, Integer>();
         {
             final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
                                                                getTime(Constants.PROPERTY_TARGET_START_TIME),
                                                                getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                                               condition);
+                                                               condition, pattern);
             getLogger().info(String.format("%d matchups retrieved", matchups.size()));
             for (int i = 0; i < matchups.size(); ++i) {
                 recordOfMatchup.put(matchups.get(i).getId(), i);
@@ -520,7 +533,7 @@ public class MmdTool extends BasicTool {
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
                                                getTime(Constants.PROPERTY_TARGET_START_TIME),
                                                getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                                               getCondition());
+                                               getCondition(), getPattern());
         getLogger().info(String.format("%d matchups in time interval", matchupCount));
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
@@ -540,12 +553,20 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    // e.g. "m.pattern & ?2 = ?2"  (select matchups with certain sensors)
-    // or   "r.referenceflag <> 4"  (avoid marked duplicates)
     // or   "r.dataset = 0 and (r.referenceflag = 0 or r.referenceflag = 1)"  (rrdp test dataset)
     // or   "r.dataset = 0 and r.referenceflag = 2"  (rrdp algsel dataset)
     private String getCondition() {
         return getConfiguration().getProperty("mms.target.condition", null);
+    }
+
+    // e.g. "m.pattern & ?2 = ?2"  (select matchups with certain sensors)
+    private int getPattern() {
+        try {
+            return Integer.parseInt(getConfiguration().getProperty("mms.target.pattern", "0"), 16);
+        } catch (NumberFormatException e) {
+            throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
+        }
     }
 
     private void defineVariables(NetcdfFileWriteable mmdFile) {
