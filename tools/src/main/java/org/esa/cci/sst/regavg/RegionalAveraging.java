@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 // todo - make it a parameterised algorithm object
 
@@ -187,14 +189,16 @@ public class RegionalAveraging {
 
                 GridDef sourceGridDef = productStore.getProductType().getGridDef();
 
+                // todo - we can compute all the grid rows in parallel (use Executors / ExecutorService)
+
                 // note: the following loop may be inefficient for Global or Hemispheric coverage
                 for (int cellY = 0; cellY < combinedRegionMask.getHeight(); cellY++) {
                     for (int cellX = 0; cellX < combinedRegionMask.getWidth(); cellX++) {
                         if (combinedRegionMask.getSampleBoolean(cellX, cellY)) {
+
                             Rectangle2D lonLatRectangle = combinedRegionMask.getGridDef().getLonLatRectangle(cellX, cellY);
                             Rectangle gridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
 
-                            // todo - use ArrayGrid class
                             Array sstData = reader.read(sstVar, gridRectangle);
                             Array maskData = reader.read(maskVar, gridRectangle);
                             // System.out.println("sstData = " + sstData);
@@ -228,14 +232,7 @@ public class RegionalAveraging {
         @Override
         public Array read(Variable variable, Rectangle gridRectangle) throws IOException {
             //System.out.println("reading sstVar rect " + gridRectangle);
-            Array array;
-            try {
-                array = variable.read(new int[]{0, gridRectangle.y, gridRectangle.x},
-                                      new int[]{1, gridRectangle.height, gridRectangle.width});
-            } catch (InvalidRangeException e) {
-                throw new IllegalStateException(e);
-            }
-            return array;
+            return NcUtils.readRaster(variable, gridRectangle, 0);
         }
     }
 
@@ -261,5 +258,4 @@ public class RegionalAveraging {
             }
         }
     }
-
 }

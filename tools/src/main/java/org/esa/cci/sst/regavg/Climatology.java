@@ -6,10 +6,7 @@ import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.NcUtils;
-import ucar.ma2.Array;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -63,28 +60,12 @@ public class Climatology {
         return new Climatology(sortedFiles, gridDef);
     }
 
-    // todo - reuse / move to NcUtils
     private static ArrayGrid readAnalysedSstGrid(NetcdfFile netcdfFile) throws IOException {
-        String variableName = "analysed_sst";
-        try {
-            Variable variable = netcdfFile.findTopVariable(variableName);
-            if (variable == null) {
-                throw new IOException("Illegal climatology: Missing variable '" + variableName + "'.");
-            }
-            double scaleFactor = NcUtils.getScaleFactor(variable);
-            double addOffset = NcUtils.getAddOffset(variable);
-            Number fillValue = NcUtils.getFillValue(variable);
-            Array data = variable.read(new int[]{0, 0, 0},
-                                       new int[]{1, SOURCE_GRID_DEF.getHeight(), SOURCE_GRID_DEF.getWidth()});
-            return new ArrayGrid(SOURCE_GRID_DEF, scaleFactor, addOffset, fillValue, data);
-        } catch (InvalidRangeException e) {
-            throw new IllegalStateException(e);
-        }
+        return NcUtils.readGrid(netcdfFile, "analysed_sst", 0, SOURCE_GRID_DEF);
     }
 
     /**
-     *
-     * @param dayOfYear     The day of the year starting from 1.
+     * @param dayOfYear The day of the year starting from 1.
      * @return
      * @throws IOException
      */
@@ -95,7 +76,7 @@ public class Climatology {
                 System.out.printf("Reading climatology from '%s'...\n", file.getPath());
                 NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
                 try {
-                    ArrayGrid grid = readAnalysedSstGrid(netcdfFile);
+                    ArrayGrid grid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, SOURCE_GRID_DEF);
                     if (!SOURCE_GRID_DEF.equals(gridDef)) {
                         System.out.printf("Resampling climatology grid from %d x %d --> %d x %d...\n",
                                           SOURCE_GRID_DEF.getWidth(), SOURCE_GRID_DEF.getHeight(),
