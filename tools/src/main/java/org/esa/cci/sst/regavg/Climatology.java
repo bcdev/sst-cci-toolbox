@@ -50,17 +50,24 @@ public class Climatology {
         if (files == null) {
             throw new ToolException("Climatology directory is empty: " + dir, ExitCode.USAGE_ERROR);
         }
-        if (files.length != 365) {
+        if (files.length == 365) {
+            File[] sortedFiles = new File[365];
+            for (File file : files) {
+                int day = Integer.parseInt(file.getName().substring(1, 4));
+                sortedFiles[day - 1] = file;
+            }
+            return new Climatology(sortedFiles, gridDef);
+        } else if (files.length == 1) {
+            File[] sortedFiles = new File[365];
+            for (int i = 0; i < 365; i++) {
+                sortedFiles[i] = files[0];
+            }
+            return new Climatology(sortedFiles, gridDef);
+        } else {
             throw new ToolException(String.format("Climatology directory is expected to contain 365 files, but found %d. Missing %s.",
                                                   files.length, Arrays.toString(getMissingDays(files))),
                                     ExitCode.USAGE_ERROR);
         }
-        File[] sortedFiles = new File[365];
-        for (File file : files) {
-            int day = Integer.parseInt(file.getName().substring(1, 4));
-            sortedFiles[day - 1] = file;
-        }
-        return new Climatology(sortedFiles, gridDef);
     }
 
     public Grid getAnalysedSstGrid(int dayOfYear) throws IOException {
