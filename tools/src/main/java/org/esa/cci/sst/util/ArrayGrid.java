@@ -56,33 +56,40 @@ public class ArrayGrid implements Grid {
     }
 
     public ArrayGrid scaleDown(int scaleX, int scaleY) {
-        GridDef newGridDef = new GridDef(gridDef.getWidth() / scaleX,
-                                         gridDef.getHeight() / scaleY,
-                                         gridDef.getEasting(),
-                                         gridDef.getNorthing(),
-                                         gridDef.getResolutionX() * scaleX,
-                                         gridDef.getResolutionY() * scaleY);
-        Array newArray = Array.factory(array.getElementType(), new int[] {newGridDef.getHeight(), newGridDef.getWidth()});
-        ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, 1.0, 0.0, null, newArray);
+        final GridDef newGridDef = new GridDef(gridDef.getWidth() / scaleX,
+                                               gridDef.getHeight() / scaleY,
+                                               gridDef.getEasting(),
+                                               gridDef.getNorthing(),
+                                               gridDef.getResolutionX() * scaleX,
+                                               gridDef.getResolutionY() * scaleY);
+        Class elementType = array.getElementType();
+        Class newElementType;
+        if (Double.TYPE.equals(elementType)) {
+            newElementType = Double.TYPE;
+        } else {
+            newElementType = Float.TYPE;
+        }
+        final Array newArray = Array.factory(newElementType, new int[]{newGridDef.getHeight(), newGridDef.getWidth()});
+        final ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, 1.0, 0.0, null, newArray);
         for (int yd = 0; yd < newGridDef.getHeight(); yd++) {
             for (int xd = 0; xd < newGridDef.getWidth(); xd++) {
-                double sum = 0;
+                double sum = 0.0;
                 int n = 0;
                 for (int dy = 0; dy < scaleY; dy++) {
-                    int ys = yd * scaleY + dy;
+                    final int ys = yd * scaleY + dy;
                     for (int dx = 0; dx < scaleX; dx++) {
-                        int xs = xd * scaleX + dx;
-                        double sample = getSampleDouble(xs, ys);
+                        final int xs = xd * scaleX + dx;
+                        final double sample = getSampleDouble(xs, ys);
                         if (!Double.isNaN(sample)) {
                             sum += sample;
                             n++;
                         }
                     }
                 }
-                newArrayGrid.setSample(xd, yd, n > 0 ? sum / n  : Double.NaN);
+                newArrayGrid.setSample(xd, yd, n > 0 ? sum / n : Double.NaN);
             }
         }
-        return new ArrayGrid(newGridDef, scaling, offset, fillValue, newArray);
+        return newArrayGrid;
     }
 
     private void setSample(int x, int y, double sample) {
@@ -121,16 +128,6 @@ public class ArrayGrid implements Grid {
                 };
             }
         }
-    }
-
-    public ArrayGrid resample(GridDef targetGridDef) {
-        int sourceWidth = gridDef.getWidth();
-        int sourceHeight = gridDef.getHeight();
-        int targetWidth = targetGridDef.getWidth();
-        int targetHeight = targetGridDef.getHeight();
-        // todo implement resampling by averaging
-        // System.out.println("ArrayGrid.resample() --> NOT IMPLEMENTED YET!");
-        return this;
     }
 
 }
