@@ -1,8 +1,19 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.tool.Configuration;
+import org.esa.cci.sst.tool.ExitCode;
+import org.esa.cci.sst.tool.Parameter;
+import org.esa.cci.sst.tool.Tool;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.Cell;
 import org.esa.cci.sst.util.UTC;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,6 +129,7 @@ public class RegionalAverageTool extends Tool {
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         ProductStore productStore = ProductStore.create(productType, productDir);
+
         List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
         try {
             outputTimeSteps = RegionalAveraging.computeOutputTimeSteps(productStore, climatology, sstDepth, startDate, endDate, temporalResolution, regionMaskList);
@@ -125,36 +137,127 @@ public class RegionalAverageTool extends Tool {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
 
-        writeOutputs(outputDir, productType, sstDepth, startDate, endDate, regionMaskList, outputTimeSteps);
+        try {
+            writeOutputs(outputDir, productType, sstDepth, startDate, endDate, temporalResolution, regionMaskList, outputTimeSteps);
+        } catch (IOException e) {
+            throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+        }
     }
 
-    private void writeOutputs(File outputDir, ProductType productType, SstDepth sstDepth, Date startDate, Date endDate, RegionMaskList regionMaskList, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
-        DateFormat fileNameDateFormat = UTC.getDateFormat("yyyyMMdd");
-        DateFormat csvDateFormat = UTC.getDateFormat("yyyy-MM-dd");
-        for (int i = 0; i < regionMaskList.size(); i++) {
-            RegionMask regionMask = regionMaskList.get(i);
-            String outputFilename = RegionalAverageTool.getOutputFilename(fileNameDateFormat.format(startDate),
-                                                                          fileNameDateFormat.format(endDate),
-                                                                          regionMask.getName(),
-                                                                          productType.getProcessingLevel(),
-                                                                          "SST_" + sstDepth,
-                                                                          "PS",
-                                                                          "DM",
-                                                                          "01.0");
+    private void writeOutputs(File outputDir,
+                              ProductType productType,
+                              SstDepth sstDepth,
+                              Date startDate,
+                              Date endDate,
+                              TemporalResolution temporalResolution,
+                              RegionMaskList regionMaskList,
+                              List<RegionalAveraging.OutputTimeStep> outputTimeSteps) throws IOException {
+
+        for (int regionIndex = 0; regionIndex < regionMaskList.size(); regionIndex++) {
+            RegionMask regionMask = regionMaskList.get(regionIndex);
+            dump("SST_" + sstDepth, regionMask.getName(), regionIndex, outputTimeSteps);
+        }
+
+        DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
+        for (int regionIndex = 0; regionIndex < regionMaskList.size(); regionIndex++) {
+            RegionMask regionMask = regionMaskList.get(regionIndex);
+            String outputFilename = getOutputFilename(filenameDateFormat.format(startDate),
+                                                      filenameDateFormat.format(endDate),
+                                                      regionMask.getName(),
+                                                      productType.getProcessingLevel(),
+                                                      "SST_" + sstDepth,
+                                                      "PS",
+                                                      "DM",
+                                                      "01.0");
             File file = new File(outputDir, outputFilename);
-            // todo - write NetCDF file
-            System.out.printf("-------------------------------------\n");
-            System.out.printf("Output %s\n", file);
-            System.out.printf("%s\t%s\t%s\t%s\n", "region", "start", "end", "SST_mean");
-            for (RegionalAveraging.OutputTimeStep outputTimeStep : outputTimeSteps) {
-                Date date1 = outputTimeStep.date1;
-                Date date2 = outputTimeStep.date2;
-                Cell cell = outputTimeStep.regionalAverages.get(i);
-                System.out.printf("%s\t%s\t%s\t%s\n",
-                                  regionMask.getName(),
-                                  csvDateFormat.format(date1),
-                                  csvDateFormat.format(date2),
-                                  cell.getMean());
+            LOGGER.info("Writing output file '" + file + "'...");
+            writeOutputFile(file, productType, sstDepth, startDate, endDate, temporalResolution, regionMask, regionIndex, outputTimeSteps);
+        }
+    }
+
+    private void dump(String sstName, String regionName, int regionIndex, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
+        System.out.printf("-------------------------------------\n");
+        System.out.printf("%s\t%s\t%s\t%s\n", "region", "start", "end", "step", sstName);
+        DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd");
+        for (int t = 0; t < outputTimeSteps.size(); t++) {
+            RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
+            Date date1 = outputTimeStep.date1;
+            Date date2 = outputTimeStep.date2;
+            Cell cell = outputTimeStep.regionalAverages.get(regionIndex);
+            System.out.printf("%s\t%s\t%s\t%s\t%s\n",
+                              regionName,
+                              dateFormat.format(date1),
+                              dateFormat.format(date2),
+                              t + 1,
+                              cell.getMean());
+        }
+    }
+
+    private static void writeOutputFile(File file, ProductType productType,
+                                        SstDepth sstDepth,
+                                        Date startDate,
+                                        Date endDate,
+                                        TemporalResolution temporalResolution,
+                                        RegionMask regionMask, int regionIndex,
+                                        List<RegionalAveraging.OutputTimeStep> outputTimeSteps) throws IOException {
+
+        NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
+        try {
+            netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(), sstDepth.toString()));
+            netcdfFile.addGlobalAttribute("institution", "IAES, University of Edinburgh");
+            netcdfFile.addGlobalAttribute("contact", "c.merchant@ed.ac.uk");
+            netcdfFile.addGlobalAttribute("tool_name", TOOL_NAME);
+            netcdfFile.addGlobalAttribute("tool_version", TOOL_VERSION);
+            netcdfFile.addGlobalAttribute("generated_at", UTC.getIsoFormat().format(new Date()));
+            netcdfFile.addGlobalAttribute("product_type", productType.toString());
+            netcdfFile.addGlobalAttribute("sst_depth", sstDepth.toString());
+            netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
+            netcdfFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
+            netcdfFile.addGlobalAttribute("time_step", regionIndex);
+            netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
+            netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
+
+            int numSteps = outputTimeSteps.size();
+            Dimension timeDimension = netcdfFile.addDimension("time", numSteps, true, false, false);
+
+            Variable startTimeVar = netcdfFile.addVariable("start_time", DataType.FLOAT, new Dimension[]{timeDimension});
+            startTimeVar.addAttribute(new Attribute("units", "seconds"));
+            startTimeVar.addAttribute(new Attribute("long_name", "reference start time of averaging period in seconds until 1981-01-01T00:00:00"));
+
+            Variable endTimeVar = netcdfFile.addVariable("end_time", DataType.FLOAT, new Dimension[]{timeDimension});
+            endTimeVar.addAttribute(new Attribute("units", "seconds"));
+            endTimeVar.addAttribute(new Attribute("long_name", "reference end time of averaging period in seconds until 1981-01-01T00:00:00"));
+
+            Variable sstAnomalyVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly", DataType.FLOAT, new Dimension[]{timeDimension});
+            sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
+            sstAnomalyVar.addAttribute(new Attribute("long_name", "mean sst anomaly in kelvin."));
+            sstAnomalyVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+
+            long millisSince1981 = UTC.createCalendar(1981).getTimeInMillis();
+
+            float[] startTime = new float[numSteps];
+            float[] endTime = new float[numSteps];
+            float[] sstAnomaly = new float[numSteps];
+            for (int t = 0; t < numSteps; t++) {
+                RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
+                startTime[t] = (outputTimeStep.date1.getTime() - millisSince1981) / 1000.0F;
+                endTime[t] = (outputTimeStep.date2.getTime() - millisSince1981) / 1000.0F;
+                sstAnomaly[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getMean();
+            }
+
+            netcdfFile.create();
+
+            netcdfFile.write(startTimeVar.getName(), Array.factory(DataType.FLOAT, new int[] {numSteps}, startTime));
+            netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[] {numSteps},endTime));
+            netcdfFile.write(sstAnomalyVar.getName(), Array.factory(DataType.FLOAT, new int[] {numSteps},sstAnomaly));
+
+        } catch (InvalidRangeException e) {
+            throw new IllegalStateException(e);
+        } finally {
+            try {
+                netcdfFile.close();
+            } catch (IOException e) {
+                // ignore
             }
         }
     }
