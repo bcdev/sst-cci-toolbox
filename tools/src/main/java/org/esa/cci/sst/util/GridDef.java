@@ -16,7 +16,7 @@ public class GridDef {
     private final double resolutionX;
     private final double resolutionY;
 
-    public static GridDef createGlobalGrid(double resolution) {
+    public static GridDef createGlobal(double resolution) {
         int width = (int) (360.0 / resolution);
         int height = (int) (180.0 / resolution);
         return new GridDef(width, height, -180.0, 90.0, resolution, resolution);

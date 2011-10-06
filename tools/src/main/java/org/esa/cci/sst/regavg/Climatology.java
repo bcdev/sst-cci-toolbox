@@ -24,13 +24,19 @@ import java.util.logging.Logger;
  */
 public class Climatology {
 
-    private static final GridDef SOURCE_GRID_DEF = GridDef.createGlobalGrid(0.05);
+    private static final GridDef OSTIA_GRID_DEF = GridDef.createGlobal(0.05);
+    private static final GridDef GLOBAL_5D_GRID_DEF = GridDef.createGlobal(5.0);
+    private static final GridDef GLOBAL_90D_GRID_DEF = GridDef.createGlobal(90.0);
+
     private static final Logger LOGGER = Tool.LOGGER;
 
     private final File[] files;
     private final GridDef gridDef;
 
     private final CachedGrid cachedGrid = new CachedGrid();
+
+    private ArrayGrid waterCoverageGrid5;
+    private ArrayGrid waterCoverageGrid90;
 
     private static class CachedGrid {
         private int dayOfYear;
@@ -78,24 +84,67 @@ public class Climatology {
                 LOGGER.info(String.format("Reading 'analysed_sst' from '%s'...", file.getPath()));
                 NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
                 try {
-                    ArrayGrid grid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, SOURCE_GRID_DEF);
+                    ArrayGrid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, OSTIA_GRID_DEF);
                     // Flip Y, OSTIA Climatologies are stored upside-down!
-                    grid.getArray().flip(grid.getArray().getRank() - 2);
-                    if (!SOURCE_GRID_DEF.equals(gridDef)) {
-                        LOGGER.fine(String.format("Resampling climatology grid from %dx%d to %dx%d cells...",
-                                                  SOURCE_GRID_DEF.getWidth(), SOURCE_GRID_DEF.getHeight(),
-                                                  gridDef.getWidth(), gridDef.getHeight()));
-                        grid = grid.resample(gridDef);
+                    LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
+                    t0 = System.currentTimeMillis();
+                    sstGrid.flipY();
+                    if (!OSTIA_GRID_DEF.equals(gridDef)) {
+                        sstGrid = scaleDown(sstGrid, gridDef);
                     }
+                    LOGGER.fine(String.format("Transforming 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
                     cachedGrid.dayOfYear = dayOfYear;
-                    cachedGrid.grid = grid;
+                    cachedGrid.grid = sstGrid;
+
+                    if (waterCoverageGrid5 == null) {
+                        t0 = System.currentTimeMillis();
+                        LOGGER.info(String.format("Reading 'mask' from '%s'...", file.getPath()));
+                        ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", 0, OSTIA_GRID_DEF);
+                        LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
+                        t0 = System.currentTimeMillis();
+                        maskGrid.flipY();
+                        ArrayGrid unmaskedGrid = maskGrid.unmask(0x01);
+                        waterCoverageGrid5 = scaleDown(unmaskedGrid, GLOBAL_5D_GRID_DEF);
+                        waterCoverageGrid90 = scaleDown(waterCoverageGrid5, GLOBAL_90D_GRID_DEF);
+                        LOGGER.finest(String.format("waterCoverageGrid5  = %s", waterCoverageGrid5.getArray()));
+                        LOGGER.finest(String.format("waterCoverageGrid90 = %s", waterCoverageGrid90.getArray()));
+                        LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
+                    }
+
                 } finally {
                     netcdfFile.close();
                 }
-                LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
             }
             return cachedGrid.grid;
         }
+    }
+
+    public Grid getWaterCoverageGrid5() {
+        return waterCoverageGrid5;
+    }
+
+    public Grid getWaterCoverageGrid90() {
+        return waterCoverageGrid90;
+    }
+
+    private static ArrayGrid scaleDown(ArrayGrid grid, GridDef targetGridDef) {
+        int sourceWidth = grid.getWidth();
+        int sourceHeight = grid.getHeight();
+        int targetWidth = targetGridDef.getWidth();
+        int targetHeight = targetGridDef.getHeight();
+        int scaleX = sourceWidth / targetWidth;
+        int scaleY = sourceHeight / targetHeight;
+        if (scaleX == 0 || scaleX * targetWidth != sourceWidth
+                || scaleY == 0 || scaleY * targetHeight != sourceHeight) {
+            throw new IllegalStateException(String.format("Climatology grid cannot be adapted scaled to %d x %d cells.", targetWidth, targetHeight));
+        }
+        LOGGER.fine(String.format("Scaling climatology grid from %dx%d down to %dx%d cells...",
+                                  grid.getWidth(), grid.getHeight(),
+                                  targetGridDef.getWidth(), targetGridDef.getHeight()));
+        long t0 = System.currentTimeMillis();
+        grid = grid.scaleDown(scaleX, scaleY);
+        LOGGER.fine(String.format("Scaling took %d ms", System.currentTimeMillis() - t0));
+        return grid;
     }
 
     private static String[] getMissingDays(File[] files) {
@@ -110,7 +159,6 @@ public class Climatology {
         Arrays.sort(strings);
         return strings;
     }
-
 
     private Climatology(File[] files, GridDef gridDef) {
         if (files.length != 365) {

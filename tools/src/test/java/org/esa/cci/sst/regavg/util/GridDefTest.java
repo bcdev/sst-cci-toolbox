@@ -19,15 +19,15 @@ public class GridDefTest {
 
     @Before
     public void setUp() throws Exception {
-        gridDef90 = GridDef.createGlobalGrid(90.0);
+        gridDef90 = GridDef.createGlobal(90.0);
         assertEquals(4, gridDef90.getWidth());
         assertEquals(2, gridDef90.getHeight());
 
-        gridDef5 = GridDef.createGlobalGrid(5.0);
+        gridDef5 = GridDef.createGlobal(5.0);
         assertEquals(72, gridDef5.getWidth());
         assertEquals(36, gridDef5.getHeight());
 
-        gridDef05 = GridDef.createGlobalGrid(0.05);
+        gridDef05 = GridDef.createGlobal(0.05);
         assertEquals(7200, gridDef05.getWidth());
         assertEquals(3600, gridDef05.getHeight());
     }
@@ -128,11 +128,11 @@ public class GridDefTest {
     @Test
     public void testEquals() throws Exception {
 
-        assertTrue(GridDef.createGlobalGrid(0.05).equals(
-                GridDef.createGlobalGrid(0.05)));
+        assertTrue(GridDef.createGlobal(0.05).equals(
+                GridDef.createGlobal(0.05)));
 
-        assertFalse(GridDef.createGlobalGrid(0.04).equals(
-                GridDef.createGlobalGrid(0.05)));
+        assertFalse(GridDef.createGlobal(0.04).equals(
+                GridDef.createGlobal(0.05)));
 
         assertTrue(GridDef.createGlobalGrid(3600, 1800).equals(
                 GridDef.createGlobalGrid(3600, 1800)));

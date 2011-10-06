@@ -23,8 +23,8 @@ import java.util.logging.Logger;
  * @author Norman Fomferra
  */
 public class RegionalAveraging {
-    private static final GridDef GLOBAL_5_DEG_GRID_DEF = GridDef.createGlobalGrid(5.0);
-    private static final GridDef GLOBAL_90_DEG_GRID_DEF = GridDef.createGlobalGrid(90.0);
+    private static final GridDef GLOBAL_5_DEG_GRID_DEF = GridDef.createGlobal(5.0);
+    private static final GridDef GLOBAL_90_DEG_GRID_DEF = GridDef.createGlobal(90.0);
 
     private static final Logger LOGGER = Tool.LOGGER;
 
@@ -119,12 +119,13 @@ public class RegionalAveraging {
     }
 
     private static CellGrid getRegionalGrid(CellGrid combined5DGrid, RegionMask regionMask) {
+        // todo - use Climatology.getWaterCoverageGrid5() here, see Nick's doc.
         CellGrid regional5DGrid = new CellGrid(combined5DGrid.getGridDef());
         for (int cellY = 0; cellY < combined5DGrid.getGridDef().getHeight(); cellY++) {
             for (int cellX = 0; cellX < combined5DGrid.getGridDef().getWidth(); cellX++) {
                 if (regionMask.getSampleBoolean(cellX, cellY)) {
                     Cell cell = combined5DGrid.getCell(cellX, cellY);
-                    if (cell != null) {
+                    if (cell != null && cell.getAccuCount() > 0) {
                         regional5DGrid.setCell(cellX, cellY, cell.clone());
                     }
                 }
@@ -134,12 +135,13 @@ public class RegionalAveraging {
     }
 
     private static CellGrid averageTo90DegGrid(CellGrid regional5DGrid, RegionMask combinedRegionMask) {
+        // todo - use Climatology.getWaterCoverageGrid90() here, see Nick's doc.
         CellGrid regional90DegGrid = new CellGrid(GLOBAL_90_DEG_GRID_DEF);
         for (int cellY = 0; cellY < regional5DGrid.getGridDef().getHeight(); cellY++) {
             for (int cellX = 0; cellX < regional5DGrid.getGridDef().getWidth(); cellX++) {
                 if (combinedRegionMask.getSampleBoolean(cellX, cellY)) {
                     Cell regional5DegCell = regional5DGrid.getCell(cellX, cellY);
-                    if (regional5DegCell != null) {
+                    if (regional5DegCell != null && regional5DegCell.getAccuCount() > 0) {
                         int cellX90D = (cellX * regional90DegGrid.getGridDef().getWidth()) / regional5DGrid.getGridDef().getWidth();
                         int cellY90D = (cellY * regional90DegGrid.getGridDef().getHeight()) / regional5DGrid.getGridDef().getHeight();
                         Cell regional90DCell = regional90DegGrid.getCellSafe(cellX90D, cellY90D);
@@ -266,17 +268,9 @@ public class RegionalAveraging {
         final int y0 = sourceGridRectangle.y;
         final int x1 = x0 + sourceGridRectangle.width - 1;
         final int y1 = y0 + sourceGridRectangle.height - 1;
-        final GridDef gridDef = grid.getGridDef();
-        final GridDef refGridDef = refGrid.getGridDef();
         for (int y = y0; y <= y1; y++) {
             for (int x = x0; x <= x1; x++) {
-                // todo - we use nearest-neighbour refGrid access here, but we shall resample the refGrid first using simple average (--> Nick R.)
-                final double lon = gridDef.getCenterLon(x);
-                final double lat = gridDef.getCenterLat(y);
-                final int refX = refGridDef.getGridX(lon, true);
-                final int refY = refGridDef.getGridY(lat, true);
-                cell.accumulate(grid.getSampleDouble(x, y)
-                                        - refGrid.getSampleDouble(refX, refY));
+                cell.accumulate(grid.getSampleDouble(x, y) - refGrid.getSampleDouble(x, y));
             }
         }
     }

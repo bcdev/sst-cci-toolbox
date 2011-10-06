@@ -177,7 +177,7 @@ public class RegionalAverageTool extends Tool {
 
     private void dump(String sstName, String regionName, int regionIndex, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
         System.out.printf("-------------------------------------\n");
-        System.out.printf("%s\t%s\t%s\t%s\n", "region", "start", "end", "step", sstName);
+        System.out.printf("%s\t%s\t%s\t%s\t%s\n", "region", "start", "end", "step", sstName);
         DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd");
         for (int t = 0; t < outputTimeSteps.size(); t++) {
             RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
@@ -228,28 +228,43 @@ public class RegionalAverageTool extends Tool {
             endTimeVar.addAttribute(new Attribute("units", "seconds"));
             endTimeVar.addAttribute(new Attribute("long_name", "reference end time of averaging period in seconds until 1981-01-01T00:00:00"));
 
-            Variable sstAnomalyVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly", DataType.FLOAT, new Dimension[]{timeDimension});
-            sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
-            sstAnomalyVar.addAttribute(new Attribute("long_name", "mean sst anomaly in kelvin."));
-            sstAnomalyVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+            Variable sstAnomalyMeanVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly_mean", DataType.FLOAT, new Dimension[]{timeDimension});
+            sstAnomalyMeanVar.addAttribute(new Attribute("units", "kelvin"));
+            sstAnomalyMeanVar.addAttribute(new Attribute("long_name", "mean of sst anomaly in kelvin."));
+            sstAnomalyMeanVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+
+            Variable sstAnomalySigmaVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly_sigma", DataType.FLOAT, new Dimension[]{timeDimension});
+            sstAnomalySigmaVar.addAttribute(new Attribute("units", "kelvin"));
+            sstAnomalySigmaVar.addAttribute(new Attribute("long_name", "sigma of sst anomaly in kelvin."));
+            sstAnomalySigmaVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+
+            Variable sstAnomalyCountVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly_count", DataType.LONG, new Dimension[]{timeDimension});
+            sstAnomalyCountVar.addAttribute(new Attribute("units", "1"));
+            sstAnomalyCountVar.addAttribute(new Attribute("long_name", "counts of sst anomaly contributions."));
 
             long millisSince1981 = UTC.createCalendar(1981).getTimeInMillis();
 
             float[] startTime = new float[numSteps];
             float[] endTime = new float[numSteps];
-            float[] sstAnomaly = new float[numSteps];
+            float[] sstAnomalyMean = new float[numSteps];
+            float[] sstAnomalySigma = new float[numSteps];
+            long[] sstAnomalyCount = new long[numSteps];
             for (int t = 0; t < numSteps; t++) {
                 RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
                 startTime[t] = (outputTimeStep.date1.getTime() - millisSince1981) / 1000.0F;
                 endTime[t] = (outputTimeStep.date2.getTime() - millisSince1981) / 1000.0F;
-                sstAnomaly[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getMean();
+                sstAnomalyMean[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getMean();
+                sstAnomalySigma[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSigma();
+                sstAnomalyCount[t] = outputTimeStep.regionalAverages.get(regionIndex).getAccuCount();
             }
 
             netcdfFile.create();
 
-            netcdfFile.write(startTimeVar.getName(), Array.factory(DataType.FLOAT, new int[] {numSteps}, startTime));
-            netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[] {numSteps},endTime));
-            netcdfFile.write(sstAnomalyVar.getName(), Array.factory(DataType.FLOAT, new int[] {numSteps},sstAnomaly));
+            netcdfFile.write(startTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, startTime));
+            netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, endTime));
+            netcdfFile.write(sstAnomalyMeanVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalyMean));
+            netcdfFile.write(sstAnomalySigmaVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalySigma));
+            netcdfFile.write(sstAnomalyCountVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalyCount));
 
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
