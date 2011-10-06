@@ -62,6 +62,9 @@ public class Configuration {
             if (!dir.isDirectory()) {
                 throw new ToolException(String.format("Parameter '%s': Value is not a directory: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);
             }
+            if (!dir.canWrite()) {
+                throw new ToolException(String.format("Parameter '%s': Directory is not writable: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);
+            }
         }
         return dir;
     }
