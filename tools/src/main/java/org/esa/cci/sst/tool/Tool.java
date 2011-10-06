@@ -230,6 +230,7 @@ public abstract class Tool {
         };
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(formatter);
+        handler.setLevel(Level.ALL);
         LOGGER.addHandler(handler);
         LOGGER.setLevel(logLevel.getValue());
         LOGGER.setUseParentHandlers(false);
