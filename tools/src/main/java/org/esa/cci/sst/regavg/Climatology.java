@@ -1,6 +1,7 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.tool.ExitCode;
+import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.Grid;
@@ -23,9 +24,8 @@ import java.util.logging.Logger;
  */
 public class Climatology {
 
-    private final static GridDef SOURCE_GRID_DEF = GridDef.createGlobalGrid(0.05);
-    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
-
+    private static final GridDef SOURCE_GRID_DEF = GridDef.createGlobalGrid(0.05);
+    private static final Logger LOGGER = Tool.LOGGER;
 
     private final File[] files;
     private final GridDef gridDef;
@@ -63,11 +63,6 @@ public class Climatology {
         return new Climatology(sortedFiles, gridDef);
     }
 
-    /**
-     * @param dayOfYear The day of the year starting from 1.
-     * @return
-     * @throws IOException
-     */
     public Grid getAnalysedSstGrid(int dayOfYear) throws IOException {
         synchronized (cachedGrid) {
             if (cachedGrid.dayOfYear != dayOfYear) {
@@ -80,7 +75,7 @@ public class Climatology {
                     // Flip Y, OSTIA Climatologies are stored upside-down!
                     grid.getArray().flip(grid.getArray().getRank() - 2);
                     if (!SOURCE_GRID_DEF.equals(gridDef)) {
-                        LOGGER.info(String.format("Resampling climatology grid from %dx%d to %dx%d cells...",
+                        LOGGER.fine(String.format("Resampling climatology grid from %dx%d to %dx%d cells...",
                                                   SOURCE_GRID_DEF.getWidth(), SOURCE_GRID_DEF.getHeight(),
                                                   gridDef.getWidth(), gridDef.getHeight()));
                         grid = grid.resample(gridDef);
@@ -90,8 +85,7 @@ public class Climatology {
                 } finally {
                     netcdfFile.close();
                 }
-                long t1 = System.currentTimeMillis();
-                LOGGER.info(String.format("Reading 'analysed_sst' took %d ms", t1 - t0));
+                LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
             }
             return cachedGrid.grid;
         }

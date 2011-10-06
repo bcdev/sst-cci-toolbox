@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.util.*;
 import ucar.nc2.NetcdfFile;
 
@@ -25,7 +26,7 @@ public class RegionalAveraging {
     private static final GridDef GLOBAL_5_DEG_GRID_DEF = GridDef.createGlobalGrid(5.0);
     private static final GridDef GLOBAL_90_DEG_GRID_DEF = GridDef.createGlobalGrid(90.0);
 
-    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
+    private static final Logger LOGGER = Tool.LOGGER;
 
     public static class OutputTimeStep {
         final Date date1;
@@ -174,8 +175,7 @@ public class RegionalAveraging {
             } finally {
                 netcdfFile.close();
             }
-            long t1 = System.currentTimeMillis();
-            LOGGER.info("Processing took " + (t1 - t0) + " ms");
+            LOGGER.fine("Processing took " + (System.currentTimeMillis() - t0) + " ms");
         }
 
         return combined5DGrid;
@@ -207,7 +207,7 @@ public class RegionalAveraging {
         LOGGER.fine("Day of year is " + dayOfYear);
 
         long t0 = System.currentTimeMillis();
-        LOGGER.info("Reading grid(s)...");
+        LOGGER.fine("Reading grid(s)...");
         Grid sstGrid;
         if (sstDepth == SstDepth.depth_20) {
             sstGrid = NcUtils.readGrid(netcdfFile, "sst_depth", 0, sourceGridDef);
@@ -217,7 +217,7 @@ public class RegionalAveraging {
             sstGrid = NcUtils.readGrid(netcdfFile, "sst_skin", 0, sourceGridDef);
         }
         // Grid uncertaintyGrid = NcUtils.readGrid(netcdfFile, "uncertainty", 0, sourceGridDef);
-        LOGGER.info(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
+        LOGGER.fine(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
         // >>>}}}]]])))
 
         Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
@@ -227,7 +227,7 @@ public class RegionalAveraging {
 
     private static void aggregate(Grid sstGrid, Grid analysedSstGrid, RegionMask combinedRegionMask, CellGrid combined5DGrid) {
         long t0 = System.currentTimeMillis();
-        LOGGER.info("Aggregating grid(s)...");
+        LOGGER.fine("Aggregating grid(s)...");
         GridDef sourceGridDef = sstGrid.getGridDef();
         for (int cellY = 0; cellY < combinedRegionMask.getHeight(); cellY++) {
             for (int cellX = 0; cellX < combinedRegionMask.getWidth(); cellX++) {
@@ -246,7 +246,7 @@ public class RegionalAveraging {
                 }
             }
         }
-        LOGGER.info(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t0)));
+        LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t0)));
     }
 
     public static void aggregate(Grid grid, Rectangle sourceGridRectangle, Cell cell) {

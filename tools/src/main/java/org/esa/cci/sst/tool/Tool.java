@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import java.util.logging.*;
@@ -18,6 +19,7 @@ import java.util.logging.*;
  */
 public abstract class Tool {
 
+    private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.info;
     private CommandLine commandLine;
     private boolean dumpStackTrace;
     private Options options;
@@ -25,7 +27,6 @@ public abstract class Tool {
     public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     protected Tool() {
-        initLogger();
     }
 
     public final void run(String[] arguments) {
@@ -58,6 +59,12 @@ public abstract class Tool {
             return;
         }
 
+        LogLevel logLevel = DEFAULT_LOG_LEVEL;
+        if (commandLine.hasOption("logLevel")) {
+            logLevel = LogLevel.valueOf(commandLine.getOptionValue("logLevel"));
+        }
+        initLogger(logLevel);
+
         run(getConfiguration(), commandLine.getArgs());
     }
 
@@ -88,7 +95,6 @@ public abstract class Tool {
         }
 
         // 2. Overwrite from default config file
-
         File defaultConfigFile = getDefaultConfigFile();
         if (defaultConfigFile.exists()) {
             loadConfig(defaultConfigFile.getPath(), properties);
@@ -194,6 +200,8 @@ public abstract class Tool {
                                        "read configuration from given FILE."));
         options.addOption(createOption("e", "errors", null,
                                        "dumps full error stack trace."));
+        options.addOption(createOption("l", "logLevel", "LEVEL",
+                                       String.format("sets the logging level. Must be one of %s. The default value is '%s'.", Arrays.toString(LogLevel.values()), DEFAULT_LOG_LEVEL)));
         return options;
     }
 
@@ -205,10 +213,7 @@ public abstract class Tool {
         return from;
     }
 
-    protected static void initLogger() {
-        for (Handler handler1 : LOGGER.getHandlers()) {
-            LOGGER.removeHandler(handler1);
-        }
+    protected static void initLogger(LogLevel logLevel) {
         final DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd hh:mm:ss");
         Formatter formatter = new Formatter() {
             @Override
@@ -226,7 +231,7 @@ public abstract class Tool {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(formatter);
         LOGGER.addHandler(handler);
-        LOGGER.setLevel(Level.INFO);
+        LOGGER.setLevel(logLevel.getValue());
         LOGGER.setUseParentHandlers(false);
     }
 }
