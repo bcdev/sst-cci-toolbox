@@ -39,7 +39,7 @@ public class RegionalAverageTool extends Tool {
             "Command-line options overwrite the settings given by -c, which again overwrite settings in " +
             "default configuration file.\n";
 
-    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.SKIN + "", "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
+    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin + "", "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
     public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]", "Global=-180,90,180,-90",
                                                                     "A semicolon-separated list of NAME=REGION pairs. "
                                                                             + "REGION may be given as coordinates in the format W,N,E,S "
@@ -112,6 +112,7 @@ public class RegionalAverageTool extends Tool {
 
         File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+        SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
         String productDir = configuration.getString(productType + ".dir", null, true);
         Date startDate = configuration.getDate(PARAM_START_DATE, true);
         Date endDate = configuration.getDate(PARAM_END_DATE, true);
@@ -119,31 +120,34 @@ public class RegionalAverageTool extends Tool {
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         RegionMaskList regionMaskList = parseRegionList(configuration);
 
+
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         ProductStore productStore = ProductStore.create(productType, productDir);
         List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
         try {
-            outputTimeSteps = RegionalAveraging.computeOutputTimeSteps(productStore, climatology, startDate, endDate, temporalResolution, regionMaskList);
+            outputTimeSteps = RegionalAveraging.computeOutputTimeSteps(productStore, climatology, sstDepth, startDate, endDate, temporalResolution, regionMaskList);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
 
-        writeOutputs(outputDir, productType, startDate, endDate, regionMaskList, outputTimeSteps);
+        writeOutputs(outputDir, productType, sstDepth, startDate, endDate, regionMaskList, outputTimeSteps);
     }
 
-    private void writeOutputs(File outputDir, ProductType productType, Date startDate, Date endDate, RegionMaskList regionMaskList, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
-        DateFormat outputDataFormat = UTC.getDateFormat("yyyy-MM-dd");
+    private void writeOutputs(File outputDir, ProductType productType, SstDepth sstDepth, Date startDate, Date endDate, RegionMaskList regionMaskList, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
+        DateFormat fileNameDateFormat = UTC.getDateFormat("yyyyMMdd");
+        DateFormat csvDateFormat = UTC.getDateFormat("yyyy-MM-dd");
         for (int i = 0; i < regionMaskList.size(); i++) {
             RegionMask regionMask = regionMaskList.get(i);
-            String outputFilename = RegionalAverageTool.getOutputFilename(outputDataFormat.format(startDate),
-                                                                          outputDataFormat.format(endDate),
+            String outputFilename = RegionalAverageTool.getOutputFilename(fileNameDateFormat.format(startDate),
+                                                                          fileNameDateFormat.format(endDate),
                                                                           regionMask.getName(),
                                                                           productType.getProcessingLevel(),
-                                                                          "SSTskin",
+                                                                          "SST_" + sstDepth,
                                                                           "PS",
                                                                           "DM",
                                                                           "01.0");
             File file = new File(outputDir, outputFilename);
+            // todo - write NetCDF file
             System.out.printf("-------------------------------------\n");
             System.out.printf("Output %s\n", file);
             System.out.printf("%s\t%s\t%s\t%s\n", "region", "start", "end", "SST_mean");
@@ -153,8 +157,8 @@ public class RegionalAverageTool extends Tool {
                 Cell cell = outputTimeStep.regionalAverages.get(i);
                 System.out.printf("%s\t%s\t%s\t%s\n",
                                   regionMask.getName(),
-                                  outputDataFormat.format(date1),
-                                  outputDataFormat.format(date2),
+                                  csvDateFormat.format(date1),
+                                  csvDateFormat.format(date2),
                                   cell.getMean());
             }
         }

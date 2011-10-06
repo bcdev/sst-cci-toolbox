@@ -2,7 +2,6 @@ package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.*;
 import ucar.ma2.Array;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -15,8 +14,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 // todo - make it a parameterised algorithm object
 
@@ -43,7 +40,7 @@ public class RegionalAveraging {
 
     public static List<OutputTimeStep> computeOutputTimeSteps(ProductStore productStore,
                                                               Climatology climatology,
-                                                              Date startDate, Date endDate,
+                                                              SstDepth sstDepth, Date startDate, Date endDate,
                                                               TemporalResolution temporalResolution,
                                                               RegionMaskList regionMaskList)
             throws IOException {
@@ -76,7 +73,7 @@ public class RegionalAveraging {
     }
 
     private static List<Cell> computeMonthlyOutputTimeStep(ProductStore productStore, Climatology climatology, RegionMaskList regionMaskList, Date date1, Date date2) throws IOException {
-        List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(productStore, climatology, date1, date2, TemporalResolution.monthly, regionMaskList);
+        List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(productStore, climatology, sstDepth, date1, date2, TemporalResolution.monthly, regionMaskList);
         return aggregateMultiMonthsResults(intermediateResults);
     }
 
@@ -186,6 +183,8 @@ public class RegionalAveraging {
 
                 Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
                 // todo - use analysed SST to compute anomaly
+
+                //NcUtils.readGrid(netcdfFile, "sst_skin", )
 
                 GridDef sourceGridDef = productStore.getProductType().getGridDef();
 

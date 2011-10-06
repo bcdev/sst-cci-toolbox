@@ -6,7 +6,7 @@ package org.esa.cci.sst.regavg;
  * @author Norman Fomferra
  */
 public enum SstDepth {
-    SKIN,
-    D20,
-    D100,
+    skin,
+    depth_20,
+    depth_100,
 }
