@@ -77,6 +77,8 @@ public class Climatology {
                 NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
                 try {
                     ArrayGrid grid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, SOURCE_GRID_DEF);
+                    // Flip Y, OSTIA Climatologies are stored upside-down!
+                    grid.getArray().flip(grid.getArray().getRank() - 2);
                     if (!SOURCE_GRID_DEF.equals(gridDef)) {
                         System.out.printf("Resampling climatology grid from %d x %d --> %d x %d...\n",
                                           SOURCE_GRID_DEF.getWidth(), SOURCE_GRID_DEF.getHeight(),

@@ -9,19 +9,23 @@ import ucar.ma2.Array;
  */
 public class ArrayGrid implements Grid {
     final GridDef gridDef;
-    final Array data;
+    final Array array;
     final double scaling;
     final double offset;
     final Number fillValue;
     final FillTest fillTest;
 
-    public ArrayGrid(GridDef gridDef, double scaling, double offset, final Number fillValue, Array data) {
+    public ArrayGrid(GridDef gridDef, double scaling, double offset, final Number fillValue, Array array) {
         this.gridDef = gridDef;
-        this.data = data;
+        this.array = array;
         this.scaling = scaling;
         this.offset = offset;
         this.fillValue = fillValue;
         this.fillTest = createFillTest(fillValue);
+    }
+
+    public Array getArray() {
+        return array;
     }
 
     @Override
@@ -32,19 +36,19 @@ public class ArrayGrid implements Grid {
     @Override
     public boolean getSampleBoolean(int x, int y) {
         int index = y * gridDef.getWidth() + x;
-        return data.getBoolean(index);
+        return array.getBoolean(index);
     }
 
     @Override
     public int getSampleInt(int x, int y) {
         int index = y * gridDef.getWidth() + x;
-        return data.getInt(index);
+        return array.getInt(index);
     }
 
     @Override
     public double getSampleDouble(int x, int y) {
         int index = y * gridDef.getWidth() + x;
-        double sample = data.getDouble(index);
+        double sample = array.getDouble(index);
         if (fillTest.isFill(sample)) {
             return Double.NaN;
         }
