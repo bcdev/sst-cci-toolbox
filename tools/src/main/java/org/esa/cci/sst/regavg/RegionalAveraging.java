@@ -161,7 +161,7 @@ public class RegionalAveraging {
         GridDef sourceGridDef = productStore.getProductType().getGridDef();
 
         DateFormat isoDateFormat = UTC.getIsoFormat();
-        LOGGER.info(String.format("Computing output time step from %s to %s. %d file(s) found.%n",
+        LOGGER.info(String.format("Computing output time step from %s to %s. %d file(s) found.",
                                   isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
 
         CellGrid combined5DGrid = new CellGrid(GLOBAL_5_DEG_GRID_DEF);
