@@ -1,10 +1,6 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.Cell;
 import org.esa.cci.sst.util.UTC;
 
@@ -24,7 +20,7 @@ import java.util.List;
 public class RegionalAverageTool extends Tool {
 
     private static final String TOOL_NAME = "regavg";
-    private static final String TOOL_VERSION = TOOL_NAME + ", version 1.0 (C) 2011-2013 by the ESA SST_cci project";
+    private static final String TOOL_VERSION = TOOL_NAME + ", version 0.1 (C) 2011-2013 by the ESA SST_cci project";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
             "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
@@ -119,7 +115,6 @@ public class RegionalAverageTool extends Tool {
         TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         RegionMaskList regionMaskList = parseRegionList(configuration);
-
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         ProductStore productStore = ProductStore.create(productType, productDir);

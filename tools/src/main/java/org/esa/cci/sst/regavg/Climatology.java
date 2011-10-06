@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * OSTIA monthly SST climatology.
@@ -23,6 +24,8 @@ import java.util.Set;
 public class Climatology {
 
     private final static GridDef SOURCE_GRID_DEF = GridDef.createGlobalGrid(0.05);
+    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
+
 
     private final File[] files;
     private final GridDef gridDef;
@@ -60,10 +63,6 @@ public class Climatology {
         return new Climatology(sortedFiles, gridDef);
     }
 
-    private static ArrayGrid readAnalysedSstGrid(NetcdfFile netcdfFile) throws IOException {
-        return NcUtils.readGrid(netcdfFile, "analysed_sst", 0, SOURCE_GRID_DEF);
-    }
-
     /**
      * @param dayOfYear The day of the year starting from 1.
      * @return
@@ -73,16 +72,17 @@ public class Climatology {
         synchronized (cachedGrid) {
             if (cachedGrid.dayOfYear != dayOfYear) {
                 File file = files[dayOfYear - 1];
-                System.out.printf("Reading climatology from '%s'...\n", file.getPath());
+                long t0 = System.currentTimeMillis();
+                LOGGER.info(String.format("Reading 'analysed_sst' from '%s'...", file.getPath()));
                 NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
                 try {
                     ArrayGrid grid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, SOURCE_GRID_DEF);
                     // Flip Y, OSTIA Climatologies are stored upside-down!
                     grid.getArray().flip(grid.getArray().getRank() - 2);
                     if (!SOURCE_GRID_DEF.equals(gridDef)) {
-                        System.out.printf("Resampling climatology grid from %d x %d --> %d x %d...\n",
-                                          SOURCE_GRID_DEF.getWidth(), SOURCE_GRID_DEF.getHeight(),
-                                          gridDef.getWidth(), gridDef.getHeight());
+                        LOGGER.info(String.format("Resampling climatology grid from %dx%d to %dx%d cells...",
+                                                  SOURCE_GRID_DEF.getWidth(), SOURCE_GRID_DEF.getHeight(),
+                                                  gridDef.getWidth(), gridDef.getHeight()));
                         grid = grid.resample(gridDef);
                     }
                     cachedGrid.dayOfYear = dayOfYear;
@@ -90,6 +90,8 @@ public class Climatology {
                 } finally {
                     netcdfFile.close();
                 }
+                long t1 = System.currentTimeMillis();
+                LOGGER.info(String.format("Reading 'analysed_sst' took %d ms", t1 - t0));
             }
             return cachedGrid.grid;
         }

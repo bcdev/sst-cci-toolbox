@@ -1,17 +1,15 @@
 package org.esa.cci.sst.tool;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
+import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Properties;
+import java.util.logging.*;
 
 /**
  * The SST_cci Regional-Average tool.
@@ -24,7 +22,10 @@ public abstract class Tool {
     private boolean dumpStackTrace;
     private Options options;
 
+    public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
+
     protected Tool() {
+        initLogger();
     }
 
     public final void run(String[] arguments) {
@@ -130,23 +131,23 @@ public abstract class Tool {
     }
 
     protected void info(String message) {
-        System.out.println(message);
+        LOGGER.info(message);
     }
 
     protected void warn(String message) {
-        System.out.println("Warning: " + message);
+        LOGGER.warning(message);
     }
 
     private void error(Throwable error, ExitCode exitCode) {
         if (ToolException.class.equals(error.getClass())) {
-            System.err.println("Error: " + error.getMessage());
+            LOGGER.severe("Error: " + error.getMessage());
             if (exitCode == ExitCode.USAGE_ERROR) {
-                System.err.println("       (Consider using option -h to display the usage help)");
+                LOGGER.severe("       (Consider using option -h to display the usage help)");
             }
         } else {
-            System.err.println("Internal error: " + error.getClass().getName() + ": " + error.getMessage());
+            LOGGER.severe("Internal error: " + error.getClass().getName() + ": " + error.getMessage());
             if (!dumpStackTrace) {
-                System.err.println("                (Consider using option -e to display the error's full stack trace)");
+                LOGGER.severe("                (Consider using option -e to display the error's full stack trace)");
             }
         }
         if (dumpStackTrace) {
@@ -204,4 +205,28 @@ public abstract class Tool {
         return from;
     }
 
+    protected static void initLogger() {
+        for (Handler handler1 : LOGGER.getHandlers()) {
+            LOGGER.removeHandler(handler1);
+        }
+        final DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd hh:mm:ss");
+        Formatter formatter = new Formatter() {
+            @Override
+            public String format(LogRecord record) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(dateFormat.format(new Date(record.getMillis())));
+                sb.append(" - ");
+                sb.append(record.getLevel().getName());
+                sb.append(": ");
+                sb.append(record.getMessage());
+                sb.append("\n");
+                return sb.toString();
+            }
+        };
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(formatter);
+        LOGGER.addHandler(handler);
+        LOGGER.setLevel(Level.INFO);
+        LOGGER.setUseParentHandlers(false);
+    }
 }

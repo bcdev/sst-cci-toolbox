@@ -1,9 +1,7 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.*;
-import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -14,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 // todo - make it a parameterised algorithm object
 
@@ -25,6 +24,8 @@ import java.util.List;
 public class RegionalAveraging {
     private static final GridDef GLOBAL_5_DEG_GRID_DEF = GridDef.createGlobalGrid(5.0);
     private static final GridDef GLOBAL_90_DEG_GRID_DEF = GridDef.createGlobalGrid(90.0);
+
+    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     public static class OutputTimeStep {
         final Date date1;
@@ -93,7 +94,7 @@ public class RegionalAveraging {
 
         RegionMask combinedRegionMask = RegionMask.combine(regionMaskList);
 
-        CellGrid combined5DGrid = computeCombinedGrid(productStore, climatology,sstDepth, date1, date2, combinedRegionMask);
+        CellGrid combined5DGrid = computeCombinedGrid(productStore, climatology, sstDepth, date1, date2, combinedRegionMask);
 
         List<Cell> regionalCells = new ArrayList<Cell>();
         for (RegionMask regionMask : regionMaskList) {
@@ -158,97 +159,101 @@ public class RegionalAveraging {
 
         GridDef sourceGridDef = productStore.getProductType().getGridDef();
 
-
         DateFormat isoDateFormat = UTC.getIsoFormat();
-        System.out.printf("Computing output time step from %s to %s. %d file(s) found.%n",
-                          isoDateFormat.format(date1), isoDateFormat.format(date2), files.size());
-
+        LOGGER.info(String.format("Computing output time step from %s to %s. %d file(s) found.%n",
+                                  isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
 
         CellGrid combined5DGrid = new CellGrid(GLOBAL_5_DEG_GRID_DEF);
 
-        // todo - Aggregate all variables of all netcdfFile into 72x36 5deg grid boxes
         for (File file : files) {
-            NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
+            LOGGER.info(String.format("Processing input file '%s'", file));
             long t0 = System.currentTimeMillis();
-            System.out.printf("Aggregating file %s\n", netcdfFile.getLocation());
+            NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                // todo - generalise code: the following code is for ARC L3U
-                // {{{<<<
-                float time = netcdfFile.findTopVariable("time").readScalarFloat();
-                int secondsSince1981 = Math.round(time);
-                Calendar calendar = UTC.createCalendar(1981);
-                calendar.add(Calendar.SECOND, secondsSince1981);
-                int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
-                if (dayOfYear == 366) {
-                    dayOfYear = 365; // Leap year
-                }
-                System.out.println("Day of year is " + dayOfYear);
-                Aggregator aggregator = new ArcL3Aggregator();
-                System.out.printf("Reading SST from %s\n", netcdfFile.getLocation());
-                Grid sstGrid;
-                if (sstDepth == SstDepth.depth_20) {
-                    sstGrid = NcUtils.readGrid(netcdfFile, "sst_depth", 0, sourceGridDef);
-                } else if (sstDepth == SstDepth.depth_100) {
-                    sstGrid = NcUtils.readGrid(netcdfFile, "sst_depth", 1, sourceGridDef);
-                } else /*if (sstDepth == SstDepth.skin)*/ {
-                    sstGrid = NcUtils.readGrid(netcdfFile, "sst_skin", 0, sourceGridDef);
-                }
-                // System.out.printf("Reading uncertainty from %s\n", netcdfFile.getLocation());
-                // Grid uncertaintyGrid = NcUtils.readGrid(netcdfFile, "uncertainty", 0, productStore.getProductType().getGridDef());
-                // >>>}}}
-
-                Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
-                // todo - use analysed SST to compute anomaly
-
-
-                // todo - we can compute all the grid rows in parallel (use Executors / ExecutorService)
-
-                // note: the following loop may be inefficient for Global or Hemispheric coverage
-                for (int cellY = 0; cellY < combinedRegionMask.getHeight(); cellY++) {
-                    for (int cellX = 0; cellX < combinedRegionMask.getWidth(); cellX++) {
-                        if (combinedRegionMask.getSampleBoolean(cellX, cellY)) {
-
-                            Rectangle2D lonLatRectangle = combinedRegionMask.getGridDef().getLonLatRectangle(cellX, cellY);
-                            Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
-
-                            Cell combined5DCell = combined5DGrid.createCell();
-                            aggregate(sstGrid, sourceGridRectangle, combined5DCell);
-                            if (combined5DCell.getAccuCount() > 0) {
-                                combined5DGrid.setCell(cellX, cellY, combined5DCell);
-                            }
-
-                            // todo - for each uncertainty variables A-G: create a grid comprising max. 72 x 36 aggregation results.
-                        }
-                    }
-                }
+                aggregateFile(netcdfFile, sourceGridDef, climatology, sstDepth, combinedRegionMask, combined5DGrid);
             } finally {
                 netcdfFile.close();
             }
-
             long t1 = System.currentTimeMillis();
-            long dt = t1 - t0;
-            System.out.println("Aggregating completed after " + dt + " ms");
+            LOGGER.info("Processing took " + (t1 - t0) + " ms");
         }
+
         return combined5DGrid;
     }
 
-    public interface Reader {
-        Array read(Variable variable, Rectangle gridRectangle) throws IOException;
+    private static void aggregateFile(NetcdfFile netcdfFile, GridDef sourceGridDef, Climatology climatology, SstDepth sstDepth, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
+        // todo - generalise code: the following code is for ARC L3U,
+        // e.g.
+        //
+        //  class ProductType {
+        //     abstract GridReader getGridReader(NetcdfFile netcdfFile, GridDef sourceGridDef);
+        //  }
+        //
+        //  interface GridReader {
+        //     int getDayOfYear();
+        //     Grid getSst(SstDepth sstDepth);
+        //     Grid getUncertainty(UncertaintyType uncertaintyType); // See Nick's tool spec.
+        // }
+        //
+        // ((([[[{{{<<<
+        float time = netcdfFile.findTopVariable("time").readScalarFloat();
+        int secondsSince1981 = Math.round(time);
+        Calendar calendar = UTC.createCalendar(1981);
+        calendar.add(Calendar.SECOND, secondsSince1981);
+        int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
+        if (dayOfYear == 366) {
+            dayOfYear = 365; // Leap year
+        }
+        LOGGER.fine("Day of year is " + dayOfYear);
+
+        long t0 = System.currentTimeMillis();
+        LOGGER.info("Reading grid(s)...");
+        Grid sstGrid;
+        if (sstDepth == SstDepth.depth_20) {
+            sstGrid = NcUtils.readGrid(netcdfFile, "sst_depth", 0, sourceGridDef);
+        } else if (sstDepth == SstDepth.depth_100) {
+            sstGrid = NcUtils.readGrid(netcdfFile, "sst_depth", 1, sourceGridDef);
+        } else /*if (sstDepth == SstDepth.skin)*/ {
+            sstGrid = NcUtils.readGrid(netcdfFile, "sst_skin", 0, sourceGridDef);
+        }
+        // Grid uncertaintyGrid = NcUtils.readGrid(netcdfFile, "uncertainty", 0, sourceGridDef);
+        LOGGER.info(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
+        // >>>}}}]]])))
+
+        Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
+
+        aggregate(sstGrid, analysedSstGrid, combinedRegionMask, combined5DGrid);
     }
 
-    public static class ArcL3Reader implements Reader {
-        @Override
-        public Array read(Variable variable, Rectangle gridRectangle) throws IOException {
-            //System.out.println("reading sstVar rect " + gridRectangle);
-            return NcUtils.readRaster(variable, gridRectangle, 0);
+    private static void aggregate(Grid sstGrid, Grid analysedSstGrid, RegionMask combinedRegionMask, CellGrid combined5DGrid) {
+        long t0 = System.currentTimeMillis();
+        LOGGER.info("Aggregating grid(s)...");
+        GridDef sourceGridDef = sstGrid.getGridDef();
+        for (int cellY = 0; cellY < combinedRegionMask.getHeight(); cellY++) {
+            for (int cellX = 0; cellX < combinedRegionMask.getWidth(); cellX++) {
+                if (combinedRegionMask.getSampleBoolean(cellX, cellY)) {
+
+                    Rectangle2D lonLatRectangle = combinedRegionMask.getGridDef().getLonLatRectangle(cellX, cellY);
+                    Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
+
+                    Cell combined5DCell = combined5DGrid.createCell();
+                    aggregateAnomaly(sstGrid, analysedSstGrid, sourceGridRectangle, combined5DCell);
+                    if (combined5DCell.getAccuCount() > 0) {
+                        combined5DGrid.setCell(cellX, cellY, combined5DCell);
+                    }
+
+                    // todo - for each uncertainty variables A-G: create a grid comprising max. 72 x 36 aggregation results.
+                }
+            }
         }
+        LOGGER.info(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t0)));
     }
 
     public static void aggregate(Grid grid, Rectangle sourceGridRectangle, Cell cell) {
         final int x0 = sourceGridRectangle.x;
         final int y0 = sourceGridRectangle.y;
-        final int x1 = x0 +sourceGridRectangle.width - 1;
-        final int y1 = y0 +sourceGridRectangle.height - 1;
+        final int x1 = x0 + sourceGridRectangle.width - 1;
+        final int y1 = y0 + sourceGridRectangle.height - 1;
         for (int y = y0; y <= y1; y++) {
             for (int x = x0; x <= x1; x++) {
                 cell.accumulate(grid.getSampleDouble(x, y));
@@ -259,8 +264,8 @@ public class RegionalAveraging {
     public static void aggregateAnomaly(Grid grid, Grid refGrid, Rectangle sourceGridRectangle, Cell cell) {
         final int x0 = sourceGridRectangle.x;
         final int y0 = sourceGridRectangle.y;
-        final int x1 = x0 +sourceGridRectangle.width - 1;
-        final int y1 = y0 +sourceGridRectangle.height - 1;
+        final int x1 = x0 + sourceGridRectangle.width - 1;
+        final int y1 = y0 + sourceGridRectangle.height - 1;
         final GridDef gridDef = grid.getGridDef();
         final GridDef refGridDef = refGrid.getGridDef();
         for (int y = y0; y <= y1; y++) {
@@ -276,41 +281,4 @@ public class RegionalAveraging {
         }
     }
 
-    public interface Aggregator {
-        void aggregate(Array sstData, Array maskData, Number fillValue, Cell cell);
-
-        void aggregate(Grid sstGrid, Rectangle sourceGridRectangle, Cell combined5DCell);
-    }
-
-    public static class ArcL3Aggregator implements Aggregator {
-        @Override
-        public void aggregate(Array sstData, Array maskData, Number fillValue, Cell cell) {
-            int size = (int) sstData.getSize();
-            for (int i = 0; i < size; i++) {
-                double sstSample = sstData.getDouble(i);
-                int maskSample = maskData.getInt(i);
-
-                boolean isQualityLevel5 = maskSample == 0; // (maskSample & 0x10) != 0;
-                boolean isNumber = !Double.isNaN(sstSample);
-                boolean hasData = fillValue == null || sstSample != fillValue.doubleValue();
-
-                if (isQualityLevel5 && isNumber && hasData) {
-                    cell.accumulate(sstSample);
-                }
-            }
-        }
-
-        @Override
-        public void aggregate(Grid grid, Rectangle sourceGridRectangle, Cell cell) {
-            final int x0 = sourceGridRectangle.x;
-            final int y0 = sourceGridRectangle.y;
-            final int x1 = x0 +sourceGridRectangle.width - 1;
-            final int y1 = y0 +sourceGridRectangle.height - 1;
-            for (int y = y0; y <= y1; y++) {
-                for (int x = x0; x <= x1; x++) {
-                    cell.accumulate(grid.getSampleDouble(x, y));
-                }
-            }
-        }
-    }
 }
