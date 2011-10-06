@@ -213,7 +213,6 @@ public class RegionalAverageTool extends Tool {
             netcdfFile.addGlobalAttribute("sst_depth", sstDepth.toString());
             netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
             netcdfFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
-            netcdfFile.addGlobalAttribute("time_step", regionIndex);
             netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
 
@@ -233,12 +232,14 @@ public class RegionalAverageTool extends Tool {
             sstAnomalyMeanVar.addAttribute(new Attribute("long_name", "mean of sst anomaly in kelvin."));
             sstAnomalyMeanVar.addAttribute(new Attribute("_FillValue", Double.NaN));
 
+            // Actually not required by Nick's tool spec.
             Variable sstAnomalySigmaVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly_sigma", DataType.FLOAT, new Dimension[]{timeDimension});
             sstAnomalySigmaVar.addAttribute(new Attribute("units", "kelvin"));
             sstAnomalySigmaVar.addAttribute(new Attribute("long_name", "sigma of sst anomaly in kelvin."));
             sstAnomalySigmaVar.addAttribute(new Attribute("_FillValue", Double.NaN));
 
-            Variable sstAnomalyCountVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly_count", DataType.LONG, new Dimension[]{timeDimension});
+            // Actually not required by Nick's tool spec.
+            Variable sstAnomalyCountVar = netcdfFile.addVariable("sst_" + sstDepth + "_anomaly_count", DataType.INT, new Dimension[]{timeDimension});
             sstAnomalyCountVar.addAttribute(new Attribute("units", "1"));
             sstAnomalyCountVar.addAttribute(new Attribute("long_name", "counts of sst anomaly contributions."));
 
@@ -248,14 +249,14 @@ public class RegionalAverageTool extends Tool {
             float[] endTime = new float[numSteps];
             float[] sstAnomalyMean = new float[numSteps];
             float[] sstAnomalySigma = new float[numSteps];
-            long[] sstAnomalyCount = new long[numSteps];
+            int[] sstAnomalyCount = new int[numSteps];
             for (int t = 0; t < numSteps; t++) {
                 RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
                 startTime[t] = (outputTimeStep.date1.getTime() - millisSince1981) / 1000.0F;
                 endTime[t] = (outputTimeStep.date2.getTime() - millisSince1981) / 1000.0F;
                 sstAnomalyMean[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getMean();
                 sstAnomalySigma[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSigma();
-                sstAnomalyCount[t] = outputTimeStep.regionalAverages.get(regionIndex).getAccuCount();
+                sstAnomalyCount[t] = (int) outputTimeStep.regionalAverages.get(regionIndex).getAccuCount();
             }
 
             netcdfFile.create();
@@ -264,7 +265,7 @@ public class RegionalAverageTool extends Tool {
             netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, endTime));
             netcdfFile.write(sstAnomalyMeanVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalyMean));
             netcdfFile.write(sstAnomalySigmaVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalySigma));
-            netcdfFile.write(sstAnomalyCountVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalyCount));
+            netcdfFile.write(sstAnomalyCountVar.getName(), Array.factory(DataType.INT, new int[]{numSteps}, sstAnomalyCount));
 
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
