@@ -1,6 +1,12 @@
 package org.esa.cci.sst.tool;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
@@ -10,7 +16,11 @@ import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * The SST_cci Regional-Average tool.
@@ -148,12 +158,12 @@ public abstract class Tool {
         if (ToolException.class.equals(error.getClass())) {
             LOGGER.severe("Error: " + error.getMessage());
             if (exitCode == ExitCode.USAGE_ERROR) {
-                LOGGER.severe("       (Consider using option -h to display the usage help)");
+                LOGGER.severe("Consider using option -h to display the usage help");
             }
         } else {
             LOGGER.severe("Internal error: " + error.getClass().getName() + ": " + error.getMessage());
             if (!dumpStackTrace) {
-                LOGGER.severe("                (Consider using option -e to display the error's full stack trace)");
+                LOGGER.severe("Consider using option -e to display the error's full stack trace");
             }
         }
         if (dumpStackTrace) {
@@ -225,14 +235,18 @@ public abstract class Tool {
                 sb.append(": ");
                 sb.append(record.getMessage());
                 sb.append("\n");
+                if (record.getThrown() != null) {
+                    sb.append(record.getThrown().toString());
+                    sb.append("\n");
+                }
                 return sb.toString();
             }
         };
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(formatter);
         handler.setLevel(Level.ALL);
+        LOGGER.setUseParentHandlers(false);
         LOGGER.addHandler(handler);
         LOGGER.setLevel(logLevel.getValue());
-        LOGGER.setUseParentHandlers(false);
     }
 }
