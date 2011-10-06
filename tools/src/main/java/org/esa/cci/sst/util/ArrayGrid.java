@@ -3,7 +3,7 @@ package org.esa.cci.sst.util;
 import ucar.ma2.Array;
 
 /**
- * todo - add api doc
+ * A {@link Grid} that is backed by a NetCDF {@code Array} instance.
  *
  * @author Norman Fomferra
  */
@@ -53,6 +53,41 @@ public class ArrayGrid implements Grid {
             return Double.NaN;
         }
         return scaling * sample + offset;
+    }
+
+    public ArrayGrid scaleDown(int scaleX, int scaleY) {
+        GridDef newGridDef = new GridDef(gridDef.getWidth() / scaleX,
+                                         gridDef.getHeight() / scaleY,
+                                         gridDef.getEasting(),
+                                         gridDef.getNorthing(),
+                                         gridDef.getResolutionX() * scaleX,
+                                         gridDef.getResolutionY() * scaleY);
+        Array newArray = Array.factory(array.getElementType(), new int[] {newGridDef.getHeight(), newGridDef.getWidth()});
+        ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, 1.0, 0.0, null, newArray);
+        for (int yd = 0; yd < newGridDef.getHeight(); yd++) {
+            for (int xd = 0; xd < newGridDef.getWidth(); xd++) {
+                double sum = 0;
+                int n = 0;
+                for (int dy = 0; dy < scaleY; dy++) {
+                    int ys = yd * scaleY + dy;
+                    for (int dx = 0; dx < scaleX; dx++) {
+                        int xs = xd * scaleX + dx;
+                        double sample = getSampleDouble(xs, ys);
+                        if (!Double.isNaN(sample)) {
+                            sum += sample;
+                            n++;
+                        }
+                    }
+                }
+                newArrayGrid.setSample(xd, yd, n > 0 ? sum / n  : Double.NaN);
+            }
+        }
+        return new ArrayGrid(newGridDef, scaling, offset, fillValue, newArray);
+    }
+
+    private void setSample(int x, int y, double sample) {
+        int index = y * gridDef.getWidth() + x;
+        array.setDouble(index, sample);
     }
 
     private interface FillTest {

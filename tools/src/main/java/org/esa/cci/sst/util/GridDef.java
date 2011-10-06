@@ -43,6 +43,22 @@ public class GridDef {
         return height;
     }
 
+    public double getEasting() {
+        return easting;
+    }
+
+    public double getNorthing() {
+        return northing;
+    }
+
+    public double getResolutionX() {
+        return resolutionX;
+    }
+
+    public double getResolutionY() {
+        return resolutionY;
+    }
+
     public final double getCenterLon(int gridX) {
         return getLon(gridX + 0.5);
     }
