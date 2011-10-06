@@ -72,7 +72,7 @@ public class Configuration {
             return null;
         }
         try {
-            return UTC.getDateFormat("yyyyMMdd").parse(string);
+            return UTC.getDateFormat("yyyy-MM-dd").parse(string);
         } catch (ParseException e) {
             throw new ToolException(String.format("Parameter '%s': Value is not a valid date: '%s'", parameter.getName(), string), ExitCode.USAGE_ERROR);
         }
