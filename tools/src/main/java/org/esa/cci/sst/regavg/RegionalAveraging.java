@@ -101,14 +101,14 @@ public class RegionalAveraging {
         for (RegionMask regionMask : regionMaskList) {
 
             // If we have multiple masks, split the aggregation results we've got to each region grid.
-            CellGrid regional5DegGrid = getRegionalGrid(combined5DGrid, regionMask);
+            CellGrid regional5DegGrid = getRegionalGrid(combined5DGrid, climatology.getWaterCoverage5DegGrid(), regionMask);
 
             // Check if region is Globe or Hemisphere (actually: check if we have fully covered
             // 90 deg grid boxes), if so apply special averaging for all 90 deg grid boxes.
             if (regionMask.getCoverage() == RegionMask.Coverage.Globe
                     || regionMask.getCoverage() == RegionMask.Coverage.N_Hemisphere
                     || regionMask.getCoverage() == RegionMask.Coverage.S_Hemisphere) {
-                CellGrid regional90DegGrid = averageTo90DegGrid(regional5DegGrid, combinedRegionMask);
+                CellGrid regional90DegGrid = averageTo90DegGrid(regional5DegGrid, climatology.getWaterCoverage90DegGrid(), combinedRegionMask);
                 regionalCells.add(regional90DegGrid.combine());
             } else {
                 regionalCells.add(regional5DegGrid.combine());
@@ -118,15 +118,17 @@ public class RegionalAveraging {
         return regionalCells;
     }
 
-    private static CellGrid getRegionalGrid(CellGrid combined5DGrid, RegionMask regionMask) {
+    private static CellGrid getRegionalGrid(CellGrid combined5DegGrid, Grid waterCoverage5DegGrid, RegionMask regionMask) {
         // todo - use Climatology.getWaterCoverageGrid5() here, see Nick's doc.
-        CellGrid regional5DGrid = new CellGrid(combined5DGrid.getGridDef());
-        for (int cellY = 0; cellY < combined5DGrid.getGridDef().getHeight(); cellY++) {
-            for (int cellX = 0; cellX < combined5DGrid.getGridDef().getWidth(); cellX++) {
+        CellGrid regional5DGrid = new CellGrid(combined5DegGrid.getGridDef());
+        for (int cellY = 0; cellY < combined5DegGrid.getGridDef().getHeight(); cellY++) {
+            for (int cellX = 0; cellX < combined5DegGrid.getGridDef().getWidth(); cellX++) {
                 if (regionMask.getSampleBoolean(cellX, cellY)) {
-                    Cell cell = combined5DGrid.getCell(cellX, cellY);
+                    Cell cell = combined5DegGrid.getCell(cellX, cellY);
                     if (cell != null && cell.getAccuCount() > 0) {
-                        regional5DGrid.setCell(cellX, cellY, cell.clone());
+                        Cell cellClone = cell.clone();  // :-)
+                        cellClone.setWeight(waterCoverage5DegGrid.getSampleDouble(cellX, cellY));
+                        regional5DGrid.setCell(cellX, cellY, cellClone);
                     }
                 }
             }
@@ -134,7 +136,7 @@ public class RegionalAveraging {
         return regional5DGrid;
     }
 
-    private static CellGrid averageTo90DegGrid(CellGrid regional5DGrid, RegionMask combinedRegionMask) {
+    private static CellGrid averageTo90DegGrid(CellGrid regional5DGrid, Grid waterCoverage90DegGrid, RegionMask combinedRegionMask) {
         // todo - use Climatology.getWaterCoverageGrid90() here, see Nick's doc.
         CellGrid regional90DegGrid = new CellGrid(GLOBAL_90_DEG_GRID_DEF);
         for (int cellY = 0; cellY < regional5DGrid.getGridDef().getHeight(); cellY++) {
@@ -145,6 +147,7 @@ public class RegionalAveraging {
                         int cellX90D = (cellX * regional90DegGrid.getGridDef().getWidth()) / regional5DGrid.getGridDef().getWidth();
                         int cellY90D = (cellY * regional90DegGrid.getGridDef().getHeight()) / regional5DGrid.getGridDef().getHeight();
                         Cell regional90DCell = regional90DegGrid.getCellSafe(cellX90D, cellY90D);
+                        regional90DCell.setWeight(waterCoverage90DegGrid.getSampleDouble(cellX90D, cellY90D));
                         regional90DCell.accumulate(regional5DegCell);
                     }
                 }

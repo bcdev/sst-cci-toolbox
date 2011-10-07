@@ -6,19 +6,35 @@ package org.esa.cci.sst.util;
  * @author Norman Fomferra
  */
 public class Cell implements Cloneable {
-    private double sumX;
-    private double sumXX;
+
+    private double weight = 1.0;
+
+    private double sampleSum;
+    private double sampleSqrSum;
+    private double weightSum;
+    private double weightSqrSum;
     private long accuCount;
     private long totalCount;
 
-    public void accumulate(double sample) {
-        accumulate(sample, 1L);
+    public double getWeight() {
+        return weight;
     }
 
-    public void accumulate(double sample, long n) {
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public void accumulate(double sample) {
+        accumulate(sample, 1.0, 1L);
+    }
+
+    public void accumulate(double sample, double weight, long n) {
         if (!Double.isNaN(sample) && n > 0) {
-            this.sumX += sample;
-            this.sumXX += sample * sample;
+            final double weightedSample = weight * sample;
+            this.sampleSum += weightedSample;
+            this.sampleSqrSum += weightedSample * weightedSample;
+            this.weightSum += weight;
+            this.weightSqrSum += weight * weight;
             this.accuCount++;
             this.totalCount += n;
         }
@@ -26,26 +42,30 @@ public class Cell implements Cloneable {
 
     public void accumulate(Cell cell) {
         if (cell.accuCount > 0) {
-            accumulate(cell.getMean(), cell.totalCount);
+            accumulate(cell.getSampleMean(), cell.getWeight(), cell.totalCount);
         }
     }
 
-    public double getMean() {
-        if (accuCount > 0) {
-            return sumX / accuCount;
+    public double getSampleMean() {
+        if (weightSum > 0.0) {
+            return sampleSum / weightSum;
         } else {
             return Double.NaN;
         }
     }
 
-    public double getSigma() {
-        if (accuCount > 0) {
-            final double mean = sumX / accuCount;
-            final double sigmaSqr = sumXX / accuCount - mean * mean;
+    public double getSampleSigma() {
+        if (weightSum > 0.0) {
+            final double mean = sampleSum / weightSum;
+            final double sigmaSqr = sampleSqrSum / weightSqrSum - mean * mean;
             return sigmaSqr > 0.0 ? Math.sqrt(sigmaSqr) : 0.0;
         } else {
             return Double.NaN;
         }
+    }
+
+    public double getWeightSum() {
+        return weightSum;
     }
 
     public long getAccuCount() {
@@ -61,7 +81,7 @@ public class Cell implements Cloneable {
         try {
             return (Cell) super.clone();
         } catch (CloneNotSupportedException e) {
-             throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
 }

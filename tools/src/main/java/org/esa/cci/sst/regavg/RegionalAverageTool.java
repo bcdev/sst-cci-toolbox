@@ -189,7 +189,7 @@ public class RegionalAverageTool extends Tool {
                               dateFormat.format(date1),
                               dateFormat.format(date2),
                               t + 1,
-                              cell.getMean());
+                              cell.getSampleMean());
         }
     }
 
@@ -254,8 +254,8 @@ public class RegionalAverageTool extends Tool {
                 RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
                 startTime[t] = (outputTimeStep.date1.getTime() - millisSince1981) / 1000.0F;
                 endTime[t] = (outputTimeStep.date2.getTime() - millisSince1981) / 1000.0F;
-                sstAnomalyMean[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getMean();
-                sstAnomalySigma[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSigma();
+                sstAnomalyMean[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSampleMean();
+                sstAnomalySigma[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSampleSigma();
                 sstAnomalyCount[t] = (int) outputTimeStep.regionalAverages.get(regionIndex).getAccuCount();
             }
 

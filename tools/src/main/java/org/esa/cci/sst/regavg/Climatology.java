@@ -35,8 +35,8 @@ public class Climatology {
 
     private final CachedGrid cachedGrid = new CachedGrid();
 
-    private ArrayGrid waterCoverageGrid5;
-    private ArrayGrid waterCoverageGrid90;
+    private ArrayGrid waterCoverage5DegGrid;
+    private ArrayGrid waterCoverage90DegGrid;
 
     private static class CachedGrid {
         private int dayOfYear;
@@ -96,7 +96,7 @@ public class Climatology {
                     cachedGrid.dayOfYear = dayOfYear;
                     cachedGrid.grid = sstGrid;
 
-                    if (waterCoverageGrid5 == null) {
+                    if (waterCoverage5DegGrid == null) {
                         t0 = System.currentTimeMillis();
                         LOGGER.info(String.format("Reading 'mask' from '%s'...", file.getPath()));
                         ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", 0, OSTIA_GRID_DEF);
@@ -104,10 +104,10 @@ public class Climatology {
                         t0 = System.currentTimeMillis();
                         maskGrid.flipY();
                         ArrayGrid unmaskedGrid = maskGrid.unmask(0x01);
-                        waterCoverageGrid5 = scaleDown(unmaskedGrid, GLOBAL_5D_GRID_DEF);
-                        waterCoverageGrid90 = scaleDown(waterCoverageGrid5, GLOBAL_90D_GRID_DEF);
-                        LOGGER.finest(String.format("waterCoverageGrid5  = %s", waterCoverageGrid5.getArray()));
-                        LOGGER.finest(String.format("waterCoverageGrid90 = %s", waterCoverageGrid90.getArray()));
+                        waterCoverage5DegGrid = scaleDown(unmaskedGrid, GLOBAL_5D_GRID_DEF);
+                        waterCoverage90DegGrid = scaleDown(waterCoverage5DegGrid, GLOBAL_90D_GRID_DEF);
+                        LOGGER.finest(String.format("waterCoverageGrid5  = %s", waterCoverage5DegGrid.getArray()));
+                        LOGGER.finest(String.format("waterCoverageGrid90 = %s", waterCoverage90DegGrid.getArray()));
                         LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
                     }
 
@@ -119,12 +119,12 @@ public class Climatology {
         }
     }
 
-    public Grid getWaterCoverageGrid5() {
-        return waterCoverageGrid5;
+    public Grid getWaterCoverage5DegGrid() {
+        return waterCoverage5DegGrid;
     }
 
-    public Grid getWaterCoverageGrid90() {
-        return waterCoverageGrid90;
+    public Grid getWaterCoverage90DegGrid() {
+        return waterCoverage90DegGrid;
     }
 
     private static ArrayGrid scaleDown(ArrayGrid grid, GridDef targetGridDef) {

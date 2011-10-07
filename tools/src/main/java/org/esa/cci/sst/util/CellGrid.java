@@ -35,7 +35,7 @@ public class CellGrid implements Grid {
         if (cell == null) {
             return Double.NaN;
         }
-        return cell.getMean();
+        return cell.getSampleMean();
     }
 
     public Cell getCellSafe(int cellX, int cellY) {
