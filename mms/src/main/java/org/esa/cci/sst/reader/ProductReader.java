@@ -68,8 +68,8 @@ class ProductReader extends AbstractProductReader {
     protected final Product readProduct(DataFile dataFile) throws IOException {
         Product product = super.readProduct(dataFile);
         if (product.getProductReader() instanceof EnvisatProductReader) {
-            if (product.getName().startsWith("ATS")) {
-                // we need pixels arranged in scan direction, so flip the product horizontally when it is from AATSR
+            if (product.getName().startsWith("AT1") || product.getName().startsWith("AT2") || product.getName().startsWith("ATS")) {
+                // we need pixels arranged in scan direction, so flip the product horizontally when it is read by the Envisat reader
                 product = createHorizontallyFlippedProduct(product);
             }
             if (product.getName().startsWith("AT1")) {
