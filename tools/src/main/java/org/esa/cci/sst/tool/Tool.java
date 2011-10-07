@@ -211,7 +211,8 @@ public abstract class Tool {
         options.addOption(createOption("e", "errors", null,
                                        "dumps full error stack trace."));
         options.addOption(createOption("l", "logLevel", "LEVEL",
-                                       String.format("sets the logging level. Must be one of %s. The default value is '%s'.", Arrays.toString(LogLevel.values()), DEFAULT_LOG_LEVEL)));
+                                       String.format("sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
+                                                     Arrays.toString(LogLevel.values()), LogLevel.all, DEFAULT_LOG_LEVEL)));
         return options;
     }
 
