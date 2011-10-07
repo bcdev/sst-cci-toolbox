@@ -9,6 +9,10 @@ import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -35,8 +39,9 @@ public class Climatology {
 
     private final CachedGrid cachedGrid = new CachedGrid();
 
-    private ArrayGrid waterCoverage5DegGrid;
-    private ArrayGrid waterCoverage90DegGrid;
+    private ArrayGrid seaCoverageGrid;
+    private ArrayGrid seaCoverage5DegGrid;
+    private ArrayGrid seaCoverage90DegGrid;
 
     private static class CachedGrid {
         private int dayOfYear;
@@ -50,9 +55,17 @@ public class Climatology {
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.startsWith("D") && name.endsWith(".nc");
+                return name.startsWith("D") && name.endsWith(".nc.bz2");
             }
         });
+        if (files == null || files.length < 356) {
+            files = dir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.startsWith("D") && name.endsWith(".nc");
+                }
+            });
+        }
         if (files == null) {
             throw new ToolException("Climatology directory is empty: " + dir, ExitCode.USAGE_ERROR);
         }
@@ -79,52 +92,87 @@ public class Climatology {
     public Grid getAnalysedSstGrid(int dayOfYear) throws IOException {
         synchronized (cachedGrid) {
             if (cachedGrid.dayOfYear != dayOfYear) {
-                File file = files[dayOfYear - 1];
-                long t0 = System.currentTimeMillis();
-                LOGGER.info(String.format("Reading 'analysed_sst' from '%s'...", file.getPath()));
-                NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
-                try {
-                    ArrayGrid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, OSTIA_GRID_DEF);
-                    // Flip Y, OSTIA Climatologies are stored upside-down!
-                    LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
-                    t0 = System.currentTimeMillis();
-                    sstGrid.flipY();
-                    if (!OSTIA_GRID_DEF.equals(gridDef)) {
-                        sstGrid = scaleDown(sstGrid, gridDef);
-                    }
-                    LOGGER.fine(String.format("Transforming 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
-                    cachedGrid.dayOfYear = dayOfYear;
-                    cachedGrid.grid = sstGrid;
-
-                    if (waterCoverage5DegGrid == null) {
-                        t0 = System.currentTimeMillis();
-                        LOGGER.info(String.format("Reading 'mask' from '%s'...", file.getPath()));
-                        ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", 0, OSTIA_GRID_DEF);
-                        LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
-                        t0 = System.currentTimeMillis();
-                        maskGrid.flipY();
-                        ArrayGrid unmaskedGrid = maskGrid.unmask(0x01);
-                        waterCoverage5DegGrid = scaleDown(unmaskedGrid, GLOBAL_5D_GRID_DEF);
-                        waterCoverage90DegGrid = scaleDown(waterCoverage5DegGrid, GLOBAL_90D_GRID_DEF);
-                        LOGGER.finest(String.format("waterCoverageGrid5  = %s", waterCoverage5DegGrid.getArray()));
-                        LOGGER.finest(String.format("waterCoverageGrid90 = %s", waterCoverage90DegGrid.getArray()));
-                        LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
-                    }
-
-                } finally {
-                    netcdfFile.close();
-                }
+                readGrids(dayOfYear);
             }
             return cachedGrid.grid;
         }
     }
 
-    public Grid getWaterCoverage5DegGrid() {
-        return waterCoverage5DegGrid;
+    public Grid getSeaCoverageGrid() {
+        return seaCoverageGrid;
     }
 
-    public Grid getWaterCoverage90DegGrid() {
-        return waterCoverage90DegGrid;
+    public Grid getSeaCoverage5DegGrid() {
+        return seaCoverage5DegGrid;
+    }
+
+    public Grid getSeaCoverage90DegGrid() {
+        return seaCoverage90DegGrid;
+    }
+
+    private void readGrids(int dayOfYear) throws IOException {
+        File file = files[dayOfYear - 1];
+        long t0 = System.currentTimeMillis();
+        LOGGER.info(String.format("Processing input climatology file '%s'", file.getPath()));
+        NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
+        try {
+            readGrids(netcdfFile, dayOfYear);
+        } finally {
+            netcdfFile.close();
+        }
+        LOGGER.fine(String.format("Processing input climatology file took %d ms", System.currentTimeMillis() - t0));
+    }
+
+    private void readGrids(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
+        readAnalysedSstGrid(netcdfFile, dayOfYear);
+        if (seaCoverageGrid == null) {
+            readSeaCoverageGrids(netcdfFile);
+        }
+    }
+
+    private void readAnalysedSstGrid(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
+        long t0 = System.currentTimeMillis();
+        LOGGER.fine("Reading 'analysed_sst'...");
+        ArrayGrid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, OSTIA_GRID_DEF);
+        LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
+        t0 = System.currentTimeMillis();
+        sstGrid.flipY(); // OSTIA Climatologies are stored upside-down!
+        if (!OSTIA_GRID_DEF.equals(gridDef)) {
+            sstGrid = scaleDown(sstGrid, gridDef);
+        }
+        LOGGER.fine(String.format("Transforming 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
+        cachedGrid.dayOfYear = dayOfYear;
+        cachedGrid.grid = sstGrid;
+    }
+
+    private void readSeaCoverageGrids(NetcdfFile netcdfFile) throws IOException {
+        long t0 = System.currentTimeMillis();
+        LOGGER.fine("Reading 'mask'...");
+        ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", 0, OSTIA_GRID_DEF);
+        LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
+        t0 = System.currentTimeMillis();
+        maskGrid.flipY(); // OSTIA Climatologies are stored upside-down!
+        seaCoverageGrid = maskGrid.unmask(0x01);
+        if (!OSTIA_GRID_DEF.equals(gridDef)) {
+            seaCoverageGrid = scaleDown(seaCoverageGrid, gridDef);
+        }
+        // Uncomment for debugging
+        // writeMaskImage();
+        seaCoverage5DegGrid = scaleDown(seaCoverageGrid, GLOBAL_5D_GRID_DEF);
+        seaCoverage90DegGrid = scaleDown(seaCoverage5DegGrid, GLOBAL_90D_GRID_DEF);
+        LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
+
+        LOGGER.info(String.format("Sea-water coverages in 90x90 deg. cells: %s", seaCoverage90DegGrid.getArray()));
+    }
+
+    // Leave for debugging
+    private void writeMaskImage() throws IOException {
+        IndexColorModel colorModel = new IndexColorModel(8, 2, new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255});
+        BufferedImage image = new BufferedImage(seaCoverageGrid.getWidth(), seaCoverageGrid.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, colorModel);
+        Object src = seaCoverageGrid.getArray().getStorage();
+        byte[] dest = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        System.arraycopy(src, 0, dest, 0, image.getWidth() * image.getHeight());
+        ImageIO.write(image, "PNG", new File("sea-coverage-grid.png"));
     }
 
     private static ArrayGrid scaleDown(ArrayGrid grid, GridDef targetGridDef) {

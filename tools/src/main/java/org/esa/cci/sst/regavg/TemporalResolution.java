@@ -9,5 +9,5 @@ public enum TemporalResolution {
     daily,
     monthly,
     seasonal,
-    anual
+    annual
 }

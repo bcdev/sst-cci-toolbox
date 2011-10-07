@@ -92,7 +92,7 @@ public class RegionMask implements Grid {
         return new RegionMask(name, samples);
     }
 
-    public RegionMask(String name, boolean[][] samples) {
+    private RegionMask(String name, boolean[][] samples) {
         this.name = name;
         this.samples = samples;
 
@@ -113,13 +113,14 @@ public class RegionMask implements Grid {
             }
         }
 
+        int nTotal = WIDTH * HEIGHT;
         if (nG == 0) {
             coverage = Coverage.Empty;
-        } else if (nG == samples.length) {
+        } else if (nG == nTotal) {
             coverage = Coverage.Globe;
-        } else if (nN == samples.length / 2) {
+        } else if (nN == nTotal / 2) {
             coverage = Coverage.N_Hemisphere;
-        } else if (nS == samples.length / 2) {
+        } else if (nS == nTotal / 2) {
             coverage = Coverage.S_Hemisphere;
         } else {
             coverage = Coverage.Other;

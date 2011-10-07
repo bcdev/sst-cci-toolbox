@@ -38,6 +38,14 @@ public class RegionMaskTest {
         assertEquals(false, mask.getSampleBoolean(37, 19));
     }
 
+    @Test
+    public void testCoverage() throws Exception {
+        assertEquals(RegionMask.Coverage.Globe, RegionMask.create("X", -180, +90, +180, -90).getCoverage());
+        assertEquals(RegionMask.Coverage.N_Hemisphere, RegionMask.create("X", -180, +90, +180, 0).getCoverage());
+        assertEquals(RegionMask.Coverage.S_Hemisphere, RegionMask.create("X", -180, 0, +180, -90).getCoverage());
+        assertEquals(RegionMask.Coverage.Other, RegionMask.create("X", 0, 10, 10, 0).getCoverage());
+    }
+
     private void set(char[] data, int x, int y, char c) {
         data[73 * y + x] = c;
     }
