@@ -6,12 +6,14 @@ import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * A product store.
@@ -26,8 +28,8 @@ public class ProductStore {
     private String[] inputPaths;
     private FileTree fileTree;
 
-    public static ProductStore create(ProductType productType, String... inputPaths) {
-        return new ProductStore(productType, inputPaths, scanFiles(productType, inputPaths));
+    public static ProductStore create(ProductType productType, String filenameRegex, String... inputPaths) {
+        return new ProductStore(productType, inputPaths, scanFiles(productType, new InputFileFilter(filenameRegex), inputPaths));
     }
 
     private ProductStore(ProductType productType, String[] inputPaths, FileTree fileTree) {
@@ -54,43 +56,50 @@ public class ProductStore {
         return files;
     }
 
-    private static FileTree scanFiles(ProductType productType, String... inputPaths) {
+    private static FileTree scanFiles(ProductType productType, FileFilter fileFilter, String... inputPaths) {
+
         FileTree fileTree = new FileTree();
 
         for (String inputPath : inputPaths) {
-            scanFiles(productType, new File(inputPath), fileTree);
+            scanFiles(productType, fileFilter, new File(inputPath), fileTree);
         }
 
         return fileTree;
     }
 
-    private static void scanFiles(ProductType productType, File entry, FileTree fileTree) {
+    private static void scanFiles(ProductType productType, FileFilter fileFilter, File entry, FileTree fileTree) {
         if (entry.isDirectory()) {
-            File[] files = entry.listFiles(new InputFileFilter());
+            File[] files = entry.listFiles(fileFilter);
             if (files != null) {
                 for (File file : files) {
-                    scanFiles(productType, file, fileTree);
+                    scanFiles(productType, fileFilter, file, fileTree);
                 }
             }
         } else if (entry.isFile()) {
             try {
-                Date date = productType.getDate(entry.getName());
+                Date date = productType.getDate(entry);
                 if (date != null) {
                     fileTree.add(date, entry);
                 } else {
                     LOGGER.warning("Ignoring input file with unknown naming convention: " + entry.getPath());
                 }
-            } catch (ParseException e) {
-                LOGGER.warning("Ignoring input file because parsing of date from filename failed: " + entry.getPath());
+            } catch (IOException e) {
+                LOGGER.warning("Ignoring input file because date can't be retrieved: " + entry.getPath());
             }
         }
     }
 
     private static class InputFileFilter implements FileFilter {
+        private final Pattern filenamePattern;
+
+        private InputFileFilter(String filenameRegex) {
+            this.filenamePattern = Pattern.compile(filenameRegex);
+        }
+
         @Override
         public boolean accept(File file) {
             return file.isDirectory()
-                    || file.getName().endsWith(".nc.gz");
+                    || file.isFile() && filenamePattern.matcher(file.getName()).matches();
         }
     }
 }
