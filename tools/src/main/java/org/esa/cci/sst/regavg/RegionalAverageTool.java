@@ -27,7 +27,7 @@ import java.util.List;
 public class RegionalAverageTool extends Tool {
 
     private static final String TOOL_NAME = "regavg";
-    private static final String TOOL_VERSION = TOOL_NAME + ", version 0.1 (C) 2011-2013 by the ESA SST_cci project";
+    private static final String TOOL_VERSION = TOOL_NAME + ", version 0.1.1 (C) 2011-2013 by the ESA SST_cci project";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
             "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +

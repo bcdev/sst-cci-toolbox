@@ -6,6 +6,7 @@ import org.esa.cci.sst.util.UTC;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -14,22 +15,24 @@ import java.util.regex.Pattern;
  * @author Norman Fomferra
  */
 public enum ProductType {
+    /**
+     * n/d = night or day
+     * N/D = Nadir or Dual view
+     * 2/3 = 2 or 3 channel retrieval (3 chan only valid during night)
+     * b/m = bayes or min-bayes cloud screening
+     */
     ARC_L3U {
         public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
-        public final String filenamePrefix = "AT2_AVG_3PAARC";
-        // todo - Use regexp instead
-        public final Pattern filenamePattern = Pattern.compile("AT._AVG_3PAARC\\d\\d\\d\\d\\d\\d\\d.*\\.nc");
+        public final int filenameDateOffset = "AT._AVG_3PAARC".length();
+        public final Pattern filenamePattern = Pattern.compile("AT._AVG_3PAARC\\d\\d\\d\\d\\d\\d\\d.*\\.nc.gz");
         public final GridDef GRID_DEF = GridDef.createGlobalGrid(3600, 1800);
 
         @Override
-        public Date getDate(String filename) {
-            if (filename.startsWith(filenamePrefix)) {
-                String dateString = filename.substring(filenamePrefix.length(), filenamePrefix.length() + 8);
-                try {
-                    return dateFormat.parse(dateString);
-                } catch (ParseException e) {
-                    // ok.
-                }
+        public Date getDate(String filename) throws ParseException {
+            Matcher matcher = filenamePattern.matcher(filename);
+            if (matcher.matches()) {
+                String dateString = filename.substring(filenameDateOffset, filenameDateOffset + 8);
+                return dateFormat.parse(dateString);
             }
             return null;
         }
@@ -55,6 +58,7 @@ public enum ProductType {
         public GridDef getGridDef() {
             return null;
         }
+
         @Override
         public ProcessingLevel getProcessingLevel() {
             return ProcessingLevel.L2P;
@@ -72,6 +76,7 @@ public enum ProductType {
         public GridDef getGridDef() {
             return null;
         }
+
         @Override
         public ProcessingLevel getProcessingLevel() {
             return ProcessingLevel.L3U;
@@ -89,6 +94,7 @@ public enum ProductType {
         public GridDef getGridDef() {
             return null;
         }
+
         @Override
         public ProcessingLevel getProcessingLevel() {
             return ProcessingLevel.L3C;
@@ -113,7 +119,9 @@ public enum ProductType {
         }
     };
 
-    public abstract Date getDate(String filename);
+    public abstract Date getDate(String filename) throws ParseException;
+
     public abstract GridDef getGridDef();
+
     public abstract ProcessingLevel getProcessingLevel();
 }

@@ -1,14 +1,17 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.util.FileTree;
 import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * A product store.
@@ -16,6 +19,8 @@ import java.util.List;
  * @author Norman Fomferra
  */
 public class ProductStore {
+
+    private static final Logger LOGGER = Tool.LOGGER;
 
     private ProductType productType;
     private String[] inputPaths;
@@ -68,7 +73,16 @@ public class ProductStore {
                 }
             }
         } else if (entry.isFile()) {
-            fileTree.add(productType.getDate(entry.getName()), entry);
+            try {
+                Date date = productType.getDate(entry.getName());
+                if (date != null) {
+                    fileTree.add(date, entry);
+                } else {
+                    LOGGER.warning("Ignoring input file with unknown naming convention: " + entry.getPath());
+                }
+            } catch (ParseException e) {
+                LOGGER.warning("Ignoring input file because parsing of date from filename failed: " + entry.getPath());
+            }
         }
     }
 

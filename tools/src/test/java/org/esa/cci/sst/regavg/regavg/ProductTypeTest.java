@@ -12,10 +12,12 @@ import java.text.DateFormat;
 */
 public class ProductTypeTest {
     @Test
-    public void testAT2() throws Exception {
+    public void test_ARC_L3U() throws Exception {
         DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
         Assert.assertEquals(format.parse("2002-01-12"), ProductType.ARC_L3U.getDate("AT2_AVG_3PAARC20020112_D_dN2b.nc.gz"));  // day/nadir
         Assert.assertEquals(format.parse("2002-04-16"), ProductType.ARC_L3U.getDate("AT2_AVG_3PAARC20020416_D_dN2b.nc.gz"));  // day/dual
         Assert.assertEquals(format.parse("2002-01-20"), ProductType.ARC_L3U.getDate("AT2_AVG_3PAARC20020120_D_nN2b.nc.gz"));  // night/nadir
+        Assert.assertEquals(format.parse("2002-09-15"), ProductType.ARC_L3U.getDate("ATS_AVG_3PAARC20020915_D_nD3b.nc.gz"));  // night/dual
+
     }
 }
