@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 /**
  * Represents the product types handled by the {@link RegionalAverageTool}.
@@ -26,7 +25,7 @@ public enum ProductType {
         public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
         public final int filenameDateOffset = "ATS_AVG_3PAARC".length();
         public final String filenameRegex = "AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc[.]gz";
-        public final GridDef GRID_DEF = GridDef.createGlobalGrid(3600, 1800);
+        public final GridDef gridDef = GridDef.createGlobalGrid(3600, 1800);
 
         @Override
         public Date getDate(File file) throws IOException {
@@ -45,7 +44,7 @@ public enum ProductType {
 
         @Override
         public GridDef getGridDef() {
-            return GRID_DEF;
+            return gridDef;
         }
 
         @Override

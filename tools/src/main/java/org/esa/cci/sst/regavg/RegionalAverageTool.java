@@ -71,7 +71,9 @@ public class RegionalAverageTool extends Tool {
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
                                                                     "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
                                                                             "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
-                                                                            "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'.");
+                                                                            "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
+                                                                            "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
+                                                                            "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
     public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".",
                                                                    "The output directory.");
     public static final Parameter PARAM_OUTPUT_TYPE = new Parameter("outputType", "TYPE", OutputType.anomaly.toString(),
