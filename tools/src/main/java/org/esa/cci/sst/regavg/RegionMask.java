@@ -7,8 +7,6 @@ import java.awt.*;
 import java.text.ParseException;
 import java.util.StringTokenizer;
 
-// todo - turn into Grid
-
 /**
  * A global mask comprising 72 x 35 5-degree cells.
  *
