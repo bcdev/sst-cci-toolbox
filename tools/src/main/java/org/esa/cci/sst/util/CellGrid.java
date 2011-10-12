@@ -5,7 +5,7 @@ package org.esa.cci.sst.util;
  *
  * @author Norman Fomferra
  */
-public class CellGrid implements Grid {
+public class CellGrid  {
     private final GridDef gridDef;
     private final Cell[][] cells;
 
@@ -14,28 +14,8 @@ public class CellGrid implements Grid {
         cells = new Cell[gridDef.getHeight()][gridDef.getWidth()];
     }
 
-    @Override
     public GridDef getGridDef() {
         return gridDef;
-    }
-
-    @Override
-    public boolean getSampleBoolean(int x, int y) {
-        return getSampleDouble(x , y) != 0.0;
-    }
-
-    @Override
-    public int getSampleInt(int x, int y) {
-        return (int) Math.round(getSampleDouble(x , y));
-    }
-
-    @Override
-    public double getSampleDouble(int x, int y) {
-        Cell cell = getCell(x, y);
-        if (cell == null) {
-            return Double.NaN;
-        }
-        return cell.getSampleMean();
     }
 
     public Cell getCellSafe(int cellX, int cellY) {
