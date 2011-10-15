@@ -6,4 +6,5 @@ package org.esa.cci.sst.regavg.filetypes;
  * @author Norman Fomferra
  */
 public class ArcL2PFileType extends UnsupportedFileType {
+    public final static ArcL2PFileType INSTANCE = new ArcL2PFileType();
 }

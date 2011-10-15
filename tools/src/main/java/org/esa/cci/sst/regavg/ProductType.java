@@ -13,11 +13,11 @@ import java.util.Date;
  * @author Norman Fomferra
  */
 public enum ProductType {
-    ARC_L3U(new ArcL3UFileType()),
-    ARC_L2P(new ArcL2PFileType()),
-    CCI_L3U(new CciL3UFileType()),
-    CCI_L3C(new CciL3CFileType()),
-    CCI_L4(new CciL4FileType());
+    ARC_L3U(ArcL3UFileType.INSTANCE),
+    ARC_L2P(ArcL2PFileType.INSTANCE),
+    CCI_L3U(CciL3UFileType.INSTANCE),
+    CCI_L3C(CciL3CFileType.INSTANCE),
+    CCI_L4(CciL4FileType.INSTANCE);
 
     private final FileType fileType;
 
@@ -30,18 +30,18 @@ public enum ProductType {
     }
 
     public Date parseDate(File file) throws ParseException {
-        return fileType.parseDate(file);
+        return getFileType().parseDate(file);
     }
 
     public String getDefaultFilenameRegex() {
-        return fileType.getDefaultFilenameRegex();
+        return getFileType().getDefaultFilenameRegex();
     }
 
     public GridDef getGridDef() {
-        return fileType.getGridDef();
+        return getFileType().getGridDef();
     }
 
     public ProcessingLevel getProcessingLevel() {
-        return fileType.getProcessingLevel();
+        return getFileType().getProcessingLevel();
     }
 }

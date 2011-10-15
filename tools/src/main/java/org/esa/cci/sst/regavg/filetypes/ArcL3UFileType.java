@@ -1,7 +1,9 @@
 package org.esa.cci.sst.regavg.filetypes;
 
-import org.esa.cci.sst.regavg.*;
-import org.esa.cci.sst.util.Grid;
+import org.esa.cci.sst.regavg.FileType;
+import org.esa.cci.sst.regavg.ProcessingLevel;
+import org.esa.cci.sst.regavg.SstDepth;
+import org.esa.cci.sst.regavg.VariableType;
 import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
@@ -13,7 +15,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 
 import static java.lang.Math.round;
 
@@ -30,6 +31,8 @@ import static java.lang.Math.round;
  * @author Norman Fomferra
  */
 public class ArcL3UFileType implements FileType {
+
+    public final static ArcL3UFileType INSTANCE = new ArcL3UFileType();
     public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
     public final int filenameDateOffset = "ATS_AVG_3PAARC".length();
     public final String filenameRegex = "AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc[.]gz";
@@ -70,6 +73,6 @@ public class ArcL3UFileType implements FileType {
 
     @Override
     public VariableType[] getVariableTypes(SstDepth sstDepth) {
-        return new VariableType[] {};
+        return new VariableType[]{};
     }
 }

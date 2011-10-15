@@ -6,4 +6,5 @@ package org.esa.cci.sst.regavg.filetypes;
  * @author Norman Fomferra
  */
 public class CciL3CFileType extends UnsupportedFileType {
+    public final static CciL3CFileType INSTANCE = new CciL3CFileType();
 }

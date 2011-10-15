@@ -1,24 +1,22 @@
 package org.esa.cci.sst.regavg.regavg;
 
 import org.esa.cci.sst.regavg.ProductType;
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.regavg.filetypes.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
-import java.text.DateFormat;
+import static org.junit.Assert.assertSame;
 
 /**
-* @author Norman Fomferra
-*/
+ * @author Norman Fomferra
+ */
 public class ProductTypeTest {
     @Test
-    public void test_ARC_L3U() throws Exception {
-        DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
-        Assert.assertEquals(format.parse("2002-01-12"), ProductType.ARC_L3U.parseDate(new File("AT2_AVG_3PAARC20020112_D_dN2b.nc.gz")));  // day/nadir
-        Assert.assertEquals(format.parse("2002-04-16"), ProductType.ARC_L3U.parseDate(new File("AT2_AVG_3PAARC20020416_D_dN2b.nc.gz")));  // day/dual
-        Assert.assertEquals(format.parse("2002-01-20"), ProductType.ARC_L3U.parseDate(new File("AT2_AVG_3PAARC20020120_D_nN2b.nc.gz")));  // night/nadir
-        Assert.assertEquals(format.parse("2002-09-15"), ProductType.ARC_L3U.parseDate(new File("ATS_AVG_3PAARC20020915_D_nD3b.nc.gz")));  // night/dual
-
+    public void testFileTypes() throws Exception {
+        assertSame(ArcL2PFileType.INSTANCE, ProductType.ARC_L2P.getFileType());
+        assertSame(ArcL3UFileType.INSTANCE, ProductType.ARC_L3U.getFileType());
+        assertSame(CciL3UFileType.INSTANCE, ProductType.CCI_L3U.getFileType());
+        assertSame(CciL3CFileType.INSTANCE, ProductType.CCI_L3C.getFileType());
+        assertSame(CciL4FileType.INSTANCE, ProductType.CCI_L4.getFileType());
     }
 }
