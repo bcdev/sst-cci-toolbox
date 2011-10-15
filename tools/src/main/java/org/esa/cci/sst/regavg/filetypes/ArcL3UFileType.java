@@ -1,12 +1,9 @@
 package org.esa.cci.sst.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.*;
-import org.esa.cci.sst.regavg.accumulators.MeanAccumulator;
-import org.esa.cci.sst.regavg.accumulators.UncertaintyAccumulator;
-import org.esa.cci.sst.util.Grid;
-import org.esa.cci.sst.util.GridDef;
-import org.esa.cci.sst.util.NcUtils;
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.accumulators.MeanAccumulator;
+import org.esa.cci.sst.util.accumulators.UncertaintyAccumulator;
+import org.esa.cci.sst.util.*;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 

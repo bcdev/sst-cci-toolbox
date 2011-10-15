@@ -1,4 +1,4 @@
-package org.esa.cci.sst.regavg;
+package org.esa.cci.sst.util;
 
 /**
  * An accumulator for numbers.
@@ -31,13 +31,26 @@ public abstract class Accumulator implements Cloneable {
         return totalCount;
     }
 
-    public abstract double getMean();
+    public abstract double computeAverage();
 
-    public abstract void accumulate(double sample, double weight, long n);
+    public void accumulateSample(double sample, double weight, long n) {
+        if (isValidInput(sample, weight, n)) {
+            accumulateSample(sample, weight);
+            this.accuCount++;
+            this.totalCount += n;
+        }
+    }
 
-    public void accumulate(Accumulator cell) {
-        if (cell.getAccuCount() > 0) {
-            accumulate(cell.getMean(), cell.getWeight(), cell.getTotalCount());
+    protected boolean isValidInput(double sample, double weight, long n) {
+        return n > 0 && !Double.isNaN(sample) && !Double.isNaN(weight);
+    }
+
+
+    protected abstract void accumulateSample(double sample, double weight);
+
+    public void accumulate(Accumulator accumulator) {
+        if (accumulator.getAccuCount() > 0) {
+            accumulateSample(accumulator.computeAverage(), accumulator.getWeight(), accumulator.getTotalCount());
         }
     }
 
