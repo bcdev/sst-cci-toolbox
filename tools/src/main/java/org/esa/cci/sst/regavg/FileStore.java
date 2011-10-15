@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  *
  * @author Norman Fomferra
  */
-public class ProductStore {
+public class FileStore {
 
     private static final Logger LOGGER = Tool.LOGGER;
 
@@ -27,11 +27,11 @@ public class ProductStore {
     private String[] inputPaths;
     private FileTree fileTree;
 
-    public static ProductStore create(ProductType productType, String filenameRegex, String... inputPaths) {
-        return new ProductStore(productType, inputPaths, scanFiles(productType, new InputFileFilter(filenameRegex), inputPaths));
+    public static FileStore create(ProductType productType, String filenameRegex, String... inputPaths) {
+        return new FileStore(productType, inputPaths, scanFiles(productType, new InputFileFilter(filenameRegex), inputPaths));
     }
 
-    private ProductStore(ProductType productType, String[] inputPaths, FileTree fileTree) {
+    private FileStore(ProductType productType, String[] inputPaths, FileTree fileTree) {
         this.productType = productType;
         this.inputPaths = inputPaths;
         this.fileTree = fileTree;

@@ -147,11 +147,11 @@ public class RegionalAverageTool extends Tool {
         RegionMaskList regionMaskList = parseRegionList(configuration);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
-        ProductStore productStore = ProductStore.create(productType, filenameRegex, productDir);
+        FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
 
         List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
         try {
-            outputTimeSteps = RegionalAveraging.computeOutputTimeSteps(productStore, climatology, outputType, sstDepth, startDate, endDate, temporalResolution, regionMaskList);
+            outputTimeSteps = RegionalAveraging.computeOutputTimeSteps(fileStore, climatology, outputType, sstDepth, startDate, endDate, temporalResolution, regionMaskList);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
