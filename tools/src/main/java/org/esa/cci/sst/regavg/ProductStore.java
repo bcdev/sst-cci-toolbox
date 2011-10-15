@@ -6,7 +6,6 @@ import org.esa.cci.sst.util.UTC;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -77,14 +76,14 @@ public class ProductStore {
             }
         } else if (entry.isFile()) {
             try {
-                Date date = productType.getDate(entry);
+                Date date = productType.parseDate(entry);
                 if (date != null) {
                     fileTree.add(date, entry);
                 } else {
                     LOGGER.warning("Ignoring input file with unknown naming convention: " + entry.getPath());
                 }
-            } catch (IOException e) {
-                LOGGER.warning("Ignoring input file because date can't be retrieved: " + entry.getPath());
+            } catch (ParseException e) {
+                LOGGER.warning("Ignoring input file because date can't be parsed from filename: " + entry.getPath());
             }
         }
     }
