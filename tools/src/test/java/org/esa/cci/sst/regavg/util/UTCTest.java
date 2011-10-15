@@ -47,6 +47,19 @@ public class UTCTest {
         assertEquals(parse("2004-03-03"), calendar.getTime());
     }
 
+    @Test
+    public void testGetDayOfYear() throws Exception {
+        assertEquals(1, UTC.getDayOfYear(parse("2011-01-01")));
+        assertEquals(32, UTC.getDayOfYear(parse("2011-02-01")));
+        assertEquals(60, UTC.getDayOfYear(parse("2011-03-01")));
+        assertEquals(365, UTC.getDayOfYear(parse("2011-12-31")));
+
+        assertEquals(1, UTC.getDayOfYear(parse("2004-01-01")));
+        assertEquals(32, UTC.getDayOfYear(parse("2004-02-01")));
+        assertEquals(61, UTC.getDayOfYear(parse("2004-03-01")));
+        assertEquals(366, UTC.getDayOfYear(parse("2004-12-31")));
+    }
+
     private static Date parse(String dateString) throws ParseException {
         return DATE_FORMAT.parse(dateString);
     }

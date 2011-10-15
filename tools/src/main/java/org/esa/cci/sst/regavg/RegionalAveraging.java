@@ -179,7 +179,7 @@ public class RegionalAveraging {
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                aggregateFile(netcdfFile, sourceGridDef, climatology, outputType, sstDepth, combinedRegionMask, combined5DGrid);
+                aggregateFile(fileStore.getProductType(), netcdfFile, sourceGridDef, climatology, outputType, sstDepth, combinedRegionMask, combined5DGrid);
             } finally {
                 netcdfFile.close();
             }
@@ -189,49 +189,32 @@ public class RegionalAveraging {
         return combined5DGrid;
     }
 
-    private static void aggregateFile(NetcdfFile netcdfFile, GridDef sourceGridDef, Climatology climatology, OutputType outputType, SstDepth sstDepth, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
-        // todo - generalise code: the following code is for ARC L3U,
-        // e.g.
-        //
-        //  class ProductType {
-        //     abstract GridReader getGridReader(NetcdfFile netcdfFile, GridDef sourceGridDef);
-        //  }
-        //
-        //  interface GridReader {
-        //     int getDayOfYear();
-        //     Grid getSst(SstDepth sstDepth);
-        //     Grid getUncertainty(UncertaintyType uncertaintyType); // See Nick's tool spec.
-        // }
-        //
-        // ((([[[{{{<<<
-        float time = netcdfFile.findTopVariable("time").readScalarFloat();
-        int secondsSince1981 = Math.round(time);
-        Calendar calendar = UTC.createCalendar(1981);
-        calendar.add(Calendar.SECOND, secondsSince1981);
-        int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
-        if (dayOfYear == 366) {
-            dayOfYear = 365; // Leap year
-        }
+    private static void aggregateFile(ProductType productType, NetcdfFile netcdfFile, GridDef sourceGridDef, Climatology climatology, OutputType outputType, SstDepth sstDepth, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
+
+        Date date = productType.getFileType().readDate(netcdfFile);
+        int dayOfYear = UTC.getDayOfYear(date);
         LOGGER.fine("Day of year is " + dayOfYear);
 
-        long t0 = System.currentTimeMillis();
-        LOGGER.fine("Reading grid(s)...");
-        Grid sstGrid;
-        if (sstDepth == SstDepth.depth_20) {
-            sstGrid = NcUtils.readGrid(netcdfFile, "sst_depth", 0, sourceGridDef);
-        } else if (sstDepth == SstDepth.depth_100) {
-            sstGrid = NcUtils.readGrid(netcdfFile, "sst_depth", 1, sourceGridDef);
-        } else /*if (sstDepth == SstDepth.skin)*/ {
-            sstGrid = NcUtils.readGrid(netcdfFile, "sst_skin", 0, sourceGridDef);
-        }
-        // Grid uncertaintyGrid = NcUtils.readGrid(netcdfFile, "uncertainty", 0, sourceGridDef);
-        LOGGER.fine(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
-        // >>>}}}]]])))
+        Grid[] grids = readGrids(productType, netcdfFile, sstDepth, sourceGridDef);
 
+        // todo - Use all grids, currently we only use the first (always SST).
+        Grid sstGrid = grids[0];
         Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
         Grid seaCoverageGrid = climatology.getSeaCoverageGrid();
 
         aggregate(sstGrid, analysedSstGrid, seaCoverageGrid, combinedRegionMask, combined5DGrid, outputType);
+    }
+
+    private static Grid[] readGrids(ProductType productType, NetcdfFile netcdfFile, SstDepth sstDepth, GridDef sourceGridDef) throws IOException {
+        long t0 = System.currentTimeMillis();
+        VariableType[] variableTypes = productType.getFileType().getVariableTypes(sstDepth);
+        LOGGER.fine(String.format("Reading %d grid(s)...", variableTypes.length));
+        Grid[] grids = new Grid[variableTypes.length];
+        for (int i = 0; i < grids.length; i++) {
+            grids[i] = variableTypes[i].readGrid(netcdfFile, sourceGridDef);;
+        }
+        LOGGER.fine(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
+        return grids;
     }
 
     private static void aggregate(Grid sstGrid, Grid analysedSstGrid, Grid seaCoverageGrid, RegionMask combinedRegionMask, CellGrid combined5DGrid, OutputType outputType) {

@@ -111,9 +111,16 @@ public class Climatology {
     }
 
     private void readGrids(int dayOfYear) throws IOException {
+        if (dayOfYear < 1) {
+            throw new IllegalArgumentException("dayOfYear < 1");
+        } else if (dayOfYear > 366) {
+            throw new IllegalArgumentException("dayOfYear > 366");
+        } else if (dayOfYear == 366) {
+            dayOfYear = 365; // Leap year
+        }
         File file = files[dayOfYear - 1];
         long t0 = System.currentTimeMillis();
-        LOGGER.info(String.format("Processing input climatology file '%s'", file.getPath()));
+        LOGGER.info(String.format("Processing input climatology file '%s' for day of year %d", file.getPath(), dayOfYear));
         NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
         try {
             readGrids(netcdfFile, dayOfYear);

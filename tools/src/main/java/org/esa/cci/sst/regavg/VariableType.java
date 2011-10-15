@@ -11,19 +11,9 @@ import java.io.IOException;
 *
 * @author Norman Fomferra
 */
-public abstract class VariableType {
+public interface VariableType {
 
-    private final String name;
+    Grid readGrid(NetcdfFile netcdfFile, GridDef sourceGridDef) throws IOException;
 
-    protected VariableType(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public abstract Grid readGrid(NetcdfFile netcdfFile, GridDef sourceGridDef) throws IOException;
-
-    public abstract Accumulator createAccumulator();
+    Accumulator createAccumulator();
 }

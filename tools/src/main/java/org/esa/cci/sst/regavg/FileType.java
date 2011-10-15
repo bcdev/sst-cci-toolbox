@@ -28,7 +28,7 @@ public interface FileType {
      */
     Date readDate(NetcdfFile file) throws IOException;
 
-    String getDefaultFilenameRegex();
+    String getFilenameRegex();
 
     GridDef getGridDef();
 

@@ -5,9 +5,15 @@ package org.esa.cci.sst.regavg;
  *
  * @author Norman Fomferra
  */
-public abstract class Accumulator {
+public abstract class Accumulator implements Cloneable {
 
-    private double weight;
+    protected double weight;
+    protected long accuCount;
+    protected long totalCount;
+
+    protected Accumulator() {
+        this.weight = 1.0;
+    }
 
     public double getWeight() {
         return weight;
@@ -17,7 +23,30 @@ public abstract class Accumulator {
         this.weight = weight;
     }
 
+    public long getAccuCount() {
+        return accuCount;
+    }
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public abstract double getMean();
+
     public abstract void accumulate(double sample, double weight, long n);
 
-    public abstract void accumulate(Accumulator agg);
+    public void accumulate(Accumulator cell) {
+        if (cell.getAccuCount() > 0) {
+            accumulate(cell.getMean(), cell.getWeight(), cell.getTotalCount());
+        }
+    }
+
+    @Override
+    public Accumulator clone() {
+        try {
+            return (Accumulator) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

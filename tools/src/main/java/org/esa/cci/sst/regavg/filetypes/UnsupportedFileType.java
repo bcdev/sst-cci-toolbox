@@ -33,7 +33,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public String getDefaultFilenameRegex() {
+    public String getFilenameRegex() {
         throw new IllegalStateException("Not implemented.");
     }
 
