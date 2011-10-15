@@ -24,10 +24,6 @@ public class Cell implements Cloneable {
         this.weight = weight;
     }
 
-    public void accumulate(double sample) {
-        accumulate(sample, 1.0, 1L);
-    }
-
     public void accumulate(double sample, double weight, long n) {
         if (!Double.isNaN(sample) && n > 0) {
             final double weightedSample = weight * sample;
