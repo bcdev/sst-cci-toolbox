@@ -8,7 +8,7 @@ package org.esa.cci.sst.util;
 public abstract class Accumulator implements Cloneable {
 
     protected double weight;
-    protected long accuCount;
+    protected long sampleCount;
     protected long totalCount;
 
     protected Accumulator() {
@@ -23,8 +23,8 @@ public abstract class Accumulator implements Cloneable {
         this.weight = weight;
     }
 
-    public long getAccuCount() {
-        return accuCount;
+    public long getSampleCount() {
+        return sampleCount;
     }
 
     public long getTotalCount() {
@@ -36,7 +36,7 @@ public abstract class Accumulator implements Cloneable {
     public void accumulateSample(double sample, double weight, long n) {
         if (isValidInput(sample, weight, n)) {
             accumulateSample(sample, weight);
-            this.accuCount++;
+            this.sampleCount++;
             this.totalCount += n;
         }
     }
@@ -49,7 +49,7 @@ public abstract class Accumulator implements Cloneable {
     protected abstract void accumulateSample(double sample, double weight);
 
     public void accumulate(Accumulator accumulator) {
-        if (accumulator.getAccuCount() > 0) {
+        if (accumulator.getSampleCount() > 0) {
             accumulateSample(accumulator.computeAverage(), accumulator.getWeight(), accumulator.getTotalCount());
         }
     }

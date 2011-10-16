@@ -29,31 +29,42 @@ public abstract class UnsupportedFileType implements FileType {
 
     @Override
     public Date parseDate(File file) throws ParseException {
-        throw new IllegalStateException("Not implemented.");
+        throw notImplemented();
     }
 
     @Override
     public String getFilenameRegex() {
-        throw new IllegalStateException("Not implemented.");
+        throw notImplemented();
     }
 
     @Override
     public GridDef getGridDef() {
-        throw new IllegalStateException("Not implemented.");
+        throw notImplemented();
     }
 
     @Override
     public ProcessingLevel getProcessingLevel() {
-        throw new IllegalStateException("Not implemented.");
+        throw notImplemented();
     }
 
     @Override
     public Date readDate(NetcdfFile file) throws IOException {
-        throw new IllegalStateException("Not implemented.");
+        throw notImplemented();
+    }
+
+
+    @Override
+    public Grid[] readGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
+        throw notImplemented();
     }
 
     @Override
     public VariableType[] getVariableTypes(SstDepth sstDepth) {
-        throw new IllegalStateException("Not implemented.");
+        throw notImplemented();
     }
+
+    private static IllegalStateException notImplemented() {
+        return new IllegalStateException("Not implemented.");
+    }
+
 }

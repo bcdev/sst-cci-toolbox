@@ -4,8 +4,8 @@ import org.esa.cci.sst.regavg.FileType;
 import org.esa.cci.sst.regavg.ProcessingLevel;
 import org.esa.cci.sst.regavg.SstDepth;
 import org.esa.cci.sst.regavg.VariableType;
-import org.esa.cci.sst.util.accumulators.MeanAccumulator;
-import org.esa.cci.sst.util.accumulators.UncertaintyAccumulator;
+import org.esa.cci.sst.util.accumulators.WeightedMeanAccumulator;
+import org.esa.cci.sst.util.accumulators.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.regavg.filetypes.ArcL3UFileType;
 import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
@@ -45,20 +45,20 @@ public class ArcL3UFileTypeTest {
         VariableType[] sstSkinvariableTypes = fileType.getVariableTypes(SstDepth.skin);
         assertNotNull(sstSkinvariableTypes);
         assertEquals(2, sstSkinvariableTypes.length);
-        assertEquals(MeanAccumulator.class, sstSkinvariableTypes[0].createAccumulator().getClass());
-        assertEquals(UncertaintyAccumulator.class, sstSkinvariableTypes[1].createAccumulator().getClass());
+        assertEquals(WeightedMeanAccumulator.class, sstSkinvariableTypes[0].createAccumulator().getClass());
+        assertEquals(RandomUncertaintyAccumulator.class, sstSkinvariableTypes[1].createAccumulator().getClass());
 
         VariableType[] depth20VariableTypes = fileType.getVariableTypes(SstDepth.depth_20);
         assertNotNull(depth20VariableTypes);
         assertEquals(2, depth20VariableTypes.length);
-        assertEquals(MeanAccumulator.class, depth20VariableTypes[0].createAccumulator().getClass());
-        assertEquals(UncertaintyAccumulator.class, depth20VariableTypes[1].createAccumulator().getClass());
+        assertEquals(WeightedMeanAccumulator.class, depth20VariableTypes[0].createAccumulator().getClass());
+        assertEquals(RandomUncertaintyAccumulator.class, depth20VariableTypes[1].createAccumulator().getClass());
 
         VariableType[] depth100VariableTypes = fileType.getVariableTypes(SstDepth.depth_100);
         assertNotNull(depth100VariableTypes);
         assertEquals(2, depth100VariableTypes.length);
-        assertEquals(MeanAccumulator.class, depth100VariableTypes[0].createAccumulator().getClass());
-        assertEquals(UncertaintyAccumulator.class, depth100VariableTypes[1].createAccumulator().getClass());
+        assertEquals(WeightedMeanAccumulator.class, depth100VariableTypes[0].createAccumulator().getClass());
+        assertEquals(RandomUncertaintyAccumulator.class, depth100VariableTypes[1].createAccumulator().getClass());
     }
 
     @Test

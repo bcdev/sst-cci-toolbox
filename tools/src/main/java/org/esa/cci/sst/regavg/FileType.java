@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 import ucar.nc2.NetcdfFile;
 
@@ -34,6 +35,7 @@ public interface FileType {
 
     ProcessingLevel getProcessingLevel();
 
+    Grid[] readGrids(NetcdfFile file, SstDepth sstDepth) throws IOException;
 
     VariableType[] getVariableTypes(SstDepth sstDepth);
 

@@ -14,7 +14,7 @@ import java.io.IOException;
 */
 public interface VariableType {
 
-    Grid readGrid(NetcdfFile netcdfFile, GridDef sourceGridDef) throws IOException;
+    Grid readGrid(NetcdfFile netcdfFile) throws IOException;
 
     Accumulator createAccumulator();
 }

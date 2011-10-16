@@ -1,9 +1,12 @@
 package org.esa.cci.sst.regavg.filetypes;
 
-import org.esa.cci.sst.regavg.*;
-import org.esa.cci.sst.util.accumulators.MeanAccumulator;
-import org.esa.cci.sst.util.accumulators.UncertaintyAccumulator;
+import org.esa.cci.sst.regavg.FileType;
+import org.esa.cci.sst.regavg.ProcessingLevel;
+import org.esa.cci.sst.regavg.SstDepth;
+import org.esa.cci.sst.regavg.VariableType;
 import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.util.accumulators.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.util.accumulators.WeightedMeanAccumulator;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -28,7 +31,9 @@ import static java.lang.Math.round;
  * [nd] = night or day<br/>
  * [ND] = Nadir or Dual view<br/>
  * [23] = 2 or 3 channel retrieval (3 channel only valid during night)<br/>
- * [bms] = bayes or min-bayes cloud screening<br/>
+ * [bms] = bayes, min-bayes, SADIST cloud screening<br/>
+ * <p/>
+ * Find more info in the <a href="https://www.wiki.ed.ac.uk/display/arcwiki/Test+Data#TestData-NetCDFDataFiles">arcwiki</a>.
  *
  * @author Norman Fomferra
  */
@@ -94,44 +99,58 @@ public class ArcL3UFileType implements FileType {
 
     }
 
+    @Override
+    public Grid[] readGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
+        Grid[] grids = new Grid[2];
+        if (sstDepth == SstDepth.depth_20) {
+            grids[0] = NcUtils.readGrid(file, "sst_depth", getGridDef(), 0);
+        } else if (sstDepth == SstDepth.depth_100) {
+            grids[0] = NcUtils.readGrid(file, "sst_depth", getGridDef(), 1);
+        } else /*if (sstDepth == SstDepth.skin)*/ {
+            grids[0] = NcUtils.readGrid(file, "sst_skin", getGridDef(), 0);
+        }
+        grids[1] = NcUtils.readGrid(file, "uncertainty", getGridDef(), 0);
+        return grids;
+    }
+
     private static abstract class SstVariableType implements VariableType {
 
         @Override
         public Accumulator createAccumulator() {
-            return new MeanAccumulator();
+            return new WeightedMeanAccumulator();
         }
     }
 
-    private static class SstSkinVariableType extends SstVariableType {
+    private class SstSkinVariableType extends SstVariableType {
         @Override
-        public Grid readGrid(NetcdfFile netcdfFile, GridDef sourceGridDef) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "sst_skin", 0, sourceGridDef);
+        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
+            return NcUtils.readGrid(netcdfFile, "sst_skin", getGridDef(), 0);
         }
     }
 
-    private static class SstDepth20VariableType extends SstVariableType {
+    private class SstDepth20VariableType extends SstVariableType {
         @Override
-        public Grid readGrid(NetcdfFile netcdfFile, GridDef sourceGridDef) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "sst_depth", 0, sourceGridDef);
+        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
+            return NcUtils.readGrid(netcdfFile, "sst_depth", getGridDef(), 0);
         }
     }
 
-    private static class SstDepth100VariableType extends SstVariableType {
+    private class SstDepth100VariableType extends SstVariableType {
         @Override
-        public Grid readGrid(NetcdfFile netcdfFile, GridDef sourceGridDef) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "sst_depth", 1, sourceGridDef);
+        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
+            return NcUtils.readGrid(netcdfFile, "sst_depth", getGridDef(), 1);
         }
     }
 
-    private static class UncertaintyVariableType implements VariableType {
+    private class UncertaintyVariableType implements VariableType {
         @Override
-        public Grid readGrid(NetcdfFile netcdfFile, GridDef sourceGridDef) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "uncertainty", 0, sourceGridDef);
+        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
+            return NcUtils.readGrid(netcdfFile, "uncertainty", getGridDef(), 0);
         }
 
         @Override
         public Accumulator createAccumulator() {
-            return new UncertaintyAccumulator();
+            return new RandomUncertaintyAccumulator();
         }
     }
 }

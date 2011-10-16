@@ -7,7 +7,7 @@ import org.esa.cci.sst.util.Accumulator;
  *
  * @author Norman Fomferra
  */
-public class UncertaintyAccumulator extends Accumulator {
+public class RandomUncertaintyAccumulator extends Accumulator {
 
     private double sampleSqrSum;
     private double weightSqrSum;

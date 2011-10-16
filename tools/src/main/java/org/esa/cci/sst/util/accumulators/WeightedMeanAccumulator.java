@@ -7,7 +7,7 @@ import org.esa.cci.sst.util.Accumulator;
  *
  * @author Norman Fomferra
  */
-public class MeanAccumulator extends Accumulator {
+public class WeightedMeanAccumulator extends Accumulator {
 
     private double sampleSum;
     private double weightSum;

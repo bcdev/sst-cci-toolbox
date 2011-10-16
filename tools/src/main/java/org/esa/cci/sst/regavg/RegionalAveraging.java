@@ -166,8 +166,6 @@ public class RegionalAveraging {
                                                 RegionMask combinedRegionMask) throws IOException {
         List<File> files = fileStore.getFiles(date1, date2);
 
-        GridDef sourceGridDef = fileStore.getProductType().getGridDef();
-
         DateFormat isoDateFormat = UTC.getIsoFormat();
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                                   isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
@@ -179,7 +177,7 @@ public class RegionalAveraging {
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                aggregateFile(fileStore.getProductType(), netcdfFile, sourceGridDef, climatology, outputType, sstDepth, combinedRegionMask, combined5DGrid);
+                aggregateFile(fileStore.getProductType(), netcdfFile, climatology, outputType, sstDepth, combinedRegionMask, combined5DGrid);
             } finally {
                 netcdfFile.close();
             }
@@ -189,13 +187,13 @@ public class RegionalAveraging {
         return combined5DGrid;
     }
 
-    private static void aggregateFile(ProductType productType, NetcdfFile netcdfFile, GridDef sourceGridDef, Climatology climatology, OutputType outputType, SstDepth sstDepth, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
+    private static void aggregateFile(ProductType productType, NetcdfFile netcdfFile, Climatology climatology, OutputType outputType, SstDepth sstDepth, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
 
         Date date = productType.getFileType().readDate(netcdfFile);
         int dayOfYear = UTC.getDayOfYear(date);
         LOGGER.fine("Day of year is " + dayOfYear);
 
-        Grid[] grids = readGrids(productType, netcdfFile, sstDepth, sourceGridDef);
+        Grid[] grids = readGrids(productType, netcdfFile, sstDepth);
 
         // todo - Use all grids, currently we only use the first (always SST).
         Grid sstGrid = grids[0];
@@ -205,13 +203,13 @@ public class RegionalAveraging {
         aggregate(sstGrid, analysedSstGrid, seaCoverageGrid, combinedRegionMask, combined5DGrid, outputType);
     }
 
-    private static Grid[] readGrids(ProductType productType, NetcdfFile netcdfFile, SstDepth sstDepth, GridDef sourceGridDef) throws IOException {
+    private static Grid[] readGrids(ProductType productType, NetcdfFile netcdfFile, SstDepth sstDepth) throws IOException {
         long t0 = System.currentTimeMillis();
         VariableType[] variableTypes = productType.getFileType().getVariableTypes(sstDepth);
         LOGGER.fine(String.format("Reading %d grid(s)...", variableTypes.length));
         Grid[] grids = new Grid[variableTypes.length];
         for (int i = 0; i < grids.length; i++) {
-            grids[i] = variableTypes[i].readGrid(netcdfFile, sourceGridDef);;
+            grids[i] = variableTypes[i].readGrid(netcdfFile);;
         }
         LOGGER.fine(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
         return grids;

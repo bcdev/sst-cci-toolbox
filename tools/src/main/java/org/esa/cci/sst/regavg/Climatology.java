@@ -140,7 +140,7 @@ public class Climatology {
     private void readAnalysedSstGrid(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'analysed_sst'...");
-        ArrayGrid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", 0, OSTIA_GRID_DEF);
+        ArrayGrid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", OSTIA_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         sstGrid.flipY(); // OSTIA Climatologies are stored upside-down!
@@ -155,7 +155,7 @@ public class Climatology {
     private void readSeaCoverageGrids(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'mask'...");
-        ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", 0, OSTIA_GRID_DEF);
+        ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", OSTIA_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         maskGrid.flipY(); // OSTIA Climatologies are stored upside-down!
