@@ -1,9 +1,21 @@
-More questions to Nick:
+More questions to Nick / Chris:
 
-1. Only work on calendar times?
-2. Other temp. tes. between daily and monthly, e.g. 10-days?
-3. Seasonal is meteorological?!
+1. When aggregating from 0.1 (0.05) deg cells to 5 deg cells, *all regions*:
+   We currently weight each 0.1 (0.05) deg contribution according to its ocean coverage in that 0.1 (0.05) cell.
+   However, the spec doesn't say so, but I thought, it is just consequent since for aggregating from 5 deg to 90 deg
+   cells and from aggregating all the 90 deg cells to a single value we do it as well.
+   Please confirm that this is wanted for both, SST anomaly and uncertainties.
+2. From the spec:
+   "If required temporal resolution is seasonal or annual (or some other combination of months),
+   then aggregate first to monthly averages and monthly uncertainties, before averaging monthly
+   averages and propagating monthly uncertainties to coarser temporal resolution.":
+   Shall we
+   (a) average the means first, thus sigma in 1.1 and 1.2 is a monthly uncertainty mean and n is the number of months, or
+   (b) compute a total uncertainty mean from all monthly sums (not means), thus sigma in 1.1 and 1.2 is a daily
+       uncertainty and n is the total number of days?
+   If it is (a), should we weight according to the total number of contributions in each month?
+3. The monthly, seasonal (3 months), annual (12 months) resolutions are currently implemented as time steps
+   based on the Gregorian calendar, starting from the user-given start date.
+   Do we have to consider other time steps as well, e.g. 10-day steps, meteorological season?
+   If so, how important is that?
 
-To Chris:
-
-1. Can we expect different product types (L2P, L3U, L3C, L4) in different directories?
