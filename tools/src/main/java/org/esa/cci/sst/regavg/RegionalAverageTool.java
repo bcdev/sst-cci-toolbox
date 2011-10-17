@@ -62,8 +62,6 @@ public class RegionalAverageTool extends Tool {
                                                                  "The end date for the analysis given in the format YYYY-MM-DD");
     public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
                                                                         "The directory path to the reference climatology.");
-    public static final Parameter PARAM_LUT_DIR = new Parameter("lutPath", "DIR", "./lut",
-                                                                "The directory path to the variance LUTs.");
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "",
                                                                      "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
@@ -79,6 +77,11 @@ public class RegionalAverageTool extends Tool {
     public static final Parameter PARAM_OUTPUT_TYPE = new Parameter("outputType", "TYPE", OutputType.anomaly.toString(),
                                                                     "The output type. Must be one of " + Arrays.toString(OutputType.values()) + ".");
 
+    public static final Parameter PARAM_LUT1_FILE = new Parameter("lut1File", "FILE", "conf/auxdata/coverage_uncertainty_parameters.nc",
+                                                                    "A NetCDF file that provides lookup table 1.");
+
+    public static final Parameter PARAM_LUT2_FILE = new Parameter("lut2File", "FILE", "conf/auxdata/RegionalAverage_LUT2.txt",
+                                                                    "A plain text file that provides lookup table 2.");
 
     public static void main(String[] arguments) {
         new RegionalAverageTool().run(arguments);
@@ -119,7 +122,8 @@ public class RegionalAverageTool extends Tool {
                 PARAM_START_DATE,
                 PARAM_END_DATE,
                 PARAM_CLIMATOLOGY_DIR,
-                PARAM_LUT_DIR,
+                PARAM_LUT1_FILE,
+                PARAM_LUT2_FILE,
                 PARAM_PRODUCT_TYPE,
                 PARAM_FILENAME_REGEX,
                 PARAM_OUTPUT_DIR,
@@ -145,13 +149,17 @@ public class RegionalAverageTool extends Tool {
         TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         RegionMaskList regionMaskList = parseRegionList(configuration);
+        File lut1File = configuration.getExistingFile(PARAM_LUT1_FILE, true);
+        File lut2File = configuration.getExistingFile(PARAM_LUT2_FILE, true);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
+        LUT1 lut1 = getLUT1(lut1File);
+        LUT2 lut2 = getLUT2(lut2File);
 
         List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
         try {
-            RegionalAveraging averaging = new RegionalAveraging(fileStore, climatology, outputType, sstDepth);
+            RegionalAveraging averaging = new RegionalAveraging(fileStore, climatology, lut1, lut2, outputType, sstDepth);
             outputTimeSteps = averaging.computeOutputTimeSteps(startDate, endDate, temporalResolution, regionMaskList);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
@@ -162,6 +170,28 @@ public class RegionalAverageTool extends Tool {
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
+    }
+
+    private LUT1 getLUT1(File lut1File) throws ToolException {
+        LUT1 lut1;
+        try {
+            lut1 = LUT1.read(lut1File);
+            LOGGER.info(String.format("LUT-1 read from '%s'", lut1File));
+        } catch (IOException e) {
+            throw new ToolException(e, ExitCode.IO_ERROR);
+        }
+        return lut1;
+    }
+
+    private LUT2 getLUT2(File lut2File) throws ToolException {
+        LUT2 lut2;
+        try {
+            lut2 = LUT2.read(lut2File);
+            LOGGER.info(String.format("LUT-2 read from '%s'", lut2File));
+        } catch (IOException e) {
+            throw new ToolException(e, ExitCode.IO_ERROR);
+        }
+        return lut2;
     }
 
     private void writeOutputs(File outputDir,
@@ -240,7 +270,6 @@ public class RegionalAverageTool extends Tool {
             netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
             netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
-
 
             int numSteps = outputTimeSteps.size();
             Dimension timeDimension = netcdfFile.addDimension("time", numSteps, true, false, false);

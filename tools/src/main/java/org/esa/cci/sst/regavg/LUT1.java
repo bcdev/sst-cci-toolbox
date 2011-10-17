@@ -5,16 +5,15 @@ import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Represents LUT1.
  * Enables calculation of coverage/sampling uncertainty for an average via the number of values comprising that average.
  * LUT1 contains values of two parameters (magnitude and exponent) for each 5° monthly grid box.
+ *
  * @author Norman Fomferra
  */
 public class LUT1 {
@@ -25,11 +24,6 @@ public class LUT1 {
     public static LUT1 read(File file) throws IOException {
         NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace("\\", "/"));
         try {
-            List<Variable> variables = netcdfFile.getVariables();
-            for (Variable variable : variables) {
-                System.out.println("variable = " + variable);
-            }
-
             GridDef gridDef = GridDef.createGlobal(5.0);
             ArrayGrid magnitudeGrid = NcUtils.readGrid(netcdfFile, "MAGNITUDE", gridDef);
             magnitudeGrid.flipY();

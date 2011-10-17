@@ -40,15 +40,21 @@ public class RegionalAveraging {
 
     private final FileStore fileStore;
     private final Climatology climatology;
+    private LUT1 lut1;
+    private LUT2 lut2;
     private final OutputType outputType;
     private final SstDepth sstDepth;
 
     public RegionalAveraging(FileStore fileStore,
                              Climatology climatology,
+                             LUT1 lut1,
+                             LUT2 lut2,
                              OutputType outputType,
                              SstDepth sstDepth) {
         this.fileStore = fileStore;
         this.climatology = climatology;
+        this.lut1 = lut1;
+        this.lut2 = lut2;
         this.outputType = outputType;
         this.sstDepth = sstDepth;
     }

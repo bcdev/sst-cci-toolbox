@@ -1,6 +1,9 @@
 package org.esa.cci.sst.regavg;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
 
 /**
  * Represents LUT2.
@@ -37,7 +40,7 @@ public class LUT2 {
     private static void parseLine(String line, int month, double[][] weights, int off) {
         String[] split = line.trim().split("[ \\t]+");
         for (int j = 0; j < split.length; j++) {
-            weights[month][off+j] = Double.parseDouble(split[j]);
+            weights[month][off + j] = Double.parseDouble(split[j]);
         }
     }
 
