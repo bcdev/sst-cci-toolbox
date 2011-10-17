@@ -40,13 +40,13 @@ public class CellGrid  {
         return new Cell();
     }
 
-    public Cell combine() {
+    public Cell aggregate(Grid weightGrid) {
         Cell combinedCell = createCell();
         for (int cellY = 0; cellY < gridDef.getHeight(); cellY++) {
             for (int cellX = 0; cellX < gridDef.getWidth(); cellX++) {
                 Cell cell = cells[cellY][cellX];
                 if (cell != null) {
-                    combinedCell.accumulate(cell);
+                    combinedCell.accumulateCellAverage(cell, weightGrid.getSampleDouble(cellX, cellY));
                 }
             }
         }

@@ -281,7 +281,7 @@ public class RegionalAverageTool extends Tool {
                 endTime[t] = (outputTimeStep.date2.getTime() - millisSince1981) / 1000.0F;
                 sstAnomalyMean[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSampleMean();
                 sstAnomalySigma[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSampleSigma();
-                sstAnomalyCount[t] = (int) outputTimeStep.regionalAverages.get(regionIndex).getAccuCount();
+                sstAnomalyCount[t] = (int) outputTimeStep.regionalAverages.get(regionIndex).getSampleCount();
             }
 
             netcdfFile.create();

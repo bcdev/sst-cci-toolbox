@@ -14,3 +14,9 @@
   "AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc[.]gz". If you only want
   daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval,
   bayes cloud screening (nD3b) you could use the regex "ATS_AVG_3PAARC\\d{8}_D_nD3b[.]nc[.]gz".
+
+## Version 0.1.3 released on 17.10.2011:
+
+* Fixed a bug in aggregating ARC from 0.1 deg to 5-deg cells. Only the very first, non-NaN
+  5-deg cell was kept and used for later averaging at a given x,y. Now, all 5-deg cell
+  contributions are accumulated at given x,y.

@@ -7,38 +7,36 @@ package org.esa.cci.sst.util;
  */
 public class Cell implements Cloneable {
 
-    private double weight = 1.0;
-
     private double sampleSum;
     private double sampleSqrSum;
     private double weightSum;
     private double weightSqrSum;
-    private long accuCount;
-    private long totalCount;
+    private long sampleCount;
 
-    public double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    public void accumulate(double sample, double weight, long n) {
-        if (!Double.isNaN(sample) && n > 0) {
+    public void accumulateSample(double sample, double weight) {
+        if (!Double.isNaN(sample) && !Double.isNaN(weight)) {
             final double weightedSample = weight * sample;
             this.sampleSum += weightedSample;
             this.sampleSqrSum += weightedSample * weightedSample;
             this.weightSum += weight;
             this.weightSqrSum += weight * weight;
-            this.accuCount++;
-            this.totalCount += n;
+            this.sampleCount++;
         }
     }
 
-    public void accumulate(Cell cell) {
-        if (cell.accuCount > 0) {
-            accumulate(cell.getSampleMean(), cell.getWeight(), cell.totalCount);
+    public void accumulateCellAverage(Cell cell, double weight) {
+        if (cell.sampleCount > 0) {
+            accumulateSample(cell.getSampleMean(), weight);
+        }
+    }
+
+    public void accumulateCellSamples(Cell cell) {
+        if (cell.sampleCount > 0) {
+            this.sampleSum += cell.sampleSum;
+            this.sampleSqrSum += cell.sampleSqrSum;
+            this.weightSum += cell.weightSum;
+            this.weightSqrSum += cell.weightSqrSum;
+            this.sampleCount += cell.sampleCount;
         }
     }
 
@@ -60,16 +58,8 @@ public class Cell implements Cloneable {
         }
     }
 
-    public double getWeightSum() {
-        return weightSum;
-    }
-
-    public long getAccuCount() {
-        return accuCount;
-    }
-
-    public long getTotalCount() {
-        return totalCount;
+    public long getSampleCount() {
+        return sampleCount;
     }
 
     @Override
