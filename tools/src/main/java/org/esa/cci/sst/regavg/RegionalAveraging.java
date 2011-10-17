@@ -190,7 +190,7 @@ public class RegionalAveraging {
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                aggregateFileTo5DegGrid(fileStore.getProductType(), netcdfFile, climatology, outputType, sstDepth, combinedRegionMask, combined5DegGrid);
+                aggregateFileTo5DegGrid(fileStore.getProductType(), netcdfFile, combinedRegionMask, combined5DegGrid);
             } finally {
                 netcdfFile.close();
             }
@@ -200,7 +200,7 @@ public class RegionalAveraging {
         return combined5DegGrid;
     }
 
-    private static void aggregateFileTo5DegGrid(ProductType productType, NetcdfFile netcdfFile, Climatology climatology, OutputType outputType, SstDepth sstDepth, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
+    private void aggregateFileTo5DegGrid(ProductType productType, NetcdfFile netcdfFile, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
 
         Date date = productType.getFileType().readDate(netcdfFile);
         int dayOfYear = UTC.getDayOfYear(date);
@@ -223,7 +223,6 @@ public class RegionalAveraging {
         Grid[] grids = new Grid[variableTypes.length];
         for (int i = 0; i < grids.length; i++) {
             grids[i] = variableTypes[i].readGrid(netcdfFile);
-            ;
         }
         LOGGER.fine(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
         return grids;
