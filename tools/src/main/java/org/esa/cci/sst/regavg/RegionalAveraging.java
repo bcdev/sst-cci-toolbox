@@ -38,13 +38,25 @@ public class RegionalAveraging {
         }
     }
 
-    public static List<OutputTimeStep> computeOutputTimeSteps(FileStore fileStore,
-                                                              Climatology climatology,
-                                                              OutputType outputType, SstDepth sstDepth,
-                                                              Date startDate,
-                                                              Date endDate,
-                                                              TemporalResolution temporalResolution,
-                                                              RegionMaskList regionMaskList)
+    private final FileStore fileStore;
+    private final Climatology climatology;
+    private final OutputType outputType;
+    private final SstDepth sstDepth;
+
+    public RegionalAveraging(FileStore fileStore,
+                             Climatology climatology,
+                             OutputType outputType,
+                             SstDepth sstDepth) {
+        this.fileStore = fileStore;
+        this.climatology = climatology;
+        this.outputType = outputType;
+        this.sstDepth = sstDepth;
+    }
+
+    public List<OutputTimeStep> computeOutputTimeSteps(Date startDate,
+                                                       Date endDate,
+                                                       TemporalResolution temporalResolution,
+                                                       RegionMaskList regionMaskList)
             throws IOException {
 
         List<OutputTimeStep> results = new ArrayList<OutputTimeStep>();
@@ -55,20 +67,20 @@ public class RegionalAveraging {
             if (temporalResolution == TemporalResolution.daily) {
                 calendar.add(Calendar.DATE, 1);
                 Date date2 = calendar.getTime();
-                result = computeOutputTimeStep(fileStore, climatology, outputType, sstDepth, date1, date2, regionMaskList);
+                result = computeOutputTimeStep(date1, date2, regionMaskList);
             } else if (temporalResolution == TemporalResolution.monthly) {
                 calendar.add(Calendar.MONTH, 1);
                 Date date2 = calendar.getTime();
-                result = computeOutputTimeStep(fileStore, climatology, outputType, sstDepth, date1, date2, regionMaskList);
+                result = computeOutputTimeStep(date1, date2, regionMaskList);
             } else if (temporalResolution == TemporalResolution.seasonal) {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
-                List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(fileStore, climatology, outputType, sstDepth, date1, date2, TemporalResolution.monthly, regionMaskList);
+                List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(date1, date2, TemporalResolution.monthly, regionMaskList);
                 result = aggregateMultiMonthsResults(intermediateResults, regionMaskList);
             } else /*if (temporalResolution == TemporalResolution.annual)*/ {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
-                List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(fileStore, climatology, outputType, sstDepth, date1, date2, TemporalResolution.monthly, regionMaskList);
+                List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(date1, date2, TemporalResolution.monthly, regionMaskList);
                 result = aggregateMultiMonthsResults(intermediateResults, regionMaskList);
             }
             results.add(new OutputTimeStep(date1, calendar.getTime(), result));
@@ -95,17 +107,13 @@ public class RegionalAveraging {
         return combinedCells;
     }
 
-    private static List<Cell> computeOutputTimeStep(FileStore fileStore,
-                                                    Climatology climatology,
-                                                    OutputType outputType,
-                                                    SstDepth sstDepth,
-                                                    Date date1,
-                                                    Date date2,
-                                                    RegionMaskList regionMaskList) throws IOException {
+    private List<Cell> computeOutputTimeStep(Date date1,
+                                             Date date2,
+                                             RegionMaskList regionMaskList) throws IOException {
 
         RegionMask combinedRegionMask = RegionMask.combine(regionMaskList);
 
-        CellGrid combined5DGrid = aggregateTimeRangeTo5DegGrid(fileStore, climatology, outputType, sstDepth, date1, date2, combinedRegionMask);
+        CellGrid combined5DGrid = aggregateTimeRangeTo5DegGrid(date1, date2, combinedRegionMask);
 
         List<Cell> regionalCells = new ArrayList<Cell>();
         for (RegionMask regionMask : regionMaskList) {
@@ -161,11 +169,8 @@ public class RegionalAveraging {
         return regional90DegGrid;
     }
 
-    private static CellGrid aggregateTimeRangeTo5DegGrid(FileStore fileStore,
-                                                         Climatology climatology,
-                                                         OutputType outputType, SstDepth sstDepth,
-                                                         Date date1, Date date2,
-                                                         RegionMask combinedRegionMask) throws IOException {
+    private CellGrid aggregateTimeRangeTo5DegGrid(Date date1, Date date2,
+                                                  RegionMask combinedRegionMask) throws IOException {
         List<File> files = fileStore.getFiles(date1, date2);
 
         DateFormat isoDateFormat = UTC.getIsoFormat();
@@ -211,7 +216,8 @@ public class RegionalAveraging {
         LOGGER.fine(String.format("Reading %d grid(s)...", variableTypes.length));
         Grid[] grids = new Grid[variableTypes.length];
         for (int i = 0; i < grids.length; i++) {
-            grids[i] = variableTypes[i].readGrid(netcdfFile);;
+            grids[i] = variableTypes[i].readGrid(netcdfFile);
+            ;
         }
         LOGGER.fine(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
         return grids;
@@ -232,7 +238,7 @@ public class RegionalAveraging {
 
                     Rectangle2D lonLatRectangle = combinedRegionMask.getGridDef().getLonLatRectangle(cellX, cellY);
                     Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
-                    Cell combined5DegCell = combined5DegGrid.getCellSafe(cellX, cellY) ;
+                    Cell combined5DegCell = combined5DegGrid.getCellSafe(cellX, cellY);
                     accumulate5DegCell(sstGrid, analysedSstGrid, seaCoverageGrid, sourceGridRectangle, outputType, combined5DegCell);
 
                     // todo - for each uncertainty variables A-G: create a grid comprising max. 72 x 36 aggregation results.
