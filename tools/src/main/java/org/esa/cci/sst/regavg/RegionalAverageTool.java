@@ -156,7 +156,7 @@ public class RegionalAverageTool extends Tool {
         List<Averaging.OutputTimeStep> outputTimeSteps;
         try {
             Averaging averaging = new Averaging(fileStore, climatology, lut1, lut2, sstDepth);
-            outputTimeSteps = averaging.computeOutputTimeSteps(startDate, endDate, temporalResolution, regionMaskList);
+            outputTimeSteps = averaging.aggregateTimeRanges(startDate, endDate, temporalResolution, regionMaskList);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
