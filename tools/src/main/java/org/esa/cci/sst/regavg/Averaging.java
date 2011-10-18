@@ -20,7 +20,8 @@ import java.util.logging.Logger;
  *
  * @author Norman Fomferra
  */
-public class RegionalAveraging {
+public class Averaging {
+
     private static final GridDef GLOBAL_5_DEG_GRID_DEF = GridDef.createGlobal(5.0);
     private static final GridDef GLOBAL_90_DEG_GRID_DEF = GridDef.createGlobal(90.0);
 
@@ -40,22 +41,19 @@ public class RegionalAveraging {
 
     private final FileStore fileStore;
     private final Climatology climatology;
-    private LUT1 lut1;
-    private LUT2 lut2;
-    private final OutputType outputType;
+    private final LUT1 lut1;
+    private final LUT2 lut2;
     private final SstDepth sstDepth;
 
-    public RegionalAveraging(FileStore fileStore,
-                             Climatology climatology,
-                             LUT1 lut1,
-                             LUT2 lut2,
-                             OutputType outputType,
-                             SstDepth sstDepth) {
+    public Averaging(FileStore fileStore,
+                     Climatology climatology,
+                     LUT1 lut1,
+                     LUT2 lut2,
+                     SstDepth sstDepth) {
         this.fileStore = fileStore;
         this.climatology = climatology;
         this.lut1 = lut1;
         this.lut2 = lut2;
-        this.outputType = outputType;
         this.sstDepth = sstDepth;
     }
 
@@ -82,20 +80,20 @@ public class RegionalAveraging {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
                 List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(date1, date2, TemporalResolution.monthly, regionMaskList);
-                result = aggregateMultiMonthsResults(intermediateResults, regionMaskList);
+                result = aggregateMonthlyResults(intermediateResults, regionMaskList);
             } else /*if (temporalResolution == TemporalResolution.annual)*/ {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
                 List<OutputTimeStep> intermediateResults = computeOutputTimeSteps(date1, date2, TemporalResolution.monthly, regionMaskList);
-                result = aggregateMultiMonthsResults(intermediateResults, regionMaskList);
+                result = aggregateMonthlyResults(intermediateResults, regionMaskList);
             }
             results.add(new OutputTimeStep(date1, calendar.getTime(), result));
         }
         return results;
     }
 
-    private static List<Cell> aggregateMultiMonthsResults(List<OutputTimeStep> monthlyResults,
-                                                          RegionMaskList regionMaskList) {
+    private List<Cell> aggregateMonthlyResults(List<OutputTimeStep> monthlyResults,
+                                               RegionMaskList regionMaskList) {
         // todo - the following code is only valid for simple mean (SST, SST anomaly), but not for the uncertainties.
         // Aggregate these according to Nick's equations:
         // Variable A, Variable B, Variable C, Variable E, Variable F, Variable G  – according to Equation 1.1
@@ -103,10 +101,10 @@ public class RegionalAveraging {
         //
         ArrayList<Cell> combinedCells = new ArrayList<Cell>();
         for (int i = 0; i < regionMaskList.size(); i++) {
-            Cell combinedCell = new Cell();
+            Cell combinedCell = fileStore.getProductType().getFileType().getCellFactory().createCell();
             for (OutputTimeStep monthlyResult : monthlyResults) {
                 Cell cell = monthlyResult.regionalAverages.get(i);
-                combinedCell.accumulateCellAverage(cell, 1.0);
+                combinedCell.accumulateAverage(cell, 1.0);
             }
             combinedCells.add(combinedCell);
         }
@@ -143,12 +141,12 @@ public class RegionalAveraging {
     }
 
     private static CellGrid getRegionalGrid(CellGrid combined5DegGrid, RegionMask regionMask) {
-        CellGrid regional5DGrid = new CellGrid(combined5DegGrid.getGridDef());
+        CellGrid regional5DGrid = new CellGrid(combined5DegGrid.getGridDef(), combined5DegGrid.getCellFactory());
         for (int cellY = 0; cellY < combined5DegGrid.getGridDef().getHeight(); cellY++) {
             for (int cellX = 0; cellX < combined5DegGrid.getGridDef().getWidth(); cellX++) {
                 if (regionMask.getSampleBoolean(cellX, cellY)) {
                     Cell cell = combined5DegGrid.getCell(cellX, cellY);
-                    if (cell != null && cell.getSampleCount() > 0) {
+                    if (cell != null && !cell.isEmpty()) {
                         regional5DGrid.setCell(cellX, cellY, cell.clone());
                     }
                 }
@@ -158,16 +156,16 @@ public class RegionalAveraging {
     }
 
     private static CellGrid aggregate5DegTo90DegGrid(CellGrid regional5DegGrid, RegionMask combinedRegionMask) {
-        CellGrid regional90DegGrid = new CellGrid(GLOBAL_90_DEG_GRID_DEF);
+        CellGrid regional90DegGrid = new CellGrid(GLOBAL_90_DEG_GRID_DEF, regional5DegGrid.getCellFactory());
         for (int cellY = 0; cellY < regional5DegGrid.getGridDef().getHeight(); cellY++) {
             for (int cellX = 0; cellX < regional5DegGrid.getGridDef().getWidth(); cellX++) {
                 if (combinedRegionMask.getSampleBoolean(cellX, cellY)) {
                     Cell regional5DegCell = regional5DegGrid.getCell(cellX, cellY);
-                    if (regional5DegCell != null && regional5DegCell.getSampleCount() > 0) {
+                    if (regional5DegCell != null && !regional5DegCell.isEmpty()) {
                         int cellX90D = (cellX * regional90DegGrid.getGridDef().getWidth()) / regional5DegGrid.getGridDef().getWidth();
                         int cellY90D = (cellY * regional90DegGrid.getGridDef().getHeight()) / regional5DegGrid.getGridDef().getHeight();
                         Cell regional90DCell = regional90DegGrid.getCellSafe(cellX90D, cellY90D);
-                        regional90DCell.accumulateCellSamples(regional5DegCell);
+                        regional90DCell.accumulate(regional5DegCell);
                     }
                 }
             }
@@ -183,7 +181,7 @@ public class RegionalAveraging {
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                                   isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
 
-        CellGrid combined5DegGrid = new CellGrid(GLOBAL_5_DEG_GRID_DEF);
+        CellGrid combined5DegGrid = new CellGrid(GLOBAL_5_DEG_GRID_DEF, fileStore.getProductType().getFileType().getCellFactory());
 
         for (File file : files) {
             LOGGER.info(String.format("Processing input %s file '%s'", fileStore.getProductType(), file));
@@ -200,77 +198,49 @@ public class RegionalAveraging {
         return combined5DegGrid;
     }
 
-    private void aggregateFileTo5DegGrid(ProductType productType, NetcdfFile netcdfFile, RegionMask combinedRegionMask, CellGrid combined5DGrid) throws IOException {
+    private void aggregateFileTo5DegGrid(ProductType productType,
+                                         NetcdfFile netcdfFile,
+                                         RegionMask combinedRegionMask,
+                                         CellGrid combined5DGrid) throws IOException {
 
         Date date = productType.getFileType().readDate(netcdfFile);
         int dayOfYear = UTC.getDayOfYear(date);
         LOGGER.fine("Day of year is " + dayOfYear);
 
-        Grid[] grids = readGrids(productType, netcdfFile, sstDepth);
+        Grid[] sourceGrids = readSourceGrids(productType, netcdfFile, sstDepth);
 
-        // todo - Use all grids, currently we only use the first (always SST).
-        Grid sstGrid = grids[0];
-        Grid analysedSstGrid = climatology.getAnalysedSstGrid(dayOfYear);
-        Grid seaCoverageGrid = climatology.getSeaCoverageGrid();
-
-        accumulateInputTo5DegGrid(sstGrid, analysedSstGrid, seaCoverageGrid, combinedRegionMask, combined5DGrid, outputType);
+        SstCellContext sstCellContext = new SstCellContext(productType.getGridDef(),
+                                                                     sourceGrids,
+                                                                     climatology.getAnalysedSstGrid(dayOfYear),
+                                                                     climatology.getSeaCoverageGrid());
+        aggregateSourceGridsTo5DegGrids(sstCellContext, combinedRegionMask, combined5DGrid);
     }
 
-    private static Grid[] readGrids(ProductType productType, NetcdfFile netcdfFile, SstDepth sstDepth) throws IOException {
+    private static Grid[] readSourceGrids(ProductType productType, NetcdfFile netcdfFile, SstDepth sstDepth) throws IOException {
         long t0 = System.currentTimeMillis();
-        VariableType[] variableTypes = productType.getFileType().getVariableTypes(sstDepth);
-        LOGGER.fine(String.format("Reading %d grid(s)...", variableTypes.length));
-        Grid[] grids = new Grid[variableTypes.length];
-        for (int i = 0; i < grids.length; i++) {
-            grids[i] = variableTypes[i].readGrid(netcdfFile);
-        }
-        LOGGER.fine(String.format("Reading grid(s) took %d ms", (System.currentTimeMillis() - t0)));
+        LOGGER.fine("Reading source grid(s)...");
+        Grid[] grids = productType.getFileType().readSourceGrids(netcdfFile, sstDepth);
+        LOGGER.fine(String.format("Reading source grid(s) took %d ms", (System.currentTimeMillis() - t0)));
         return grids;
     }
 
-    private static void accumulateInputTo5DegGrid(Grid sstGrid,
-                                                  Grid analysedSstGrid,
-                                                  Grid seaCoverageGrid,
-                                                  RegionMask combinedRegionMask,
-                                                  CellGrid combined5DegGrid,
-                                                  OutputType outputType) {
+    private static void aggregateSourceGridsTo5DegGrids(SstCellContext sstCellContext,
+                                                        RegionMask combinedRegionMask,
+                                                        CellGrid combined5DegGrid) {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Aggregating grid(s)...");
-        GridDef sourceGridDef = sstGrid.getGridDef();
+        GridDef sourceGridDef = sstCellContext.getSourceGridDef();
         for (int cellY = 0; cellY < combinedRegionMask.getHeight(); cellY++) {
             for (int cellX = 0; cellX < combinedRegionMask.getWidth(); cellX++) {
                 if (combinedRegionMask.getSampleBoolean(cellX, cellY)) {
-
                     Rectangle2D lonLatRectangle = combinedRegionMask.getGridDef().getLonLatRectangle(cellX, cellY);
                     Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
                     Cell combined5DegCell = combined5DegGrid.getCellSafe(cellX, cellY);
-                    accumulate5DegCell(sstGrid, analysedSstGrid, seaCoverageGrid, sourceGridRectangle, outputType, combined5DegCell);
-
-                    // todo - for each uncertainty variables A-G: create a grid comprising max. 72 x 36 aggregation results.
+                    combined5DegCell.aggregateSourceRect(sstCellContext, sourceGridRectangle);
                 }
             }
         }
         LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t0)));
-    }
-
-    public static void accumulate5DegCell(Grid grid, Grid refGrid, Grid weightGrid, Rectangle rect, OutputType outputType, Cell cell) {
-        final int x0 = rect.x;
-        final int y0 = rect.y;
-        final int x1 = x0 + rect.width - 1;
-        final int y1 = y0 + rect.height - 1;
-        final boolean anomaly = outputType == OutputType.anomaly;
-        for (int y = y0; y <= y1; y++) {
-            for (int x = x0; x <= x1; x++) {
-                final double weight = weightGrid.getSampleDouble(x, y);
-                if (weight != 0.0) {
-                    if (anomaly) {
-                        cell.accumulateSample(grid.getSampleDouble(x, y) - refGrid.getSampleDouble(x, y), weight);
-                    } else {
-                        cell.accumulateSample(grid.getSampleDouble(x, y), weight);
-                    }
-                }
-            }
-        }
     }
 
 }

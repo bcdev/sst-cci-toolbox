@@ -83,6 +83,10 @@ public class NcUtils {
 
     public static ArrayGrid readGrid(NetcdfFile netcdfFile, String variableName, GridDef expectedGridDef, int t) throws IOException {
         Variable variable = getVariable(netcdfFile, variableName);
+        return readGrid(netcdfFile, variable, expectedGridDef, t);
+    }
+
+    public static ArrayGrid readGrid(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef, int t) throws IOException {
         Rectangle gridRectangle = getGridRectangle(netcdfFile, variable, expectedGridDef);
         double scaleFactor = getScaleFactor(variable);
         double addOffset = getAddOffset(variable);

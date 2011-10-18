@@ -1,22 +1,21 @@
 package org.esa.cci.sst.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.FileType;
+import org.esa.cci.sst.util.GridReader;
 import org.esa.cci.sst.regavg.ProcessingLevel;
 import org.esa.cci.sst.regavg.SstDepth;
-import org.esa.cci.sst.regavg.VariableType;
+import org.esa.cci.sst.util.CellFactory;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
-import org.esa.cci.sst.util.UTC;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 
 import static java.lang.Math.round;
 
@@ -54,12 +53,17 @@ public abstract class UnsupportedFileType implements FileType {
 
 
     @Override
-    public Grid[] readGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
+    public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
         throw notImplemented();
     }
 
     @Override
-    public VariableType[] getVariableTypes(SstDepth sstDepth) {
+    public CellFactory getCellFactory() {
+        throw notImplemented();
+    }
+
+    @Override
+    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims) {
         throw notImplemented();
     }
 

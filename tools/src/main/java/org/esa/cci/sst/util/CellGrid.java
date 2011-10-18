@@ -1,16 +1,18 @@
 package org.esa.cci.sst.util;
 
 /**
- * A sparsely filled, regular, rectangular arrangement of {@link Cell}s used for averaging.
+ * A sparsely filled, regular, rectangular arrangement of {@link Cell}s used for numeric aggregations.
  *
  * @author Norman Fomferra
  */
-public class CellGrid  {
+public class CellGrid<CT extends CellContext, C extends Cell<CT>> {
     private final GridDef gridDef;
+    private final CellFactory<C> cellFactory;
     private final Cell[][] cells;
 
-    public CellGrid(GridDef gridDef) {
+    public CellGrid(GridDef gridDef, CellFactory<C> cellFactory) {
         this.gridDef = gridDef;
+        this.cellFactory = cellFactory;
         cells = new Cell[gridDef.getHeight()][gridDef.getWidth()];
     }
 
@@ -18,8 +20,12 @@ public class CellGrid  {
         return gridDef;
     }
 
-    public Cell getCellSafe(int cellX, int cellY) {
-        Cell cell = getCell(cellX, cellY);
+    public CellFactory<C> getCellFactory() {
+        return cellFactory;
+    }
+
+    public C getCellSafe(int cellX, int cellY) {
+        C cell = getCell(cellX, cellY);
         if (cell == null) {
             cell = createCell();
             setCell(cellX, cellY, cell);
@@ -27,26 +33,26 @@ public class CellGrid  {
         return cell;
     }
 
-
-    public Cell getCell(int cellX, int cellY) {
-        return cells[cellY][cellX];
+    public C getCell(int cellX, int cellY) {
+        //noinspection unchecked
+        return (C) cells[cellY][cellX];
     }
 
-    public void setCell(int cellX, int cellY, Cell cell) {
+    public void setCell(int cellX, int cellY, C cell) {
         cells[cellY][cellX] = cell;
     }
 
-    public Cell createCell() {
-        return new Cell();
+    public C createCell() {
+        return getCellFactory().createCell();
     }
 
-    public Cell aggregate(Grid weightGrid) {
-        Cell combinedCell = createCell();
+    public C aggregate(Grid weightGrid) {
+        C combinedCell = createCell();
         for (int cellY = 0; cellY < gridDef.getHeight(); cellY++) {
             for (int cellX = 0; cellX < gridDef.getWidth(); cellX++) {
-                Cell cell = cells[cellY][cellX];
+                C cell = getCell(cellX, cellY);
                 if (cell != null) {
-                    combinedCell.accumulateCellAverage(cell, weightGrid.getSampleDouble(cellX, cellY));
+                    combinedCell.accumulateAverage(cell, weightGrid.getSampleDouble(cellX, cellY));
                 }
             }
         }

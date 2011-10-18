@@ -1,8 +1,12 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.CellFactory;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,12 +35,13 @@ public interface FileType {
 
     String getFilenameRegex();
 
-    GridDef getGridDef();
-
     ProcessingLevel getProcessingLevel();
 
-    Grid[] readGrids(NetcdfFile file, SstDepth sstDepth) throws IOException;
+    GridDef getGridDef();
 
-    VariableType[] getVariableTypes(SstDepth sstDepth);
+    Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException;
 
+    Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims);
+
+    CellFactory getCellFactory();
 }

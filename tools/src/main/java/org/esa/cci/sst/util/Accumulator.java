@@ -7,52 +7,34 @@ package org.esa.cci.sst.util;
  */
 public abstract class Accumulator implements Cloneable {
 
-    protected double weight;
-    protected long sampleCount;
-    protected long totalCount;
-
     protected Accumulator() {
-        this.weight = 1.0;
     }
 
-    public double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    public long getSampleCount() {
-        return sampleCount;
-    }
-
-    public long getTotalCount() {
-        return totalCount;
-    }
-
-    public abstract double computeAverage();
-
-    public void accumulateSample(double sample, double weight, long n) {
-        if (isValidInput(sample, weight, n)) {
+    public void accumulate(double sample, double weight) {
+        if (!Double.isNaN(sample) && !Double.isNaN(weight)) {
             accumulateSample(sample, weight);
-            this.sampleCount++;
-            this.totalCount += n;
         }
     }
-
-    protected boolean isValidInput(double sample, double weight, long n) {
-        return n > 0 && !Double.isNaN(sample) && !Double.isNaN(weight);
-    }
-
-
-    protected abstract void accumulateSample(double sample, double weight);
 
     public void accumulate(Accumulator accumulator) {
         if (accumulator.getSampleCount() > 0) {
-            accumulateSample(accumulator.computeAverage(), accumulator.getWeight(), accumulator.getTotalCount());
+            accumulateAccumulator(accumulator);
         }
     }
+
+    public void accumulateAverage(Accumulator accumulator, double weight) {
+        if (accumulator.getSampleCount() > 0) {
+            accumulate(accumulator.computeAverage(), weight);
+        }
+    }
+
+    public abstract long getSampleCount();
+
+    public abstract double computeAverage();
+
+    protected abstract void accumulateSample(double sample, double weight);
+
+    protected abstract void accumulateAccumulator(Accumulator accumulator);
 
     @Override
     public Accumulator clone() {

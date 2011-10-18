@@ -11,20 +11,40 @@ public class WeightedMeanAccumulator extends Accumulator {
 
     private double sampleSum;
     private double weightSum;
+    protected long sampleCount;
+
+    @Override
+    public long getSampleCount() {
+        return sampleCount;
+    }
 
     @Override
     protected void accumulateSample(double sample, double weight) {
         final double weightedSample = weight * sample;
-        this.sampleSum += weightedSample;
-        this.weightSum += weight;
+        sampleSum += weightedSample;
+        weightSum += weight;
+        sampleCount++;
+    }
+
+    @Override
+    protected void accumulateAccumulator(Accumulator accumulator) {
+        WeightedMeanAccumulator meanAccumulator = (WeightedMeanAccumulator) accumulator;
+        sampleSum += meanAccumulator.sampleSum;
+        weightSum += meanAccumulator.weightSum;
+        sampleCount += meanAccumulator.sampleCount;
     }
 
     @Override
     public double computeAverage() {
-        if (weightSum > 0.0) {
-            return sampleSum / weightSum;
-        } else {
+        if (sampleCount == 0) {
             return Double.NaN;
         }
+        if (sampleSum == 0.0) {
+            return 0.0;
+        }
+        if (weightSum == 0.0) {
+            return Double.NaN;
+        }
+        return sampleSum / weightSum;
     }
 }

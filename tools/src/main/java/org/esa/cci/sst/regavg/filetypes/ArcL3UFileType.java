@@ -1,15 +1,14 @@
 package org.esa.cci.sst.regavg.filetypes;
 
-import org.esa.cci.sst.regavg.FileType;
-import org.esa.cci.sst.regavg.ProcessingLevel;
-import org.esa.cci.sst.regavg.SstDepth;
-import org.esa.cci.sst.regavg.VariableType;
+import org.esa.cci.sst.regavg.*;
 import org.esa.cci.sst.util.*;
 import org.esa.cci.sst.util.accumulators.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.util.accumulators.WeightedMeanAccumulator;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
+import ucar.ma2.DataType;
+import ucar.nc2.*;
+import ucar.nc2.Dimension;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -79,28 +78,7 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public VariableType[] getVariableTypes(SstDepth sstDepth) {
-        if (sstDepth == SstDepth.depth_20) {
-            return new VariableType[]{
-                    new SstDepth20VariableType(),
-                    new UncertaintyVariableType(),
-            };
-        } else if (sstDepth == SstDepth.depth_100) {
-            return new VariableType[]{
-                    new SstDepth100VariableType(),
-                    new UncertaintyVariableType(),
-            };
-        } else /*if (sstDepth == SstDepth.skin)*/ {
-            return new VariableType[]{
-                    new SstSkinVariableType(),
-                    new UncertaintyVariableType(),
-            };
-        }
-
-    }
-
-    @Override
-    public Grid[] readGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
+    public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
         Grid[] grids = new Grid[2];
         if (sstDepth == SstDepth.depth_20) {
             grids[0] = NcUtils.readGrid(file, "sst_depth", getGridDef(), 0);
@@ -113,44 +91,115 @@ public class ArcL3UFileType implements FileType {
         return grids;
     }
 
-    private static abstract class SstVariableType implements VariableType {
+    @Override
+    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims) {
 
-        @Override
-        public Accumulator createAccumulator() {
-            return new WeightedMeanAccumulator();
-        }
+        Variable sstVar = file.addVariable(String.format("sst_%s_mean", sstDepth), DataType.FLOAT, dims);
+        sstVar.addAttribute(new Attribute("units", "kelvin"));
+        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin.", sstDepth)));
+        sstVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+
+        Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly_mean", sstDepth), DataType.FLOAT, dims);
+        sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
+        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin.", sstDepth)));
+        sstAnomalyVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+
+        Variable uncertaintyVar = file.addVariable("uncertainty_mean", DataType.FLOAT, dims);
+        uncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+        uncertaintyVar.addAttribute(new Attribute("long_name", String.format("mean of uncertainty in kelvin.", sstDepth)));
+        uncertaintyVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+
+        Variable sampleCountVar = file.addVariable(String.format("sample_count", sstDepth), DataType.DOUBLE, dims);
+        uncertaintyVar.addAttribute(new Attribute("units", "1"));
+        sampleCountVar.addAttribute(new Attribute("long_name", String.format("counts of sst %s contributions.", sstDepth)));
+
+        return new Variable[]{
+                sstVar,
+                sstAnomalyVar,
+                uncertaintyVar,
+                sampleCountVar,
+        };
     }
 
-    private class SstSkinVariableType extends SstVariableType {
-        @Override
-        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "sst_skin", getGridDef(), 0);
-        }
+
+    @Override
+    public CellFactory getCellFactory() {
+        return new CellFactory<ArcL3UCell>() {
+            @Override
+            public ArcL3UCell createCell() {
+                return new ArcL3UCell();
+            }
+        };
     }
 
-    private class SstDepth20VariableType extends SstVariableType {
-        @Override
-        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "sst_depth", getGridDef(), 0);
-        }
-    }
+    private static class ArcL3UCell extends SstCell {
 
-    private class SstDepth100VariableType extends SstVariableType {
-        @Override
-        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "sst_depth", getGridDef(), 1);
-        }
-    }
+        private Accumulator sstAccu = new WeightedMeanAccumulator();
+        private Accumulator sstAnomalyAccu = new WeightedMeanAccumulator();
+        private Accumulator uncertaintyAccu = new RandomUncertaintyAccumulator();
 
-    private class UncertaintyVariableType implements VariableType {
         @Override
-        public Grid readGrid(NetcdfFile netcdfFile) throws IOException {
-            return NcUtils.readGrid(netcdfFile, "uncertainty", getGridDef(), 0);
+        public boolean isEmpty() {
+            return sstAccu.getSampleCount() == 0;
         }
 
         @Override
-        public Accumulator createAccumulator() {
-            return new RandomUncertaintyAccumulator();
+        public void aggregateSourceRect(SstCellContext sstCellContext, Rectangle rect) {
+            final Grid sstGrid = sstCellContext.getSourceGrids()[0];
+            final Grid uncertaintyGrid = sstCellContext.getSourceGrids()[1];
+            final Grid analysedSstGrid = sstCellContext.getAnalysedSstGrid();
+            final Grid seaCoverageGrid = sstCellContext.getSeaCoverageGrid();
+
+            final int x0 = rect.x;
+            final int y0 = rect.y;
+            final int x1 = x0 + rect.width - 1;
+            final int y1 = y0 + rect.height - 1;
+            for (int y = y0; y <= y1; y++) {
+                for (int x = x0; x <= x1; x++) {
+                    final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
+                    if (seaCoverage > 0.0) {
+                        sstAccu.accumulate(sstGrid.getSampleDouble(x, y), seaCoverage);
+                        sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
+                        uncertaintyAccu.accumulate(uncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void accumulate(Cell cell) {
+            ArcL3UCell otherCell = (ArcL3UCell) cell;
+            sstAccu.accumulate(otherCell.sstAccu);
+            sstAnomalyAccu.accumulate(otherCell.sstAnomalyAccu);
+            uncertaintyAccu.accumulate(otherCell.uncertaintyAccu);
+        }
+
+        @Override
+        public void accumulateAverage(Cell cell, double weight) {
+            ArcL3UCell otherCell = (ArcL3UCell) cell;
+            sstAccu.accumulateAverage(otherCell.sstAccu, weight);
+            sstAnomalyAccu.accumulateAverage(otherCell.sstAnomalyAccu, weight);
+            uncertaintyAccu.accumulateAverage(otherCell.uncertaintyAccu, weight);
+        }
+
+        @Override
+        public ArcL3UCell clone() {
+            ArcL3UCell clone = (ArcL3UCell) super.clone();
+            clone.sstAccu = sstAccu.clone();
+            clone.sstAnomalyAccu = sstAnomalyAccu.clone();
+            clone.uncertaintyAccu = uncertaintyAccu.clone();
+            return clone;
+        }
+
+        @Override
+        public Number[] getResults() {
+            // Note: Result types must match those defined in FileType.createOutputVariables().
+            return new Number[]{
+                    (float) sstAccu.computeAverage(),
+                    (float) sstAnomalyAccu.computeAverage(),
+                    (float) uncertaintyAccu.computeAverage(),
+                    (double) sstAccu.getSampleCount(),
+            };
         }
     }
 }
