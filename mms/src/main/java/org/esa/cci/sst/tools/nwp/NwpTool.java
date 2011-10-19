@@ -29,6 +29,8 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 
 /**
  * NWP extraction tool.
@@ -54,12 +57,12 @@ class NwpTool {
             // attention: chaining the operations below results in a loss of the y dimension in the result file
             "${CDO} ${CDO_OPTS} -f nc -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}";
+            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_AN_TEMPLATE =
             "#! /bin/sh\n" +
             "${CDO} ${CDO_OPTS} -f nc mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,SSTK,U10,V10 ${GGAS_TIME_SERIES} ${AN_TIME_SERIES}";
+            "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,SSTK,U10,V10 ${GGAS_TIME_SERIES} ${AN_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_FC_TEMPLATE =
             "#! /bin/sh\n" +
@@ -67,7 +70,7 @@ class NwpTool {
             "${CDO} ${CDO_OPTS} -f nc mergetime ${GGFS_TIMESTEPS} ${GGFS_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
             "${CDO} ${CDO_OPTS} -f nc setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}";
+            "${CDO} ${CDO_OPTS} -f nc merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}\n";
 
     private final boolean matchupRequested;
     private String sensorName;
@@ -79,6 +82,7 @@ class NwpTool {
     private String geoFileLocation;
     private String anTargetLocation;
     private String fcTargetLocation;
+    private String dimensionFilePath;
 
     private static final int SENSOR_NWP_NX = 1;
     private static final int SENSOR_NWP_NY = 1;
@@ -92,10 +96,10 @@ class NwpTool {
     private static final int MATCHUP_FC_FUTURE_TIME_STEP_COUNT = 8;
 
     NwpTool(String[] args) {
-        if (args.length != 5 && args.length != 6) {
+        if (args.length != 5 && args.length != 7) {
             System.out.println("Usage:");
             System.out.println("\tNwpTool true mmdSourceLocation nwpSourceLocation anTargetLocation fcTargetLocation");
-            System.out.println("\tNwpTool false sensorName sensorPattern mmdSourceLocation nwpSourceLocation nwpTargetLocation");
+            System.out.println("\tNwpTool false sensorName sensorPattern dimensionProperties mmdSourceLocation nwpSourceLocation nwpTargetLocation");
             System.exit(1);
         }
         matchupRequested = Boolean.parseBoolean(args[0]);
@@ -103,7 +107,7 @@ class NwpTool {
             if(args.length != 5) {
                 System.out.println("Usage:");
                 System.out.println("\tNwpTool true mmdSourceLocation nwpSourceLocation anTargetLocation fcTargetLocation");
-                System.out.println("\tNwpTool false sensorName sensorPattern mmdSourceLocation nwpSourceLocation nwpTargetLocation");
+                System.out.println("\tNwpTool false sensorName sensorPattern dimensionProperties mmdSourceLocation nwpSourceLocation nwpTargetLocation");
                 System.exit(1);
             }
             mmdSourceLocation = args[1];
@@ -111,17 +115,18 @@ class NwpTool {
             anTargetLocation = args[3];
             fcTargetLocation = args[4];
         } else {
-            if(args.length != 6) {
+            if(args.length != 7) {
                 System.out.println("Usage:");
                 System.out.println("\tNwpTool true mmdSourceLocation nwpSourceLocation anTargetLocation fcTargetLocation");
-                System.out.println("\tNwpTool false sensorName sensorPattern mmdSourceLocation nwpSourceLocation nwpTargetLocation");
+                System.out.println("\tNwpTool false sensorName sensorPattern dimensionProperties mmdSourceLocation nwpSourceLocation nwpTargetLocation");
                 System.exit(1);
             }
             sensorName = args[1];
             sensorPattern = Integer.parseInt(args[2], 16);
-            mmdSourceLocation = args[3];
-            nwpSourceLocation = args[4];
-            nwpTargetLocation = args[5];
+            dimensionFilePath = args[3];
+            mmdSourceLocation = args[4];
+            nwpSourceLocation = args[5];
+            nwpTargetLocation = args[6];
         }
     }
 
@@ -208,12 +213,47 @@ class NwpTool {
 
     void createMergedFile() throws IOException, InterruptedException {
         final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(sensorName, sensorPattern));
-
         final Variable timeVariable = NwpUtil.findVariable(sensorMmdFile, sensorName + ".time", getAlternativeSensorName(sensorName) + ".time");
         final List<String> subDirectories = getNwpSubDirectories(timeVariable);
 
+        Properties dimensions = new Properties();
+        dimensions.load(new BufferedReader(new FileReader(dimensionFilePath)));
+        final int nx;
+        final int ny;
+        final int nwpNx;
+        final int nwpNy;
+        if (sensorName.startsWith("atsr")) {
+            nx = Integer.parseInt(dimensions.getProperty("atsr.nx"));
+            ny = Integer.parseInt(dimensions.getProperty("atsr.ny"));
+            nwpNx = Integer.parseInt(dimensions.getProperty("atsr.nwp.nx"));
+            nwpNy = Integer.parseInt(dimensions.getProperty("atsr.nwp.ny"));
+        } else if (sensorName.startsWith("avhrr")) {
+            nx = Integer.parseInt(dimensions.getProperty("avhrr.nx"));
+            ny = Integer.parseInt(dimensions.getProperty("avhrr.ny"));
+            nwpNx = Integer.parseInt(dimensions.getProperty("avhrr.nwp.nx"));
+            nwpNy = Integer.parseInt(dimensions.getProperty("avhrr.nwp.ny"));
+        } else {
+            Logger.getLogger("org.esa.cci.sst").warning("sensor " + sensorName + " neither atsr nor avhrr - interpolating single pixel");
+            nx = 1;
+            ny = 1;
+            nwpNx = 1;
+            nwpNy = 1;
+        }
+        final int strideX;
+        final int strideY;
+        if (nwpNx > 1) {
+            strideX = (nx - 1) / (nwpNx - 1);
+        } else {
+            strideX = 1;
+        }
+        if (nwpNy > 1) {
+            strideY = (ny - 1) / (nwpNy - 1);
+        } else {
+            strideY = 1;
+        }
+
         try {
-            writeSensorGeoFile(sensorMmdFile, SENSOR_NWP_NX, SENSOR_NWP_NY, SENSOR_NWP_STRIDE_X, SENSOR_NWP_STRIDE_Y);
+            writeSensorGeoFile(sensorMmdFile, nwpNx, nwpNy, strideX, strideY);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");

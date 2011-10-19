@@ -17,14 +17,14 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Sets the sensor to 'avhrr_orb.18'.
+ * Sets the sensor to 'avhrr_orb.19'.
  *
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class Avhrr18Sensor extends SensorRule {
+class AvhrrHl19Sensor extends SensorRule {
 
-    Avhrr18Sensor() {
-        super("avhrr_hl.n18");
+    AvhrrHl19Sensor() {
+        super("avhrr_hl.n19");
     }
 }

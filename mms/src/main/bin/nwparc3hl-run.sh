@@ -63,6 +63,7 @@ stopTimeCompact=`date -u +%Y%m%d%H%M%S -d "$stopTimeForDate"`
 # generate temporary sensor MMD
 
 pattern=`cat $MMS_CONFIG | awk "/mms.pattern.$sensor/ { print \\$3 }"`
+highlatsensor=`echo $sensor|sed -e 's/avhrr/avhrr_hl/'`
 
 echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.target.startTime=$startTime \
@@ -71,7 +72,7 @@ echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Djava.io.tmpdir=$wd \
 -Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
--Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
+-Dmms.target.variables=$MMS_HOME/config/mmd-variables_$highlatsensor.config \
 -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-highlat.properties \
 -Dmms.target.filename=$sensor-sub-$startTimeCompact-$stopTimeCompact.nc"
 
@@ -82,18 +83,24 @@ $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Djava.io.tmpdir=$wd \
 -Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
--Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
+-Dmms.target.variables=$MMS_HOME/config/mmd-variables_$highlatsensor.config \
 -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-highlat.properties \
 -Dmms.target.filename=$sensor-sub-$startTimeCompact-$stopTimeCompact.nc
 
 # generate NWP files
 
-echo "$MMS_HOME/bin/nwp-tool.sh false $sensor $pattern $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
-$MMS_ARCHIVE/ecmwf-era-interim/v01 \
-$sensor-nwp-$startTimeCompact-$stopTimeCompact.nc"
-if ! $MMS_HOME/bin/nwp-tool.sh false $sensor $pattern $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
-$MMS_ARCHIVE/ecmwf-era-interim/v01 \
-$sensor-nwp-$startTimeCompact-$stopTimeCompact.nc ; then
+echo "$MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
+        $MMS_HOME/config/mmd-dimensions-highlat.properties \
+        $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
+        $MMS_ARCHIVE/ecmwf-era-interim/v01 \
+        $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc"
+
+if ! $MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
+        $MMS_HOME/config/mmd-dimensions-highlat.properties \
+        $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
+        $MMS_ARCHIVE/ecmwf-era-interim/v01 \
+        $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc
+then
     echo "production gap: nwparc3hl-$year-$month-$sensor failed, nwp generation failed"
     echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month $sensor ... failed"
     exit 1

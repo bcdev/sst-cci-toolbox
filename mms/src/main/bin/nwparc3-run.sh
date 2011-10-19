@@ -110,12 +110,17 @@ $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 
 # generate NWP files
 
-echo "$MMS_HOME/bin/nwp-tool.sh false $sensor $pattern $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
-$MMS_ARCHIVE/ecmwf-era-interim/v01 \
-$sensor-nwp-$startTimeCompact-$stopTimeCompact.nc"
-if ! $MMS_HOME/bin/nwp-tool.sh false $sensor $pattern $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
-$MMS_ARCHIVE/ecmwf-era-interim/v01 \
-$sensor-nwp-$startTimeCompact-$stopTimeCompact.nc ; then
+echo "$MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
+        $MMS_HOME/config/mmd-dimensions.properties \
+        $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
+        $MMS_ARCHIVE/ecmwf-era-interim/v01 \
+        $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc"
+if ! $MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
+        $MMS_HOME/config/mmd-dimensions.properties \
+        $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
+        $MMS_ARCHIVE/ecmwf-era-interim/v01 \
+        $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc
+then
     echo "production gap: nwparc3-$year-$month-$part-$sensor failed, nwp generation failed"
     echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 $year/$month-$part $sensor ... failed"
     exit 1
