@@ -1,9 +1,6 @@
 package org.esa.cci.sst.regavg.filetypes;
 
-import org.esa.cci.sst.regavg.FileType;
-import org.esa.cci.sst.util.GridReader;
-import org.esa.cci.sst.regavg.ProcessingLevel;
-import org.esa.cci.sst.regavg.SstDepth;
+import org.esa.cci.sst.regavg.*;
 import org.esa.cci.sst.util.CellFactory;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
@@ -16,8 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
-
-import static java.lang.Math.round;
 
 /**
  * Represents an unsupported file type.
@@ -58,7 +53,22 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public CellFactory getCellFactory() {
+    public CellFactory<AggregationCell5> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        throw notImplemented();
+    }
+
+    @Override
+    public CellFactory<AggregationCell90> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        throw notImplemented();
+    }
+
+    @Override
+    public CombinedAggregationFactory<SameMonthCombinedAggregation> getSameMonthCombinedAggregationFactory() {
+        throw notImplemented();
+    }
+
+    @Override
+    public CombinedAggregationFactory<MultiMonthCombinedAggregation> getMultiMonthCombinedAggregationFactory() {
         throw notImplemented();
     }
 

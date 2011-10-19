@@ -1,7 +1,6 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.tool.*;
-import org.esa.cci.sst.util.Cell;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -26,7 +25,7 @@ import java.util.List;
  */
 public class RegionalAverageTool extends Tool {
 
-    private static final String FILE_FORMAT_VERSION = "01.0";
+    private static final String FILE_FORMAT_VERSION = "01.1";
 
     private static final String TOOL_NAME = "regavg";
     private static final String TOOL_VERSION = TOOL_NAME + ", version 0.1.2 (C) 2011-2013 by the ESA SST_cci project";
@@ -225,13 +224,13 @@ public class RegionalAverageTool extends Tool {
             Averaging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
             Date date1 = outputTimeStep.date1;
             Date date2 = outputTimeStep.date2;
-            Cell cell = outputTimeStep.regionalAverages.get(regionIndex);
+            Aggregation aggregation = outputTimeStep.regionalAverages.get(regionIndex);
             System.out.printf("%s\t%s\t%s\t%s\t%s\n",
                               regionName,
                               dateFormat.format(date1),
                               dateFormat.format(date2),
                               t + 1,
-                              cat(cell.getResults(), "\t"));
+                              cat(aggregation.getResults(), "\t"));
         }
     }
 

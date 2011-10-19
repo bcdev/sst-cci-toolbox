@@ -41,11 +41,11 @@ public class LUT1 {
         this.exponentGrid = exponentGrid;
     }
 
-    public Grid getMagnitudeGrid() {
+    public Grid getMagnitudeGrid5() {
         return magnitudeGrid;
     }
 
-    public Grid getExponentGrid() {
+    public Grid getExponentGrid5() {
         return exponentGrid;
     }
 }

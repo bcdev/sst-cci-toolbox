@@ -5,7 +5,7 @@ package org.esa.cci.sst.util;
  *
  * @author Norman Fomferra
  */
-public class CellGrid<CT extends CellContext, C extends Cell<CT>> {
+public class CellGrid<C extends Cell> {
     private final GridDef gridDef;
     private final CellFactory<C> cellFactory;
     private final Cell[][] cells;
@@ -27,7 +27,7 @@ public class CellGrid<CT extends CellContext, C extends Cell<CT>> {
     public C getCellSafe(int cellX, int cellY) {
         C cell = getCell(cellX, cellY);
         if (cell == null) {
-            cell = createCell();
+            cell = createCell(cellX, cellY);
             setCell(cellX, cellY, cell);
         }
         return cell;
@@ -42,21 +42,8 @@ public class CellGrid<CT extends CellContext, C extends Cell<CT>> {
         cells[cellY][cellX] = cell;
     }
 
-    public C createCell() {
-        return getCellFactory().createCell();
-    }
-
-    public C aggregate(Grid weightGrid) {
-        C combinedCell = createCell();
-        for (int cellY = 0; cellY < gridDef.getHeight(); cellY++) {
-            for (int cellX = 0; cellX < gridDef.getWidth(); cellX++) {
-                C cell = getCell(cellX, cellY);
-                if (cell != null) {
-                    combinedCell.accumulateAverage(cell, weightGrid.getSampleDouble(cellX, cellY));
-                }
-            }
-        }
-        return combinedCell;
+    public C createCell(int cellX, int cellY) {
+        return getCellFactory().createCell(cellX, cellY);
     }
 
 }

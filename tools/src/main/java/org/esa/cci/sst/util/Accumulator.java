@@ -5,7 +5,7 @@ package org.esa.cci.sst.util;
  *
  * @author Norman Fomferra
  */
-public abstract class Accumulator implements Cloneable {
+public abstract class Accumulator {
 
     protected Accumulator() {
     }
@@ -16,32 +16,9 @@ public abstract class Accumulator implements Cloneable {
         }
     }
 
-    public void accumulate(Accumulator accumulator) {
-        if (accumulator.getSampleCount() > 0) {
-            accumulateAccumulator(accumulator);
-        }
-    }
-
-    public void accumulateAverage(Accumulator accumulator, double weight) {
-        if (accumulator.getSampleCount() > 0) {
-            accumulate(accumulator.computeAverage(), weight);
-        }
-    }
-
     public abstract long getSampleCount();
 
     public abstract double computeAverage();
 
     protected abstract void accumulateSample(double sample, double weight);
-
-    protected abstract void accumulateAccumulator(Accumulator accumulator);
-
-    @Override
-    public Accumulator clone() {
-        try {
-            return (Accumulator) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

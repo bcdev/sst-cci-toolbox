@@ -2,7 +2,6 @@ package org.esa.cci.sst.regavg.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.FileType;
 import org.esa.cci.sst.regavg.ProcessingLevel;
-import org.esa.cci.sst.regavg.SstDepth;
 import org.esa.cci.sst.regavg.filetypes.ArcL3UFileType;
 import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
@@ -12,12 +11,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
-* @author Norman Fomferra
-*/
+ * @author Norman Fomferra
+ */
 public class ArcL3UFileTypeTest {
     FileType fileType = ArcL3UFileType.INSTANCE;
 

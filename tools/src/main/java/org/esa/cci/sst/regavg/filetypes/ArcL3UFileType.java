@@ -2,8 +2,8 @@ package org.esa.cci.sst.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.*;
 import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.util.accumulators.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.util.accumulators.RandomUncertaintyAccumulator;
-import org.esa.cci.sst.util.accumulators.WeightedMeanAccumulator;
 import ucar.ma2.DataType;
 import ucar.nc2.*;
 import ucar.nc2.Dimension;
@@ -94,61 +94,140 @@ public class ArcL3UFileType implements FileType {
     @Override
     public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims) {
 
-        Variable sstVar = file.addVariable(String.format("sst_%s_mean", sstDepth), DataType.FLOAT, dims);
+        Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
-        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin.", sstDepth)));
-        sstVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin", sstDepth)));
+        sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly_mean", sstDepth), DataType.FLOAT, dims);
+        Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
-        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin.", sstDepth)));
-        sstAnomalyVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
+        sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable uncertaintyVar = file.addVariable("uncertainty_mean", DataType.FLOAT, dims);
-        uncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-        uncertaintyVar.addAttribute(new Attribute("long_name", String.format("mean of uncertainty in kelvin.", sstDepth)));
-        uncertaintyVar.addAttribute(new Attribute("_FillValue", Double.NaN));
+        Variable arcUncertaintyVar = file.addVariable("arc_uncertainty", DataType.FLOAT, dims);
+        arcUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+        arcUncertaintyVar.addAttribute(new Attribute("long_name", "mean of arc uncertainty in kelvin"));
+        arcUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable sampleCountVar = file.addVariable(String.format("sample_count", sstDepth), DataType.DOUBLE, dims);
-        uncertaintyVar.addAttribute(new Attribute("units", "1"));
+        Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+        coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
+        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
+        coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        /*
+        Variable sampleCountVar = file.addVariable("sample_count", DataType.DOUBLE, dims);
+        arcUncertaintyVar.addAttribute(new Attribute("units", "1"));
         sampleCountVar.addAttribute(new Attribute("long_name", String.format("counts of sst %s contributions.", sstDepth)));
+        */
 
         return new Variable[]{
                 sstVar,
                 sstAnomalyVar,
-                uncertaintyVar,
-                sampleCountVar,
+                arcUncertaintyVar,
+                coverageUncertaintyVar,
+                // sampleCountVar,
         };
     }
 
 
     @Override
-    public CellFactory getCellFactory() {
-        return new CellFactory<ArcL3UCell>() {
+    public CellFactory<AggregationCell5> getCell5Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        return new CellFactory<AggregationCell5>() {
             @Override
-            public ArcL3UCell createCell() {
-                return new ArcL3UCell();
+            public MyCell5 createCell(int cellX, int cellY) {
+                return new MyCell5(coverageUncertaintyProvider, cellX, cellY);
             }
         };
     }
 
-    private static class ArcL3UCell extends SstCell {
+    @Override
+    public CellFactory<AggregationCell90> getCell90Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        return new CellFactory<AggregationCell90>() {
+            @Override
+            public MyCell90 createCell(int cellX, int cellY) {
+                return new MyCell90(coverageUncertaintyProvider, cellX, cellY);
+            }
+        };
+    }
 
-        private Accumulator sstAccu = new WeightedMeanAccumulator();
-        private Accumulator sstAnomalyAccu = new WeightedMeanAccumulator();
-        private Accumulator uncertaintyAccu = new RandomUncertaintyAccumulator();
+    @Override
+    public CombinedAggregationFactory<SameMonthCombinedAggregation> getSameMonthCombinedAggregationFactory() {
+        return new CombinedAggregationFactory<SameMonthCombinedAggregation>() {
+            @Override
+            public SameMonthCombinedAggregation createCombinedAggregation() {
+                return new MySameMonthCombinedAggregation();
+            }
+        };
+    }
 
-        @Override
-        public boolean isEmpty() {
-            return sstAccu.getSampleCount() == 0;
+    @Override
+    public CombinedAggregationFactory<MultiMonthCombinedAggregation> getMultiMonthCombinedAggregationFactory() {
+        return new CombinedAggregationFactory<MultiMonthCombinedAggregation>() {
+            @Override
+            public MultiMonthCombinedAggregation createCombinedAggregation() {
+                return new MyMultiMonthCombinedAggregation();
+            }
+        };
+    }
+
+    private static abstract class MyAggregationCell extends AbstractAggregationCell {
+
+        protected final Accumulator sstAccu = new ArithmeticMeanAccumulator();
+        protected final Accumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
+        protected final Accumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
+
+        private MyAggregationCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
         }
 
         @Override
-        public void aggregateSourceRect(SstCellContext sstCellContext, Rectangle rect) {
-            final Grid sstGrid = sstCellContext.getSourceGrids()[0];
-            final Grid uncertaintyGrid = sstCellContext.getSourceGrids()[1];
-            final Grid analysedSstGrid = sstCellContext.getAnalysedSstGrid();
-            final Grid seaCoverageGrid = sstCellContext.getSeaCoverageGrid();
+        public long getSampleCount() {
+            return sstAnomalyAccu.getSampleCount();
+        }
+
+        public double computeSstAverage() {
+            return sstAccu.computeAverage();
+        }
+
+        public double computeSstAnomalyAverage() {
+            return sstAnomalyAccu.computeAverage();
+        }
+
+        public double computeArcUncertaintyAverage() {
+            return arcUncertaintyAccu.computeAverage();
+        }
+
+        public abstract double computeCoverageUncertainty();
+
+        @Override
+        public Number[] getResults() {
+            // Note: Result types must match those defined in FileType.createOutputVariables().
+            return new Number[]{
+                    (float) computeSstAverage(),
+                    (float) computeSstAnomalyAverage(),
+                    (float) computeArcUncertaintyAverage(),
+                    (float) computeCoverageUncertainty()
+            };
+        }
+    }
+
+    private static class MyCell5 extends MyAggregationCell implements AggregationCell5 {
+
+        private MyCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
+        }
+
+        @Override
+        public double computeCoverageUncertainty() {
+            return getCoverageUncertaintyProvider().getCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
+        }
+
+        @Override
+        public void accumulate(AggregationCell5Context aggregationCell5Context, Rectangle rect) {
+            final Grid sstGrid = aggregationCell5Context.getSourceGrids()[0];
+            final Grid uncertaintyGrid = aggregationCell5Context.getSourceGrids()[1];
+            final Grid analysedSstGrid = aggregationCell5Context.getAnalysedSstGrid();
+            final Grid seaCoverageGrid = aggregationCell5Context.getSeaCoverageGrid();
 
             final int x0 = rect.x;
             final int y0 = rect.y;
@@ -160,46 +239,91 @@ public class ArcL3UFileType implements FileType {
                     if (seaCoverage > 0.0) {
                         sstAccu.accumulate(sstGrid.getSampleDouble(x, y), seaCoverage);
                         sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
-                        uncertaintyAccu.accumulate(uncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        arcUncertaintyAccu.accumulate(uncertaintyGrid.getSampleDouble(x, y), seaCoverage);
                     }
                 }
             }
         }
+    }
 
-        @Override
-        public void accumulate(Cell cell) {
-            ArcL3UCell otherCell = (ArcL3UCell) cell;
-            sstAccu.accumulate(otherCell.sstAccu);
-            sstAnomalyAccu.accumulate(otherCell.sstAnomalyAccu);
-            uncertaintyAccu.accumulate(otherCell.uncertaintyAccu);
+    private static class MyCell90 extends MyAggregationCell implements AggregationCell90<MyCell5> {
+
+        private MyCell90(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
         }
 
         @Override
-        public void accumulateAverage(Cell cell, double weight) {
-            ArcL3UCell otherCell = (ArcL3UCell) cell;
-            sstAccu.accumulateAverage(otherCell.sstAccu, weight);
-            sstAnomalyAccu.accumulateAverage(otherCell.sstAnomalyAccu, weight);
-            uncertaintyAccu.accumulateAverage(otherCell.uncertaintyAccu, weight);
+        public double computeCoverageUncertainty() {
+            return getCoverageUncertaintyProvider().getCoverageUncertainty90(getX(), getY(), sstAnomalyAccu.getSampleCount());
         }
 
         @Override
-        public ArcL3UCell clone() {
-            ArcL3UCell clone = (ArcL3UCell) super.clone();
-            clone.sstAccu = sstAccu.clone();
-            clone.sstAnomalyAccu = sstAnomalyAccu.clone();
-            clone.uncertaintyAccu = uncertaintyAccu.clone();
-            return clone;
+        public void accumulate(MyCell5 cell, double seaCoverage90) {
+            sstAccu.accumulate(cell.computeSstAverage(), seaCoverage90);
+            sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage90);
+            arcUncertaintyAccu.accumulate(cell.computeArcUncertaintyAverage(), seaCoverage90);
+        }
+    }
+
+    private static class MyCombinedAggregation implements CombinedAggregation {
+
+        protected final Accumulator sstAccu = new ArithmeticMeanAccumulator();
+        protected final Accumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
+        protected final Accumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
+        protected final Accumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
+
+        @Override
+        public long getSampleCount() {
+            return sstAccu.getSampleCount();
+        }
+
+        public double computeSstAverage() {
+            return sstAccu.computeAverage();
+        }
+
+        public double computeSstAnomalyAverage() {
+            return sstAnomalyAccu.computeAverage();
+        }
+
+        public double computeArcUncertaintyAverage() {
+            return arcUncertaintyAccu.computeAverage();
+        }
+
+        public double computeCoverageUncertaintyAverage() {
+            return coverageUncertaintyAccu.computeAverage();
         }
 
         @Override
         public Number[] getResults() {
             // Note: Result types must match those defined in FileType.createOutputVariables().
             return new Number[]{
-                    (float) sstAccu.computeAverage(),
-                    (float) sstAnomalyAccu.computeAverage(),
-                    (float) uncertaintyAccu.computeAverage(),
-                    (double) sstAccu.getSampleCount(),
+                    (float) computeSstAverage(),
+                    (float) computeSstAnomalyAverage(),
+                    (float) computeArcUncertaintyAverage(),
+                    (float) computeCoverageUncertaintyAverage()
             };
+        }
+
+    }
+
+    private static class MySameMonthCombinedAggregation extends MyCombinedAggregation implements SameMonthCombinedAggregation<MyAggregationCell> {
+        @Override
+        public void accumulate(MyAggregationCell cell, double seaCoverage) {
+            sstAccu.accumulate(cell.computeSstAverage(), seaCoverage);
+            sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage);
+            arcUncertaintyAccu.accumulate(cell.computeArcUncertaintyAverage(), seaCoverage);
+            coverageUncertaintyAccu.accumulate(cell.computeCoverageUncertainty(), seaCoverage);
+        }
+    }
+
+    private static class MyMultiMonthCombinedAggregation extends MyCombinedAggregation implements MultiMonthCombinedAggregation<MyCombinedAggregation> {
+
+        @Override
+        public void accumulate(MyCombinedAggregation aggregation) {
+            sstAccu.accumulate(aggregation.computeSstAverage(), 1.0);
+            sstAnomalyAccu.accumulate(aggregation.computeSstAnomalyAverage(), 1.0);
+            arcUncertaintyAccu.accumulate(aggregation.computeArcUncertaintyAverage(), 1.0);
+            coverageUncertaintyAccu.accumulate(aggregation.computeCoverageUncertaintyAverage(), 1.0);
         }
     }
 }

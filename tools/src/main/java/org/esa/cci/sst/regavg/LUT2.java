@@ -48,7 +48,7 @@ public class LUT2 {
         this.weights = weights;
     }
 
-    public double getWeight(int month, int x, int y) {
+    public double getMagnitude90(int month, int x, int y) {
         return weights[month][y * 4 + x];
     }
 }

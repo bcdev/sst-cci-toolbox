@@ -3,11 +3,11 @@ package org.esa.cci.sst.util.accumulators;
 import org.esa.cci.sst.util.Accumulator;
 
 /**
- * An {@link Accumulator} used for weighted mean averaging.
+ * An {@link Accumulator} used for weighted, arithmetic mean averaging.
  *
  * @author Norman Fomferra
  */
-public class WeightedMeanAccumulator extends Accumulator {
+public class ArithmeticMeanAccumulator extends Accumulator {
 
     private double sampleSum;
     private double weightSum;
@@ -20,18 +20,9 @@ public class WeightedMeanAccumulator extends Accumulator {
 
     @Override
     protected void accumulateSample(double sample, double weight) {
-        final double weightedSample = weight * sample;
-        sampleSum += weightedSample;
+        sampleSum += weight * sample;
         weightSum += weight;
         sampleCount++;
-    }
-
-    @Override
-    protected void accumulateAccumulator(Accumulator accumulator) {
-        WeightedMeanAccumulator meanAccumulator = (WeightedMeanAccumulator) accumulator;
-        sampleSum += meanAccumulator.sampleSum;
-        weightSum += meanAccumulator.weightSum;
-        sampleCount += meanAccumulator.sampleCount;
     }
 
     @Override

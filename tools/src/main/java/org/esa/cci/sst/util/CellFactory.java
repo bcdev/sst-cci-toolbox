@@ -6,5 +6,5 @@ package org.esa.cci.sst.util;
  * @author Norman Fomferra
  */
 public interface CellFactory<C extends Cell> {
-    C createCell();
+    C createCell(int cellX, int cellY);
 }

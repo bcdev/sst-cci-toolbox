@@ -23,14 +23,7 @@ public class RandomUncertaintyAccumulator extends Accumulator {
         final double weightedSample = weight * sample;
         sampleSqrSum += weightedSample * weightedSample;
         weightSqrSum += weight * weight;
-    }
-
-    @Override
-    protected void accumulateAccumulator(Accumulator accumulator) {
-        RandomUncertaintyAccumulator randomUncertaintyAccumulator = (RandomUncertaintyAccumulator) accumulator;
-        sampleSqrSum += randomUncertaintyAccumulator.sampleSqrSum;
-        weightSqrSum += randomUncertaintyAccumulator.weightSqrSum;
-        sampleCount += randomUncertaintyAccumulator.sampleCount;
+        sampleCount++;
     }
 
     @Override

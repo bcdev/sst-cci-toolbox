@@ -43,5 +43,11 @@ public interface FileType {
 
     Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims);
 
-    CellFactory getCellFactory();
+    CellFactory<AggregationCell5> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
+
+    CellFactory<AggregationCell90> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
+
+    CombinedAggregationFactory<SameMonthCombinedAggregation> getSameMonthCombinedAggregationFactory();
+
+    CombinedAggregationFactory<MultiMonthCombinedAggregation> getMultiMonthCombinedAggregationFactory();
 }

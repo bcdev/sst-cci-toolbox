@@ -1,21 +1,20 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.util.CellContext;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 
 /**
- * Represents an SST averaging context that is used by {@link SstCell}s.
+ * Represents an SST averaging context that is used by {@link AggregationCell5}.
  *
  * @author Norman Fomferra
 */
-public class SstCellContext implements CellContext {
-    final GridDef sourceGridDef;
-    final Grid[] sourceGrids;
-    final Grid analysedSstGrid;
-    final Grid seaCoverageGrid;
+public final class AggregationCell5Context {
+    private final GridDef sourceGridDef;
+    private final Grid[] sourceGrids;
+    private final Grid analysedSstGrid;
+    private final Grid seaCoverageGrid;
 
-    SstCellContext(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid) {
+    AggregationCell5Context(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid) {
         this.sourceGridDef = sourceGridDef;
         this.sourceGrids = sourceGrids;
         this.analysedSstGrid = analysedSstGrid;
