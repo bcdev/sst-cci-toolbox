@@ -7,13 +7,13 @@ package org.esa.cci.sst.tool;
  */
 public class Parameter {
     private final String name;
-    private final String type;
+    private final String argName;
     private final String defaultValue;
     private final String description;
 
     public Parameter(String name, String type, String defaultValue, String description) {
         this.name = name;
-        this.type = type;
+        this.argName = type;
         this.defaultValue = defaultValue;
         this.description = description;
     }
@@ -22,8 +22,8 @@ public class Parameter {
         return name;
     }
 
-    public String getType() {
-        return type;
+    public String getArgName() {
+        return argName;
     }
 
     public String getDefaultValue() {

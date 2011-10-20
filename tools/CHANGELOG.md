@@ -32,4 +32,6 @@
 ** SST anomaly variable name: "sst_<sstDepth>_anomaly"
 ** ARC uncertainty:           "arc_uncertainty"
 ** Coverage uncertainty:      "coverage_uncertainty"
+* Added parameter 'writeText' that allows to also output a file that contains all the
+  generated results in plain text format.
 

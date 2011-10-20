@@ -121,7 +121,12 @@ public abstract class Tool {
         // 4. Overwrite from command-line
         for (Parameter param : parameters) {
             if (commandLine.hasOption(param.getName())) {
-                properties.setProperty(param.getName(), commandLine.getOptionValue(param.getName()));
+                String optionValue = commandLine.getOptionValue(param.getName());
+                if (optionValue == null) {
+                    // option without arg means, an option has been set (to "true")
+                    optionValue = "true";
+                }
+                properties.setProperty(param.getName(), optionValue);
             }
         }
 
@@ -181,7 +186,7 @@ public abstract class Tool {
     }
 
     private void printVersion() {
-        System.out.println(getVersion());
+        System.out.printf("%s version %s%n", getName(), getVersion());
     }
 
     private CommandLine parseCommandLine(String[] arguments) throws ParseException {
@@ -199,7 +204,7 @@ public abstract class Tool {
                 }
                 description += " The default value is '" + param.getDefaultValue() + "'.";
             }
-            options.addOption(createOption(null, param.getName(), param.getType(), description));
+            options.addOption(createOption(null, param.getName(), param.getArgName(), description));
         }
 
         options.addOption(createOption("h", "help", null,

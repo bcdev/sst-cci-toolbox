@@ -82,4 +82,17 @@ public class Configuration {
     }
 
 
+    public boolean getBoolean(Parameter parameter, boolean defaultValue) throws ToolException {
+        String string = getString(parameter, false);
+        if (string == null) {
+            return defaultValue;
+        }
+        if (string.equalsIgnoreCase("true")) {
+            return true;
+        } else if (string.equalsIgnoreCase("false")) {
+            return false;
+        } else {
+            throw new ToolException(String.format("Parameter '%s': Value is not a valid Boolean: '%s'", parameter.getName(), string), ExitCode.USAGE_ERROR);
+        }
+    }
 }
