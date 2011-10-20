@@ -8,7 +8,7 @@ import java.text.ParseException;
 import java.util.StringTokenizer;
 
 /**
- * A global mask comprising 72 x 35 5-degree cells.
+ * A global mask comprising 72 x 35 5º cells.
  *
  * @author Norman
  */
@@ -19,7 +19,7 @@ public class RegionMask implements Grid {
         Globe,
         N_Hemisphere,
         S_Hemisphere,
-        // may add: Ninty_deg_cells?
+        // may add: Ninety_deg_cells?
         Other,
     }
 
@@ -116,9 +116,9 @@ public class RegionMask implements Grid {
             coverage = Coverage.Empty;
         } else if (nG == nTotal) {
             coverage = Coverage.Globe;
-        } else if (nN == nTotal / 2) {
+        } else if (nN == nG && nN == nTotal / 2) {
             coverage = Coverage.N_Hemisphere;
-        } else if (nS == nTotal / 2) {
+        } else if (nS == nG && nS == nTotal / 2) {
             coverage = Coverage.S_Hemisphere;
         } else {
             coverage = Coverage.Other;

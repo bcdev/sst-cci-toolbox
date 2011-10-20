@@ -6,6 +6,6 @@ package org.esa.cci.sst.regavg;
  *
  * @author Norman Fomferra
  */
-public interface MultiMonthRegionalAggregation<A extends RegionalAggregation> extends RegionalAggregation {
+public interface MultiMonthAggregation<A extends RegionalAggregation> extends RegionalAggregation {
     void accumulate(A aggregation);
 }

@@ -43,6 +43,7 @@ public class RegionMaskTest {
         assertEquals(RegionMask.Coverage.N_Hemisphere, RegionMask.create("X", -180, +90, +180, 0).getCoverage());
         assertEquals(RegionMask.Coverage.S_Hemisphere, RegionMask.create("X", -180, 0, +180, -90).getCoverage());
         assertEquals(RegionMask.Coverage.Other, RegionMask.create("X", 0, 10, 10, 0).getCoverage());
+        assertEquals(RegionMask.Coverage.Other, RegionMask.create("X", -180, 90, 180, -85).getCoverage());
     }
 
     private void set(char[] data, int x, int y, char c) {

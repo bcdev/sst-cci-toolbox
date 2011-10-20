@@ -6,6 +6,6 @@ package org.esa.cci.sst.regavg;
  *
  * @author Norman Fomferra
  */
-public interface SameMonthRegionalAggregation<A extends AggregationCell> extends RegionalAggregation {
+public interface SameMonthAggregation<A extends AggregationCell> extends RegionalAggregation {
     void accumulate(A cell, double seaCoverage);
 }

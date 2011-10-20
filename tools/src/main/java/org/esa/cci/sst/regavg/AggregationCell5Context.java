@@ -14,7 +14,7 @@ public final class AggregationCell5Context {
     private final Grid analysedSstGrid;
     private final Grid seaCoverageGrid;
 
-    AggregationCell5Context(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid) {
+    public AggregationCell5Context(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid) {
         this.sourceGridDef = sourceGridDef;
         this.sourceGrids = sourceGrids;
         this.analysedSstGrid = analysedSstGrid;

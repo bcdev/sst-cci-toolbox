@@ -63,12 +63,12 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public RegionalAggregationFactory<SameMonthRegionalAggregation> getSameMonthCombinedAggregationFactory() {
+    public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
         throw notImplemented();
     }
 
     @Override
-    public RegionalAggregationFactory<MultiMonthRegionalAggregation> getMultiMonthCombinedAggregationFactory() {
+    public AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory() {
         throw notImplemented();
     }
 

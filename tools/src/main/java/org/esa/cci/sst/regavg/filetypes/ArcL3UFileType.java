@@ -151,21 +151,21 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public RegionalAggregationFactory<SameMonthRegionalAggregation> getSameMonthCombinedAggregationFactory() {
-        return new RegionalAggregationFactory<SameMonthRegionalAggregation>() {
+    public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
+        return new AggregationFactory<SameMonthAggregation>() {
             @Override
-            public SameMonthRegionalAggregation createRegionalAggregation() {
-                return new MySameMonthRegionalAggregation();
+            public SameMonthAggregation createAggregation() {
+                return new MySameMonthAggregation();
             }
         };
     }
 
     @Override
-    public RegionalAggregationFactory<MultiMonthRegionalAggregation> getMultiMonthCombinedAggregationFactory() {
-        return new RegionalAggregationFactory<MultiMonthRegionalAggregation>() {
+    public AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory() {
+        return new AggregationFactory<MultiMonthAggregation>() {
             @Override
-            public MultiMonthRegionalAggregation createRegionalAggregation() {
-                return new MyMultiMonthRegionalAggregation();
+            public MultiMonthAggregation createAggregation() {
+                return new MyMultiMonthAggregation();
             }
         };
     }
@@ -306,7 +306,7 @@ public class ArcL3UFileType implements FileType {
 
     }
 
-    private static class MySameMonthRegionalAggregation extends MyRegionalAggregation implements SameMonthRegionalAggregation<MyAggregationCell> {
+    private static class MySameMonthAggregation extends MyRegionalAggregation implements SameMonthAggregation<MyAggregationCell> {
         @Override
         public void accumulate(MyAggregationCell cell, double seaCoverage) {
             sstAccu.accumulate(cell.computeSstAverage(), seaCoverage);
@@ -316,7 +316,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class MyMultiMonthRegionalAggregation extends MyRegionalAggregation implements MultiMonthRegionalAggregation<MyRegionalAggregation> {
+    private static class MyMultiMonthAggregation extends MyRegionalAggregation implements MultiMonthAggregation<MyRegionalAggregation> {
 
         @Override
         public void accumulate(MyRegionalAggregation aggregation) {

@@ -1,19 +1,18 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.AbstractCell;
+
 /**
  * A daily or monthly / 5º or 90º cell.
  *
  * @author Norman Fomferra
  */
-public abstract class AbstractAggregationCell implements AggregationCell {
+public abstract class AbstractAggregationCell extends AbstractCell implements AggregationCell {
     private final CoverageUncertaintyProvider coverageUncertaintyProvider;
-    private final int x;
-    private final int y;
 
     protected AbstractAggregationCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        super(x,y);
         this.coverageUncertaintyProvider = coverageUncertaintyProvider;
-        this.x = x;
-        this.y = y;
     }
 
     public final CoverageUncertaintyProvider getCoverageUncertaintyProvider() {
@@ -21,18 +20,7 @@ public abstract class AbstractAggregationCell implements AggregationCell {
     }
 
     @Override
-    public final int getX() {
-        return x;
-    }
-
-    @Override
-    public final int getY() {
-        return y;
-    }
-
-    @Override
     public boolean isEmpty() {
         return getSampleCount() == 0;
     }
-
 }
