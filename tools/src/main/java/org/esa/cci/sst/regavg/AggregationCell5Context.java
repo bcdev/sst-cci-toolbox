@@ -4,7 +4,7 @@ import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 
 /**
- * Represents an SST averaging context that is used by {@link AggregationCell5}.
+ * Provides the input grids for an {@link AggregationCell5}.
  *
  * @author Norman Fomferra
 */

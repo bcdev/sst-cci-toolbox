@@ -1,7 +1,5 @@
-package org.esa.cci.sst.regavg.regavg;
+package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.regavg.RegionMask;
-import org.esa.cci.sst.regavg.RegionMaskList;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

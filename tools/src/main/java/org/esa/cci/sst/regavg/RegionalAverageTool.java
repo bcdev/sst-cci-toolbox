@@ -157,17 +157,17 @@ public class RegionalAverageTool extends Tool {
         LUT1 lut1 = getLUT1(lut1File);
         LUT2 lut2 = getLUT2(lut2File);
 
-        List<Averaging.OutputTimeStep> outputTimeSteps;
+        List<Aggregator.TimeStep> timeSteps;
         try {
-            Averaging averaging = new Averaging(fileStore, climatology, lut1, lut2, sstDepth);
-            outputTimeSteps = averaging.aggregateTimeRanges(startDate, endDate, temporalResolution, regionMaskList);
+            Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
+            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
 
         try {
             writeOutputs(outputDir, writeText, productType, filenameRegex,
-                         sstDepth, startDate, endDate, temporalResolution, regionMaskList, outputTimeSteps);
+                         sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
@@ -204,7 +204,7 @@ public class RegionalAverageTool extends Tool {
                               Date endDate,
                               TemporalResolution temporalResolution,
                               RegionMaskList regionMaskList,
-                              List<Averaging.OutputTimeStep> outputTimeSteps) throws IOException {
+                              List<Aggregator.TimeStep> timeSteps) throws IOException {
 
         final PrintWriter textWriter = getTextWriter(writeText);
 
@@ -217,11 +217,11 @@ public class RegionalAverageTool extends Tool {
                                                       productType.getProcessingLevel(),
                                                       "SST_" + sstDepth + "_average",
                                                       "PS",
-                                                      "DM",
-                                                      FILE_FORMAT_VERSION);
+                                                      "DM"
+            );
             File file = new File(outputDir, outputFilename);
             LOGGER.info("Writing output file '" + file + "'...");
-            writeOutputFile(file, textWriter, productType, filenameRegex, sstDepth, startDate, endDate, temporalResolution, regionMask, regionIndex, outputTimeSteps);
+            writeOutputFile(file, textWriter, productType, filenameRegex, sstDepth, startDate, endDate, temporalResolution, regionMask, regionIndex, timeSteps);
         }
 
         if (textWriter != null) {
@@ -248,7 +248,7 @@ public class RegionalAverageTool extends Tool {
                                         Date endDate,
                                         TemporalResolution temporalResolution,
                                         RegionMask regionMask, int regionIndex,
-                                        List<Averaging.OutputTimeStep> outputTimeSteps) throws IOException {
+                                        List<Aggregator.TimeStep> timeSteps) throws IOException {
 
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
@@ -267,7 +267,7 @@ public class RegionalAverageTool extends Tool {
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
             netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
 
-            int numSteps = outputTimeSteps.size();
+            int numSteps = timeSteps.size();
             Dimension timeDimension = netcdfFile.addDimension("time", numSteps, true, false, false);
             Dimension[] dims = {timeDimension};
 
@@ -291,13 +291,12 @@ public class RegionalAverageTool extends Tool {
             float[] startTime = new float[numSteps];
             float[] endTime = new float[numSteps];
             for (int t = 0; t < numSteps; t++) {
-                Averaging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
-                startTime[t] = (outputTimeStep.date1.getTime() - millisSince1981) / 1000.0F;
-                endTime[t] = (outputTimeStep.date2.getTime() - millisSince1981) / 1000.0F;
-                Number[] results = outputTimeStep.regionalAverages.get(regionIndex).getResults();
+                Aggregator.TimeStep timeStep = timeSteps.get(t);
+                startTime[t] = (timeStep.getStartDate().getTime() - millisSince1981) / 1000.0F;
+                endTime[t] = (timeStep.getEndDate().getTime() - millisSince1981) / 1000.0F;
+                Number[] results = timeStep.getRegionalAggregationResults(regionIndex);
                 for (int i = 0; i < results.length; i++) {
-                    Number result = results[i];
-                    outputArrays[i].setObject(t, result);
+                    outputArrays[i].setObject(t, results[i]);
                 }
             }
 
@@ -311,7 +310,7 @@ public class RegionalAverageTool extends Tool {
             }
 
             if (textWriter != null) {
-                outputText(textWriter, getNames(outputVariables), regionMask.getName(), regionIndex, outputTimeSteps);
+                outputText(textWriter, getNames(outputVariables), regionMask.getName(), regionIndex, timeSteps);
             }
 
         } catch (InvalidRangeException e) {
@@ -325,21 +324,18 @@ public class RegionalAverageTool extends Tool {
         }
     }
 
-    private static void outputText(PrintWriter textWriter, String[] outputNames, String regionName, int regionIndex, List<Averaging.OutputTimeStep> outputTimeSteps) {
+    private static void outputText(PrintWriter textWriter, String[] outputNames, String regionName, int regionIndex, List<Aggregator.TimeStep> timeSteps) {
         textWriter.println();
         textWriter.printf("%s\t%s\t%s\t%s\t%s\n", "region", "start", "end", "step", cat(outputNames, "\t"));
         DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd");
-        for (int t = 0; t < outputTimeSteps.size(); t++) {
-            Averaging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
-            Date date1 = outputTimeStep.date1;
-            Date date2 = outputTimeStep.date2;
-            Aggregation aggregation = outputTimeStep.regionalAverages.get(regionIndex);
+        for (int t = 0; t < timeSteps.size(); t++) {
+            Aggregator.TimeStep timeStep = timeSteps.get(t);
             textWriter.printf("%s\t%s\t%s\t%s\t%s\n",
                               regionName,
-                              dateFormat.format(date1),
-                              dateFormat.format(date2),
+                              dateFormat.format(timeStep.getStartDate()),
+                              dateFormat.format(timeStep.getEndDate()),
                               t + 1,
-                              cat(aggregation.getResults(), "\t"));
+                              cat(timeStep.getRegionalAggregationResults(regionIndex), "\t"));
         }
     }
 
@@ -377,6 +373,7 @@ public class RegionalAverageTool extends Tool {
      * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_average-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
      * </code>
      *
+     *
      * @param startOfPeriod        Start of period = YYYYMMDD
      * @param endOfPeriod          End of period = YYYYMMDD
      * @param regionName           Region Name or Description
@@ -384,10 +381,9 @@ public class RegionalAverageTool extends Tool {
      * @param sstType              SST Type
      * @param productString        Product String (see Table 5 in PSD) // todo - find out from PSD what productString is
      * @param additionalSegregator Additional Segregator = LT or DM  // todo - find out from PSD what additionalSegregator is
-     * @param fileVersion          File Version, e.g. 0.10
      * @return The filename.
      */
-    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator, String fileVersion) {
+    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
 
         return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                              startOfPeriod,
@@ -398,6 +394,6 @@ public class RegionalAverageTool extends Tool {
                              productString,
                              additionalSegregator,
                              TOOL_VERSION,
-                             fileVersion);
+                             FILE_FORMAT_VERSION);
     }
 }

@@ -1,7 +1,5 @@
-package org.esa.cci.sst.regavg.util;
+package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.util.ArrayGrid;
-import org.esa.cci.sst.util.GridDef;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.Array;

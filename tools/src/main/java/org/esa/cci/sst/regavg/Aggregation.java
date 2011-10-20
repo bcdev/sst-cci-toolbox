@@ -1,7 +1,8 @@
 package org.esa.cci.sst.regavg;
 
 /**
- * Some aggregation that produces a vector of numerical results.
+ * An object that represents an aggregation of some given source "samples" and returns it
+ * as a vector of numerical aggregation results.
  *
  * @author Norman Fomferra
  */

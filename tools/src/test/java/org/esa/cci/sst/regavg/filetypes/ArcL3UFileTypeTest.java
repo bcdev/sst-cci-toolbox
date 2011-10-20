@@ -1,8 +1,7 @@
-package org.esa.cci.sst.regavg.regavg.filetypes;
+package org.esa.cci.sst.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.FileType;
 import org.esa.cci.sst.regavg.ProcessingLevel;
-import org.esa.cci.sst.regavg.filetypes.ArcL3UFileType;
 import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
 

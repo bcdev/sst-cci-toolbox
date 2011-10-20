@@ -47,7 +47,7 @@ public interface FileType {
 
     CellFactory<AggregationCell90> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
 
-    CombinedAggregationFactory<SameMonthCombinedAggregation> getSameMonthCombinedAggregationFactory();
+    RegionalAggregationFactory<SameMonthRegionalAggregation> getSameMonthCombinedAggregationFactory();
 
-    CombinedAggregationFactory<MultiMonthCombinedAggregation> getMultiMonthCombinedAggregationFactory();
+    RegionalAggregationFactory<MultiMonthRegionalAggregation> getMultiMonthCombinedAggregationFactory();
 }

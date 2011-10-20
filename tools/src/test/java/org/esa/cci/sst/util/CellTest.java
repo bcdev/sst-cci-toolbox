@@ -1,4 +1,4 @@
-package org.esa.cci.sst.regavg.util;
+package org.esa.cci.sst.util;
 
 /**
  * @author Norman

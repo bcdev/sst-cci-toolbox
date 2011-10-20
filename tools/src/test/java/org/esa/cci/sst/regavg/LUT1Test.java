@@ -1,6 +1,5 @@
-package org.esa.cci.sst.regavg.regavg;
+package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.regavg.LUT1;
 import org.junit.Test;
 
 import java.io.File;

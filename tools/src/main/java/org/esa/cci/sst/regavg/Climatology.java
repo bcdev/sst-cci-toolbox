@@ -39,9 +39,9 @@ public class Climatology {
 
     private final CachedGrid cachedGrid = new CachedGrid();
 
-    private ArrayGrid seaCoverageGrid;
-    private ArrayGrid seaCoverage5DegGrid;
-    private ArrayGrid seaCoverage90DegGrid;
+    private ArrayGrid seaCoverageSourceGrid;
+    private ArrayGrid seaCoverageCell5Grid;
+    private ArrayGrid seaCoverageCell90Grid;
 
     private static class CachedGrid {
         private int dayOfYear;
@@ -98,16 +98,16 @@ public class Climatology {
         }
     }
 
-    public Grid getSeaCoverageGrid() {
-        return seaCoverageGrid;
+    public Grid getSeaCoverageSourceGrid() {
+        return seaCoverageSourceGrid;
     }
 
-    public Grid getSeaCoverage5DegGrid() {
-        return seaCoverage5DegGrid;
+    public Grid getSeaCoverageCell5Grid() {
+        return seaCoverageCell5Grid;
     }
 
-    public Grid getSeaCoverage90DegGrid() {
-        return seaCoverage90DegGrid;
+    public Grid getSeaCoverageCell90Grid() {
+        return seaCoverageCell90Grid;
     }
 
     private void readGrids(int dayOfYear) throws IOException {
@@ -132,7 +132,7 @@ public class Climatology {
 
     private void readGrids(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
         readAnalysedSstGrid(netcdfFile, dayOfYear);
-        if (seaCoverageGrid == null) {
+        if (seaCoverageSourceGrid == null) {
             readSeaCoverageGrids(netcdfFile);
         }
     }
@@ -159,24 +159,24 @@ public class Climatology {
         LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         maskGrid.flipY(); // OSTIA Climatologies are stored upside-down!
-        seaCoverageGrid = maskGrid.unmask(0x01);
+        seaCoverageSourceGrid = maskGrid.unmask(0x01);
         if (!OSTIA_GRID_DEF.equals(gridDef)) {
-            seaCoverageGrid = scaleDown(seaCoverageGrid, gridDef);
+            seaCoverageSourceGrid = scaleDown(seaCoverageSourceGrid, gridDef);
         }
         // Uncomment for debugging
         // writeMaskImage();
-        seaCoverage5DegGrid = scaleDown(seaCoverageGrid, GLOBAL_5D_GRID_DEF);
-        seaCoverage90DegGrid = scaleDown(seaCoverage5DegGrid, GLOBAL_90D_GRID_DEF);
+        seaCoverageCell5Grid = scaleDown(seaCoverageSourceGrid, GLOBAL_5D_GRID_DEF);
+        seaCoverageCell90Grid = scaleDown(seaCoverageCell5Grid, GLOBAL_90D_GRID_DEF);
         LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
 
-        LOGGER.info(String.format("Sea-water coverages in 90x90 deg. cells: %s", seaCoverage90DegGrid.getArray()));
+        LOGGER.info(String.format("Sea-water coverages in 90x90 deg. cells: %s", seaCoverageCell90Grid.getArray()));
     }
 
     // Leave for debugging
     private void writeMaskImage() throws IOException {
         IndexColorModel colorModel = new IndexColorModel(8, 2, new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255});
-        BufferedImage image = new BufferedImage(seaCoverageGrid.getWidth(), seaCoverageGrid.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, colorModel);
-        Object src = seaCoverageGrid.getArray().getStorage();
+        BufferedImage image = new BufferedImage(seaCoverageSourceGrid.getWidth(), seaCoverageSourceGrid.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, colorModel);
+        Object src = seaCoverageSourceGrid.getArray().getStorage();
         byte[] dest = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
         System.arraycopy(src, 0, dest, 0, image.getWidth() * image.getHeight());
         ImageIO.write(image, "PNG", new File("sea-coverage-grid.png"));

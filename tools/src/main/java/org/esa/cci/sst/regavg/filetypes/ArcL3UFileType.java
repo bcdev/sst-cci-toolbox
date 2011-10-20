@@ -151,21 +151,21 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public CombinedAggregationFactory<SameMonthCombinedAggregation> getSameMonthCombinedAggregationFactory() {
-        return new CombinedAggregationFactory<SameMonthCombinedAggregation>() {
+    public RegionalAggregationFactory<SameMonthRegionalAggregation> getSameMonthCombinedAggregationFactory() {
+        return new RegionalAggregationFactory<SameMonthRegionalAggregation>() {
             @Override
-            public SameMonthCombinedAggregation createCombinedAggregation() {
-                return new MySameMonthCombinedAggregation();
+            public SameMonthRegionalAggregation createRegionalAggregation() {
+                return new MySameMonthRegionalAggregation();
             }
         };
     }
 
     @Override
-    public CombinedAggregationFactory<MultiMonthCombinedAggregation> getMultiMonthCombinedAggregationFactory() {
-        return new CombinedAggregationFactory<MultiMonthCombinedAggregation>() {
+    public RegionalAggregationFactory<MultiMonthRegionalAggregation> getMultiMonthCombinedAggregationFactory() {
+        return new RegionalAggregationFactory<MultiMonthRegionalAggregation>() {
             @Override
-            public MultiMonthCombinedAggregation createCombinedAggregation() {
-                return new MyMultiMonthCombinedAggregation();
+            public MultiMonthRegionalAggregation createRegionalAggregation() {
+                return new MyMultiMonthRegionalAggregation();
             }
         };
     }
@@ -265,7 +265,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class MyCombinedAggregation implements CombinedAggregation {
+    private static class MyRegionalAggregation implements RegionalAggregation {
 
         protected final Accumulator sstAccu = new ArithmeticMeanAccumulator();
         protected final Accumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
@@ -306,7 +306,7 @@ public class ArcL3UFileType implements FileType {
 
     }
 
-    private static class MySameMonthCombinedAggregation extends MyCombinedAggregation implements SameMonthCombinedAggregation<MyAggregationCell> {
+    private static class MySameMonthRegionalAggregation extends MyRegionalAggregation implements SameMonthRegionalAggregation<MyAggregationCell> {
         @Override
         public void accumulate(MyAggregationCell cell, double seaCoverage) {
             sstAccu.accumulate(cell.computeSstAverage(), seaCoverage);
@@ -316,10 +316,10 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class MyMultiMonthCombinedAggregation extends MyCombinedAggregation implements MultiMonthCombinedAggregation<MyCombinedAggregation> {
+    private static class MyMultiMonthRegionalAggregation extends MyRegionalAggregation implements MultiMonthRegionalAggregation<MyRegionalAggregation> {
 
         @Override
-        public void accumulate(MyCombinedAggregation aggregation) {
+        public void accumulate(MyRegionalAggregation aggregation) {
             sstAccu.accumulate(aggregation.computeSstAverage(), 1.0);
             sstAnomalyAccu.accumulate(aggregation.computeSstAnomalyAverage(), 1.0);
             arcUncertaintyAccu.accumulate(aggregation.computeArcUncertaintyAverage(), 1.0);

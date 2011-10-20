@@ -1,7 +1,5 @@
-package org.esa.cci.sst.regavg.util;
+package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.util.FileTree;
-import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
 
 import java.io.File;
