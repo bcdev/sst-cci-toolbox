@@ -10,7 +10,10 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,7 +26,7 @@ import java.util.List;
  *
  * @author Norman Fomferra
  */
-public class RegionalAverageTool extends Tool {
+public final class RegionalAverageTool extends Tool {
 
     private static final String FILE_FORMAT_VERSION = "1.1";
 
@@ -81,7 +84,7 @@ public class RegionalAverageTool extends Tool {
                                                                   "A plain text file that provides lookup table 2.");
 
     public static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
-                                                                  "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
+                                                                   "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
 
     public static void main(String[] arguments) {
         new RegionalAverageTool().run(arguments);
@@ -110,6 +113,11 @@ public class RegionalAverageTool extends Tool {
     @Override
     protected String getFooter() {
         return TOOL_FOOTER;
+    }
+
+    @Override
+    protected String getToolHome() {
+        return System.getProperty(TOOL_NAME + ".home", ".");
     }
 
     @Override
@@ -373,7 +381,6 @@ public class RegionalAverageTool extends Tool {
      * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_average-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
      * </code>
      *
-     *
      * @param startOfPeriod        Start of period = YYYYMMDD
      * @param endOfPeriod          End of period = YYYYMMDD
      * @param regionName           Region Name or Description
@@ -396,4 +403,5 @@ public class RegionalAverageTool extends Tool {
                              TOOL_VERSION,
                              FILE_FORMAT_VERSION);
     }
+
 }

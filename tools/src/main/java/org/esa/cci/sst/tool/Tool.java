@@ -88,6 +88,8 @@ public abstract class Tool {
 
     protected abstract String getFooter();
 
+    protected abstract String getToolHome();
+
     protected abstract Parameter[] getParameters();
 
     protected abstract void run(Configuration configuration, String[] arguments) throws ToolException;
@@ -130,7 +132,7 @@ public abstract class Tool {
             }
         }
 
-        return new Configuration(properties);
+        return new Configuration(getToolHome(), properties);
     }
 
     protected File getDefaultConfigFile() {
@@ -255,4 +257,5 @@ public abstract class Tool {
         LOGGER.addHandler(handler);
         LOGGER.setLevel(logLevel.getValue());
     }
+
 }

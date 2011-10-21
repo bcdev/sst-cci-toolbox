@@ -14,9 +14,11 @@ import java.util.Properties;
  */
 public class Configuration {
 
-    private Properties properties;
+    private final String toolHome;
+    private final Properties properties;
 
-    public Configuration(Properties properties) {
+    public Configuration(String toolHome, Properties properties) {
+        this.toolHome = toolHome;
         this.properties = properties;
     }
 
@@ -36,6 +38,9 @@ public class Configuration {
         String path = getString(parameter, mandatory);
         if (path == null) {
             return null;
+        }
+        if (!path.startsWith(".") && !new File(path).isAbsolute()) {
+            return new File(toolHome, path);
         }
         return new File(path);
     }

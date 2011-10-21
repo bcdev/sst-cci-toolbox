@@ -9,20 +9,24 @@
     </formats>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}</directory>
             <outputDirectory>/</outputDirectory>
+            <directory>${project.basedir}</directory>
             <includes>
                 <include>README*</include>
                 <include>LICENSE*</include>
-                <include>NOTICE*</include>
+                <include>CHANGELOG*</include>
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.build.directory}</directory>
             <outputDirectory>lib</outputDirectory>
+            <directory>${project.build.directory}</directory>
             <includes>
                 <include>*.jar</include>
             </includes>
+        </fileSet>
+        <fileSet>
+            <outputDirectory>conf</outputDirectory>
+            <directory>${project.basedir}/src/main/conf</directory>
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}/site</directory>
