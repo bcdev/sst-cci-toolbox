@@ -80,7 +80,9 @@ public class ArcL3UFileTypeTest {
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
         assertEquals(0.1, results[2].doubleValue(), 1e-6);
-        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[3].doubleValue(), 1e-6);
+        // Coverage uncertainty for 5 deg cells
+        double cu = 1.2 * (1.0 - pow(expectedN / 77500.0, 0.5));
+        assertEquals(cu, results[3].doubleValue(), 1e-6);
     }
 
     @Test
@@ -110,6 +112,7 @@ public class ArcL3UFileTypeTest {
 
         AggregationCell5 cell5_4 = cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
+        cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
         cell90.accumulate(cell5_1, 0.25); // --> 0.125
         cell90.accumulate(cell5_2, 0.5);  // --> 0.25
@@ -124,6 +127,132 @@ public class ArcL3UFileTypeTest {
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
         assertEquals(0.1, results[2].doubleValue(), 1e-6);
-        assertEquals(1.1 / sqrt(expectedN), results[3].doubleValue(), 1e-6);
+        // Coverage uncertainty for 90 deg cells
+        double cu = 1.1 / sqrt(expectedN);
+        assertEquals(cu, results[3].doubleValue(), 1e-6);
+    }
+
+    @Test
+    public void testSameMonthAggregation() throws Exception {
+        AggregationFactory<SameMonthAggregation> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
+
+        GridDef sourceGridDef = GridDef.createGlobal(0.1);
+        AggregationCell5Context context = new AggregationCell5Context(sourceGridDef,
+                                                                      new Grid[]{
+                                                                              new ScalarGrid(sourceGridDef, 292.0),
+                                                                              new ScalarGrid(sourceGridDef, 0.1),
+                                                                      },
+                                                                      new ScalarGrid(sourceGridDef, 291.5),
+                                                                      new ScalarGrid(sourceGridDef, 0.8));
+        CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+
+        AggregationCell5 cell5_1 = cell5Factory.createCell(0, 0);
+        cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
+
+        AggregationCell5 cell5_2 = cell5Factory.createCell(1, 0);
+        cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
+        cell5_2.accumulate(context, new Rectangle(10, 0, 10, 10));
+        cell5_2.accumulate(context, new Rectangle(10, 10, 10, 10));
+        cell5_2.accumulate(context, new Rectangle(0, 10, 10, 10));
+
+        AggregationCell5 cell5_3 = cell5Factory.createCell(2, 0);
+        cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
+
+        AggregationCell5 cell5_4 = cell5Factory.createCell(3, 0);
+        cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
+        cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
+
+        SameMonthAggregation aggregation = sameMonthAggregationFactory.createAggregation();
+
+        aggregation.accumulate(cell5_1, 0.25);
+        aggregation.accumulate(cell5_2, 0.5);
+        aggregation.accumulate(cell5_3, 0.25);
+        aggregation.accumulate(cell5_4, 1.0);
+
+        int expectedN = 4;
+        assertEquals(expectedN, aggregation.getSampleCount());
+        Number[] results = aggregation.getResults();
+        assertNotNull(results);
+        assertEquals(4, results.length);
+        assertEquals(292.0, results[0].doubleValue(), 1e-6);
+        assertEquals(0.5, results[1].doubleValue(), 1e-6);
+        assertEquals(0.1, results[2].doubleValue(), 1e-6);
+        // Coverage uncertainties for 5 deg cells
+        double cu1 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
+        double cu2 = 1.2 * (1.0 - pow(400.0 / 77500.0, 0.5));
+        double cu3 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
+        double cu4 = 1.2 * (1.0 - pow(200.0 / 77500.0, 0.5));
+        double sSqrSum = pow(cu1 * 0.25, 2) + pow(cu2 * 0.5, 2) + pow(cu3 * 0.25, 2) + pow(cu4 * 1.0, 2);
+        double wSqrSum = pow(0.25, 2) + pow(0.5, 2) + pow(0.25, 2) + pow(1.0, 2);
+        double cuMean = sqrt(sSqrSum / wSqrSum);
+        assertEquals(cuMean, results[3].doubleValue(), 1e-6);
+    }
+
+
+    @Test
+    public void testMultiMonthAggregation() throws Exception {
+        AggregationFactory<SameMonthAggregation> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
+        AggregationFactory<MultiMonthAggregation> multiMonthAggregationFactory = fileType.getMultiMonthAggregationFactory();
+
+        GridDef sourceGridDef = GridDef.createGlobal(0.1);
+        AggregationCell5Context context = new AggregationCell5Context(sourceGridDef,
+                                                                      new Grid[]{
+                                                                              new ScalarGrid(sourceGridDef, 292.0),
+                                                                              new ScalarGrid(sourceGridDef, 0.1),
+                                                                      },
+                                                                      new ScalarGrid(sourceGridDef, 291.5),
+                                                                      new ScalarGrid(sourceGridDef, 0.8));
+        CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+
+        AggregationCell5 cell5_1 = cell5Factory.createCell(0, 0);
+        cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
+
+        AggregationCell5 cell5_2 = cell5Factory.createCell(1, 0);
+        cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
+        cell5_2.accumulate(context, new Rectangle(10, 0, 10, 10));
+        cell5_2.accumulate(context, new Rectangle(10, 10, 10, 10));
+        cell5_2.accumulate(context, new Rectangle(0, 10, 10, 10));
+
+        AggregationCell5 cell5_3 = cell5Factory.createCell(2, 0);
+        cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
+
+        AggregationCell5 cell5_4 = cell5Factory.createCell(3, 0);
+        cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
+        cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
+
+        SameMonthAggregation aggregation1 = sameMonthAggregationFactory.createAggregation();
+        SameMonthAggregation aggregation2 = sameMonthAggregationFactory.createAggregation();
+
+        aggregation1.accumulate(cell5_1, 0.25);
+        aggregation1.accumulate(cell5_2, 0.5);
+
+        aggregation2.accumulate(cell5_3, 0.25);
+        aggregation2.accumulate(cell5_4, 1.0);
+
+        MultiMonthAggregation aggregation3 = multiMonthAggregationFactory.createAggregation();
+        aggregation3.accumulate(aggregation1);
+        aggregation3.accumulate(aggregation2);
+
+        int expectedN = 2;
+        assertEquals(expectedN, aggregation3.getSampleCount());
+        Number[] results = aggregation3.getResults();
+        assertNotNull(results);
+        assertEquals(4, results.length);
+        assertEquals(292.0, results[0].doubleValue(), 1e-6);
+        assertEquals(0.5, results[1].doubleValue(), 1e-6);
+        assertEquals(0.1, results[2].doubleValue(), 1e-6);
+        // Coverage uncertainties for 5 deg cells
+        // Coverage uncertainties for 5 deg cells
+        double cu1 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
+        double cu2 = 1.2 * (1.0 - pow(400.0 / 77500.0, 0.5));
+        double sSqrSum1 = pow(cu1 * 0.25, 2) + pow(cu2 * 0.5, 2) ;
+        double wSqrSum1 = pow(0.25, 2) + pow(0.5, 2) ;
+        double cuMean1 = sqrt(sSqrSum1 / wSqrSum1);
+        double cu3 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
+        double cu4 = 1.2 * (1.0 - pow(200.0 / 77500.0, 0.5));
+        double sSqrSum2 =  pow(cu3 * 0.25, 2) + pow(cu4 * 1.0, 2);
+        double wSqrSum2 =  pow(0.25, 2) + pow(1.0, 2);
+        double cuMean2 = sqrt(sSqrSum2 / wSqrSum2);
+        assertEquals(sqrt((cuMean1*cuMean1 + cuMean2*cuMean2) / 2), results[3].doubleValue(), 1e-6);
     }
 }
