@@ -21,7 +21,7 @@
   5-deg cell was kept and used for later averaging at a given x,y. Now, all 5-deg cell
   contributions are accumulated at given x,y.
 
-## Changes in version 1.0 released on ?
+## Changes in version 1.0 released on 24.10.2011:
 
 * SST averages and SST anomaly averages are now always included in the output.
   Thus, parameter 'outputType' has been removed.
@@ -34,4 +34,5 @@
 ** Coverage uncertainty:      "coverage_uncertainty"
 * Added parameter 'writeText' that allows to also output a file that contains all the
   generated results in plain text format.
+* Added GPL 3 license to distribution
 
