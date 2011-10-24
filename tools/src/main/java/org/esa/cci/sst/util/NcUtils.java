@@ -93,6 +93,7 @@ public class NcUtils {
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
         }
+        array.reshapeNoCopy(new int[] {gridRectangle.height, gridRectangle.width});
         return array;
     }
 
