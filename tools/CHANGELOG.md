@@ -38,4 +38,5 @@
 ## Changes in version 1.0_b02 released on 25.10.2011:
 
 * Added GPL 3 license to distribution
+* Changed logging time and time in text filename to local time
 

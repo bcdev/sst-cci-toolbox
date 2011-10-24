@@ -50,7 +50,7 @@ public final class RegionalAverageTool extends Tool {
     private static final String FILE_FORMAT_VERSION = "1.1";
 
     private static final String TOOL_NAME = "regavg";
-    private static final String TOOL_VERSION = "1.0_b01";
+    private static final String TOOL_VERSION = "1.0_b02";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
             "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
@@ -259,7 +259,7 @@ public final class RegionalAverageTool extends Tool {
     private PrintWriter getTextWriter(boolean writeText) throws IOException {
         final PrintWriter writer;
         if (writeText) {
-            String fileName = String.format("%s-output-%s.txt", TOOL_NAME, new SimpleDateFormat("yyyyMMdd'T'hhmmss").format(new Date()));
+            String fileName = String.format("%s-output-%s.txt", TOOL_NAME, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
             writer = new PrintWriter(new FileWriter(fileName));
         } else {
             writer = null;

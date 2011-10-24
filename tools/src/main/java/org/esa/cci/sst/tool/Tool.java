@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
@@ -251,7 +252,7 @@ public abstract class Tool {
     }
 
     protected static void initLogger(LogLevel logLevel) {
-        final DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd hh:mm:ss");
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Formatter formatter = new Formatter() {
             @Override
             public String format(LogRecord record) {
