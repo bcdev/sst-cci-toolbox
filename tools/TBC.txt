@@ -18,4 +18,11 @@ More questions to Nick / Chris:
    based on the Gregorian calendar, starting from the user-given start date.
    Do we have to consider other time steps as well, e.g. 10-day steps, meteorological season?
    If so, how important is that?
+4. In the regional average tool specification, the number N_MAX=77500=31*50^2 is actually for ARC only. For CCI products
+   we will have N_MAX=31*100^2,  right?
+5. For the temporal resolution 'daily', ARC N_MAX=50^2 (and CCI N_MAX=100^2). Are the LUTs still appropriate in this
+   case?
+6. Since the LUTs are created form ARC SST anomaly SDs, there will be new ones for CCI products?
+7. Please note that in LUT2, the parameter s is the same for all months.
+
 
