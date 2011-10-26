@@ -20,7 +20,10 @@
     <version>1.0</version>
     <name>SST CCI Toolbox</name>
     <description>
-        Several product readers for data used by the SST CCI project.
+        Multi-sensor matchup system with a database of observations and
+        matchups, several product readers for data used by the SST CCI
+        project, and an MMD NetcCDF format to generate and re-ingest
+        matchup datasets
     </description>
 
     <vendor>Brockmann Consult GmbH</vendor>
@@ -28,10 +31,15 @@
         Max Planck Str. 2, 21502 Geesthacht (Germany)
     </contactAddress>
     <copyright>(C) 2011 by Brockmann Consult GmbH</copyright>
-    <url>http://envisat.esa.int/beam</url>
+    <url>http://www.brockmann-consult.de/</url>
     <licenseUrl>http://www.gnu.org/licenses/gpl.html</licenseUrl>
 
-    <changelog/>
+    <changelog>
+        <![CDATA[
+        <p>Changes in 1.0<br/>
+        [sst-cci-0000] issue title<br/>
+        <p>]]>
+    </changelog>
 
     <dependency>
         <module>beam-core</module>
@@ -54,6 +62,6 @@
         <optional>true</optional>
     </dependency>
 
-    <categories>Reader,CCI,SST</categories>
+    <categories>Reader,Matchup,CCI,SST,MMS</categories>
 
 </module>
