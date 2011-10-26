@@ -41,7 +41,7 @@ elif [ $month = 12 ]; then
     stopmonth=01
 fi
 
-$MMS_HOME/bin/matchup-tool.sh -c $MMS_CONFIG -debug \
+$MMS_HOME/bin/matchup2-tool.sh -c $MMS_CONFIG -debug \
     -Dmms.matchup.startTime=$year-$month-01T00:00:00Z \
     -Dmms.matchup.stopTime=$stopyear-$stopmonth-01T00:00:00Z
 

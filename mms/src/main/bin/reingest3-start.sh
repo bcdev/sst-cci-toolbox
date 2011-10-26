@@ -5,11 +5,7 @@ cd $MMS_INST
 
 year=$1
 month=$2
-# optional parameters
-#parts=${3:-a b c d e f}
-#sensors=$4
 parts='a b c d e f'
-sensors=
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting tasks for reingest3 $year/$month"
 
