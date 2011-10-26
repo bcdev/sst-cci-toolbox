@@ -72,6 +72,10 @@ public class CellGrid<C extends Cell> {
         return cells[y * width + x];
     }
 
+    public void setCell(C cell) {
+       setCell(cell.getX(), cell.getY(), cell);
+    }
+
     public void setCell(int x, int y, C cell) {
         if (x != cell.getX() || y != cell.getY()) {
             throw new IllegalArgumentException("Cell location does not match");
