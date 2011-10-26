@@ -19,6 +19,9 @@
 
 package org.esa.cci.sst.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A sparsely filled, regular, rectangular arrangement of {@link Cell}s used for numeric aggregations.
  *
@@ -26,13 +29,25 @@ package org.esa.cci.sst.util;
  */
 public class CellGrid<C extends Cell> {
     private final GridDef gridDef;
+    private final int width;
+    private final int height;
     private final CellFactory<C> cellFactory;
-    private final Cell[][] cells;
+    private final C[] cells;
 
     public CellGrid(GridDef gridDef, CellFactory<C> cellFactory) {
         this.gridDef = gridDef;
         this.cellFactory = cellFactory;
-        cells = new Cell[gridDef.getHeight()][gridDef.getWidth()];
+        width = gridDef.getWidth();
+        height = this.gridDef.getHeight();
+        cells = (C[]) new Cell[gridDef.getWidth() * gridDef.getHeight()];
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public GridDef getGridDef() {
@@ -43,26 +58,43 @@ public class CellGrid<C extends Cell> {
         return cellFactory;
     }
 
-    public C getCellSafe(int cellX, int cellY) {
-        C cell = getCell(cellX, cellY);
+    public C getCellSafe(int x, int y) {
+        C cell = getCell(x, y);
         if (cell == null) {
-            cell = createCell(cellX, cellY);
-            setCell(cellX, cellY, cell);
+            cell = createCell(x, y);
+            setCell(x, y, cell);
         }
         return cell;
     }
 
-    public C getCell(int cellX, int cellY) {
+    public C getCell(int x, int y) {
         //noinspection unchecked
-        return (C) cells[cellY][cellX];
+        return cells[y * width + x];
     }
 
-    public void setCell(int cellX, int cellY, C cell) {
-        cells[cellY][cellX] = cell;
+    public void setCell(int x, int y, C cell) {
+        if (x != cell.getX() || y != cell.getY()) {
+            throw new IllegalArgumentException("Cell location does not match");
+        }
+        cells[y * width + x] = cell;
     }
 
-    public C createCell(int cellX, int cellY) {
-        return getCellFactory().createCell(cellX, cellY);
+    public C createCell(int x, int y) {
+        return getCellFactory().createCell(x, y);
+    }
+
+    public List<C> getCells() {
+        return getCells(CellFilter.ALL);
+    }
+
+    public List<C> getCells(CellFilter<C> filter) {
+        ArrayList<C> cellList = new ArrayList<C>(getWidth() * getHeight());
+        for (C cell : cells) {
+            if (cell != null && filter.accept(cell)) {
+                cellList.add(cell);
+            }
+        }
+        return cellList;
     }
 
 }
