@@ -32,10 +32,11 @@ import java.util.List;
  *
  * @author Thomas Storm
  */
-class DetectorTemperatureProvider {
+public class DetectorTemperatureProvider {
 
     public static final float FILL_VALUE = Float.MIN_VALUE;
 
+    static DetectorTemperatureProvider singleton = null;
     float[] temperatures;
     int startTime;
     int step;
@@ -49,11 +50,23 @@ class DetectorTemperatureProvider {
     }
 
     /**
+     * Factory method to return and maybe create the singleton
+     * DetectorTemperatureProvider for the default data file.
+     * @return  a DetectorTemperatureProvider
+     */
+    public static DetectorTemperatureProvider create() {
+        if (singleton == null) {
+            singleton = new DetectorTemperatureProvider();
+        }
+        return singleton;
+    }
+
+    /**
      * Returns the detector temperature for the given date.
      * @param date The date to get the detector temperature for.
      * @return The detector temperature.
      */
-    float getDetectorTemperature(Date date) {
+    public float getDetectorTemperature(Date date) {
         final double millisSince1970 = date.getTime();
         final double millisSince1978 = millisSince1970 - TimeUtil.MILLIS_1978;
         final double secondsSinceCciEpoch = millisSince1978 / 1000;

@@ -30,10 +30,12 @@ import static org.junit.Assert.*;
 public class DetectorTemperatureProviderTest {
 
     private MyDetectorTemperatureProvider provider;
+    private DetectorTemperatureProvider provider2;
 
     @Before
     public void setUp() throws Exception {
         provider = new MyDetectorTemperatureProvider("test_detector_temperature.dat");
+        provider2 = new DetectorTemperatureProvider("detector_temperature.dat");
     }
 
     @Test
@@ -67,6 +69,11 @@ public class DetectorTemperatureProviderTest {
         assertEquals(256.36, provider.getDetectorTemperature(thirdDate), 0.001);
         assertEquals(256.36, provider.getDetectorTemperature(betweenThirdAndFourthDateLow), 0.001);
         assertEquals(256.13, provider.getDetectorTemperature(betweenThirdAndFourthDateHigh), 0.001);
+    }
+
+    @Test
+    public void testAtsr1Temperature() throws Exception {
+        assertEquals(104.04, provider2.getDetectorTemperature(TimeUtil.parseCcsdsUtcFormat("1995-01-01T00:00:00Z")), 0.001);
     }
 
     private static class MyDetectorTemperatureProvider extends DetectorTemperatureProvider {

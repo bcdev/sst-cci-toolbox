@@ -16,10 +16,13 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -60,11 +63,12 @@ class DetectorTemperature extends Rule {
             return result;
         }
         final int recordNo = observation.getRecordNo();
-        observationReader.getColumns();
-        final int scanline = getScanline();
-        final long time = getTime(recordNo, scanline);
+//        observationReader.getColumns();
+//        final int scanline = getScanline();
+//        final long time = getTime(recordNo, scanline);
+        final long time = getTime();
         final Date date = new Date(time);
-        float detectorTemperature = new DetectorTemperatureProvider().getDetectorTemperature(date);
+        float detectorTemperature = DetectorTemperatureProvider.create().getDetectorTemperature(date);
         if (detectorTemperature == DetectorTemperatureProvider.FILL_VALUE) {
             result.setShort(0, FILL_VALUE);
         } else {
@@ -90,5 +94,27 @@ class DetectorTemperature extends Rule {
         } catch (IOException e) {
             throw new RuleException(e);
         }
+    }
+
+    private long getTime() throws RuleException {
+        final Context context = getContext();
+        final Reader reader = context.getObservationReader();
+        if (reader == null) {
+            throw new RuleException("Cannot read time. observationReader is null");
+        }
+        final ReferenceObservation refObs = context.getMatchup().getRefObs();
+        final int recordNo = context.getObservation().getRecordNo();
+        final Point point = refObs.getPoint().getGeometry().getFirstPoint();
+        final double lon = point.getX();
+        final double lat = point.getY();
+        final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
+        final long time;
+        try {
+            final int scanLine = (int) reader.getGeoCoding(recordNo).getPixelPos(geoPos, null).y;
+            time = reader.getTime(recordNo, scanLine);
+        } catch (IOException e) {
+            throw new RuleException("Cannot read time.", e);
+        }
+        return time;
     }
 }
