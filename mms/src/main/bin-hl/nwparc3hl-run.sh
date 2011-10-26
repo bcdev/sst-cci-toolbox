@@ -8,19 +8,20 @@
 
 year=$1
 month=$2
-sensor=$3
+part=$3
+sensor=$4
 
-echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month $sensor ..."
+echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month-$part $sensor ..."
 
-if [ "$year" = "" -o "$month" = "" -o "$sensor" = "" ]; then
-    echo "missing parameter, use $0 year month sensor"
+if [ "$year" = "" -o "$month" = "" -o "$part" = "" -o "$sensor" = "" ]; then
+    echo "missing parameter, use $0 year month part sensor"
     exit 1
 fi
 
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$MMS_CDO/lib
 export PATH=${PATH}:$MMS_CDO/bin
 
-wd=$MMS_TEMP/nwparc3hl-$year-$month-$sensor
+wd=$MMS_TEMP/nwparc3hl-$year-$month-$part-$sensor
 mkdir -p $wd
 cd $wd
 
@@ -52,8 +53,31 @@ elif [ $month = 12 ]; then
     stopmonth=01
 fi
 
-startTime=$year-$month-01T00:00:00Z
-stopTime=$stopyear-$stopmonth-01T00:00:00Z
+if [ "$part" = "t" ]; then
+    startTime=$year-$month-01T00:00:00Z
+    stopTime=$year-$month-02T00:00:00Z
+elif [ "$part" = "a" ]; then
+    startTime=$year-$month-01T00:00:00Z
+    stopTime=$year-$month-05T00:00:00Z
+elif [ "$part" = "b" ]; then
+    startTime=$year-$month-05T00:00:00Z
+    stopTime=$year-$month-10T00:00:00Z
+elif [ "$part" = "c" ]; then
+    startTime=$year-$month-10T00:00:00Z
+    stopTime=$year-$month-15T00:00:00Z
+elif [ "$part" = "d" ]; then
+    startTime=$year-$month-15T00:00:00Z
+    stopTime=$year-$month-20T00:00:00Z
+elif [ "$part" = "e" ]; then
+    startTime=$year-$month-20T00:00:00Z
+    stopTime=$year-$month-25T00:00:00Z
+elif [ "$part" = "f" ]; then
+    startTime=$year-$month-25T00:00:00Z
+    stopTime=$stopyear-$stopmonth-01T00:00:00Z
+else
+    startTime=$year-$month-01T00:00:00Z
+    stopTime=$stopyear-$stopmonth-01T00:00:00Z
+fi
 
 startTimeForDate=`echo ${startTime%Z} | tr 'T' ' '`
 stopTimeForDate=`echo ${stopTime%Z} | tr 'T' ' '`
@@ -101,8 +125,8 @@ if ! $MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
         $MMS_ARCHIVE/ecmwf-era-interim/v01 \
         $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc
 then
-    echo "production gap: nwparc3hl-$year-$month-$sensor failed, nwp generation failed"
-    echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month $sensor ... failed"
+    echo "production gap: nwparc3hl-$year-$month-$part-$sensor failed, nwp generation failed"
+    echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month-$part $sensor ... failed"
     exit 1
 fi
 
@@ -112,27 +136,30 @@ arc3files=`find $MMS_ARC3 -type f | grep -v 'dat/'`
 ln -f $arc3files .
 mkdir -p dat
 ln -f $MMS_ARC3/dat/* dat
+#ln -f $MMS_ARC3/dat_highlatitude/* dat
 
 case $sensor in
-    atsr.1 | atsr.2 | atsr.3) inp=MMD_AATSR.inp ;;
-    avhrr.n10) inp=MMD_NOAA10.inp ;;
-    avhrr.n11) inp=MMD_NOAA11.inp ;;
-    avhrr.n12) inp=MMD_NOAA12.inp ;;
-    avhrr.n14) inp=MMD_NOAA14.inp ;;
-    avhrr.n15) inp=MMD_NOAA15.inp ;;
-    avhrr.n16) inp=MMD_NOAA16.inp ;;
-    avhrr.n17) inp=MMD_NOAA17.inp ;;
-    avhrr.n18) inp=MMD_NOAA18.inp ;;
-    avhrr.n19) inp=MMD_NOAA19.inp ;;
-    avhrr.m02) inp=MMD_METOP02.inp ;;
+    atsr.1) inp=MMDhl_ATSR1.inp ;;
+    atsr.2) inp=MMDhl_ATSR2.inp ;;
+    atsr.3) inp=MMDhl_AATSR.inp ;;
+    avhrr.n10) inp=MMDhl_NOAA10.inp ;;
+    avhrr.n11) inp=MMDhl_NOAA11.inp ;;
+    avhrr.n12) inp=MMDhl_NOAA12.inp ;;
+    avhrr.n14) inp=MMDhl_NOAA14.inp ;;
+    avhrr.n15) inp=MMDhl_NOAA15.inp ;;
+    avhrr.n16) inp=MMDhl_NOAA16.inp ;;
+    avhrr.n17) inp=MMDhl_NOAA17.inp ;;
+    avhrr.n18) inp=MMDhl_NOAA18.inp ;;
+    avhrr.n19) inp=MMDhl_NOAA19.inp ;;
+    avhrr.m02) inp=MMDhl_METOP02.inp ;;
     *) exit 1 ;;
 esac
 
 if ! ./MMD_SCREEN_Linux $inp $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc $sensor-arc3-$startTimeCompact-$stopTimeCompact.nc; then
-    echo "production gap: nwparc3hl-$year-$month-$sensor failed, MMD_SCREEN_Linux failed"
-    echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month $sensor ... failed"
+    echo "production gap: nwparc3hl-$year-$month-$part-$sensor failed, MMD_SCREEN_Linux failed"
+    echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month-$part $sensor ... failed"
     exit 1
 fi
 
 # to check the job wasn't terminated by being over the job time limit
-echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month $sensor ... done"
+echo "`date -u +%Y%m%d-%H%M%S` nwp+arc3 highlat $year/$month-$part $sensor ... done"
