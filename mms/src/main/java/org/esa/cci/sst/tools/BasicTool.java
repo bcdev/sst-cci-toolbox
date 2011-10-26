@@ -107,6 +107,7 @@ public abstract class BasicTool {
 
     static {
         System.setProperty("EPSG-HSQL.directory", System.getProperty("user.home", ".") + File.separator + "tmp");
+        System.setProperty("beam.imageManager.enableSourceTileCaching", "true");
         JAI.enableDefaultTileCache();
 //        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 1024);
         JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 128);
