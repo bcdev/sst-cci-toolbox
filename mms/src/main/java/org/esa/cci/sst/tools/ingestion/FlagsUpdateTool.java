@@ -92,10 +92,13 @@ public class FlagsUpdateTool extends BasicTool {
             // update matchup reference observation fields of MMD' variables
             if (referenceFlagColumn != null) {
                 final byte referenceFlagValue = reader.read("matchup.reference_flag", new ExtractDefinitionBuilder().recordNo(recordNo).shape(new int[]{1}).build()).getByte(0);
-                observation.setReferenceFlag( referenceFlagValue);
+                observation.setReferenceFlag(referenceFlagValue);
             }
             if (referenceFlagColumn != null /* or ... */) {
                 ++count;
+                if (count % 1000 == 0) {
+                    getLogger().info(count + "/" + numRecords + " updated");
+                }
             }
         }
         getLogger().info(String.format("%d observations updated", count));
