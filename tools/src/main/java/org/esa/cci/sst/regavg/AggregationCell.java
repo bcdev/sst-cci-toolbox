@@ -22,7 +22,7 @@ package org.esa.cci.sst.regavg;
 import org.esa.cci.sst.util.Cell;
 
 /**
- * A cell that can aggregate rectangular grid regions given by the {@link AggregationCell5Context}.
+ * A cell that can accumulate rectangular grid regions given by the {@link AggregationCell5Context}.
  *
  * @author Norman Fomferra
  */

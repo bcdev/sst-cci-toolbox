@@ -22,7 +22,7 @@ package org.esa.cci.sst.regavg;
 import java.awt.*;
 
 /**
- * A daily or monthly / 5º cell that aggregates rectangular regions of source grids.
+ * A daily or monthly / 5º cell that accumulates rectangular regions of source grids.
  *
  * @author Norman Fomferra
  */

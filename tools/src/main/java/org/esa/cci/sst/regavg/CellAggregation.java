@@ -19,10 +19,19 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.Cell;
+
 /**
- * A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link AggregationCell5}).
+ * A aggregation that accumulates cells.
  *
  * @author Norman Fomferra
  */
-public interface AggregationCell90<C extends AggregationCell5> extends AggregationCell, CellAggregation<C> {
+public interface CellAggregation<C extends Cell> {
+    /**
+     * Accumulates the given cell (contents) using the provided weight.
+     *
+     * @param cell   The cell to be accumulated.
+     * @param weight The weight.
+     */
+    void accumulate(C cell, double weight);
 }
