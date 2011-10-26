@@ -18,14 +18,14 @@ export MMS_TEMP=/exports/work/geos_gc_sst_cci/temparea
 export MMS_NAS=/exports/nas/exports/cse/geos/scratch/gc/sst-cci/archive
 export MMS_GBCS=/exports/work/geos_gc_sst_cci/avhrr/GBCS
 export MMS_CDO=/exports/work/geos_gc_sst_cci/mms
-export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3-20111005
+export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3-20111024
 
 export MMS_CONFIG=$MMS_INST/mms-eddie.properties
 export MMS_TASKS=$MMS_INST/tasks
 export MMS_LOG=$MMS_INST/log
 
 export PYTHONPATH=$MMS_INST:$MMS_HOME/python:$PYTHONPATH
-export PATH=$MMS_INST:$MMS_HOME/bin:$PATH
+export PATH=$MMS_INST:$MMS_HOME/bin:$MMS_HOME/bin-hl:$PATH
 
 echo "using MMS instance $MMS_INST"
 echo "using MMS software $MMS_HOME"
