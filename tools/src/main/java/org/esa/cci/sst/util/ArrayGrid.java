@@ -23,7 +23,7 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
- * A {@link Grid} that is backed by a NetCDF {@code Array} instance.
+ * A {@link Grid} that is backed by a {@code ucar.ma2.Array} (from NetCDF library) instance.
  *
  * @author Norman Fomferra
  */
@@ -37,7 +37,15 @@ public class ArrayGrid implements Grid {
     private final int width;
     private final int height;
 
-    public ArrayGrid(GridDef gridDef, double scaling, double offset, final Number fillValue, Array array) {
+    public static ArrayGrid create(GridDef gridDef) {
+        return create(gridDef, null);
+    }
+
+    public static ArrayGrid create(GridDef gridDef, double[] data) {
+        return new ArrayGrid(gridDef, Array.factory(DataType.DOUBLE, new int[] {gridDef.getHeight(), gridDef.getWidth()}, data), Double.NaN, 1.0, 0.0);
+    }
+
+    public ArrayGrid(GridDef gridDef, Array array, final Number fillValue, double scaling, double offset) {
         this.gridDef = gridDef;
         this.array = array;
         this.scaling = scaling;
@@ -116,7 +124,7 @@ public class ArrayGrid implements Grid {
         final int newWidth = newGridDef.getWidth();
         final int newHeight = newGridDef.getHeight();
         final Array newArray = Array.factory(newElementType, new int[]{newHeight, newWidth});
-        final ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, 1.0, 0.0, null, newArray);
+        final ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, newArray, null, 1.0, 0.0);
         for (int yd = 0; yd < newHeight; yd++) {
             for (int xd = 0; xd < newWidth; xd++) {
                 double sum = 0.0;
@@ -143,7 +151,7 @@ public class ArrayGrid implements Grid {
         for (int i = 0; i < width * height; i++) {
             newArray.setByte(i, (array.getInt(i) & mask) != 0 ? (byte) 1 : (byte) 0);
         }
-        return new ArrayGrid(gridDef, 1.0, 0.0, null, newArray);
+        return new ArrayGrid(gridDef, newArray, null, 1.0, 0.0);
     }
 
     private void setSample(int x, int y, double sample) {

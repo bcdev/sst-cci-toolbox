@@ -28,7 +28,7 @@ public class ArrayGridTest {
         gridDef = GridDef.createGlobalGrid(8, 4);
         int[] shape = {gridDef.getHeight(), gridDef.getWidth()};
         Array array = Array.factory(DataType.DOUBLE, shape, input);
-        arrayGrid = new ArrayGrid(gridDef, 1.0, 0.0, 999, array);
+        arrayGrid = new ArrayGrid(gridDef, array, 999, 1.0, 0.0);
     }
 
     @Test
@@ -69,7 +69,7 @@ public class ArrayGridTest {
     @Test
     public void testFlipY() throws Exception {
         Array copy = arrayGrid.getArray().copy();
-        ArrayGrid arrayGrid2 = new ArrayGrid(arrayGrid.getGridDef(), arrayGrid.getScaling(), arrayGrid.getOffset(), arrayGrid.getFillValue(), copy);
+        ArrayGrid arrayGrid2 = new ArrayGrid(arrayGrid.getGridDef(), copy, arrayGrid.getFillValue(), arrayGrid.getScaling(), arrayGrid.getOffset());
         arrayGrid2.flipY();
         double[] expected = new double[]{
                 /*3*/ NaN, 0.1, 0.2, 0.3, 0.4, 0.1, NaN, NaN,
@@ -96,7 +96,7 @@ public class ArrayGridTest {
                 B1 | B4, B2 | B1, B2 | B3, B2 | B4, B3 | B4, B1 | B2, B1 | B2, B1 | B3,
                 B2 | B1, B2 | B3, B2 | B4, B3 | B4, B1 | B2, B1 | B2, B1 | B3, B1 | B4,
         });
-        ArrayGrid maskGrid = new ArrayGrid(gridDef, 1, 0, null, array);
+        ArrayGrid maskGrid = new ArrayGrid(gridDef, array, null, 1, 0);
         ArrayGrid unmaskedGrid = maskGrid.unmask(0x01);
         double[] expected = new double[]{
                 1, 1, 1, 1, 0, 0, 0, 1,

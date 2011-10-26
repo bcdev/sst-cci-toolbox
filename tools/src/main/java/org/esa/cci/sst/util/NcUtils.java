@@ -112,7 +112,7 @@ public class NcUtils {
         double addOffset = getAddOffset(variable);
         Number fillValue = getFillValue(variable);
         Array data = readRaster(variable, gridRectangle, z);
-        return new ArrayGrid(expectedGridDef, scaleFactor, addOffset, fillValue, data);
+        return new ArrayGrid(expectedGridDef, data, fillValue, scaleFactor, addOffset);
     }
 
     public static Rectangle getGridRectangle(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef) throws IOException {
