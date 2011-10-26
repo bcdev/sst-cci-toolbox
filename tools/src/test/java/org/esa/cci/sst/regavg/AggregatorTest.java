@@ -4,6 +4,7 @@ import org.esa.cci.sst.util.*;
 import org.junit.Test;
 
 import java.awt.*;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -16,33 +17,33 @@ public class AggregatorTest {
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
 
         AggregationCell5Context context1 = new AggregationCell5Context(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 292.0),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 292.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                                                                       new Grid[]{
+                                                                               new ScalarGrid(sourceGridDef, 292.0),
+                                                                       },
+                                                                       new ScalarGrid(sourceGridDef, 292.5),
+                                                                       new ScalarGrid(sourceGridDef, 0.8));
         AggregationCell5Context context2 = new AggregationCell5Context(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 293.0),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 291.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                                                                       new Grid[]{
+                                                                               new ScalarGrid(sourceGridDef, 293.0),
+                                                                       },
+                                                                       new ScalarGrid(sourceGridDef, 291.5),
+                                                                       new ScalarGrid(sourceGridDef, 0.8));
         AggregationCell5Context context3 = new AggregationCell5Context(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 291.0),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 289.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                                                                       new Grid[]{
+                                                                               new ScalarGrid(sourceGridDef, 291.0),
+                                                                       },
+                                                                       new ScalarGrid(sourceGridDef, 289.5),
+                                                                       new ScalarGrid(sourceGridDef, 0.8));
         AggregationCell5Context context4 = new AggregationCell5Context(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 291.0),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 288.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                                                                       new Grid[]{
+                                                                               new ScalarGrid(sourceGridDef, 291.0),
+                                                                       },
+                                                                       new ScalarGrid(sourceGridDef, 288.5),
+                                                                       new ScalarGrid(sourceGridDef, 0.8));
 
         RegionMask regionMask = RegionMask.create("East_Atlantic", -25, 45, -15, 35);
 
-        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5> (GridDef.createGlobal(5.0), new MyCell5Factory());
+        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(GridDef.createGlobal(5.0), new MyCell5Factory());
         Aggregator.aggregateSources(context1, regionMask, cell5Grid);
         Aggregator.aggregateSources(context2, regionMask, cell5Grid);
         Aggregator.aggregateSources(context3, regionMask, cell5Grid);
@@ -75,14 +76,62 @@ public class AggregatorTest {
 
     @Test
     public void aggregateCell5GridToCell90Grid() throws Exception {
-        // todo - write test
-        // Aggregator.aggregateCell5GridToCell90Grid(null, null, null);
+        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(Aggregator.GRID_DEF_GLOBAL_5, new MyCell5Factory());
+        cell5Grid.getCellSafe(34, 1).set(3.0, 1);
+        cell5Grid.getCellSafe(35, 1).set(7.0, 1);
+        cell5Grid.getCellSafe(36, 1).set(4.0, 1);
+        cell5Grid.getCellSafe(37, 1).set(0.0, 0); // empty
+        cell5Grid.getCellSafe(38, 1).set(5.0, 1);
+        cell5Grid.getCellSafe(39, 1).set(5.2, 1);
+        ArrayGrid seaCoverage5Grid = ArrayGrid.create(Aggregator.GRID_DEF_GLOBAL_5);
+        seaCoverage5Grid.setSample(34, 1, 0.8);
+        seaCoverage5Grid.setSample(35, 1, 0.5);
+        seaCoverage5Grid.setSample(36, 1, 0.7);
+        seaCoverage5Grid.setSample(37, 1, 0.6);
+        seaCoverage5Grid.setSample(38, 1, 0.5);
+        seaCoverage5Grid.setSample(39, 1, 0.7);
+        CellGrid<MyCell90> cell90Grid = Aggregator.aggregateCell5GridToCell90Grid(cell5Grid,
+                                                                                  seaCoverage5Grid,
+                                                                                  new MyCell90Factory());
+
+        List<MyCell90> cell90List = cell90Grid.getCells(CellFilter.NON_EMPTY);
+        assertEquals(2, cell90List.size());
+        MyCell90 cell90_1 = cell90List.get(0);
+        MyCell90 cell90_2 = cell90List.get(1);
+        assertEquals(1, cell90_1.getX());
+        assertEquals(0, cell90_1.getY());
+        assertEquals(2, cell90_1.getSampleCount());
+        assertEquals((3.0 * 0.8 + 7.0 * 0.5) / (0.8 + 0.5), cell90_1.getMean(), 1e-6);
+        assertEquals(2, cell90_2.getX());
+        assertEquals(0, cell90_2.getY());
+        assertEquals(3, cell90_2.getSampleCount());
+        assertEquals((4.0 * 0.7 + 5.0 * 0.5 + 5.2 * 0.7) / (0.7 + 0.5 + 0.7),
+                     cell90_2.getMean(), 1e-6);
     }
 
     @Test
     public void aggregateCell5OrCell90Grid() throws Exception {
-        // todo - write test
-        // Aggregator.aggregateCellGrid(null, null, null);
+        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(Aggregator.GRID_DEF_GLOBAL_5, new MyCell5Factory());
+        cell5Grid.getCellSafe(34, 1).set(3.0, 1);
+        cell5Grid.getCellSafe(35, 1).set(7.0, 1);
+        cell5Grid.getCellSafe(36, 1).set(4.0, 1);
+        cell5Grid.getCellSafe(37, 1).set(0.0, 0); // empty
+        cell5Grid.getCellSafe(38, 1).set(5.0, 1);
+        cell5Grid.getCellSafe(39, 1).set(5.2, 1);
+        ArrayGrid seaCoverage5Grid = ArrayGrid.create(Aggregator.GRID_DEF_GLOBAL_5);
+        seaCoverage5Grid.setSample(34, 1, 0.8);
+        seaCoverage5Grid.setSample(35, 1, 0.5);
+        seaCoverage5Grid.setSample(36, 1, 0.7);
+        seaCoverage5Grid.setSample(37, 1, 0.6);
+        seaCoverage5Grid.setSample(38, 1, 0.5);
+        seaCoverage5Grid.setSample(39, 1, 0.7);
+
+        MyCellSameMonthAggregation aggregation = new MyCellSameMonthAggregation();
+        Aggregator.aggregateCell5OrCell90Grid(cell5Grid, seaCoverage5Grid, aggregation);
+
+        assertEquals(5, aggregation.getSampleCount());
+        assertEquals((3.0 * 0.8 + 7.0 * 0.5 + 4.0 * 0.7 + 5.0 * 0.5 + 5.2 * 0.7) / (0.8 + 0.5 + 0.7 + 0.5 + 0.7),
+                     aggregation.getMean(), 1e-6);
     }
 
     @Test
@@ -115,23 +164,31 @@ public class AggregatorTest {
     private static class MyCell5Factory implements CellFactory<MyCell5> {
         @Override
         public MyCell5 createCell(int x, int y) {
-            return new MyCell5(x,y);
+            return new MyCell5(x, y);
         }
-
     }
-    private static class MyCell5 extends AbstractCell implements AggregationCell5 {
-        double anomalySum;
+
+    private static class MyCell extends AbstractCell implements AggregationCell {
+        double sumX;
+        double sumW;
         int sampleCount;
 
-        private MyCell5(int x, int y) {
+        protected MyCell(int x, int y) {
             super(x, y);
         }
 
-        @Override
-        public void accumulate(AggregationCell5Context aggregationCell5Context, Rectangle rect) {
-            anomalySum += aggregationCell5Context.getSourceGrids()[0].getSampleDouble(0, 0)
-                   - aggregationCell5Context.getAnalysedSstGrid().getSampleDouble(0,0);
-            sampleCount++;
+        double getMean() {
+            return sumX / sumW;
+        }
+
+        public void set(double sumX, int sampleCount) {
+            set(sumX, sampleCount, sampleCount);
+        }
+
+        public void set(double sumX, double sumW, int sampleCount) {
+            this.sumX = sumX;
+            this.sumW = sumW;
+            this.sampleCount = sampleCount;
         }
 
         @Override
@@ -141,18 +198,65 @@ public class AggregatorTest {
 
         @Override
         public Number[] getResults() {
-            return new Number[] {getMean()};
-        }
-
-        double getMean() {
-            return anomalySum / sampleCount;
+            return new Number[]{getMean()};
         }
 
         @Override
         public boolean isEmpty() {
             return sampleCount == 0;
         }
+    }
 
+    private static class MyCell5 extends MyCell implements AggregationCell5 {
 
+        private MyCell5(int x, int y) {
+            super(x, y);
+        }
+
+        @Override
+        public void accumulate(AggregationCell5Context aggregationCell5Context, Rectangle rect) {
+            sumX += aggregationCell5Context.getSourceGrids()[0].getSampleDouble(0, 0)
+                    - aggregationCell5Context.getAnalysedSstGrid().getSampleDouble(0, 0);
+            sumW++;
+            sampleCount++;
+        }
+
+    }
+
+    private static class MyCell90Factory implements CellFactory<MyCell90> {
+        @Override
+        public MyCell90 createCell(int x, int y) {
+            return new MyCell90(x, y);
+        }
+    }
+
+    private static class MyCell90 extends MyCell implements AggregationCell90<MyCell5> {
+
+        private MyCell90(int x, int y) {
+            super(x, y);
+        }
+
+        @Override
+        public void accumulate(MyCell5 cell, double w) {
+            double x = w * cell.getMean();
+            sumX += x;
+            sumW += w;
+            sampleCount++;
+        }
+    }
+
+    private static class MyCellSameMonthAggregation extends  MyCell implements SameMonthAggregation<MyCell> {
+
+        private MyCellSameMonthAggregation() {
+            super(0, 0);
+        }
+
+        @Override
+        public void accumulate(MyCell cell, double w) {
+            double x = w * cell.getMean();
+            sumX += x;
+            sumW += w;
+            sampleCount++;
+        }
     }
 }

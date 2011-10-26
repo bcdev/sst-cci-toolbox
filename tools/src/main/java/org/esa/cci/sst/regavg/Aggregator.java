@@ -41,8 +41,8 @@ import java.util.logging.Logger;
  */
 public class Aggregator {
 
-    private static final GridDef GRID_DEF_GLOBAL_5 = GridDef.createGlobal(5.0);
-    private static final GridDef GRID_DEF_GLOBAL_90 = GridDef.createGlobal(90.0);
+    public static final GridDef GRID_DEF_GLOBAL_5 = GridDef.createGlobal(5.0);
+    public static final GridDef GRID_DEF_GLOBAL_90 = GridDef.createGlobal(90.0);
 
     private static final Logger LOGGER = Tool.LOGGER;
     private final RegionMaskList regionMaskList;
@@ -168,7 +168,7 @@ public class Aggregator {
             boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
             SameMonthAggregation aggregation = aggregationFactory.createAggregation();
             if (mustAggregateTo90) {
-                CellGrid<AggregationCell90> cell90Grid = aggregateCell5GridToCell90Grid(cell5Grid, seaCoverageCell90Grid, cell90Factory);
+                CellGrid<AggregationCell90> cell90Grid = aggregateCell5GridToCell90Grid(cell5Grid, seaCoverageCell5Grid, cell90Factory);
                 aggregateCell5OrCell90Grid(cell90Grid, seaCoverageCell90Grid, aggregation);
             } else {
                 aggregateCell5OrCell90Grid(cell5Grid, seaCoverageCell5Grid, aggregation);
@@ -235,20 +235,22 @@ public class Aggregator {
                                            climatology.getSeaCoverageSourceGrid());
     }
 
-    static CellGrid<AggregationCell90> aggregateCell5GridToCell90Grid(CellGrid<AggregationCell5> cell5Grid, Grid seaCoverage90Grid, CellFactory<AggregationCell90> cell90Factory) {
-        final CellGrid<AggregationCell90> cell90Grid = new CellGrid<AggregationCell90>(GRID_DEF_GLOBAL_90, cell90Factory);
+    static <C5 extends AggregationCell5, C90 extends AggregationCell90> CellGrid<C90> aggregateCell5GridToCell90Grid(CellGrid<C5> cell5Grid,
+                                                                                                                    Grid seaCoverage5Grid,
+                                                                                                                    CellFactory<C90> cell90Factory) {
+        final CellGrid<C90> cell90Grid = new CellGrid<C90>(GRID_DEF_GLOBAL_90, cell90Factory);
         final int width = cell5Grid.getGridDef().getWidth();
         final int height = cell5Grid.getGridDef().getHeight();
-        for (int cellY = 0; cellY < height; cellY++) {
-            for (int cellX = 0; cellX < width; cellX++) {
-                AggregationCell5 cell5 = cell5Grid.getCell(cellX, cellY);
+        for (int cell5Y = 0; cell5Y < height; cell5Y++) {
+            for (int cell5X = 0; cell5X < width; cell5X++) {
+                C5 cell5 = cell5Grid.getCell(cell5X, cell5Y);
                 if (cell5 != null && !cell5.isEmpty()) {
-                    int cell90X = (cellX * cell90Grid.getGridDef().getWidth()) / width;
-                    int cell90Y = (cellY * cell90Grid.getGridDef().getHeight()) / height;
-                    AggregationCell90 cell90 = cell90Grid.getCellSafe(cell90X, cell90Y);
-                    double seaCoverage90 = seaCoverage90Grid.getSampleDouble(cell90X, cell90Y);
+                    int cell90X = (cell5X * cell90Grid.getGridDef().getWidth()) / width;
+                    int cell90Y = (cell5Y * cell90Grid.getGridDef().getHeight()) / height;
+                    C90 cell90 = cell90Grid.getCellSafe(cell90X, cell90Y);
+                    double seaCoverage5 = seaCoverage5Grid.getSampleDouble(cell5X, cell5Y);
                     // noinspection unchecked
-                    cell90.accumulate(cell5, seaCoverage90);
+                    cell90.accumulate(cell5, seaCoverage5);
                 }
             }
         }
@@ -297,8 +299,8 @@ public class Aggregator {
 
     static <C extends AggregationCell5> CellGrid<C> getCell5GridForRegion(CellGrid<C> combinedGrid5, RegionMask regionMask) {
         final CellGrid<C> regionalGrid5 = new CellGrid<C>(combinedGrid5.getGridDef(), combinedGrid5.getCellFactory());
-        final int width = combinedGrid5.getGridDef().getWidth();
-        final int height = combinedGrid5.getGridDef().getHeight();
+        final int width = combinedGrid5.getWidth();
+        final int height = combinedGrid5.getHeight();
         for (int cellY = 0; cellY < height; cellY++) {
             for (int cellX = 0; cellX < width; cellX++) {
                 if (regionMask.getSampleBoolean(cellX, cellY)) {

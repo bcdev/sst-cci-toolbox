@@ -91,10 +91,20 @@ public class ArrayGrid implements Grid {
         return array.getBoolean(index);
     }
 
+    public void setSample(int x, int y, boolean sample) {
+        int index = y * width + x;
+        array.setBoolean(index, sample);
+    }
+
     @Override
     public int getSampleInt(int x, int y) {
         int index = y * width + x;
         return array.getInt(index);
+    }
+
+    public void setSample(int x, int y, int sample) {
+        int index = y * width + x;
+        array.setInt(index, sample);
     }
 
     @Override
@@ -105,6 +115,11 @@ public class ArrayGrid implements Grid {
             return Double.NaN;
         }
         return scaling * sample + offset;
+    }
+
+    public void setSample(int x, int y, double sample) {
+        int index = y * width + x;
+        array.setDouble(index, sample);
     }
 
     public ArrayGrid scaleDown(int scaleX, int scaleY) {
@@ -152,11 +167,6 @@ public class ArrayGrid implements Grid {
             newArray.setByte(i, (array.getInt(i) & mask) != 0 ? (byte) 1 : (byte) 0);
         }
         return new ArrayGrid(gridDef, newArray, null, 1.0, 0.0);
-    }
-
-    private void setSample(int x, int y, double sample) {
-        int index = y * width + x;
-        array.setDouble(index, sample);
     }
 
     public void flipY() {
