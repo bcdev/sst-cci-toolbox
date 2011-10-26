@@ -1,3 +1,22 @@
+/*
+ * SST_cci Tools
+ *
+ * Copyright (C) 2011-2013 by Brockmann Consult GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.esa.cci.sst.tool;
 
 import org.apache.commons.cli.CommandLine;
@@ -13,6 +32,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
@@ -88,6 +108,8 @@ public abstract class Tool {
 
     protected abstract String getFooter();
 
+    protected abstract String getToolHome();
+
     protected abstract Parameter[] getParameters();
 
     protected abstract void run(Configuration configuration, String[] arguments) throws ToolException;
@@ -121,11 +143,16 @@ public abstract class Tool {
         // 4. Overwrite from command-line
         for (Parameter param : parameters) {
             if (commandLine.hasOption(param.getName())) {
-                properties.setProperty(param.getName(), commandLine.getOptionValue(param.getName()));
+                String optionValue = commandLine.getOptionValue(param.getName());
+                if (optionValue == null) {
+                    // option without arg means, an option has been set (to "true")
+                    optionValue = "true";
+                }
+                properties.setProperty(param.getName(), optionValue);
             }
         }
 
-        return new Configuration(properties);
+        return new Configuration(getToolHome(), properties);
     }
 
     protected File getDefaultConfigFile() {
@@ -181,7 +208,7 @@ public abstract class Tool {
     }
 
     private void printVersion() {
-        System.out.println(getVersion());
+        System.out.printf("%s version %s%n", getName(), getVersion());
     }
 
     private CommandLine parseCommandLine(String[] arguments) throws ParseException {
@@ -199,7 +226,7 @@ public abstract class Tool {
                 }
                 description += " The default value is '" + param.getDefaultValue() + "'.";
             }
-            options.addOption(createOption(null, param.getName(), param.getType(), description));
+            options.addOption(createOption(null, param.getName(), param.getArgName(), description));
         }
 
         options.addOption(createOption("h", "help", null,
@@ -225,7 +252,7 @@ public abstract class Tool {
     }
 
     protected static void initLogger(LogLevel logLevel) {
-        final DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd hh:mm:ss");
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Formatter formatter = new Formatter() {
             @Override
             public String format(LogRecord record) {
@@ -250,4 +277,5 @@ public abstract class Tool {
         LOGGER.addHandler(handler);
         LOGGER.setLevel(logLevel.getValue());
     }
+
 }

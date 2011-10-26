@@ -1,7 +1,25 @@
+/*
+ * SST_cci Tools
+ *
+ * Copyright (C) 2011-2013 by Brockmann Consult GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.tool.*;
-import org.esa.cci.sst.util.Cell;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -12,8 +30,11 @@ import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -24,12 +45,12 @@ import java.util.List;
  *
  * @author Norman Fomferra
  */
-public class RegionalAverageTool extends Tool {
+public final class RegionalAverageTool extends Tool {
 
-    private static final String FILE_FORMAT_VERSION = "01.0";
+    private static final String FILE_FORMAT_VERSION = "1.1";
 
     private static final String TOOL_NAME = "regavg";
-    private static final String TOOL_VERSION = TOOL_NAME + ", version 0.1.2 (C) 2011-2013 by the ESA SST_cci project";
+    private static final String TOOL_VERSION = "1.0_b03";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
             "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
@@ -67,21 +88,22 @@ public class RegionalAverageTool extends Tool {
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
                                                                      "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
-                                                                    "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
-                                                                            "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
-                                                                            "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
-                                                                            "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
-                                                                            "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
+                                                                       "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
+                                                                               "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
+                                                                               "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
+                                                                               "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
+                                                                               "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
     public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".",
                                                                    "The output directory.");
-    public static final Parameter PARAM_OUTPUT_TYPE = new Parameter("outputType", "TYPE", OutputType.anomaly.toString(),
-                                                                    "The output type. Must be one of " + Arrays.toString(OutputType.values()) + ".");
 
     public static final Parameter PARAM_LUT1_FILE = new Parameter("lut1File", "FILE", "conf/auxdata/coverage_uncertainty_parameters.nc",
-                                                                    "A NetCDF file that provides lookup table 1.");
+                                                                  "A NetCDF file that provides lookup table 1.");
 
     public static final Parameter PARAM_LUT2_FILE = new Parameter("lut2File", "FILE", "conf/auxdata/RegionalAverage_LUT2.txt",
-                                                                    "A plain text file that provides lookup table 2.");
+                                                                  "A plain text file that provides lookup table 2.");
+
+    public static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
+                                                                   "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
 
     public static void main(String[] arguments) {
         new RegionalAverageTool().run(arguments);
@@ -113,6 +135,11 @@ public class RegionalAverageTool extends Tool {
     }
 
     @Override
+    protected String getToolHome() {
+        return System.getProperty(TOOL_NAME + ".home", ".");
+    }
+
+    @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
         paramList.addAll(Arrays.asList(
@@ -127,7 +154,7 @@ public class RegionalAverageTool extends Tool {
                 PARAM_PRODUCT_TYPE,
                 PARAM_FILENAME_REGEX,
                 PARAM_OUTPUT_DIR,
-                PARAM_OUTPUT_TYPE));
+                PARAM_WRITE_TEXT));
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {
             paramList.add(new Parameter(value.name() + ".dir", "DIR", null, "Directory that hosts the products of type '" + value.name() + "'."));
@@ -141,7 +168,6 @@ public class RegionalAverageTool extends Tool {
         File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(), productType.getDefaultFilenameRegex(), false);
-        OutputType outputType = OutputType.valueOf(configuration.getString(PARAM_OUTPUT_TYPE, true));
         SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
         String productDir = configuration.getString(productType + ".dir", null, true);
         Date startDate = configuration.getDate(PARAM_START_DATE, true);
@@ -151,22 +177,24 @@ public class RegionalAverageTool extends Tool {
         RegionMaskList regionMaskList = parseRegionList(configuration);
         File lut1File = configuration.getExistingFile(PARAM_LUT1_FILE, true);
         File lut2File = configuration.getExistingFile(PARAM_LUT2_FILE, true);
+        boolean writeText = configuration.getBoolean(PARAM_WRITE_TEXT, false);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
         LUT1 lut1 = getLUT1(lut1File);
         LUT2 lut2 = getLUT2(lut2File);
 
-        List<RegionalAveraging.OutputTimeStep> outputTimeSteps;
+        List<Aggregator.TimeStep> timeSteps;
         try {
-            RegionalAveraging averaging = new RegionalAveraging(fileStore, climatology, lut1, lut2, outputType, sstDepth);
-            outputTimeSteps = averaging.computeOutputTimeSteps(startDate, endDate, temporalResolution, regionMaskList);
+            Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
+            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
 
         try {
-            writeOutputs(outputDir, productType, filenameRegex, outputType, sstDepth, startDate, endDate, temporalResolution, regionMaskList, outputTimeSteps);
+            writeOutputs(outputDir, writeText, productType, filenameRegex,
+                         sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
@@ -195,20 +223,17 @@ public class RegionalAverageTool extends Tool {
     }
 
     private void writeOutputs(File outputDir,
+                              boolean writeText,
                               ProductType productType,
                               String filenameRegex,
-                              OutputType outputType,
                               SstDepth sstDepth,
                               Date startDate,
                               Date endDate,
                               TemporalResolution temporalResolution,
                               RegionMaskList regionMaskList,
-                              List<RegionalAveraging.OutputTimeStep> outputTimeSteps) throws IOException {
+                              List<Aggregator.TimeStep> timeSteps) throws IOException {
 
-        for (int regionIndex = 0; regionIndex < regionMaskList.size(); regionIndex++) {
-            RegionMask regionMask = regionMaskList.get(regionIndex);
-            dump("SST_" + sstDepth + "_" + outputType, regionMask.getName(), regionIndex, outputTimeSteps);
-        }
+        final PrintWriter textWriter = getTextWriter(writeText);
 
         DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
         for (int regionIndex = 0; regionIndex < regionMaskList.size(); regionIndex++) {
@@ -217,41 +242,40 @@ public class RegionalAverageTool extends Tool {
                                                       filenameDateFormat.format(endDate),
                                                       regionMask.getName(),
                                                       productType.getProcessingLevel(),
-                                                      "SST_" + sstDepth + "_" + outputType,
+                                                      "SST_" + sstDepth + "_average",
                                                       "PS",
-                                                      "DM",
-                                                      FILE_FORMAT_VERSION);
+                                                      "DM"
+            );
             File file = new File(outputDir, outputFilename);
             LOGGER.info("Writing output file '" + file + "'...");
-            writeOutputFile(file, productType, filenameRegex, outputType, sstDepth, startDate, endDate, temporalResolution, regionMask, regionIndex, outputTimeSteps);
+            writeOutputFile(file, textWriter, productType, filenameRegex, sstDepth, startDate, endDate, temporalResolution, regionMask, regionIndex, timeSteps);
+        }
+
+        if (textWriter != null) {
+            textWriter.close();
         }
     }
 
-    private void dump(String sstName, String regionName, int regionIndex, List<RegionalAveraging.OutputTimeStep> outputTimeSteps) {
-        System.out.printf("-------------------------------------\n");
-        System.out.printf("%s\t%s\t%s\t%s\t%s\n", "region", "start", "end", "step", sstName);
-        DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd");
-        for (int t = 0; t < outputTimeSteps.size(); t++) {
-            RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
-            Date date1 = outputTimeStep.date1;
-            Date date2 = outputTimeStep.date2;
-            Cell cell = outputTimeStep.regionalAverages.get(regionIndex);
-            System.out.printf("%s\t%s\t%s\t%s\t%s\n",
-                              regionName,
-                              dateFormat.format(date1),
-                              dateFormat.format(date2),
-                              t + 1,
-                              cell.getSampleMean());
+    private PrintWriter getTextWriter(boolean writeText) throws IOException {
+        final PrintWriter writer;
+        if (writeText) {
+            String fileName = String.format("%s-output-%s.txt", TOOL_NAME, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+            writer = new PrintWriter(new FileWriter(fileName));
+        } else {
+            writer = null;
         }
+        return writer;
     }
 
-    private static void writeOutputFile(File file, ProductType productType,
-                                        String filenameRegex, OutputType outputType, SstDepth sstDepth,
+    private static void writeOutputFile(File file,
+                                        PrintWriter textWriter,
+                                        ProductType productType,
+                                        String filenameRegex, SstDepth sstDepth,
                                         Date startDate,
                                         Date endDate,
                                         TemporalResolution temporalResolution,
                                         RegionMask regionMask, int regionIndex,
-                                        List<RegionalAveraging.OutputTimeStep> outputTimeSteps) throws IOException {
+                                        List<Aggregator.TimeStep> timeSteps) throws IOException {
 
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
@@ -262,7 +286,6 @@ public class RegionalAverageTool extends Tool {
             netcdfFile.addGlobalAttribute("tool_name", TOOL_NAME);
             netcdfFile.addGlobalAttribute("tool_version", TOOL_VERSION);
             netcdfFile.addGlobalAttribute("generated_at", UTC.getIsoFormat().format(new Date()));
-            netcdfFile.addGlobalAttribute("output_type", outputType.toString());
             netcdfFile.addGlobalAttribute("product_type", productType.toString());
             netcdfFile.addGlobalAttribute("sst_depth", sstDepth.toString());
             netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
@@ -271,56 +294,51 @@ public class RegionalAverageTool extends Tool {
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
             netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
 
-            int numSteps = outputTimeSteps.size();
+            int numSteps = timeSteps.size();
             Dimension timeDimension = netcdfFile.addDimension("time", numSteps, true, false, false);
+            Dimension[] dims = {timeDimension};
 
-            Variable startTimeVar = netcdfFile.addVariable("start_time", DataType.FLOAT, new Dimension[]{timeDimension});
+            Variable startTimeVar = netcdfFile.addVariable("start_time", DataType.FLOAT, dims);
             startTimeVar.addAttribute(new Attribute("units", "seconds"));
             startTimeVar.addAttribute(new Attribute("long_name", "reference start time of averaging period in seconds until 1981-01-01T00:00:00"));
 
-            Variable endTimeVar = netcdfFile.addVariable("end_time", DataType.FLOAT, new Dimension[]{timeDimension});
+            Variable endTimeVar = netcdfFile.addVariable("end_time", DataType.FLOAT, dims);
             endTimeVar.addAttribute(new Attribute("units", "seconds"));
             endTimeVar.addAttribute(new Attribute("long_name", "reference end time of averaging period in seconds until 1981-01-01T00:00:00"));
 
-            Variable sstMeanVar = netcdfFile.addVariable(String.format("sst_%s_%s_mean", sstDepth, outputType), DataType.FLOAT, new Dimension[]{timeDimension});
-            sstMeanVar.addAttribute(new Attribute("units", "kelvin"));
-            sstMeanVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s %s in kelvin.", outputType, sstDepth)));
-            sstMeanVar.addAttribute(new Attribute("_FillValue", Double.NaN));
-
-            // Actually not required by Nick's tool spec.
-            Variable sstSigmaVar = netcdfFile.addVariable(String.format("sst_%s_%s_sigma", sstDepth, outputType), DataType.FLOAT, new Dimension[]{timeDimension});
-            sstSigmaVar.addAttribute(new Attribute("units", "kelvin"));
-            sstSigmaVar.addAttribute(new Attribute("long_name", String.format("sigma of sst %s %s in kelvin.", outputType, sstDepth)));
-            sstSigmaVar.addAttribute(new Attribute("_FillValue", Double.NaN));
-
-            // Actually not required by Nick's tool spec.
-            Variable sstCountVar = netcdfFile.addVariable(String.format("sst_%s_%s_count", sstDepth, outputType), DataType.INT, new Dimension[]{timeDimension});
-            sstCountVar.addAttribute(new Attribute("units", "1"));
-            sstCountVar.addAttribute(new Attribute("long_name", String.format("counts of sst %s %s contributions.", outputType, sstDepth)));
+            Variable[] outputVariables = productType.getFileType().createOutputVariables(netcdfFile, sstDepth, dims);
+            Array[] outputArrays = new Array[outputVariables.length];
+            for (int i = 0; i < outputVariables.length; i++) {
+                Variable outputVariable = outputVariables[i];
+                outputArrays[i] = Array.factory(outputVariable.getDataType(), new int[]{numSteps});
+            }
 
             long millisSince1981 = UTC.createCalendar(1981).getTimeInMillis();
 
             float[] startTime = new float[numSteps];
             float[] endTime = new float[numSteps];
-            float[] sstAnomalyMean = new float[numSteps];
-            float[] sstAnomalySigma = new float[numSteps];
-            int[] sstAnomalyCount = new int[numSteps];
             for (int t = 0; t < numSteps; t++) {
-                RegionalAveraging.OutputTimeStep outputTimeStep = outputTimeSteps.get(t);
-                startTime[t] = (outputTimeStep.date1.getTime() - millisSince1981) / 1000.0F;
-                endTime[t] = (outputTimeStep.date2.getTime() - millisSince1981) / 1000.0F;
-                sstAnomalyMean[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSampleMean();
-                sstAnomalySigma[t] = (float) outputTimeStep.regionalAverages.get(regionIndex).getSampleSigma();
-                sstAnomalyCount[t] = (int) outputTimeStep.regionalAverages.get(regionIndex).getSampleCount();
+                Aggregator.TimeStep timeStep = timeSteps.get(t);
+                startTime[t] = (timeStep.getStartDate().getTime() - millisSince1981) / 1000.0F;
+                endTime[t] = (timeStep.getEndDate().getTime() - millisSince1981) / 1000.0F;
+                Number[] results = timeStep.getRegionalAggregationResults(regionIndex);
+                for (int i = 0; i < results.length; i++) {
+                    outputArrays[i].setObject(t, results[i]);
+                }
             }
 
             netcdfFile.create();
 
             netcdfFile.write(startTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, startTime));
             netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, endTime));
-            netcdfFile.write(sstMeanVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalyMean));
-            netcdfFile.write(sstSigmaVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, sstAnomalySigma));
-            netcdfFile.write(sstCountVar.getName(), Array.factory(DataType.INT, new int[]{numSteps}, sstAnomalyCount));
+            for (int i = 0; i < outputVariables.length; i++) {
+                Variable outputVariable = outputVariables[i];
+                netcdfFile.write(outputVariable.getName(), outputArrays[i]);
+            }
+
+            if (textWriter != null) {
+                outputText(textWriter, getNames(outputVariables), regionMask.getName(), regionIndex, timeSteps);
+            }
 
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
@@ -333,12 +351,47 @@ public class RegionalAverageTool extends Tool {
         }
     }
 
+    private static void outputText(PrintWriter textWriter, String[] outputNames, String regionName, int regionIndex, List<Aggregator.TimeStep> timeSteps) {
+        textWriter.println();
+        textWriter.printf("%s\t%s\t%s\t%s\t%s\n", "region", "start", "end", "step", cat(outputNames, "\t"));
+        DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd");
+        for (int t = 0; t < timeSteps.size(); t++) {
+            Aggregator.TimeStep timeStep = timeSteps.get(t);
+            textWriter.printf("%s\t%s\t%s\t%s\t%s\n",
+                              regionName,
+                              dateFormat.format(timeStep.getStartDate()),
+                              dateFormat.format(timeStep.getEndDate()),
+                              t + 1,
+                              cat(timeStep.getRegionalAggregationResults(regionIndex), "\t"));
+        }
+    }
+
+    public static String cat(Object[] values, String sep) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            Object value = values[i];
+            if (i > 0) {
+                sb.append(sep);
+            }
+            sb.append(value);
+        }
+        return sb.toString();
+    }
+
     private RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
         try {
             return RegionMaskList.parse(configuration.getString(PARAM_REGION_LIST, false));
         } catch (Exception e) {
             throw new ToolException(e, ExitCode.USAGE_ERROR);
         }
+    }
+
+    public static String[] getNames(Variable[] vars) {
+        String[] names = new String[vars.length];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = vars[i].getName();
+        }
+        return names;
     }
 
     /**
@@ -351,14 +404,14 @@ public class RegionalAverageTool extends Tool {
      * @param endOfPeriod          End of period = YYYYMMDD
      * @param regionName           Region Name or Description
      * @param processingLevel      Processing Level = L3C, L3U or L4
-     * @param sstType              SST Type (see Table 4)
-     * @param productString        Product String (see Table 5 in PSD)
-     * @param additionalSegregator Additional Segregator = LT or DM
-     * @param fileVersion          File Version, e.g. 0.10
+     * @param sstType              SST Type
+     * @param productString        Product String (see Table 5 in PSD) // todo - find out from PSD what productString is
+     * @param additionalSegregator Additional Segregator = LT or DM  // todo - find out from PSD what additionalSegregator is
      * @return The filename.
      */
-    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator, String fileVersion) {
-        return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v02.0-fv%s.nc",
+    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
+
+        return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                              startOfPeriod,
                              endOfPeriod,
                              regionName,
@@ -366,6 +419,8 @@ public class RegionalAverageTool extends Tool {
                              sstType,
                              productString,
                              additionalSegregator,
-                             fileVersion);
+                             TOOL_VERSION,
+                             FILE_FORMAT_VERSION);
     }
+
 }

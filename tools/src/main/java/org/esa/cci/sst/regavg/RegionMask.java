@@ -1,3 +1,22 @@
+/*
+ * SST_cci Tools
+ *
+ * Copyright (C) 2011-2013 by Brockmann Consult GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.Grid;
@@ -8,7 +27,7 @@ import java.text.ParseException;
 import java.util.StringTokenizer;
 
 /**
- * A global mask comprising 72 x 35 5-degree cells.
+ * A global mask comprising 72 x 35 5º cells.
  *
  * @author Norman
  */
@@ -19,7 +38,7 @@ public class RegionMask implements Grid {
         Globe,
         N_Hemisphere,
         S_Hemisphere,
-        // may add: Ninty_deg_cells?
+        // may add: Ninety_deg_cells?
         Other,
     }
 
@@ -116,9 +135,9 @@ public class RegionMask implements Grid {
             coverage = Coverage.Empty;
         } else if (nG == nTotal) {
             coverage = Coverage.Globe;
-        } else if (nN == nTotal / 2) {
+        } else if (nN == nG && nN == nTotal / 2) {
             coverage = Coverage.N_Hemisphere;
-        } else if (nS == nTotal / 2) {
+        } else if (nS == nG && nS == nTotal / 2) {
             coverage = Coverage.S_Hemisphere;
         } else {
             coverage = Coverage.Other;

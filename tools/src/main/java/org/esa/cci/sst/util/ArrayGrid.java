@@ -1,10 +1,29 @@
+/*
+ * SST_cci Tools
+ *
+ * Copyright (C) 2011-2013 by Brockmann Consult GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.esa.cci.sst.util;
 
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
- * A {@link Grid} that is backed by a NetCDF {@code Array} instance.
+ * A {@link Grid} that is backed by a {@code ucar.ma2.Array} (from NetCDF library) instance.
  *
  * @author Norman Fomferra
  */
@@ -18,7 +37,15 @@ public class ArrayGrid implements Grid {
     private final int width;
     private final int height;
 
-    public ArrayGrid(GridDef gridDef, double scaling, double offset, final Number fillValue, Array array) {
+    public static ArrayGrid create(GridDef gridDef) {
+        return create(gridDef, null);
+    }
+
+    public static ArrayGrid create(GridDef gridDef, double[] data) {
+        return new ArrayGrid(gridDef, Array.factory(DataType.DOUBLE, new int[] {gridDef.getHeight(), gridDef.getWidth()}, data), Double.NaN, 1.0, 0.0);
+    }
+
+    public ArrayGrid(GridDef gridDef, Array array, final Number fillValue, double scaling, double offset) {
         this.gridDef = gridDef;
         this.array = array;
         this.scaling = scaling;
@@ -64,10 +91,20 @@ public class ArrayGrid implements Grid {
         return array.getBoolean(index);
     }
 
+    public void setSample(int x, int y, boolean sample) {
+        int index = y * width + x;
+        array.setBoolean(index, sample);
+    }
+
     @Override
     public int getSampleInt(int x, int y) {
         int index = y * width + x;
         return array.getInt(index);
+    }
+
+    public void setSample(int x, int y, int sample) {
+        int index = y * width + x;
+        array.setInt(index, sample);
     }
 
     @Override
@@ -78,6 +115,11 @@ public class ArrayGrid implements Grid {
             return Double.NaN;
         }
         return scaling * sample + offset;
+    }
+
+    public void setSample(int x, int y, double sample) {
+        int index = y * width + x;
+        array.setDouble(index, sample);
     }
 
     public ArrayGrid scaleDown(int scaleX, int scaleY) {
@@ -97,7 +139,7 @@ public class ArrayGrid implements Grid {
         final int newWidth = newGridDef.getWidth();
         final int newHeight = newGridDef.getHeight();
         final Array newArray = Array.factory(newElementType, new int[]{newHeight, newWidth});
-        final ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, 1.0, 0.0, null, newArray);
+        final ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, newArray, null, 1.0, 0.0);
         for (int yd = 0; yd < newHeight; yd++) {
             for (int xd = 0; xd < newWidth; xd++) {
                 double sum = 0.0;
@@ -124,12 +166,7 @@ public class ArrayGrid implements Grid {
         for (int i = 0; i < width * height; i++) {
             newArray.setByte(i, (array.getInt(i) & mask) != 0 ? (byte) 1 : (byte) 0);
         }
-        return new ArrayGrid(gridDef, 1.0, 0.0, null, newArray);
-    }
-
-    private void setSample(int x, int y, double sample) {
-        int index = y * width + x;
-        array.setDouble(index, sample);
+        return new ArrayGrid(gridDef, newArray, null, 1.0, 0.0);
     }
 
     public void flipY() {
