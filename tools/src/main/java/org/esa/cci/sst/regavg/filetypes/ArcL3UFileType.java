@@ -191,9 +191,9 @@ public class ArcL3UFileType implements FileType {
 
     private static abstract class MyAggregationCell extends AbstractAggregationCell {
 
-        protected final Accumulator sstAccu = new ArithmeticMeanAccumulator();
-        protected final Accumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
-        protected final Accumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
+        protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
 
         private MyAggregationCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
@@ -286,10 +286,10 @@ public class ArcL3UFileType implements FileType {
 
     private static class MyRegionalAggregation implements RegionalAggregation {
 
-        protected final Accumulator sstAccu = new ArithmeticMeanAccumulator();
-        protected final Accumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
-        protected final Accumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
-        protected final Accumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
+        protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
+        protected final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
 
         @Override
         public long getSampleCount() {

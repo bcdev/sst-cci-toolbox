@@ -19,17 +19,17 @@
 
 package org.esa.cci.sst.util.accumulators;
 
-import org.esa.cci.sst.util.Accumulator;
+import org.esa.cci.sst.util.NumberAccumulator;
 
 /**
- * An {@link Accumulator} used for weighted, arithmetic mean averaging.
+ * An {@link org.esa.cci.sst.util.NumberAccumulator} used for weighted, arithmetic mean averaging.
  *
  * @author Norman Fomferra
  */
-public class ArithmeticMeanAccumulator extends Accumulator {
+public class ArithmeticMeanAccumulator extends NumberAccumulator {
 
-    private double sampleSum;
-    private double weightSum;
+    private double sumX;
+    private double sumW;
     protected long sampleCount;
 
     @Override
@@ -39,8 +39,8 @@ public class ArithmeticMeanAccumulator extends Accumulator {
 
     @Override
     protected void accumulateSample(double sample, double weight) {
-        sampleSum += weight * sample;
-        weightSum += weight;
+        sumX += weight * sample;
+        sumW += weight;
         sampleCount++;
     }
 
@@ -49,12 +49,12 @@ public class ArithmeticMeanAccumulator extends Accumulator {
         if (sampleCount == 0) {
             return Double.NaN;
         }
-        if (sampleSum == 0.0) {
+        if (sumX == 0.0) {
             return 0.0;
         }
-        if (weightSum == 0.0) {
+        if (sumW == 0.0) {
             return Double.NaN;
         }
-        return sampleSum / weightSum;
+        return sumX / sumW;
     }
 }

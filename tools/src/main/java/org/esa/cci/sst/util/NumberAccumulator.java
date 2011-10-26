@@ -20,10 +20,22 @@
 package org.esa.cci.sst.util;
 
 /**
- * An accumulator is used to accumulate any type of "samples".
+ * An accumulator whose samples are single, weighted numbers.
  *
  * @author Norman Fomferra
  */
-public interface Accumulator {
-    long getSampleCount();
+public abstract class NumberAccumulator implements Accumulator {
+
+    protected NumberAccumulator() {
+    }
+
+    public void accumulate(double sample, double weight) {
+        if (!Double.isNaN(sample) && !Double.isNaN(weight)) {
+            accumulateSample(sample, weight);
+        }
+    }
+
+    public abstract double computeAverage();
+
+    protected abstract void accumulateSample(double sample, double weight);
 }
