@@ -40,3 +40,8 @@
 * Added GPL 3 license to distribution
 * Changed logging time and time in text filename to local time
 
+## Changes in version 1.0_b03 released on 26.10.2011:
+
+* Fixed a bug in aggregation from 5 degree cells to 90 degree cells: The weighting of each 5 degree cell by its ocean
+  coverage has been taken from the corresponding 90 degree ocean coverage grid (instead of the 5 degree one).
+
