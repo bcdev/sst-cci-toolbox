@@ -17,21 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regavg;
-
-import org.esa.cci.sst.util.Cell;
+package org.esa.cci.sst.util;
 
 /**
- * A aggregation that accumulates cells.
+ * A factory for {@link Aggregation}s.
  *
- * @author Norman Fomferra
+ * @author Norman
  */
-public interface CellAggregation<C extends Cell> {
-    /**
-     * Accumulates the given cell (contents) using the provided weight.
-     *
-     * @param cell   The cell to be accumulated.
-     * @param weight The weight.
-     */
-    void accumulate(C cell, double weight);
+public interface AggregationFactory<A extends Aggregation> {
+    A createAggregation();
 }

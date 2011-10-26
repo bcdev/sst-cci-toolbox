@@ -20,6 +20,7 @@
 package org.esa.cci.sst.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.*;
+import org.esa.cci.sst.util.AggregationFactory;
 import org.esa.cci.sst.util.CellFactory;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
@@ -64,7 +65,6 @@ public abstract class UnsupportedFileType implements FileType {
     public Date readDate(NetcdfFile file) throws IOException {
         throw notImplemented();
     }
-
 
     @Override
     public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {

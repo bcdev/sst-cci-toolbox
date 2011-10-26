@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.AggregationFactory;
 import org.esa.cci.sst.util.CellFactory;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;

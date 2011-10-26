@@ -19,13 +19,16 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.AggregationCell;
+import org.esa.cci.sst.util.CellAccumulator;
+
 /**
  * A "same month" (daily, monthly) / regional aggregation
  * that accumulates daily, monthly / 5º,90º cells ({@link AggregationCell5}, {@link AggregationCell90}).
  *
  * @author Norman Fomferra
  */
-public interface SameMonthAggregation<A extends AggregationCell> extends RegionalAggregation, CellAggregation<A> {
+public interface SameMonthAggregation<C extends AggregationCell> extends RegionalAggregation, CellAccumulator<C> {
     /**
      * Accumulates the given cell using the given fractional sea coverage as weight.
      *
@@ -33,5 +36,5 @@ public interface SameMonthAggregation<A extends AggregationCell> extends Regiona
      * @param seaCoverage The fractional sea coverage.
      */
     @Override
-    void accumulate(A cell, double seaCoverage);
+    void accumulate(C cell, double seaCoverage);
 }

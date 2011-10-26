@@ -1,10 +1,7 @@
 package org.esa.cci.sst.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.*;
-import org.esa.cci.sst.util.CellFactory;
-import org.esa.cci.sst.util.Grid;
-import org.esa.cci.sst.util.GridDef;
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.*;
 import org.junit.Test;
 
 import java.awt.*;

@@ -20,6 +20,7 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.util.AbstractCell;
+import org.esa.cci.sst.util.AggregationCell;
 
 /**
  * A daily or monthly / 5º or 90º cell.

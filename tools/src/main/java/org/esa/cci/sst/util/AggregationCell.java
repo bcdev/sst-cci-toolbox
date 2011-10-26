@@ -17,12 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regavg;
-
-import org.esa.cci.sst.util.Cell;
+package org.esa.cci.sst.util;
 
 /**
- * A cell that can accumulate rectangular grid regions given by the {@link AggregationCell5Context}.
+ * A cell that represents an aggregation of some type of "samples".
  *
  * @author Norman Fomferra
  */

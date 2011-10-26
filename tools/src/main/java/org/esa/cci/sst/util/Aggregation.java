@@ -17,12 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regavg;
+package org.esa.cci.sst.util;
 
 /**
- * A factory for {@link Aggregation}s.
- *@author Norman
+ * An object that represents an aggregation of some accumulated source "samples" and returns the aggregation results
+ * as a vector of numbers.
+ *
+ * @author Norman Fomferra
  */
-public interface AggregationFactory<A extends Aggregation> {
-    A createAggregation();
+public interface Aggregation {
+    long getSampleCount();
+    Number[] getResults();
 }

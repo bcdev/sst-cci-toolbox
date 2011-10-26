@@ -17,15 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regavg;
+package org.esa.cci.sst.util;
 
 /**
- * An object that represents an aggregation of some accumulated source "samples" and returns the aggregation results
- * as a vector of numbers.
+ * An accumulator whose samples are weighted {@link Cell}s.
  *
  * @author Norman Fomferra
  */
-public interface Aggregation {
-    long getSampleCount();
-    Number[] getResults();
+public interface CellAccumulator<C extends Cell> {
+    /**
+     * Accumulates the given cell (contents) using the provided weight.
+     *
+     * @param cell   The cell to be accumulated.
+     * @param weight The weight.
+     */
+    void accumulate(C cell, double weight);
 }

@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.util.Aggregation;
+
 /**
  * A regional aggregation.
  *
