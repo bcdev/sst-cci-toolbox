@@ -37,8 +37,12 @@
     <changelog>
         <![CDATA[
         <p>Changes in 1.0<br/>
-        [sst-cci-0000] issue title<br/>
-        <p>]]>
+        [sst-cci-23] provide software package for G. Corlett to process the remaining 12 years<br/>
+        <p>
+        Changes in 1.1<br/>
+        [sst-cci-27] atsr.2 detector_temperature_12 shall not be set<br/>
+        <p>
+        ]]>
     </changelog>
 
     <dependency>
