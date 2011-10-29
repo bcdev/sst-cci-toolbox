@@ -24,5 +24,8 @@ More questions to Nick / Chris:
    case?
 6. Since the LUTs are created form ARC SST anomaly SDs, there will be new ones for CCI products?
 7. Please note that in LUT2, the parameter s is the same for all months.
+8. In case we aggregate 90 degree boxes, the 5 degree coverage uncertainty derived from LUT1 is not used at all.
+   Instead a new coverage uncertainty is computed from LUT2 and the number of contributing 5 degree boxes.
+   Is that correct?
 
 
