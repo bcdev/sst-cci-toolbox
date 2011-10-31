@@ -42,6 +42,9 @@
         Changes in 1.1<br/>
         [sst-cci-27] atsr.2 detector_temperature_12 shall not be set<br/>
         <p>
+        Changes in 1.1<br/>
+        [sst-cci-28] avhrr.n18 nwp and arc3 processing shall not use high latitude observations<br/>
+        <p>
         ]]>
     </changelog>
 
