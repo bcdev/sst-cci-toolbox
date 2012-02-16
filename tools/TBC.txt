@@ -27,5 +27,10 @@ More questions to Nick / Chris:
 8. In case we aggregate 90 degree boxes, the 5 degree coverage uncertainty derived from LUT1 is not used at all.
    Instead a new coverage uncertainty is computed from LUT2 and the number of contributing 5 degree boxes.
    Is that correct?
+   Nick: "The sampling/coverage uncertainties (Variable G) for 5 degree monthlies (calculated using LUT1) need to be
+   aggregated to 90 degree monthlies assuming they are uncorrelated and weighting according to their relative
+   proportions of ocean according to Equation 1.3. These aggregated uncertainties for each 90 degree monthly grid box
+   are then added to the coverage uncertainties (Variable G) for 90 degree monthlies (calculated using LUT2), by
+   squaring the two uncertainties, summing them and taking the square root."
 
 

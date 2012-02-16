@@ -13,7 +13,7 @@ public class MeanAccumulatorTest {
     @Test
     public void testInitState() throws Exception {
         ArithmeticMeanAccumulator cell = new ArithmeticMeanAccumulator();
-        assertEquals(NaN, cell.computeAverage(), 1e-10);
+        assertEquals(NaN, cell.combine(), 1e-10);
         assertEquals(0L, cell.getSampleCount());
     }
 
@@ -27,7 +27,7 @@ public class MeanAccumulatorTest {
         cell.accumulate(0.1, 1.0);
         cell.accumulate(0.3, 1.0);
         assertEquals(4L, cell.getSampleCount());
-        assertEquals(0.4, cell.computeAverage(), 1e-10);
+        assertEquals(0.4, cell.combine(), 1e-10);
     }
 
 }

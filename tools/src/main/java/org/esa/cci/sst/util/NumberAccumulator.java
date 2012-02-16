@@ -35,7 +35,7 @@ public abstract class NumberAccumulator implements Accumulator {
         }
     }
 
-    public abstract double computeAverage();
+    public abstract double combine();
 
     protected abstract void accumulateSample(double sample, double weight);
 }
