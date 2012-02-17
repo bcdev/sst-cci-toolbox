@@ -51,7 +51,7 @@ public final class RegionalAverageTool extends Tool {
     private static final String FILE_FORMAT_VERSION = "1.1";
 
     private static final String TOOL_NAME = "regavg";
-    private static final String TOOL_VERSION = "1.0_b03";
+    private static final String TOOL_VERSION = "1.1_b01";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
             "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +

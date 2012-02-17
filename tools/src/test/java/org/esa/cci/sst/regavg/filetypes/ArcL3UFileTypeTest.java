@@ -76,10 +76,8 @@ public class ArcL3UFileTypeTest {
         assertEquals(4, results.length);
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        assertEquals(0.1, results[2].doubleValue(), 1e-6);
-        // Coverage uncertainty for 5 deg cells
-        double cu = 1.2 * (1.0 - pow(expectedN / 77500.0, 0.5));
-        assertEquals(cu, results[3].doubleValue(), 1e-6);
+        assertEquals(sqrt(300 * sqr(0.1 * 0.8) / sqr(300 * 0.8)), results[2].doubleValue(), 1e-6);
+        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[3].doubleValue(), 1e-6);
     }
 
     @Test
@@ -120,10 +118,10 @@ public class ArcL3UFileTypeTest {
         assertEquals(expectedN5_3, cell5_3.getSampleCount());
         assertEquals(expectedN5_4, cell5_4.getSampleCount());
 
-        cell90.accumulate(cell5_1, 0.25); // --> 0.125, n = 100
-        cell90.accumulate(cell5_2, 0.5);  // --> 0.25, n = 100
-        cell90.accumulate(cell5_3, 0.25); // --> 0.125, n = 100
-        cell90.accumulate(cell5_4, 1.0);  // --> 0.5, n = 200
+        cell90.accumulate(cell5_1, 0.25); // --> w=0.125, n = 100
+        cell90.accumulate(cell5_2, 0.5);  // --> w=0.25, n = 100
+        cell90.accumulate(cell5_3, 0.25); // --> w=0.125, n = 100
+        cell90.accumulate(cell5_4, 1.0);  // --> w=0.5, n = 200
 
         int expectedN90 = 4;
         assertEquals(expectedN90, cell90.getSampleCount());
@@ -133,18 +131,9 @@ public class ArcL3UFileTypeTest {
         assertEquals(4, results.length);
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        assertEquals(0.1, results[2].doubleValue(), 1e-6);
-
-        // Coverage uncertainty for 5 deg cells
-        double cu1 = sqrt(
-                sqr(0.25) * sqr(1.2 * (1.0 - pow(expectedN5_1 / 77500.0, 0.5)))
-                        + sqr(0.5) * sqr(1.2 * (1.0 - pow(expectedN5_2 / 77500.0, 0.5)))
-                        + sqr(0.25) * sqr(1.2 * (1.0 - pow(expectedN5_3 / 77500.0, 0.5)))
-                        + sqr(1.0) * sqr(1.2 * (1.0 - pow(expectedN5_4 / 77500.0, 0.5))));
-        // Coverage uncertainty for 90 deg cells
-        double cu2 = 1.1 / sqrt(expectedN90);
-        double cu = sqrt(cu1 * cu1 + cu2 * cu2);
-        assertEquals(cu, results[3].doubleValue(), 1e-6);
+        // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
+        assertEquals(0.0046771, results[2].doubleValue(), 1e-6);
+        assertEquals(0.8673687, results[3].doubleValue(), 1e-6);
     }
 
     @Test
@@ -191,16 +180,9 @@ public class ArcL3UFileTypeTest {
         assertEquals(4, results.length);
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        assertEquals(0.1, results[2].doubleValue(), 1e-6);
-        // Coverage uncertainties for 5 deg cells
-        double cu1 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
-        double cu2 = 1.2 * (1.0 - pow(400.0 / 77500.0, 0.5));
-        double cu3 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
-        double cu4 = 1.2 * (1.0 - pow(200.0 / 77500.0, 0.5));
-        double sSqrSum = pow(cu1 * 0.25, 2) + pow(cu2 * 0.5, 2) + pow(cu3 * 0.25, 2) + pow(cu4 * 1.0, 2);
-        double wSqrSum = pow(0.25, 2) + pow(0.5, 2) + pow(0.25, 2) + pow(1.0, 2);
-        double cuMean = sqrt(sSqrSum / wSqrSum);
-        assertEquals(cuMean, results[3].doubleValue(), 1e-6);
+        // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
+        assertEquals(0.00414578, results[2].doubleValue(), 1e-6);
+        assertEquals(0.66611642, results[3].doubleValue(), 1e-6);
     }
 
 
@@ -255,20 +237,9 @@ public class ArcL3UFileTypeTest {
         assertEquals(4, results.length);
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        assertEquals(0.1, results[2].doubleValue(), 1e-6);
-        // Coverage uncertainties for 5 deg cells
-        // Coverage uncertainties for 5 deg cells
-        double cu1 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
-        double cu2 = 1.2 * (1.0 - pow(400.0 / 77500.0, 0.5));
-        double sSqrSum1 = pow(cu1 * 0.25, 2) + pow(cu2 * 0.5, 2);
-        double wSqrSum1 = pow(0.25, 2) + pow(0.5, 2);
-        double cuMean1 = sqrt(sSqrSum1 / wSqrSum1);
-        double cu3 = 1.2 * (1.0 - pow(100.0 / 77500.0, 0.5));
-        double cu4 = 1.2 * (1.0 - pow(200.0 / 77500.0, 0.5));
-        double sSqrSum2 = pow(cu3 * 0.25, 2) + pow(cu4 * 1.0, 2);
-        double wSqrSum2 = pow(0.25, 2) + pow(1.0, 2);
-        double cuMean2 = sqrt(sSqrSum2 / wSqrSum2);
-        assertEquals(sqrt((cuMean1 * cuMean1 + cuMean2 * cuMean2) / 2), results[3].doubleValue(), 1e-6);
+        // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
+        assertEquals(0.00381517, results[2].doubleValue(), 1e-6);
+        assertEquals(0.62927276, results[3].doubleValue(), 1e-6);
     }
 
     public static double sqr(double x) {
