@@ -20,6 +20,7 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -50,7 +51,7 @@ public final class RegionalAverageTool extends Tool {
     private static final String FILE_FORMAT_VERSION = "1.1";
 
     private static final String TOOL_NAME = "regavg";
-    private static final String TOOL_VERSION = "1.0_b03";
+    private static final String TOOL_VERSION = "1.1_b01";
     private static final String TOOL_SYNTAX = TOOL_NAME + " [OPTIONS]";
     private static final String TOOL_HEADER = "\n" +
             "The regavg tool is used to generate regional average time-series from ARC (L2P, L3U) and " +
@@ -183,6 +184,9 @@ public final class RegionalAverageTool extends Tool {
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
         LUT1 lut1 = getLUT1(lut1File);
         LUT2 lut2 = getLUT2(lut2File);
+
+        // Enable for debugging
+        // printGrid(climatology);
 
         List<Aggregator.TimeStep> timeSteps;
         try {
@@ -423,4 +427,25 @@ public final class RegionalAverageTool extends Tool {
                              FILE_FORMAT_VERSION);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
+    private void printGrid(Climatology climatology)  {
+        try {
+            climatology.getAnalysedSstGrid(1);
+            final ArrayGrid seaCoverageSourceGrid = (ArrayGrid) climatology.getSeaCoverageSourceGrid();
+            final ArrayGrid arrayGrid = seaCoverageSourceGrid.scaleDown(10, 10);
+            System.out.println("========= " + arrayGrid.getWidth() + ":" + seaCoverageSourceGrid.getWidth());
+            for (int j = 0; j < arrayGrid.getHeight(); j++) {
+                for (int i = 0; i < arrayGrid.getWidth(); i++) {
+                    final double sampleDouble = arrayGrid.getSampleDouble(i, j);
+                    if (i > 0)
+                        System.out.print("\t");
+                    System.out.print(sampleDouble);
+                }
+                System.out.print("\n");
+            }
+            System.out.println("=========");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

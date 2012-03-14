@@ -22,14 +22,17 @@ package org.esa.cci.sst.util.accumulators;
 import org.esa.cci.sst.util.NumberAccumulator;
 
 /**
- * An {@link org.esa.cci.sst.util.NumberAccumulator} used for weighted, random uncertainty averaging.
+ * An {@link org.esa.cci.sst.util.NumberAccumulator} used for weighted, uncorrelated uncertainty averaging.
+ *
+ * The actual result can be interpreted as the standard deviation of a weighted sample mean
+ * (see http://en.wikipedia.org/wiki/Weighted_mean).
  *
  * @author Norman Fomferra
  */
 public class RandomUncertaintyAccumulator extends NumberAccumulator {
 
     private double sumXX;
-    private double sumWW;
+    private double sumW;
     private long sampleCount;
 
     @Override
@@ -39,25 +42,25 @@ public class RandomUncertaintyAccumulator extends NumberAccumulator {
 
     @Override
     protected void accumulateSample(double sample, double weight) {
-        final double x = weight * sample;
-        sumXX += x * x;
-        sumWW += weight * weight;
+        final double weightedSample = weight * sample;
+        sumXX += weightedSample * weightedSample;
+        sumW += weight;
         sampleCount++;
     }
 
     @Override
-    public double computeAverage() {
+    public double combine() {
         if (sampleCount == 0) {
             return Double.NaN;
         }
         if (sumXX == 0.0) {
             return 0.0;
         }
-        if (sumWW == 0.0) {
+        if (sumW == 0.0) {
             return Double.NaN;
         }
-        final double meanSqr = sumXX / sumWW;
-        return meanSqr > 0.0 ? Math.sqrt(meanSqr) : 0.0;
+        final double weightedSqrSum = sumXX / (sumW * sumW);
+        return weightedSqrSum > 0.0 ? Math.sqrt(weightedSqrSum) : 0.0;
     }
 
 }

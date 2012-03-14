@@ -23,6 +23,7 @@ import org.esa.cci.sst.util.NumberAccumulator;
 
 /**
  * An {@link org.esa.cci.sst.util.NumberAccumulator} used for weighted, arithmetic mean averaging.
+ * (See Eq. 1.2 in Nicks RegionalAverageTool spec, draft5)
  *
  * @author Norman Fomferra
  */
@@ -45,7 +46,7 @@ public class ArithmeticMeanAccumulator extends NumberAccumulator {
     }
 
     @Override
-    public double computeAverage() {
+    public double combine() {
         if (sampleCount == 0) {
             return Double.NaN;
         }
