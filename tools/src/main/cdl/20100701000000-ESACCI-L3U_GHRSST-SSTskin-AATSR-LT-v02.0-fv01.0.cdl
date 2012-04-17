@@ -173,7 +173,9 @@ variables:
 		adjustment_uncertainty:correlation_time_scale = "1 day" ;
 data:
     lat = ${LAT} ;
+    lat_bnds = ${LAT_BNDS} ;
     lon = ${LON} ;
+    lon_bnds = ${LON_BNDS} ;
 
 // global attributes:
 		:Conventions = "CF-1.5, Unidata Observation Dataset v1.0" ;
