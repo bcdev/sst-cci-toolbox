@@ -12,14 +12,16 @@ import java.util.Properties;
 
 public class ExampleDataGenerator {
 
+    final Properties properties = new Properties();
+
     public static void main(String[] args) {
-        final Properties properties = new Properties();
+        final ExampleDataGenerator g = new ExampleDataGenerator();
 
         if (args.length > 0) {
             FileInputStream is = null;
             try {
                 is = new FileInputStream(args[0]);
-                properties.load(is);
+                g.getProperties().load(is);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -32,18 +34,33 @@ public class ExampleDataGenerator {
                 }
             }
         }
-        final ExampleDataGenerator generator = new ExampleDataGenerator();
         try {
-            generator.generateDataset(properties);
+            g.generateDataset();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void generateDataset(Properties properties) throws Exception {
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setGeneratorExecutablePath(String path) {
+        properties.setProperty("ncgen", path);
+    }
+
+    public void setSourceCdlFilePath(String path) {
+        properties.setProperty("sourceCdlFile", path);
+    }
+
+    public void setTargetCdlFilePath(String path) {
+        properties.setProperty("targetCdlFile", path);
+    }
+
+    public void generateDataset() throws Exception {
         final TemplateResolver resolver = new TemplateResolver(properties);
-        final File sourceCdlFile = new File(resolver.resolveProperty("sourceCdlFile"));
-        final File targetCdlFile = new File(resolver.resolveProperty("targetCdlFile"));
+        final File sourceCdlFile = new File(properties.getProperty("sourceCdlFile"));
+        final File targetCdlFile = new File(properties.getProperty("targetCdlFile"));
         BufferedReader reader = null;
         BufferedWriter writer = null;
         try {
@@ -67,11 +84,12 @@ public class ExampleDataGenerator {
                 // ignore
             }
         }
-        generateNcFile(resolver.resolve("ncgen"), targetCdlFile);
+        generateNcFile(properties.getProperty("ncgen"), targetCdlFile);
     }
 
     private void generateNcFile(String ncgen, File cdlFile) throws Exception {
         final String command = ncgen + " -k 3 -b " + cdlFile.getPath();
+        System.out.print(command);
         final Process process = Runtime.getRuntime().exec(command);
         if (process.waitFor() != 0) {
             throw new Exception(

@@ -83,18 +83,12 @@ variables:
 		mask:comment = "b0: 1=grid cell is open sea water b1: 1=land is present in this grid cell b2: 1=lake surface is present in this grid cell b3: 1=sea ice is present in this grid cell b4-b7: reserved for future grid mask data" ;
 		mask:flag_meanings = "sea land lake ice" ;
 		mask:flag_values = 1b, 2b, 4b, 8b ;
-data:
-    lat = ${LAT} ;
-    lat_bnds = ${LAT_BNDS} ;
-    lon = ${LON} ;
-    lon_bnds = ${LON_BNDS} ;
 
 // global attributes:
 		:Conventions = "CF-1.5, Unidata Observation Dataset v1.0" ;
 		:title = "ESA SST CCI OSTIA L4 product" ;
 		:summary = "OSTIA L4 product from the ESA SST CCI project, produced using <algorithm name>." ;
-		:references = "Insert published or web-based references that\n",
-			"describe the data or methods used to produce them" ;
+		:references = "Insert published or web-based references that describe the data or methods used to produce them" ;
 		:institution = "ESACCI" ;
 		:history = "SST CCI processor XXX.YY" ;
 		:licence = "TBC" ;
@@ -148,4 +142,9 @@ data:
 		:geospatial_lon_min = 180.f ;
 		:processing_level = "L4" ;
 		:cdm_data_type = "grid" ;
+data:
+    lat = ${LAT} ;
+    lat_bnds = ${LAT_BNDS} ;
+    lon = ${LON} ;
+    lon_bnds = ${LON_BNDS} ;
 }

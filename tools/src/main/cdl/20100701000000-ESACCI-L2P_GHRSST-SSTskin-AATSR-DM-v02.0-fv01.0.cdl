@@ -156,9 +156,6 @@ variables:
 		adjustment_uncertainty:coordinates = "lon lat" ;
 		adjustment_uncertainty:correlation_length_scale = "100 km" ;
 		adjustment_uncertainty:correlation_time_scale = "1 day" ;
-data:
-    lat = ${LAT} ;
-    lon = ${LON} ;
 
 // global attributes:
 		:Conventions = "CF-1.5, Unidata Observation Dataset v1.0" ;
@@ -218,4 +215,7 @@ data:
 		:geospatial_lon_min = 180.f ;
 		:processing_level = "L2P" ;
 		:cdm_data_type = "swath" ;
+data:
+    lat = ${LAT} ;
+    lon = ${LON} ;
 }

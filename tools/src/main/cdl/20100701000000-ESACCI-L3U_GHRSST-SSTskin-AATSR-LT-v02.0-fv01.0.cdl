@@ -171,11 +171,6 @@ variables:
 		adjustment_uncertainty:references = "Insert published or web-based references that describe the data or methods used to produce them" ;
 		adjustment_uncertainty:correlation_length_scale = "100 km" ;
 		adjustment_uncertainty:correlation_time_scale = "1 day" ;
-data:
-    lat = ${LAT} ;
-    lat_bnds = ${LAT_BNDS} ;
-    lon = ${LON} ;
-    lon_bnds = ${LON_BNDS} ;
 
 // global attributes:
 		:Conventions = "CF-1.5, Unidata Observation Dataset v1.0" ;
@@ -235,4 +230,9 @@ data:
 		:geospatial_lon_min = 180.f ;
 		:processing_level = "L3U" ;
 		:cdm_data_type = "grid" ;
+data:
+    lat = ${LAT} ;
+    lat_bnds = ${LAT_BNDS} ;
+    lon = ${LON} ;
+    lon_bnds = ${LON_BNDS} ;
 }
