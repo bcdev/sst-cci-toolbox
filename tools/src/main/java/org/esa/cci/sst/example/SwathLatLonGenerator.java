@@ -13,6 +13,8 @@ class SwathLatLonGenerator {
     private String latFilePath = "lat.txt";
     private String lonFilePath = "lon.txt";
 
+    private Rotation rotation = new Rotation(0.0, 0.0, 260.0);
+
     void generate() throws IOException {
         final double minLon = -ny * latResolution * 0.5;
         final double minLat = -nx * lonResolution * 0.5;
@@ -32,7 +34,8 @@ class SwathLatLonGenerator {
                     }
                     final double lon = minLon + y * latResolution;
                     final double lat = minLat + x * lonResolution;
-                    rotate(lon, lat, p);
+                    p.setLocation(lon, lat);
+                    rotation.transform(p);
 
                     latWriter.write((float) p.getY() + "f");
                     lonWriter.write((float) p.getX() + "f");
@@ -61,8 +64,8 @@ class SwathLatLonGenerator {
     }
 
     private void rotate(double lon, double lat, Point2D p) {
-        // TODO - rotate
         p.setLocation(lon, lat);
+        rotation.transform(p);
     }
 
     public String getLonFilePath() {

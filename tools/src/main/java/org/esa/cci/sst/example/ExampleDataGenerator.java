@@ -88,7 +88,7 @@ public class ExampleDataGenerator {
     }
 
     private void generateNcFile(String ncgen, File cdlFile) throws Exception {
-        final String command = ncgen + " -k 3 -b " + cdlFile.getPath();
+        final String command = ncgen + " -k 4 -b " + cdlFile.getPath();
         System.out.print(command);
         final Process process = Runtime.getRuntime().exec(command);
         if (process.waitFor() != 0) {
