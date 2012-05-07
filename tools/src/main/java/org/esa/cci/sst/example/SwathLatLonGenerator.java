@@ -63,11 +63,6 @@ class SwathLatLonGenerator {
         return latFilePath;
     }
 
-    private void rotate(double lon, double lat, Point2D p) {
-        p.setLocation(lon, lat);
-        rotation.transform(p);
-    }
-
     public String getLonFilePath() {
         return lonFilePath;
     }
