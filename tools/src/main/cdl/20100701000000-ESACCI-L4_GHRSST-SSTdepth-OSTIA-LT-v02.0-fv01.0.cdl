@@ -123,7 +123,7 @@ variables:
 		:geospatial_vertical_min = -0.2f ;
 		:geospatial_vertical_max = -0.2f ;
 		:acknowledgment = "Funded by ESA" ;
-		:creator_name = "ESA SST CCI" ;
+		:creator_name = "ESACCI" ;
 		:creator_email = "science.leader@esa-sst-cci.org" ;
 		:creator_url = "http://www.esa-sst-cci.org" ;
 		:creator_processing_institution = "These data were produced at the Met Office as part of the ESA SST CCI project." ;
