@@ -214,7 +214,7 @@ variables:
 		:creator_name = "ESACCI" ;
 		:creator_email = "science.leader@esa-sst-cci.org" ;
 		:creator_url = "http://www.esa-sst-cci.org" ;
-		:creator_processing_institution = "These data were produced at <institution> as part of the ESA SST CCI project." ;
+		:creator_processing_institution = "University of Edinburgh" ;
 		:project = "Climate Change Initiative - European Space Agency" ;
 		:publisher_name = "ESACCI" ;
 		:publisher_url = "http://www.esa-sst-cci.org" ;
