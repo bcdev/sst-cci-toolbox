@@ -263,8 +263,9 @@ public abstract class Tool {
                 sb.append(": ");
                 sb.append(record.getMessage());
                 sb.append("\n");
-                if (record.getThrown() != null) {
-                    sb.append(record.getThrown().toString());
+                final Throwable thrown = record.getThrown();
+                if (thrown != null) {
+                    sb.append(thrown.toString());
                     sb.append("\n");
                 }
                 return sb.toString();
