@@ -25,16 +25,23 @@ package org.esa.cci.sst.tool;
  * @author Norman Fomferra
  */
 public class Parameter {
+
     private final String name;
     private final String argName;
     private final String defaultValue;
     private final String description;
+    private final boolean optional;
 
     public Parameter(String name, String type, String defaultValue, String description) {
+        this(name, type, defaultValue, description, false);
+    }
+
+    public Parameter(String name, String type, String defaultValue, String description, boolean optional) {
         this.name = name;
         this.argName = type;
         this.defaultValue = defaultValue;
         this.description = description;
+        this.optional = optional;
     }
 
     public String getName() {
@@ -51,5 +58,9 @@ public class Parameter {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean isOptional() {
+        return optional;
     }
 }

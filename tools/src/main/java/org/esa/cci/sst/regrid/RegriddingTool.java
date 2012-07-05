@@ -25,16 +25,30 @@ import java.util.Arrays;
 
 public class RegriddingTool extends Tool {
 
-    public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin.name(),
-                                                                  "The SST depth. Must be one of " + Arrays.toString(
-                                                                          SstDepth.values()) + ".");
-    public static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
-                                                                     "Minimum fractional coverage required to yield non-missing grid box output.");
-    public static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "0.0",
-                                                                        "Maximum relative total uncertainty allowed to yield non-missing output.");
-    public static final Parameter PARAM_SPATIAL_RES = new Parameter("spatialRes", "NUM", "0.05",
-                                                                    "Spatial resolution of the output grid in degrees. Must be one of " + Arrays.toString(
-                                                                            SpatialResolution.getValueSet()) + ".");
+    public static final Parameter PARAM_SST_DEPTH =
+            new Parameter("sstDepth", "DEPTH", SstDepth.skin.name(),
+                          "The SST depth. Must be one of " + Arrays.toString(
+                                  SstDepth.values()) + ".");
+    public static final Parameter PARAM_MIN_COVERAGE =
+            new Parameter("minCoverage", "NUM", "0.5",
+                          "The minimum fractional coverage required for non-missing output.");
+    public static final Parameter PARAM_MAX_UNCERTAINTY =
+            new Parameter("maxUncertainty", "NUM", "",
+                          "The maximum relative total uncertainty allowed for non-missing output.", true);
+    public static final Parameter PARAM_SPATIAL_RES =
+            new Parameter("spatialRes", "NUM", "0.05",
+                          "The spatial resolution of the output grid in degrees. Must be one of " + Arrays.toString(
+                                  SpatialResolution.getValueSet()) + ".");
+    public static final Parameter PARAM_REGION =
+            new Parameter("region", "REGION", "-180,90,180,-90",
+                          "The sub-region to be used (optional). Must be a list of coordinates in the format W,N,E,S.");
+    public static final Parameter PARAM_TOTAL_UNCERTAINTY =
+            new Parameter("totalUncertainty", "BOOL", "false",
+                          "A Boolean variable indicating whether total or separated uncertainties are written to the " +
+                          "output file. Must be either 'true' or 'false'.");
+    public static final Parameter PARAM_CLIMATOLOGY_DIR =
+            new Parameter("climatologyDir", "DIR", "./climatology",
+                          "The directory path to the reference climatology.");
 
     @Override
     protected String getName() {
@@ -48,12 +62,14 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected String getSyntax() {
-        return "";
+        return getName() + " [OPTIONS]";
     }
 
     @Override
     protected String getHeader() {
-        return "";
+        return "The " + getName() + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05° " +
+               "latitude by longitude resolution and output on other spatio-temporal resolutions, which are a multiple" +
+               "of this and divide neatly into 180 degrees. Output are SSTs and their uncertainties.";
     }
 
     @Override
@@ -68,7 +84,9 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected Parameter[] getParameters() {
-        return Arrays.asList(PARAM_SST_DEPTH, PARAM_MIN_COVERAGE, PARAM_MAX_UNCERTAINTY, PARAM_SPATIAL_RES).toArray(new Parameter[4]);
+        return Arrays.asList(PARAM_SST_DEPTH, PARAM_MIN_COVERAGE, PARAM_MAX_UNCERTAINTY, PARAM_SPATIAL_RES,
+                             PARAM_REGION, PARAM_TOTAL_UNCERTAINTY, PARAM_CLIMATOLOGY_DIR).toArray(
+                new Parameter[7]);
     }
 
     @Override
