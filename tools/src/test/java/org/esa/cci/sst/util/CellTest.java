@@ -1,8 +1,11 @@
 package org.esa.cci.sst.util;
 
+import org.junit.Ignore;
+
 /**
  * @author Norman
  */
+@Ignore
 public class CellTest {
     /*
     @Test

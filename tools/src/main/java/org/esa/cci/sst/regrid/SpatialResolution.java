@@ -16,8 +16,6 @@
 
 package org.esa.cci.sst.regrid;
 
-import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
-
 import java.util.Arrays;
 
 public class SpatialResolution {
@@ -51,10 +49,18 @@ public class SpatialResolution {
     };
 
 
-    public static double[] getValueSet() {
+    public static double[] getValues() {
         return Arrays.copyOf(RESOLUTIONS, RESOLUTIONS.length);
     }
 
     private SpatialResolution() {
+    }
+
+    public static String getDefault() {
+        return String.valueOf(RESOLUTIONS[0]);
+    }
+
+    public static String getValuesAsString() {
+         return Arrays.toString(RESOLUTIONS);
     }
 }
