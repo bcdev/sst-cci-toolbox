@@ -218,4 +218,5 @@ variables:
 data:
     lat = ${LAT} ;
     lon = ${LON} ;
+    sea_surface_temperature = ${SST} ;
 }

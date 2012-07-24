@@ -3,7 +3,7 @@ package org.esa.cci.sst.example;
 import java.io.FileWriter;
 import java.io.IOException;
 
-class MapLatLonGenerator {
+class MapDataGenerator {
 
     private double latResolution = 0.05;
     private double lonResolution = 0.05;
@@ -11,11 +11,12 @@ class MapLatLonGenerator {
     private int lonCount = 7200;
     private String latFilePath = "lat.txt";
     private String lonFilePath = "lon.txt";
+    private String sstFilePath = "sst.txt";
     private String latBoundsFilePath = "latBounds.txt";
     private String lonBoundsFilePath = "lonBounds.txt";
 
     public static void main(String args[]) {
-        final MapLatLonGenerator g = new MapLatLonGenerator();
+        final MapDataGenerator g = new MapDataGenerator();
 
         try {
             g.generate();
@@ -24,42 +25,42 @@ class MapLatLonGenerator {
         }
     }
 
-    MapLatLonGenerator latResolution(double latResolution) {
+    MapDataGenerator latResolution(double latResolution) {
         this.latResolution = latResolution;
         return this;
     }
 
-    MapLatLonGenerator lonResolution(double lonResolution) {
+    MapDataGenerator lonResolution(double lonResolution) {
         this.lonResolution = lonResolution;
         return this;
     }
 
-    MapLatLonGenerator latCount(int latCount) {
+    MapDataGenerator latCount(int latCount) {
         this.latCount = latCount;
         return this;
     }
 
-    MapLatLonGenerator lonCount(int lonCount) {
+    MapDataGenerator lonCount(int lonCount) {
         this.lonCount = lonCount;
         return this;
     }
 
-    MapLatLonGenerator latFilePath(String path) {
+    MapDataGenerator latFilePath(String path) {
         this.latFilePath = path;
         return this;
     }
 
-    MapLatLonGenerator lonFilePath(String path) {
+    MapDataGenerator lonFilePath(String path) {
         this.lonFilePath = path;
         return this;
     }
 
-    MapLatLonGenerator latBoundsFilePath(String path) {
+    MapDataGenerator latBoundsFilePath(String path) {
         this.latBoundsFilePath = path;
         return this;
     }
 
-    MapLatLonGenerator lonBoundsFilePath(String path) {
+    MapDataGenerator lonBoundsFilePath(String path) {
         this.lonBoundsFilePath = path;
         return this;
     }
@@ -148,6 +149,31 @@ class MapLatLonGenerator {
                 }
             }
         }
+
+        FileWriter sstWriter = null;
+        try {
+            sstWriter = new FileWriter(sstFilePath);
+            for (int i = 0; i < lonCount * latCount; i++) {
+                if (i > 0) {
+                    sstWriter.write(", ");
+                }
+                final short sst;
+                if ((i / lonCount) % 2 == 0) {
+                    sst = (short) ((293.15f - 273.15f) / 0.01f);
+                } else {
+                    sst = -32768;
+                }
+                sstWriter.write(sst + "s");
+            }
+        } finally {
+            if (sstWriter != null) {
+                try {
+                    sstWriter.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
     }
 
     String getLatFilePath() {
@@ -164,5 +190,9 @@ class MapLatLonGenerator {
 
     String getLonBoundsFilePath() {
         return lonBoundsFilePath;
+    }
+
+    public String getSstFilePath() {
+        return sstFilePath;
     }
 }

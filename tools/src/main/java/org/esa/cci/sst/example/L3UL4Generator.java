@@ -5,7 +5,7 @@ import java.io.IOException;
 class L3UL4Generator {
 
     public static void main(String args[]) {
-        final MapLatLonGenerator g = new MapLatLonGenerator();
+        final MapDataGenerator g = new MapDataGenerator();
 
         try {
             g.generate();
@@ -21,6 +21,7 @@ class L3UL4Generator {
         exampleDataGenerator.getProperties().setProperty("LON", g.getLonFilePath());
         exampleDataGenerator.getProperties().setProperty("LAT_BNDS", g.getLatBoundsFilePath());
         exampleDataGenerator.getProperties().setProperty("LON_BNDS", g.getLonBoundsFilePath());
+        exampleDataGenerator.getProperties().setProperty("SST", g.getSstFilePath());
 
         try {
             exampleDataGenerator.generateDataset();

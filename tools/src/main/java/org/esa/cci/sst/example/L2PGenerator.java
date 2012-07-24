@@ -5,7 +5,7 @@ import java.io.IOException;
 class L2PGenerator {
 
     public static void main(String args[]) {
-        final SwathLatLonGenerator g = new SwathLatLonGenerator();
+        final SwathDataGenerator g = new SwathDataGenerator();
 
         try {
             g.generate();
@@ -19,6 +19,7 @@ class L2PGenerator {
         exampleDataGenerator.setTargetCdlFilePath("20100701000000-ESACCI-L2P_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.cdl");
         exampleDataGenerator.getProperties().setProperty("LAT", g.getLatFilePath());
         exampleDataGenerator.getProperties().setProperty("LON", g.getLonFilePath());
+        exampleDataGenerator.getProperties().setProperty("SST", g.getSstFilePath());
 
         try {
             exampleDataGenerator.generateDataset();
