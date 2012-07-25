@@ -16,36 +16,53 @@
 
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tool.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 public class RegriddingTool extends Tool {
     private static final String TOOL_NAME = "regrid";
     private static final String TOOL_VERSION = "0.1";
-
-    private static final String TOOL_HEADER = "\n" +"The " + TOOL_NAME + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05° " +
+    private static final String TOOL_HEADER = "\n" + "The " + TOOL_NAME + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05° " +
             "latitude by longitude resolution and output on other spatio-temporal resolutions, which are a multiple" +
             "of this and divide neatly into 180 degrees. Output are SSTs and their uncertainties.";
+    private static final String TOOL_FOOTER = "";
 
+    //important for input selection of which files ("product types") should be regridded.
+//    private static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.sea_surface_temperature.name(),
+//            "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
 
-    private static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin.name(),
-                                                                   "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
-    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5", "The minimum fractional coverage " +
-                                                                      "required for non-missing output.");
-    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
-                                                                         "The maximum relative total uncertainty allowed for non-missing output.", true);
-    private static final Parameter PARAM_SPATIAL_RESOLUTION = new Parameter("spatialRes", "NUM", SpatialResolution.getDefault(), "The spatial " +
-                                                                            "resolution of the output grid in degrees. Must be one of "
-                                                                            + SpatialResolution.getValuesAsString() + ".");
+    private static final Parameter PARAM_SPATIAL_RESOLUTION = new Parameter("spatialRes", "NUM", SpatialResolution.getDefaultValueAsString(), "The spatial " +
+            "resolution of the output grid in degrees. Must be one of "
+            + SpatialResolution.getValuesAsString() + ".");
+
     private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "-180,90,180,-90",
-                                                                "The sub-region to be used (optional). Must be a list of coordinates in the format W,N,E,S.");
-    private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false", "A Boolean variable indicating whether total or " +
-                                                                           "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
-    private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology", "The directory path to the reference climatology.");
+            "The sub-region to be used (optional). Must be a list of coordinates in the format W,N,E,S.");
+
+    public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
+            "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
+
+    public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
+
+    public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01",
+            "The start date for the analysis given in the format YYYY-MM-DD");
+
+    public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
+            "The end date for the analysis given in the format YYYY-MM-DD");
+
+//    private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false", "A Boolean variable indicating whether total or " +
+//            "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
+//
+//    private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology", "The directory path to the reference climatology.");
+//
+//    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5", "The minimum fractional coverage " +
+//            "required for non-missing output.");
+//
+//    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
+//            "The maximum relative total uncertainty allowed for non-missing output.", true);
 
 
     public static void main(String[] args) {
@@ -74,7 +91,7 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected String getFooter() {
-        return "";
+        return TOOL_FOOTER;
     }
 
     @Override
@@ -84,12 +101,35 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected Parameter[] getParameters() {
-        return Arrays.asList(PARAM_SST_DEPTH, PARAM_MIN_COVERAGE, PARAM_MAX_UNCERTAINTY, PARAM_SPATIAL_RESOLUTION,
-                PARAM_REGION, PARAM_TOTAL_UNCERTAINTY, PARAM_CLIMATOLOGY_DIR).toArray(
-                new Parameter[7]);
+        ArrayList<Parameter> paramList = new ArrayList<Parameter>();
+        // PARAM_CLIMATOLOGY_DIR, PARAM_MIN_COVERAGE, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY, PARAM_SST_DEPTH
+        paramList.addAll(Arrays.asList(PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
+                PARAM_REGION, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE));
+
+        ProductType[] values = ProductType.values();
+        for (ProductType value : values) {
+            paramList.add(new Parameter(value.name() + ".dir", "DIR", null, "Directory that hosts the products of type '" + value.name() + "'."));
+        }
+
+        return paramList.toArray(new Parameter[paramList.size()]);
     }
 
     @Override
     protected void run(Configuration configuration, String[] arguments) throws ToolException {
+        final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+        final String productDirectory = configuration.getString(productType + ".dir", null, true);
+        final String targetResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
+        final Date to = configuration.getDate(PARAM_END_DATE, true);
+        final Date from = configuration.getDate(PARAM_START_DATE, true);
+
+        String filenameRegex = ".+";
+        FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
+        Regridder regridder = new Regridder(fileStore);
+
+        try {
+           regridder.doIt(from, to);
+        } catch (IOException e) {
+            throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+        }
     }
 }

@@ -31,7 +31,7 @@ import java.util.Date;
  *
  * @author Norman Fomferra
  */
-public enum ProductType {
+enum ProductType {
     ARC_L3U(ArcL3UFileType.INSTANCE),
     ARC_L2P(ArcL2PFileType.INSTANCE),
     CCI_L3U(CciL3UFileType.INSTANCE),

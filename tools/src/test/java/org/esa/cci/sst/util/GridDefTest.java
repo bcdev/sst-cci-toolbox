@@ -3,7 +3,7 @@ package org.esa.cci.sst.util;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 import static org.junit.Assert.*;
@@ -40,9 +40,19 @@ public class GridDefTest {
         assertEquals(3, gridDef90.getGridX(90.0, false));
         assertEquals(4, gridDef90.getGridX(180.0, false));
 
+        assertEquals(0, gridDef90.getGridX(-180.0, true));
+        assertEquals(1, gridDef90.getGridX(-90.0, true));
+        assertEquals(2, gridDef90.getGridX(0.0, true));
+        assertEquals(3, gridDef90.getGridX(90.0, true));
+        assertEquals(3, gridDef90.getGridX(180.0, true));
+
         assertEquals(0, gridDef90.getGridY(90.0, false));
         assertEquals(1, gridDef90.getGridY(0.0, false));
         assertEquals(2, gridDef90.getGridY(-90.0, false));
+
+        assertEquals(0, gridDef90.getGridY(90.0, true));
+        assertEquals(1, gridDef90.getGridY(0.0, true));
+        assertEquals(1, gridDef90.getGridY(-90.0, true));
 
         try {
             gridDef90.getGridX(-180.1, false);
@@ -92,36 +102,45 @@ public class GridDefTest {
     public void testGetGridRectangle1() throws Exception {
 
         assertEquals(new Rectangle(0, 0, gridDef5.getWidth(), gridDef5.getHeight()),
-                     gridDef5.getGridRectangle(-180.0, -90.0, 180.0, 90.0));
+                gridDef5.getGridRectangle(-180.0, -90.0, 180.0, 90.0));
 
         assertEquals(new Rectangle(0, gridDef5.getHeight() / 2, gridDef5.getWidth() / 2, gridDef5.getHeight() / 2),
-                     gridDef5.getGridRectangle(-180.0, -90.0, 0.0, 0.0));
+                gridDef5.getGridRectangle(-180.0, -90.0, 0.0, 0.0));
 
         assertEquals(new Rectangle(gridDef5.getWidth() / 2, gridDef5.getHeight() / 2 - 1, 1, 1),
-                     gridDef5.getGridRectangle(0.0, 0.0, 5.0, 5.0));
+                gridDef5.getGridRectangle(0.0, 0.0, 5.0, 5.0));
+
+        assertEquals(new Rectangle(gridDef90.getWidth() / 2, 0, 2, 1),
+                gridDef90.getGridRectangle(0.0, 0.0, 180.0, 90.0));
+
+        assertEquals(new Rectangle(0, 0, 1, 2),
+                gridDef90.getGridRectangle(-180.0, -90.0, -90.0, 90.0));
     }
 
     @Test
     public void testGetGridRectangle2() throws Exception {
 
         assertEquals(new Rectangle(0, 0, gridDef5.getWidth(), gridDef5.getHeight()),
-                     gridDef5.getGridRectangle(new Rectangle2D.Double(-180.0, -90.0, 360.0, 180.0)));
+                gridDef5.getGridRectangle(new Rectangle2D.Double(-180.0, -90.0, 360.0, 180.0)));
 
         assertEquals(new Rectangle(0, gridDef5.getHeight() / 2, gridDef5.getWidth() / 2, gridDef5.getHeight() / 2),
-                     gridDef5.getGridRectangle(new Rectangle2D.Double(-180.0, -90.0, 180.0, 90.0)));
+                gridDef5.getGridRectangle(new Rectangle2D.Double(-180.0, -90.0, 180.0, 90.0)));
 
         assertEquals(new Rectangle(gridDef5.getWidth() / 2, gridDef5.getHeight() / 2 - 1, 1, 1),
-                     gridDef5.getGridRectangle(new Rectangle2D.Double(0.0, 0.0, 5.0, 5.0)));
+                gridDef5.getGridRectangle(new Rectangle2D.Double(0.0, 0.0, 5.0, 5.0)));
+
+        assertEquals(new Rectangle(gridDef90.getWidth() / 2, gridDef90.getHeight() / 2, 2, 1),
+                gridDef90.getGridRectangle(new Rectangle2D.Double(0.0, -90.0, 180.0, 90.0)));
     }
 
     @Test
     public void testGetLonLatRectangle() throws Exception {
 
         assertEquals(new Rectangle2D.Double(-180.0, 89.95, 0.05, 0.05),
-                     gridDef05.getLonLatRectangle(0, 0));
+                gridDef05.getLonLatRectangle(0, 0));
 
         assertEquals(new Rectangle2D.Double(0.0, 0.0, 0.05, 0.05),
-                     gridDef05.getLonLatRectangle(gridDef05.getWidth() / 2, gridDef05.getHeight() / 2 - 1));
+                gridDef05.getLonLatRectangle(gridDef05.getWidth() / 2, gridDef05.getHeight() / 2 - 1));
     }
 
     @Test

@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.util;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -28,6 +28,8 @@ import java.awt.geom.Rectangle2D;
  * @author Norman Fomferra
  */
 public class GridDef {
+    //a dimension mostly 1
+    private int time;
     private final int width;
     private final int height;
     private final double northing;
@@ -46,12 +48,21 @@ public class GridDef {
     }
 
     public GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
+        this.time = 0;
         this.width = width;
         this.height = height;
         this.northing = northing;
         this.easting = easting;
         this.resolutionX = resolutionX;
         this.resolutionY = resolutionY;
+    }
+
+    public int getTime() {
+        return time;
+    }
+
+    public void setTime(int time) {
+        this.time = time;
     }
 
     public int getWidth() {
@@ -152,21 +163,34 @@ public class GridDef {
         return new Rectangle2D.Double(lon1, lat1, resolutionX, resolutionY);
     }
 
+    /**
+     *
+     * @param lonLatRectangle Spanned from upper left corner, unit is degree
+     * @return The result-rectangle is spanned from upper left corner (as demanded by Java Doc of Rectangle).
+     */
     public Rectangle getGridRectangle(Rectangle2D lonLatRectangle) {
         double lon1 = lonLatRectangle.getX();
         double lat1 = lonLatRectangle.getY();
         double lon2 = lon1 + lonLatRectangle.getWidth();
         double lat2 = lat1 + lonLatRectangle.getHeight();
-        return getGridRectangle(lon1, lat1, lon2, lat2);
+        return getGridRectangle(lon1, lat1, lon2, lat2); //spanned from upper left corner (as demanded by Java Doc of Rectangle)
     }
 
+    /**
+     *
+     * @param lon1 Minimum lon coordinate (lower left corner)
+     * @param lat1 Minimum lat coordinate (lower left corner)
+     * @param lon2 Maximum lon coordinate (upper right corner)
+     * @param lat2 Maximum lat coordinate (upper right corner)
+     * @return The result-rectangle is spanned from the lower left corner (Different from Java Doc of @refer Rectangle ).
+     */
     public Rectangle getGridRectangle(double lon1, double lat1, double lon2, double lat2) {
         double eps = 1.0e-10;
         int gridX1 = getGridX(lon1, true);
         int gridX2 = getGridX(lon2 - eps, true);
         int gridY1 = getGridY(lat2, true);
         int gridY2 = getGridY(lat1 + eps, true);
-        return new Rectangle(gridX1, gridY1, gridX2 - gridX1 + 1, gridY2 - gridY1 + 1);
+        return new Rectangle(gridX1, gridY1, gridX2 - gridX1 + 1, gridY2 - gridY1 + 1);  //spanned from the lower left corner
     }
 
 

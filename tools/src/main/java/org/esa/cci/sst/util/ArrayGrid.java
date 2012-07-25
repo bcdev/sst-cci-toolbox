@@ -28,6 +28,7 @@ import ucar.ma2.DataType;
  * @author Norman Fomferra
  */
 public class ArrayGrid implements Grid {
+    private String variable;
     private final GridDef gridDef;
     private final Array array;
     private final double scaling;
@@ -54,6 +55,18 @@ public class ArrayGrid implements Grid {
         this.fillTest = createFillTest(fillValue);
         width = gridDef.getWidth();
         height = gridDef.getHeight();
+    }
+
+    public String getVariable() {
+        return variable;
+    }
+
+    public ArrayGrid setVariable(String variable) {
+        if (this.variable != null) {
+            throw new RuntimeException("Variable is allowed to be set only once.");
+        }
+        this.variable = variable;
+        return this;
     }
 
     public int getWidth() {

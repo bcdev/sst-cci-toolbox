@@ -28,7 +28,7 @@ import java.io.LineNumberReader;
  * Represents LUT2.
  * Enables calculation of coverage/sampling uncertainty for an average via the number of values comprising that average.
  * LUT2 contains an uncertainty value for each 90° monthly grid box and calendar month; these represent the sampling
- * uncertainty that would result if the average were created from “averaging” only one 5° monthly value.  These values are later divided by the square root of the number of constituent 5° monthly values  to calculate the sampling uncertainty in a 90° average.
+ * uncertainty that would result if the average were created from 'averaging' only one 5 ° monthly value.  These values are later divided by the square root of the number of constituent 5° monthly values  to calculate the sampling uncertainty in a 90° average.
  *
  * @author Norman Fomferra
  */

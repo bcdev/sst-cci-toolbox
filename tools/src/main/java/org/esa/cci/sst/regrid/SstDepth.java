@@ -17,8 +17,9 @@
 package org.esa.cci.sst.regrid;
 
 public enum SstDepth {
-    skin,
-    depth_20,
-    depth_100,
-    fnd,
+    sea_surface_temperature, //skin,
+    sea_surface_temperature_depth, //depth_20,
+    analysed_sst, //sst in L4
+    //depth_100,
+    //fnd,
 }

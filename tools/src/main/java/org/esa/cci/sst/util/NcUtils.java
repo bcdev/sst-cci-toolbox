@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.tool.Tool;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
@@ -27,7 +28,10 @@ import ucar.nc2.Variable;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * NetCDF utility functions.
@@ -35,6 +39,7 @@ import java.util.Arrays;
  * @author Norman
  */
 public class NcUtils {
+    private static final Logger LOGGER = Tool.LOGGER;
 
     public static double getAddOffset(Variable variable) {
         return getNumericAttributeValue(variable, "add_offset", 0.0);
@@ -71,11 +76,11 @@ public class NcUtils {
         if (z > 0) {
             if (rank < 3) {
                 throw new IOException(String.format("NetCDF variable '%s': Expected rank 3 or higher, but found %d.",
-                                                    variable.getName(), rank));
+                        variable.getName(), rank));
             }
         } else if (rank < 2) {
             throw new IOException(String.format("NetCDF variable '%s': Expected rank 2 or higher, but found %d.",
-                                                variable.getName(), rank));
+                    variable.getName(), rank));
         }
         int[] origin = new int[rank];
         int[] shape = new int[rank];
@@ -93,7 +98,7 @@ public class NcUtils {
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
         }
-        array.reshapeNoCopy(new int[] {gridRectangle.height, gridRectangle.width});
+        array.reshapeNoCopy(new int[]{gridRectangle.height, gridRectangle.width});
         return array;
     }
 
@@ -119,7 +124,7 @@ public class NcUtils {
         int rank = variable.getRank();
         if (rank < 2) {
             throw new IOException(String.format("Variable '%s' in file '%s': Expected rank 2 or higher, but found %d.",
-                                                variable.getName(), netcdfFile.getLocation(), rank));
+                    variable.getName(), netcdfFile.getLocation(), rank));
         }
         int width = variable.getDimension(rank - 1).getLength();
         int height = variable.getDimension(rank - 2).getLength();
@@ -138,4 +143,25 @@ public class NcUtils {
         return variable;
     }
 
+    public static Grid[] readL3Grids(NetcdfFile netcdfFile, GridDef expectedGridDef) throws IOException {
+        final List<Variable> variables = netcdfFile.getVariables();
+        final ArrayList<Grid> grids = new ArrayList<Grid>();
+
+        for (Variable variable : variables) {
+            int rank = variable.getRank();
+            if (rank != 3) {
+                LOGGER.warning(String.format("Variable '%s' in file '%s': Expected rank 3, but found %d. Continue.",
+                        variable.getName(), netcdfFile.getLocation(), rank));
+                continue;
+            }
+
+            final double scaleFactor = getScaleFactor(variable);
+            final double addOffset = getAddOffset(variable);
+            final Number fillValue = getFillValue(variable);
+            final Array data = variable.read();
+            grids.add(new ArrayGrid(expectedGridDef, data, fillValue, scaleFactor, addOffset).setVariable(variable.getName()));
+        }
+
+        return grids.toArray(new Grid[grids.size()]);
+    }
 }

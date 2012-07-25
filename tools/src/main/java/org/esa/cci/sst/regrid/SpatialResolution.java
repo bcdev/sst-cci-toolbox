@@ -16,51 +16,66 @@
 
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.util.GridDef;
+
 import java.util.Arrays;
 
-public class SpatialResolution {
+public enum SpatialResolution {
 
-    private static final double[] RESOLUTIONS = new double[]{
-            0.05,
-            0.10,
-            0.15,
-            0.20,
-            0.25,
-            0.30,
-            0.40,
-            0.50,
-            0.60,
-            0.75,
-            0.80,
-            1.00,
-            1.20,
-            1.25,
-            1.50,
-            2.00,
-            2.25,
-            2.40,
-            2.50,
-            3.00,
-            3.75,
-            4.00,
-            4.50,
-            5.00,
-            10.0
-    };
+    DEGREE_0_05(0.05),
+    DEGREE_0_10(0.10),
+    DEGREE_0_15(0.15),
+    DEGREE_0_20(0.20),
+    DEGREE_0_25(0.25),
+    DEGREE_0_30(0.30),
+    DEGREE_0_40(0.40),
+    DEGREE_0_50(0.50),
+    DEGREE_0_60(0.60),
+    DEGREE_0_75(0.75),
+    DEGREE_0_80(0.80),
+    DEGREE_1_00(1.00),
+    DEGREE_1_20(1.20),
+    DEGREE_1_25(1.25),
+    DEGREE_2_00(2.00),
+    DEGREE_2_25(2.25),
+    DEGREE_2_40(2.40),
+    DEGREE_2_50(2.50),
+    DEGREE_3_00(3.00),
+    DEGREE_3_75(3.75),
+    DEGREE_4_00(4.00),
+    DEGREE_4_50(4.50),
+    DEGREE_5_00(5.00),
+    DEGREE_10_00(10.00);
 
+    private double value;
+    private GridDef gridDef;
 
-    public static double[] getValues() {
-        return Arrays.copyOf(RESOLUTIONS, RESOLUTIONS.length);
+    private SpatialResolution(double value) {
+        this.value = value;
     }
 
-    private SpatialResolution() {
-    }
-
-    public static String getDefault() {
-        return String.valueOf(RESOLUTIONS[0]);
+    public static String getDefaultValueAsString() {
+        return String.valueOf(DEGREE_0_05.getValue());
     }
 
     public static String getValuesAsString() {
-         return Arrays.toString(RESOLUTIONS);
+        SpatialResolution[] values = SpatialResolution.values();
+        double[] resolutions = new double[values.length];
+        int i = 0;
+        for (SpatialResolution spatialResolution : values) {
+            resolutions[i++] = spatialResolution.getValue();
+        }
+        return Arrays.toString(resolutions);
+    }
+
+    public GridDef getAssociatedGridDef() {
+        if (this.gridDef == null) {
+            this.gridDef = GridDef.createGlobal(this.value);
+        }
+        return gridDef;
+    }
+
+    public double getValue() {
+        return value;
     }
 }
