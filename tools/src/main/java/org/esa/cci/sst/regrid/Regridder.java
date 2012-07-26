@@ -1,13 +1,17 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.util.Grid;
+import org.esa.cci.sst.util.ArrayGrid;
+import org.esa.cci.sst.util.GridDef;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -22,9 +26,14 @@ public class Regridder {
     private static final Logger LOGGER = Tool.LOGGER;
     private final FileStore fileStore;
 
+    private final SpatialResolution targetResolution;
+    private Map<String, ArrayGrid> sourceGrids;
+    private Map<String, ArrayGrid> targetGrids;
 
-    public Regridder(FileStore fileStore) {
+
+    public Regridder(FileStore fileStore, String targetResolution) {
         this.fileStore = fileStore;
+        this.targetResolution = SpatialResolution.getFromValue(targetResolution);
     }
 
     public void doIt(Date from, Date to) throws IOException {
@@ -38,22 +47,49 @@ public class Regridder {
 
         for (File file : files) {
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
-            //here createAggregationCellContext
-            //--> seeehr zeit-aggregation-mäßig
-            RegridContext regridContext = new RegridContext(); //todo
+            sourceGrids = readSourceGridsTimeControlled(netcdfFile);
+            targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
+
+
 //            AggregationCell5Context aggregationCell5Context = createAggregationCell5Context(netcdfFile);
 //            aggregateSources(aggregationCell5Context, combinedRegionMask, cell5Grid);
 
-            final Grid[] sourceGrids = readSourceGrids(netcdfFile);
+            //prepare a Context object (RegridderContext, could be expanded by auxilary data etc.)
+            RegridContext regridContext = new RegridContext(); //todo
 
+            //calculate values - aggregate (Aggregator)
+
+            //write output netcdf file (L3UFileType)
         }
     }
 
-    private Grid[] readSourceGrids(NetcdfFile netcdfFile) throws IOException {
+    private Map<String, ArrayGrid> readSourceGridsTimeControlled(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
-        LOGGER.fine("Reading source grid(s)...");
-        Grid[] grids = fileStore.getProductType().getFileType().readSourceGrids(netcdfFile);
-        LOGGER.fine(String.format("Reading source grid(s) took %d ms", (System.currentTimeMillis() - t0)));
-        return grids;
+        LOGGER.info("Reading source grid(s)...");
+        final Map<String, ArrayGrid> gridMap = getFileType().readSourceGrids(netcdfFile);
+        LOGGER.info(String.format("Reading source grid(s) took %d ms", (System.currentTimeMillis() - t0)));
+        return gridMap;
+    }
+
+    private FileType getFileType() {
+        return fileStore.getProductType().getFileType();
+    }
+
+    Map<String, ArrayGrid> initialiseTargetGrids(SpatialResolution targetResolution, Map<String, ArrayGrid> sourceGrids) throws IOException {
+        GridDef targetGridDef = targetResolution.getAssociatedGridDef();
+        HashMap<String, ArrayGrid> targetGrids = new HashMap<String, ArrayGrid>();
+
+        for (ArrayGrid sourceGrid : sourceGrids.values()) {
+            int[] sourceShape = sourceGrid.getArray().getShape();
+            int[] targetShape = SpatialResolution.convertShape(targetResolution, sourceShape, sourceGrid.getGridDef());
+            Class dataType = sourceGrid.getArray().getElementType();
+
+            Array array = Array.factory(dataType, targetShape);
+            ArrayGrid targetGrid = new ArrayGrid(targetGridDef, array, sourceGrid.getFillValue(), sourceGrid.getScaling(), sourceGrid.getOffset());
+            targetGrid.setVariable(sourceGrid.getVariable());
+            targetGrids.put(sourceGrid.getVariable(), targetGrid);
+        }
+
+        return targetGrids;
     }
 }

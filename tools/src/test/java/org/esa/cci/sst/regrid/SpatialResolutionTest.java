@@ -3,6 +3,7 @@ package org.esa.cci.sst.regrid;
 import org.esa.cci.sst.util.GridDef;
 import org.junit.Test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -32,5 +33,26 @@ public class SpatialResolutionTest {
         GridDef associatedGridDef = SpatialResolution.DEGREE_0_10.getAssociatedGridDef();
         assertEquals(0.10, associatedGridDef.getResolutionX(), 0.001);
         assertEquals(0.10, associatedGridDef.getResolutionY(), 0.001);
+    }
+
+    @Test
+    public void testConvertShape() throws Exception {
+        //1)
+        double sourceResolution = SpatialResolution.DEGREE_0_10.getValue();
+        SpatialResolution targetResolution = SpatialResolution.DEGREE_0_50;
+        int[] sourceShape = {2, 1800, 3600};
+
+        int[] resultShape = SpatialResolution.convertShape(targetResolution, sourceShape, GridDef.createGlobal(sourceResolution));
+
+        assertArrayEquals(new int[]{2, 360, 720}, resultShape);
+
+        //2)
+        sourceResolution = SpatialResolution.DEGREE_2_50.getValue();
+        targetResolution = SpatialResolution.DEGREE_0_10;
+        int[] sourceShape_2 = {72, 2, 144, 0};
+
+        int[] resultShape_2 = SpatialResolution.convertShape(targetResolution, sourceShape_2, GridDef.createGlobal(sourceResolution));
+        assertArrayEquals(new int[]{1800, 2, 3600, 0}, resultShape_2);
+
     }
 }

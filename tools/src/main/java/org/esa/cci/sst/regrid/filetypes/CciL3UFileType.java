@@ -2,7 +2,7 @@ package org.esa.cci.sst.regrid.filetypes;
 
 import org.esa.cci.sst.regrid.FileType;
 import org.esa.cci.sst.regrid.SpatialResolution;
-import org.esa.cci.sst.util.Grid;
+import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.UTC;
@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author Bettina Scholze
@@ -25,8 +26,10 @@ public class CciL3UFileType implements FileType {
     public final int filenameDateOffset = 0;
 
     @Override
-    public Grid[] readSourceGrids(NetcdfFile file) throws IOException {
-        GridDef associatedGridDef = SpatialResolution.DEGREE_0_05.getAssociatedGridDef();
+    public Map<String, ArrayGrid> readSourceGrids(NetcdfFile file) throws IOException {
+        double gridResolution = NcUtils.getGridResolution(file);
+        SpatialResolution spatialResolution = SpatialResolution.getFromValue(String.valueOf(gridResolution));
+        GridDef associatedGridDef = spatialResolution.getAssociatedGridDef();
         associatedGridDef.setTime(1);
 
         return NcUtils.readL3Grids(file, associatedGridDef);
@@ -37,26 +40,4 @@ public class CciL3UFileType implements FileType {
         String dateString = file.getName().substring(filenameDateOffset, filenameDateOffset + 8);
         return dateFormat.parse(dateString);
     }
-
-//    @Override
-//    public CellFactory<AggregationCell5> getCell5Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-//        return new CellFactory<AggregationCell5>() {
-//            @Override
-//            public L3UCell5 createCell(int cellX, int cellY) {
-//                return new L3UCell5(coverageUncertaintyProvider, cellX, cellY);
-//            }
-//        };
-//    }
-
-//    @Override
-//    public CellFactory<AggregationCell90> getCell90Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-//        return new CellFactory<AggregationCell90>() {
-//            @Override
-//            public L3UCell90 createCell(int cellX, int cellY) {
-//                return new L3UCell90(coverageUncertaintyProvider, cellX, cellY);
-//            }
-//        };
-//    }
-
-
 }

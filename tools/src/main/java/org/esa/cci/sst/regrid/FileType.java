@@ -1,12 +1,13 @@
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.util.Grid;
+import org.esa.cci.sst.util.ArrayGrid;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author Bettina Scholze
@@ -14,7 +15,7 @@ import java.util.Date;
  */
 public interface FileType {
 
-    Grid[] readSourceGrids(NetcdfFile file) throws IOException;
+    Map<String, ArrayGrid> readSourceGrids(NetcdfFile file) throws IOException;
 
     Date parseDate(File file) throws ParseException;
 }

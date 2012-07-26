@@ -124,7 +124,7 @@ public class RegriddingTool extends Tool {
 
         String filenameRegex = ".+";
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
-        Regridder regridder = new Regridder(fileStore);
+        Regridder regridder = new Regridder(fileStore, targetResolution);
 
         try {
            regridder.doIt(from, to);

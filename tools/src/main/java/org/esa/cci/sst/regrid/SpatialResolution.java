@@ -18,6 +18,7 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.util.GridDef;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public enum SpatialResolution {
@@ -68,6 +69,15 @@ public enum SpatialResolution {
         return Arrays.toString(resolutions);
     }
 
+    public static SpatialResolution getFromValue(String value) {
+        for (SpatialResolution spatialResolution : SpatialResolution.values()) {
+            if (Double.valueOf(value) == spatialResolution.value) {
+                return spatialResolution;
+            }
+        }
+        throw new IllegalArgumentException("argument must be one of the values of SpatialResolution.");
+    }
+
     public GridDef getAssociatedGridDef() {
         if (this.gridDef == null) {
             this.gridDef = GridDef.createGlobal(this.value);
@@ -77,5 +87,27 @@ public enum SpatialResolution {
 
     public double getValue() {
         return value;
+    }
+
+    public static int[] convertShape(SpatialResolution targetResolution, int[] sourceShape, GridDef sourceGridDef) throws IOException {
+        int dimension = sourceShape.length;
+        int[] shape = new int[dimension];
+        double sourceResolution = sourceGridDef.getResolutionX();
+
+        if (sourceResolution != sourceGridDef.getResolutionY()) {
+            throw new IOException("Different resolution on lat and lon are not supported.");
+        }
+
+        for (int i = 0; i < dimension; i++) {
+            int sourceDim = sourceShape[i];
+            if (sourceDim == sourceGridDef.getHeight()) {
+                shape[i] = (int) (180 / targetResolution.value);
+            } else if (sourceDim == sourceGridDef.getWidth()) {
+                shape[i] = (int) (360 / targetResolution.value);
+            } else {
+                shape[i] = sourceDim;
+            }
+        }
+        return shape;
     }
 }
