@@ -164,7 +164,6 @@ public class GridDef {
     }
 
     /**
-     *
      * @param lonLatRectangle Spanned from upper left corner, unit is degree
      * @return The result-rectangle is spanned from upper left corner (as demanded by Java Doc of Rectangle).
      */
@@ -177,7 +176,6 @@ public class GridDef {
     }
 
     /**
-     *
      * @param lon1 Minimum lon coordinate (lower left corner)
      * @param lat1 Minimum lat coordinate (lower left corner)
      * @param lon2 Maximum lon coordinate (upper right corner)
@@ -207,6 +205,7 @@ public class GridDef {
 
         return width != gridDef.width ? false
                 : height != gridDef.height ? false
+                : time != gridDef.time ? false
                 : Double.compare(gridDef.easting, easting) != 0 ? false
                 : Double.compare(gridDef.northing, northing) != 0 ? false
                 : Double.compare(gridDef.resolutionX, resolutionX) != 0 ? false
@@ -221,6 +220,7 @@ public class GridDef {
         long temp;
         result = width;
         result = 31 * result + height;
+        result = 31 * result + time;
         temp = northing != 0.0 ? Double.doubleToLongBits(northing) : 0L;
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         temp = easting != 0.0 ? Double.doubleToLongBits(easting) : 0L;

@@ -23,14 +23,16 @@ import org.esa.cci.sst.tool.Tool;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
+import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -143,9 +145,17 @@ public class NcUtils {
         return variable;
     }
 
-    public static Grid[] readL3Grids(NetcdfFile netcdfFile, GridDef expectedGridDef) throws IOException {
+    /**
+     * Reads in all variables of an sst defined L3 NetCDF product in their dimension (time, lat, lon).
+     * Variables concerning lat, lon and time are ignored, only the geophysical variables are read in.
+     * @param netcdfFile An open {@link NetcdfFile} object
+     * @param gridDef The {@link GridDef} for the variables
+     * @return A Map of {@link ArrayGrid} with variable name as key
+     * @throws IOException Delegated from NetcdfFile.
+     */
+    public static Map<String, ArrayGrid> readL3Grids(NetcdfFile netcdfFile, GridDef gridDef) throws IOException { //todo test it
         final List<Variable> variables = netcdfFile.getVariables();
-        final ArrayList<Grid> grids = new ArrayList<Grid>();
+        final Map<String, ArrayGrid> gidsMap = new HashMap<String, ArrayGrid>();
 
         for (Variable variable : variables) {
             int rank = variable.getRank();
@@ -159,9 +169,35 @@ public class NcUtils {
             final double addOffset = getAddOffset(variable);
             final Number fillValue = getFillValue(variable);
             final Array data = variable.read();
-            grids.add(new ArrayGrid(expectedGridDef, data, fillValue, scaleFactor, addOffset).setVariable(variable.getName()));
+            ArrayGrid grid = new ArrayGrid(gridDef, data, fillValue, scaleFactor, addOffset).setVariable(variable.getName());
+            gidsMap.put(variable.getName(), grid);
         }
 
-        return grids.toArray(new Grid[grids.size()]);
+        return gidsMap;
+    }
+
+    /**
+     * Calculates the resolution of the product from the dimensions found in the NetCDF file.
+     *
+     * @param netcdfFile An open {@link NetcdfFile} object
+     * @return The resolution of the product found in the NetCDF file
+     * @throws IOException If resolution is not the same for lat and lon
+     */
+    public static double getGridResolution(NetcdfFile netcdfFile) throws IOException {
+        double resLat = 0;
+        double resLon = 0;
+        for (Dimension dimension : netcdfFile.getDimensions()) {
+            if (dimension.getName().equals("lat")) {
+                resLat = 180.0 / dimension.getLength();
+            }
+            if (dimension.getName().equals("lon")) {
+                resLon = 360.0 / dimension.getLength();
+            }
+        }
+
+        if (resLat != resLon) {
+           throw new IOException("Product is not L3 or L4, dimension lat or lon is missing or not equally scaled.");
+        }
+        return resLat;
     }
 }

@@ -164,5 +164,16 @@ public class GridDefTest {
         assertFalse(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03).equals(
                 new GridDef(3, 6, 9.3, -8.4, 0.02, 0.03)));
 
+        GridDef expectedGridDef_1 = new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03);
+        expectedGridDef_1.setTime(345452445);
+        assertFalse(expectedGridDef_1.equals(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03)));
+
+        GridDef expectedGridDef_2 = new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03);
+        int time_2 = 345452445;
+        expectedGridDef_2.setTime(time_2);
+        GridDef gridDef_2 = new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03);
+        gridDef_2.setTime(time_2);
+        assertTrue(expectedGridDef_2.equals(gridDef_2));
+
     }
 }
