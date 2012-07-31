@@ -41,12 +41,11 @@ public class NcUtilsTest {
         for (int i = 0; i < arrayGrids.size(); i++) {
             String variable = variables[i];
             ArrayGrid arrayGrid2Check = arrayGrids.get(variable);
-            checkGridForVariable(resolution, arrayGrid2Check, variable);
+            verifyGridForVariable(resolution, arrayGrid2Check, variable);
         }
-
     }
 
-    private void checkGridForVariable(SpatialResolution resolution, ArrayGrid arrayGrid2Check, String variable) {
+    private static void verifyGridForVariable(SpatialResolution resolution, ArrayGrid arrayGrid2Check, String variable) {
         assertEquals(variable, arrayGrid2Check.getVariable());
         assertTrue(variable, GridDef.createGlobal(resolution.getValue()).equals(arrayGrid2Check.getGridDef()));
 
@@ -61,7 +60,7 @@ public class NcUtilsTest {
         //check the data
         boolean isSST = "sea_surface_temperature".equals(variable);
         Array array = arrayGrid2Check.getArray();
-        Object javaArray = array.copyToNDJavaArray().getClass().cast(array.copyToNDJavaArray());
+        Object javaArray = array.copyToNDJavaArray();
 
         String[] expectedShortValues = {"uncorrelated_uncertainty", "large_scale_correlated_uncertainty", "sea_surface_temperature",
                 "synoptically_correlated_uncertainty", "adjustment_uncertainty", "l2p_flags", "sea_surface_temperature_depth"};

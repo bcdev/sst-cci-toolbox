@@ -61,8 +61,9 @@ public class GridDef {
         return time;
     }
 
-    public void setTime(int time) {
+    public GridDef setTime(int time) {
         this.time = time;
+        return this;
     }
 
     public int getWidth() {
@@ -191,6 +192,10 @@ public class GridDef {
         return new Rectangle(gridX1, gridY1, gridX2 - gridX1 + 1, gridY2 - gridY1 + 1);  //spanned from the lower left corner
     }
 
+
+    public int getNumberOfCells() {
+        return width * height * time;
+    }
 
     @Override
     public boolean equals(Object o) {

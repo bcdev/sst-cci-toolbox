@@ -39,11 +39,11 @@ public class RegridderTest {
         for (int i = 0; i < targetGrids.size(); i++) {
             String variable = targetVariables[i];
             ArrayGrid arrayGrid2Check = targetGrids.get(variable);
-            checkGridForVariable(targetResolution, arrayGrid2Check, variable);
+            verifyGridForVariable(targetResolution, arrayGrid2Check, variable);
         }
     }
 
-    private void checkGridForVariable(SpatialResolution resolution, ArrayGrid arrayGrid2Check, String variable) {
+    private static void verifyGridForVariable(SpatialResolution resolution, ArrayGrid arrayGrid2Check, String variable) {
         assertEquals(variable, arrayGrid2Check.getVariable());
         assertTrue(variable, GridDef.createGlobal(resolution.getValue()).equals(arrayGrid2Check.getGridDef()));
 
@@ -57,7 +57,7 @@ public class RegridderTest {
         assertEquals(variable, 36, arrayGrid2Check.getWidth());
 
         Array array = arrayGrid2Check.getArray();
-        Object javaArray = array.copyToNDJavaArray().getClass().cast(array.copyToNDJavaArray());
+        Object javaArray = array.copyToNDJavaArray();
 
         String[] expectedShortValues = {"uncorrelated_uncertainty", "large_scale_correlated_uncertainty", "sea_surface_temperature",
                 "synoptically_correlated_uncertainty", "adjustment_uncertainty", "l2p_flags", "sea_surface_temperature_depth"};

@@ -20,9 +20,6 @@ import java.util.logging.Logger;
  */
 public class Regridder {
 
-//    public static final GridDef GRID_DEF_GLOBAL_5 = GridDef.createGlobal(5.0);
-//    public static final GridDef GRID_DEF_GLOBAL_90 = GridDef.createGlobal(90.0);
-
     private static final Logger LOGGER = Tool.LOGGER;
     private final FileStore fileStore;
 
@@ -50,16 +47,16 @@ public class Regridder {
             sourceGrids = readSourceGridsTimeControlled(netcdfFile);
             targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
 
-
 //            AggregationCell5Context aggregationCell5Context = createAggregationCell5Context(netcdfFile);
 //            aggregateSources(aggregationCell5Context, combinedRegionMask, cell5Grid);
 
             //prepare a Context object (RegridderContext, could be expanded by auxilary data etc.)
             RegridContext regridContext = new RegridContext(); //todo
-
-            //calculate values - aggregate (Aggregator)
+            GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, new MeanCalculator());
+            gridAggregation.aggregateGrids();
 
             //write output netcdf file (L3UFileType)
+            //todo
         }
     }
 
