@@ -155,7 +155,7 @@ public class NcUtils {
      */
     public static Map<String, ArrayGrid> readL3Grids(NetcdfFile netcdfFile, GridDef gridDef) throws IOException { //todo test it
         final List<Variable> variables = netcdfFile.getVariables();
-        final Map<String, ArrayGrid> gidsMap = new HashMap<String, ArrayGrid>();
+        final Map<String, ArrayGrid> gridsMap = new HashMap<String, ArrayGrid>();
 
         for (Variable variable : variables) {
             int rank = variable.getRank();
@@ -170,10 +170,10 @@ public class NcUtils {
             final Number fillValue = getFillValue(variable);
             final Array data = variable.read();
             ArrayGrid grid = new ArrayGrid(gridDef, data, fillValue, scaleFactor, addOffset).setVariable(variable.getName());
-            gidsMap.put(variable.getName(), grid);
+            gridsMap.put(variable.getName(), grid);
         }
 
-        return gidsMap;
+        return gridsMap;
     }
 
     /**

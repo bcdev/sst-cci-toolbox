@@ -11,7 +11,6 @@ import java.util.Map;
  *         Date: 26.07.12 15:48
  */
 public class GridAggregation {
-
     private final Map<String, ArrayGrid> sourceGrids;
     private final Map<String, ArrayGrid> targetGrids;
     private Calculator calculator;
@@ -23,7 +22,6 @@ public class GridAggregation {
     }
 
     public void aggregateGrids() {
-
         for (String variable : targetGrids.keySet()) {
             ArrayGrid sourceArrayGrid = sourceGrids.get(variable);
             ArrayGrid targetArrayGrid = targetGrids.get(variable);
@@ -118,5 +116,9 @@ public class GridAggregation {
     //Number of cell to be put in one target cell (return > 1 -> coarser grid)
     private int calculateResolution(GridDef sourceGridDef, GridDef targetGridDef) {
         return (int) (targetGridDef.getResolutionX() / sourceGridDef.getResolutionX());
+    }
+
+    public Map<String, ArrayGrid> getTargetGrids() {
+        return targetGrids;
     }
 }

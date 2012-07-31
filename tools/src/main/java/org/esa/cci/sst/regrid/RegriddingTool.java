@@ -18,6 +18,7 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.tool.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,10 +122,11 @@ public class RegriddingTool extends Tool {
         final String targetResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
         final Date to = configuration.getDate(PARAM_END_DATE, true);
         final Date from = configuration.getDate(PARAM_START_DATE, true);
+        final File outputDirectory = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
 
         String filenameRegex = ".+";
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
-        Regridder regridder = new Regridder(fileStore, targetResolution);
+        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory);
 
         try {
            regridder.doIt(from, to);

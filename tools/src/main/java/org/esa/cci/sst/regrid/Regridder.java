@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.regrid.filetypes.CciL3UFileType;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
@@ -22,41 +23,36 @@ public class Regridder {
 
     private static final Logger LOGGER = Tool.LOGGER;
     private final FileStore fileStore;
+    private final File outputDirectory;
 
     private final SpatialResolution targetResolution;
     private Map<String, ArrayGrid> sourceGrids;
     private Map<String, ArrayGrid> targetGrids;
 
 
-    public Regridder(FileStore fileStore, String targetResolution) {
+    public Regridder(FileStore fileStore, String targetResolution, File outputDirectory) {
         this.fileStore = fileStore;
         this.targetResolution = SpatialResolution.getFromValue(targetResolution);
+        this.outputDirectory = outputDirectory;
     }
 
     public void doIt(Date from, Date to) throws IOException {
-        //LOOP
-        //1) read 1st product
-        //2) regrid it (as x ArrayGrids)
-        //2A) Do other stuff with it (as x ArrayGrids)
-        //3) write 1st product
-
         final List<File> files = fileStore.getFiles(from, to);
 
         for (File file : files) {
-            NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
-            sourceGrids = readSourceGridsTimeControlled(netcdfFile);
+
+            NetcdfFile netcdfFileInput = NetcdfFile.open(file.getPath());
+            sourceGrids = readSourceGridsTimeControlled(netcdfFileInput);
             targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
 
-//            AggregationCell5Context aggregationCell5Context = createAggregationCell5Context(netcdfFile);
-//            aggregateSources(aggregationCell5Context, combinedRegionMask, cell5Grid);
-
-            //prepare a Context object (RegridderContext, could be expanded by auxilary data etc.)
-            RegridContext regridContext = new RegridContext(); //todo
+//            RegridContext regridContext = new RegridContext();
+            LOGGER.info("Start regridding");
             GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, new MeanCalculator());
             gridAggregation.aggregateGrids();
+            LOGGER.info("Finished with regridding");
 
-            //write output netcdf file (L3UFileType)
-            //todo
+            //todo write output netcdf file (L3UFileType)
+           ((CciL3UFileType) getFileType()).writeFile(netcdfFileInput, outputDirectory, targetGrids);
         }
     }
 
@@ -77,6 +73,8 @@ public class Regridder {
         HashMap<String, ArrayGrid> targetGrids = new HashMap<String, ArrayGrid>();
 
         for (ArrayGrid sourceGrid : sourceGrids.values()) {
+            targetGridDef.setTime(sourceGrid.getGridDef().getTime());
+
             int[] sourceShape = sourceGrid.getArray().getShape();
             int[] targetShape = SpatialResolution.convertShape(targetResolution, sourceShape, sourceGrid.getGridDef());
             Class dataType = sourceGrid.getArray().getElementType();
@@ -86,7 +84,6 @@ public class Regridder {
             targetGrid.setVariable(sourceGrid.getVariable());
             targetGrids.put(sourceGrid.getVariable(), targetGrid);
         }
-
         return targetGrids;
     }
 }

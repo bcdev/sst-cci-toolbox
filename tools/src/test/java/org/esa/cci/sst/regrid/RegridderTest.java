@@ -6,6 +6,7 @@ import org.esa.cci.sst.util.TestL3ProductMaker;
 import org.junit.Test;
 import ucar.ma2.Array;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class RegridderTest {
     @Test
     public void testInitialiseTargetGrids() throws Exception {
         SpatialResolution targetResolution = SpatialResolution.DEGREE_10_00;
-        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()));
+        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()), new File(""));
         Map<String, ArrayGrid> sourceArrayGrids = TestL3ProductMaker.fetchL3UProductForTest();
 
         //execution
