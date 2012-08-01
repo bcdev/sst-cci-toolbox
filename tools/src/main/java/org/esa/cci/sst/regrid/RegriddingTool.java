@@ -71,6 +71,26 @@ public class RegriddingTool extends Tool {
     }
 
     @Override
+    protected void run(Configuration configuration, String[] arguments) throws ToolException {
+        final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+        final String productDirectory = configuration.getString(productType + ".dir", null, true);
+        final String targetResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
+        final Date to = configuration.getDate(PARAM_END_DATE, true);
+        final Date from = configuration.getDate(PARAM_START_DATE, true);
+        final File outputDirectory = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+
+        String filenameRegex = ".+";
+        FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
+        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory);
+
+        try {
+            regridder.doIt(from, to);
+        } catch (IOException e) {
+            throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+        }
+    }
+
+    @Override
     protected String getName() {
         return TOOL_NAME;
     }
@@ -113,25 +133,5 @@ public class RegriddingTool extends Tool {
         }
 
         return paramList.toArray(new Parameter[paramList.size()]);
-    }
-
-    @Override
-    protected void run(Configuration configuration, String[] arguments) throws ToolException {
-        final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
-        final String productDirectory = configuration.getString(productType + ".dir", null, true);
-        final String targetResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
-        final Date to = configuration.getDate(PARAM_END_DATE, true);
-        final Date from = configuration.getDate(PARAM_START_DATE, true);
-        final File outputDirectory = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-
-        String filenameRegex = ".+";
-        FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
-        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory);
-
-        try {
-           regridder.doIt(from, to);
-        } catch (IOException e) {
-            throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
-        }
     }
 }

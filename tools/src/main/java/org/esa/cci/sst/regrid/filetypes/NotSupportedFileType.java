@@ -3,6 +3,7 @@ package org.esa.cci.sst.regrid.filetypes;
 import org.esa.cci.sst.regrid.FileType;
 import org.esa.cci.sst.util.ArrayGrid;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -24,6 +25,11 @@ public class NotSupportedFileType implements FileType {
 
     @Override
     public Date parseDate(File file) throws ParseException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void writeFile(NetcdfFile inputFile, File outputDirectory, Map<String, ArrayGrid> targetGrids, Map<String, Array> baseArrays) throws IOException {
         throw new NotImplementedException();
     }
 }

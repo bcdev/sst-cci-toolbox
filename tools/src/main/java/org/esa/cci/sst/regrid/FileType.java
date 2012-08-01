@@ -1,6 +1,7 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.util.ArrayGrid;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -18,4 +19,6 @@ public interface FileType {
     Map<String, ArrayGrid> readSourceGrids(NetcdfFile file) throws IOException;
 
     Date parseDate(File file) throws ParseException;
+
+    void writeFile(NetcdfFile inputFile, File outputDirectory, Map<String, ArrayGrid> targetGrids, Map<String, Array> baseArrays) throws IOException;
 }

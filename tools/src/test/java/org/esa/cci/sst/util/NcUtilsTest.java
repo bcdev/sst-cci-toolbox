@@ -47,7 +47,8 @@ public class NcUtilsTest {
 
     private static void verifyGridForVariable(SpatialResolution resolution, ArrayGrid arrayGrid2Check, String variable) {
         assertEquals(variable, arrayGrid2Check.getVariable());
-        assertTrue(variable, GridDef.createGlobal(resolution.getValue()).equals(arrayGrid2Check.getGridDef()));
+        int timeDim = 1;
+        assertTrue(variable, GridDef.createGlobal(resolution.getValue(), timeDim).equals(arrayGrid2Check.getGridDef()));
 
         Number fillValue = arrayGrid2Check.getFillValue();
         assertTrue("fill value type", fillValue == null || fillValue instanceof Integer ||

@@ -19,7 +19,6 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.tool.Tool;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
@@ -41,7 +40,7 @@ import java.util.logging.Logger;
  * @author Norman
  */
 public class NcUtils {
-    private static final Logger LOGGER = Tool.LOGGER;
+    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     public static double getAddOffset(Variable variable) {
         return getNumericAttributeValue(variable, "add_offset", 0.0);
@@ -148,12 +147,13 @@ public class NcUtils {
     /**
      * Reads in all variables of an sst defined L3 NetCDF product in their dimension (time, lat, lon).
      * Variables concerning lat, lon and time are ignored, only the geophysical variables are read in.
+     *
      * @param netcdfFile An open {@link NetcdfFile} object
-     * @param gridDef The {@link GridDef} for the variables
      * @return A Map of {@link ArrayGrid} with variable name as key
      * @throws IOException Delegated from NetcdfFile.
      */
     public static Map<String, ArrayGrid> readL3Grids(NetcdfFile netcdfFile, GridDef gridDef) throws IOException { //todo test it
+
         final List<Variable> variables = netcdfFile.getVariables();
         final Map<String, ArrayGrid> gridsMap = new HashMap<String, ArrayGrid>();
 
@@ -162,6 +162,11 @@ public class NcUtils {
             if (rank != 3) {
                 LOGGER.warning(String.format("Variable '%s' in file '%s': Expected rank 3, but found %d. Continue.",
                         variable.getName(), netcdfFile.getLocation(), rank));
+
+                if ("time".equals(variable.getName())) {
+                    int length = variable.getDimensions().get(0).getLength();
+                    gridDef.setTime(length);
+                }
                 continue;
             }
 
@@ -196,7 +201,7 @@ public class NcUtils {
         }
 
         if (resLat != resLon) {
-           throw new IOException("Product is not L3 or L4, dimension lat or lon is missing or not equally scaled.");
+            throw new IOException("Product is not L3 or L4, dimension lat or lon is missing or not equally scaled.");
         }
         return resLat;
     }

@@ -17,9 +17,13 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.util.GridDef;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public enum SpatialResolution {
 
@@ -79,8 +83,12 @@ public enum SpatialResolution {
     }
 
     public GridDef getAssociatedGridDef() {
+        return getAssociatedGridDef(0);
+    }
+
+    public GridDef getAssociatedGridDef(int timeDimensionExtend) {
         if (this.gridDef == null) {
-            this.gridDef = GridDef.createGlobal(this.value);
+            this.gridDef = GridDef.createGlobal(this.value, timeDimensionExtend);
         }
         return gridDef;
     }
@@ -109,5 +117,67 @@ public enum SpatialResolution {
             }
         }
         return shape;
+    }
+
+    public  Map<String, Array> calculateBaseArrays() {
+        GridDef targetGridDef = getAssociatedGridDef();
+        HashMap<String, Array> arrayMap = new HashMap<String, Array>();
+
+        float[] dataLat = createArrayGridWith1DArray(targetGridDef, targetGridDef.getHeight(), 90f);
+        putDataInArrayGridMap("lat", dataLat, arrayMap);
+
+        float[] latBndsData = createBnds(targetGridDef, dataLat);
+        putDataInArrayGridMap("lat_bnds", latBndsData, arrayMap);
+
+        float[] dataLon = createArrayGridWith1DArray(targetGridDef, targetGridDef.getWidth(), 180f);
+        putDataInArrayGridMap("lon", dataLon, arrayMap);
+
+        float[] lonBndsData = createBnds(targetGridDef, dataLon);
+        putDataInArrayGridMap("lon_bnds", lonBndsData, arrayMap);
+
+        //todo add time array
+        //1 Eintrag, startDate
+        //todo add time_bnds array
+        //? sensing start sensing stop?
+
+        return arrayMap;
+    }
+
+    private static float[] createBnds(GridDef targetGridDef, float[] data) {
+        float[] bndsData = new float[data.length * 2];
+        int i = 0;
+        for (float value : data) {
+            float halfResolution = (float) targetGridDef.getResolutionX() / 2;
+            bndsData[i++] = value + halfResolution;
+            bndsData[i++] = value - halfResolution;
+        }
+        return bndsData;
+    }
+
+    private static void putDataInArrayGridMap(String key, float[] data, Map<String, Array> arrayMap) {
+        final Array array = Array.factory(DataType.FLOAT, new int[]{data.length}, data);
+        arrayMap.put(key, array);
+    }
+
+    static float[] createArrayGridWith1DArray(GridDef gridDef, int size, float start) {
+        if (!(gridDef.getHeight() == size || gridDef.getWidth() == size || gridDef.getTime() == size)) {
+            throw new IllegalArgumentException("Size must be one dimension's length (height, width or time)");
+        }
+
+        float resolution = (float) gridDef.getResolutionX();
+        float startResolution = resolution / 2;
+        int halfLength = size / 2;
+
+        float[] data = new float[size];
+        for (int i = 0; i < data.length; i++) {
+            if (i == 0) {
+                data[i] = start - startResolution;
+            } else if (i == halfLength) {
+                data[i] = -startResolution;
+            } else {
+                data[i] = data[i - 1] - resolution;
+            }
+        }
+        return data;
     }
 }

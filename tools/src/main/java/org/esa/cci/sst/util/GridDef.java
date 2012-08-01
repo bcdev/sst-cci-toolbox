@@ -43,6 +43,11 @@ public class GridDef {
         return new GridDef(width, height, -180.0, 90.0, resolution, resolution);
     }
 
+    public static GridDef createGlobal(double resolution, int time) {
+        GridDef gridDef = createGlobal(resolution);
+        return gridDef.setTime(time);
+    }
+
     public static GridDef createGlobalGrid(int width, int height) {
         return new GridDef(width, height, -180.0, 90.0, 360.0 / width, 180.0 / height);
     }

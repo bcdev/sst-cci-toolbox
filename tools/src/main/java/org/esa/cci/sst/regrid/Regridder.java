@@ -1,7 +1,5 @@
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.regrid.filetypes.CciL3UFileType;
-import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
 import ucar.ma2.Array;
@@ -21,13 +19,14 @@ import java.util.logging.Logger;
  */
 public class Regridder {
 
-    private static final Logger LOGGER = Tool.LOGGER;
+    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst.regrid.Regridder");
     private final FileStore fileStore;
     private final File outputDirectory;
 
     private final SpatialResolution targetResolution;
     private Map<String, ArrayGrid> sourceGrids;
     private Map<String, ArrayGrid> targetGrids;
+    private Map<String, Array> baseArrays;
 
 
     public Regridder(FileStore fileStore, String targetResolution, File outputDirectory) {
@@ -45,14 +44,15 @@ public class Regridder {
             sourceGrids = readSourceGridsTimeControlled(netcdfFileInput);
             targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
 
-//            RegridContext regridContext = new RegridContext();
             LOGGER.info("Start regridding");
             GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, new MeanCalculator());
             gridAggregation.aggregateGrids();
+
+            baseArrays = targetResolution.calculateBaseArrays();
             LOGGER.info("Finished with regridding");
 
-            //todo write output netcdf file (L3UFileType)
-           ((CciL3UFileType) getFileType()).writeFile(netcdfFileInput, outputDirectory, targetGrids);
+            getFileType().writeFile(netcdfFileInput, outputDirectory, targetGrids, baseArrays);
+            LOGGER.info("Ready with output.");
         }
     }
 

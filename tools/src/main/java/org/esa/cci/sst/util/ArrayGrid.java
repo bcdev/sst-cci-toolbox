@@ -38,11 +38,11 @@ public class ArrayGrid implements Grid {
     private final int width;
     private final int height;
 
-    public static ArrayGrid create(GridDef gridDef) {
-        return create(gridDef, null);
+    public static ArrayGrid createWith2DDoubleArray(GridDef gridDef) {
+        return createWith2DDoubleArray(gridDef, null);
     }
 
-    public static ArrayGrid create(GridDef gridDef, double[] data) {
+    public static ArrayGrid createWith2DDoubleArray(GridDef gridDef, double[] data) {
         return new ArrayGrid(gridDef, Array.factory(DataType.DOUBLE, new int[] {gridDef.getHeight(), gridDef.getWidth()}, data), Double.NaN, 1.0, 0.0);
     }
 

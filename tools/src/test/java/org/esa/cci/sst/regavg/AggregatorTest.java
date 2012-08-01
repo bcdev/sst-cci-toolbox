@@ -83,7 +83,7 @@ public class AggregatorTest {
         cell5Grid.getCellSafe(37, 1).set(0.0, 0); // empty
         cell5Grid.getCellSafe(38, 1).set(5.0, 1);
         cell5Grid.getCellSafe(39, 1).set(5.2, 1);
-        ArrayGrid seaCoverage5Grid = ArrayGrid.create(Aggregator.GRID_DEF_GLOBAL_5);
+        ArrayGrid seaCoverage5Grid = ArrayGrid.createWith2DDoubleArray(Aggregator.GRID_DEF_GLOBAL_5);
         seaCoverage5Grid.setSample(34, 1, 0.8);
         seaCoverage5Grid.setSample(35, 1, 0.5);
         seaCoverage5Grid.setSample(36, 1, 0.7);
@@ -118,7 +118,7 @@ public class AggregatorTest {
         cell5Grid.getCellSafe(37, 1).set(0.0, 0); // empty
         cell5Grid.getCellSafe(38, 1).set(5.0, 1);
         cell5Grid.getCellSafe(39, 1).set(5.2, 1);
-        ArrayGrid seaCoverage5Grid = ArrayGrid.create(Aggregator.GRID_DEF_GLOBAL_5);
+        ArrayGrid seaCoverage5Grid = ArrayGrid.createWith2DDoubleArray(Aggregator.GRID_DEF_GLOBAL_5);
         seaCoverage5Grid.setSample(34, 1, 0.8);
         seaCoverage5Grid.setSample(35, 1, 0.5);
         seaCoverage5Grid.setSample(36, 1, 0.7);
