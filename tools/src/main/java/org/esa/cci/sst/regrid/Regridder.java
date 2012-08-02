@@ -26,7 +26,6 @@ public class Regridder {
     private final SpatialResolution targetResolution;
     private Map<String, ArrayGrid> sourceGrids;
     private Map<String, ArrayGrid> targetGrids;
-    private Map<String, Array> baseArrays;
 
 
     public Regridder(FileStore fileStore, String targetResolution, File outputDirectory) {
@@ -47,11 +46,9 @@ public class Regridder {
             LOGGER.info("Start regridding");
             GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, new MeanCalculator());
             gridAggregation.aggregateGrids();
-
-            baseArrays = targetResolution.calculateBaseArrays();
             LOGGER.info("Finished with regridding");
 
-            getFileType().writeFile(netcdfFileInput, outputDirectory, targetGrids, baseArrays);
+            getFileType().writeFile(netcdfFileInput, outputDirectory, targetGrids, targetResolution);
             LOGGER.info("Ready with output.");
         }
     }

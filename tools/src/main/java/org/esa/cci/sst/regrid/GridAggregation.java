@@ -32,7 +32,7 @@ public class GridAggregation {
         }
     }
 
-    double[] fetchDataAsScaledDoubles(ArrayGrid sourceArrayGrid) {
+    double[] fetchDataAsScaledDoubles(ArrayGrid sourceArrayGrid) { //todo include offset
         final Array array = sourceArrayGrid.getArray();
         final Object sourceStorageObject = array.getStorage();
         final double scaling = sourceArrayGrid.getScaling();
@@ -68,12 +68,11 @@ public class GridAggregation {
         return doubles;
     }
 
-    //change the resolution of one grid of dimension (lon=x, lat=y, t=1)
     double[] aggregateData(double[] sourceData, GridDef sourceGridDef, GridDef targetGridDef) {
-        int numberOfCellsToAggregateInEachDimension = calculateResolution(sourceGridDef, targetGridDef);
-
         assert (sourceGridDef.getTime() == 1);
         assert (targetGridDef.getTime() == 1);
+
+        int numberOfCellsToAggregateInEachDimension = calculateResolution(sourceGridDef, targetGridDef);
         int targetArrayLength = targetGridDef.getNumberOfCells();
         double[] targetData = new double[targetArrayLength];
 
@@ -81,7 +80,6 @@ public class GridAggregation {
             final double mean = calculator.calculate(targetCellIndex, sourceData, numberOfCellsToAggregateInEachDimension, sourceGridDef.getWidth());
             targetData[targetCellIndex] = mean;
         }
-
         return targetData;
     }
 
@@ -116,9 +114,5 @@ public class GridAggregation {
     //Number of cell to be put in one target cell (return > 1 -> coarser grid)
     private int calculateResolution(GridDef sourceGridDef, GridDef targetGridDef) {
         return (int) (targetGridDef.getResolutionX() / sourceGridDef.getResolutionX());
-    }
-
-    public Map<String, ArrayGrid> getTargetGrids() {
-        return targetGrids;
     }
 }

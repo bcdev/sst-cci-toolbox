@@ -52,26 +52,30 @@ public class CciL3UFileType implements FileType {
      * <ul>
      * <li>init</li>
      * <li>global attributes / dimensions</li>
-     * <li>variable and variables attributes in header
-     * 1) measurement related (sst etc.)
-     * 2) product specific (lat, lat_bnds, lon, lon_bnds, time, time_bnds)
-     * </li>
+     * <li>variable and variables attributes in header</li>
      * <li>netcdfFile.createWith2DDoubleArray() write header</li>
      * <li>add arrays
      * 1) product specific (lat, lat_bnds, lon, lon_bnds, time, time_bnds)
-     * 2) measurement related (sst etc.)   -> loop it
+     * 2) measurement related (sst etc.)
+     * 3) copies time, time_bnds
      * </li>
      * </ul>
      */
     @Override
-    public void writeFile(NetcdfFile inputFile, File outputDirectory, Map<String, ArrayGrid> targetGrids, Map<String, Array> baseArrays) throws IOException {
+    public void writeFile(NetcdfFile inputFile, File outputDirectory, Map<String, ArrayGrid> targetGrids, SpatialResolution targetResolution) throws IOException {
+        Map<String, Array> baseArrays = targetResolution.calculateBaseArrays();
+
         File inputFilePath = new File(inputFile.getLocation());
         final File outputFile = new File(outputDirectory, inputFilePath.getName());
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(outputFile.getPath());
         //global attributes
-        List<Attribute> globalAttributes = inputFile.getGlobalAttributes();
-        for (Attribute globalAttribute : globalAttributes) {
-            netcdfFile.addGlobalAttribute(globalAttribute.getName(), globalAttribute.getValues());
+        List<Attribute> inputGlobalAttributes = inputFile.getGlobalAttributes();
+        for (Attribute globalAttribute : inputGlobalAttributes) {
+            String name = globalAttribute.getName();
+            netcdfFile.addGlobalAttribute(name, globalAttribute.getValues());
+            if ("geospatial_lat_resolution".equals(name) ||"geospatial_lon_resolution".equals(name)){
+                netcdfFile.addGlobalAttribute(name, targetResolution.getValue());
+            }
         }
         //global dimensions
         GridDef gridDef = targetGrids.get(new ArrayList<String>(targetGrids.keySet()).get(0)).getGridDef();
@@ -80,40 +84,36 @@ public class CciL3UFileType implements FileType {
         Dimension timeDim = netcdfFile.addDimension("time", gridDef.getTime(), true, false, false);
         Dimension bndsDim = netcdfFile.addDimension("bnds", 2);
 
-        //header information input variables (measurement related data)
+        //copy variable and variable attributes into header 
         Dimension[] dimensionMeasurementRelated = {timeDim, latDim, lonDim};
-        for (String variable : targetGrids.keySet()) {
-            for (Variable inputVariable : inputFile.getVariables()) {
-                if (variable.equals(inputVariable.getName())) {
-                    addVariableWithAttributestoNetCdfHeader(netcdfFile, dimensionMeasurementRelated, variable, inputVariable);
+        List<Variable> inputVariables = inputFile.getVariables();
+        for (Variable inputVariable : inputVariables) {
+            Dimension[] dimensions = null;
+            String variable = inputVariable.getName();
+            if (targetGrids.keySet().contains(variable)) {
+                dimensions = dimensionMeasurementRelated;
+            } else {
+                if ("lat".equals(variable)) {
+                    dimensions = new Dimension[]{latDim};
+                } else if ("lon".equals(variable)) {
+                    dimensions = new Dimension[]{lonDim};
+                } else if ("time".equals(variable)) {
+                    dimensions = new Dimension[]{timeDim};
+                } else if ("lon_bnds".equals(variable)) {
+                    dimensions = new Dimension[]{lonDim, bndsDim};
+                } else if ("lat_bnds".equals(variable)) {
+                    dimensions = new Dimension[]{latDim, bndsDim};
+                } else if ("time_bnds".equals(variable)) {
+                    dimensions = new Dimension[]{timeDim, bndsDim};
                 }
             }
+            addVariableWithAttributesToNetCdfHeader(netcdfFile, dimensions, variable, inputVariable);
         }
-        for (String baseVariable : baseArrays.keySet()) {
-            for (Variable inputVariable : inputFile.getVariables()) {
-                if (baseVariable.equals(inputVariable.getName())) {
-                    Dimension[] dimensions = null;
-                    if ("lat".equals(baseVariable)) {
-                        dimensions = new Dimension[]{latDim};
-                    } else if ("lon".equals(baseVariable)) {
-                        dimensions = new Dimension[]{lonDim};
-                    } else if ("lon_bnds".equals(baseVariable)) {
-                        dimensions = new Dimension[]{lonDim, bndsDim};
-                    } else if ("lat_bnds".equals(baseVariable)) {
-                        dimensions = new Dimension[]{latDim, bndsDim};
-                    }
-                    addVariableWithAttributestoNetCdfHeader(netcdfFile, dimensions, baseVariable, inputVariable);
-                }
-            }
-        }
-
-        //todo add time band
-        //todo add time_bnds band
 
         //write header
         netcdfFile.create();
 
-        //add values for regridded variables
+        //add data for regridded variables
         for (String variable : targetGrids.keySet()) {
             Array array = targetGrids.get(variable).getArray();
             writeDataToNetCdfFile(netcdfFile, variable, array);
@@ -121,9 +121,13 @@ public class CciL3UFileType implements FileType {
         for (String baseVariable : baseArrays.keySet()) {
             writeDataToNetCdfFile(netcdfFile, baseVariable, baseArrays.get(baseVariable));
         }
-        //todo add time band
-        //todo add time_bnds band
-
+        //copy data for time
+        for (Variable inputVariable : inputVariables) {
+            String inputVariableName = inputVariable.getName();
+            if ("time".equals(inputVariableName) || "time_bnds".equals(inputVariableName)) {
+                writeDataToNetCdfFile(netcdfFile, inputVariableName, inputVariable.read());
+            }
+        }
         netcdfFile.flush();
         netcdfFile.close();
     }
@@ -136,13 +140,13 @@ public class CciL3UFileType implements FileType {
         }
     }
 
-    private void addVariableWithAttributestoNetCdfHeader(NetcdfFileWriteable netcdfFile, Dimension[] dimensionMeasurementRelated, String baseVariable, Variable inputVariable) {
+    private void addVariableWithAttributesToNetCdfHeader(NetcdfFileWriteable netcdfFile, Dimension[] dimensions, String variable, Variable inputVariable) {
         DataType dataTypeFromInput = inputVariable.getDataType();
         List<Attribute> attributesFromInput = inputVariable.getAttributes();
-        netcdfFile.addVariable(baseVariable, dataTypeFromInput, dimensionMeasurementRelated);
+        netcdfFile.addVariable(variable, dataTypeFromInput, dimensions);
 
         for (Attribute attribute : attributesFromInput) {
-            netcdfFile.addVariableAttribute(baseVariable, attribute);
+            netcdfFile.addVariableAttribute(variable, attribute);
         }
     }
 }
