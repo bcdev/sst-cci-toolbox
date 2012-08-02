@@ -98,7 +98,7 @@ public class GridAggregationTest {
         Array targetArray_1 = Array.factory(DataType.SHORT, targetShape);
         Array targetArray_2 = Array.factory(DataType.SHORT, targetShape);
 
-        ArrayGrid sourceArrayGrid_1 = new ArrayGrid(sourceGridDef, sourceArray_1, Short.MIN_VALUE, 2.0, 0).setVariable("A");
+        ArrayGrid sourceArrayGrid_1 = new ArrayGrid(sourceGridDef, sourceArray_1, Short.MIN_VALUE, 2.0, 2).setVariable("A");
         ArrayGrid sourceArrayGrid_2 = new ArrayGrid(sourceGridDef, sourceArray_2, Short.MIN_VALUE, 0.1, 0).setVariable("B");
         ArrayGrid targetArrayGrid_1 = new ArrayGrid(targetGridDef, targetArray_1, Short.MIN_VALUE, 2.0, 0).setVariable("A");
         ArrayGrid targetArrayGrid_2 = new ArrayGrid(targetGridDef, targetArray_2, Short.MIN_VALUE, 0.1, 0).setVariable("B");
@@ -128,8 +128,8 @@ public class GridAggregationTest {
         assertEquals(1, dataA.length);
         assertEquals(2, latRowsA.length);
         assertEquals(4, longCellsA.length);
-        assertEquals("[4, 4, 4, 4]", Arrays.toString(latRowsA[0]));
-        assertEquals("[10, 10, 10, 10]", Arrays.toString(latRowsA[1]));
+        assertEquals("[5, 5, 5, 5]", Arrays.toString(latRowsA[0]));
+        assertEquals("[11, 11, 11, 11]", Arrays.toString(latRowsA[1]));
 
         final Object objB = targetArray_2.copyToNDJavaArray();
         assertTrue(objB instanceof short[][][]);
@@ -240,17 +240,15 @@ public class GridAggregationTest {
         int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
         int[] data = new int[]{1, 1, 1, 1, 2, 2, 2, 2};
         Array sourceArray = Array.factory(DataType.INT, sourceShape, data);
-        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 2.0, 0).setVariable("A");
+        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 2.0, 2.0).setVariable("A");
         Map ignored = null;
         GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
 
         //execution
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
 
-        double[] expected = {2.0, 2.0, 2.0, 2.0, 4.0, 4.0, 4.0, 4.0};
-        for (int i = 0; i < dataAsScaledDouble.length; i++) {
-            assertTrue(expected[i] == dataAsScaledDouble[i]);
-        }
+        double[] expected = {4.0, 4.0, 4.0, 4.0, 6.0, 6.0, 6.0, 6.0};
+        assertEquals(Arrays.toString(expected), Arrays.toString(dataAsScaledDouble));
     }
 
     @Test
@@ -259,17 +257,15 @@ public class GridAggregationTest {
         int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
         byte[] data = new byte[]{1, 1, 1, 1, 2, 2, 2, 2};
         Array sourceArray = Array.factory(DataType.BYTE, sourceShape, data);
-        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 0.1, 0).setVariable("A");
+        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 0.1, 5.0).setVariable("A");
         Map ignored = null;
         GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
 
         //execution
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
 
-        double[] expected = {0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2};
-        for (int i = 0; i < dataAsScaledDouble.length; i++) {
-            assertTrue(expected[i] == dataAsScaledDouble[i]);
-        }
+        double[] expected = {5.1, 5.1, 5.1, 5.1, 5.2, 5.2, 5.2, 5.2};
+        assertEquals(Arrays.toString(expected), Arrays.toString(dataAsScaledDouble));
     }
 
     @Test

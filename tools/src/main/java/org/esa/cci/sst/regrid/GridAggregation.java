@@ -32,10 +32,11 @@ public class GridAggregation {
         }
     }
 
-    double[] fetchDataAsScaledDoubles(ArrayGrid sourceArrayGrid) { //todo include offset
+    double[] fetchDataAsScaledDoubles(ArrayGrid sourceArrayGrid) {
         final Array array = sourceArrayGrid.getArray();
         final Object sourceStorageObject = array.getStorage();
         final double scaling = sourceArrayGrid.getScaling();
+        final double offset = sourceArrayGrid.getOffset();
         final GridDef sourceGridDef = sourceArrayGrid.getGridDef();
         final int length = sourceGridDef.getNumberOfCells();
         final double[] doubles = new double[length];
@@ -45,21 +46,21 @@ public class GridAggregation {
             short[] storage = (short[]) sourceStorageObject;
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
-                double value = storage[i] * scaling;
+                double value = storage[i] * scaling + offset;
                 doubles[i] = value;
             }
         } else if ("byte".equals(type)) {
             byte[] storage = (byte[]) sourceStorageObject;
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
-                double value = storage[i] * scaling;
+                double value = storage[i] * scaling + offset;
                 doubles[i] = value;
             }
         } else if ("int".equals(type)) {
             int[] storage = (int[]) sourceStorageObject;
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
-                double value = storage[i] * scaling;
+                double value = storage[i] * scaling + offset;
                 doubles[i] = value;
             }
         } else {
@@ -86,24 +87,25 @@ public class GridAggregation {
     private void fillTargetStorage(ArrayGrid targetArrayGrid, double[] targetDataScaled) {
         final Object targetStorageObj = targetArrayGrid.getArray().getStorage();
         double scaling = targetArrayGrid.getScaling();
+        double offset = targetArrayGrid.getOffset();
         String type = targetArrayGrid.getArray().getElementType().getName();
 
         if ("short".equals(type)) {
             short[] store = (short[]) targetStorageObj;
             for (int i = 0; i < targetDataScaled.length; i++) {
-                long scaledValue = Math.round(targetDataScaled[i] / scaling);
+                long scaledValue = Math.round((targetDataScaled[i] - offset) / scaling);
                 store[i] = (short) scaledValue;
             }
         } else if ("byte".equals(type)) {
             byte[] store = (byte[]) targetStorageObj;
             for (int i = 0; i < targetDataScaled.length; i++) {
-                long scaledValue = Math.round(targetDataScaled[i] / scaling);
+                long scaledValue = Math.round((targetDataScaled[i] - offset) / scaling);
                 store[i] = (byte) scaledValue;
             }
         } else if ("int".equals(type)) {
             int[] store = (int[]) targetStorageObj;
             for (int i = 0; i < targetDataScaled.length; i++) {
-                long scaledValue = Math.round(targetDataScaled[i] / scaling);
+                long scaledValue = Math.round((targetDataScaled[i] - offset) / scaling);
                 store[i] = (int) scaledValue;
             }
         } else {
