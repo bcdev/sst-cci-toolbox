@@ -14,7 +14,7 @@ public class CellAggregationContext {
     private double[] sourceDataScaled;
     private ArrayGrid targetArrayGrid;
     private int numberOfCellsToAggregateInEachDimension;
-    private SpatialResolution targetResolution;
+    private double minCoverage;
 
     public CellAggregationContext(String variable, double[] sourceDataScaled, ArrayGrid sourceArrayGrid, ArrayGrid targetArrayGrid) {
         this.variable = variable;
@@ -69,5 +69,13 @@ public class CellAggregationContext {
 
     public void setTargetArrayGrid(ArrayGrid targetArrayGrid) {
         this.targetArrayGrid = targetArrayGrid;
+    }
+
+    public void setMinCoverage(double minCoverage) {
+        this.minCoverage = minCoverage;
+    }
+
+    public double getMinCoverage() {
+        return minCoverage;
     }
 }

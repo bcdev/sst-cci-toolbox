@@ -54,16 +54,16 @@ public class RegriddingTool extends Tool {
     public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
             "The end date for the analysis given in the format YYYY-MM-DD");
 
-//    private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false", "A Boolean variable indicating whether total or " +
+    //    private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false", "A Boolean variable indicating whether total or " +
 //            "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
 //
 //    private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology", "The directory path to the reference climatology.");
 //
-//    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5", "The minimum fractional coverage " +
-//            "required for non-missing output.");
-//
+    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5", "The minimum fractional coverage " +
+            "required for non-missing output. (fraction of valid values in input per grid box in output) ");
+
 //    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
-//            "The maximum relative total uncertainty allowed for non-missing output.", true);
+//            "The maximum relative total uncertainty allowed for non-missing output.", true);   //optional due to specification
 
 
     public static void main(String[] args) {
@@ -78,10 +78,11 @@ public class RegriddingTool extends Tool {
         final Date to = configuration.getDate(PARAM_END_DATE, true);
         final Date from = configuration.getDate(PARAM_START_DATE, true);
         final File outputDirectory = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+        String minCoverage = configuration.getString(PARAM_MIN_COVERAGE, false);
 
         String filenameRegex = ".+";
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
-        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory);
+        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory, minCoverage);
 
         try {
             regridder.doIt(from, to);
@@ -123,9 +124,9 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
-        // PARAM_CLIMATOLOGY_DIR, PARAM_MIN_COVERAGE, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY, PARAM_SST_DEPTH
+        // PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY, PARAM_SST_DEPTH
         paramList.addAll(Arrays.asList(PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
-                PARAM_REGION, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE));
+                PARAM_REGION, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_MIN_COVERAGE));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {

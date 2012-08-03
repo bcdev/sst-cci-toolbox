@@ -121,7 +121,7 @@ public class GridAggregationTest {
         GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, meanCalculator);
 
         //execution
-        gridAggregation.aggregateGrids();
+        gridAggregation.aggregateGrids(0.5);
 
         //verification
         assertArrayEquals(new int[]{1, 12, 24}, sourceShape);
@@ -149,7 +149,86 @@ public class GridAggregationTest {
         assertEquals(4, longCellsB.length);
         assertEquals("[3, 3, 3, 3]", Arrays.toString(latRowsB[0]));
         assertEquals("[3, 3, 3, 3]", Arrays.toString(latRowsB[1]));
+    }
 
+    @Test
+    public void testAggregateGrids_minCoverage() throws Exception {
+        HashMap<String, ArrayGrid> sourceGrids = new HashMap<String, ArrayGrid>();
+        HashMap<String, ArrayGrid> targetGrids = new HashMap<String, ArrayGrid>();
+
+        GridDef sourceGridDef = GridDef.createGlobal(15.0).setTime(1);
+        GridDef targetGridDef = GridDef.createGlobal(90.0).setTime(1);
+
+        int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
+        int[] targetShape = {1, targetGridDef.getHeight(), targetGridDef.getWidth()};
+
+        short fillValue = Short.MIN_VALUE;
+        short[] data_1 = createData_increasingPerRow(sourceGridDef);
+        data_1 = introduceFillValues(data_1, fillValue, 11, 12); //all valid mean
+        short[] data_2 = createData_alternatingPerRow(sourceGridDef);
+        data_2 = introduceFillValues(data_2, fillValue, 2); //all invalid mean, coverage = 0.5
+
+        Array sourceArray_1 = Array.factory(DataType.SHORT, sourceShape, data_1);
+        Array sourceArray_2 = Array.factory(DataType.SHORT, sourceShape, data_2);
+        Array targetArray_1 = Array.factory(DataType.SHORT, targetShape);
+        Array targetArray_2 = Array.factory(DataType.SHORT, targetShape);
+
+        ArrayGrid sourceArrayGrid_1 = new ArrayGrid(sourceGridDef, sourceArray_1, fillValue, 2.0, 2).setVariable("A1");
+        ArrayGrid sourceArrayGrid_2 = new ArrayGrid(sourceGridDef, sourceArray_2, fillValue, 0.1, 0).setVariable("A2");
+        ArrayGrid targetArrayGrid_1 = new ArrayGrid(targetGridDef, targetArray_1, fillValue, 2.0, 0).setVariable("A1");
+        ArrayGrid targetArrayGrid_2 = new ArrayGrid(targetGridDef, targetArray_2, fillValue, 0.1, 0).setVariable("A2");
+
+        sourceGrids.put("A1", sourceArrayGrid_1);
+        sourceGrids.put("A2", sourceArrayGrid_2);
+        targetGrids.put("A1", targetArrayGrid_1);
+        targetGrids.put("A2", targetArrayGrid_2);
+//        printShortArray(sourceGridDef, (short[]) sourceGrids.get("A1").getArray().copyTo1DJavaArray());
+//        printShortArray(sourceGridDef, (short[]) sourceGrids.get("A2").getArray().copyTo1DJavaArray());
+
+        GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, meanCalculator);
+
+        //execution
+        double minCoverage = 0.51;
+        gridAggregation.aggregateGrids(minCoverage);
+
+        //verification
+        assertArrayEquals(new int[]{1, 12, 24}, sourceShape);
+        assertArrayEquals(new int[]{1, 2, 4}, targetShape);
+
+//        targetGrids -> have valid data now
+        final Object objA = targetArray_1.copyToNDJavaArray();
+        assertTrue(objA instanceof short[][][]);
+        short[][][] dataA = (short[][][]) objA;
+        short[][] latRowsA = dataA[0];
+        short[] longCellsA = dataA[0][0];
+        assertEquals(1, dataA.length);
+        assertEquals(2, latRowsA.length);
+        assertEquals(4, longCellsA.length);
+        assertEquals("[5, 5, 5, 5]", Arrays.toString(latRowsA[0]));
+        assertEquals("[10, 10, 10, 10]", Arrays.toString(latRowsA[1]));
+
+        final Object objB = targetArray_2.copyToNDJavaArray();
+        assertTrue(objB instanceof short[][][]);
+        short[][][] dataB = (short[][][]) objB;
+        short[][] latRowsB = dataB[0];
+        short[] longCellsB = dataB[0][0];
+        assertEquals(1, dataA.length);
+        assertEquals(2, latRowsB.length);
+        assertEquals(4, longCellsB.length);
+        assertEquals("[-32768, -32768, -32768, -32768]", Arrays.toString(latRowsB[0])); //Short.MIN_VALUE
+        assertEquals("[-32768, -32768, -32768, -32768]", Arrays.toString(latRowsB[1])); //Short.MIN_VALUE
+    }
+
+    private static short[] introduceFillValues(short[] data, short fillValue, int... replace) {
+        short[] dataWithFillValues = Arrays.copyOf(data, data.length);
+        for (int i = 0; i < data.length; i++) {
+            for (int replaceValue : replace) {
+                if (data[i] == replaceValue) {
+                    dataWithFillValues[i] = fillValue;
+                }
+            }
+        }
+        return dataWithFillValues;
     }
 
     private static short[] createData_increasingPerRow(GridDef sourceGridDef) {

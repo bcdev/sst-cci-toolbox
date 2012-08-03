@@ -24,14 +24,14 @@ public class Regridder {
     private final File outputDirectory;
 
     private final SpatialResolution targetResolution;
-    private Map<String, ArrayGrid> sourceGrids;
-    private Map<String, ArrayGrid> targetGrids;
+    private final double minCoverage;
 
 
-    public Regridder(FileStore fileStore, String targetResolution, File outputDirectory) {
+    public Regridder(FileStore fileStore, String targetResolution, File outputDirectory, String minCoverage) {
         this.fileStore = fileStore;
         this.targetResolution = SpatialResolution.getFromValue(targetResolution);
         this.outputDirectory = outputDirectory;
+        this.minCoverage = Double.parseDouble(minCoverage);
     }
 
     public void doIt(Date from, Date to) throws IOException {
@@ -39,13 +39,13 @@ public class Regridder {
 
         for (File file : files) {
 
-            NetcdfFile netcdfFileInput = NetcdfFile.open(file.getPath());
-            sourceGrids = readSourceGridsTimeControlled(netcdfFileInput);
-            targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
+            final NetcdfFile netcdfFileInput = NetcdfFile.open(file.getPath());
+            final Map<String, ArrayGrid> sourceGrids = readSourceGridsTimeControlled(netcdfFileInput);
+            final Map<String, ArrayGrid> targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
 
             LOGGER.info("Start regridding");
             GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, new MeanCalculator());
-            gridAggregation.aggregateGrids();
+            gridAggregation.aggregateGrids(minCoverage);
             LOGGER.info("Finished with regridding");
 
             getFileType().writeFile(netcdfFileInput, outputDirectory, targetGrids, targetResolution);

@@ -24,7 +24,7 @@ public class RegridderTest {
     @Test
     public void testInitialiseTargetGrids() throws Exception {
         SpatialResolution targetResolution = SpatialResolution.DEGREE_10_00;
-        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()), new File(""));
+        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()), new File(""), "0");
         Map<String, ArrayGrid> sourceArrayGrids = TestL3ProductMaker.fetchL3UProductForTest();
 
         //execution

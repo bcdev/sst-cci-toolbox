@@ -6,14 +6,16 @@ package org.esa.cci.sst.regrid;
  */
 public class MeanCalculator implements Calculator {
 
-    private int getNumberOfCellsToAggregateInEachDimension;
+    private int numberOfCellsToAggregateInEachDimension;
     private int validAggregatedCells;
+    private double minCoverage;
 
 
     @Override
     public double calculate(CellAggregationContext context) {
         this.validAggregatedCells = 0;
-        this.getNumberOfCellsToAggregateInEachDimension = context.getNumberOfCellsToAggregateInEachDimension();
+        this.numberOfCellsToAggregateInEachDimension = context.getNumberOfCellsToAggregateInEachDimension();
+        this.minCoverage = context.getMinCoverage();
         return calculateMean(context.getTargetCellIndex(), context.getSourceDataScaled(), context.getSourceArrayGrid().getWidth());
     }
 
@@ -23,19 +25,24 @@ public class MeanCalculator implements Calculator {
     }
 
     private double arithmeticMean(double sum) {
-        return sum / validAggregatedCells;
+        double coverage = validAggregatedCells / Math.pow(numberOfCellsToAggregateInEachDimension, 2);
+        if (coverage >= minCoverage){
+            return sum / validAggregatedCells;
+        }  else {
+            return Double.NaN;
+        }
     }
 
     //one target cell is summed up in the source grid
     private double sumCells2D(int targetCellIndex, double[] source, int sourceWidth) {
         double sum = 0.0;
-        int targetWidth = sourceWidth / getNumberOfCellsToAggregateInEachDimension;
+        int targetWidth = sourceWidth / numberOfCellsToAggregateInEachDimension;
         int targetLineIndex = targetCellIndex / targetWidth; //(0,1,2.. - through cast-magic)
         int targetColumnIndex = targetCellIndex % targetWidth;
 
-        int targetLineStep = sourceWidth * getNumberOfCellsToAggregateInEachDimension;
+        int targetLineStep = sourceWidth * numberOfCellsToAggregateInEachDimension;
         int startSourceIndexInTargetLine = targetLineIndex * targetLineStep;
-        int sourceStartCellIndex = startSourceIndexInTargetLine + targetColumnIndex * getNumberOfCellsToAggregateInEachDimension;
+        int sourceStartCellIndex = startSourceIndexInTargetLine + targetColumnIndex * numberOfCellsToAggregateInEachDimension;
 
         for (int i = sourceStartCellIndex; i < sourceStartCellIndex + targetLineStep; i += sourceWidth) { //step to next line in the source
             sum += sumCells1D(source, i);
@@ -46,7 +53,7 @@ public class MeanCalculator implements Calculator {
     //one line in size of the target cell
     private double sumCells1D(double[] source, int startIndex) {
         double sum = 0.0;
-        for (int l = startIndex; l < startIndex + getNumberOfCellsToAggregateInEachDimension; l++) {
+        for (int l = startIndex; l < startIndex + numberOfCellsToAggregateInEachDimension; l++) {
             double value = source[l];
             if (Double.isNaN(value)) {
                 continue; //skip it

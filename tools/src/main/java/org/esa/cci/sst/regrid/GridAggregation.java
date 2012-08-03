@@ -21,13 +21,14 @@ public class GridAggregation {
         this.calculator = calculator;
     }
 
-    public void aggregateGrids() {
+    public void aggregateGrids(double minCoverage) {
         for (String variable : targetGrids.keySet()) {
             ArrayGrid sourceArrayGrid = sourceGrids.get(variable);
             ArrayGrid targetArrayGrid = targetGrids.get(variable);
 
             double[] sourceDataScaled = fetchDataAsScaledDoubles(sourceArrayGrid);
             CellAggregationContext context = new CellAggregationContext(variable, sourceDataScaled, sourceArrayGrid, targetArrayGrid);
+            context.setMinCoverage(minCoverage);
             double[] targetDataScaled = aggregateData(context);
             fillTargetStorage(targetArrayGrid, targetDataScaled);
         }
@@ -107,25 +108,41 @@ public class GridAggregation {
         final Object targetStorageObj = targetArrayGrid.getArray().getStorage();
         double scaling = targetArrayGrid.getScaling();
         double offset = targetArrayGrid.getOffset();
+        Number fillValue = targetArrayGrid.getFillValue();
         String type = targetArrayGrid.getArray().getElementType().getName();
 
         if ("short".equals(type)) {
             short[] store = (short[]) targetStorageObj;
             for (int i = 0; i < targetDataScaled.length; i++) {
-                long scaledValue = Math.round((targetDataScaled[i] - offset) / scaling);
-                store[i] = (short) scaledValue;
+                double scaledValue = targetDataScaled[i];
+                if (Double.isNaN(scaledValue)) {
+                    store[i] = fillValue.shortValue();
+                } else {
+                    long value = Math.round((scaledValue - offset) / scaling);
+                    store[i] = (short) value;
+                }
             }
         } else if ("byte".equals(type)) {
             byte[] store = (byte[]) targetStorageObj;
             for (int i = 0; i < targetDataScaled.length; i++) {
-                long scaledValue = Math.round((targetDataScaled[i] - offset) / scaling);
-                store[i] = (byte) scaledValue;
+                double scaledValue = targetDataScaled[i];
+                if (Double.isNaN(scaledValue)) {
+                    store[i] = fillValue.byteValue();
+                } else {
+                    long value = Math.round((scaledValue - offset) / scaling);
+                    store[i] = (byte) value;
+                }
             }
         } else if ("int".equals(type)) {
             int[] store = (int[]) targetStorageObj;
             for (int i = 0; i < targetDataScaled.length; i++) {
-                long scaledValue = Math.round((targetDataScaled[i] - offset) / scaling);
-                store[i] = (int) scaledValue;
+                double scaledValue = targetDataScaled[i];
+                if (Double.isNaN(scaledValue)) {
+                    store[i] = fillValue.intValue();
+                } else {
+                    long value = Math.round((scaledValue - offset) / scaling);
+                    store[i] = (int) value;
+                }
             }
         } else {
             throw new RuntimeException("byte[], short[] or int[] expected, but found " + type + "[].");
