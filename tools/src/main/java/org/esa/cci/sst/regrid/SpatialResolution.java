@@ -135,11 +135,6 @@ public enum SpatialResolution {
         float[] lonBndsData = createBnds(targetGridDef, dataLon);
         putDataInArrayGridMap("lon_bnds", lonBndsData, arrayMap);
 
-        //todo add time array
-        //1 Eintrag, startDate
-        //todo add time_bnds array
-        //? sensing start sensing stop?
-
         return arrayMap;
     }
 

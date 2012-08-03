@@ -6,5 +6,5 @@ package org.esa.cci.sst.regrid;
  */
 public interface Calculator {
 
-    double calculate(int targetCellIndex, double[] sourceData, int numberOfCellsToAggregateInEachDimension, int sourceWidth);
+    double calculate(CellAggregationContext variableAggregationContext);
 }

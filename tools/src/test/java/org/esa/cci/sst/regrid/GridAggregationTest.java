@@ -25,15 +25,15 @@ public class GridAggregationTest {
 
     @Test
     public void testAggregateData_increasing() throws Exception {
+        String variable = "A";
         GridDef sourceGridDef = GridDef.createGlobal(15.0).setTime(1);
         int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
         short[] data = createData_increasingPerRow(sourceGridDef);
         assertEquals(288, data.length);
 //        printShortArray(sourceGridDef, data);
         Array sourceArray = Array.factory(DataType.SHORT, sourceShape, data);
-        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, Short.MIN_VALUE, 1.0, 0).setVariable("A");
-
-        GridDef targetGridDef = GridDef.createGlobal(90.0).setTime(1);
+        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, Short.MIN_VALUE, 1.0, 0).setVariable(variable);
+        ArrayGrid targetArrayGrid = createTargetArrayGridFrom(sourceArrayGrid);
 
         Map ignored = null;
         GridAggregation gridAggregation = new GridAggregation(ignored, ignored, meanCalculator);
@@ -41,7 +41,8 @@ public class GridAggregationTest {
 //        printDoubleArray(sourceGridDef, sourceDoubles);
 
         //execution
-        double[] targetDoubles = gridAggregation.aggregateData(sourceDoubles, sourceGridDef, targetGridDef);
+        CellAggregationContext context = new CellAggregationContext(variable, sourceDoubles, sourceArrayGrid, targetArrayGrid);
+        double[] targetDoubles = gridAggregation.aggregateData(context);
 
         assertEquals(288, sourceDoubles.length);
         assertEquals(8, targetDoubles.length);
@@ -51,17 +52,23 @@ public class GridAggregationTest {
         }
     }
 
+    private ArrayGrid createTargetArrayGridFrom(ArrayGrid sourceArrayGrid) {
+        GridDef targetGridDef = GridDef.createGlobal(90.0).setTime(1);
+        Array array = Array.factory(DataType.SHORT, new int[]{1, targetGridDef.getHeight(), targetGridDef.getWidth()});
+        return new ArrayGrid(targetGridDef, array, sourceArrayGrid.getFillValue(), sourceArrayGrid.getScaling(), sourceArrayGrid.getOffset());
+    }
+
     @Test
     public void testAggregateData_alternating() throws Exception {
+        String variable = "A";
         GridDef sourceGridDef = GridDef.createGlobal(15.0).setTime(1);
         int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
         short[] data = createData_alternatingPerRow(sourceGridDef);
         assertEquals(288, data.length);
 //        printShortArray(sourceGridDef, data);
         Array sourceArray = Array.factory(DataType.SHORT, sourceShape, data);
-        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, Short.MIN_VALUE, 1.0, 0).setVariable("A");
-
-        GridDef targetGridDef = GridDef.createGlobal(90.0).setTime(1);
+        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, Short.MIN_VALUE, 1.0, 0).setVariable(variable);
+        ArrayGrid targetArrayGrid = createTargetArrayGridFrom(sourceArrayGrid);
 
         Map ignored = null;
         GridAggregation gridAggregation = new GridAggregation(ignored, ignored, meanCalculator);
@@ -69,7 +76,8 @@ public class GridAggregationTest {
 
 //        printDoubleArray(sourceGridDef, sourceDoubles);
         //execution
-        double[] targetDoubles = gridAggregation.aggregateData(sourceDoubles, sourceGridDef, targetGridDef);
+        CellAggregationContext context = new CellAggregationContext(variable, sourceDoubles, sourceArrayGrid, targetArrayGrid);
+        double[] targetDoubles = gridAggregation.aggregateData(context);
 
         assertEquals(288, sourceDoubles.length);
         assertEquals(8, targetDoubles.length);
@@ -252,6 +260,24 @@ public class GridAggregationTest {
     }
 
     @Test
+    public void testFetchDataAsScaledDouble_intWithNaN() throws Exception {
+        int fillValue = 10000;
+        GridDef sourceGridDef = GridDef.createGlobal(90.0).setTime(1);
+        int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
+        int[] data = new int[]{1, 1, 1, fillValue, 2, 2, 2, 2};
+        Array sourceArray = Array.factory(DataType.INT, sourceShape, data);
+        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, fillValue, 2.0, 2.0).setVariable("A");
+        Map ignored = null;
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+
+        //execution
+        double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
+
+        double[] expected = {4.0, 4.0, 4.0, Double.NaN, 6.0, 6.0, 6.0, 6.0};
+        assertEquals(Arrays.toString(expected), Arrays.toString(dataAsScaledDouble));
+    }
+
+    @Test
     public void testFetchDataAsScaledDouble_byte() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(90.0).setTime(1);
         int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
@@ -265,6 +291,23 @@ public class GridAggregationTest {
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
 
         double[] expected = {5.1, 5.1, 5.1, 5.1, 5.2, 5.2, 5.2, 5.2};
+        assertEquals(Arrays.toString(expected), Arrays.toString(dataAsScaledDouble));
+    }
+
+    @Test
+    public void testFetchDataAsScaledDouble_byteWithNaNValues() throws Exception {
+        GridDef sourceGridDef = GridDef.createGlobal(90.0).setTime(1);
+        int[] sourceShape = {1, sourceGridDef.getHeight(), sourceGridDef.getWidth()};
+        byte[] data = new byte[]{1, 1, -128, 1, 2, 2, -128, 2};
+        Array sourceArray = Array.factory(DataType.BYTE, sourceShape, data);
+        ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, Byte.MIN_VALUE, 0.1, 5.0).setVariable("A");
+        Map ignored = null;
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+
+        //execution
+        double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
+
+        double[] expected = {5.1, 5.1, Double.NaN, 5.1, 5.2, 5.2, Double.NaN, 5.2};
         assertEquals(Arrays.toString(expected), Arrays.toString(dataAsScaledDouble));
     }
 

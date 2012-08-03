@@ -27,7 +27,8 @@ public class GridAggregation {
             ArrayGrid targetArrayGrid = targetGrids.get(variable);
 
             double[] sourceDataScaled = fetchDataAsScaledDoubles(sourceArrayGrid);
-            double[] targetDataScaled = aggregateData(sourceDataScaled, sourceArrayGrid.getGridDef(), targetArrayGrid.getGridDef());
+            CellAggregationContext context = new CellAggregationContext(variable, sourceDataScaled, sourceArrayGrid, targetArrayGrid);
+            double[] targetDataScaled = aggregateData(context);
             fillTargetStorage(targetArrayGrid, targetDataScaled);
         }
     }
@@ -37,6 +38,7 @@ public class GridAggregation {
         final Object sourceStorageObject = array.getStorage();
         final double scaling = sourceArrayGrid.getScaling();
         final double offset = sourceArrayGrid.getOffset();
+        final Number fillValue = sourceArrayGrid.getFillValue();
         final GridDef sourceGridDef = sourceArrayGrid.getGridDef();
         final int length = sourceGridDef.getNumberOfCells();
         final double[] doubles = new double[length];
@@ -46,22 +48,37 @@ public class GridAggregation {
             short[] storage = (short[]) sourceStorageObject;
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
-                double value = storage[i] * scaling + offset;
-                doubles[i] = value;
+                short rawValue = storage[i];
+                if (fillValue.shortValue() == rawValue) {
+                    doubles[i] = Double.NaN;
+                } else {
+                    double value = rawValue * scaling + offset;
+                    doubles[i] = value;
+                }
             }
         } else if ("byte".equals(type)) {
             byte[] storage = (byte[]) sourceStorageObject;
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
-                double value = storage[i] * scaling + offset;
-                doubles[i] = value;
+                byte rawValue = storage[i];
+                if (fillValue.byteValue() == rawValue) {
+                    doubles[i] = Double.NaN;
+                } else {
+                    double value = rawValue * scaling + offset;
+                    doubles[i] = value;
+                }
             }
         } else if ("int".equals(type)) {
             int[] storage = (int[]) sourceStorageObject;
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
-                double value = storage[i] * scaling + offset;
-                doubles[i] = value;
+                int rawValue = storage[i];
+                if (fillValue.intValue() == rawValue) {
+                    doubles[i] = Double.NaN;
+                } else {
+                    double value = rawValue * scaling + offset;
+                    doubles[i] = value;
+                }
             }
         } else {
             throw new RuntimeException("byte[], short[] or int[] expected, but found " + type + "[].");
@@ -69,16 +86,18 @@ public class GridAggregation {
         return doubles;
     }
 
-    double[] aggregateData(double[] sourceData, GridDef sourceGridDef, GridDef targetGridDef) {
+    double[] aggregateData(CellAggregationContext context) {
+        final GridDef sourceGridDef = context.getSourceArrayGrid().getGridDef();
+        final GridDef targetGridDef = context.getTargetArrayGrid().getGridDef();
         assert (sourceGridDef.getTime() == 1);
         assert (targetGridDef.getTime() == 1);
+        context.setNumberOfCellsToAggregateInEachDimension(calculateResolution(sourceGridDef, targetGridDef));
 
-        int numberOfCellsToAggregateInEachDimension = calculateResolution(sourceGridDef, targetGridDef);
         int targetArrayLength = targetGridDef.getNumberOfCells();
         double[] targetData = new double[targetArrayLength];
-
         for (int targetCellIndex = 0; targetCellIndex < targetArrayLength; targetCellIndex++) {
-            final double mean = calculator.calculate(targetCellIndex, sourceData, numberOfCellsToAggregateInEachDimension, sourceGridDef.getWidth());
+            context.setTargetCellIndex(targetCellIndex);
+            final double mean = calculator.calculate(context);
             targetData[targetCellIndex] = mean;
         }
         return targetData;
