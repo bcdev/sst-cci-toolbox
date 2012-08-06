@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.regrid.calculators.MeanCalculator;
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
 import org.junit.Test;
@@ -36,7 +37,7 @@ public class GridAggregationTest {
         ArrayGrid targetArrayGrid = createTargetArrayGridFrom(sourceArrayGrid);
 
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, meanCalculator);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
         double[] sourceDoubles = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid); //tested
 //        printDoubleArray(sourceGridDef, sourceDoubles);
 
@@ -71,7 +72,7 @@ public class GridAggregationTest {
         ArrayGrid targetArrayGrid = createTargetArrayGridFrom(sourceArrayGrid);
 
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, meanCalculator);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
         double[] sourceDoubles = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid); //tested
 
 //        printDoubleArray(sourceGridDef, sourceDoubles);
@@ -118,7 +119,7 @@ public class GridAggregationTest {
 //        printShortArray(sourceGridDef, (short[]) sourceGrids.get("A").getArray().copyTo1DJavaArray());
 //        printShortArray(sourceGridDef, (short[]) sourceGrids.get("B").getArray().copyTo1DJavaArray());
 
-        GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, meanCalculator);
+        GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids);
 
         //execution
         gridAggregation.aggregateGrids(0.5);
@@ -185,7 +186,7 @@ public class GridAggregationTest {
 //        printShortArray(sourceGridDef, (short[]) sourceGrids.get("A1").getArray().copyTo1DJavaArray());
 //        printShortArray(sourceGridDef, (short[]) sourceGrids.get("A2").getArray().copyTo1DJavaArray());
 
-        GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, meanCalculator);
+        GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids);
 
         //execution
         double minCoverage = 0.51;
@@ -310,7 +311,7 @@ public class GridAggregationTest {
         Array sourceArray = Array.factory(DataType.SHORT, sourceShape, data);
         ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 4.0, 0).setVariable("A");
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
 
         //execution
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
@@ -329,7 +330,7 @@ public class GridAggregationTest {
         Array sourceArray = Array.factory(DataType.INT, sourceShape, data);
         ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 2.0, 2.0).setVariable("A");
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
 
         //execution
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
@@ -347,7 +348,7 @@ public class GridAggregationTest {
         Array sourceArray = Array.factory(DataType.INT, sourceShape, data);
         ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, fillValue, 2.0, 2.0).setVariable("A");
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
 
         //execution
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
@@ -364,7 +365,7 @@ public class GridAggregationTest {
         Array sourceArray = Array.factory(DataType.BYTE, sourceShape, data);
         ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 0.1, 5.0).setVariable("A");
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
 
         //execution
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
@@ -381,7 +382,7 @@ public class GridAggregationTest {
         Array sourceArray = Array.factory(DataType.BYTE, sourceShape, data);
         ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, Byte.MIN_VALUE, 0.1, 5.0).setVariable("A");
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
 
         //execution
         double[] dataAsScaledDouble = gridAggregation.fetchDataAsScaledDoubles(sourceArrayGrid);
@@ -398,7 +399,7 @@ public class GridAggregationTest {
         Array sourceArray = Array.factory(DataType.CHAR, sourceShape, data);
         ArrayGrid sourceArrayGrid = new ArrayGrid(sourceGridDef, sourceArray, 0, 1, 0).setVariable("A");
         Map ignored = null;
-        GridAggregation gridAggregation = new GridAggregation(ignored, ignored, null);
+        GridAggregation gridAggregation = new GridAggregation(ignored, ignored);
 
         //execution
         try {

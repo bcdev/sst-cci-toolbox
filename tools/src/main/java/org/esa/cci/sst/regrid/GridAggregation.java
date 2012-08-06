@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.regrid.calculators.CalculatorFactory;
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
 import ucar.ma2.Array;
@@ -13,15 +14,14 @@ import java.util.Map;
 public class GridAggregation {
     private final Map<String, ArrayGrid> sourceGrids;
     private final Map<String, ArrayGrid> targetGrids;
-    private Calculator calculator;
 
-    public GridAggregation(Map<String, ArrayGrid> sourceGrids, Map<String, ArrayGrid> targetGrids, Calculator calculator) {
+    public GridAggregation(Map<String, ArrayGrid> sourceGrids, Map<String, ArrayGrid> targetGrids) {
         this.sourceGrids = sourceGrids;
         this.targetGrids = targetGrids;
-        this.calculator = calculator;
     }
 
     public void aggregateGrids(double minCoverage) {
+
         for (String variable : targetGrids.keySet()) {
             ArrayGrid sourceArrayGrid = sourceGrids.get(variable);
             ArrayGrid targetArrayGrid = targetGrids.get(variable);
@@ -34,6 +34,23 @@ public class GridAggregation {
         }
     }
 
+    double[] aggregateData(CellAggregationContext context) {
+        final Calculator calculator = CalculatorFactory.create(context.getVariable());
+
+        final GridDef sourceGridDef = context.getSourceArrayGrid().getGridDef();
+        final GridDef targetGridDef = context.getTargetArrayGrid().getGridDef();
+        assert (sourceGridDef.getTime() == 1);
+        assert (targetGridDef.getTime() == 1);
+        context.setNumberOfCellsToAggregateInEachDimension(calculateResolution(sourceGridDef, targetGridDef));
+
+        double[] targetData = new double[targetGridDef.getAbsoluteNumberOfCells()];
+        for (int targetCellIndex = 0; targetCellIndex < targetGridDef.getAbsoluteNumberOfCells(); targetCellIndex++) {
+            context.setTargetCellIndex(targetCellIndex);
+            targetData[targetCellIndex] = calculator.calculate(context);
+        }
+        return targetData;
+    }
+
     double[] fetchDataAsScaledDoubles(ArrayGrid sourceArrayGrid) {
         final Array array = sourceArrayGrid.getArray();
         final Object sourceStorageObject = array.getStorage();
@@ -41,7 +58,7 @@ public class GridAggregation {
         final double offset = sourceArrayGrid.getOffset();
         final Number fillValue = sourceArrayGrid.getFillValue();
         final GridDef sourceGridDef = sourceArrayGrid.getGridDef();
-        final int length = sourceGridDef.getNumberOfCells();
+        final int length = sourceGridDef.getAbsoluteNumberOfCells();
         final double[] doubles = new double[length];
         final String type = array.getElementType().getName();
 
@@ -85,23 +102,6 @@ public class GridAggregation {
             throw new RuntimeException("byte[], short[] or int[] expected, but found " + type + "[].");
         }
         return doubles;
-    }
-
-    double[] aggregateData(CellAggregationContext context) {
-        final GridDef sourceGridDef = context.getSourceArrayGrid().getGridDef();
-        final GridDef targetGridDef = context.getTargetArrayGrid().getGridDef();
-        assert (sourceGridDef.getTime() == 1);
-        assert (targetGridDef.getTime() == 1);
-        context.setNumberOfCellsToAggregateInEachDimension(calculateResolution(sourceGridDef, targetGridDef));
-
-        int targetArrayLength = targetGridDef.getNumberOfCells();
-        double[] targetData = new double[targetArrayLength];
-        for (int targetCellIndex = 0; targetCellIndex < targetArrayLength; targetCellIndex++) {
-            context.setTargetCellIndex(targetCellIndex);
-            final double mean = calculator.calculate(context);
-            targetData[targetCellIndex] = mean;
-        }
-        return targetData;
     }
 
     private void fillTargetStorage(ArrayGrid targetArrayGrid, double[] targetDataScaled) {

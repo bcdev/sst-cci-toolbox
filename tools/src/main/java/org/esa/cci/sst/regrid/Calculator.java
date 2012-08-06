@@ -6,5 +6,5 @@ package org.esa.cci.sst.regrid;
  */
 public interface Calculator {
 
-    double calculate(CellAggregationContext variableAggregationContext);
+    double calculate(CellAggregationContext cellAggregationContext);
 }

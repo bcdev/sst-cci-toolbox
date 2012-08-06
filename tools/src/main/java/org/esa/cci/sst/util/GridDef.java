@@ -198,7 +198,7 @@ public class GridDef {
     }
 
 
-    public int getNumberOfCells() {
+    public int getAbsoluteNumberOfCells() {
         return width * height * time;
     }
 

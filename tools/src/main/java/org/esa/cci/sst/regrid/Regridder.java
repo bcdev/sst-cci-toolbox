@@ -38,13 +38,12 @@ public class Regridder {
         final List<File> files = fileStore.getFiles(from, to);
 
         for (File file : files) {
-
             final NetcdfFile netcdfFileInput = NetcdfFile.open(file.getPath());
             final Map<String, ArrayGrid> sourceGrids = readSourceGridsTimeControlled(netcdfFileInput);
             final Map<String, ArrayGrid> targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
 
             LOGGER.info("Start regridding");
-            GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids, new MeanCalculator());
+            GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids);
             gridAggregation.aggregateGrids(minCoverage);
             LOGGER.info("Finished with regridding");
 
