@@ -166,6 +166,6 @@ public class GridAggregation {
 
     //Number of cell to be put in one target cell (return > 1 -> coarser grid)
     private int calculateResolution(GridDef sourceGridDef, GridDef targetGridDef) {
-        return (int) (targetGridDef.getResolutionX() / sourceGridDef.getResolutionX());
+        return (int) (targetGridDef.getResolution() / sourceGridDef.getResolution());
     }
 }

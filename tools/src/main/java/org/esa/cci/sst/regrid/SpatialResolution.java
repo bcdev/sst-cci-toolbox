@@ -100,8 +100,7 @@ public enum SpatialResolution {
     public static int[] convertShape(SpatialResolution targetResolution, int[] sourceShape, GridDef sourceGridDef) throws IOException {
         int dimension = sourceShape.length;
         int[] shape = new int[dimension];
-        double sourceResolution = sourceGridDef.getResolutionX();
-
+        double sourceResolution = sourceGridDef.getResolution();
         if (sourceResolution != sourceGridDef.getResolutionY()) {
             throw new IOException("Different resolution on lat and lon are not supported.");
         }
@@ -159,7 +158,7 @@ public enum SpatialResolution {
             throw new IllegalArgumentException("Size must be one dimension's length (height, width or time)");
         }
 
-        float resolution = (float) gridDef.getResolutionX();
+        float resolution = (float) gridDef.getResolution();
         float startResolution = resolution / 2;
         int halfLength = size / 2;
 
