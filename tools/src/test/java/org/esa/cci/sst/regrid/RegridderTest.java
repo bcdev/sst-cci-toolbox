@@ -24,11 +24,11 @@ public class RegridderTest {
     @Test
     public void testInitialiseTargetGrids() throws Exception {
         SpatialResolution targetResolution = SpatialResolution.DEGREE_10_00;
-        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()), new File(""), "0");
+        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()), new File(""), "0", SstDepth.sea_surface_temperature);
         Map<String, ArrayGrid> sourceArrayGrids = TestL3ProductMaker.fetchL3UProductForTest();
 
         //execution
-        Map<String, ArrayGrid> targetGrids = regridder.initialiseTargetGrids(targetResolution, sourceArrayGrids);
+        Map<String, ArrayGrid> targetGrids = regridder.initialiseTargetGridsFrom(sourceArrayGrids);
 
         assertEquals(12, targetGrids.size());
         String[] targetVariables = {"uncorrelated_uncertainty", "sea_surface_temperature", "large_scale_correlated_uncertainty",

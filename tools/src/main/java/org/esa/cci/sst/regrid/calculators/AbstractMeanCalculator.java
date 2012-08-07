@@ -16,6 +16,7 @@ abstract class AbstractMeanCalculator implements Calculator {
 
     /**
      * Calculates value for one cell in the target grid.
+     *
      * @param context
      * @return
      */
@@ -25,16 +26,18 @@ abstract class AbstractMeanCalculator implements Calculator {
         this.numberOfCellsToAggregateInEachDimension = context.getNumberOfCellsToAggregateInEachDimension();
         this.context = context;
 
-        double sum = sumCells2D(context.getTargetCellIndex(), context.getSourceDataScaled(), context.getSourceArrayGrid().getWidth());
+        double sum = sumCells2D();
         return takeTheMean(sum);
     }
 
     //one target cell is summed up in the source grid
-    protected double sumCells2D(int targetCellIndex, double[] source, int sourceWidth) {
+    protected double sumCells2D() {
         double sum = 0.0;
-        int targetWidth = sourceWidth / numberOfCellsToAggregateInEachDimension;
-        int targetLineIndex = targetCellIndex / targetWidth; //(0,1,2.. - through cast-magic)
-        int targetColumnIndex = targetCellIndex % targetWidth;
+        double[] source = context.getSourceDataScaled();
+        int sourceWidth = context.getSourceArrayGrid().getWidth();
+
+        int targetLineIndex = calculateTargetLineIndex();
+        int targetColumnIndex = calculateTargetColumnIndex();
 
         int targetLineStep = sourceWidth * numberOfCellsToAggregateInEachDimension;
         int startSourceIndexInTargetLine = targetLineIndex * targetLineStep;
@@ -44,6 +47,14 @@ abstract class AbstractMeanCalculator implements Calculator {
             sum += sumCells1D(source, i);
         }
         return sum;
+    }
+
+    protected final int calculateTargetLineIndex() {
+        return context.getTargetCellIndex() / context.getTargetArrayGrid().getWidth(); //(0,1,2.. - through cast-magic)
+    }
+
+    protected final int calculateTargetColumnIndex() {
+        return context.getTargetCellIndex() % context.getTargetArrayGrid().getWidth();
     }
 
     //one line in size of the target cell

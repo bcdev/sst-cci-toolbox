@@ -73,7 +73,7 @@ public class CciL3UFileType implements FileType {
         for (Attribute globalAttribute : inputGlobalAttributes) {
             String name = globalAttribute.getName();
             netcdfFile.addGlobalAttribute(name, globalAttribute.getValues());
-            if ("geospatial_lat_resolution".equals(name) ||"geospatial_lon_resolution".equals(name)){
+            if ("geospatial_lat_resolution".equals(name) || "geospatial_lon_resolution".equals(name)) {
                 netcdfFile.addGlobalAttribute(name, targetResolution.getValue());
             }
         }
@@ -109,6 +109,15 @@ public class CciL3UFileType implements FileType {
             }
             addVariableWithAttributesToNetCdfHeader(netcdfFile, dimensions, variable, inputVariable);
         }
+        //add coverage_uncertainty to header
+        netcdfFile.addVariable("coverage_uncertainty", DataType.SHORT, dimensionMeasurementRelated);
+        Attribute attributeLongName = new Attribute("long_name", "Uncertainty from making a grid coarser and having NaN values in the source.");
+        netcdfFile.addVariableAttribute("coverage_uncertainty", attributeLongName);
+        netcdfFile.addVariableAttribute("coverage_uncertainty", new Attribute("scale_factor", "0.01f"));
+        netcdfFile.addVariableAttribute("coverage_uncertainty", new Attribute("add_offset", "0.0f"));
+        netcdfFile.addVariableAttribute("coverage_uncertainty", new Attribute("valid_min", "0s"));
+        netcdfFile.addVariableAttribute("coverage_uncertainty", new Attribute("valid_max", "5000s"));
+        netcdfFile.addVariableAttribute("coverage_uncertainty", new Attribute("_Netcdf4Dimid", "3"));
 
         //write header
         netcdfFile.create();

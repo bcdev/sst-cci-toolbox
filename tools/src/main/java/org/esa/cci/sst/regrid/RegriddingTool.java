@@ -27,21 +27,20 @@ import java.util.Date;
 public class RegriddingTool extends Tool {
     private static final String TOOL_NAME = "regrid";
     private static final String TOOL_VERSION = "0.1";
-    private static final String TOOL_HEADER = "\n" + "The " + TOOL_NAME + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05° " +
+    private static final String TOOL_HEADER = "\n" + "The " + TOOL_NAME + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05 ° " +
             "latitude by longitude resolution and output on other spatio-temporal resolutions, which are a multiple" +
             "of this and divide neatly into 180 degrees. Output are SSTs and their uncertainties.";
     private static final String TOOL_FOOTER = "";
 
     //important for input selection of which files ("product types") should be regridded.
-//    private static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.sea_surface_temperature.name(),
-//            "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
+    private static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.sea_surface_temperature.name(),
+            "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
 
     private static final Parameter PARAM_SPATIAL_RESOLUTION = new Parameter("spatialRes", "NUM", SpatialResolution.getDefaultValueAsString(), "The spatial " +
-            "resolution of the output grid in degrees. Must be one of "
-            + SpatialResolution.getValuesAsString() + ".");
+            "resolution of the output grid in degrees. Must be one of " + SpatialResolution.getValuesAsString() + ".");
 
-    private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "-180,90,180,-90",
-            "The sub-region to be used (optional). Must be a list of coordinates in the format W,N,E,S.");
+//    private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "-180,90,180,-90",
+//            "The sub-region to be used (optional). Must be a list of coordinates in the format W,N,E,S.");
 
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
             "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
@@ -78,11 +77,12 @@ public class RegriddingTool extends Tool {
         final Date to = configuration.getDate(PARAM_END_DATE, true);
         final Date from = configuration.getDate(PARAM_START_DATE, true);
         final File outputDirectory = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        String minCoverage = configuration.getString(PARAM_MIN_COVERAGE, false);
+        final String minCoverage = configuration.getString(PARAM_MIN_COVERAGE, false);
+        final String sstDepth = configuration.getString(PARAM_SST_DEPTH, true);
 
         String filenameRegex = ".+";
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
-        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory, minCoverage);
+        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory, minCoverage, SstDepth.valueOf(sstDepth));
 
         try {
             regridder.doIt(from, to);
@@ -124,9 +124,9 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
-        // PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY, PARAM_SST_DEPTH
+        //PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY
         paramList.addAll(Arrays.asList(PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
-                PARAM_REGION, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_MIN_COVERAGE));
+                PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_MIN_COVERAGE));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {

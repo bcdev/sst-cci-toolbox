@@ -177,8 +177,22 @@ public class NcUtils {
             ArrayGrid grid = new ArrayGrid(gridDef, data, fillValue, scaleFactor, addOffset).setVariable(variable.getName());
             gridsMap.put(variable.getName(), grid);
         }
-
         return gridsMap;
+    }
+
+    public static ArrayGrid readSimpleGrid(String variableName, NetcdfFile netcdfFile, GridDef gridDef) throws IOException {
+        final List<Variable> variables = netcdfFile.getVariables();
+        for (Variable var : variables) {
+            if (variableName.equals(var.getName())) {
+                Variable variable = NcUtils.getVariable(netcdfFile, variableName);
+                final double scaleFactor = getScaleFactor(variable);
+                final double addOffset = getAddOffset(variable);
+                final Number fillValue = getFillValue(variable);
+                final Array data = variable.read();
+                return new ArrayGrid(gridDef, data, fillValue, scaleFactor, addOffset).setVariable(variableName);
+            }
+        }
+       throw new IOException("no variable " + variableName + "found in NetCDF file " + netcdfFile.getLocation());
     }
 
     /**

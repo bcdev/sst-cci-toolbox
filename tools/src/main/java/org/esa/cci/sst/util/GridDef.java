@@ -95,6 +95,14 @@ public class GridDef {
         return resolutionY;
     }
 
+    public double getResolution() {
+        if (resolutionX != resolutionY) {
+          throw new IllegalStateException("To get a valid result, resolutionX and resolutionY must be equal. " +
+                  "Get resolutionX with getResolutionX() and resolutionY with getResolutionY().");
+        }
+        return resolutionY;
+    }
+
     public final double getCenterLon(int gridX) {
         return getLon(gridX + 0.5);
     }

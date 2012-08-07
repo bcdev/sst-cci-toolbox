@@ -18,20 +18,24 @@ import java.util.logging.Logger;
  *         Date: 23.07.12 13:40
  */
 public class Regridder {
-
     private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst.regrid.Regridder");
+
     private final FileStore fileStore;
     private final File outputDirectory;
-
     private final SpatialResolution targetResolution;
+
+    //parameters
+    private static final String[] newVariables = new String[]{"coverage_uncertainty"};
     private final double minCoverage;
+    private SstDepth sstDepth;
 
 
-    public Regridder(FileStore fileStore, String targetResolution, File outputDirectory, String minCoverage) {
+    public Regridder(FileStore fileStore, String targetResolution, File outputDirectory, String minCoverage, SstDepth sstDepth) {
         this.fileStore = fileStore;
         this.targetResolution = SpatialResolution.getFromValue(targetResolution);
         this.outputDirectory = outputDirectory;
         this.minCoverage = Double.parseDouble(minCoverage);
+        this.sstDepth = sstDepth;
     }
 
     public void doIt(Date from, Date to) throws IOException {
@@ -40,11 +44,12 @@ public class Regridder {
         for (File file : files) {
             final NetcdfFile netcdfFileInput = NetcdfFile.open(file.getPath());
             final Map<String, ArrayGrid> sourceGrids = readSourceGridsTimeControlled(netcdfFileInput);
-            final Map<String, ArrayGrid> targetGrids = initialiseTargetGrids(targetResolution, sourceGrids);
+            Map<String, ArrayGrid> targetGrids = initialiseTargetGridsFrom(sourceGrids);
+            targetGrids = initialiseTargetGridsForNewVariables(targetGrids);
 
             LOGGER.info("Start regridding");
             GridAggregation gridAggregation = new GridAggregation(sourceGrids, targetGrids);
-            gridAggregation.aggregateGrids(minCoverage);
+            gridAggregation.aggregateGrids(minCoverage, sstDepth, newVariables);
             LOGGER.info("Finished with regridding");
 
             getFileType().writeFile(netcdfFileInput, outputDirectory, targetGrids, targetResolution);
@@ -60,11 +65,21 @@ public class Regridder {
         return gridMap;
     }
 
-    private FileType getFileType() {
-        return fileStore.getProductType().getFileType();
+    //initialise for coverage_uncertainty using uncorrelated_uncertainty as template to copy from
+    private Map<String, ArrayGrid> initialiseTargetGridsForNewVariables(Map<String, ArrayGrid> targetGrids) {
+        final ArrayGrid sourceGrid = targetGrids.get("uncorrelated_uncertainty");
+
+        final GridDef targetGridDef = targetResolution.getAssociatedGridDef();
+        targetGridDef.setTime(sourceGrid.getGridDef().getTime());
+
+        Array array = Array.factory(sourceGrid.getArray().getElementType(), sourceGrid.getArray().getShape());
+        ArrayGrid targetGrid = new ArrayGrid(targetGridDef, array, sourceGrid.getFillValue(), sourceGrid.getScaling(), sourceGrid.getOffset());
+
+        targetGrids.put(newVariables[0], targetGrid);
+        return targetGrids;
     }
 
-    Map<String, ArrayGrid> initialiseTargetGrids(SpatialResolution targetResolution, Map<String, ArrayGrid> sourceGrids) throws IOException {
+    Map<String, ArrayGrid> initialiseTargetGridsFrom(Map<String, ArrayGrid> sourceGrids) throws IOException {
         GridDef targetGridDef = targetResolution.getAssociatedGridDef();
         HashMap<String, ArrayGrid> targetGrids = new HashMap<String, ArrayGrid>();
 
@@ -81,5 +96,9 @@ public class Regridder {
             targetGrids.put(sourceGrid.getVariable(), targetGrid);
         }
         return targetGrids;
+    }
+
+    private FileType getFileType() {
+        return fileStore.getProductType().getFileType();
     }
 }

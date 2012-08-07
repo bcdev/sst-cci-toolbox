@@ -16,13 +16,18 @@ public class GridAggregation {
     private final Map<String, ArrayGrid> targetGrids;
 
     public GridAggregation(Map<String, ArrayGrid> sourceGrids, Map<String, ArrayGrid> targetGrids) {
+        //todo check if grids are already initialised
         this.sourceGrids = sourceGrids;
         this.targetGrids = targetGrids;
     }
 
-    public void aggregateGrids(double minCoverage) {
+    void aggregateGrids(double minCoverage) { //for tests only
+        aggregateGrids(minCoverage, null, new String[]{});
+    }
 
-        for (String variable : targetGrids.keySet()) {
+    public void aggregateGrids(double minCoverage, SstDepth sstDepth, String[] newVariables) {
+
+        for (String variable : sourceGrids.keySet()) {
             ArrayGrid sourceArrayGrid = sourceGrids.get(variable);
             ArrayGrid targetArrayGrid = targetGrids.get(variable);
 
@@ -32,10 +37,20 @@ public class GridAggregation {
             double[] targetDataScaled = aggregateData(context);
             fillTargetStorage(targetArrayGrid, targetDataScaled);
         }
+
+        for (String variable : newVariables) {
+            ArrayGrid sourceArrayGrid = sourceGrids.get(sstDepth.toString());
+            ArrayGrid targetArrayGrid = targetGrids.get(variable);
+
+            double[] sourceDataScaled = fetchDataAsScaledDoubles(sourceArrayGrid);
+            CellAggregationContext context = new CellAggregationContext(variable, sourceDataScaled, sourceArrayGrid, targetArrayGrid);
+            double[] targetDataScaled = aggregateData(context);
+            fillTargetStorage(targetArrayGrid, targetDataScaled);
+        }
     }
 
     double[] aggregateData(CellAggregationContext context) {
-        final Calculator calculator = CalculatorFactory.create(context.getVariable());
+        final Calculator calculator = CalculatorFactory.create(context.getTargetArrayGrid());
 
         final GridDef sourceGridDef = context.getSourceArrayGrid().getGridDef();
         final GridDef targetGridDef = context.getTargetArrayGrid().getGridDef();
@@ -67,7 +82,7 @@ public class GridAggregation {
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
                 short rawValue = storage[i];
-                if (fillValue.shortValue() == rawValue) {
+                if (fillValue != null && fillValue.shortValue() == rawValue) {
                     doubles[i] = Double.NaN;
                 } else {
                     double value = rawValue * scaling + offset;
@@ -79,7 +94,7 @@ public class GridAggregation {
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
                 byte rawValue = storage[i];
-                if (fillValue.byteValue() == rawValue) {
+                if (fillValue != null && fillValue.byteValue() == rawValue) {
                     doubles[i] = Double.NaN;
                 } else {
                     double value = rawValue * scaling + offset;
@@ -91,7 +106,7 @@ public class GridAggregation {
             assert storage.length == doubles.length;
             for (int i = 0; i < length; i++) {
                 int rawValue = storage[i];
-                if (fillValue.intValue() == rawValue) {
+                if (fillValue != null && fillValue.intValue() == rawValue) {
                     doubles[i] = Double.NaN;
                 } else {
                     double value = rawValue * scaling + offset;
