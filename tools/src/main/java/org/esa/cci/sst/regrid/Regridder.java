@@ -2,6 +2,7 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
+import org.esa.cci.sst.util.SstDepth;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 

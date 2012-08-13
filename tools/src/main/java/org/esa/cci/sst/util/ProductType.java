@@ -17,8 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regavg;
+package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.regavg.FileType;
+import org.esa.cci.sst.regavg.ProcessingLevel;
 import org.esa.cci.sst.regavg.filetypes.*;
 import org.esa.cci.sst.util.GridDef;
 
@@ -27,11 +29,11 @@ import java.text.ParseException;
 import java.util.Date;
 
 /**
- * Represents the product types handled by the {@link RegionalAverageTool}.
+ * Represents the product types handled by the {@link org.esa.cci.sst.regavg.RegionalAverageTool}.
  *
  * @author Norman Fomferra
  */
-enum ProductType {
+public enum ProductType {
     ARC_L3U(ArcL3UFileType.INSTANCE),
     ARC_L2P(ArcL2PFileType.INSTANCE),
     CCI_L3U(CciL3UFileType.INSTANCE),

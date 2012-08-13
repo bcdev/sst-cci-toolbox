@@ -1,6 +1,7 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.regavg.filetypes.*;
+import org.esa.cci.sst.util.ProductType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;

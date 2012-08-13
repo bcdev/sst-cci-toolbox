@@ -24,6 +24,7 @@ import org.esa.cci.sst.util.AggregationFactory;
 import org.esa.cci.sst.util.CellFactory;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
+import org.esa.cci.sst.util.SstDepth;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;

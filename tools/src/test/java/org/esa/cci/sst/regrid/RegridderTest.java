@@ -2,6 +2,7 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
+import org.esa.cci.sst.util.SstDepth;
 import org.esa.cci.sst.util.TestL3ProductMaker;
 import org.junit.Test;
 import ucar.ma2.Array;
@@ -24,7 +25,7 @@ public class RegridderTest {
     @Test
     public void testInitialiseTargetGrids() throws Exception {
         SpatialResolution targetResolution = SpatialResolution.DEGREE_10_00;
-        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()), new File(""), "0", SstDepth.sea_surface_temperature);
+        Regridder regridder = new Regridder(null, String.valueOf(targetResolution.getValue()), new File(""), "0", SstDepth.skin);
         Map<String, ArrayGrid> sourceArrayGrids = TestL3ProductMaker.fetchL3UProductForTest();
 
         //execution

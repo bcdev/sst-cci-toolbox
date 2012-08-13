@@ -1,4 +1,4 @@
-/*
+package org.esa.cci.sst.util;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,12 +14,11 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.regrid;
+import java.util.Date;
 
-public enum SstDepth {
-    sea_surface_temperature, //skin,
-    sea_surface_temperature_depth, //depth_20,
-    analysed_sst, //sst in L4
-    //depth_100,
-    //fnd,
+public interface TimeStep {
+
+    Date getStartDate();
+
+    Date getEndDate();
 }

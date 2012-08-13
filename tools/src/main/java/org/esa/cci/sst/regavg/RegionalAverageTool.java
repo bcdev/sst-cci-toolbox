@@ -21,6 +21,8 @@ package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ArrayGrid;
+import org.esa.cci.sst.util.ProductType;
+import org.esa.cci.sst.util.SstDepth;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -87,7 +89,8 @@ public final class RegionalAverageTool extends Tool {
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "",
                                                                      "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
-                                                                     "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
+                                                                     "The product type. Must be one of " + Arrays.toString(
+                                                                             ProductType.values()) + ".");
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
                                                                        "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
                                                                                "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
@@ -188,7 +191,7 @@ public final class RegionalAverageTool extends Tool {
         // Enable for debugging
         // printGrid(climatology);
 
-        List<Aggregator.TimeStep> timeSteps;
+        List<Aggregator.AveragingTimeStep> timeSteps;
         try {
             Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
@@ -235,7 +238,7 @@ public final class RegionalAverageTool extends Tool {
                               Date endDate,
                               TemporalResolution temporalResolution,
                               RegionMaskList regionMaskList,
-                              List<Aggregator.TimeStep> timeSteps) throws IOException {
+                              List<Aggregator.AveragingTimeStep> timeSteps) throws IOException {
 
         final PrintWriter textWriter = getTextWriter(writeText);
 
@@ -279,7 +282,7 @@ public final class RegionalAverageTool extends Tool {
                                         Date endDate,
                                         TemporalResolution temporalResolution,
                                         RegionMask regionMask, int regionIndex,
-                                        List<Aggregator.TimeStep> timeSteps) throws IOException {
+                                        List<Aggregator.AveragingTimeStep> timeSteps) throws IOException {
 
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
@@ -322,7 +325,7 @@ public final class RegionalAverageTool extends Tool {
             float[] startTime = new float[numSteps];
             float[] endTime = new float[numSteps];
             for (int t = 0; t < numSteps; t++) {
-                Aggregator.TimeStep timeStep = timeSteps.get(t);
+                Aggregator.AveragingTimeStep timeStep = timeSteps.get(t);
                 startTime[t] = (timeStep.getStartDate().getTime() - millisSince1981) / 1000.0F;
                 endTime[t] = (timeStep.getEndDate().getTime() - millisSince1981) / 1000.0F;
                 Number[] results = timeStep.getRegionalAggregationResults(regionIndex);
@@ -355,12 +358,12 @@ public final class RegionalAverageTool extends Tool {
         }
     }
 
-    private static void outputText(PrintWriter textWriter, String[] outputNames, String regionName, int regionIndex, List<Aggregator.TimeStep> timeSteps) {
+    private static void outputText(PrintWriter textWriter, String[] outputNames, String regionName, int regionIndex, List<Aggregator.AveragingTimeStep> timeSteps) {
         textWriter.println();
         textWriter.printf("%s\t%s\t%s\t%s\t%s\n", "region", "start", "end", "step", cat(outputNames, "\t"));
         DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd");
         for (int t = 0; t < timeSteps.size(); t++) {
-            Aggregator.TimeStep timeStep = timeSteps.get(t);
+            Aggregator.AveragingTimeStep timeStep = timeSteps.get(t);
             textWriter.printf("%s\t%s\t%s\t%s\t%s\n",
                               regionName,
                               dateFormat.format(timeStep.getStartDate()),
