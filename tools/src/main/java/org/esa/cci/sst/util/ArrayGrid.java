@@ -122,7 +122,7 @@ public class ArrayGrid implements Grid {
 
     @Override
     public double getSampleDouble(int x, int y) {
-        int index = y * width + x;
+         int index = y * width + x;
         double sample = array.getDouble(index);
         if (fillTest.isFill(sample)) {
             return Double.NaN;

@@ -29,5 +29,6 @@ import java.awt.*;
  * @author Norman Fomferra
  */
 public interface AggregationCell5 extends AggregationCell {
+
     void accumulate(AggregationCell5Context aggregationCell5Context, Rectangle rect);
 }

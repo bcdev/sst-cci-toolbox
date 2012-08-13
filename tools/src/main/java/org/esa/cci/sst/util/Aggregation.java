@@ -26,6 +26,8 @@ package org.esa.cci.sst.util;
  * @author Norman Fomferra
  */
 public interface Aggregation {
+
     long getSampleCount();
+
     Number[] getResults();
 }

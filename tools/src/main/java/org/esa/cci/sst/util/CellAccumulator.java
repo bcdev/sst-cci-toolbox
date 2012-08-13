@@ -25,6 +25,7 @@ package org.esa.cci.sst.util;
  * @author Norman Fomferra
  */
 public interface CellAccumulator<C extends Cell> {
+
     /**
      * Accumulates the given cell (contents) using the provided weight.
      *
