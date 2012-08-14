@@ -272,6 +272,7 @@ public class Aggregator {
     }
 
     private List<RegionalAggregation> aggregateSameMonthAggregationsToMultiMonthAggregation(List<AveragingTimeStep> sameMonthTimeSteps) {
+
         return aggregateSameMonthAggregationsToMultiMonthAggregation(sameMonthTimeSteps,
                 regionMaskList.size(),
                 fileType.getMultiMonthAggregationFactory());
@@ -280,6 +281,7 @@ public class Aggregator {
     static List<RegionalAggregation> aggregateSameMonthAggregationsToMultiMonthAggregation(
             List<AveragingTimeStep> sameMonthTimeSteps, int regionCount,
             AggregationFactory<MultiMonthAggregation> a4CellFactory) {
+
         final MultiMonthAggregation multiMonthCombinedAggregation = a4CellFactory.createAggregation();
         final ArrayList<RegionalAggregation> multiMonthRegionalAggregations = new ArrayList<RegionalAggregation>();
         for (int regionIndex = 0; regionIndex < regionCount; regionIndex++) {
@@ -392,15 +394,17 @@ public class Aggregator {
                 Date date2 = calendar.getTime();
                 List<RegriddingTimeStep> sameMonthTimeSteps = aggregate(date1, date2, TemporalResolution.monthly,
                         spatialResolution);
-                result = aggregateSameMonthAggregationsToMultiMonthAggregation_returnCellGrid(sameMonthTimeSteps);
+                result = aggregateMultiMonths(sameMonthTimeSteps);
             } else /*if (temporalResolution == TemporalResolution.annual)*/ {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
                 List<RegriddingTimeStep> sameMonthTimeSteps = aggregate(date1, date2, TemporalResolution.monthly,
                         spatialResolution);
-                result = aggregateSameMonthAggregationsToMultiMonthAggregation_returnCellGrid(sameMonthTimeSteps);
+                result = aggregateMultiMonths(sameMonthTimeSteps);
             }
-            resultList.add(new RegriddingTimeStep(date1, calendar.getTime(), result));
+            if (result != null) {
+                resultList.add(new RegriddingTimeStep(date1, calendar.getTime(), result));
+            }
         }
         return resultList;
     }
@@ -413,18 +417,21 @@ public class Aggregator {
     private CellGrid<AggregationCell5> aggregateTimeRange(Date date1, Date date2,
                                                           SpatialResolution spatialResolution) throws IOException {
 
-        final List<File> files = fileStore.getFiles(date1, date2);
+        final List<File> fileList = fileStore.getFiles(date1, date2);
+        if (fileList.isEmpty()) {
+            return null;
+        }
 
         final DateFormat isoDateFormat = UTC.getIsoFormat();
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
+                isoDateFormat.format(date1), isoDateFormat.format(date2), fileList.size()));
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
 
         // TODO - use spatial resolution for cell grid
         final CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(coverageUncertaintyProvider);
         final CellGrid<AggregationCell5> cell5Grid = new CellGrid<AggregationCell5>(GRID_DEF_GLOBAL_5, cell5Factory);
 
-        for (File file : files) { //loop time
+        for (File file : fileList) { //loop time
             LOGGER.info(String.format("Processing input %s file '%s'", fileStore.getProductType(), file));
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
@@ -444,7 +451,7 @@ public class Aggregator {
         return cell5Grid;
     }
 
-    private CellGrid<AggregationCell5> aggregateSameMonthAggregationsToMultiMonthAggregation_returnCellGrid(List<RegriddingTimeStep> sameMonthTimeSteps) {
+    private CellGrid<AggregationCell5> aggregateMultiMonths(List<RegriddingTimeStep> sameMonthTimeSteps) {
         return null;  //todo implement it!
     }
 

@@ -68,6 +68,7 @@ public class RegriddingTool extends Tool {
                     "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
                     "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
                     "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
+
     public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
     public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01",
@@ -105,27 +106,6 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected void run(Configuration configuration, String[] arguments) throws ToolException {
-        /*
-        final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
-        final String productDirectory = configuration.getString(productType + ".dir", null, true);
-        final String targetResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
-        final Date to = configuration.getDate(PARAM_END_DATE, true);
-        final Date from = configuration.getDate(PARAM_START_DATE, true);
-        final File outputDirectory = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        final String minCoverage = configuration.getString(PARAM_MIN_COVERAGE, false);
-        final String sstDepth = configuration.getString(PARAM_SST_DEPTH, true);
-
-        String filenameRegex = ".+";
-        FileStore fileStore = FileStore.create(productType, filenameRegex, productDirectory);
-        Regridder regridder = new Regridder(fileStore, targetResolution, outputDirectory, minCoverage, SstDepth.valueOf(sstDepth));
-
-        try {
-            regridder.doIt(from, to);
-        } catch (IOException e) {
-            throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
-        }
-        */
-
         String spatialResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
         final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
@@ -146,7 +126,7 @@ public class RegriddingTool extends Tool {
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         org.esa.cci.sst.regavg.FileStore fileStore = org.esa.cci.sst.regavg.FileStore.create(productType, filenameRegex,
                 productDir);
-        org.esa.cci.sst.regavg.LUT1 lut1 = getLUT1(lut1File); //todo
+        org.esa.cci.sst.regavg.LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
         org.esa.cci.sst.regavg.LUT2 lut2 = getLUT2(lut2File); //todo
 
         // Enable for debugging
@@ -245,9 +225,8 @@ public class RegriddingTool extends Tool {
                               RegionMask regionMask, List<RegriddingTimeStep> timeSteps) throws IOException {
 
         for (RegriddingTimeStep timeStep : timeSteps) {
-            writeOutputs(outputDir, productType, filenameRegex, sstDepth, temporalResolution,
-                    regionMask, timeStep);
-            break; //todo remove
+            writeOutputs(outputDir, productType, filenameRegex, sstDepth,
+                    temporalResolution, regionMask, timeStep);
         }
     }
 
@@ -287,13 +266,12 @@ public class RegriddingTool extends Tool {
             netcdfFile.addGlobalAttribute("geospatial_lon_resolution", spatialResolution.toString());
             netcdfFile.addGlobalAttribute("geospatial_lat_resolution", spatialResolution.toString());
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
-            netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
+            netcdfFile.addGlobalAttribute("source_filename_regex", filenameRegex);
 
             //global dimensions
             Dimension latDim = netcdfFile.addDimension("lat", gridDef.getHeight());
             Dimension lonDim = netcdfFile.addDimension("lon", gridDef.getWidth());
-            Dimension timeDim = netcdfFile.addDimension("time", 1, true, false, false);
-//            Dimension timeDim = netcdfFile.addDimension("time", gridDef.getTime(), true, false, false); //todo time dimension?
+            Dimension timeDim = netcdfFile.addDimension("time", gridDef.getTime(), true, false, false);
             Dimension bndsDim = netcdfFile.addDimension("bnds", 2);
             Dimension[] dimensionMeasurementRelated = {timeDim, latDim, lonDim};
 
@@ -334,7 +312,7 @@ public class RegriddingTool extends Tool {
                 writeDataToNetCdfFile(netcdfFile, baseVariable, baseArrays.get(baseVariable));
             }
 
-            //add data for regridded variables todo
+            //add data for regridded variables
             int height = cellGrid.getHeight();
             int width = cellGrid.getWidth();
             HashMap<String, VectorContainer> data = new HashMap<String, VectorContainer>();
@@ -358,7 +336,7 @@ public class RegriddingTool extends Tool {
                 }
             }
 
-            int[] shape = new int[]{1, gridDef.getHeight(), gridDef.getWidth()}; //todo bs time is fix here
+            int[] shape = new int[]{gridDef.getTime(), gridDef.getHeight(), gridDef.getWidth()};
             for (Variable variable : variables) {
                 String name = variable.getName();
                 float[] vec = data.get(name).getAsFloats();
@@ -422,7 +400,7 @@ public class RegriddingTool extends Tool {
      */
     public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
 
-        return String.format("%s-%s-%s_regridding-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+        return String.format("%s-%s-%s_regrid-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                 startOfPeriod, endOfPeriod, regionName,
                 processingLevel, sstType, productString, additionalSegregator,
                 TOOL_VERSION, FILE_FORMAT_VERSION);

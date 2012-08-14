@@ -28,8 +28,8 @@ import java.awt.geom.Rectangle2D;
  * @author Norman Fomferra
  */
 public class GridDef {
-    //a dimension mostly 1
-    private int time;
+    //time dimension is currently 1, refer to sst-cci product spec
+    private int time = 1;
     private final int width;
     private final int height;
     private final double northing;
@@ -53,7 +53,6 @@ public class GridDef {
     }
 
     public GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
-        this.time = 0;
         this.width = width;
         this.height = height;
         this.northing = northing;

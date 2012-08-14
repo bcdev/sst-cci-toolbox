@@ -1,0 +1,5 @@
+- seasonal and yearly aggregation
+
+- calculate targetResolution from input parameter
+
+- include minCoverage (0..1 below threshold NaN)
