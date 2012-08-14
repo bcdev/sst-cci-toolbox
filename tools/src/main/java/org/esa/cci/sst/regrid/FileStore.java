@@ -2,6 +2,7 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.util.FileTree;
+import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
 
 import java.io.File;

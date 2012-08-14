@@ -333,7 +333,6 @@ public class ArcL3UFileType implements FileType {
                     (float) computeCoverageUncertaintyAverage()
             };
         }
-
     }
 
     private static class ArcL3USameMonthAggregation extends ArcL3UAggregation implements SameMonthAggregation<ArcL3UCell> {

@@ -16,94 +16,88 @@
 
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.regavg.Aggregator;
-import org.esa.cci.sst.regavg.Climatology;
-import org.esa.cci.sst.regavg.LUT1;
-import org.esa.cci.sst.regavg.LUT2;
-import org.esa.cci.sst.regavg.RegionMaskList;
-import org.esa.cci.sst.regavg.TemporalResolution;
-import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
-import org.esa.cci.sst.util.ProductType;
-import org.esa.cci.sst.util.SstDepth;
+import org.esa.cci.sst.regavg.*;
+import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.util.*;
+import ucar.ma2.Array;
+import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.text.DateFormat;
+import java.util.*;
 
 public class RegriddingTool extends Tool {
 
+    private static final String FILE_FORMAT_VERSION = "1.1";
     private static final String TOOL_NAME = "regrid";
     private static final String TOOL_VERSION = "0.1";
     private static final String TOOL_HEADER = "\n" + "The " + TOOL_NAME + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05 ° " +
-                                              "latitude by longitude resolution and output on other spatio-temporal resolutions, which are a multiple" +
-                                              "of this and divide neatly into 180 degrees. Output are SSTs and their uncertainties.";
+            "latitude by longitude resolution and output on other spatio-temporal resolutions, which are a multiple" +
+            "of this and divide neatly into 180 degrees. Output are SSTs and their uncertainties.";
     private static final String TOOL_FOOTER = "";
 
     //important for input selection of which files ("product types") should be regridded.
     public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin.name(),
-                                                                  "The SST depth. Must be one of " + Arrays.toString(
-                                                                          SstDepth.values()) + ".");
+            "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
 
     public static final Parameter PARAM_SPATIAL_RESOLUTION = new Parameter("spatialRes", "NUM",
-                                                                           SpatialResolution.getDefaultValueAsString(),
-                                                                           "The spatial " +
-                                                                           "resolution of the output grid in degrees. Must be one of " + SpatialResolution.getValuesAsString() + ".");
+            SpatialResolution.getDefaultValueAsString(),
+            "The spatial resolution of the output grid in degrees. Must be one of " + SpatialResolution.getValuesAsString() + ".");
 
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM",
-                                                                     TemporalResolution.monthly + "",
-                                                                     "The temporal resolution. Must be one of " + Arrays.toString(
-                                                                             TemporalResolution.values()) + ".");
+            TemporalResolution.monthly + "",
+            "The temporal resolution. Must be one of " + Arrays.toString(
+                    TemporalResolution.values()) + ".");
 
-    private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "-180,90,180,-90",
-                                                                "The sub-region to be used (optional). Coordinates in the format W,N,E,S.");
+    private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "Global=-180,90,180,-90 (NAME=REGION)",
+            "The sub-region to be used (optional). Coordinates in the format W,N,E,S.");
 
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
-                                                                     "The product type. Must be one of " + Arrays.toString(
-                                                                             ProductType.values()) + ".");
+            "The product type. Must be one of " + Arrays.toString(
+                    ProductType.values()) + ".");
 
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
-                                                                       "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
-                                                                       "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
-                                                                       "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
-                                                                       "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
-                                                                       "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
+            "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
+                    "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
+                    "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
+                    "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
+                    "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
     public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
     public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01",
-                                                                   "The start date for the analysis given in the format YYYY-MM-DD");
+            "The start date for the analysis given in the format YYYY-MM-DD");
 
     public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
-                                                                 "The end date for the analysis given in the format YYYY-MM-DD");
+            "The end date for the analysis given in the format YYYY-MM-DD");
 
     private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false",
-                                                                           "A Boolean variable indicating whether total or " +
-                                                                           "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
+            "A Boolean variable indicating whether total or " +
+                    "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
 
     private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
-                                                                         "The directory path to the reference climatology.");
+            "The directory path to the reference climatology.");
 
     private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
-                                                                      "The minimum fractional coverage " +
-                                                                      "required for non-missing output. (fraction of valid values in input per grid box in output) ");
+            "The minimum fractional coverage " +
+                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
 
     private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
-                                                                         "The maximum relative total uncertainty allowed for non-missing output.",
-                                                                         true);   //optional due to specification
+            "The maximum relative total uncertainty allowed for non-missing output.",
+            true);   //optional due to specification
 
-    public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE = new Parameter("Coverage uncertainty file", "FILE",
-                                                                                  "conf/auxdata/coverage_uncertainty_parameters.nc",
-                                                                                  "A NetCDF file that provides lookup table for coverage uncertainties.");
+    public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE = new Parameter("coverageUncertaintyFile", "FILE",
+            "./conf/auxdata/coverage_uncertainty_parameters.nc",
+            "A NetCDF file that provides lookup table for coverage uncertainties.");
 
-    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("Synoptic correlation file", "FILE",
-                                                                                  "conf/auxdata/TBC",
-                                                                                  "A NetCDF file that provides lookup table for synoptically correlated uncertainties.");
+//    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelationFile", "FILE",
+//            "./conf/auxdata/TBC",
+//            "A NetCDF file that provides lookup table for synoptically correlated uncertainties.");
 
     public static void main(String[] args) {
         new RegriddingTool().run(args);
@@ -132,42 +126,43 @@ public class RegriddingTool extends Tool {
         }
         */
 
-        File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
-        ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
-        String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
-                                                       productType.getDefaultFilenameRegex(), false);
-        SstDepth sstDepth = SstDepth.valueOf(
-                configuration.getString(PARAM_SST_DEPTH, true));
-        String productDir = configuration.getString(productType + ".dir", null, true);
-        Date startDate = configuration.getDate(PARAM_START_DATE, true);
-        Date endDate = configuration.getDate(PARAM_END_DATE, true);
-        TemporalResolution temporalResolution = TemporalResolution.valueOf(
-                configuration.getString(PARAM_TEMPORAL_RES, true));
-        File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        RegionMaskList regionMaskList = parseRegionList(configuration);
-        File lut1File = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE, true);
-        File lut2File = configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
+        String spatialResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
+        final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
+        final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+        final String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
+                productType.getDefaultFilenameRegex(), false);
+        final SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
+        final String productDir = configuration.getString(productType + ".dir", null, true);
+        final Date startDate = configuration.getDate(PARAM_START_DATE, true);
+        final Date endDate = configuration.getDate(PARAM_END_DATE, true);
+        final TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
+        final File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+        final RegionMaskList regionMaskList = parseRegionList(configuration);
+        //todo
+//        final String minCoverage = configuration.getString(PARAM_MIN_COVERAGE, false);
+        final File lut1File = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE, true);
+        final File lut2File = null; //configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         org.esa.cci.sst.regavg.FileStore fileStore = org.esa.cci.sst.regavg.FileStore.create(productType, filenameRegex,
-                                                                                             productDir);
-        LUT1 lut1 = getLUT1(lut1File);
-        LUT2 lut2 = getLUT2(lut2File);
+                productDir);
+        org.esa.cci.sst.regavg.LUT1 lut1 = getLUT1(lut1File); //todo
+        org.esa.cci.sst.regavg.LUT2 lut2 = getLUT2(lut2File); //todo
 
         // Enable for debugging
         // printGrid(climatology);
 
-        List<Aggregator.RegriddingTimeStep> timeSteps;
+        List<RegriddingTimeStep> timeSteps;
+        SpatialResolution degree500 = SpatialResolution.DEGREE_5_00; //todo parameterise spatialResolution
         try {
             Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
-            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution, SpatialResolution.DEGREE_5_00);
+            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution, degree500);
         } catch (IOException e) {
-            throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+            throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
 
         try {
-            writeOutputs(outputDir, productType, filenameRegex,
-                         sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);
+            writeOutputs(outputDir, productType, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0), timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
@@ -206,15 +201,17 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
+        //PARAM_SYNOPTIC_CORRELATION_FILE
         paramList.addAll(
                 Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
-                              PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
-                              PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_MIN_COVERAGE));
+                        PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
+                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_MIN_COVERAGE,
+                        PARAM_COVERAGE_UNCERTAINTY_FILE));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {
             paramList.add(new Parameter(value.name() + ".dir", "DIR", null,
-                                        "Directory that hosts the products of type '" + value.name() + "'."));
+                    "Directory that hosts the products of type '" + value.name() + "'."));
         }
 
         return paramList.toArray(new Parameter[paramList.size()]);
@@ -228,10 +225,10 @@ public class RegriddingTool extends Tool {
         }
     }
 
-    private LUT1 getLUT1(File lut1File) throws ToolException {
-        LUT1 lut1;
+    private org.esa.cci.sst.regavg.LUT1 getLUT1(File lut1File) throws ToolException {
+        org.esa.cci.sst.regavg.LUT1 lut1;
         try {
-            lut1 = LUT1.read(lut1File);
+            lut1 = org.esa.cci.sst.regavg.LUT1.read(lut1File);
             LOGGER.info(String.format("LUT-1 read from '%s'", lut1File));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
@@ -244,9 +241,190 @@ public class RegriddingTool extends Tool {
     }
 
     private void writeOutputs(File outputDir, ProductType productType, String filenameRegex,
-                              SstDepth sstDepth, Date startDate, Date endDate,
-                              TemporalResolution temporalResolution, RegionMaskList regionMaskList,
-                              List<Aggregator.RegriddingTimeStep> timeSteps) throws IOException {
-        // TODO - implement
+                              SstDepth sstDepth, TemporalResolution temporalResolution,
+                              RegionMask regionMask, List<RegriddingTimeStep> timeSteps) throws IOException {
+
+        for (RegriddingTimeStep timeStep : timeSteps) {
+            writeOutputs(outputDir, productType, filenameRegex, sstDepth, temporalResolution,
+                    regionMask, timeStep);
+            break; //todo remove
+        }
+    }
+
+    private void writeOutputs(File outputDir, ProductType productType, String filenameRegex,
+                              SstDepth sstDepth, TemporalResolution temporalResolution,
+                              RegionMask regionMask, RegriddingTimeStep regriddingTimeStep) throws IOException {
+
+//        productType.getFileType().writeOutput(); TODO maybe move it later
+
+        Date startDate = regriddingTimeStep.getStartDate();
+        Date endDate = regriddingTimeStep.getEndDate();
+        final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
+        final String outputFilename = getOutputFilename(
+                filenameDateFormat.format(startDate), filenameDateFormat.format(endDate), regionMask.getName(),
+                productType.getProcessingLevel(), "SST_" + sstDepth + "_regridded", "PS", "DM");
+        final File file = new File(outputDir, outputFilename);
+        LOGGER.info("Writing output file '" + file + "'...");
+
+        CellGrid<AggregationCell5> cellGrid = regriddingTimeStep.getCellGrid();
+        GridDef gridDef = cellGrid.getGridDef();
+        SpatialResolution spatialResolution = SpatialResolution.getFromValue(String.valueOf(gridDef.getResolution()));
+        //global attributes
+        NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
+        try {
+            netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(), sstDepth.toString()));
+            netcdfFile.addGlobalAttribute("institution", "IAES, University of Edinburgh");
+            netcdfFile.addGlobalAttribute("contact", "c.merchant@ed.ac.uk");
+            netcdfFile.addGlobalAttribute("file_format_version", FILE_FORMAT_VERSION);
+            netcdfFile.addGlobalAttribute("tool_name", TOOL_NAME);
+            netcdfFile.addGlobalAttribute("tool_version", TOOL_VERSION);
+            netcdfFile.addGlobalAttribute("generated_at", UTC.getIsoFormat().format(new Date()));
+            netcdfFile.addGlobalAttribute("product_type", productType.toString());
+            netcdfFile.addGlobalAttribute("sst_depth", sstDepth.toString());
+            netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
+            netcdfFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
+            netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
+            netcdfFile.addGlobalAttribute("geospatial_lon_resolution", spatialResolution.toString());
+            netcdfFile.addGlobalAttribute("geospatial_lat_resolution", spatialResolution.toString());
+            netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
+            netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
+
+            //global dimensions
+            Dimension latDim = netcdfFile.addDimension("lat", gridDef.getHeight());
+            Dimension lonDim = netcdfFile.addDimension("lon", gridDef.getWidth());
+            Dimension timeDim = netcdfFile.addDimension("time", 1, true, false, false);
+//            Dimension timeDim = netcdfFile.addDimension("time", gridDef.getTime(), true, false, false); //todo time dimension?
+            Dimension bndsDim = netcdfFile.addDimension("bnds", 2);
+            Dimension[] dimensionMeasurementRelated = {timeDim, latDim, lonDim};
+
+            Variable latVar = netcdfFile.addVariable("lat", DataType.FLOAT, new Dimension[]{latDim});
+            latVar.addAttribute(new Attribute("units", "degrees_north"));
+            latVar.addAttribute(new Attribute("long_name", "latitude"));
+            latVar.addAttribute(new Attribute("bounds", "lat_bnds"));
+
+            Variable latBnds = netcdfFile.addVariable("lat_bnds", DataType.FLOAT, new Dimension[]{latDim, bndsDim});
+            latBnds.addAttribute(new Attribute("units", "degrees_north"));
+            latBnds.addAttribute(new Attribute("long_name", "latitude cell boundaries"));
+
+            Variable lonVar = netcdfFile.addVariable("lon", DataType.FLOAT, new Dimension[]{lonDim});
+            lonVar.addAttribute(new Attribute("units", "degrees_east"));
+            lonVar.addAttribute(new Attribute("long_name", "longitude"));
+            lonVar.addAttribute(new Attribute("bounds", "lon_bnds"));
+
+            Variable lonBnds = netcdfFile.addVariable("lon_bnds", DataType.FLOAT, new Dimension[]{lonDim, bndsDim});
+            lonBnds.addAttribute(new Attribute("units", "degrees_east"));
+            lonBnds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
+
+            Variable startTimeVar = netcdfFile.addVariable("start_time", DataType.FLOAT, new Dimension[]{timeDim});
+            startTimeVar.addAttribute(new Attribute("units", "seconds"));
+            startTimeVar.addAttribute(new Attribute("long_name", "reference start time of averaging period in seconds until 1981-01-01T00:00:00"));
+
+            Variable endTimeVar = netcdfFile.addVariable("end_time", DataType.FLOAT, new Dimension[]{timeDim});
+            endTimeVar.addAttribute(new Attribute("units", "seconds"));
+            endTimeVar.addAttribute(new Attribute("long_name", "reference end time of averaging period in seconds until 1981-01-01T00:00:00"));
+
+            Variable[] variables = productType.getFileType().createOutputVariables(netcdfFile, sstDepth, dimensionMeasurementRelated);
+
+            //write header
+            netcdfFile.create();
+
+            //add data for base
+            final Map<String, Array> baseArrays = spatialResolution.calculateBaseArrays();
+            for (String baseVariable : baseArrays.keySet()) {
+                writeDataToNetCdfFile(netcdfFile, baseVariable, baseArrays.get(baseVariable));
+            }
+
+            //add data for regridded variables todo
+            int height = cellGrid.getHeight();
+            int width = cellGrid.getWidth();
+            HashMap<String, VectorContainer> data = new HashMap<String, VectorContainer>();
+            for (Variable variable : variables) {
+                data.put(variable.getName(), new VectorContainer(height * width));
+            }
+
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+
+                    AggregationCell5 cell = cellGrid.getCell(x, y);
+                    Number[] results = cell.getResults();
+                    assert results.length == variables.length : "results must have same length like variables";
+                    int index1D = y * width + x;
+
+                    for (int variableCount = 0; variableCount < variables.length; variableCount++) {
+                        Variable variable = variables[variableCount];
+                        VectorContainer vectorContainer = data.get(variable.getName());
+                        vectorContainer.put(index1D, results[variableCount].doubleValue());
+                    }
+                }
+            }
+
+            int[] shape = new int[]{1, gridDef.getHeight(), gridDef.getWidth()}; //todo bs time is fix here
+            for (Variable variable : variables) {
+                String name = variable.getName();
+                float[] vec = data.get(name).getAsFloats();
+                writeDataToNetCdfFile(netcdfFile, name, Array.factory(DataType.FLOAT, shape, vec));
+            }
+            //copy data for time todo
+
+        } finally {
+            try {
+                netcdfFile.flush();
+                netcdfFile.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
+
+    private static class VectorContainer {
+        double[] vec;
+
+        private VectorContainer(int length) {
+            this.vec = new double[length];
+            Arrays.fill(vec, 0);
+        }
+
+        public void put(int i, double value) {
+            vec[i] = value;
+        }
+
+        public float[] getAsFloats() {
+            float[] floats = new float[vec.length];
+            for (int i = 0; i < floats.length; i++) {
+                floats[i] = (float) vec[i];
+            }
+            return floats;
+        }
+    }
+
+    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws IOException {
+        try {
+            netcdfFile.write(variable, array);
+        } catch (InvalidRangeException e) {
+            LOGGER.throwing("Regridding Tool", "writeDataToNetCdfFile", e);
+        }
+    }
+
+    /**
+     * Generates a filename of the form
+     * <code>
+     * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_regridding-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
+     * </code>
+     *
+     * @param startOfPeriod        Start of period = YYYYMMDD
+     * @param endOfPeriod          End of period = YYYYMMDD
+     * @param regionName           Region Name or Description
+     * @param processingLevel      Processing Level = L3C, L3U or L4
+     * @param sstType              SST Type
+     * @param productString        Product String (see Table 5 in PSD) // todo - find out from PSD what productString is
+     * @param additionalSegregator Additional Segregator = LT or DM  // todo - find out from PSD what additionalSegregator is
+     * @return The filename.
+     */
+    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
+
+        return String.format("%s-%s-%s_regridding-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+                startOfPeriod, endOfPeriod, regionName,
+                processingLevel, sstType, productString, additionalSegregator,
+                TOOL_VERSION, FILE_FORMAT_VERSION);
     }
 }

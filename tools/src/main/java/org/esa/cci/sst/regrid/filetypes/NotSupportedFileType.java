@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regrid.filetypes;
 
-import org.esa.cci.sst.regrid.FileType;
+import org.esa.cci.sst.regrid.FileType_Deprecated;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.util.ArrayGrid;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -16,7 +16,7 @@ import java.util.Map;
  * @author Bettina Scholze
  *         Date: 23.07.12 14:14
  */
-public class NotSupportedFileType implements FileType {
+public class NotSupportedFileType implements FileType_Deprecated {
 
     @Override
     public Map<String, ArrayGrid> readSourceGrids(NetcdfFile file) throws IOException {

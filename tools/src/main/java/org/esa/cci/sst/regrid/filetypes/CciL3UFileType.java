@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regrid.filetypes;
 
-import org.esa.cci.sst.regrid.FileType;
+import org.esa.cci.sst.regrid.FileType_Deprecated;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  * @author Bettina Scholze
  *         Date: 23.07.12 10:59
  */
-public class CciL3UFileType implements FileType {
+public class CciL3UFileType implements FileType_Deprecated {
     public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst.regrid.filetypes.CciL3UFileType");
 
     public final static CciL3UFileType INSTANCE = new CciL3UFileType();

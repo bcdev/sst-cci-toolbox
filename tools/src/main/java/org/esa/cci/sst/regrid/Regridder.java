@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.regavg.FileType;
 import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.SstDepth;
@@ -53,7 +54,7 @@ public class Regridder {
             gridAggregation.aggregateGrids(minCoverage, sstDepth, newVariables);
             LOGGER.info("Finished with regridding");
 
-            getFileType().writeFile(netcdfFileInput, outputDirectory, targetGrids, targetResolution);
+//            getFileType().writeFile(netcdfFileInput, outputDirectory, targetGrids, targetResolution);
             LOGGER.info("Ready with output.");
         }
     }
@@ -61,9 +62,10 @@ public class Regridder {
     private Map<String, ArrayGrid> readSourceGridsTimeControlled(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.info("Reading source grid(s)...");
-        final Map<String, ArrayGrid> gridMap = getFileType().readSourceGrids(netcdfFile);
+//        final Map<String, ArrayGrid> gridMap = getFileType().readSourceGrids(netcdfFile);
         LOGGER.info(String.format("Reading source grid(s) took %d ms", (System.currentTimeMillis() - t0)));
-        return gridMap;
+        return null;
+//        return gridMap;
     }
 
     //initialise for coverage_uncertainty using uncorrelated_uncertainty as template to copy from

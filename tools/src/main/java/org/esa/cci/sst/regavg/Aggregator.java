@@ -19,21 +19,13 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.regrid.RegriddingTimeStep;
 import org.esa.cci.sst.regrid.SpatialResolution;
-import org.esa.cci.sst.util.SstDepth;
-import org.esa.cci.sst.util.TimeStep;
 import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.util.AggregationCell;
-import org.esa.cci.sst.util.AggregationFactory;
-import org.esa.cci.sst.util.CellFactory;
-import org.esa.cci.sst.util.CellGrid;
-import org.esa.cci.sst.util.Grid;
-import org.esa.cci.sst.util.GridDef;
-import org.esa.cci.sst.util.UTC;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.esa.cci.sst.util.*;
 import ucar.nc2.NetcdfFile;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
@@ -97,33 +89,6 @@ public class Aggregator {
         }
     }
 
-    public static class RegriddingTimeStep implements TimeStep {
-
-        private final Date startDate;
-        private final Date endDate;
-        private final CellGrid<AggregationCell5> cellGrid;
-
-        public RegriddingTimeStep(Date startDate, Date endDate, CellGrid<AggregationCell5> cellGrid) {
-            this.startDate = startDate;
-            this.endDate = endDate;
-            this.cellGrid = cellGrid;
-        }
-
-        @Override
-        public Date getStartDate() {
-            return startDate;
-        }
-
-        @Override
-        public Date getEndDate() {
-            return endDate;
-        }
-
-        public CellGrid<AggregationCell5> getCellGrid() {
-            return cellGrid;
-        }
-    }
-
     public Aggregator(RegionMaskList regionMaskList,
                       FileStore fileStore,
                       Climatology climatology,
@@ -146,14 +111,12 @@ public class Aggregator {
      * @param startDate          Start date of the aggregation time range.
      * @param endDate            End date of the aggregation time range.
      * @param temporalResolution The required temporal resolution.
-     *
      * @return A {@link org.esa.cci.sst.regavg.Aggregator.AveragingTimeStep} for each required region.
-     *
      * @throws IOException if an I/O error occurs.
      */
     public List<AveragingTimeStep> aggregate(Date startDate,
-                                    Date endDate,
-                                    TemporalResolution temporalResolution) throws IOException {
+                                             Date endDate,
+                                             TemporalResolution temporalResolution) throws IOException {
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
         while (calendar.getTime().before(endDate)) {
@@ -188,11 +151,11 @@ public class Aggregator {
         // Compute the cell 5 grid for *all* combined regions first
         final CellGrid<AggregationCell5> combinedCell5Grid = aggregateTimeRange(date1, date2);
         return aggregateRegions(combinedCell5Grid,
-                                regionMaskList,
-                                fileType.getSameMonthAggregationFactory(),
-                                fileType.getCell90Factory(createCoverageUncertaintyProvider(date1)),
-                                climatology.getSeaCoverageCell5Grid(),
-                                climatology.getSeaCoverageCell90Grid());
+                regionMaskList,
+                fileType.getSameMonthAggregationFactory(),
+                fileType.getCell90Factory(createCoverageUncertaintyProvider(date1)),
+                climatology.getSeaCoverageCell5Grid(),
+                climatology.getSeaCoverageCell90Grid());
     }
 
     static List<RegionalAggregation> aggregateRegions(CellGrid<AggregationCell5> combinedCell5Grid,
@@ -210,7 +173,7 @@ public class Aggregator {
             SameMonthAggregation aggregation = aggregationFactory.createAggregation();
             if (mustAggregateTo90) {
                 CellGrid<AggregationCell90> cell90Grid = aggregateCell5GridToCell90Grid(cell5Grid, seaCoverageCell5Grid,
-                                                                                        cell90Factory);
+                        cell90Factory);
                 aggregateCell5OrCell90Grid(cell90Grid, seaCoverageCell90Grid, aggregation);
             } else {
                 aggregateCell5OrCell90Grid(cell5Grid, seaCoverageCell5Grid, aggregation);
@@ -226,7 +189,7 @@ public class Aggregator {
 
         final DateFormat isoDateFormat = UTC.getIsoFormat();
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                                  isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
+                isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
         final CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(coverageUncertaintyProvider);
         final CellGrid<AggregationCell5> cell5Grid = new CellGrid<AggregationCell5>(GRID_DEF_GLOBAL_5, cell5Factory);
@@ -245,7 +208,7 @@ public class Aggregator {
                 netcdfFile.close();
             }
             LOGGER.fine(String.format("Processing input %s file took %d ms", fileStore.getProductType(),
-                                      System.currentTimeMillis() - t0));
+                    System.currentTimeMillis() - t0));
         }
 
         return cell5Grid;
@@ -274,9 +237,9 @@ public class Aggregator {
         final int dayOfYear = UTC.getDayOfYear(date);
         LOGGER.fine("Day of year is " + dayOfYear);
         return new AggregationCell5Context(fileStore.getProductType().getGridDef(),
-                                           readSourceGrids(netcdfFile),
-                                           climatology.getAnalysedSstGrid(dayOfYear),
-                                           climatology.getSeaCoverageSourceGrid());
+                readSourceGrids(netcdfFile),
+                climatology.getAnalysedSstGrid(dayOfYear),
+                climatology.getSeaCoverageSourceGrid());
     }
 
     static <C5 extends AggregationCell5, C90 extends AggregationCell90> CellGrid<C90> aggregateCell5GridToCell90Grid(
@@ -304,15 +267,14 @@ public class Aggregator {
 
     static boolean mustAggregateTo90(RegionMask regionMask) {
         return regionMask.getCoverage() == RegionMask.Coverage.Globe
-               || regionMask.getCoverage() == RegionMask.Coverage.N_Hemisphere
-               || regionMask.getCoverage() == RegionMask.Coverage.S_Hemisphere;
+                || regionMask.getCoverage() == RegionMask.Coverage.N_Hemisphere
+                || regionMask.getCoverage() == RegionMask.Coverage.S_Hemisphere;
     }
 
-    private List<RegionalAggregation> aggregateSameMonthAggregationsToMultiMonthAggregation(
-            List<AveragingTimeStep> sameMonthTimeSteps) {
+    private List<RegionalAggregation> aggregateSameMonthAggregationsToMultiMonthAggregation(List<AveragingTimeStep> sameMonthTimeSteps) {
         return aggregateSameMonthAggregationsToMultiMonthAggregation(sameMonthTimeSteps,
-                                                                     regionMaskList.size(),
-                                                                     fileType.getMultiMonthAggregationFactory());
+                regionMaskList.size(),
+                fileType.getMultiMonthAggregationFactory());
     }
 
     static List<RegionalAggregation> aggregateSameMonthAggregationsToMultiMonthAggregation(
@@ -405,14 +367,12 @@ public class Aggregator {
      * @param endDate            End date of the aggregation time range.
      * @param temporalResolution The required temporal resolution.
      * @param spatialResolution  The required spatial resolution.
-     *
      * @return A {@link org.esa.cci.sst.regavg.Aggregator.AveragingTimeStep} for each required region.
-     *
      * @throws IOException if an I/O error occurs.
      */
     public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate,
-                                    TemporalResolution temporalResolution, SpatialResolution spatialResolution)
-            throws IOException {
+                                              TemporalResolution temporalResolution,
+                                              SpatialResolution spatialResolution) throws IOException {
         final List<RegriddingTimeStep> resultList = new ArrayList<RegriddingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
@@ -431,14 +391,14 @@ public class Aggregator {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
                 List<RegriddingTimeStep> sameMonthTimeSteps = aggregate(date1, date2, TemporalResolution.monthly,
-                                                              spatialResolution);
-                result = aggregateSameMonthAggregationsToMultiMonthAggregation(sameMonthTimeSteps);
+                        spatialResolution);
+                result = aggregateSameMonthAggregationsToMultiMonthAggregation_returnCellGrid(sameMonthTimeSteps);
             } else /*if (temporalResolution == TemporalResolution.annual)*/ {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
                 List<RegriddingTimeStep> sameMonthTimeSteps = aggregate(date1, date2, TemporalResolution.monthly,
-                                                              spatialResolution);
-                result = aggregateSameMonthAggregationsToMultiMonthAggregation(sameMonthTimeSteps);
+                        spatialResolution);
+                result = aggregateSameMonthAggregationsToMultiMonthAggregation_returnCellGrid(sameMonthTimeSteps);
             }
             resultList.add(new RegriddingTimeStep(date1, calendar.getTime(), result));
         }
@@ -446,19 +406,18 @@ public class Aggregator {
     }
 
     private CellGrid<AggregationCell5> aggregateRegion(Date date1, Date date2,
-                                                       SpatialResolution spatialResolution) throws
-                                                                                             IOException {
+                                                       SpatialResolution spatialResolution) throws IOException {
         return aggregateTimeRange(date1, date2, spatialResolution);
     }
 
     private CellGrid<AggregationCell5> aggregateTimeRange(Date date1, Date date2,
-                                                          SpatialResolution spatialResolution) throws
-                                                                                              IOException {
+                                                          SpatialResolution spatialResolution) throws IOException {
+
         final List<File> files = fileStore.getFiles(date1, date2);
 
         final DateFormat isoDateFormat = UTC.getIsoFormat();
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                                  isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
+                isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
 
         // TODO - use spatial resolution for cell grid
@@ -479,16 +438,15 @@ public class Aggregator {
                 netcdfFile.close();
             }
             LOGGER.fine(String.format("Processing input %s file took %d ms", fileStore.getProductType(),
-                                      System.currentTimeMillis() - t0));
+                    System.currentTimeMillis() - t0));
         }
 
         return cell5Grid;
     }
 
-    private CellGrid<AggregationCell5> aggregateSameMonthAggregationsToMultiMonthAggregation(
-            List<RegriddingTimeStep> sameMonthTimeSteps) {
-        // TODO - implement
-        throw new NotImplementedException();
+    private CellGrid<AggregationCell5> aggregateSameMonthAggregationsToMultiMonthAggregation_returnCellGrid(List<RegriddingTimeStep> sameMonthTimeSteps) {
+        return null;  //todo implement it!
     }
+
 
 }

@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Bettina Scholze
  *         Date: 23.07.12 10:54
  */
-public interface FileType {
+public interface FileType_Deprecated {
 
     Map<String, ArrayGrid> readSourceGrids(NetcdfFile file) throws IOException;
 
