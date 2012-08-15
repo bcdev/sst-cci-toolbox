@@ -25,5 +25,6 @@ package org.esa.cci.sst.util;
  * @author Norman
  */
 public interface AggregationFactory<A extends Aggregation> {
+
     A createAggregation();
 }

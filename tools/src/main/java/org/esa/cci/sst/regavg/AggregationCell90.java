@@ -27,7 +27,7 @@ import org.esa.cci.sst.util.CellAccumulator;
  *
  * @author Norman Fomferra
  */
-public interface AggregationCell90<C5 extends AggregationCell5> extends AggregationCell, CellAccumulator<C5> {
+public interface AggregationCell90<C5 extends AggregationCell> extends AggregationCell, CellAccumulator<C5> {
 
     @Override
     void accumulate(C5 cell, double weight);

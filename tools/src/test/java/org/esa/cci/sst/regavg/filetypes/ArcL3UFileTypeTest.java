@@ -44,9 +44,9 @@ public class ArcL3UFileTypeTest {
     @Test
     public void testCell5Factory() throws Exception {
         ScalarCoverageUncertaintyProvider provider = new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5);
-        CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(provider);
+        CellFactory<AggregationCell> cell5Factory = fileType.getCell5Factory(provider);
         assertNotNull(cell5Factory);
-        AggregationCell5 cell5 = cell5Factory.createCell(52, 78);
+        AggregationCell cell5 = cell5Factory.createCell(52, 78);
         assertNotNull(cell5);
         assertEquals(52, cell5.getX());
         assertEquals(78, cell5.getY());
@@ -62,9 +62,9 @@ public class ArcL3UFileTypeTest {
                                                                       },
                                                                       new ScalarGrid(sourceGridDef, 291.5),
                                                                       new ScalarGrid(sourceGridDef, 0.8));
-        CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<AggregationCell> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        AggregationCell5 cell5 = cell5Factory.createCell(0, 0);
+        AggregationCell5 cell5 = (AggregationCell5) cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5.accumulate(context, new Rectangle(10, 0, 10, 10));
         cell5.accumulate(context, new Rectangle(20, 0, 10, 10));
@@ -94,18 +94,18 @@ public class ArcL3UFileTypeTest {
                                                                       new ScalarGrid(sourceGridDef, 291.5),
                                                                       new ScalarGrid(sourceGridDef, 0.8));
 
-        CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<AggregationCell> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        AggregationCell5 cell5_1 = cell5Factory.createCell(0, 0);
+        AggregationCell5 cell5_1 = (AggregationCell5) cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        AggregationCell5 cell5_2 = cell5Factory.createCell(1, 0);
+        AggregationCell5 cell5_2 = (AggregationCell5) cell5Factory.createCell(1, 0);
         cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        AggregationCell5 cell5_3 = cell5Factory.createCell(2, 0);
+        AggregationCell5 cell5_3 = (AggregationCell5) cell5Factory.createCell(2, 0);
         cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        AggregationCell5 cell5_4 = cell5Factory.createCell(3, 0);
+        AggregationCell5 cell5_4 = (AggregationCell5) cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
@@ -148,21 +148,21 @@ public class ArcL3UFileTypeTest {
                                                                       },
                                                                       new ScalarGrid(sourceGridDef, 291.5),
                                                                       new ScalarGrid(sourceGridDef, 0.8));
-        CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<AggregationCell> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        AggregationCell5 cell5_1 = cell5Factory.createCell(0, 0);
+        AggregationCell5 cell5_1 = (AggregationCell5) cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        AggregationCell5 cell5_2 = cell5Factory.createCell(1, 0);
+        AggregationCell5 cell5_2 = (AggregationCell5) cell5Factory.createCell(1, 0);
         cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 10, 10, 10));
         cell5_2.accumulate(context, new Rectangle(0, 10, 10, 10));
 
-        AggregationCell5 cell5_3 = cell5Factory.createCell(2, 0);
+        AggregationCell5 cell5_3 = (AggregationCell5) cell5Factory.createCell(2, 0);
         cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        AggregationCell5 cell5_4 = cell5Factory.createCell(3, 0);
+        AggregationCell5 cell5_4 = (AggregationCell5) cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
@@ -199,21 +199,21 @@ public class ArcL3UFileTypeTest {
                                                                       },
                                                                       new ScalarGrid(sourceGridDef, 291.5),
                                                                       new ScalarGrid(sourceGridDef, 0.8));
-        CellFactory<AggregationCell5> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<AggregationCell> cell5Factory = fileType.getCell5Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        AggregationCell5 cell5_1 = cell5Factory.createCell(0, 0);
+        AggregationCell5 cell5_1 = (AggregationCell5) cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        AggregationCell5 cell5_2 = cell5Factory.createCell(1, 0);
+        AggregationCell5 cell5_2 = (AggregationCell5) cell5Factory.createCell(1, 0);
         cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 10, 10, 10));
         cell5_2.accumulate(context, new Rectangle(0, 10, 10, 10));
 
-        AggregationCell5 cell5_3 = cell5Factory.createCell(2, 0);
+        AggregationCell5 cell5_3 = (AggregationCell5) cell5Factory.createCell(2, 0);
         cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        AggregationCell5 cell5_4 = cell5Factory.createCell(3, 0);
+        AggregationCell5 cell5_4 = (AggregationCell5) cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 

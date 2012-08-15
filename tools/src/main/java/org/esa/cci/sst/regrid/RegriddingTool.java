@@ -245,7 +245,7 @@ public class RegriddingTool extends Tool {
         final File file = new File(outputDir, outputFilename);
         LOGGER.info("Writing output file '" + file + "'...");
 
-        CellGrid<AggregationCell5> cellGrid = regriddingTimeStep.getCellGrid();
+        CellGrid<AggregationCell> cellGrid = regriddingTimeStep.getCellGrid();
         GridDef gridDef = cellGrid.getGridDef();
         SpatialResolution spatialResolution = SpatialResolution.getFromValue(String.valueOf(gridDef.getResolution()));
         //global attributes
@@ -263,8 +263,8 @@ public class RegriddingTool extends Tool {
             netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
             netcdfFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
             netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
-            netcdfFile.addGlobalAttribute("geospatial_lon_resolution", spatialResolution.toString());
-            netcdfFile.addGlobalAttribute("geospatial_lat_resolution", spatialResolution.toString());
+            netcdfFile.addGlobalAttribute("geospatial_lon_resolution", spatialResolution.getValue());
+            netcdfFile.addGlobalAttribute("geospatial_lat_resolution", spatialResolution.getValue());
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
             netcdfFile.addGlobalAttribute("source_filename_regex", filenameRegex);
 
@@ -323,7 +323,7 @@ public class RegriddingTool extends Tool {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
 
-                    AggregationCell5 cell = cellGrid.getCell(x, y);
+                    AggregationCell cell = cellGrid.getCell(x, y);
                     Number[] results = cell.getResults();
                     assert results.length == variables.length : "results must have same length like variables";
                     int index1D = y * width + x;
@@ -400,7 +400,8 @@ public class RegriddingTool extends Tool {
      */
     public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
 
-        return String.format("%s-%s-%s_regrid-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+//        return String.format("%s-%s-%s_regrid-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+        return String.format("%s-%s-%s_regrid-ARC-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                 startOfPeriod, endOfPeriod, regionName,
                 processingLevel, sstType, productString, additionalSegregator,
                 TOOL_VERSION, FILE_FORMAT_VERSION);

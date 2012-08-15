@@ -148,10 +148,19 @@ public class ArcL3UFileType implements FileType {
         };
     }
 
+    @Override
+    public CellFactory<AggregationCell> getCellFactory() {
+        return new CellFactory<AggregationCell>() {
+            @Override
+            public AggregationCell createCell(int cellX, int cellY) {
+                return new ArcL3UCell(null, cellX, cellY);
+            }
+        };
+    }
 
     @Override
-    public CellFactory<AggregationCell5> getCell5Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        return new CellFactory<AggregationCell5>() {
+    public CellFactory<AggregationCell> getCell5Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        return new CellFactory<AggregationCell>() {
             @Override
             public ArcL3UCell5 createCell(int cellX, int cellY) {
                 return new ArcL3UCell5(coverageUncertaintyProvider, cellX, cellY);
@@ -189,13 +198,13 @@ public class ArcL3UFileType implements FileType {
         };
     }
 
-    private static abstract class ArcL3UCell extends AbstractAggregationCell {
+    private static abstract class AbstractArcL3UCell extends AbstractAggregationCell {
 
         protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
         protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
         protected final NumberAccumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
 
-        private ArcL3UCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private AbstractArcL3UCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
@@ -230,7 +239,28 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell5 extends ArcL3UCell implements AggregationCell5 {
+    private static class ArcL3UCell extends AbstractArcL3UCell implements AccumulationCell {
+        private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
+
+        private ArcL3UCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(null, x, y);
+        }
+
+        @Override
+        public double computeCoverageUncertainty() {
+            return coverageUncertaintyAccu.combine();
+        }
+
+        @Override
+        public void accumulate(Number[] values, double weight) {
+            sstAccu.accumulate(values[0].floatValue(), 1);
+            sstAnomalyAccu.accumulate(values[1].floatValue(), 1);
+            arcUncertaintyAccu.accumulate(values[2].floatValue(), 1);
+            coverageUncertaintyAccu.accumulate(values[3].floatValue(), 1);
+        }
+    }
+
+    private static class ArcL3UCell5 extends AbstractArcL3UCell implements AggregationCell5 {
 
         private ArcL3UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
@@ -265,7 +295,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell90 extends ArcL3UCell implements AggregationCell90<ArcL3UCell5> {
+    private static class ArcL3UCell90 extends AbstractArcL3UCell implements AggregationCell90<ArcL3UCell5> {
 
         // New 5-to-90 deg coverage uncertainty aggregation  
         protected final NumberAccumulator coverageUncertainty5Accu = new RandomUncertaintyAccumulator();
@@ -335,9 +365,9 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3USameMonthAggregation extends ArcL3UAggregation implements SameMonthAggregation<ArcL3UCell> {
+    private static class ArcL3USameMonthAggregation extends ArcL3UAggregation implements SameMonthAggregation<AbstractArcL3UCell> {
         @Override
-        public void accumulate(ArcL3UCell cell, double seaCoverage) {
+        public void accumulate(AbstractArcL3UCell cell, double seaCoverage) {
             sstAccu.accumulate(cell.computeSstAverage(), seaCoverage);
             sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage);
             arcUncertaintyAccu.accumulate(cell.computeArcUncertaintyAverage(), seaCoverage);

@@ -25,5 +25,8 @@ package org.esa.cci.sst.util;
  * @author Norman Fomferra
  */
 public interface CellFactory<C extends Cell> {
+
+    enum Type {spatialAccumulationCell, cellWhichCanDoThat, usw} //todo ? bs to specify C while creation
+
     C createCell(int cellX, int cellY);
 }

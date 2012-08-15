@@ -25,5 +25,6 @@ package org.esa.cci.sst.util;
  * @author Norman Fomferra
  */
 public interface Accumulator {
+
     long getSampleCount();
 }

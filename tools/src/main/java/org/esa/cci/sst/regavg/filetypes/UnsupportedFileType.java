@@ -20,11 +20,7 @@
 package org.esa.cci.sst.regavg.filetypes;
 
 import org.esa.cci.sst.regavg.*;
-import org.esa.cci.sst.util.AggregationFactory;
-import org.esa.cci.sst.util.CellFactory;
-import org.esa.cci.sst.util.Grid;
-import org.esa.cci.sst.util.GridDef;
-import org.esa.cci.sst.util.SstDepth;
+import org.esa.cci.sst.util.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -73,7 +69,12 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public CellFactory<AggregationCell5> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
+    public CellFactory<AggregationCell> getCellFactory() {
+        throw notImplemented();
+    }
+
+    @Override
+    public CellFactory<AggregationCell> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
         throw notImplemented();
     }
 

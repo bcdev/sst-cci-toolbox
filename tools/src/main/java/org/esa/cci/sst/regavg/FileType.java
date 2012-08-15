@@ -19,11 +19,7 @@
 
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.util.AggregationFactory;
-import org.esa.cci.sst.util.CellFactory;
-import org.esa.cci.sst.util.Grid;
-import org.esa.cci.sst.util.GridDef;
-import org.esa.cci.sst.util.SstDepth;
+import org.esa.cci.sst.util.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
@@ -64,9 +60,11 @@ public interface FileType {
 
     Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims);
 
-    CellFactory<AggregationCell5> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
+    CellFactory<AggregationCell> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
 
     CellFactory<AggregationCell90> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
+
+    CellFactory<AggregationCell> getCellFactory();
 
     AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory();
 

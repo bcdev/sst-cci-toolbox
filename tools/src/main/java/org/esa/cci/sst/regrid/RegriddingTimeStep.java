@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.regavg.AggregationCell5;
+import org.esa.cci.sst.util.AggregationCell;
 import org.esa.cci.sst.util.CellGrid;
 import org.esa.cci.sst.util.TimeStep;
 
@@ -14,9 +14,9 @@ public class RegriddingTimeStep  implements TimeStep {
 
     private final Date startDate;
     private final Date endDate;
-    private final CellGrid<AggregationCell5> cellGrid;
+    private final CellGrid<AggregationCell> cellGrid;
 
-    public RegriddingTimeStep(Date startDate, Date endDate, CellGrid<AggregationCell5> cellGrid) {
+    public RegriddingTimeStep(Date startDate, Date endDate, CellGrid<AggregationCell> cellGrid) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.cellGrid = cellGrid;
@@ -32,7 +32,7 @@ public class RegriddingTimeStep  implements TimeStep {
         return endDate;
     }
 
-    public CellGrid<AggregationCell5> getCellGrid() {
+    public CellGrid<AggregationCell> getCellGrid() {
         return cellGrid;
     }
 }
