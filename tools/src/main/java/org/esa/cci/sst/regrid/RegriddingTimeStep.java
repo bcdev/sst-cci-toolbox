@@ -14,9 +14,9 @@ public class RegriddingTimeStep  implements TimeStep {
 
     private final Date startDate;
     private final Date endDate;
-    private final CellGrid<AggregationCell> cellGrid;
+    private final CellGrid<? extends AggregationCell> cellGrid;
 
-    public RegriddingTimeStep(Date startDate, Date endDate, CellGrid<AggregationCell> cellGrid) {
+    public RegriddingTimeStep(Date startDate, Date endDate, CellGrid<? extends AggregationCell> cellGrid) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.cellGrid = cellGrid;
@@ -32,7 +32,7 @@ public class RegriddingTimeStep  implements TimeStep {
         return endDate;
     }
 
-    public CellGrid<AggregationCell> getCellGrid() {
+    public CellGrid<? extends AggregationCell> getCellGrid() {
         return cellGrid;
     }
 }

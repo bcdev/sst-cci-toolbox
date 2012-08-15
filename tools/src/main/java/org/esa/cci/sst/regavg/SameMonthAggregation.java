@@ -24,7 +24,7 @@ import org.esa.cci.sst.util.CellAccumulator;
 
 /**
  * A "same month" (daily, monthly) / regional aggregation
- * that accumulates daily, monthly / 5º,90º cells ({@link AggregationCell5}, {@link AggregationCell90}).
+ * that accumulates daily, monthly / 5º,90º cells ({@link SpatialAggregationCell}, {@link AggregationCell90}).
  *
  * @author Norman Fomferra
  */

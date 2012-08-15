@@ -28,7 +28,7 @@ import java.awt.*;
  *
  * @author Norman Fomferra
  */
-public interface AggregationCell5 extends AggregationCell {
+public interface SpatialAggregationCell extends AggregationCell {
 
-    void accumulate(AggregationCell5Context aggregationCell5Context, Rectangle rect);
+    void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect);
 }

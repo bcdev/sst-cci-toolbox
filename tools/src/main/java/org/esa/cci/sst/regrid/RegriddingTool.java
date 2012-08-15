@@ -245,7 +245,7 @@ public class RegriddingTool extends Tool {
         final File file = new File(outputDir, outputFilename);
         LOGGER.info("Writing output file '" + file + "'...");
 
-        CellGrid<AggregationCell> cellGrid = regriddingTimeStep.getCellGrid();
+        CellGrid<? extends AggregationCell> cellGrid = regriddingTimeStep.getCellGrid();
         GridDef gridDef = cellGrid.getGridDef();
         SpatialResolution spatialResolution = SpatialResolution.getFromValue(String.valueOf(gridDef.getResolution()));
         //global attributes
@@ -292,14 +292,6 @@ public class RegriddingTool extends Tool {
             Variable lonBnds = netcdfFile.addVariable("lon_bnds", DataType.FLOAT, new Dimension[]{lonDim, bndsDim});
             lonBnds.addAttribute(new Attribute("units", "degrees_east"));
             lonBnds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
-
-            Variable startTimeVar = netcdfFile.addVariable("start_time", DataType.FLOAT, new Dimension[]{timeDim});
-            startTimeVar.addAttribute(new Attribute("units", "seconds"));
-            startTimeVar.addAttribute(new Attribute("long_name", "reference start time of averaging period in seconds until 1981-01-01T00:00:00"));
-
-            Variable endTimeVar = netcdfFile.addVariable("end_time", DataType.FLOAT, new Dimension[]{timeDim});
-            endTimeVar.addAttribute(new Attribute("units", "seconds"));
-            endTimeVar.addAttribute(new Attribute("long_name", "reference end time of averaging period in seconds until 1981-01-01T00:00:00"));
 
             Variable[] variables = productType.getFileType().createOutputVariables(netcdfFile, sstDepth, dimensionMeasurementRelated);
 

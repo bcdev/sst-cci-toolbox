@@ -159,8 +159,8 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public CellFactory<AggregationCell> getCell5Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        return new CellFactory<AggregationCell>() {
+    public CellFactory<SpatialAggregationCell> getCell5Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        return new CellFactory<SpatialAggregationCell>() {
             @Override
             public ArcL3UCell5 createCell(int cellX, int cellY) {
                 return new ArcL3UCell5(coverageUncertaintyProvider, cellX, cellY);
@@ -239,7 +239,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell extends AbstractArcL3UCell implements AccumulationCell {
+    private static class ArcL3UCell extends AbstractArcL3UCell implements TemporalAggregationCell {
         private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
 
         private ArcL3UCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
@@ -260,7 +260,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell5 extends AbstractArcL3UCell implements AggregationCell5 {
+    private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell {
 
         private ArcL3UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
@@ -272,11 +272,11 @@ public class ArcL3UFileType implements FileType {
         }
 
         @Override
-        public void accumulate(AggregationCell5Context aggregationCell5Context, Rectangle rect) {
-            final Grid sstGrid = aggregationCell5Context.getSourceGrids()[0];
-            final Grid uncertaintyGrid = aggregationCell5Context.getSourceGrids()[1];
-            final Grid analysedSstGrid = aggregationCell5Context.getAnalysedSstGrid();
-            final Grid seaCoverageGrid = aggregationCell5Context.getSeaCoverageGrid();
+        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
+            final Grid uncertaintyGrid = spatialAggregationContext.getSourceGrids()[1];
+            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
+            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
 
             final int x0 = rect.x;
             final int y0 = rect.y;

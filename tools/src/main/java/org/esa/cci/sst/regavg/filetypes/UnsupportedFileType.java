@@ -74,7 +74,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public CellFactory<AggregationCell> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
+    public CellFactory<SpatialAggregationCell> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
         throw notImplemented();
     }
 

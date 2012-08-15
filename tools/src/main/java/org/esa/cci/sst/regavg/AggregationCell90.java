@@ -23,12 +23,12 @@ import org.esa.cci.sst.util.AggregationCell;
 import org.esa.cci.sst.util.CellAccumulator;
 
 /**
- * A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link AggregationCell5}).
+ * A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link SpatialAggregationCell}).
  *
  * @author Norman Fomferra
  */
-public interface AggregationCell90<C5 extends AggregationCell> extends AggregationCell, CellAccumulator<C5> {
+public interface AggregationCell90<C extends SpatialAggregationCell> extends AggregationCell, CellAccumulator<C> {
 
     @Override
-    void accumulate(C5 cell, double weight);
+    void accumulate(C cell, double weight);
 }

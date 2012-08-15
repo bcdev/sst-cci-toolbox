@@ -119,6 +119,7 @@ public class Aggregator {
                                              TemporalResolution temporalResolution) throws IOException {
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
+
         while (calendar.getTime().before(endDate)) {
             Date date1 = calendar.getTime();
             List<RegionalAggregation> result;
@@ -149,7 +150,7 @@ public class Aggregator {
     // Hardly testable, because NetCDF files of given fileType required
     private List<RegionalAggregation> aggregateRegions(Date date1, Date date2) throws IOException {
         // Compute the cell 5 grid for *all* combined regions first
-        final CellGrid<AggregationCell> combinedCell5Grid = aggregateTimeRange(date1, date2);
+        final CellGrid<SpatialAggregationCell> combinedCell5Grid = aggregateTimeRange(date1, date2);
         return aggregateRegions(combinedCell5Grid,
                 regionMaskList,
                 fileType.getSameMonthAggregationFactory(),
@@ -158,7 +159,7 @@ public class Aggregator {
                 climatology.getSeaCoverageCell90Grid());
     }
 
-    static List<RegionalAggregation> aggregateRegions(CellGrid<AggregationCell> combinedCell5Grid,
+    static List<RegionalAggregation> aggregateRegions(CellGrid<SpatialAggregationCell> combinedCell5Grid,
                                                       RegionMaskList regionMaskList,
                                                       AggregationFactory<SameMonthAggregation> aggregationFactory,
                                                       CellFactory<AggregationCell90> cell90Factory,
@@ -167,7 +168,7 @@ public class Aggregator {
         final List<RegionalAggregation> regionalAggregations = new ArrayList<RegionalAggregation>();
         for (RegionMask regionMask : regionMaskList) {
             // Extract the cell 5 grid for the current region
-            CellGrid<AggregationCell> cell5Grid = getCell5GridForRegion(combinedCell5Grid, regionMask);
+            CellGrid<SpatialAggregationCell> cell5Grid = getCell5GridForRegion(combinedCell5Grid, regionMask);
             // Check if region is Globe or Hemisphere, if so apply special averaging for all 90 deg grid boxes.
             boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
             SameMonthAggregation aggregation = aggregationFactory.createAggregation();
@@ -184,22 +185,22 @@ public class Aggregator {
     }
 
     // Hardly testable, because NetCDF files of given fileType required
-    private CellGrid<AggregationCell> aggregateTimeRange(Date date1, Date date2) throws IOException {
+    private CellGrid<SpatialAggregationCell> aggregateTimeRange(Date date1, Date date2) throws IOException {
         final List<File> files = fileStore.getFiles(date1, date2);
 
         final DateFormat isoDateFormat = UTC.getIsoFormat();
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
-        final CellFactory<AggregationCell> cell5Factory = fileType.getCell5Factory(coverageUncertaintyProvider);
-        final CellGrid<AggregationCell> cell5Grid = new CellGrid<AggregationCell>(GRID_DEF_GLOBAL_5, cell5Factory);
+        final CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCell5Factory(coverageUncertaintyProvider);
+        final CellGrid<SpatialAggregationCell> cell5Grid = new CellGrid<SpatialAggregationCell>(GRID_DEF_GLOBAL_5, cell5Factory);
 
         for (File file : files) { //loop time
             LOGGER.info(String.format("Processing input %s file '%s'", fileStore.getProductType(), file));
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                AggregationCell5Context aggregationCell5Context = createAggregationCell5Context(netcdfFile);
+                SpatialAggregationContext aggregationCell5Context = createAggregationCell5Context(netcdfFile);
                 LOGGER.fine("Aggregating grid(s)...");
                 long t01 = System.currentTimeMillis();
                 aggregateSources(aggregationCell5Context, combinedRegionMask, cell5Grid);
@@ -214,7 +215,7 @@ public class Aggregator {
         return cell5Grid;
     }
 
-    static <C extends AggregationCell> void aggregateSources(AggregationCell5Context aggregationCell5Context,
+    static <C extends AggregationCell> void aggregateSources(SpatialAggregationContext aggregationCell5Context,
                                                              RegionMask regionMask, CellGrid<C> cell5Grid) {
         final GridDef sourceGridDef = aggregationCell5Context.getSourceGridDef();
         final int width = regionMask.getWidth();
@@ -224,7 +225,7 @@ public class Aggregator {
                 if (regionMask.getSampleBoolean(cellX, cellY)) {
                     Rectangle2D lonLatRectangle = regionMask.getGridDef().getLonLatRectangle(cellX, cellY);
                     Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
-                    AggregationCell5 cell5 = (AggregationCell5) cell5Grid.getCellSafe(cellX, cellY);
+                    SpatialAggregationCell cell5 = (SpatialAggregationCell) cell5Grid.getCellSafe(cellX, cellY);
                     cell5.accumulate(aggregationCell5Context, sourceGridRectangle);
                 }
             }
@@ -232,17 +233,17 @@ public class Aggregator {
     }
 
     // Hardly testable, because NetCDF file of given fileType required
-    private AggregationCell5Context createAggregationCell5Context(NetcdfFile netcdfFile) throws IOException {
+    private SpatialAggregationContext createAggregationCell5Context(NetcdfFile netcdfFile) throws IOException {
         final Date date = fileType.readDate(netcdfFile);
         final int dayOfYear = UTC.getDayOfYear(date);
         LOGGER.fine("Day of year is " + dayOfYear);
-        return new AggregationCell5Context(fileStore.getProductType().getGridDef(),
+        return new SpatialAggregationContext(fileStore.getProductType().getGridDef(),
                 readSourceGrids(netcdfFile),
                 climatology.getAnalysedSstGrid(dayOfYear),
                 climatology.getSeaCoverageSourceGrid());
     }
 
-    static <C5 extends AggregationCell, C90 extends AggregationCell90> CellGrid<C90> aggregateCell5GridToCell90Grid(
+    static <C5 extends SpatialAggregationCell, C90 extends AggregationCell90> CellGrid<C90> aggregateCell5GridToCell90Grid(
             CellGrid<C5> cell5Grid, Grid seaCoverage5Grid, CellFactory<C90> cell90Factory) {
 
         final CellGrid<C90> cell90Grid = new CellGrid<C90>(GRID_DEF_GLOBAL_90, cell90Factory);
@@ -309,7 +310,7 @@ public class Aggregator {
         }
     }
 
-    static <C extends AggregationCell> CellGrid<C> getCell5GridForRegion(CellGrid<C> combinedGrid5,
+    static <C extends SpatialAggregationCell> CellGrid<C> getCell5GridForRegion(CellGrid<C> combinedGrid5,
                                                                          RegionMask regionMask) {
         final CellGrid<C> regionalGrid5 = new CellGrid<C>(combinedGrid5.getGridDef(), combinedGrid5.getCellFactory());
         final int width = combinedGrid5.getWidth();
@@ -379,7 +380,7 @@ public class Aggregator {
 
         while (calendar.getTime().before(endDate)) {
             Date date1 = calendar.getTime();
-            CellGrid<AggregationCell> result;
+            CellGrid<? extends AggregationCell> result;
             if (temporalResolution == TemporalResolution.daily) {
                 calendar.add(Calendar.DATE, 1);
                 Date date2 = calendar.getTime();
@@ -407,12 +408,12 @@ public class Aggregator {
         return resultList;
     }
 
-    private CellGrid<AggregationCell> aggregateRegion(Date date1, Date date2,
+    private CellGrid<SpatialAggregationCell> aggregateRegion(Date date1, Date date2,
                                                       SpatialResolution spatialResolution) throws IOException {
         return aggregateTimeRange(date1, date2, spatialResolution);
     }
 
-    private CellGrid<AggregationCell> aggregateTimeRange(Date date1, Date date2,
+    private CellGrid<SpatialAggregationCell> aggregateTimeRange(Date date1, Date date2,
                                                          SpatialResolution spatialResolution) throws IOException {
 
         final List<File> fileList = fileStore.getFiles(date1, date2);
@@ -427,15 +428,15 @@ public class Aggregator {
 
         // TODO - use spatial resolution for cell grid
 
-        final CellFactory<AggregationCell> cell5Factory = fileType.getCell5Factory(coverageUncertaintyProvider);
-        final CellGrid<AggregationCell> cell5Grid = new CellGrid<AggregationCell>(GRID_DEF_GLOBAL_5, cell5Factory);
+        final CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCell5Factory(coverageUncertaintyProvider);
+        final CellGrid<SpatialAggregationCell> cell5Grid = new CellGrid<SpatialAggregationCell>(GRID_DEF_GLOBAL_5, cell5Factory);
 
         for (File file : fileList) { //loop time
             LOGGER.info(String.format("Processing input %s file '%s'", fileStore.getProductType(), file));
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                AggregationCell5Context aggregationCell5Context = createAggregationCell5Context(netcdfFile);
+                SpatialAggregationContext aggregationCell5Context = createAggregationCell5Context(netcdfFile);
                 LOGGER.fine("Aggregating grid(s)...");
                 long t01 = System.currentTimeMillis();
                 aggregateSources(aggregationCell5Context, combinedRegionMask, cell5Grid);
@@ -461,7 +462,7 @@ public class Aggregator {
             int width = cellGrid.getWidth();
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    AccumulationCell cell = (AccumulationCell) cellGrid.getCellSafe(x, y);
+                    TemporalAggregationCell cell = (TemporalAggregationCell) cellGrid.getCellSafe(x, y);
                     AggregationCell cellFromTimeStep = regriddingTimeStep.getCellGrid().getCell(x, y);
                     Number[] results = cellFromTimeStep.getResults();
                     cell.accumulate(results, 1);

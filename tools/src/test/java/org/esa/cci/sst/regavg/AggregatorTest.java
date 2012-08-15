@@ -16,25 +16,25 @@ public class AggregatorTest {
     public void aggregateSources() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
 
-        AggregationCell5Context context1 = new AggregationCell5Context(sourceGridDef,
+        SpatialAggregationContext context1 = new SpatialAggregationContext(sourceGridDef,
                                                                        new Grid[]{
                                                                                new ScalarGrid(sourceGridDef, 292.0),
                                                                        },
                                                                        new ScalarGrid(sourceGridDef, 292.5),
                                                                        new ScalarGrid(sourceGridDef, 0.8));
-        AggregationCell5Context context2 = new AggregationCell5Context(sourceGridDef,
+        SpatialAggregationContext context2 = new SpatialAggregationContext(sourceGridDef,
                                                                        new Grid[]{
                                                                                new ScalarGrid(sourceGridDef, 293.0),
                                                                        },
                                                                        new ScalarGrid(sourceGridDef, 291.5),
                                                                        new ScalarGrid(sourceGridDef, 0.8));
-        AggregationCell5Context context3 = new AggregationCell5Context(sourceGridDef,
+        SpatialAggregationContext context3 = new SpatialAggregationContext(sourceGridDef,
                                                                        new Grid[]{
                                                                                new ScalarGrid(sourceGridDef, 291.0),
                                                                        },
                                                                        new ScalarGrid(sourceGridDef, 289.5),
                                                                        new ScalarGrid(sourceGridDef, 0.8));
-        AggregationCell5Context context4 = new AggregationCell5Context(sourceGridDef,
+        SpatialAggregationContext context4 = new SpatialAggregationContext(sourceGridDef,
                                                                        new Grid[]{
                                                                                new ScalarGrid(sourceGridDef, 291.0),
                                                                        },
@@ -207,16 +207,16 @@ public class AggregatorTest {
         }
     }
 
-    private static class MyCell5 extends MyCell implements AggregationCell5 {
+    private static class MyCell5 extends MyCell implements SpatialAggregationCell {
 
         private MyCell5(int x, int y) {
             super(x, y);
         }
 
         @Override
-        public void accumulate(AggregationCell5Context aggregationCell5Context, Rectangle rect) {
-            sumX += aggregationCell5Context.getSourceGrids()[0].getSampleDouble(0, 0)
-                    - aggregationCell5Context.getAnalysedSstGrid().getSampleDouble(0, 0);
+        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            sumX += spatialAggregationContext.getSourceGrids()[0].getSampleDouble(0, 0)
+                    - spatialAggregationContext.getAnalysedSstGrid().getSampleDouble(0, 0);
             sumW++;
             sampleCount++;
         }
