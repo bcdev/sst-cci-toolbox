@@ -19,7 +19,6 @@
 
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.NcUtils;
@@ -37,25 +36,22 @@ import java.io.IOException;
  */
 public class LUT1 {
 
-    private final ArrayGrid magnitudeGrid;
-    private final ArrayGrid exponentGrid;
+    private final Grid magnitudeGrid;
+    private final Grid exponentGrid;
 
     public static LUT1 read(File file) throws IOException {
         NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace("\\", "/"));
         try {
-            GridDef gridDef = GridDef.createGlobal(5.0);
-            ArrayGrid magnitudeGrid = NcUtils.readGrid(netcdfFile, "MAGNITUDE", gridDef);
-            magnitudeGrid.flipY();
-            ArrayGrid exponentGrid = NcUtils.readGrid(netcdfFile, "EXPONENT", gridDef);
-            exponentGrid.flipY();
-            return new LUT1(magnitudeGrid, exponentGrid);
+            final GridDef gridDef = GridDef.createGlobal(5.0);
+            final Grid magnitudeGrid = NcUtils.readGrid(netcdfFile, "MAGNITUDE", gridDef);
+            final Grid exponentGrid = NcUtils.readGrid(netcdfFile, "EXPONENT", gridDef);
+            return new LUT1(new SwapX(new FlipY(magnitudeGrid)), new SwapX(new FlipY(exponentGrid)));
         } finally {
             netcdfFile.close();
         }
     }
 
-    private LUT1(ArrayGrid magnitudeGrid, ArrayGrid exponentGrid) {
-        //To change body of created methods use File | Settings | File Templates.
+    private LUT1(Grid magnitudeGrid, Grid exponentGrid) {
         this.magnitudeGrid = magnitudeGrid;
         this.exponentGrid = exponentGrid;
     }
