@@ -30,8 +30,8 @@ import org.esa.cci.sst.util.GridDef;
 public final class SpatialAggregationContext {
     private final GridDef sourceGridDef;
     private final Grid[] sourceGrids;
-    private final Grid analysedSstGrid;
-    private final Grid seaCoverageGrid;
+    private final Grid analysedSstGrid; //in source resolution
+    private final Grid seaCoverageGrid; //in source resolution
 
     public SpatialAggregationContext(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid) {
         this.sourceGridDef = sourceGridDef;

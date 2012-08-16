@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.regrid.SpatialResolution;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -83,7 +85,7 @@ public class RegionMaskList extends ArrayList<RegionMask> {
         regionMasks.add(RegionMask.create(name, west, north, east, south));
     }
 
-    private static void fromMaskFile(String name, String split,List<RegionMask> regionMasks) throws IOException, ParseException {
+    private static void fromMaskFile(String name, String split, List<RegionMask> regionMasks) throws IOException, ParseException {
         int entryNo = regionMasks.size() + 1;
         File file = new File(split);
         if (!file.exists()) {
@@ -100,5 +102,9 @@ public class RegionMaskList extends ArrayList<RegionMask> {
             reader.close();
         }
         regionMasks.add(RegionMask.create(name, new String(data)));
+    }
+
+    public static void setSpatialResolution(SpatialResolution spatialResolution) {
+        RegionMask.setSpatialResolution(spatialResolution);
     }
 }

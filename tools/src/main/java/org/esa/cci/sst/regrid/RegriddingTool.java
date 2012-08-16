@@ -106,7 +106,7 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected void run(Configuration configuration, String[] arguments) throws ToolException {
-        String spatialResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
+        final SpatialResolution spatialResolution = fetchSpatialResolution(configuration);
         final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         final String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
@@ -133,10 +133,9 @@ public class RegriddingTool extends Tool {
         // printGrid(climatology);
 
         List<RegriddingTimeStep> timeSteps;
-        SpatialResolution degree500 = SpatialResolution.DEGREE_5_00; //todo parameterise spatialResolution
         try {
             Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
-            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution, degree500);
+            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution, spatialResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
@@ -146,6 +145,11 @@ public class RegriddingTool extends Tool {
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
+    }
+
+    private SpatialResolution fetchSpatialResolution(Configuration configuration) throws ToolException {
+        return SpatialResolution.getFromValue(
+                configuration.getString(PARAM_SPATIAL_RESOLUTION, true));
     }
 
     @Override
@@ -199,7 +203,9 @@ public class RegriddingTool extends Tool {
 
     private RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
         try {
-            return RegionMaskList.parse(configuration.getString(PARAM_REGION, false));
+            String region = configuration.getString(PARAM_REGION, false);
+            RegionMaskList.setSpatialResolution(fetchSpatialResolution(configuration));
+            return RegionMaskList.parse(region);
         } catch (Exception e) {
             throw new ToolException(e, ExitCode.USAGE_ERROR);
         }
