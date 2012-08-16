@@ -154,7 +154,7 @@ public class Aggregator {
         return aggregateRegions(combinedCell5Grid,
                 regionMaskList,
                 fileType.getSameMonthAggregationFactory(),
-                fileType.getCell90Factory(createCoverageUncertaintyProvider(date1)),
+                fileType.getCell90Factory(createCoverageUncertaintyProvider(date1, SpatialResolution.DEGREE_5_00)),
                 climatology.getSeaCoverageCell5Grid(),
                 climatology.getSeaCoverageCell90Grid());
     }
@@ -191,7 +191,7 @@ public class Aggregator {
         final DateFormat isoDateFormat = UTC.getIsoFormat();
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
+        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, SpatialResolution.DEGREE_5_00);
         final CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(coverageUncertaintyProvider);
         final CellGrid<SpatialAggregationCell> cell5Grid = new CellGrid<SpatialAggregationCell>(GRID_DEF_GLOBAL_5, cell5Factory);
 
@@ -216,7 +216,7 @@ public class Aggregator {
     }
 
     static <C extends SpatialAggregationCell> void aggregateSources(SpatialAggregationContext aggregationContext,
-                                                             RegionMask regionMask, CellGrid<C> cellGrid) {
+                                                                    RegionMask regionMask, CellGrid<C> cellGrid) {
         final GridDef sourceGridDef = aggregationContext.getSourceGridDef();
         final int width = regionMask.getWidth();
         final int height = regionMask.getHeight();
@@ -337,13 +337,14 @@ public class Aggregator {
         return grids;
     }
 
-    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date) {
+    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date, SpatialResolution spatialResolution) {
         int month = UTC.createCalendar(date).get(Calendar.MONTH);
-        return createCoverageUncertaintyProvider(month);
+        return createCoverageUncertaintyProvider(month, spatialResolution);
     }
 
-    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(int month) {
-        return new CoverageUncertaintyProvider(month) {
+    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(int month, SpatialResolution spatialResolution) {
+
+        return new CoverageUncertaintyProvider(month, spatialResolution) {
             @Override
             protected double getMagnitude5(int cellX, int cellY) {
                 return lut1.getMagnitudeGrid5().getSampleDouble(cellX, cellY);
@@ -423,7 +424,7 @@ public class Aggregator {
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 isoDateFormat.format(date1), isoDateFormat.format(date2), fileList.size()));
 
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
+        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,spatialResolution);
         final CellFactory<SpatialAggregationCell> cellFactory = fileType.getSpatialAggregationCellFactory(coverageUncertaintyProvider);
         GridDef global = GridDef.createGlobal(spatialResolution.getValue());
         final CellGrid<SpatialAggregationCell> cellGrid = new CellGrid<SpatialAggregationCell>(global, cellFactory);

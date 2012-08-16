@@ -84,9 +84,9 @@ public class RegriddingTool extends Tool {
     private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
             "The directory path to the reference climatology.");
 
-    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
-            "The minimum fractional coverage " +
-                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
+//    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
+//            "The minimum fractional coverage " +
+//                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
 
     private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
             "The maximum relative total uncertainty allowed for non-missing output.",
@@ -185,12 +185,11 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
-        //PARAM_SYNOPTIC_CORRELATION_FILE
+        //PARAM_SYNOPTIC_CORRELATION_FILE, PARAM_MIN_COVERAGE
         paramList.addAll(
                 Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
                         PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
-                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_MIN_COVERAGE,
-                        PARAM_COVERAGE_UNCERTAINTY_FILE));
+                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {

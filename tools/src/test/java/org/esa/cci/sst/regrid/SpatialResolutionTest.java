@@ -28,7 +28,7 @@ public class SpatialResolutionTest {
 
     @Test
     public void testGetDefaultAsString() throws Exception {
-        assertEquals("0.05", SpatialResolution.getDefaultValueAsString());
+        assertEquals("5.0", SpatialResolution.getDefaultValueAsString());
     }
 
     @Test

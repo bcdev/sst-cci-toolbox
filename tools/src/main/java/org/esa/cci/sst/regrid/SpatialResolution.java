@@ -60,7 +60,7 @@ public enum SpatialResolution {
     }
 
     public static String getDefaultValueAsString() {
-        return String.valueOf(DEGREE_0_05.getValue());
+        return String.valueOf(DEGREE_5_00.getValue());
     }
 
     public static String getValuesAsString() {
@@ -83,7 +83,7 @@ public enum SpatialResolution {
     }
 
     public GridDef getAssociatedGridDef() {
-        return getAssociatedGridDef(0);
+        return getAssociatedGridDef(1);
     }
 
     public GridDef getAssociatedGridDef(int timeDimensionExtend) {
@@ -118,7 +118,7 @@ public enum SpatialResolution {
         return shape;
     }
 
-    public  Map<String, Array> calculateBaseArrays() {
+    public Map<String, Array> calculateBaseArrays() {
         GridDef targetGridDef = getAssociatedGridDef();
         HashMap<String, Array> arrayMap = new HashMap<String, Array>();
 
