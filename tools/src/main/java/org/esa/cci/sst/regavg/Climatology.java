@@ -59,7 +59,7 @@ public class Climatology {
 
     private final CachedGrid cachedGrid = new CachedGrid();
 
-    private ArrayGrid seaCoverageSourceGrid;
+    private ArrayGrid seaCoverageSourceGrid; //0.1 °
     private ArrayGrid seaCoverageCell5Grid;
     private ArrayGrid seaCoverageCell90Grid;
 
@@ -211,8 +211,7 @@ public class Climatology {
                 || scaleY == 0 || scaleY * targetHeight != sourceHeight) {
             throw new IllegalStateException(String.format("Climatology grid cannot be adapted scaled to %d x %d cells.", targetWidth, targetHeight));
         }
-        LOGGER.fine(String.format("Scaling climatology grid from %dx%d down to %dx%d cells...",
-                                  grid.getWidth(), grid.getHeight(),
+        LOGGER.fine(String.format("Scaling climatology grid from %dx%d down to %dx%d cells...", grid.getWidth(), grid.getHeight(),
                                   targetGridDef.getWidth(), targetGridDef.getHeight()));
         long t0 = System.currentTimeMillis();
         grid = grid.scaleDown(scaleX, scaleY);

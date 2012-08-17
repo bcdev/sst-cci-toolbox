@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 
@@ -33,6 +34,10 @@ import java.util.StringTokenizer;
  */
 public class RegionMask implements Grid {
 
+    private final String name;
+    private final boolean[][] samples;
+    private final Coverage coverage;
+
     public enum Coverage {
         Empty,
         Globe,
@@ -42,16 +47,19 @@ public class RegionMask implements Grid {
         Other,
     }
 
-    private static final int WIDTH = 72;
-    private static final int HEIGHT = 36;
-    private static final GridDef GRID_DEF = GridDef.createGlobalGrid(WIDTH, HEIGHT);
+    private static int width = 72;
+    private static int height = 36;
+    private static GridDef gridDef = GridDef.createGlobalGrid(width, height);
 
-    private final String name;
-    private final boolean[][] samples;
-    private final Coverage coverage;
+    public static void setSpatialResolution(SpatialResolution spatialResolution) {
+        GridDef associatedGridDef = spatialResolution.getAssociatedGridDef();
+        width = associatedGridDef.getWidth();
+        height = associatedGridDef.getHeight();
+        gridDef = associatedGridDef;
+    }
 
     public static RegionMask create(String name, String data) throws ParseException {
-        boolean[][] samples = new boolean[HEIGHT][WIDTH];
+        boolean[][] samples = new boolean[height][width];
         StringTokenizer stringTokenizer = new StringTokenizer(data, "\n");
         int lineNo = 0;
         int y = 0;
@@ -59,10 +67,10 @@ public class RegionMask implements Grid {
             lineNo++;
             String line = stringTokenizer.nextToken().trim();
             if (!line.isEmpty() && !line.startsWith("#")) {
-                if (line.length() != WIDTH) {
-                    throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Line must contain exactly %d characters, but found %d.", name, lineNo, WIDTH, line.length()), 0);
+                if (line.length() != width) {
+                    throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Line must contain exactly %d characters, but found %d.", name, lineNo, width, line.length()), 0);
                 }
-                for (int x = 0; x < WIDTH; x++) {
+                for (int x = 0; x < width; x++) {
                     char c = line.charAt(x);
                     if (c != '0' && c != '1') {
                         throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Only use characters '0' and '1'.", name, lineNo), x);
@@ -74,8 +82,8 @@ public class RegionMask implements Grid {
                 y++;
             }
         }
-        if (y != HEIGHT) {
-            throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Exactly %d lines are required, but found %d.", name, lineNo, HEIGHT, y), 0);
+        if (y != height) {
+            throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Exactly %d lines are required, but found %d.", name, lineNo, height, y), 0);
         }
         return new RegionMask(name, samples);
     }
@@ -84,12 +92,12 @@ public class RegionMask implements Grid {
         if (north < south) {
             throw new IllegalArgumentException("north < south");
         }
-        Rectangle gridRectangle = GRID_DEF.getGridRectangle(west, south, east, north);
+        Rectangle gridRectangle = gridDef.getGridRectangle(west, south, east, north);
         int gridX1 = gridRectangle.x;
         int gridY1 = gridRectangle.y;
         int gridX2 = gridRectangle.x + gridRectangle.width - 1;
         int gridY2 = gridRectangle.y + gridRectangle.height - 1;
-        boolean[][] samples = new boolean[HEIGHT][WIDTH];
+        boolean[][] samples = new boolean[height][width];
         for (int y = gridY1; y <= gridY2; y++) {
             if (gridX1 <= gridX2) {
                 // westing-->easting is within -180...180
@@ -98,7 +106,7 @@ public class RegionMask implements Grid {
                 }
             } else {
                 // westing-->easting intersects with anti-meridian
-                for (int x = gridX1; x <= WIDTH - 1; x++) {
+                for (int x = gridX1; x <= width - 1; x++) {
                     samples[y][x] = true;
                 }
                 for (int x = 0; x <= gridX2; x++) {
@@ -116,12 +124,12 @@ public class RegionMask implements Grid {
         int nG = 0;
         int nN = 0;
         int nS = 0;
-        for (int j = 0; j < HEIGHT; j++) {
-            for (int i = 0; i < WIDTH; i++) {
+        for (int j = 0; j < height; j++) {
+            for (int i = 0; i < width; i++) {
                 boolean sample = samples[j][i];
                 if (sample) {
                     nG++;
-                    if (j < HEIGHT / 2) {
+                    if (j < height / 2) {
                         nN++;
                     } else {
                         nS++;
@@ -130,7 +138,7 @@ public class RegionMask implements Grid {
             }
         }
 
-        int nTotal = WIDTH * HEIGHT;
+        int nTotal = width * height;
         if (nG == 0) {
             coverage = Coverage.Empty;
         } else if (nG == nTotal) {
@@ -153,16 +161,16 @@ public class RegionMask implements Grid {
     }
 
     public int getWidth() {
-        return WIDTH;
+        return width;
     }
 
     public int getHeight() {
-        return HEIGHT;
+        return height;
     }
 
     @Override
     public GridDef getGridDef() {
-        return GRID_DEF;
+        return gridDef;
     }
 
     @Override
@@ -187,10 +195,10 @@ public class RegionMask implements Grid {
         if (regionMaskList.size() == 1) {
             return regionMaskList.get(0);
         }
-        boolean[][] samples = new boolean[HEIGHT][WIDTH];
+        boolean[][] samples = new boolean[height][width];
         for (RegionMask regionMask : regionMaskList) {
-            for (int j = 0; j < HEIGHT; j++) {
-                for (int i = 0; i < WIDTH; i++) {
+            for (int j = 0; j < height; j++) {
+                for (int i = 0; i < width; i++) {
                     if (regionMask.samples[j][i]) {
                         samples[j][i] = true;
                     }

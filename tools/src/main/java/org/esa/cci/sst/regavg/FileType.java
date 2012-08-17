@@ -60,7 +60,7 @@ public interface FileType {
 
     Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims);
 
-    CellFactory<SpatialAggregationCell> getCell5Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
+    CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(CoverageUncertaintyProvider coverageUncertaintyProvider);
 
     CellFactory<AggregationCell90> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
 

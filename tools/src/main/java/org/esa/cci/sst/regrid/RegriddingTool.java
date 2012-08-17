@@ -84,9 +84,9 @@ public class RegriddingTool extends Tool {
     private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
             "The directory path to the reference climatology.");
 
-    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
-            "The minimum fractional coverage " +
-                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
+//    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
+//            "The minimum fractional coverage " +
+//                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
 
     private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
             "The maximum relative total uncertainty allowed for non-missing output.",
@@ -106,7 +106,7 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected void run(Configuration configuration, String[] arguments) throws ToolException {
-        String spatialResolution = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
+        final SpatialResolution spatialResolution = fetchSpatialResolution(configuration);
         final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         final String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
@@ -133,10 +133,9 @@ public class RegriddingTool extends Tool {
         // printGrid(climatology);
 
         List<RegriddingTimeStep> timeSteps;
-        SpatialResolution degree500 = SpatialResolution.DEGREE_5_00; //todo parameterise spatialResolution
         try {
             Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
-            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution, degree500);
+            timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution, spatialResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
@@ -146,6 +145,11 @@ public class RegriddingTool extends Tool {
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
+    }
+
+    private SpatialResolution fetchSpatialResolution(Configuration configuration) throws ToolException {
+        return SpatialResolution.getFromValue(
+                configuration.getString(PARAM_SPATIAL_RESOLUTION, true));
     }
 
     @Override
@@ -181,12 +185,11 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
-        //PARAM_SYNOPTIC_CORRELATION_FILE
+        //PARAM_SYNOPTIC_CORRELATION_FILE, PARAM_MIN_COVERAGE
         paramList.addAll(
                 Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
                         PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
-                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_MIN_COVERAGE,
-                        PARAM_COVERAGE_UNCERTAINTY_FILE));
+                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {
@@ -199,7 +202,9 @@ public class RegriddingTool extends Tool {
 
     private RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
         try {
-            return RegionMaskList.parse(configuration.getString(PARAM_REGION, false));
+            String region = configuration.getString(PARAM_REGION, false);
+            RegionMaskList.setSpatialResolution(fetchSpatialResolution(configuration));
+            return RegionMaskList.parse(region);
         } catch (Exception e) {
             throw new ToolException(e, ExitCode.USAGE_ERROR);
         }

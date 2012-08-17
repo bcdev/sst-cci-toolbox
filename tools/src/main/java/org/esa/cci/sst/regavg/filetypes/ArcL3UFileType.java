@@ -159,7 +159,7 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public CellFactory<SpatialAggregationCell> getCell5Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+    public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
         return new CellFactory<SpatialAggregationCell>() {
             @Override
             public ArcL3UCell5 createCell(int cellX, int cellY) {
@@ -260,7 +260,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell {
+    private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell { //todo rename cell -> ArcL3USpatialAggregationCell
 
         private ArcL3UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
