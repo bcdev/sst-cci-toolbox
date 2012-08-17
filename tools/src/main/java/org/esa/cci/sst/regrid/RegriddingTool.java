@@ -70,7 +70,7 @@ public class RegriddingTool extends Tool {
                     ProductType.values()) + ".");
 
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
-            "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
+            "The input filename pattern. REGEX is a Regular Expression that usually depends on the parameter " +
                     "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
                     "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
                     "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
