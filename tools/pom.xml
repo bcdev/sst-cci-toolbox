@@ -8,14 +8,51 @@
     <artifactId>sst-cci-tools</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <repositories>
+        <repository>
+            <id>bc-mvn</id>
+            <name>Public Maven Repository at Brockmann Consult</name>
+            <url>http://www.brockmann-consult.de/mvn/os</url>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>bc-mvn-repo-public</id>
+            <name>Public Maven Repository at Brockmann-Consult</name>
+            <url>http://www.brockmann-consult.de/mvn/os</url>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>apache.org</id>
+            <name>Maven Plugin Snapshots</name>
+            <url>http://people.apache.org/repo/m2-snapshot-repository</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+
     <dependencies>
-
-        <dependency>
-            <groupId>org.esa.beam</groupId>
-            <artifactId>beam-core</artifactId>
-            <version>4.10-SNAPSHOT</version>
-        </dependency>
-
         <dependency>
             <groupId>edu.ucar</groupId>
             <artifactId>netcdf</artifactId>
@@ -34,17 +71,16 @@
             <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -72,19 +108,35 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>bc-mvn</id>
-            <name>Public Maven Repository at Brockmann Consult</name>
-            <url>http://www.brockmann-consult.de/mvn/os</url>
-            <releases>
-                <enabled>true</enabled>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <checksumPolicy>warn</checksumPolicy>
-            </snapshots>
-        </repository>
-    </repositories>
+    <developers>
+         <developer>
+             <id>norman</id>
+             <name>Norman Fomferra</name>
+             <email>norman.fomferra@brockmann-consult.de</email>
+             <organization>Brockmann Consult</organization>
+             <roles>
+                 <role>Project Manager</role>
+                 <role>Java Developer</role>
+             </roles>
+         </developer>
+         <developer>
+             <id>ralf</id>
+             <name>Ralf Quast</name>
+             <email>ralf.quast@brockmann-consult.de</email>
+             <organization>Brockmann Consult</organization>
+             <roles>
+                 <role>Java Developer</role>
+             </roles>
+         </developer>
+         <developer>
+             <id>bettina</id>
+             <name>Bettina Scholze</name>
+             <email>bettina.scholze@brockmann-consult.de</email>
+             <organization>Brockmann Consult</organization>
+             <roles>
+                 <role>Java Developer</role>
+             </roles>
+         </developer>
+     </developers>
+
 </project>
