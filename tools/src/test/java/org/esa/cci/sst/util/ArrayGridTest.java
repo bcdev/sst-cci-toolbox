@@ -67,24 +67,6 @@ public class ArrayGridTest {
     }
 
     @Test
-    public void testFlipY() throws Exception {
-        Array copy = arrayGrid.getArray().copy();
-        ArrayGrid arrayGrid2 = new ArrayGrid(arrayGrid.getGridDef(), copy, arrayGrid.getFillValue(), arrayGrid.getScaling(), arrayGrid.getOffset());
-        arrayGrid2.flipY();
-        double[] expected = new double[]{
-                /*3*/ NaN, 0.1, 0.2, 0.3, 0.4, 0.1, NaN, NaN,
-                /*2*/ 0.3, NaN, 0.1, 0.2, 0.3, 0.4, NaN, NaN,
-                /*1*/ NaN, 0.3, NaN, NaN, 0.2, 0.3, 0.4, NaN,
-                /*0*/ NaN, 0.2, NaN, 0.4, 0.1, 0.2, NaN, 0.4,
-        };
-        double[] actual = new double[expected.length];
-        for (int i = 0; i < actual.length; i++) {
-            actual[i] = arrayGrid2.getSampleDouble(i % 8, i / 8);
-        }
-        assertArrayEquals(expected, actual, 1e-10);
-    }
-
-    @Test
     public void testUnmask() throws Exception {
         int B1 = 0x0001;
         int B2 = 0x0002;

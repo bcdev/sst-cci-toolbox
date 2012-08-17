@@ -1,4 +1,4 @@
-package org.esa.cci.sst.regavg;/*
+package org.esa.cci.sst.util;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -17,11 +17,16 @@ package org.esa.cci.sst.regavg;/*
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 
-public abstract class AbstractGridRemapping implements Grid {
+/**
+ * Grid decorator for permuting sample values. Can be for, e.g., flipping sample
+ * values in y-direction or transposing the sample values for the left and right
+ * halves of a grid.
+ */
+public abstract class AbstractSamplePermuter implements Grid {
 
     private final Grid grid;
 
-    public AbstractGridRemapping(Grid grid) {
+    public AbstractSamplePermuter(Grid grid) {
         this.grid = grid;
     }
 

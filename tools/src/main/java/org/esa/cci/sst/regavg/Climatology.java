@@ -26,6 +26,7 @@ import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.Grid;
 import org.esa.cci.sst.util.GridDef;
 import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.util.YFlipper;
 import ucar.nc2.NetcdfFile;
 
 import javax.imageio.ImageIO;
@@ -113,20 +114,20 @@ public class Climatology {
             if (cachedGrid.dayOfYear != dayOfYear) {
                 readGrids(dayOfYear);
             }
-            return cachedGrid.grid;
+            return new YFlipper(cachedGrid.grid);
         }
     }
 
     public Grid getSeaCoverageSourceGrid() {
-        return seaCoverageSourceGrid;
+        return new YFlipper(seaCoverageSourceGrid);
     }
 
     public Grid getSeaCoverageCell5Grid() {
-        return seaCoverageCell5Grid;
+        return new YFlipper(seaCoverageCell5Grid);
     }
 
     public Grid getSeaCoverageCell90Grid() {
-        return seaCoverageCell90Grid;
+        return new YFlipper(seaCoverageCell90Grid);
     }
 
     private void readGrids(int dayOfYear) throws IOException {
@@ -162,7 +163,6 @@ public class Climatology {
         ArrayGrid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", OSTIA_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
-        sstGrid.flipY(); // OSTIA Climatologies are stored upside-down!
         if (!OSTIA_GRID_DEF.equals(gridDef)) {
             sstGrid = scaleDown(sstGrid, gridDef);
         }
@@ -177,7 +177,6 @@ public class Climatology {
         ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", OSTIA_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
-        maskGrid.flipY(); // OSTIA Climatologies are stored upside-down!
         seaCoverageSourceGrid = maskGrid.unmask(0x01);
         if (!OSTIA_GRID_DEF.equals(gridDef)) {
             seaCoverageSourceGrid = scaleDown(seaCoverageSourceGrid, gridDef);

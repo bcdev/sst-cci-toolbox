@@ -182,20 +182,6 @@ public class ArrayGrid implements Grid {
         return new ArrayGrid(gridDef, newArray, null, 1.0, 0.0);
     }
 
-    public void flipY() {
-        final int yOff = height - 1;
-        for (int y = 0; y < height / 2; y++) {
-            for (int x = 0; x < width; x++) {
-                int i1 = y * width + x;
-                int i2 = (yOff - y) * width + x;
-                double sample1 = array.getDouble(i1);
-                double sample2 = array.getDouble(i2);
-                array.setDouble(i1, sample2);
-                array.setDouble(i2, sample1);
-             }
-        }
-    }
-
     private interface FillTest {
         boolean isFill(double sample);
     }

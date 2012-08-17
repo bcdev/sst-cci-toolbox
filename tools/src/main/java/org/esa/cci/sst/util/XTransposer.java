@@ -1,4 +1,4 @@
-package org.esa.cci.sst.regavg;/*
+package org.esa.cci.sst.util;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,21 +14,20 @@ package org.esa.cci.sst.regavg;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.util.Grid;
+public class XTransposer extends AbstractSamplePermuter {
 
-class FlipY extends AbstractGridRemapping {
-
-    FlipY(Grid grid) {
+    public XTransposer(Grid grid) {
         super(grid);
     }
 
     @Override
-    protected int getSourceX(int x) {
-        return x;
+    protected int getSourceX(int x) { // swap left and right halves
+        final int h = getGridDef().getWidth() / 2;
+        return x < h ? x + h : x - h;
     }
 
     @Override
     protected int getSourceY(int y) {
-        return getGridDef().getHeight() - y - 1;
+        return y;
     }
 }
