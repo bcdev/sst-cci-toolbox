@@ -1,5 +1,7 @@
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.common.cellgrid.ArrayGrid;
+import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.junit.Test;
 import ucar.ma2.Array;

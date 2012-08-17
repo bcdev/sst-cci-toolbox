@@ -1,5 +1,6 @@
 package org.esa.cci.sst.util.accumulators;
 
+import org.esa.cci.sst.common.accumulator.RandomUncertaintyAccumulator;
 import org.junit.Test;
 
 import static java.lang.Double.NaN;

@@ -19,10 +19,10 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.regavg.FileType;
-import org.esa.cci.sst.regavg.ProcessingLevel;
-import org.esa.cci.sst.regavg.filetypes.*;
-import org.esa.cci.sst.util.GridDef;
+import org.esa.cci.sst.common.file.FileType;
+import org.esa.cci.sst.common.file.*;
+import org.esa.cci.sst.common.ProcessingLevel;
+import org.esa.cci.sst.common.cellgrid.GridDef;
 
 import java.io.File;
 import java.text.ParseException;

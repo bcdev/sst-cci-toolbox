@@ -1,5 +1,13 @@
 package org.esa.cci.sst.regavg.filetypes;
 
+import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellFactory;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.file.ArcL3UFileType;
+import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.*;
 import org.esa.cci.sst.util.*;
 import org.junit.Test;

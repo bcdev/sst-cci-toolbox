@@ -19,9 +19,11 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.common.RegionalAggregation;
+
 /**
  * A "multi-month" (seasonal, annual) / regional aggregation
- * that accumulates monthly / regional aggregations ({@link RegionalAggregation}).
+ * that accumulates monthly / regional aggregations ({@link org.esa.cci.sst.common.RegionalAggregation}).
  *
  * @author Norman Fomferra
  */

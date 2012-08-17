@@ -1,5 +1,6 @@
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import ucar.nc2.NetcdfFile;
 

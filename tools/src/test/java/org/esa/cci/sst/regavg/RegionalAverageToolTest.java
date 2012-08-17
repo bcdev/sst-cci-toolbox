@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.common.ProcessingLevel;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

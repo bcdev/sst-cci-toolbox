@@ -16,6 +16,13 @@
 
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.file.FileStore;
+import org.esa.cci.sst.common.LUT1;
+import org.esa.cci.sst.common.cellgrid.CellGrid;
+import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.regavg.*;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.*;
@@ -124,9 +131,9 @@ public class RegriddingTool extends Tool {
         final File lut2File = null; //configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
-        org.esa.cci.sst.regavg.FileStore fileStore = org.esa.cci.sst.regavg.FileStore.create(productType, filenameRegex,
+        FileStore fileStore = FileStore.create(productType, filenameRegex,
                 productDir);
-        org.esa.cci.sst.regavg.LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
+        org.esa.cci.sst.common.LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
         org.esa.cci.sst.regavg.LUT2 lut2 = getLUT2(lut2File); //todo
 
         // Enable for debugging
@@ -210,10 +217,10 @@ public class RegriddingTool extends Tool {
         }
     }
 
-    private org.esa.cci.sst.regavg.LUT1 getLUT1(File lut1File) throws ToolException {
-        org.esa.cci.sst.regavg.LUT1 lut1;
+    private LUT1 getLUT1(File lut1File) throws ToolException {
+        LUT1 lut1;
         try {
-            lut1 = org.esa.cci.sst.regavg.LUT1.read(lut1File);
+            lut1 = LUT1.read(lut1File);
             LOGGER.info(String.format("LUT-1 read from '%s'", lut1File));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);

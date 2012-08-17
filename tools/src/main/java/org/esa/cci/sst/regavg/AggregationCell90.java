@@ -19,11 +19,12 @@
 
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.util.AggregationCell;
-import org.esa.cci.sst.util.CellAccumulator;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.CellAccumulator;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 
 /**
- * A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link SpatialAggregationCell}).
+ * A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link org.esa.cci.sst.common.cell.SpatialAggregationCell}).
  *
  * @author Norman Fomferra
  */

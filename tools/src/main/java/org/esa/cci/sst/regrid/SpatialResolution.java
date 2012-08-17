@@ -16,7 +16,7 @@
 
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.util.GridDef;
+import org.esa.cci.sst.common.cellgrid.GridDef;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 

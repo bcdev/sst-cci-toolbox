@@ -19,10 +19,12 @@
 
 package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.cellgrid.ArrayGrid;
+import org.esa.cci.sst.common.cellgrid.RegionMask;
+import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.tool.*;
-import org.esa.cci.sst.util.ArrayGrid;
 import org.esa.cci.sst.util.ProductType;
-import org.esa.cci.sst.util.SstDepth;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;

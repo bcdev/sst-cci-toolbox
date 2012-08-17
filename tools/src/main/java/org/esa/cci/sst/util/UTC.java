@@ -32,7 +32,7 @@ import java.util.TimeZone;
  *
  * @author Norman Fomferra
  */
-public class UTC {
+public final class UTC {
 
     private static final TimeZone TIME_ZONE = TimeZone.getTimeZone("UTC");
     private static final Locale LOCALE = Locale.ENGLISH;

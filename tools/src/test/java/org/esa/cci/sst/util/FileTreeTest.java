@@ -1,5 +1,6 @@
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.common.file.FileTree;
 import org.junit.Test;
 
 import java.io.File;

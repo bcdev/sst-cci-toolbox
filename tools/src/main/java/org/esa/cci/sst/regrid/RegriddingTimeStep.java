@@ -1,8 +1,8 @@
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.util.AggregationCell;
-import org.esa.cci.sst.util.CellGrid;
-import org.esa.cci.sst.util.TimeStep;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cellgrid.CellGrid;
+import org.esa.cci.sst.common.TimeStep;
 
 import java.util.Date;
 
