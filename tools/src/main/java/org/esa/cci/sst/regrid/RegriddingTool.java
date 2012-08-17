@@ -59,8 +59,9 @@ public class RegriddingTool extends Tool {
     private static final String FILE_FORMAT_VERSION = "1.1";
     private static final String TOOL_NAME = "regrid";
     private static final String TOOL_VERSION = "0.1";
-    private static final String TOOL_HEADER = "\n" + "The " + TOOL_NAME + " tool is used to regrid the nominal ARC and SST CCI L3C and L4 products " +
-                                              "to other spatio-temporal resolutions, which are multiples of the nominal resolution. Output variables are SST and its uncertainties.";
+    private static final String TOOL_HEADER = "The " + TOOL_NAME + " tool is used to regrid the nominal ARC and SST CCI L3C and L4 products " +
+                                              "to other spatio-temporal resolutions, which are multiples of the nominal resolution. Output variables are SST and its uncertainties.\n" +
+                                               "OPTIONS may be one or more of the following:\n";
     private static final String TOOL_FOOTER = "";
 
     //important for input selection of which files ("product types") should be regridded.
@@ -189,7 +190,7 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected String getSyntax() {
-        return getName() + " [OPTIONS]";
+        return getName() + " [OPTIONS]\n";
     }
 
     @Override
