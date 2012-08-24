@@ -45,7 +45,7 @@ import static java.lang.Math.round;
 /**
  * Represents the ARC_L3U file type.
  * <p/>
- * The filename regex pattern is <code>AT[12S]_AVG_3PAARC\d{8}_[DTEM]_[nd][ND][23][bms][.]nc[.]gz</code>
+ * The filename regex pattern is <code>AT[12S]_AVG_3PAARC\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?</code>
  * with
  * <p/>
  * AT[12S] = ATSR1, ATSR2, AATSR<br/>
@@ -75,7 +75,7 @@ public class ArcL3UFileType implements FileType {
 
     @Override
     public String getFilenameRegex() {
-        return "AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc[.]gz";
+        return "AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?";
     }
 
     @Override
