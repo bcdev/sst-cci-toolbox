@@ -20,14 +20,17 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.accumulator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.accumulator.NumberAccumulator;
+import org.esa.cci.sst.common.accumulator.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regavg.*;
-import org.esa.cci.sst.util.*;
-import org.esa.cci.sst.common.accumulator.ArithmeticMeanAccumulator;
-import org.esa.cci.sst.common.accumulator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.regavg.AggregationCell90;
+import org.esa.cci.sst.regavg.MultiMonthAggregation;
+import org.esa.cci.sst.regavg.SameMonthAggregation;
+import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.util.UTC;
 import ucar.ma2.DataType;
 import ucar.nc2.*;
 import ucar.nc2.Dimension;
@@ -65,7 +68,7 @@ public class ArcL3UFileType implements FileType {
     public final static ArcL3UFileType INSTANCE = new ArcL3UFileType();
     public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
     public final int filenameDateOffset = "ATS_AVG_3PAARC".length();
-    public final GridDef gridDef = GridDef.createGlobalGrid(3600, 1800);
+    public final GridDef GRID_DEF = GridDef.createGlobalGrid(3600, 1800); //source always on 0.01 ° resolution
 
     @Override
     public Date parseDate(File file) throws ParseException {
@@ -80,7 +83,7 @@ public class ArcL3UFileType implements FileType {
 
     @Override
     public GridDef getGridDef() {
-        return gridDef;
+        return GRID_DEF;
     }
 
     @Override
