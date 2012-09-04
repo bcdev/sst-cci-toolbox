@@ -45,7 +45,6 @@ public class TemplateResolver {
      * Resolves the property with the given key.
      *
      * @param key the property key.
-     *
      * @return the resolved property value.
      */
     public String resolveProperty(String key) {
@@ -57,7 +56,6 @@ public class TemplateResolver {
      * in a given string with the value of the corresponding property.
      *
      * @param string the string.
-     *
      * @return the string with replacements made.
      */
     public final String resolve(String string) {
@@ -70,7 +68,6 @@ public class TemplateResolver {
      *
      * @param string the string of interest.
      * @param n      the number of passes.
-     *
      * @return the string with replacements made.
      */
     private String resolve(String string, int n) {

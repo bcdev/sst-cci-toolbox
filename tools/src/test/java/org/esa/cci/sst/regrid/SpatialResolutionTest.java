@@ -63,7 +63,7 @@ public class SpatialResolutionTest {
         SpatialResolution resolution = SpatialResolution.DEGREE_10_00;
         GridDef gridDef = resolution.getAssociatedGridDef();
 
-        Map<String,Array> baseArrays = resolution.calculateBaseArrays();
+        Map<String, Array> baseArrays = resolution.calculateBaseArrays();
 
         assertEquals(4, baseArrays.size());
         final Array lat = baseArrays.get("lat");

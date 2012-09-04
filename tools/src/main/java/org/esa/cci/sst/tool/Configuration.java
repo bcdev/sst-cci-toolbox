@@ -68,7 +68,7 @@ public class Configuration {
         File file = getFile(parameter, mandatory);
         if (file != null) {
             if (!file.exists()) {
-               throw new ToolException(String.format("Parameter '%s': File not found: %s", parameter.getName(), file), ExitCode.IO_ERROR);
+                throw new ToolException(String.format("Parameter '%s': File not found: %s", parameter.getName(), file), ExitCode.IO_ERROR);
             }
             if (!file.isFile()) {
                 throw new ToolException(String.format("Parameter '%s': Value is not a file: '%s'", parameter.getName(), file), ExitCode.IO_ERROR);
@@ -81,7 +81,7 @@ public class Configuration {
         File dir = getFile(parameter, mandatory);
         if (dir != null) {
             if (!dir.exists()) {
-               throw new ToolException(String.format("Parameter '%s': Directory not found: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);
+                throw new ToolException(String.format("Parameter '%s': Directory not found: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);
             }
             if (!dir.isDirectory()) {
                 throw new ToolException(String.format("Parameter '%s': Value is not a directory: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);

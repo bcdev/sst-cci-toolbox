@@ -96,8 +96,8 @@ public class GridDef {
 
     public double getResolution() {
         if (resolutionX != resolutionY) {
-          throw new IllegalStateException("To get a valid result, resolutionX and resolutionY must be equal. " +
-                  "Get resolutionX with getResolutionX() and resolutionY with getResolutionY().");
+            throw new IllegalStateException("To get a valid result, resolutionX and resolutionY must be equal. " +
+                    "Get resolutionX with getResolutionX() and resolutionY with getResolutionY().");
         }
         return resolutionY;
     }

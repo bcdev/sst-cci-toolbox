@@ -1,6 +1,5 @@
 package org.esa.cci.sst.common;
 
-import org.esa.cci.sst.common.CoverageUncertaintyProvider;
 import org.junit.Ignore;
 
 /**
@@ -13,7 +12,7 @@ public class ScalarCoverageUncertaintyProvider extends CoverageUncertaintyProvid
     private final double magnitude5;
     private final double exponent5;
 
-     public ScalarCoverageUncertaintyProvider(double magnitude90, double magnitude5, double exponent5) {
+    public ScalarCoverageUncertaintyProvider(double magnitude90, double magnitude5, double exponent5) {
         super(0);
         this.magnitude90 = magnitude90;
         this.magnitude5 = magnitude5;

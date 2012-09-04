@@ -1,8 +1,8 @@
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.TimeStep;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.TimeStep;
 
 import java.util.Date;
 
@@ -10,7 +10,7 @@ import java.util.Date;
  * {@author Bettina Scholze}
  * Date: 13.08.12 16:12
  */
-public class RegriddingTimeStep  implements TimeStep {
+public class RegriddingTimeStep implements TimeStep {
 
     private final Date startDate;
     private final Date endDate;

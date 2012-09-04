@@ -30,7 +30,7 @@ public abstract class AbstractAggregationCell extends AbstractCell implements Ag
     private final CoverageUncertaintyProvider coverageUncertaintyProvider;
 
     protected AbstractAggregationCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
-        super(x,y);
+        super(x, y);
         this.coverageUncertaintyProvider = coverageUncertaintyProvider;
     }
 

@@ -19,28 +19,16 @@
 
 package org.esa.cci.sst.tool;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.esa.cci.sst.util.UTC;
+import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * The SST_cci Regional-Average tool.
@@ -202,9 +190,9 @@ public abstract class Tool {
     private void printHelp() {
         HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.printHelp(getSyntax(),
-                                getHeader(),
-                                options,
-                                getFooter(), false);
+                getHeader(),
+                options,
+                getFooter(), false);
     }
 
     private void printVersion() {
@@ -230,16 +218,16 @@ public abstract class Tool {
         }
 
         options.addOption(createOption("h", "help", null,
-                                       "Displays this help."));
+                "Displays this help."));
         options.addOption(createOption("v", "version", null,
-                                       "Displays the version of this program and exits."));
+                "Displays the version of this program and exits."));
         options.addOption(createOption("c", "config", "FILE",
-                                       "Reads a configuration (key-value pairs) from given FILE."));
+                "Reads a configuration (key-value pairs) from given FILE."));
         options.addOption(createOption("e", "errors", null,
-                                       "Dumps a full error stack trace."));
+                "Dumps a full error stack trace."));
         options.addOption(createOption("l", "logLevel", "LEVEL",
-                                       String.format("sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
-                                                     Arrays.toString(LogLevel.values()), LogLevel.all, DEFAULT_LOG_LEVEL)));
+                String.format("sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
+                        Arrays.toString(LogLevel.values()), LogLevel.all, DEFAULT_LOG_LEVEL)));
         return options;
     }
 

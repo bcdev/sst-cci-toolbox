@@ -56,7 +56,7 @@ public class RegionListTest {
                 boolean iOk1 = i >= 0 && i <= 1;
                 boolean iOk2 = i >= 70 && i <= 71;
                 boolean jOk = j >= 16 && j <= 19;
-                boolean expected = (iOk1  || iOk2) && jOk;
+                boolean expected = (iOk1 || iOk2) && jOk;
                 assertEquals(String.format("i=%d,j=%d", i, j), expected, pacific.getSampleBoolean(i, j));
             }
         }

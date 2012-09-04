@@ -20,29 +20,29 @@ public class AggregatorTest {
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
 
         SpatialAggregationContext context1 = new SpatialAggregationContext(sourceGridDef,
-                                                                       new Grid[]{
-                                                                               new ScalarGrid(sourceGridDef, 292.0),
-                                                                       },
-                                                                       new ScalarGrid(sourceGridDef, 292.5),
-                                                                       new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 292.0),
+                },
+                new ScalarGrid(sourceGridDef, 292.5),
+                new ScalarGrid(sourceGridDef, 0.8));
         SpatialAggregationContext context2 = new SpatialAggregationContext(sourceGridDef,
-                                                                       new Grid[]{
-                                                                               new ScalarGrid(sourceGridDef, 293.0),
-                                                                       },
-                                                                       new ScalarGrid(sourceGridDef, 291.5),
-                                                                       new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 293.0),
+                },
+                new ScalarGrid(sourceGridDef, 291.5),
+                new ScalarGrid(sourceGridDef, 0.8));
         SpatialAggregationContext context3 = new SpatialAggregationContext(sourceGridDef,
-                                                                       new Grid[]{
-                                                                               new ScalarGrid(sourceGridDef, 291.0),
-                                                                       },
-                                                                       new ScalarGrid(sourceGridDef, 289.5),
-                                                                       new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 291.0),
+                },
+                new ScalarGrid(sourceGridDef, 289.5),
+                new ScalarGrid(sourceGridDef, 0.8));
         SpatialAggregationContext context4 = new SpatialAggregationContext(sourceGridDef,
-                                                                       new Grid[]{
-                                                                               new ScalarGrid(sourceGridDef, 291.0),
-                                                                       },
-                                                                       new ScalarGrid(sourceGridDef, 288.5),
-                                                                       new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 291.0),
+                },
+                new ScalarGrid(sourceGridDef, 288.5),
+                new ScalarGrid(sourceGridDef, 0.8));
 
         RegionMask regionMask = RegionMask.create("East_Atlantic", -25, 45, -15, 35);
 
@@ -94,8 +94,8 @@ public class AggregatorTest {
         seaCoverage5Grid.setSample(38, 1, 0.5);
         seaCoverage5Grid.setSample(39, 1, 0.7);
         CellGrid<MyCell90> cell90Grid = Aggregator.aggregateCell5GridToCell90Grid(cell5Grid,
-                                                                                  seaCoverage5Grid,
-                                                                                  new MyCell90Factory());
+                seaCoverage5Grid,
+                new MyCell90Factory());
 
         List<MyCell90> cell90List = cell90Grid.getCells(CellFilter.NON_EMPTY);
         assertEquals(2, cell90List.size());
@@ -109,7 +109,7 @@ public class AggregatorTest {
         assertEquals(0, cell90_2.getY());
         assertEquals(3, cell90_2.getSampleCount());
         assertEquals((4.0 * 0.7 + 5.0 * 0.5 + 5.2 * 0.7) / (0.7 + 0.5 + 0.7),
-                     cell90_2.getMean(), 1e-6);
+                cell90_2.getMean(), 1e-6);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class AggregatorTest {
 
         assertEquals(5, aggregation.getSampleCount());
         assertEquals((3.0 * 0.8 + 7.0 * 0.5 + 4.0 * 0.7 + 5.0 * 0.5 + 5.2 * 0.7) / (0.8 + 0.5 + 0.7 + 0.5 + 0.7),
-                     aggregation.getMean(), 1e-6);
+                aggregation.getMean(), 1e-6);
     }
 
     @Test
@@ -248,7 +248,7 @@ public class AggregatorTest {
         }
     }
 
-    private static class MyCellSameMonthAggregation extends  MyCell implements SameMonthAggregation<MyCell> {
+    private static class MyCellSameMonthAggregation extends MyCell implements SameMonthAggregation<MyCell> {
 
         private MyCellSameMonthAggregation() {
             super(0, 0);

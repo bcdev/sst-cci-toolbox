@@ -43,7 +43,7 @@ public class ArrayGrid implements Grid {
     }
 
     public static ArrayGrid createWith2DDoubleArray(GridDef gridDef, double[] data) {
-        return new ArrayGrid(gridDef, Array.factory(DataType.DOUBLE, new int[] {gridDef.getHeight(), gridDef.getWidth()}, data), Double.NaN, 1.0, 0.0);
+        return new ArrayGrid(gridDef, Array.factory(DataType.DOUBLE, new int[]{gridDef.getHeight(), gridDef.getWidth()}, data), Double.NaN, 1.0, 0.0);
     }
 
     public ArrayGrid(GridDef gridDef, Array array, final Number fillValue, double scaling, double offset) {
@@ -122,7 +122,7 @@ public class ArrayGrid implements Grid {
 
     @Override
     public double getSampleDouble(int x, int y) {
-         int index = y * width + x;
+        int index = y * width + x;
         double sample = array.getDouble(index);
         if (fillTest.isFill(sample)) {
             return Double.NaN;
@@ -137,11 +137,11 @@ public class ArrayGrid implements Grid {
 
     public ArrayGrid scaleDown(int scaleX, int scaleY) {
         final GridDef newGridDef = new GridDef(gridDef.getWidth() / scaleX,
-                                               gridDef.getHeight() / scaleY,
-                                               gridDef.getEasting(),
-                                               gridDef.getNorthing(),
-                                               gridDef.getResolutionX() * scaleX,
-                                               gridDef.getResolutionY() * scaleY);
+                gridDef.getHeight() / scaleY,
+                gridDef.getEasting(),
+                gridDef.getNorthing(),
+                gridDef.getResolutionX() * scaleX,
+                gridDef.getResolutionY() * scaleY);
         Class elementType = array.getElementType();
         Class newElementType;
         if (Double.TYPE.equals(elementType)) {

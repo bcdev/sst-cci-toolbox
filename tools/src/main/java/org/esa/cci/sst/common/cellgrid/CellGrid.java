@@ -77,7 +77,7 @@ public class CellGrid<C extends Cell> {
     }
 
     public void setCell(C cell) {
-       setCell(cell.getX(), cell.getY(), cell);
+        setCell(cell.getX(), cell.getY(), cell);
     }
 
     public void setCell(int x, int y, C cell) {

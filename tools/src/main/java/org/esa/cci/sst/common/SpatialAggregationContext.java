@@ -26,7 +26,7 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
  * Provides the input grids for an {@link org.esa.cci.sst.common.cell.SpatialAggregationCell}.
  *
  * @author Norman Fomferra
-*/
+ */
 public final class SpatialAggregationContext {
     private final GridDef sourceGridDef;
     private final Grid[] sourceGrids;

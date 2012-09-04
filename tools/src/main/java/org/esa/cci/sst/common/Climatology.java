@@ -104,8 +104,8 @@ public class Climatology {
             return new Climatology(sortedFiles, gridDef);
         } else {
             throw new ToolException(String.format("Climatology directory is expected to contain 365 files, but found %d. Missing %s.",
-                                                  files.length, Arrays.toString(getMissingDays(files))),
-                                    ExitCode.USAGE_ERROR);
+                    files.length, Arrays.toString(getMissingDays(files))),
+                    ExitCode.USAGE_ERROR);
         }
     }
 
@@ -212,7 +212,7 @@ public class Climatology {
             throw new IllegalStateException(String.format("Climatology grid cannot be adapted scaled to %d x %d cells.", targetWidth, targetHeight));
         }
         LOGGER.fine(String.format("Scaling climatology grid from %dx%d down to %dx%d cells...", grid.getWidth(), grid.getHeight(),
-                                  targetGridDef.getWidth(), targetGridDef.getHeight()));
+                targetGridDef.getWidth(), targetGridDef.getHeight()));
         long t0 = System.currentTimeMillis();
         grid = grid.scaleDown(scaleX, scaleY);
         LOGGER.fine(String.format("Scaling took %d ms", System.currentTimeMillis() - t0));

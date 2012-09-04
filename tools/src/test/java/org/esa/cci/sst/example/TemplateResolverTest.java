@@ -32,7 +32,7 @@ public class TemplateResolverTest {
         final TemplateResolver templateResolver = new TemplateResolver(properties);
 
         assertEquals(null,
-                     templateResolver.resolve(null));
+                templateResolver.resolve(null));
     }
 
     @Test
@@ -40,11 +40,9 @@ public class TemplateResolverTest {
         final Properties properties = new Properties();
         final TemplateResolver templateResolver = new TemplateResolver(properties);
 
-        assertEquals("cat dog pig",
-                     templateResolver.resolve("cat dog pig"));
+        assertEquals("cat dog pig", templateResolver.resolve("cat dog pig"));
 
-        assertEquals("cat dog ${foo}",
-                     templateResolver.resolve("cat dog ${foo}"));
+        assertEquals("cat dog ${foo}", templateResolver.resolve("cat dog ${foo}"));
     }
 
     @Test
@@ -53,11 +51,9 @@ public class TemplateResolverTest {
         final TemplateResolver templateResolver = new TemplateResolver(properties);
         properties.setProperty("foo", "bar");
 
-        assertEquals("cat dog pig",
-                     templateResolver.resolve("cat dog pig"));
+        assertEquals("cat dog pig", templateResolver.resolve("cat dog pig"));
 
-        assertEquals("cat dog bar",
-                     templateResolver.resolve("cat dog ${foo}"));
+        assertEquals("cat dog bar", templateResolver.resolve("cat dog ${foo}"));
     }
 
     @Test
@@ -68,10 +64,9 @@ public class TemplateResolverTest {
         properties.setProperty("foo-bar", "pig");
 
         assertEquals("cat dog cow",
-                     templateResolver.resolve("cat dog ${foo.bar}"));
+                templateResolver.resolve("cat dog ${foo.bar}"));
 
-        assertEquals("cat dog pig",
-                     templateResolver.resolve("cat dog ${foo-bar}"));
+        assertEquals("cat dog pig", templateResolver.resolve("cat dog ${foo-bar}"));
     }
 
     @Test
@@ -79,8 +74,7 @@ public class TemplateResolverTest {
         final Properties properties = new Properties();
         properties.setProperty("foo", "bar");
 
-        assertEquals("barbar",
-                     new TemplateResolver(properties).resolve("${foo}${foo}"));
+        assertEquals("barbar", new TemplateResolver(properties).resolve("${foo}${foo}"));
     }
 
     @Test
@@ -90,14 +84,10 @@ public class TemplateResolverTest {
 
         properties.setProperty("foo", "bar");
 
-        assertEquals("$foo cat dog",
-                     templateResolver.resolve("$foo cat dog"));
-        assertEquals("cat dog {foo}",
-                     templateResolver.resolve("cat dog {foo}"));
-        assertEquals("cat dog ${{foo}",
-                     templateResolver.resolve("cat dog ${{foo}"));
-        assertEquals("cat dog ${foo!}",
-                     templateResolver.resolve("cat dog ${foo!}"));
+        assertEquals("$foo cat dog", templateResolver.resolve("$foo cat dog"));
+        assertEquals("cat dog {foo}", templateResolver.resolve("cat dog {foo}"));
+        assertEquals("cat dog ${{foo}", templateResolver.resolve("cat dog ${{foo}"));
+        assertEquals("cat dog ${foo!}", templateResolver.resolve("cat dog ${foo!}"));
     }
 
     @Test
@@ -110,9 +100,9 @@ public class TemplateResolverTest {
         properties.setProperty("cat", "dog");
 
         assertEquals("dog pig cow",
-                     templateResolver.resolve("${foo} pig cow"));
+                templateResolver.resolve("${foo} pig cow"));
         assertEquals("cow pig dog dog",
-                     templateResolver.resolve("cow pig ${bar}"));
+                templateResolver.resolve("cow pig ${bar}"));
     }
 
     @Test
@@ -125,8 +115,8 @@ public class TemplateResolverTest {
         properties.setProperty("cat", "${foo}");
 
         assertEquals("${cat} pig cow",
-                     templateResolver.resolve("${foo} pig cow"));
+                templateResolver.resolve("${foo} pig cow"));
         assertEquals("${cat} pig ${foo}",
-                     templateResolver.resolve("${foo} pig ${bar}"));
+                templateResolver.resolve("${foo} pig ${bar}"));
     }
 }

@@ -1,12 +1,6 @@
 package org.esa.cci.sst.example;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.Properties;
 
@@ -94,7 +88,7 @@ public class ExampleDataGenerator {
         if (process.waitFor() != 0) {
             throw new Exception(
                     MessageFormat.format("process <code>{0}</code> terminated with exit value {1}",
-                                         command, process.exitValue()));
+                            command, process.exitValue()));
         }
     }
 }
