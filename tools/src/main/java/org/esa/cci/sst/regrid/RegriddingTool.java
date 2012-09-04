@@ -16,24 +16,14 @@
 
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.common.Aggregator;
-import org.esa.cci.sst.common.Climatology;
-import org.esa.cci.sst.common.LUT1;
-import org.esa.cci.sst.common.ProcessingLevel;
-import org.esa.cci.sst.common.RegionMaskList;
-import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.regavg.LUT2;
-import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
@@ -47,78 +37,71 @@ import ucar.nc2.Variable;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RegriddingTool extends Tool {
 
     private static final String FILE_FORMAT_VERSION = "1.1";
     private static final String TOOL_NAME = "regrid";
-    private static final String TOOL_VERSION = "0.2";
-    private static final String TOOL_HEADER = "The " + TOOL_NAME + " tool is used to regrid the nominal ARC and SST CCI L3C and L4 products " +
-                                              "to other spatio-temporal resolutions, which are multiples of the nominal resolution. Output variables are SST and its uncertainties.\n" +
-                                               "OPTIONS may be one or more of the following:\n";
+    private static final String TOOL_VERSION = "0.1";
+    private static final String TOOL_HEADER = "\n" + "The " + TOOL_NAME + " tool is used to read in the SST CCI L3U, L3C, and L4 products at daily 0.05 ° " +
+            "latitude by longitude resolution and output on other spatio-temporal resolutions, which are a multiple" +
+            "of this and divide neatly into 180 degrees. Output are SSTs and their uncertainties.";
     private static final String TOOL_FOOTER = "";
 
     //important for input selection of which files ("product types") should be regridded.
     public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin.name(),
-                                                                  "The SST depth. Must be one of " + Arrays.toString(
-                                                                          SstDepth.values()) + ".");
+            "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
 
     public static final Parameter PARAM_SPATIAL_RESOLUTION = new Parameter("spatialRes", "NUM",
-                                                                           SpatialResolution.getDefaultValueAsString(),
-                                                                           "The spatial resolution of the output grid in degrees. Must be one of " + SpatialResolution.getValuesAsString() + ".");
+            SpatialResolution.getDefaultValueAsString(),
+            "The spatial resolution of the output grid in degrees. Must be one of " + SpatialResolution.getValuesAsString() + ".");
 
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM",
-                                                                     TemporalResolution.monthly + "",
-                                                                     "The temporal resolution. Must be one of " + Arrays.toString(
-                                                                             TemporalResolution.values()) + ".");
+            TemporalResolution.monthly + "",
+            "The temporal resolution. Must be one of " + Arrays.toString(
+                    TemporalResolution.values()) + ".");
 
-    private static final Parameter PARAM_REGION = new Parameter("region", "REGION",
-                                                                "Global=-180,90,180,-90 (NAME=REGION)",
-                                                                "The sub-region to be used (optional). Coordinates in the format W,N,E,S.");
+    private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "Global=-180,90,180,-90 (NAME=REGION)",
+            "The sub-region to be used (optional). Coordinates in the format W,N,E,S.");
 
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
-                                                                     "The product type. Must be one of " + Arrays.toString(
-                                                                             ProductType.values()) + ".");
+            "The product type. Must be one of " + Arrays.toString(
+                    ProductType.values()) + ".");
 
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
-                                                                       "The input filename pattern. REGEX is a Regular Expression that usually depends on the parameter " +
-                                                                       "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
-                                                                       "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
-                                                                       "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
-                                                                       "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
+            "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
+                    "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
+                    "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
+                    "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
+                    "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
 
     public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
     public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01",
-                                                                   "The start date for the analysis given in the format YYYY-MM-DD");
+            "The start date for the analysis given in the format YYYY-MM-DD");
 
     public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
-                                                                 "The end date for the analysis given in the format YYYY-MM-DD");
+            "The end date for the analysis given in the format YYYY-MM-DD");
 
-//    private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false",
-//                                                                           "A Boolean variable indicating whether total or " +
-//                                                                           "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
+    private static final Parameter PARAM_TOTAL_UNCERTAINTY = new Parameter("totalUncertainty", "BOOL", "false",
+            "A Boolean variable indicating whether total or " +
+                    "separated uncertainties are written to the output file. Must be either 'true' or 'false'.");
 
     private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
-                                                                         "The directory path to the reference climatology.");
+            "The directory path to the reference climatology.");
 
 //    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
 //            "The minimum fractional coverage " +
 //                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
 
-//    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
-//            "The maximum relative total uncertainty allowed for non-missing output.",
-//            true);   //optional due to specification
+    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
+            "The maximum relative total uncertainty allowed for non-missing output.",
+            true);   //optional due to specification
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE = new Parameter("coverageUncertaintyFile", "FILE",
-                                                                                  "./conf/auxdata/coverage_uncertainty_parameters.nc",
-                                                                                  "A NetCDF file that provides lookup table for coverage uncertainties.");
+            "./conf/auxdata/coverage_uncertainty_parameters.nc",
+            "A NetCDF file that provides lookup table for coverage uncertainties.");
 
 //    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelationFile", "FILE",
 //            "./conf/auxdata/TBC",
@@ -134,13 +117,12 @@ public class RegriddingTool extends Tool {
         final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         final String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
-                                                             productType.getDefaultFilenameRegex(), false);
+                productType.getDefaultFilenameRegex(), false);
         final SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
         final String productDir = configuration.getString(productType + ".dir", null, true);
         final Date startDate = configuration.getDate(PARAM_START_DATE, true);
         final Date endDate = configuration.getDate(PARAM_END_DATE, true);
-        final TemporalResolution temporalResolution = TemporalResolution.valueOf(
-                configuration.getString(PARAM_TEMPORAL_RES, true));
+        final TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         final File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         final RegionMaskList regionMaskList = parseRegionList(configuration);
         //todo
@@ -149,8 +131,7 @@ public class RegriddingTool extends Tool {
         final File lut2File = null; //configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
-        FileStore fileStore = FileStore.create(productType, filenameRegex,
-                                               productDir);
+        FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
         org.esa.cci.sst.common.LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
         org.esa.cci.sst.regavg.LUT2 lut2 = getLUT2(lut2File); //todo
 
@@ -166,8 +147,7 @@ public class RegriddingTool extends Tool {
         }
 
         try {
-            writeOutputs(outputDir, productType, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0),
-                         timeSteps);
+            writeOutputs(outputDir, productType, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0), timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
@@ -190,7 +170,7 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected String getSyntax() {
-        return getName() + " [OPTIONS]\n";
+        return getName() + " [OPTIONS]";
     }
 
     @Override
@@ -211,27 +191,16 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
+        //PARAM_SYNOPTIC_CORRELATION_FILE, PARAM_MIN_COVERAGE
         paramList.addAll(
-                Arrays.asList(
-                        PARAM_REGION,
-                        PARAM_START_DATE,
-                        PARAM_END_DATE,
-                        PARAM_SPATIAL_RESOLUTION,
-                        PARAM_SST_DEPTH,
-                        PARAM_PRODUCT_TYPE,
-                        PARAM_OUTPUT_DIR,
-                        // PARAM_MIN_COVERAGE,
-                        // PARAM_MAX_UNCERTAINTY,
-                        // PARAM_TOTAL_UNCERTAINTY,
-                        PARAM_CLIMATOLOGY_DIR,
-                        PARAM_COVERAGE_UNCERTAINTY_FILE
-                        // PARAM_SYNOPTIC_CORRELATION_FILE,
-                ));
+                Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
+                        PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
+                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {
             paramList.add(new Parameter(value.name() + ".dir", "DIR", null,
-                                        "Directory that hosts the products of type '" + value.name() + "'."));
+                    "Directory that hosts the products of type '" + value.name() + "'."));
         }
 
         return paramList.toArray(new Parameter[paramList.size()]);
@@ -268,7 +237,7 @@ public class RegriddingTool extends Tool {
 
         for (RegriddingTimeStep timeStep : timeSteps) {
             writeOutputs(outputDir, productType, filenameRegex, sstDepth,
-                         temporalResolution, regionMask, timeStep);
+                    temporalResolution, regionMask, timeStep);
         }
     }
 
@@ -293,8 +262,7 @@ public class RegriddingTool extends Tool {
         //global attributes
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
-            netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(),
-                                                                 sstDepth.toString()));
+            netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(), sstDepth.toString()));
             netcdfFile.addGlobalAttribute("institution", "IAES, University of Edinburgh");
             netcdfFile.addGlobalAttribute("contact", "c.merchant@ed.ac.uk");
             netcdfFile.addGlobalAttribute("file_format_version", FILE_FORMAT_VERSION);
@@ -336,8 +304,7 @@ public class RegriddingTool extends Tool {
             lonBnds.addAttribute(new Attribute("units", "degrees_east"));
             lonBnds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
 
-            Variable[] variables = productType.getFileType().createOutputVariables(netcdfFile, sstDepth,
-                                                                                   dimensionMeasurementRelated);
+            Variable[] variables = productType.getFileType().createOutputVariables(netcdfFile, sstDepth, dimensionMeasurementRelated);
 
             //write header
             netcdfFile.create();
@@ -391,7 +358,6 @@ public class RegriddingTool extends Tool {
     }
 
     private static class VectorContainer {
-
         double[] vec;
 
         private VectorContainer(int length) {
@@ -412,8 +378,7 @@ public class RegriddingTool extends Tool {
         }
     }
 
-    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws
-                                                                                                     IOException {
+    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws IOException {
         try {
             netcdfFile.write(variable, array);
         } catch (InvalidRangeException e) {
@@ -434,17 +399,14 @@ public class RegriddingTool extends Tool {
      * @param sstType              SST Type
      * @param productString        Product String (see Table 5 in PSD) // todo - find out from PSD what productString is
      * @param additionalSegregator Additional Segregator = LT or DM  // todo - find out from PSD what additionalSegregator is
-     *
      * @return The filename.
      */
-    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName,
-                                           ProcessingLevel processingLevel, String sstType, String productString,
-                                           String additionalSegregator) {
+    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
 
 //        return String.format("%s-%s-%s_regrid-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
         return String.format("%s-%s-%s_regrid-ARC-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
-                             startOfPeriod, endOfPeriod, regionName,
-                             processingLevel, sstType, productString, additionalSegregator,
-                             TOOL_VERSION, FILE_FORMAT_VERSION);
+                startOfPeriod, endOfPeriod, regionName,
+                processingLevel, sstType, productString, additionalSegregator,
+                TOOL_VERSION, FILE_FORMAT_VERSION);
     }
 }

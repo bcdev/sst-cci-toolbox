@@ -33,7 +33,7 @@ import org.esa.cci.sst.regavg.*;
 import org.esa.cci.sst.regrid.RegriddingTimeStep;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
 import java.awt.*;
@@ -68,38 +68,6 @@ public class Aggregator {
     private final SstDepth sstDepth;
     private RegionMask combinedRegionMask;
 
-    public static class AveragingTimeStep implements TimeStep {
-
-        private final Date startDate;
-        private final Date endDate;
-        private final List<RegionalAggregation> regionalAggregations;
-
-        public AveragingTimeStep(Date startDate, Date endDate, List<RegionalAggregation> regionalAggregations) {
-            this.startDate = startDate;
-            this.endDate = endDate;
-            this.regionalAggregations = regionalAggregations;
-        }
-
-        @Override
-        public Date getStartDate() {
-            return startDate;
-        }
-
-        @Override
-        public Date getEndDate() {
-            return endDate;
-        }
-
-        public int getRegionCount() {
-            return regionalAggregations.size();
-        }
-
-        public Number[] getRegionalAggregationResults(int regionIndex) {
-            RegionalAggregation regionalAggregation = regionalAggregations.get(regionIndex);
-            return regionalAggregation.getResults();
-        }
-    }
-
     public Aggregator(RegionMaskList regionMaskList,
                       FileStore fileStore,
                       Climatology climatology,
@@ -122,11 +90,10 @@ public class Aggregator {
      * @param startDate          Start date of the aggregation time range.
      * @param endDate            End date of the aggregation time range.
      * @param temporalResolution The required temporal resolution.
-     * @return A {@link Aggregator.AveragingTimeStep} for each required region.
+     * @return A {@link AveragingTimeStep} for each required region.
      * @throws IOException if an I/O error occurs.
      */
-    public List<AveragingTimeStep> aggregate(Date startDate,
-                                             Date endDate,
+    public List<AveragingTimeStep> aggregate(Date startDate, Date endDate,
                                              TemporalResolution temporalResolution) throws IOException {
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
@@ -298,7 +265,7 @@ public class Aggregator {
 
         for (int regionIndex = 0; regionIndex < regionCount; regionIndex++) {
             for (AveragingTimeStep timeStep : monthlyTimeSteps) {
-                RegionalAggregation sameMonthRegionalAggregation = timeStep.regionalAggregations.get(regionIndex);
+                RegionalAggregation sameMonthRegionalAggregation = timeStep.getRegionalAggregation(regionIndex);
                 // noinspection unchecked
                 multiMonthAggregation.accumulate(sameMonthRegionalAggregation);
             }
@@ -435,7 +402,7 @@ public class Aggregator {
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 isoDateFormat.format(date1), isoDateFormat.format(date2), fileList.size()));
 
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,spatialResolution);
+        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, spatialResolution);
         final CellFactory<SpatialAggregationCell> cellFactory = fileType.getSpatialAggregationCellFactory(coverageUncertaintyProvider);
         GridDef global = GridDef.createGlobal(spatialResolution.getValue());
         final CellGrid<SpatialAggregationCell> cellGrid = new CellGrid<SpatialAggregationCell>(global, cellFactory);

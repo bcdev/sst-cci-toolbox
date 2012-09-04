@@ -71,45 +71,43 @@ public final class RegionalAverageTool extends Tool {
             "default configuration file.\n";
 
     public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin + "",
-                                                                  "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
+            "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
     public static final Parameter PARAM_REGION_LIST = new Parameter("regionList", "NAME=REGION[;...]", "Global=-180,90,180,-90",
-                                                                    "A semicolon-separated list of NAME=REGION pairs. "
-                                                                            + "REGION may be given as coordinates in the format W,N,E,S "
-                                                                            + "or as name of a file that provides a region mask in plain text form. "
-                                                                            + "The region mask file contains 72 x 36 5-degree grid cells. "
-                                                                            + "Colums correspond to range -180 (first column) to +180 (last column) degrees longitude, "
-                                                                            + "while lines correspond to +90 (first line) to -90 (last line) degrees latitude. "
-                                                                            + "Cells can be '0' or '1', where "
-                                                                            + "a '1' indicates that the region represented by the cell will be considered "
-                                                                            + "in the averaging process.");
+            "A semicolon-separated list of NAME=REGION pairs. "
+                    + "REGION may be given as coordinates in the format W,N,E,S "
+                    + "or as name of a file that provides a region mask in plain text form. "
+                    + "The region mask file contains 72 x 36 5-degree grid cells. "
+                    + "Colums correspond to range -180 (first column) to +180 (last column) degrees longitude, "
+                    + "while lines correspond to +90 (first line) to -90 (last line) degrees latitude. "
+                    + "Cells can be '0' or '1', where "
+                    + "a '1' indicates that the region represented by the cell will be considered "
+                    + "in the averaging process.");
     public static final Parameter PARAM_START_DATE = new Parameter("startDate", "DATE", "1990-01-01",
-                                                                   "The start date for the analysis given in the format YYYY-MM-DD");
+            "The start date for the analysis given in the format YYYY-MM-DD");
     public static final Parameter PARAM_END_DATE = new Parameter("endDate", "DATE", "2020-12-31",
-                                                                 "The end date for the analysis given in the format YYYY-MM-DD");
+            "The end date for the analysis given in the format YYYY-MM-DD");
     public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
-                                                                        "The directory path to the reference climatology.");
+            "The directory path to the reference climatology.");
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "",
-                                                                     "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
+            "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
-                                                                     "The product type. Must be one of " + Arrays.toString(
-                                                                             ProductType.values()) + ".");
+            "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
-                                                                       "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
-                                                                               "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
-                                                                               "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
-                                                                               "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
-                                                                               "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
-    public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".",
-                                                                   "The output directory.");
+            "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
+                    "'productType'. E.g. the default value for the product type '" + ProductType.ARC_L3U + "' " +
+                    "is '" + ProductType.ARC_L3U.getDefaultFilenameRegex() + "'. For example, if you only want " +
+                    "to include daily (D) L3 AATSR (ATS) files with night observations only, dual view, 3 channel retrieval, " +
+                    "bayes cloud screening (nD3b) you could use the regex \'ATS_AVG_3PAARC\\\\d{8}_D_nD3b[.]nc[.]gz\'.");
+    public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
     public static final Parameter PARAM_LUT1_FILE = new Parameter("lut1File", "FILE", "conf/auxdata/coverage_uncertainty_parameters.nc",
-                                                                  "A NetCDF file that provides lookup table 1.");
+            "A NetCDF file that provides lookup table 1.");
 
     public static final Parameter PARAM_LUT2_FILE = new Parameter("lut2File", "FILE", "conf/auxdata/RegionalAverage_LUT2.txt",
-                                                                  "A plain text file that provides lookup table 2.");
+            "A plain text file that provides lookup table 2.");
 
     public static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
-                                                                   "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
+            "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
 
     public static void main(String[] arguments) {
         new RegionalAverageTool().run(arguments);
@@ -193,7 +191,7 @@ public final class RegionalAverageTool extends Tool {
         // Enable for debugging
         // printGrid(climatology);
 
-        List<Aggregator.AveragingTimeStep> timeSteps;
+        List<AveragingTimeStep> timeSteps;
         try {
             Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
@@ -203,7 +201,7 @@ public final class RegionalAverageTool extends Tool {
 
         try {
             writeOutputs(outputDir, writeText, productType, filenameRegex,
-                         sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);
+                    sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
@@ -240,7 +238,7 @@ public final class RegionalAverageTool extends Tool {
                               Date endDate,
                               TemporalResolution temporalResolution,
                               RegionMaskList regionMaskList,
-                              List<Aggregator.AveragingTimeStep> timeSteps) throws IOException {
+                              List<AveragingTimeStep> timeSteps) throws IOException {
 
         final PrintWriter textWriter = getTextWriter(writeText);
 
@@ -248,12 +246,12 @@ public final class RegionalAverageTool extends Tool {
         for (int regionIndex = 0; regionIndex < regionMaskList.size(); regionIndex++) {
             RegionMask regionMask = regionMaskList.get(regionIndex);
             String outputFilename = getOutputFilename(filenameDateFormat.format(startDate),
-                                                      filenameDateFormat.format(endDate),
-                                                      regionMask.getName(),
-                                                      productType.getProcessingLevel(),
-                                                      "SST_" + sstDepth + "_average",
-                                                      "PS",
-                                                      "DM"
+                    filenameDateFormat.format(endDate),
+                    regionMask.getName(),
+                    productType.getProcessingLevel(),
+                    "SST_" + sstDepth + "_average",
+                    "PS",
+                    "DM"
             );
             File file = new File(outputDir, outputFilename);
             LOGGER.info("Writing output file '" + file + "'...");
@@ -284,7 +282,7 @@ public final class RegionalAverageTool extends Tool {
                                         Date endDate,
                                         TemporalResolution temporalResolution,
                                         RegionMask regionMask, int regionIndex,
-                                        List<Aggregator.AveragingTimeStep> timeSteps) throws IOException {
+                                        List<AveragingTimeStep> timeSteps) throws IOException {
 
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
@@ -327,7 +325,7 @@ public final class RegionalAverageTool extends Tool {
             float[] startTime = new float[numSteps];
             float[] endTime = new float[numSteps];
             for (int t = 0; t < numSteps; t++) {
-                Aggregator.AveragingTimeStep timeStep = timeSteps.get(t);
+                AveragingTimeStep timeStep = timeSteps.get(t);
                 startTime[t] = (timeStep.getStartDate().getTime() - millisSince1981) / 1000.0F;
                 endTime[t] = (timeStep.getEndDate().getTime() - millisSince1981) / 1000.0F;
                 Number[] results = timeStep.getRegionalAggregationResults(regionIndex);
@@ -360,18 +358,18 @@ public final class RegionalAverageTool extends Tool {
         }
     }
 
-    private static void outputText(PrintWriter textWriter, String[] outputNames, String regionName, int regionIndex, List<Aggregator.AveragingTimeStep> timeSteps) {
+    private static void outputText(PrintWriter textWriter, String[] outputNames, String regionName, int regionIndex, List<AveragingTimeStep> timeSteps) {
         textWriter.println();
         textWriter.printf("%s\t%s\t%s\t%s\t%s\n", "region", "start", "end", "step", cat(outputNames, "\t"));
         DateFormat dateFormat = UTC.getDateFormat("yyyy-MM-dd");
         for (int t = 0; t < timeSteps.size(); t++) {
-            Aggregator.AveragingTimeStep timeStep = timeSteps.get(t);
+            AveragingTimeStep timeStep = timeSteps.get(t);
             textWriter.printf("%s\t%s\t%s\t%s\t%s\n",
-                              regionName,
-                              dateFormat.format(timeStep.getStartDate()),
-                              dateFormat.format(timeStep.getEndDate()),
-                              t + 1,
-                              cat(timeStep.getRegionalAggregationResults(regionIndex), "\t"));
+                    regionName,
+                    dateFormat.format(timeStep.getStartDate()),
+                    dateFormat.format(timeStep.getEndDate()),
+                    t + 1,
+                    cat(timeStep.getRegionalAggregationResults(regionIndex), "\t"));
         }
     }
 
@@ -421,19 +419,19 @@ public final class RegionalAverageTool extends Tool {
     public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
 
         return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
-                             startOfPeriod,
-                             endOfPeriod,
-                             regionName,
-                             processingLevel,
-                             sstType,
-                             productString,
-                             additionalSegregator,
-                             TOOL_VERSION,
-                             FILE_FORMAT_VERSION);
+                startOfPeriod,
+                endOfPeriod,
+                regionName,
+                processingLevel,
+                sstType,
+                productString,
+                additionalSegregator,
+                TOOL_VERSION,
+                FILE_FORMAT_VERSION);
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    private void printGrid(Climatology climatology)  {
+    private void printGrid(Climatology climatology) {
         try {
             climatology.getAnalysedSstGrid(1);
             final ArrayGrid seaCoverageSourceGrid = (ArrayGrid) climatology.getSeaCoverageSourceGrid();
