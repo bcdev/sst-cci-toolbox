@@ -1,4 +1,4 @@
-package org.esa.cci.sst.regavg.filetypes;
+package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.cell.AggregationCell;
@@ -6,10 +6,10 @@ import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.file.ArcL3UFileType;
-import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.regavg.*;
-import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.regavg.AggregationCell90;
+import org.esa.cci.sst.regavg.MultiMonthAggregation;
+import org.esa.cci.sst.regavg.SameMonthAggregation;
+import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
 
 import java.awt.*;
@@ -46,7 +46,7 @@ public class ArcL3UFileTypeTest {
     @Test
     public void testOtherProperties() throws Exception {
         assertEquals(ProcessingLevel.L3U, fileType.getProcessingLevel());
-        assertEquals("AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc[.]gz", fileType.getFilenameRegex());
+        assertEquals("AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?", fileType.getFilenameRegex());
     }
 
     @Test
@@ -64,12 +64,12 @@ public class ArcL3UFileTypeTest {
     public void testCell5Aggregation() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
         SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 292.0),
-                                                                              new ScalarGrid(sourceGridDef, 0.1),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 291.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 292.0),
+                        new ScalarGrid(sourceGridDef, 0.1),
+                },
+                new ScalarGrid(sourceGridDef, 291.5),
+                new ScalarGrid(sourceGridDef, 0.8));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
@@ -95,12 +95,12 @@ public class ArcL3UFileTypeTest {
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
         SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 292.0),
-                                                                              new ScalarGrid(sourceGridDef, 0.1),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 291.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 292.0),
+                        new ScalarGrid(sourceGridDef, 0.1),
+                },
+                new ScalarGrid(sourceGridDef, 291.5),
+                new ScalarGrid(sourceGridDef, 0.8));
 
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
@@ -150,12 +150,12 @@ public class ArcL3UFileTypeTest {
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
         SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 292.0),
-                                                                              new ScalarGrid(sourceGridDef, 0.1),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 291.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 292.0),
+                        new ScalarGrid(sourceGridDef, 0.1),
+                },
+                new ScalarGrid(sourceGridDef, 291.5),
+                new ScalarGrid(sourceGridDef, 0.8));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
@@ -201,12 +201,12 @@ public class ArcL3UFileTypeTest {
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
         SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
-                                                                      new Grid[]{
-                                                                              new ScalarGrid(sourceGridDef, 292.0),
-                                                                              new ScalarGrid(sourceGridDef, 0.1),
-                                                                      },
-                                                                      new ScalarGrid(sourceGridDef, 291.5),
-                                                                      new ScalarGrid(sourceGridDef, 0.8));
+                new Grid[]{
+                        new ScalarGrid(sourceGridDef, 292.0),
+                        new ScalarGrid(sourceGridDef, 0.1),
+                },
+                new ScalarGrid(sourceGridDef, 291.5),
+                new ScalarGrid(sourceGridDef, 0.8));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);

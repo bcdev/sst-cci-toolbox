@@ -109,34 +109,34 @@
     </build>
 
     <developers>
-         <developer>
-             <id>norman</id>
-             <name>Norman Fomferra</name>
-             <email>norman.fomferra@brockmann-consult.de</email>
-             <organization>Brockmann Consult</organization>
-             <roles>
-                 <role>Project Manager</role>
-                 <role>Java Developer</role>
-             </roles>
-         </developer>
-         <developer>
-             <id>ralf</id>
-             <name>Ralf Quast</name>
-             <email>ralf.quast@brockmann-consult.de</email>
-             <organization>Brockmann Consult</organization>
-             <roles>
-                 <role>Java Developer</role>
-             </roles>
-         </developer>
-         <developer>
-             <id>bettina</id>
-             <name>Bettina Scholze</name>
-             <email>bettina.scholze@brockmann-consult.de</email>
-             <organization>Brockmann Consult</organization>
-             <roles>
-                 <role>Java Developer</role>
-             </roles>
-         </developer>
-     </developers>
+        <developer>
+            <id>norman</id>
+            <name>Norman Fomferra</name>
+            <email>norman.fomferra@brockmann-consult.de</email>
+            <organization>Brockmann Consult</organization>
+            <roles>
+                <role>Project Manager</role>
+                <role>Java Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>ralf</id>
+            <name>Ralf Quast</name>
+            <email>ralf.quast@brockmann-consult.de</email>
+            <organization>Brockmann Consult</organization>
+            <roles>
+                <role>Java Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>bettina</id>
+            <name>Bettina Scholze</name>
+            <email>bettina.scholze@brockmann-consult.de</email>
+            <organization>Brockmann Consult</organization>
+            <roles>
+                <role>Java Developer</role>
+            </roles>
+        </developer>
+    </developers>
 
 </project>
