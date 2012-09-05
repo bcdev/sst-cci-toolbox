@@ -21,7 +21,7 @@ public class CciL3UFileTypeTest {
         //execution
         Grid[] grids = cciL3UFileType.readSourceGrids(l3UFile, SstDepth.skin);
         //verification
-        assertEquals(5, grids.length);
+        assertEquals(6, grids.length);
 
         assertEquals(2000, grids[0].getSampleInt(0, 0));
         assertEquals(293.14999344944954, grids[0].getSampleDouble(0, 0));
@@ -42,5 +42,11 @@ public class CciL3UFileTypeTest {
         assertEquals(Double.NaN, grids[4].getSampleDouble(0, 0));
         assertEquals(-32768, grids[4].getSampleInt(1, 0));
         assertEquals(Double.NaN, grids[4].getSampleDouble(1, 0));
+
+        //Test file erroneous. Fill value is 'null'; actually it is in Byte and data in file are -127 in each cell
+        assertEquals(-32768, grids[5].getSampleInt(0, 0));
+        assertEquals(Double.NaN, grids[5].getSampleDouble(0, 0));
+        assertEquals(-32768, grids[5].getSampleInt(1, 0));
+        assertEquals(Double.NaN, grids[5].getSampleDouble(1, 0));
     }
 }

@@ -39,22 +39,23 @@ public class CciL3UFileType extends UnsupportedFileType {
 
     @Override
     public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
-        Grid[] grids = new Grid[5];
+        Grid[] grids = new Grid[6];
 
         if (sstDepth == SstDepth.depth_20 || sstDepth == SstDepth.depth_100) {
             grids[0] = NcUtils.readGrid(file, "sea_surface_temperature_depth", getGridDef(), 0);
         } else /*if (sstDepth == SstDepth.skin)*/ {
             grids[0] = NcUtils.readGrid(file, "sea_surface_temperature", getGridDef(), 0);
         }
-        grids[1] = NcUtils.readGrid(file, "uncorrelated_uncertainty", getGridDef(), 0);
-        grids[2] = NcUtils.readGrid(file, "large_scale_correlated_uncertainty", getGridDef(), 0);
-        grids[3] = NcUtils.readGrid(file, "synoptically_correlated_uncertainty", getGridDef(), 0);
+        grids[1] = NcUtils.readGrid(file, "quality_level", getGridDef(), 0);
+        grids[2] = NcUtils.readGrid(file, "uncorrelated_uncertainty", getGridDef(), 0);
+        grids[3] = NcUtils.readGrid(file, "large_scale_correlated_uncertainty", getGridDef(), 0);
+        grids[4] = NcUtils.readGrid(file, "synoptically_correlated_uncertainty", getGridDef(), 0);
         try {
             NcUtils.getVariable(file, "adjustment_uncertainty");
         } catch (IOException e) {
-            return Arrays.copyOf(grids, 4);
+            return Arrays.copyOf(grids, 5);
         }
-        grids[4] = NcUtils.readGrid(file, "adjustment_uncertainty", getGridDef(), 0);
+        grids[5] = NcUtils.readGrid(file, "adjustment_uncertainty", getGridDef(), 0);
 
         return grids;
     }
