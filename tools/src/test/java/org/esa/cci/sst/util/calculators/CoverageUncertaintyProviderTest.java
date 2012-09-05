@@ -1,6 +1,6 @@
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.util.calculators;
 
-import org.esa.cci.sst.common.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculators.CoverageUncertaintyProvider;
 import org.junit.Assert;
 import org.junit.Test;
 

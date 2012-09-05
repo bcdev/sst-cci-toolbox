@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.common.cell;
 
-import org.esa.cci.sst.common.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculators.CoverageUncertaintyProvider;
 
 /**
  * A daily or monthly / 5º or 90º cell.

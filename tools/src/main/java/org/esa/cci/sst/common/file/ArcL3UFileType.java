@@ -20,9 +20,10 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.accumulator.ArithmeticMeanAccumulator;
-import org.esa.cci.sst.common.accumulator.NumberAccumulator;
-import org.esa.cci.sst.common.accumulator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculators.ArithmeticMeanAccumulator;
+import org.esa.cci.sst.common.calculators.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculators.NumberAccumulator;
+import org.esa.cci.sst.common.calculators.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;

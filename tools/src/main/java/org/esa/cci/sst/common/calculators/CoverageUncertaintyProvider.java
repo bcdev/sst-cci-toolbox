@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common;
+package org.esa.cci.sst.common.calculators;
 
 import org.esa.cci.sst.regrid.SpatialResolution;
 

@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.common;
 
+import org.esa.cci.sst.common.calculators.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.accumulator;
+package org.esa.cci.sst.common.calculators;
 
 /**
  * An {@link NumberAccumulator} used for weighted, arithmetic mean averaging.

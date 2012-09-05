@@ -1,6 +1,6 @@
-package org.esa.cci.sst.util.accumulators;
+package org.esa.cci.sst.util.calculators;
 
-import org.esa.cci.sst.common.accumulator.ArithmeticMeanAccumulator;
+import org.esa.cci.sst.common.calculators.ArithmeticMeanAccumulator;
 import org.junit.Test;
 
 import static java.lang.Double.NaN;
