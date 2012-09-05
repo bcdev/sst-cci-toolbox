@@ -1,13 +1,11 @@
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.common.cellgrid;
 
-import org.esa.cci.sst.common.cellgrid.ArrayGrid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
-import static java.lang.Double.*;
+import static java.lang.Double.NaN;
 import static org.junit.Assert.*;
 
 /**

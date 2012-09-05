@@ -20,10 +20,10 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.calculators.ArithmeticMeanAccumulator;
-import org.esa.cci.sst.common.calculators.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.calculators.NumberAccumulator;
-import org.esa.cci.sst.common.calculators.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculator.NumberAccumulator;
+import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -269,7 +269,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell { //todo rename cell -> ArcL3USpatialAggregationCell
+    private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell {
 
         private ArcL3UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);

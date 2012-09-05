@@ -4,6 +4,7 @@ import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.ScalarGrid;
 import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.calculator.ScalarCoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
@@ -13,7 +14,6 @@ import org.esa.cci.sst.regavg.AggregationCell90;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.UTC;
-import org.esa.cci.sst.util.calculators.ScalarCoverageUncertaintyProvider;
 import org.junit.Test;
 
 import java.awt.*;

@@ -17,21 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.calculators;
+package org.esa.cci.sst.common.calculator;
 
 /**
- * An {@link NumberAccumulator} used for weighted, uncorrelated uncertainty averaging.
- * <p/>
- * The actual result can be interpreted as the standard deviation of a weighted sample mean
- * (see http://en.wikipedia.org/wiki/Weighted_mean).
+ * An {@link NumberAccumulator} used for weighted, arithmetic mean averaging.
+ * (See Eq. 1.2 in Nicks RegionalAverageTool spec, draft5)
  *
  * @author Norman Fomferra
  */
-public class RandomUncertaintyAccumulator extends NumberAccumulator {
+public class ArithmeticMeanAccumulator extends NumberAccumulator {
 
-    private double sumXX;
+    private double sumX;
     private double sumW;
-    private long sampleCount;
+    protected long sampleCount;
 
     @Override
     public long getSampleCount() {
@@ -40,8 +38,7 @@ public class RandomUncertaintyAccumulator extends NumberAccumulator {
 
     @Override
     protected void accumulateSample(double sample, double weight) {
-        final double weightedSample = weight * sample;
-        sumXX += weightedSample * weightedSample;
+        sumX += weight * sample;
         sumW += weight;
         sampleCount++;
     }
@@ -51,14 +48,12 @@ public class RandomUncertaintyAccumulator extends NumberAccumulator {
         if (sampleCount == 0) {
             return Double.NaN;
         }
-        if (sumXX == 0.0) {
+        if (sumX == 0.0) {
             return 0.0;
         }
         if (sumW == 0.0) {
             return Double.NaN;
         }
-        final double weightedSqrSum = sumXX / (sumW * sumW);
-        return weightedSqrSum > 0.0 ? Math.sqrt(weightedSqrSum) : 0.0;
+        return sumX / sumW;
     }
-
 }

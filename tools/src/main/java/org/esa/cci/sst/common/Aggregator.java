@@ -19,7 +19,9 @@
 
 package org.esa.cci.sst.common;
 
-import org.esa.cci.sst.common.calculators.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.auxiliary.Climatology;
+import org.esa.cci.sst.common.auxiliary.LUT1;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
@@ -128,7 +130,8 @@ public class Aggregator {
 
     // Hardly testable, because NetCDF files of given fileType required
     private List<RegionalAggregation> aggregateRegions(Date date1, Date date2) throws IOException {
-        // Compute the cell 5 grid for *all* combined regions first
+        //Compute the cell 5 grid for *all* combined regions first
+        //regrid spatially from 0.01 to 5 °, and aggregate given time range (<= monthly)
         final CellGrid<SpatialAggregationCell> combinedCell5Grid = aggregateTimeRange(date1, date2);
         return aggregateRegions(combinedCell5Grid,
                 regionMaskList,

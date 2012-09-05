@@ -20,6 +20,8 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.auxiliary.Climatology;
+import org.esa.cci.sst.common.auxiliary.LUT1;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;

@@ -17,6 +17,8 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.auxiliary.Climatology;
+import org.esa.cci.sst.common.auxiliary.LUT1;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -132,7 +134,7 @@ public class RegriddingTool extends Tool {
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
-        org.esa.cci.sst.common.LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
+        LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
         org.esa.cci.sst.regavg.LUT2 lut2 = getLUT2(lut2File); //todo
 
         // Enable for debugging

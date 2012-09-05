@@ -17,14 +17,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.calculators;
+package org.esa.cci.sst.common.calculator;
 
 /**
- * An accumulator is used to accumulate any type of "samples".
+ * An accumulator whose samples are single, weighted numbers.
  *
  * @author Norman Fomferra
  */
-public interface Accumulator {
+public abstract class NumberAccumulator implements Accumulator {
 
-    long getSampleCount();
+    protected NumberAccumulator() {
+    }
+
+    public void accumulate(double sample, double weight) {
+        if (!Double.isNaN(sample) && !Double.isNaN(weight)) {
+            accumulateSample(sample, weight);
+        }
+    }
+
+    public abstract double combine();
+
+    protected abstract void accumulateSample(double sample, double weight);
 }

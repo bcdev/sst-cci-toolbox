@@ -35,7 +35,7 @@ import java.util.Arrays;
  */
 public class CciL3UFileType extends UnsupportedFileType {
     public final static CciL3UFileType INSTANCE = new CciL3UFileType();
-    public final GridDef GRID_DEF = GridDef.createGlobalGrid(7200, 3600); //source always on 0.05 ° resolution
+    public final GridDef GRID_DEF = GridDef.createGlobalGrid(7200, 3600); //source per default on 0.05 ° resolution
 
     @Override
     public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {

@@ -1,6 +1,5 @@
-package org.esa.cci.sst.util.calculators;
+package org.esa.cci.sst.common.calculator;
 
-import org.esa.cci.sst.common.calculators.CoverageUncertaintyProvider;
 import org.junit.Ignore;
 
 /**

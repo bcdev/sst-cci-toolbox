@@ -1,6 +1,6 @@
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.file.FileTree;
+import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
 
 import java.io.File;

@@ -17,12 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.common.cellgrid;
 
 import org.esa.cci.sst.common.cell.AbstractCell;
 import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.junit.Test;
 
 import java.util.List;
