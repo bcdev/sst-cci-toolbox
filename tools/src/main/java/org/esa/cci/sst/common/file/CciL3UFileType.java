@@ -19,21 +19,40 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculator.NumberAccumulator;
+import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.regavg.AggregationCell90;
+import org.esa.cci.sst.regavg.MultiMonthAggregation;
+import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
-import ucar.nc2.NetcdfFile;
+import org.esa.cci.sst.util.UTC;
+import ucar.ma2.DataType;
+import ucar.nc2.*;
+import ucar.nc2.Dimension;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+
+import static java.lang.Math.round;
 
 /**
- * Not yet implemented.
+ * todo document
  *
- * @author Norman Fomferra
+ * @author Norman Fomferra, Bettina Scholze
  */
-public class CciL3UFileType extends UnsupportedFileType {
+public class CciL3UFileType implements FileType {
     public final static CciL3UFileType INSTANCE = new CciL3UFileType();
     public final GridDef GRID_DEF = GridDef.createGlobalGrid(7200, 3600); //source per default on 0.05 ° resolution
 
@@ -60,8 +79,408 @@ public class CciL3UFileType extends UnsupportedFileType {
         return grids;
     }
 
+    //todo bs: Parameter if total or separated uncertainties wished in output file
+    @Override
+    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims) {
+
+        Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
+        sstVar.addAttribute(new Attribute("units", "kelvin"));
+        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin", sstDepth)));
+        sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
+        sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
+        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
+        sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+        coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
+        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
+        coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable uncorrelatedUncertaintyVar = file.addVariable("uncorrelated_uncertainty", DataType.FLOAT, dims);
+        uncorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+        uncorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of uncorrelated uncertainty in kelvin"));
+        uncorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable largeScaleCorrelatedUncertaintyVar = file.addVariable("large_scale_correlated_uncertainty", DataType.FLOAT, dims);
+        largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+        largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of large scale correlated uncertainty in kelvin"));
+        largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable synopticallyCorrelatedUncertaintyVar = file.addVariable("synoptically_correlated_uncertainty", DataType.FLOAT, dims);
+        synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+        synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of synoptically correlated uncertainty in kelvin"));
+        synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable adjustmentUncertaintyVar = file.addVariable("adjustment_uncertainty", DataType.FLOAT, dims);
+        adjustmentUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+        adjustmentUncertaintyVar.addAttribute(new Attribute("long_name", "mean of adjustment uncertainty in kelvin"));
+        adjustmentUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable totalUncertaintyVar = file.addVariable("total_uncertainty", DataType.FLOAT, dims);
+        totalUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+        totalUncertaintyVar.addAttribute(new Attribute("long_name", "the total uncertainty in kelvin"));
+        totalUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        return new Variable[]{
+                sstVar,
+                sstAnomalyVar,
+                coverageUncertaintyVar,
+                uncorrelatedUncertaintyVar,
+                largeScaleCorrelatedUncertaintyVar,
+                synopticallyCorrelatedUncertaintyVar,
+                adjustmentUncertaintyVar,
+                totalUncertaintyVar
+        };
+    }
+
+    @Override
+    public CellFactory<AggregationCell90> getCell90Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        return new CellFactory<AggregationCell90>() {
+            @Override
+            public L3UCell90 createCell(int cellX, int cellY) {
+                return new L3UCell90(coverageUncertaintyProvider, cellX, cellY);
+            }
+        };
+    }
+
+    @Override
+    public CellFactory<AggregationCell> getCellFactory() {
+        return new CellFactory<AggregationCell>() {
+            @Override
+            public AggregationCell createCell(int cellX, int cellY) {
+                return new L3UCell(null, cellX, cellY);
+            }
+        };
+    }
+
+    @Override
+    public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
+        return new AggregationFactory<SameMonthAggregation>() {
+            @Override
+            public SameMonthAggregation createAggregation() {
+                return new L3USameMonthAggregation();
+            }
+        };
+    }
+
+    @Override
+    public AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory() {
+        return new AggregationFactory<MultiMonthAggregation>() {
+            @Override
+            public MultiMonthAggregation createAggregation() {
+                return new L3UMultiMonthAggregation();
+            }
+        };
+    }
+
+    @Override
+    public Date readDate(NetcdfFile file) throws IOException {
+        Variable variable = file.findTopVariable("time");
+        if (variable == null) {
+            throw new IOException("Missing variable 'time' in file '" + file.getLocation() + "'");
+        }
+        // The time of L3U files is encoded as seconds since 01.01.1981
+        int secondsSince1981 = round(variable.readScalarFloat());
+        Calendar calendar = UTC.createCalendar(1981);
+        calendar.add(Calendar.SECOND, secondsSince1981);
+        return calendar.getTime();
+    }
+
+    @Override
+    public String getRdac() {
+        return "ESACCI";
+    }
+
+    @Override
+    public String getFilenameRegex() {
+        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST[a-z]{3,7}-[A-Z1-2_]{3,10}-[DMLT]{2}-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
+//        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST[a-z]{3,7}-[AST][TME][SVI][A-Z]{0,7}-[LD][TM].*";
+//        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST(skin)?(subskin)?(depth)?(fnd)?-(ATSR1)?(ATSR2)?(AATSR)?(AMSRE)?(SEVIRI_SST)?(TMI)?-(LT)?(DM)?.*";
+//        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST[(skin)(subskin)(depth)(fnd)]{1}-[(ATSR1)(ATSR2)(AATSR)(AMSRE)(SEVIRI_SST)(TMI)]{1}-[(LT)(DM)]{1}.*";
+//        return "[(skin)(subskin)(depth)(fnd)]-[(ATSR1)(ATSR2)(AATSR)(AMSRE)(SEVIRI_SST)(TMI)]-[(LT)(DM)].*";
+//        return "(skin)?(subskin)?(depth)?(fnd)?-[(ATSR1)(ATSR2)(AATSR)(AMSRE)(SEVIRI_SST)(TMI)].*";
+    }
+
+
+    @Override
+    public Date parseDate(File file) throws ParseException {
+        String dateFormatString = "yyyyMMdd";
+        final DateFormat dateFormat = UTC.getDateFormat(dateFormatString);
+        String dateString = file.getName().substring(0, dateFormatString.length());
+        return dateFormat.parse(dateString);
+    }
+
+    @Override
+    public ProcessingLevel getProcessingLevel() {
+        return ProcessingLevel.L3U;
+    }
+
     @Override
     public GridDef getGridDef() {
         return GRID_DEF;
+    }
+
+    @Override
+    public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        return new CellFactory<SpatialAggregationCell>() {
+            @Override
+            public L3UCell5 createCell(int cellX, int cellY) {
+                return new L3UCell5(coverageUncertaintyProvider, cellX, cellY);
+            }
+        };
+    }
+
+    private static abstract class AbstractL3UCell extends AbstractAggregationCell {
+        protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator uncorrelatedUncertaintyAccu = new RandomUncertaintyAccumulator();
+        protected final NumberAccumulator largeScaleCorrelatedUncertaintyAccu = new ArithmeticMeanAccumulator();
+        //todo different equation
+        protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new RandomUncertaintyAccumulator();
+        //todo  different equation
+        protected final NumberAccumulator adjustmentUncertaintyAccu = new RandomUncertaintyAccumulator();
+
+        private AbstractL3UCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
+        }
+
+        @Override
+        public long getSampleCount() {
+            return sstAnomalyAccu.getSampleCount();
+        }
+
+        public double computeSstAverage() {
+            return sstAccu.combine();
+        }
+
+        public double computeSstAnomalyAverage() {
+            return sstAnomalyAccu.combine();
+        }
+
+        public double computeUncorrelatedUncertaintyAverage() {
+            return uncorrelatedUncertaintyAccu.combine();
+        }
+
+        public double computeLargeScaleCorrelatedUncertaintyAverage() {
+            return largeScaleCorrelatedUncertaintyAccu.combine();
+        }
+
+        public double computeSynopticallyCorrelatedUncertaintyAverage() {
+            return synopticallyCorrelatedUncertaintyAccu.combine();
+        }
+
+        public double computeAdjustmentUncertaintyAverage() {
+            return adjustmentUncertaintyAccu.combine();
+        }
+
+        public abstract double computeCoverageUncertainty();
+
+        @Override
+        public Number[] getResults() {
+            // Note: Result types must match those defined in FileType.createOutputVariables().
+            return new Number[]{
+                    (float) computeSstAverage(),
+                    (float) computeSstAnomalyAverage(),
+                    (float) computeCoverageUncertainty(),
+                    (float) computeUncorrelatedUncertaintyAverage(),
+                    (float) computeLargeScaleCorrelatedUncertaintyAverage(),
+                    (float) computeSynopticallyCorrelatedUncertaintyAverage(),
+                    (float) computeAdjustmentUncertaintyAverage()
+            };
+        }
+    }
+
+    private static class L3UCell5 extends AbstractL3UCell implements SpatialAggregationCell { //L3URegridCell
+
+        private L3UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
+        }
+
+        @Override
+        public double computeCoverageUncertainty() {
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
+        }
+
+        @Override
+        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
+            final Grid qualityLevelGrid = spatialAggregationContext.getSourceGrids()[1];
+            final Grid uncorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[2];
+            final Grid largeScaleCorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[3];
+            final Grid synopticallyCorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[4];
+            Grid adjustmentUncertaintyGrid = null;
+            if (spatialAggregationContext.getSourceGrids().length > 5) {
+                adjustmentUncertaintyGrid = spatialAggregationContext.getSourceGrids()[5];
+            }
+            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
+            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
+
+            final int x0 = rect.x;
+            final int y0 = rect.y;
+            final int x1 = x0 + rect.width - 1;
+            final int y1 = y0 + rect.height - 1;
+            for (int y = y0; y <= y1; y++) {
+                for (int x = x0; x <= x1; x++) {
+                    final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
+                    int qualityLevel = qualityLevelGrid.getSampleInt(x, y);
+                    boolean valild = seaCoverage > 0.0 && qualityLevel == 5;
+                    if (valild) {
+                        sstAccu.accumulate(sstGrid.getSampleDouble(x, y), seaCoverage);
+                        sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
+                        uncorrelatedUncertaintyAccu.accumulate(uncorrelatedUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        largeScaleCorrelatedUncertaintyAccu.accumulate(largeScaleCorrelatedUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        synopticallyCorrelatedUncertaintyAccu.accumulate(synopticallyCorrelatedUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        if (adjustmentUncertaintyGrid != null) {
+                            adjustmentUncertaintyAccu.accumulate(adjustmentUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static class L3UCell extends AbstractL3UCell implements TemporalAggregationCell {
+        private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
+
+        private L3UCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(null, x, y);
+        }
+
+        @Override
+        public double computeCoverageUncertainty() {
+            return coverageUncertaintyAccu.combine();
+        }
+
+        @Override
+        public void accumulate(Number[] values, double weight) {
+            //Note: know the ordering from AbstractL3UCell#getResults
+            sstAccu.accumulate(values[0].floatValue(), 1);
+            sstAnomalyAccu.accumulate(values[1].floatValue(), 1);
+            coverageUncertaintyAccu.accumulate(values[2].floatValue(), 1);
+            uncorrelatedUncertaintyAccu.accumulate(values[3].floatValue(), 1);
+            largeScaleCorrelatedUncertaintyAccu.accumulate(values[4].floatValue(), 1);
+            synopticallyCorrelatedUncertaintyAccu.accumulate(values[5].floatValue(), 1);
+            adjustmentUncertaintyAccu.accumulate(values[6].floatValue(), 1);
+        }
+    }
+
+    private static class L3UCell90 extends AbstractL3UCell implements AggregationCell90<L3UCell5> {
+
+        // New 5-to-90 deg coverage uncertainty aggregation
+        protected final NumberAccumulator coverageUncertainty5Accu = new RandomUncertaintyAccumulator();
+
+        private L3UCell90(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
+        }
+
+        public double computeCoverageUncertainty5Average() {
+            return coverageUncertainty5Accu.combine();
+        }
+
+        @Override
+        public double computeCoverageUncertainty() {
+            final double uncertainty5 = computeCoverageUncertainty5Average();
+            final double uncertainty90 = getCoverageUncertaintyProvider().calculateCoverageUncertainty90(getX(), getY(), sstAnomalyAccu.getSampleCount());
+            return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
+        }
+
+        @Override
+        public void accumulate(L3UCell5 cell, double seaCoverage90) {
+            sstAccu.accumulate(cell.computeSstAverage(), seaCoverage90);
+            sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage90);
+            // New 5-to-90 deg coverage uncertainty aggregation
+            coverageUncertainty5Accu.accumulate(cell.computeCoverageUncertainty(), seaCoverage90);
+            uncorrelatedUncertaintyAccu.accumulate(cell.computeUncorrelatedUncertaintyAverage(), seaCoverage90);
+            largeScaleCorrelatedUncertaintyAccu.accumulate(cell.computeLargeScaleCorrelatedUncertaintyAverage(), seaCoverage90);
+            synopticallyCorrelatedUncertaintyAccu.accumulate(cell.computeSynopticallyCorrelatedUncertaintyAverage(), seaCoverage90);
+            adjustmentUncertaintyAccu.accumulate(cell.computeAdjustmentUncertaintyAverage(), seaCoverage90);
+        }
+    }
+
+    private static class L3UAggregation implements RegionalAggregation {
+        protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
+        protected final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
+        protected final NumberAccumulator uncorrelatedUncertaintyAccu = new RandomUncertaintyAccumulator();
+        protected final NumberAccumulator largeScaleCorrelatedUncertaintyAccu = new ArithmeticMeanAccumulator();
+        //todo different equation
+        protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new RandomUncertaintyAccumulator();
+        //todo different equation
+        protected final NumberAccumulator adjustmentUncertaintyAccu = new RandomUncertaintyAccumulator();
+
+        @Override
+        public long getSampleCount() {
+            return sstAccu.getSampleCount();
+        }
+
+        public double computeSstAverage() {
+            return sstAccu.combine();
+        }
+
+        public double computeSstAnomalyAverage() {
+            return sstAnomalyAccu.combine();
+        }
+
+        public double computeUncorrelatedUncertaintyAverage() {
+            return uncorrelatedUncertaintyAccu.combine();
+        }
+
+        public double computeLargeScaleCorrelatedUncertaintyAverage() {
+            return largeScaleCorrelatedUncertaintyAccu.combine();
+        }
+
+        public double computeSynopticallyCorrelatedUncertaintyAverage() {
+            return synopticallyCorrelatedUncertaintyAccu.combine();
+        }
+
+        public double computeAdjustmentUncertaintyAverage() {
+            return adjustmentUncertaintyAccu.combine();
+        }
+
+        public double computeCoverageUncertaintyAverage() {
+            return coverageUncertaintyAccu.combine();
+        }
+
+        @Override
+        public Number[] getResults() {
+            // Note: Result types must match those defined in FileType.createOutputVariables().
+            return new Number[]{
+                    (float) computeSstAverage(),
+                    (float) computeSstAnomalyAverage(),
+                    (float) computeCoverageUncertaintyAverage(),
+                    (float) computeUncorrelatedUncertaintyAverage(),
+                    (float) computeLargeScaleCorrelatedUncertaintyAverage(),
+                    (float) computeSynopticallyCorrelatedUncertaintyAverage(),
+                    (float) computeAdjustmentUncertaintyAverage()
+            };
+        }
+    }
+
+    private static class L3USameMonthAggregation extends L3UAggregation implements SameMonthAggregation<AbstractL3UCell> {
+        @Override
+        public void accumulate(AbstractL3UCell cell, double seaCoverage) {
+            sstAccu.accumulate(cell.computeSstAverage(), seaCoverage);
+            sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage);
+            coverageUncertaintyAccu.accumulate(cell.computeCoverageUncertainty(), seaCoverage);
+            uncorrelatedUncertaintyAccu.accumulate(cell.computeUncorrelatedUncertaintyAverage(), seaCoverage);
+            largeScaleCorrelatedUncertaintyAccu.accumulate(cell.computeLargeScaleCorrelatedUncertaintyAverage(), seaCoverage);
+            synopticallyCorrelatedUncertaintyAccu.accumulate(cell.computeSynopticallyCorrelatedUncertaintyAverage(), seaCoverage);
+            adjustmentUncertaintyAccu.accumulate(cell.computeAdjustmentUncertaintyAverage(), seaCoverage);
+        }
+    }
+
+    private static class L3UMultiMonthAggregation extends L3UAggregation implements MultiMonthAggregation<L3UAggregation> {
+        @Override
+        public void accumulate(L3UAggregation aggregation) {
+            sstAccu.accumulate(aggregation.computeSstAverage(), 1.0);
+            sstAnomalyAccu.accumulate(aggregation.computeSstAnomalyAverage(), 1.0);
+            coverageUncertaintyAccu.accumulate(aggregation.computeCoverageUncertaintyAverage(), 1.0);
+            uncorrelatedUncertaintyAccu.accumulate(aggregation.computeUncorrelatedUncertaintyAverage(), 1.0);
+            largeScaleCorrelatedUncertaintyAccu.accumulate(aggregation.computeLargeScaleCorrelatedUncertaintyAverage(), 1.0);
+            synopticallyCorrelatedUncertaintyAccu.accumulate(aggregation.computeSynopticallyCorrelatedUncertaintyAverage(), 1.0);
+            adjustmentUncertaintyAccu.accumulate(aggregation.computeAdjustmentUncertaintyAverage(), 1.0);
+        }
     }
 }

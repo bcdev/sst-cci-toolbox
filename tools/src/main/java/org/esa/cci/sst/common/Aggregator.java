@@ -32,7 +32,11 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.regavg.*;
+import org.esa.cci.sst.regavg.AggregationCell90;
+import org.esa.cci.sst.regavg.AveragingTimeStep;
+import org.esa.cci.sst.regavg.MultiMonthAggregation;
+import org.esa.cci.sst.regavg.SameMonthAggregation;
+import org.esa.cci.sst.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.regrid.RegriddingTimeStep;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.tool.Tool;
@@ -57,17 +61,14 @@ import java.util.logging.Logger;
  */
 public class Aggregator {
 
-    public static final GridDef GRID_DEF_GLOBAL_5 = GridDef.createGlobal(5.0);
-    public static final GridDef GRID_DEF_GLOBAL_90 = GridDef.createGlobal(90.0);
-
     private static final Logger LOGGER = Tool.LOGGER;
+
     private final RegionMaskList regionMaskList;
     private final FileStore fileStore;
     private final FileType fileType;
     private final Climatology climatology;
     private final LUT1 lut1;
     private final LUT2 lut2;
-
     private final SstDepth sstDepth;
     private RegionMask combinedRegionMask;
 
@@ -87,8 +88,53 @@ public class Aggregator {
         this.sstDepth = sstDepth;
     }
 
-    // Hardly testable, because NetCDF files of given fileType required
+    /**
+     * Aggregates into demanded spatial resolution. Is in fact regridding.
+     *
+     * @param startDate          Start date of the considered data.
+     * @param endDate            End date of the considered data.
+     * @param temporalResolution The required temporal resolution, e.g. daily, monthly, seasonal.
+     * @param spatialResolution  The required spatial resolution, e.g. 10.0, 0.5 ...
+     * @return A list of {@link RegriddingTimeStep}
+     * @throws IOException if an I/O error occurs.
+     */
+    public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate,
+                                              TemporalResolution temporalResolution,
+                                              SpatialResolution spatialResolution) throws IOException {
+        final List<RegriddingTimeStep> resultList = new ArrayList<RegriddingTimeStep>();
+        final Calendar calendar = UTC.createCalendar(startDate);
 
+        while (calendar.getTime().before(endDate)) {
+            Date date1 = calendar.getTime();
+            CellGrid<? extends AggregationCell> result;
+            if (temporalResolution == TemporalResolution.daily) {
+                calendar.add(Calendar.DATE, 1);
+                Date date2 = calendar.getTime();
+                result = aggregateTimeRangeAndRegrid(date1, date2, spatialResolution);
+            } else if (temporalResolution == TemporalResolution.monthly) {
+                calendar.add(Calendar.MONTH, 1);
+                Date date2 = calendar.getTime();
+                result = aggregateTimeRangeAndRegrid(date1, date2, spatialResolution);
+            } else if (temporalResolution == TemporalResolution.seasonal) {
+                calendar.add(Calendar.MONTH, 3);
+                Date date2 = calendar.getTime();
+                List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly, spatialResolution);
+                result = aggregateMultiMonths(monthlyTimeSteps);
+            } else /*if (temporalResolution == TemporalResolution.annual)*/ {
+                calendar.add(Calendar.YEAR, 1);
+                Date date2 = calendar.getTime();
+                List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly,
+                        spatialResolution);
+                result = aggregateMultiMonths(monthlyTimeSteps);
+            }
+            if (result != null) {
+                resultList.add(new RegriddingTimeStep(date1, calendar.getTime(), result));
+            }
+        }
+        return resultList;
+    }
+
+    // Hardly testable, because NetCDF files of given fileType required
     /**
      * @param startDate          Start date of the aggregation time range.
      * @param endDate            End date of the aggregation time range.
@@ -132,13 +178,50 @@ public class Aggregator {
     private List<RegionalAggregation> aggregateRegions(Date date1, Date date2) throws IOException {
         //Compute the cell 5 grid for *all* combined regions first
         //regrid spatially from 0.01 to 5 °, and aggregate given time range (<= monthly)
-        final CellGrid<SpatialAggregationCell> combinedCell5Grid = aggregateTimeRange(date1, date2);
+        SpatialResolution spatialResolution = SpatialResolution.DEGREE_5_00;
+        final CellGrid<SpatialAggregationCell> combinedCell5Grid = aggregateTimeRangeAndRegrid(date1, date2, spatialResolution);
         return aggregateRegions(combinedCell5Grid,
                 regionMaskList,
                 fileType.getSameMonthAggregationFactory(),
-                fileType.getCell90Factory(createCoverageUncertaintyProvider(date1, SpatialResolution.DEGREE_5_00)),
+                fileType.getCell90Factory(createCoverageUncertaintyProvider(date1, spatialResolution)),
                 climatology.getSeaCoverageCell5Grid(),
                 climatology.getSeaCoverageCell90Grid());
+    }
+
+    private CellGrid<SpatialAggregationCell> aggregateTimeRangeAndRegrid(Date date1, Date date2,
+                                                                         SpatialResolution spatialResolution) throws IOException {
+        final List<File> fileList = fileStore.getFiles(date1, date2);
+        if (fileList.isEmpty()) {
+            return null;
+        }
+
+        final DateFormat isoDateFormat = UTC.getIsoFormat();
+        LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
+                isoDateFormat.format(date1), isoDateFormat.format(date2), fileList.size()));
+
+        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, spatialResolution);
+        final CellFactory<SpatialAggregationCell> cellFactory = fileType.getSpatialAggregationCellFactory(coverageUncertaintyProvider);
+        GridDef globalGridDef = GridDef.createGlobal(spatialResolution.getValue());
+        final CellGrid<SpatialAggregationCell> cellGrid = new CellGrid<SpatialAggregationCell>(globalGridDef, cellFactory);
+
+        for (File file : fileList) { //loop time (fileList contains files in required time range)
+            LOGGER.info(String.format("Processing input %s file '%s'", fileStore.getProductType(), file));
+            long t0 = System.currentTimeMillis();
+            NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
+            try {
+                SpatialAggregationContext aggregationCellContext = createAggregationCellContext(netcdfFile);
+                LOGGER.fine("Aggregating grid(s)...");
+                long t01 = System.currentTimeMillis();
+                aggregateSources(aggregationCellContext, combinedRegionMask, cellGrid);
+                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
+            } finally {
+                netcdfFile.close();
+            }
+            LOGGER.fine(String.format("Processing input %s file took %d ms", fileStore.getProductType(),
+                    System.currentTimeMillis() - t0));
+        }
+
+        return cellGrid;
     }
 
     static List<RegionalAggregation> aggregateRegions(CellGrid<SpatialAggregationCell> combinedCell5Grid,
@@ -164,37 +247,6 @@ public class Aggregator {
             regionalAggregations.add(aggregation);
         }
         return regionalAggregations;
-    }
-
-    // Hardly testable, because NetCDF files of given fileType required
-    private CellGrid<SpatialAggregationCell> aggregateTimeRange(Date date1, Date date2) throws IOException {
-        final List<File> files = fileStore.getFiles(date1, date2);
-
-        final DateFormat isoDateFormat = UTC.getIsoFormat();
-        LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                isoDateFormat.format(date1), isoDateFormat.format(date2), files.size()));
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, SpatialResolution.DEGREE_5_00);
-        final CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(coverageUncertaintyProvider);
-        final CellGrid<SpatialAggregationCell> cell5Grid = new CellGrid<SpatialAggregationCell>(GRID_DEF_GLOBAL_5, cell5Factory);
-
-        for (File file : files) { //loop time
-            LOGGER.info(String.format("Processing input %s file '%s'", fileStore.getProductType(), file));
-            long t0 = System.currentTimeMillis();
-            NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
-            try {
-                SpatialAggregationContext aggregationCell5Context = createAggregationCellContext(netcdfFile);
-                LOGGER.fine("Aggregating grid(s)...");
-                long t01 = System.currentTimeMillis();
-                aggregateSources(aggregationCell5Context, combinedRegionMask, cell5Grid);
-                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
-            } finally {
-                netcdfFile.close();
-            }
-            LOGGER.fine(String.format("Processing input %s file took %d ms", fileStore.getProductType(),
-                    System.currentTimeMillis() - t0));
-        }
-
-        return cell5Grid;
     }
 
     static <C extends SpatialAggregationCell> void aggregateSources(SpatialAggregationContext aggregationContext,
@@ -229,7 +281,7 @@ public class Aggregator {
     static <C5 extends SpatialAggregationCell, C90 extends AggregationCell90> CellGrid<C90> aggregateCell5GridToCell90Grid(
             CellGrid<C5> cell5Grid, Grid seaCoverage5Grid, CellFactory<C90> cell90Factory) {
 
-        final CellGrid<C90> cell90Grid = new CellGrid<C90>(GRID_DEF_GLOBAL_90, cell90Factory);
+        final CellGrid<C90> cell90Grid = new CellGrid<C90>(GridDef.createGlobal(90.0), cell90Factory);
         final int width = cell5Grid.getGridDef().getWidth();
         final int height = cell5Grid.getGridDef().getHeight();
         for (int cell5Y = 0; cell5Y < height; cell5Y++) {
@@ -319,118 +371,6 @@ public class Aggregator {
         return grids;
     }
 
-    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date, SpatialResolution spatialResolution) {
-        int month = UTC.createCalendar(date).get(Calendar.MONTH);
-        return createCoverageUncertaintyProvider(month, spatialResolution);
-    }
-
-    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(int month, SpatialResolution spatialResolution) {
-
-        return new CoverageUncertaintyProvider(month, spatialResolution) {
-            @Override
-            protected double getMagnitude5(int cellX, int cellY) {
-                return lut1.getMagnitudeGrid5().getSampleDouble(cellX, cellY);
-            }
-
-            @Override
-            protected double getExponent5(int cellX, int cellY) {
-                return lut1.getExponentGrid5().getSampleDouble(cellX, cellY);
-            }
-
-            @Override
-            protected double getMagnitude90(int cellX, int cellY, int month) {
-                return lut2.getMagnitude90(month, cellX, cellY);
-            }
-        };
-    }
-
-    /*
-     * NEW!!
-     */
-
-    /**
-     * Aggregates into demanded spatial resolution. Is in fact regridding.
-     *
-     * @param startDate          Start date of the considered data.
-     * @param endDate            End date of the considered data.
-     * @param temporalResolution The required temporal resolution, e.g. daily, monthly, seasonal.
-     * @param spatialResolution  The required spatial resolution, e.g. 10.0, 0.5 ...
-     * @return A list of {@link RegriddingTimeStep}
-     * @throws IOException if an I/O error occurs.
-     */
-    public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate,
-                                              TemporalResolution temporalResolution,
-                                              SpatialResolution spatialResolution) throws IOException {
-        final List<RegriddingTimeStep> resultList = new ArrayList<RegriddingTimeStep>();
-        final Calendar calendar = UTC.createCalendar(startDate);
-
-        while (calendar.getTime().before(endDate)) {
-            Date date1 = calendar.getTime();
-            CellGrid<? extends AggregationCell> result;
-            if (temporalResolution == TemporalResolution.daily) {
-                calendar.add(Calendar.DATE, 1);
-                Date date2 = calendar.getTime();
-                result = aggregateTimeRange(date1, date2, spatialResolution);
-            } else if (temporalResolution == TemporalResolution.monthly) {
-                calendar.add(Calendar.MONTH, 1);
-                Date date2 = calendar.getTime();
-                result = aggregateTimeRange(date1, date2, spatialResolution);
-            } else if (temporalResolution == TemporalResolution.seasonal) {
-                calendar.add(Calendar.MONTH, 3);
-                Date date2 = calendar.getTime();
-                List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly, spatialResolution);
-                result = aggregateMultiMonths(monthlyTimeSteps);
-            } else /*if (temporalResolution == TemporalResolution.annual)*/ {
-                calendar.add(Calendar.YEAR, 1);
-                Date date2 = calendar.getTime();
-                List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly,
-                        spatialResolution);
-                result = aggregateMultiMonths(monthlyTimeSteps);
-            }
-            if (result != null) {
-                resultList.add(new RegriddingTimeStep(date1, calendar.getTime(), result));
-            }
-        }
-        return resultList;
-    }
-
-    private CellGrid<SpatialAggregationCell> aggregateTimeRange(Date date1, Date date2,
-                                                                SpatialResolution spatialResolution) throws IOException {
-        //todo bs: optionally do something with regionMask
-        final List<File> fileList = fileStore.getFiles(date1, date2);
-        if (fileList.isEmpty()) {
-            return null;
-        }
-
-        final DateFormat isoDateFormat = UTC.getIsoFormat();
-        LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                isoDateFormat.format(date1), isoDateFormat.format(date2), fileList.size()));
-
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, spatialResolution);
-        final CellFactory<SpatialAggregationCell> cellFactory = fileType.getSpatialAggregationCellFactory(coverageUncertaintyProvider);
-        GridDef global = GridDef.createGlobal(spatialResolution.getValue());
-        final CellGrid<SpatialAggregationCell> cellGrid = new CellGrid<SpatialAggregationCell>(global, cellFactory);
-
-        for (File file : fileList) { //loop time: implicitly 1 file is 1 day
-            LOGGER.info(String.format("Processing input %s file '%s'", fileStore.getProductType(), file));
-            long t0 = System.currentTimeMillis();
-            NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
-            try {
-                SpatialAggregationContext aggregationCellContext = createAggregationCellContext(netcdfFile);
-                LOGGER.fine("Aggregating grid(s)...");
-                long t01 = System.currentTimeMillis();
-                aggregateSources(aggregationCellContext, combinedRegionMask, cellGrid);
-                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
-            } finally {
-                netcdfFile.close();
-            }
-            LOGGER.fine(String.format("Processing input %s file took %d ms", fileStore.getProductType(),
-                    System.currentTimeMillis() - t0));
-        }
-
-        return cellGrid;
-    }
-
     private CellGrid<AggregationCell> aggregateMultiMonths(List<RegriddingTimeStep> monthlyTimeSteps) {
 
         final CellFactory<AggregationCell> cellFactory = fileType.getCellFactory();
@@ -450,5 +390,26 @@ public class Aggregator {
             }
         }
         return cellGrid;
+    }
+
+    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date, SpatialResolution spatialResolution) {
+        int month = UTC.createCalendar(date).get(Calendar.MONTH);
+
+        return new CoverageUncertaintyProvider(month, spatialResolution) {
+            @Override
+            protected double getMagnitude5(int cellX, int cellY) {
+                return lut1.getMagnitudeGrid5().getSampleDouble(cellX, cellY);
+            }
+
+            @Override
+            protected double getExponent5(int cellX, int cellY) {
+                return lut1.getExponentGrid5().getSampleDouble(cellX, cellY);
+            }
+
+            @Override
+            protected double getMagnitude90(int cellX, int cellY, int month11) {
+                return lut2.getMagnitude90(month11, cellX, cellY);
+            }
+        };
     }
 }

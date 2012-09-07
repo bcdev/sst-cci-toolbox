@@ -1,4 +1,4 @@
-package org.esa.cci.sst.regavg;
+package org.esa.cci.sst.regavg.auxiliary;
 
 import org.junit.Test;
 

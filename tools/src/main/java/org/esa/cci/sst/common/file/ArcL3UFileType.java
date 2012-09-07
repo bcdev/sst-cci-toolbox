@@ -77,6 +77,15 @@ public class ArcL3UFileType implements FileType {
         return dateFormat.parse(dateString);
     }
 
+    /**
+     * Gives the RDAC (Regional Data Assembly Center) of the origin product.
+     * @return RDAC
+     */
+    @Override
+    public String getRdac() {
+        return "ARC";
+    }
+
     @Override
     public String getFilenameRegex() {
         return "AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?";
@@ -269,7 +278,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell {
+    private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell { //ArcL3URegridCell
 
         private ArcL3UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
@@ -277,7 +286,7 @@ public class ArcL3UFileType implements FileType {
 
         @Override
         public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().getCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
         }
 
         @Override
@@ -320,7 +329,7 @@ public class ArcL3UFileType implements FileType {
         @Override
         public double computeCoverageUncertainty() {
             final double uncertainty5 = computeCoverageUncertainty5Average();
-            final double uncertainty90 = getCoverageUncertaintyProvider().getCoverageUncertainty90(getX(), getY(), sstAnomalyAccu.getSampleCount());
+            final double uncertainty90 = getCoverageUncertaintyProvider().calculateCoverageUncertainty90(getX(), getY(), sstAnomalyAccu.getSampleCount());
             return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
         }
 
@@ -385,7 +394,6 @@ public class ArcL3UFileType implements FileType {
     }
 
     private static class ArcL3UMultiMonthAggregation extends ArcL3UAggregation implements MultiMonthAggregation<ArcL3UAggregation> {
-
         @Override
         public void accumulate(ArcL3UAggregation aggregation) {
             sstAccu.accumulate(aggregation.computeSstAverage(), 1.0);

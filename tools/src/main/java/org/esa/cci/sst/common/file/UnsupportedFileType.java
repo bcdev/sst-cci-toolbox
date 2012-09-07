@@ -54,6 +54,11 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
+    public String getRdac() {
+        throw notImplemented();
+    }
+
+    @Override
     public String getFilenameRegex() {
         throw notImplemented();
     }

@@ -19,10 +19,9 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.common.file.*;
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.file.*;
 
 import java.io.File;
 import java.text.ParseException;
@@ -55,7 +54,7 @@ public enum ProductType {
     }
 
     public String getDefaultFilenameRegex() {
-        return getFileType().getFilenameRegex();
+        return getFileType().getRdac();
     }
 
     public GridDef getGridDef() {

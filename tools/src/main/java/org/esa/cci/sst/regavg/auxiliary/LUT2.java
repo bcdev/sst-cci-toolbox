@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regavg;
+package org.esa.cci.sst.regavg.auxiliary;
 
 import java.io.File;
 import java.io.FileReader;

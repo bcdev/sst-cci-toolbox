@@ -51,7 +51,7 @@ public abstract class CoverageUncertaintyProvider {
      * @param n     The number of 5° grid boxes contributing to the 90° cell.
      * @return The coverage uncertainty for a 90° cell
      */
-    public double getCoverageUncertainty90(int cellX, int cellY, long n) {
+    public double calculateCoverageUncertainty90(int cellX, int cellY, long n) {
         if (n == 0L) {
             return Double.NaN;
         }
@@ -69,7 +69,7 @@ public abstract class CoverageUncertaintyProvider {
      * @param n     The number of observations contributing to the 5° cell.
      * @return The coverage uncertainty for a 5° cell
      */
-    public double getCoverageUncertainty5(int cellX, int cellY, long n) {
+    public double calculateCoverageUncertainty5(int cellX, int cellY, long n) {
         if (!SpatialResolution.DEGREE_5_00.equals(this.spatialResolution)) {
             return 0.0;
         }

@@ -24,7 +24,7 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.regavg.LUT2;
+import org.esa.cci.sst.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
@@ -109,6 +109,9 @@ public class RegriddingTool extends Tool {
 //            "./conf/auxdata/TBC",
 //            "A NetCDF file that provides lookup table for synoptically correlated uncertainties.");
 
+    private ProductType productType;
+
+
     public static void main(String[] args) {
         new RegriddingTool().run(args);
     }
@@ -117,7 +120,7 @@ public class RegriddingTool extends Tool {
     protected void run(Configuration configuration, String[] arguments) throws ToolException {
         final SpatialResolution spatialResolution = fetchSpatialResolution(configuration);
         final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
-        final ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+        productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         final String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
                 productType.getDefaultFilenameRegex(), false);
         final SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
@@ -126,16 +129,18 @@ public class RegriddingTool extends Tool {
         final Date endDate = configuration.getDate(PARAM_END_DATE, true);
         final TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         final File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        final RegionMaskList regionMaskList = parseRegionList(configuration);
+        final RegionMaskList regionMaskList = parseRegionListInTargetSpatialResolution(configuration);
         //todo
 //        final String minCoverage = configuration.getString(PARAM_MIN_COVERAGE, false);
         final File lut1File = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE, true);
         final File lut2File = null; //configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
+        //todo
+//        String maxUncertainty = configuration.getString(PARAM_MAX_UNCERTAINTY, false);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
         LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
-        org.esa.cci.sst.regavg.LUT2 lut2 = getLUT2(lut2File); //todo
+        LUT2 lut2 = getLUT2(lut2File); //todo
 
         // Enable for debugging
         // printGrid(climatology);
@@ -156,8 +161,7 @@ public class RegriddingTool extends Tool {
     }
 
     private SpatialResolution fetchSpatialResolution(Configuration configuration) throws ToolException {
-        return SpatialResolution.getFromValue(
-                configuration.getString(PARAM_SPATIAL_RESOLUTION, true));
+        return SpatialResolution.getFromValue(configuration.getString(PARAM_SPATIAL_RESOLUTION, true));
     }
 
     @Override
@@ -196,7 +200,7 @@ public class RegriddingTool extends Tool {
         //PARAM_SYNOPTIC_CORRELATION_FILE, PARAM_MIN_COVERAGE
         paramList.addAll(
                 Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
-                        PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE,
+                        PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE, PARAM_FILENAME_REGEX,
                         PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE));
 
         ProductType[] values = ProductType.values();
@@ -208,7 +212,7 @@ public class RegriddingTool extends Tool {
         return paramList.toArray(new Parameter[paramList.size()]);
     }
 
-    private RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
+    private RegionMaskList parseRegionListInTargetSpatialResolution(Configuration configuration) throws ToolException {
         try {
             String region = configuration.getString(PARAM_REGION, false);
             RegionMaskList.setSpatialResolution(fetchSpatialResolution(configuration));
@@ -246,8 +250,6 @@ public class RegriddingTool extends Tool {
     private void writeOutputs(File outputDir, ProductType productType, String filenameRegex,
                               SstDepth sstDepth, TemporalResolution temporalResolution,
                               RegionMask regionMask, RegriddingTimeStep regriddingTimeStep) throws IOException {
-
-//        productType.getFileType().writeOutput(); TODO maybe move it later
 
         Date startDate = regriddingTimeStep.getStartDate();
         Date endDate = regriddingTimeStep.getEndDate();
@@ -403,10 +405,12 @@ public class RegriddingTool extends Tool {
      * @param additionalSegregator Additional Segregator = LT or DM  // todo - find out from PSD what additionalSegregator is
      * @return The filename.
      */
-    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
+    public String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName,
+                                    ProcessingLevel processingLevel, String sstType,
+                                    String productString, String additionalSegregator) {
 
-//        return String.format("%s-%s-%s_regrid-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
-        return String.format("%s-%s-%s_regrid-ARC-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+        String rdac = productType.getFileType().getRdac(); //ESACCI or ARC
+        return String.format("%s-%s-%s_regrid-" + rdac + "-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                 startOfPeriod, endOfPeriod, regionName,
                 processingLevel, sstType, productString, additionalSegregator,
                 TOOL_VERSION, FILE_FORMAT_VERSION);

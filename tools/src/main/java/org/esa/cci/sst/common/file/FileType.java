@@ -61,6 +61,8 @@ public interface FileType {
      */
     Date readDate(NetcdfFile file) throws IOException;
 
+    String getRdac();
+
     String getFilenameRegex();
 
     ProcessingLevel getProcessingLevel();

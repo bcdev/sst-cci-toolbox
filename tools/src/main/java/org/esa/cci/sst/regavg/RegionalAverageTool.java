@@ -25,6 +25,7 @@ import org.esa.cci.sst.common.auxiliary.LUT1;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
+import org.esa.cci.sst.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
@@ -110,6 +111,7 @@ public final class RegionalAverageTool extends Tool {
 
     public static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,
             "Also writes results to a plain text file 'regavg-output-<date>.txt'.");
+    private ProductType productType;
 
     public static void main(String[] arguments) {
         new RegionalAverageTool().run(arguments);
@@ -172,7 +174,7 @@ public final class RegionalAverageTool extends Tool {
     protected void run(Configuration configuration, String[] arguments) throws ToolException {
 
         File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
-        ProductType productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+        productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(), productType.getDefaultFilenameRegex(), false);
         SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
         String productDir = configuration.getString(productType + ".dir", null, true);
@@ -236,8 +238,7 @@ public final class RegionalAverageTool extends Tool {
                               ProductType productType,
                               String filenameRegex,
                               SstDepth sstDepth,
-                              Date startDate,
-                              Date endDate,
+                              Date startDate, Date endDate,
                               TemporalResolution temporalResolution,
                               RegionMaskList regionMaskList,
                               List<AveragingTimeStep> timeSteps) throws IOException {
@@ -276,12 +277,10 @@ public final class RegionalAverageTool extends Tool {
         return writer;
     }
 
-    private static void writeOutputFile(File file,
-                                        PrintWriter textWriter,
+    private static void writeOutputFile(File file, PrintWriter textWriter,
                                         ProductType productType,
                                         String filenameRegex, SstDepth sstDepth,
-                                        Date startDate,
-                                        Date endDate,
+                                        Date startDate, Date endDate,
                                         TemporalResolution temporalResolution,
                                         RegionMask regionMask, int regionIndex,
                                         List<AveragingTimeStep> timeSteps) throws IOException {
@@ -418,9 +417,9 @@ public final class RegionalAverageTool extends Tool {
      * @param additionalSegregator Additional Segregator = LT or DM  // todo - find out from PSD what additionalSegregator is
      * @return The filename.
      */
-    public static String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
-
-        return String.format("%s-%s-%s_average-ESACCI-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+    public String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName, ProcessingLevel processingLevel, String sstType, String productString, String additionalSegregator) {
+        String rdac = productType.getFileType().getRdac();
+        return String.format("%s-%s-%s_average-" + rdac + "-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                 startOfPeriod,
                 endOfPeriod,
                 regionName,
@@ -452,5 +451,9 @@ public final class RegionalAverageTool extends Tool {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    void setProductType(ProductType productType) { //for test only
+        this.productType = productType;
     }
 }

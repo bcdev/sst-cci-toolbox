@@ -15,6 +15,8 @@ import static org.junit.Assert.*;
  * @author Norman
  */
 public class AggregatorTest {
+    static final GridDef GRID_DEF_GLOBAL_5 = GridDef.createGlobal(5.0); //for tests only
+
     @Test
     public void aggregateSources() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
@@ -79,14 +81,14 @@ public class AggregatorTest {
 
     @Test
     public void aggregateCell5GridToCell90Grid() throws Exception {
-        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(Aggregator.GRID_DEF_GLOBAL_5, new MyCell5Factory());
+        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(GRID_DEF_GLOBAL_5, new MyCell5Factory());
         cell5Grid.getCellSafe(34, 1).set(3.0, 1);
         cell5Grid.getCellSafe(35, 1).set(7.0, 1);
         cell5Grid.getCellSafe(36, 1).set(4.0, 1);
         cell5Grid.getCellSafe(37, 1).set(0.0, 0); // empty
         cell5Grid.getCellSafe(38, 1).set(5.0, 1);
         cell5Grid.getCellSafe(39, 1).set(5.2, 1);
-        ArrayGrid seaCoverage5Grid = ArrayGrid.createWith2DDoubleArray(Aggregator.GRID_DEF_GLOBAL_5);
+        ArrayGrid seaCoverage5Grid = ArrayGrid.createWith2DDoubleArray(GRID_DEF_GLOBAL_5);
         seaCoverage5Grid.setSample(34, 1, 0.8);
         seaCoverage5Grid.setSample(35, 1, 0.5);
         seaCoverage5Grid.setSample(36, 1, 0.7);
@@ -114,14 +116,14 @@ public class AggregatorTest {
 
     @Test
     public void aggregateCell5OrCell90Grid() throws Exception {
-        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(Aggregator.GRID_DEF_GLOBAL_5, new MyCell5Factory());
+        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(GRID_DEF_GLOBAL_5, new MyCell5Factory());
         cell5Grid.getCellSafe(34, 1).set(3.0, 1);
         cell5Grid.getCellSafe(35, 1).set(7.0, 1);
         cell5Grid.getCellSafe(36, 1).set(4.0, 1);
         cell5Grid.getCellSafe(37, 1).set(0.0, 0); // empty
         cell5Grid.getCellSafe(38, 1).set(5.0, 1);
         cell5Grid.getCellSafe(39, 1).set(5.2, 1);
-        ArrayGrid seaCoverage5Grid = ArrayGrid.createWith2DDoubleArray(Aggregator.GRID_DEF_GLOBAL_5);
+        ArrayGrid seaCoverage5Grid = ArrayGrid.createWith2DDoubleArray(GRID_DEF_GLOBAL_5);
         seaCoverage5Grid.setSample(34, 1, 0.8);
         seaCoverage5Grid.setSample(35, 1, 0.5);
         seaCoverage5Grid.setSample(36, 1, 0.7);

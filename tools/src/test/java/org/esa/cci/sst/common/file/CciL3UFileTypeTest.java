@@ -1,25 +1,89 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.calculator.ScalarCoverageUncertaintyProvider;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.util.TestL3ProductMaker;
+import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 
-import static junit.framework.Assert.assertEquals;
+import java.io.File;
+import java.text.DateFormat;
+import java.text.ParseException;
+
+import static junit.framework.Assert.*;
+
 
 /**
  * {@author Bettina Scholze}
  * Date: 04.09.12 14:32
  */
 public class CciL3UFileTypeTest {
+    FileType fileType = CciL3UFileType.INSTANCE;
+
+    @Test
+    public void testCell5Factory() throws Exception {
+        ScalarCoverageUncertaintyProvider provider = new ScalarCoverageUncertaintyProvider(1.1, 3.0, 2.5);
+        CellFactory<? extends AggregationCell> spatialAggregationCellFactory = fileType.getSpatialAggregationCellFactory(provider);
+        assertNotNull(spatialAggregationCellFactory);
+        AggregationCell spatialAggregationCell = spatialAggregationCellFactory.createCell(18, 78);
+        assertNotNull(spatialAggregationCell);
+        assertEquals(18, spatialAggregationCell.getX());
+        assertEquals(78, spatialAggregationCell.getY());
+    }
+
+    @Test
+    public void testProcessingLevel() throws Exception {
+        assertEquals(ProcessingLevel.L3U, fileType.getProcessingLevel());
+    }
+
+    @Test
+    public void testFileNameRegex() throws Exception {
+        assertFalse("Hallo".matches(fileType.getFilenameRegex()));
+        assertFalse("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz".matches(fileType.getFilenameRegex()));
+        assertFalse("19950723120045-ESACCI-L3C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
+        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-04.1-01.1.nc".matches(fileType.getFilenameRegex()));
+
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("19950723120045-ESACCI-L3U_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTfnd-ATSR1-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("20121101000000-ESACCI-L3U_GHRSST-SSTsubskin-ATSR2-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-SEVIRI_SST-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
+    }
+
+    @Test
+    public void testParseDate() throws Exception {
+        DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
+        assertEquals(format.parse("2010-07-01"), fileType.parseDate(new File("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+        assertEquals(format.parse("2012-12-01"), fileType.parseDate(new File("20121201000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+        assertEquals(format.parse("1995-07-31"), fileType.parseDate(new File("19950731000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+
+        try {
+            fileType.parseDate(new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz"));
+            fail("ParseException expected.");
+        } catch (ParseException e) {
+            // ok
+        }
+
+        try {
+            fileType.parseDate(new File("A20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc"));
+            fail("ParseException expected.");
+        } catch (ParseException e) {
+            // ok
+        }
+    }
 
     @Test
     public void testReadGrids() throws Exception {
         NetcdfFile l3UFile = TestL3ProductMaker.readL3GridsSetup();
-        CciL3UFileType cciL3UFileType = new CciL3UFileType();
         //execution
-        Grid[] grids = cciL3UFileType.readSourceGrids(l3UFile, SstDepth.skin);
+        Grid[] grids = fileType.readSourceGrids(l3UFile, SstDepth.skin);
         //verification
         assertEquals(6, grids.length);
 

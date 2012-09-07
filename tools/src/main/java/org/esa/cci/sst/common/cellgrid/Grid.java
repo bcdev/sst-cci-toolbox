@@ -25,6 +25,7 @@ package org.esa.cci.sst.common.cellgrid;
  * @author Norman Fomferra
  */
 public interface Grid {
+
     GridDef getGridDef();
 
     double getSampleDouble(int x, int y);
