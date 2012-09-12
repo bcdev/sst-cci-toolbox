@@ -370,10 +370,9 @@ public class CciL3UFileType implements FileType {
     }
 
     //Note: Combines the accumulators of L3UCell5 and SynopticCell5
-    private static class L3UCell90 extends AbstractL3UCell implements CellAggregationCell<SpatialAggregationCell> {
+    private static class L3UCell90 extends AbstractL3UCell implements CellAggregationCell<AggregationCell> {
         protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new ArithmeticMeanAccumulator();
         protected final NumberAccumulator adjustmentUncertaintyAccu = new ArithmeticMeanAccumulator();
-
         // New 5-to-90 deg coverage uncertainty aggregation
         protected final NumberAccumulator coverageUncertainty5Accu = new RandomUncertaintyAccumulator();
 
@@ -392,6 +391,11 @@ public class CciL3UFileType implements FileType {
             return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
         }
 
+        @Override
+        public long getSampleCount() {
+            return Math.max(super.getSampleCount(), synopticallyCorrelatedUncertaintyAccu.getSampleCount());
+        }
+
         public double computeSynopticallyCorrelatedUncertaintyAverage() {
             return synopticallyCorrelatedUncertaintyAccu.combine();
         }
@@ -401,7 +405,7 @@ public class CciL3UFileType implements FileType {
         }
 
         @Override
-        public void accumulate(SpatialAggregationCell cell, double seaCoverage90) {
+        public void accumulate(AggregationCell cell, double seaCoverage90) {
 
             if (cell instanceof L3UCell5) {
                 L3UCell5 cell5 = (L3UCell5) cell;
