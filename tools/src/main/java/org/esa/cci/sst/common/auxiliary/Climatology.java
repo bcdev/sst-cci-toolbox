@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 public class Climatology {
 
     private static final GridDef OSTIA_GRID_DEF = GridDef.createGlobal(0.05);
+    private static final GridDef GLOBAL_1D_GRID_DEF = GridDef.createGlobal(1.0);
     private static final GridDef GLOBAL_5D_GRID_DEF = GridDef.createGlobal(5.0);
     private static final GridDef GLOBAL_90D_GRID_DEF = GridDef.createGlobal(90.0);
 
@@ -59,7 +60,8 @@ public class Climatology {
 
     private final CachedGrid cachedGrid = new CachedGrid();
 
-    private ArrayGrid seaCoverageSourceGrid; //0.1 °
+    private ArrayGrid seaCoverageSourceGrid; //0.1 ° or 0.5 ° same as input files
+    private ArrayGrid seaCoverageCell1Grid;
     private ArrayGrid seaCoverageCell5Grid;
     private ArrayGrid seaCoverageCell90Grid;
 
@@ -120,6 +122,10 @@ public class Climatology {
 
     public Grid getSeaCoverageSourceGrid() {
         return new YFlipper(seaCoverageSourceGrid);
+    }
+
+    public YFlipper getSeaCoverageCell1Grid() {
+        return new YFlipper(seaCoverageCell1Grid);
     }
 
     public Grid getSeaCoverageCell5Grid() {
@@ -183,6 +189,7 @@ public class Climatology {
         }
         // Uncomment for debugging
         // writeMaskImage();
+        seaCoverageCell1Grid = scaleDown(seaCoverageSourceGrid, GLOBAL_1D_GRID_DEF);
         seaCoverageCell5Grid = scaleDown(seaCoverageSourceGrid, GLOBAL_5D_GRID_DEF);
         seaCoverageCell90Grid = scaleDown(seaCoverageCell5Grid, GLOBAL_90D_GRID_DEF);
         LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
