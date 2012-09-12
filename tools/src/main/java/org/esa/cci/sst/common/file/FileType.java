@@ -24,11 +24,11 @@ import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regavg.AggregationCell90;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import ucar.nc2.Dimension;
@@ -75,11 +75,20 @@ public interface FileType {
 
     CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(CoverageUncertaintyProvider coverageUncertaintyProvider);
 
-    CellFactory<AggregationCell90> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
+    CellFactory<CellAggregationCell> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
 
     CellFactory<AggregationCell> getCellFactory();
 
     AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory();
 
     AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory();
+
+    CellFactory getCellFactory(CellTypes cellType);
+
+    boolean hasSynopticUncertainties();
+
+    enum CellTypes {
+        SYNOPTIC_CELL_1,
+        SYNOPTIC_CELL_5
+    }
 }

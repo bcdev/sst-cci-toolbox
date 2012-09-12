@@ -27,11 +27,11 @@ import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regavg.AggregationCell90;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.UTC;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ucar.ma2.DataType;
 import ucar.nc2.*;
 import ucar.nc2.Dimension;
@@ -171,7 +171,7 @@ public class ArcL3UFileType implements FileType {
         return new CellFactory<AggregationCell>() {
             @Override
             public AggregationCell createCell(int cellX, int cellY) {
-                return new ArcL3UCell(null, cellX, cellY);
+                return new ArcL3UTemporalCell(null, cellX, cellY);
             }
         };
     }
@@ -187,8 +187,8 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public CellFactory<AggregationCell90> getCell90Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        return new CellFactory<AggregationCell90>() {
+    public CellFactory<CellAggregationCell> getCell90Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
+        return new CellFactory<CellAggregationCell>() {
             @Override
             public ArcL3UCell90 createCell(int cellX, int cellY) {
                 return new ArcL3UCell90(coverageUncertaintyProvider, cellX, cellY);
@@ -214,6 +214,11 @@ public class ArcL3UFileType implements FileType {
                 return new ArcL3UMultiMonthAggregation();
             }
         };
+    }
+
+    @Override
+    public CellFactory getCellFactory(CellTypes cellType) {
+        throw new NotImplementedException();
     }
 
     private static abstract class AbstractArcL3UCell extends AbstractAggregationCell {
@@ -257,10 +262,10 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell extends AbstractArcL3UCell implements TemporalAggregationCell {
+    private static class ArcL3UTemporalCell extends AbstractArcL3UCell implements TemporalAggregationCell {
         private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
 
-        private ArcL3UCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private ArcL3UTemporalCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(null, x, y);
         }
 
@@ -313,7 +318,7 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UCell90 extends AbstractArcL3UCell implements AggregationCell90<ArcL3UCell5> {
+    private static class ArcL3UCell90 extends AbstractArcL3UCell implements CellAggregationCell<ArcL3UCell5> {
 
         // New 5-to-90 deg coverage uncertainty aggregation  
         protected final NumberAccumulator coverageUncertainty5Accu = new RandomUncertaintyAccumulator();
@@ -401,5 +406,10 @@ public class ArcL3UFileType implements FileType {
             arcUncertaintyAccu.accumulate(aggregation.computeArcUncertaintyAverage(), 1.0);
             coverageUncertaintyAccu.accumulate(aggregation.computeCoverageUncertaintyAverage(), 1.0);
         }
+    }
+
+    @Override
+    public boolean hasSynopticUncertainties() {
+        return false;
     }
 }

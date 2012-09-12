@@ -111,7 +111,9 @@ public class NcUtils {
 
     public static ArrayGrid readGrid(NetcdfFile netcdfFile, String variableName, GridDef expectedGridDef, int z) throws IOException {
         Variable variable = getVariable(netcdfFile, variableName);
-        return readGrid(netcdfFile, variable, expectedGridDef, z);
+        ArrayGrid arrayGrid = readGrid(netcdfFile, variable, expectedGridDef, z);
+        arrayGrid.setVariable(variable.getName());
+        return arrayGrid;
     }
 
     public static ArrayGrid readGrid(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef, int z) throws IOException {

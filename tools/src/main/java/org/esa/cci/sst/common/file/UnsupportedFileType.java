@@ -24,11 +24,11 @@ import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regavg.AggregationCell90;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import ucar.nc2.Dimension;
@@ -94,7 +94,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public CellFactory<AggregationCell90> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
+    public CellFactory<CellAggregationCell> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
         throw notImplemented();
     }
 
@@ -105,6 +105,16 @@ public abstract class UnsupportedFileType implements FileType {
 
     @Override
     public AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory() {
+        throw notImplemented();
+    }
+
+    @Override
+    public CellFactory getCellFactory(CellTypes cellType) {
+        throw notImplemented();
+    }
+
+    @Override
+    public boolean hasSynopticUncertainties() {
         throw notImplemented();
     }
 
