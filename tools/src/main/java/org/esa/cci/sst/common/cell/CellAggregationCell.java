@@ -17,18 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.regavg;
+package org.esa.cci.sst.common.cell;
 
-import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.CellAccumulator;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 
 /**
- * A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link org.esa.cci.sst.common.cell.SpatialAggregationCell}).
- *
+ * A cell that aggregates SpatialAggregationCells.
+ * <p>
+ * E.g. for the RegionalAveraging Tool: A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link org.esa.cci.sst.common.cell.SpatialAggregationCell}).
+ * </p>
  * @author Norman Fomferra
  */
-public interface AggregationCell90<C extends SpatialAggregationCell> extends AggregationCell, CellAccumulator<C> {
+public interface CellAggregationCell<C extends AggregationCell> extends AggregationCell, CellAccumulator<C> {
 
     @Override
     void accumulate(C cell, double weight);

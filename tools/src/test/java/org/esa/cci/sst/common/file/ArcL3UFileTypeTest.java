@@ -6,11 +6,11 @@ import org.esa.cci.sst.common.ScalarGrid;
 import org.esa.cci.sst.common.SpatialAggregationContext;
 import org.esa.cci.sst.common.calculator.ScalarCoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regavg.AggregationCell90;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.UTC;
@@ -94,8 +94,8 @@ public class ArcL3UFileTypeTest {
 
     @Test
     public void testCell90Aggregation() throws Exception {
-        CellFactory<AggregationCell90> cell90Factory = fileType.getCell90Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        AggregationCell90 cell90 = cell90Factory.createCell(0, 0);
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCell90Factory(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
         SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,

@@ -19,13 +19,13 @@
 
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.CellAccumulator;
 import org.esa.cci.sst.common.RegionalAggregation;
+import org.esa.cci.sst.common.cell.AggregationCell;
 
 /**
  * A "same month" (daily, monthly) / regional aggregation
- * that accumulates daily, monthly / 5º,90º cells ({@link org.esa.cci.sst.common.cell.SpatialAggregationCell}, {@link org.esa.cci.sst.regavg.AggregationCell90}).
+ * that accumulates daily, monthly / 5º,90º cells ({@link org.esa.cci.sst.common.cell.SpatialAggregationCell}, {@link org.esa.cci.sst.common.cell.CellAggregationCell}).
  *
  * @author Norman Fomferra
  */

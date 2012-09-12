@@ -24,7 +24,7 @@ import org.esa.cci.sst.common.SpatialAggregationContext;
 import java.awt.*;
 
 /**
- * A daily or monthly / 5º cell that accumulates rectangular regions of source grids.
+ * A cell that accumulates rectangular regions of source grids.
  *
  * @author Norman Fomferra
  */

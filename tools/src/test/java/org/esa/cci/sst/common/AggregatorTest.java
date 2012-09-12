@@ -2,7 +2,6 @@ package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.*;
-import org.esa.cci.sst.regavg.AggregationCell90;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.junit.Test;
 
@@ -95,9 +94,8 @@ public class AggregatorTest {
         seaCoverage5Grid.setSample(37, 1, 0.6);
         seaCoverage5Grid.setSample(38, 1, 0.5);
         seaCoverage5Grid.setSample(39, 1, 0.7);
-        CellGrid<MyCell90> cell90Grid = Aggregator.aggregateCell5GridToCell90Grid(cell5Grid,
-                seaCoverage5Grid,
-                new MyCell90Factory());
+        final CellGrid<MyCell90> cell90Grid = new CellGrid<MyCell90>(GridDef.createGlobal(90.0), new MyCell90Factory());
+        Aggregator.aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverage5Grid, cell90Grid);
 
         List<MyCell90> cell90List = cell90Grid.getCells(CellFilter.NON_EMPTY);
         assertEquals(2, cell90List.size());
@@ -110,8 +108,7 @@ public class AggregatorTest {
         assertEquals(2, cell90_2.getX());
         assertEquals(0, cell90_2.getY());
         assertEquals(3, cell90_2.getSampleCount());
-        assertEquals((4.0 * 0.7 + 5.0 * 0.5 + 5.2 * 0.7) / (0.7 + 0.5 + 0.7),
-                cell90_2.getMean(), 1e-6);
+        assertEquals((4.0 * 0.7 + 5.0 * 0.5 + 5.2 * 0.7) / (0.7 + 0.5 + 0.7), cell90_2.getMean(), 1e-6);
     }
 
     @Test
@@ -235,7 +232,7 @@ public class AggregatorTest {
         }
     }
 
-    private static class MyCell90 extends MyCell implements AggregationCell90<MyCell5> {
+    private static class MyCell90 extends MyCell implements CellAggregationCell<MyCell5> {
 
         private MyCell90(int x, int y) {
             super(x, y);
