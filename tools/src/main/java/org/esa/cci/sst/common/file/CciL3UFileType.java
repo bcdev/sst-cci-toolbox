@@ -20,10 +20,7 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculator.*;
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -135,36 +132,6 @@ public class CciL3UFileType implements FileType {
     }
 
     @Override
-    public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        return new CellFactory<SpatialAggregationCell>() {
-            @Override
-            public L3UCell5 createCell(int cellX, int cellY) {
-                return new L3UCell5(coverageUncertaintyProvider, cellX, cellY);
-            }
-        };
-    }
-
-    @Override
-    public CellFactory<CellAggregationCell> getCell90Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        return new CellFactory<CellAggregationCell>() {
-            @Override
-            public L3UCell90 createCell(int cellX, int cellY) {
-                return new L3UCell90(coverageUncertaintyProvider, cellX, cellY);
-            }
-        };
-    }
-
-    @Override
-    public CellFactory<AggregationCell> getCellFactory() {
-        return new CellFactory<AggregationCell>() {
-            @Override
-            public AggregationCell createCell(int cellX, int cellY) {
-                return new L3UTemporalCell(cellX, cellY);
-            }
-        };
-    }
-
-    @Override
     public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
         return new AggregationFactory<SameMonthAggregation>() {
             @Override
@@ -201,6 +168,41 @@ public class CciL3UFileType implements FileType {
                         return new L3USynopticCell5(cellX, cellY);
                     }
                 };
+            case TEMPORAL_CELL:
+                return new CellFactory<L3UTemporalCell>() {
+                    @Override
+                    public L3UTemporalCell createCell(int cellX, int cellY) {
+                        return new L3UTemporalCell(cellX, cellY);
+                    }
+                };
+            case CELL_90: {
+                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
+                return new CellFactory<CellAggregationCell>() {
+                    @Override
+                    public L3UCell90 createCell(int cellX, int cellY) {
+                        return new L3UCell90(coverageUncertaintyProvider, cellX, cellY);
+                    }
+                };
+            }
+            case SPATIAL_CELL_5: {
+                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
+                return new CellFactory<SpatialAggregationCell>() {
+                    @Override
+                    public L3UCell5 createCell(int cellX, int cellY) {
+                        return new L3UCell5(coverageUncertaintyProvider, cellX, cellY);
+                    }
+                };
+            }
+            case SPATIAL_CELL_REGRIDDING: {
+                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
+                final SynopticAreaCountEstimator synopticAreaCountEstimator = cellType.getSynopticAreaCountEstimator();
+                return new CellFactory<SpatialAggregationCell>() {
+                    @Override
+                    public L3URegriddingCell createCell(int cellX, int cellY) {
+                        return new L3URegriddingCell(coverageUncertaintyProvider, synopticAreaCountEstimator, cellX, cellY);
+                    }
+                };
+            }
             default:
                 throw new IllegalStateException("never come here.");
         }
@@ -299,7 +301,7 @@ public class CciL3UFileType implements FileType {
         }
     }
 
-    private static class L3UCell5 extends AbstractL3UCell implements SpatialAggregationCell { //L3URegridCell
+    private static class L3UCell5 extends AbstractL3UCell implements SpatialAggregationCell {
 
         private L3UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
@@ -339,11 +341,85 @@ public class CciL3UFileType implements FileType {
         }
     }
 
-    private static class L3UTemporalCell extends AbstractL3UCell implements TemporalAggregationCell {
+    private static class L3URegriddingCell extends AbstractL3UCell implements SpatialAggregationCell {
+        private SynopticAreaCountEstimator synopticAreaCountEstimator;
+        protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new SynopticUncertaintyAccumulator();
+        protected final NumberAccumulator adjustmentUncertaintyAccu = new SynopticUncertaintyAccumulator();
+
+
+        private L3URegriddingCell(CoverageUncertaintyProvider coverageUncertaintyProvider,
+                                  SynopticAreaCountEstimator synopticAreaCountEstimator, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
+            this.synopticAreaCountEstimator = synopticAreaCountEstimator;
+        }
+
+        public double computeSynopticallyCorrelatedUncertaintyAverage() {
+            return synopticallyCorrelatedUncertaintyAccu.combine() / synopticAreaCountEstimator.calculateEta(this);
+        }
+
+        public double computeAdjustmentUncertaintyAverage() {
+            if (adjustmentUncertaintyAccu == null) {
+                return 0.0;
+            }
+            return adjustmentUncertaintyAccu.combine() / synopticAreaCountEstimator.calculateEta(this);
+        }
+
+        @Override
+        public double computeCoverageUncertainty() {
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
+        }
+
+        @Override
+        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
+            final Grid qualityLevelGrid = spatialAggregationContext.getSourceGrids()[1];
+            final Grid uncorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[2];
+            final Grid largeScaleCorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[3];
+            final Grid synopticallyCorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[4];
+            Grid adjustmentUncertaintyGrid = null;
+            if (spatialAggregationContext.getSourceGrids().length > 5) {
+                adjustmentUncertaintyGrid = spatialAggregationContext.getSourceGrids()[5];
+            }
+            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
+            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
+
+            final int x0 = rect.x;
+            final int y0 = rect.y;
+            final int x1 = x0 + rect.width - 1;
+            final int y1 = y0 + rect.height - 1;
+            for (int y = y0; y <= y1; y++) {
+                for (int x = x0; x <= x1; x++) {
+                    final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
+                    int qualityLevel = qualityLevelGrid.getSampleInt(x, y);
+                    boolean valid = seaCoverage > 0.0 && qualityLevel == 5;
+                    if (valid) {
+                        sstAccu.accumulate(sstGrid.getSampleDouble(x, y), seaCoverage);
+                        sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
+                        uncorrelatedUncertaintyAccu.accumulate(uncorrelatedUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        largeScaleCorrelatedUncertaintyAccu.accumulate(largeScaleCorrelatedUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        synopticallyCorrelatedUncertaintyAccu.accumulate(synopticallyCorrelatedUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        if (adjustmentUncertaintyGrid != null) {
+                            adjustmentUncertaintyAccu.accumulate(adjustmentUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public Number[] getResults() {
+            //Note: know the ordering from AbstractL3UCell#getResults
+            Number[] superResults = super.getResults();
+            Number[] results = Arrays.copyOf(superResults, superResults.length + 2);
+            results[results.length - 2] = computeSynopticallyCorrelatedUncertaintyAverage();
+            results[results.length - 1] = computeAdjustmentUncertaintyAverage();
+            return results;
+        }
+    }
+
+    private static class L3UTemporalCell extends AbstractL3UCell implements CellAggregationCell<AggregationCell> {
         private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
-        //todo different equation?
         protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new RandomUncertaintyAccumulator();
-        //todo  different equation?
         protected final NumberAccumulator adjustmentUncertaintyAccu = new RandomUncertaintyAccumulator();
 
 
@@ -357,7 +433,8 @@ public class CciL3UFileType implements FileType {
         }
 
         @Override
-        public void accumulate(Number[] values, double weight) {
+        public void accumulate(AggregationCell cell, double weight) {
+            Number[] values = cell.getResults();
             //Note: know the ordering from AbstractL3UCell#getResults
             sstAccu.accumulate(values[0].floatValue(), 1);
             sstAnomalyAccu.accumulate(values[1].floatValue(), 1);
@@ -428,6 +505,7 @@ public class CciL3UFileType implements FileType {
 
         @Override
         public Number[] getResults() {
+            //Note: know the ordering from AbstractL3UCell#getResults
             Number[] superResults = super.getResults();
             Number[] results = Arrays.copyOf(superResults, superResults.length + 2);
             results[results.length - 2] = (float) computeSynopticallyCorrelatedUncertaintyAverage();

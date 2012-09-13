@@ -33,6 +33,7 @@ public abstract class CoverageUncertaintyProvider {
 
     private final int month;
     private final SpatialResolution spatialResolution;
+    //todo Coverage Uncertainty for other target resolutions than 5 or 90 °
 
     protected CoverageUncertaintyProvider(int month, SpatialResolution spatialResolution) {
         this.month = month;

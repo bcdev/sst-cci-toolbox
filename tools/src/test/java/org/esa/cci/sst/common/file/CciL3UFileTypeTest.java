@@ -40,6 +40,10 @@ public class CciL3UFileTypeTest {
     public void testGetFactory() throws Exception {
         assertTrue(fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1).createCell(0, 0) instanceof SpatialAggregationCell);
         assertTrue(fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5).createCell(0, 0) instanceof CellAggregationCell);
+        assertTrue(fileType.getCellFactory(FileType.CellTypes.SPATIAL_CELL_5).createCell(0, 0) instanceof SpatialAggregationCell);
+        assertTrue(fileType.getCellFactory(FileType.CellTypes.SPATIAL_CELL_REGRIDDING).createCell(0, 0) instanceof SpatialAggregationCell);
+        assertTrue(fileType.getCellFactory(FileType.CellTypes.CELL_90).createCell(0, 0) instanceof CellAggregationCell);
+        assertTrue(fileType.getCellFactory(FileType.CellTypes.TEMPORAL_CELL).createCell(0, 0) instanceof CellAggregationCell);
     }
 
     @Test
@@ -73,8 +77,8 @@ public class CciL3UFileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(
-                new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -182,8 +186,8 @@ public class CciL3UFileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(
-                new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         //execution
@@ -231,7 +235,8 @@ public class CciL3UFileTypeTest {
         cellSynoptic5.accumulate(cellSynoptic1, 0.5);
 
         ScalarCoverageUncertaintyProvider provider = new ScalarCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCell90Factory(provider);
+        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
         CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
 
         //execution
@@ -253,7 +258,8 @@ public class CciL3UFileTypeTest {
     @Test
     public void testCell90Aggregation_fromL3UCell5() throws Exception {
         ScalarCoverageUncertaintyProvider provider = new ScalarCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCell90Factory(provider);
+        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
         CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
 
         SpatialAggregationCell filledL3UCell5 = createFilledL3UCell5();
@@ -277,7 +283,8 @@ public class CciL3UFileTypeTest {
     @Test
     public void testCell90Aggregation_IllegalCell() throws Exception {
         ScalarCoverageUncertaintyProvider provider = new ScalarCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCell90Factory(provider);
+        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
         CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
         SpatialAggregationCell testCell = createTestSpatialAggregationCell();
 
@@ -293,7 +300,9 @@ public class CciL3UFileTypeTest {
     @Test
     public void testCell5Factory() throws Exception {
         ScalarCoverageUncertaintyProvider provider = new ScalarCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        CellFactory<? extends AggregationCell> spatialAggregationCellFactory = fileType.getSpatialAggregationCellFactory(provider);
+        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(provider);
+        CellFactory<SpatialAggregationCell> spatialAggregationCellFactory = fileType.getCellFactory(cellTypes);
+
         assertNotNull(spatialAggregationCellFactory);
         AggregationCell spatialAggregationCell = spatialAggregationCellFactory.createCell(18, 78);
         assertNotNull(spatialAggregationCell);
@@ -418,7 +427,9 @@ public class CciL3UFileTypeTest {
         CellAggregationCell filledSynopticCell5 = createFilledSynopticCell5();
 
         ScalarCoverageUncertaintyProvider provider = new ScalarCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        CellAggregationCell cell90 = fileType.getCell90Factory(provider).createCell(0, 0);
+        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
+        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
 
         cell90.accumulate(filledL3UCell5, 1.0);
         cell90.accumulate(filledSynopticCell5, 1.0);
@@ -480,7 +491,8 @@ public class CciL3UFileTypeTest {
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         ScalarCoverageUncertaintyProvider uncertaintyProvider = new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getSpatialAggregationCellFactory(uncertaintyProvider);
+        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(uncertaintyProvider);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
