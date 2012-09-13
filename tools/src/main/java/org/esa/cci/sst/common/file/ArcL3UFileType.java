@@ -31,7 +31,6 @@ import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.UTC;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ucar.ma2.DataType;
 import ucar.nc2.*;
 import ucar.nc2.Dimension;
@@ -77,10 +76,6 @@ public class ArcL3UFileType implements FileType {
         return dateFormat.parse(dateString);
     }
 
-    /**
-     * Gives the RDAC (Regional Data Assembly Center) of the origin product.
-     * @return RDAC
-     */
     @Override
     public String getRdac() {
         return "ARC";
@@ -167,36 +162,6 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public CellFactory<AggregationCell> getCellFactory() {
-        return new CellFactory<AggregationCell>() {
-            @Override
-            public AggregationCell createCell(int cellX, int cellY) {
-                return new ArcL3UTemporalCell(null, cellX, cellY);
-            }
-        };
-    }
-
-    @Override
-    public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        return new CellFactory<SpatialAggregationCell>() {
-            @Override
-            public ArcL3UCell5 createCell(int cellX, int cellY) {
-                return new ArcL3UCell5(coverageUncertaintyProvider, cellX, cellY);
-            }
-        };
-    }
-
-    @Override
-    public CellFactory<CellAggregationCell> getCell90Factory(final CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        return new CellFactory<CellAggregationCell>() {
-            @Override
-            public ArcL3UCell90 createCell(int cellX, int cellY) {
-                return new ArcL3UCell90(coverageUncertaintyProvider, cellX, cellY);
-            }
-        };
-    }
-
-    @Override
     public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
         return new AggregationFactory<SameMonthAggregation>() {
             @Override
@@ -218,7 +183,36 @@ public class ArcL3UFileType implements FileType {
 
     @Override
     public CellFactory getCellFactory(CellTypes cellType) {
-        throw new NotImplementedException();
+        switch (cellType) {
+            case TEMPORAL_CELL:
+                return new CellFactory<AggregationCell>() {
+                    @Override
+                    public AggregationCell createCell(int cellX, int cellY) {
+                        return new ArcL3UTemporalCell(cellX, cellY);
+                    }
+                };
+            case SPATIAL_CELL_5: {
+                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
+                return new CellFactory<SpatialAggregationCell>() {
+                    @Override
+                    public ArcL3UCell5 createCell(int cellX, int cellY) {
+                        return new ArcL3UCell5(coverageUncertaintyProvider, cellX, cellY);
+                    }
+                };
+            }
+            case CELL_90: {
+                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
+                return new CellFactory<CellAggregationCell>() {
+                    @Override
+                    public ArcL3UCell90 createCell(int cellX, int cellY) {
+                        return new ArcL3UCell90(coverageUncertaintyProvider, cellX, cellY);
+                    }
+                };
+            }
+            default:
+                throw new IllegalStateException("never come here");
+        }
+
     }
 
     private static abstract class AbstractArcL3UCell extends AbstractAggregationCell {
@@ -262,10 +256,10 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UTemporalCell extends AbstractArcL3UCell implements TemporalAggregationCell {
+    private static class ArcL3UTemporalCell extends AbstractArcL3UCell implements CellAggregationCell<AggregationCell> {
         private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
 
-        private ArcL3UTemporalCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private ArcL3UTemporalCell(int x, int y) {
             super(null, x, y);
         }
 
@@ -275,7 +269,8 @@ public class ArcL3UFileType implements FileType {
         }
 
         @Override
-        public void accumulate(Number[] values, double weight) {
+        public void accumulate(AggregationCell cell, double weight) {
+            Number[] values = cell.getResults();
             sstAccu.accumulate(values[0].floatValue(), 1);
             sstAnomalyAccu.accumulate(values[1].floatValue(), 1);
             arcUncertaintyAccu.accumulate(values[2].floatValue(), 1);

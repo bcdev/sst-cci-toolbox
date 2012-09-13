@@ -22,11 +22,7 @@ package org.esa.cci.sst.common.file;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.cell.AggregationCell;
-import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
@@ -80,21 +76,6 @@ public abstract class UnsupportedFileType implements FileType {
 
     @Override
     public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
-        throw notImplemented();
-    }
-
-    @Override
-    public CellFactory<AggregationCell> getCellFactory() {
-        throw notImplemented();
-    }
-
-    @Override
-    public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
-        throw notImplemented();
-    }
-
-    @Override
-    public CellFactory<CellAggregationCell> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider) {
         throw notImplemented();
     }
 

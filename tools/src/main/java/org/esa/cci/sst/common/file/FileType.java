@@ -23,10 +23,8 @@ import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
-import org.esa.cci.sst.common.cell.AggregationCell;
-import org.esa.cci.sst.common.cell.CellAggregationCell;
+import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
 import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
@@ -61,6 +59,11 @@ public interface FileType {
      */
     Date readDate(NetcdfFile file) throws IOException;
 
+    /**
+     * Gives the RDAC (Regional Data Assembly Center) of the origin product.
+     *
+     * @return RDAC
+     */
     String getRdac();
 
     String getFilenameRegex();
@@ -73,12 +76,6 @@ public interface FileType {
 
     Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims);
 
-    CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(CoverageUncertaintyProvider coverageUncertaintyProvider);
-
-    CellFactory<CellAggregationCell> getCell90Factory(CoverageUncertaintyProvider coverageUncertaintyProvider);
-
-    CellFactory<AggregationCell> getCellFactory();
-
     AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory();
 
     AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory();
@@ -89,6 +86,31 @@ public interface FileType {
 
     enum CellTypes {
         SYNOPTIC_CELL_1,
-        SYNOPTIC_CELL_5
+        SYNOPTIC_CELL_5,
+        SPATIAL_CELL_5,
+        CELL_90,
+        SPATIAL_CELL_REGRIDDING,
+        TEMPORAL_CELL;
+
+        private CoverageUncertaintyProvider coverageUncertaintyProvider;
+        private SynopticAreaCountEstimator synopticAreaCountEstimator;
+
+        public CellTypes setCoverageUncertaintyProvider(CoverageUncertaintyProvider coverageUncertaintyProvider) {
+            this.coverageUncertaintyProvider = coverageUncertaintyProvider;
+            return this;
+        }
+
+        public CellTypes setSynopticAreaCountEstimator(SynopticAreaCountEstimator synopticAreaCountEstimator) {
+            this.synopticAreaCountEstimator = synopticAreaCountEstimator;
+            return this;
+        }
+
+        public CoverageUncertaintyProvider getCoverageUncertaintyProvider() {
+            return coverageUncertaintyProvider;
+        }
+
+        public SynopticAreaCountEstimator getSynopticAreaCountEstimator() {
+            return synopticAreaCountEstimator;
+        }
     }
 }
