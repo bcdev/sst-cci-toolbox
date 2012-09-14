@@ -82,8 +82,9 @@ public class Aggregator4Regrid extends AbstractAggregator {
         //todo bs: check if time range is less or equal a month
         final List<File> fileList = getFileStore().getFiles(date1, date2);
         if (fileList.isEmpty()) {
-            throw new IOException("No matching files found in " + Arrays.toString(getFileStore().getInputPaths()) + " for period " +
-                    SimpleDateFormat.getDateInstance().format(date1) + " - " + SimpleDateFormat.getDateInstance().format(date1));
+            LOGGER.warning("No matching files found in " + Arrays.toString(getFileStore().getInputPaths()) + " for period " +
+                    SimpleDateFormat.getDateInstance().format(date1) + " - " + SimpleDateFormat.getDateInstance().format(date2));
+            return null;
         }
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
