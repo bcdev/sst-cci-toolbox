@@ -200,6 +200,15 @@ public class ArcL3UFileType implements FileType {
                     }
                 };
             }
+            case SPATIAL_CELL_REGRIDDING: {
+                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
+                return new CellFactory<SpatialAggregationCell>() {
+                    @Override
+                    public ArcL3UCell5 createCell(int cellX, int cellY) {
+                        return new ArcL3UCell5(coverageUncertaintyProvider, cellX, cellY);
+                    }
+                };
+            }
             case CELL_90: {
                 final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
                 return new CellFactory<CellAggregationCell>() {

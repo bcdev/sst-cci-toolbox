@@ -54,7 +54,7 @@ public enum ProductType {
     }
 
     public String getDefaultFilenameRegex() {
-        return getFileType().getRdac();
+        return getFileType().getFilenameRegex();
     }
 
     public GridDef getGridDef() {

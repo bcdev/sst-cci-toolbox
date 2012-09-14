@@ -21,10 +21,8 @@ import ucar.nc2.NetcdfFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * The one and only aggregator for the RegionalAveraging Tool.
@@ -97,7 +95,8 @@ public class Aggregator4Regav extends AbstractAggregator {
         //todo check if time range is less or equal a month
         final List<File> fileList = getFileStore().getFiles(date1, date2);
         if (fileList.isEmpty()) {
-            return null;
+            throw new IOException("No matching files found in " + Arrays.toString(getFileStore().getInputPaths()) + " for period " +
+                    SimpleDateFormat.getDateInstance().format(date1) + " - " + SimpleDateFormat.getDateInstance().format(date1));
         }
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
@@ -155,7 +154,8 @@ public class Aggregator4Regav extends AbstractAggregator {
                                                Grid seaCoverageCell5Grid,
                                                Grid seaCoverageCell90Grid) {
 
-        CellGrid<? extends AggregationCell> combinedCell5Grid = combinedCell5Grids.get(0);
+        final boolean hasSynopticUncertainties = getFileType().hasSynopticUncertainties();
+        final CellGrid<? extends AggregationCell> combinedCell5Grid = combinedCell5Grids.get(0);
         final List<RegionalAggregation> regionalAggregations = new ArrayList<RegionalAggregation>();
 
         for (RegionMask regionMask : regionMaskList) {
@@ -163,7 +163,7 @@ public class Aggregator4Regav extends AbstractAggregator {
             CellGrid<? extends AggregationCell> cell5Grid = getCell5GridForRegion(combinedCell5Grid, regionMask);
             // Same for synoptic grid
             CellGrid<? extends AggregationCell> cell5GridSynoptic = null;
-            if (getFileType().hasSynopticUncertainties()) {
+            if (hasSynopticUncertainties) {
                 CellGrid<? extends AggregationCell> combinedCell5GridSynoptic = combinedCell5Grids.get(1);
                 cell5GridSynoptic = getCell5GridForRegion(combinedCell5GridSynoptic, regionMask);
             }
@@ -174,7 +174,7 @@ public class Aggregator4Regav extends AbstractAggregator {
                 final CellGrid<CellAggregationCell> cell90Grid = new CellGrid<CellAggregationCell>(GridDef.createGlobal(90.0), cell90Factory);
                 // aggregateCell5GridToCell90Grid
                 aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverageCell5Grid, cell90Grid);
-                if (getFileType().hasSynopticUncertainties()) {
+                if (hasSynopticUncertainties) {
                     aggregateCellGridToCoarserCellGrid(cell5GridSynoptic, seaCoverageCell5Grid, cell90Grid);
                 }
                 // Removes spatial extent
@@ -182,7 +182,7 @@ public class Aggregator4Regav extends AbstractAggregator {
             } else {
                 // Removes spatial extent
                 aggregateCell5OrCell90Grid(cell5Grid, seaCoverageCell5Grid, aggregation);
-                if (getFileType().hasSynopticUncertainties()) {
+                if (hasSynopticUncertainties) {
                     aggregateCell5OrCell90Grid(cell5GridSynoptic, seaCoverageCell5Grid, aggregation);
                 }
             }

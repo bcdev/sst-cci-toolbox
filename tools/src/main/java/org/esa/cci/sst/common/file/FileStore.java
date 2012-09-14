@@ -115,8 +115,8 @@ public class FileStore {
 
         @Override
         public boolean accept(File file) {
-            return file.isDirectory()
-                    || file.isFile() && filenamePattern.matcher(file.getName()).matches();
+            return file.isDirectory() || file.isFile() &&
+                    filenamePattern.matcher(file.getName()).matches();
         }
     }
 }
