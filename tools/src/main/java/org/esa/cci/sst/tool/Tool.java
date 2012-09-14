@@ -65,6 +65,10 @@ public abstract class Tool {
             throw new ToolException(e.getMessage(), ExitCode.USAGE_ERROR);
         }
 
+        if (commandLine.getArgs().length == 0 && commandLine.getOptions().length == 0) {
+            throw new ToolException("", ExitCode.USAGE_ERROR);
+        }
+
         dumpStackTrace = commandLine.hasOption("errors");
 
         if (commandLine.hasOption("help")) {
