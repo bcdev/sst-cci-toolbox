@@ -19,7 +19,10 @@
 
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.ProcessingLevel;
+import org.esa.cci.sst.common.RegionMaskList;
+import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.auxiliary.LUT1;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
@@ -197,7 +200,7 @@ public final class RegionalAverageTool extends Tool {
 
         List<AveragingTimeStep> timeSteps;
         try {
-            Aggregator aggregator = new Aggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
+            Aggregator4Regav aggregator = new Aggregator4Regav(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
