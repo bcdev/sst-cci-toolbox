@@ -147,4 +147,5 @@ data:
     lat_bnds = ${LAT_BNDS} ;
     lon = ${LON} ;
     lon_bnds = ${LON_BNDS} ;
+    analysed_sst = ${SST};
 }
