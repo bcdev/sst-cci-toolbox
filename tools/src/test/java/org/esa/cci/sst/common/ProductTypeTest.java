@@ -1,6 +1,9 @@
 package org.esa.cci.sst.common;
 
-import org.esa.cci.sst.common.file.*;
+import org.esa.cci.sst.common.file.ArcL2PFileType;
+import org.esa.cci.sst.common.file.ArcL3UFileType;
+import org.esa.cci.sst.common.file.CciL3FileType;
+import org.esa.cci.sst.common.file.CciL4FileType;
 import org.esa.cci.sst.util.ProductType;
 import org.junit.Test;
 
@@ -14,8 +17,8 @@ public class ProductTypeTest {
     public void testFileTypes() throws Exception {
         assertSame(ArcL2PFileType.INSTANCE, ProductType.ARC_L2P.getFileType());
         assertSame(ArcL3UFileType.INSTANCE, ProductType.ARC_L3U.getFileType());
-        assertSame(CciL3UFileType.INSTANCE, ProductType.CCI_L3U.getFileType());
-        assertSame(CciL3CFileType.INSTANCE, ProductType.CCI_L3C.getFileType());
+        assertSame(CciL3FileType.INSTANCE, ProductType.CCI_L3U.getFileType());
+        assertSame(CciL3FileType.INSTANCE, ProductType.CCI_L3C.getFileType());
         assertSame(CciL4FileType.INSTANCE, ProductType.CCI_L4.getFileType());
     }
 }

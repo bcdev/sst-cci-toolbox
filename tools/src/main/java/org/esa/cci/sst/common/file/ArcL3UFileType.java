@@ -19,7 +19,10 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.AggregationFactory;
+import org.esa.cci.sst.common.RegionalAggregation;
+import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
@@ -89,11 +92,6 @@ public class ArcL3UFileType implements FileType {
     @Override
     public GridDef getGridDef() {
         return GRID_DEF;
-    }
-
-    @Override
-    public ProcessingLevel getProcessingLevel() {
-        return ProcessingLevel.L3U;
     }
 
     @Override

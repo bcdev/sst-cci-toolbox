@@ -1,7 +1,6 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.ScalarGrid;
 import org.esa.cci.sst.common.SpatialAggregationContext;
 import org.esa.cci.sst.common.calculator.ScalarCoverageUncertaintyProvider;
@@ -49,7 +48,6 @@ public class ArcL3UFileTypeTest {
 
     @Test
     public void testOtherProperties() throws Exception {
-        assertEquals(ProcessingLevel.L3U, fileType.getProcessingLevel());
         assertEquals("AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?", fileType.getFilenameRegex());
     }
 

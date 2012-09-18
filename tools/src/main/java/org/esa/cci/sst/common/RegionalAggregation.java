@@ -19,8 +19,6 @@
 
 package org.esa.cci.sst.common;
 
-import org.esa.cci.sst.common.Aggregation;
-
 /**
  * A regional aggregation.
  *

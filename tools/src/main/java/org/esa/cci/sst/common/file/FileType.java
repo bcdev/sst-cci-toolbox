@@ -20,7 +20,6 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
@@ -67,8 +66,6 @@ public interface FileType {
     String getRdac();
 
     String getFilenameRegex();
-
-    ProcessingLevel getProcessingLevel();
 
     GridDef getGridDef();
 

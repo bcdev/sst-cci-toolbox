@@ -62,17 +62,14 @@ public class RegriddingTool extends Tool {
             SpatialResolution.getDefaultValueAsString(),
             "The spatial resolution of the output grid in degrees. Must be one of " + SpatialResolution.getValuesAsString() + ".");
 
-    public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM",
-            TemporalResolution.monthly + "",
-            "The temporal resolution. Must be one of " + Arrays.toString(
-                    TemporalResolution.values()) + ".");
+    public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "",
+            "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
 
     private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "Global=-180,90,180,-90 (NAME=REGION)",
             "The sub-region to be used (optional). Coordinates in the format W,N,E,S.");
 
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
-            "The product type. Must be one of " + Arrays.toString(
-                    ProductType.values()) + ".");
+            "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
 
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,
             "The input filename pattern. REGEX is Regular Expression that usually dependends on the parameter " +
@@ -96,13 +93,13 @@ public class RegriddingTool extends Tool {
     private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
             "The directory path to the reference climatology.");
 
-//    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
+    //    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
 //            "The minimum fractional coverage " +
 //                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
 
+    //optional due to specification
     private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
-            "The maximum relative total uncertainty allowed for non-missing output.",
-            true);   //optional due to specification
+            "The maximum relative total uncertainty allowed for non-missing output.", true);  //todo ?explaination?
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE = new Parameter("coverageUncertaintyFile", "FILE",
             "./conf/auxdata/coverage_uncertainty_parameters.nc",

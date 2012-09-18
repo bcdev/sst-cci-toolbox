@@ -24,4 +24,11 @@ public class TestL3ProductMaker {
         String path = userDir.concat("/src/test/resources/org/esa/cci/sst/util/20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
         return NetcdfFile.open(path);
     }
+
+    public static NetcdfFile readL4GridsSetup() throws IOException {
+        String userDirOrigin = System.getProperty("user.dir");
+        String userDir = userDirOrigin.replace("\\", "/");
+        String path = userDir.concat("/src/test/resources/org/esa/cci/sst/util/20100701000000-ESACCI-L4_GHRSST-SSTdepth-OSTIA-LT-v02.0-fv01.1.nc");
+        return NetcdfFile.open(path);
+    }
 }

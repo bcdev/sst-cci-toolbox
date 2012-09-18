@@ -20,7 +20,6 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cellgrid.Grid;
@@ -61,11 +60,6 @@ public abstract class UnsupportedFileType implements FileType {
 
     @Override
     public GridDef getGridDef() {
-        throw notImplemented();
-    }
-
-    @Override
-    public ProcessingLevel getProcessingLevel() {
         throw notImplemented();
     }
 

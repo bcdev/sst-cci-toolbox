@@ -30,19 +30,21 @@ import java.util.Date;
 /**
  * Represents the product types handled by the {@link org.esa.cci.sst.regavg.RegionalAverageTool}.
  *
- * @author Norman Fomferra
+ * @author Norman Fomferra, Bettina Scholze
  */
 public enum ProductType {
-    ARC_L3U(ArcL3UFileType.INSTANCE),
-    ARC_L2P(ArcL2PFileType.INSTANCE),
-    CCI_L3U(CciL3UFileType.INSTANCE),
-    CCI_L3C(CciL3CFileType.INSTANCE),
-    CCI_L4(CciL4FileType.INSTANCE);
+    ARC_L3U(ArcL3UFileType.INSTANCE, ProcessingLevel.L3U),
+    ARC_L2P(ArcL2PFileType.INSTANCE, ProcessingLevel.L2P),
+    CCI_L3U(CciL3FileType.INSTANCE, ProcessingLevel.L3U),
+    CCI_L3C(CciL3FileType.INSTANCE, ProcessingLevel.L3C),
+    CCI_L4(CciL4FileType.INSTANCE, ProcessingLevel.L4);
 
     private final FileType fileType;
+    private final ProcessingLevel processingLevel;
 
-    private ProductType(FileType fileType) {
+    ProductType(FileType fileType, ProcessingLevel processingLevel) {
         this.fileType = fileType;
+        this.processingLevel = processingLevel;
     }
 
     public FileType getFileType() {
@@ -62,6 +64,6 @@ public enum ProductType {
     }
 
     public ProcessingLevel getProcessingLevel() {
-        return getFileType().getProcessingLevel();
+        return processingLevel;
     }
 }
