@@ -35,12 +35,12 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * todo document
  *
  * @author Norman Fomferra, Bettina Scholze
  */
 public class CciL3FileType extends AbstractCciFileType {
     public final static CciL3FileType INSTANCE = new CciL3FileType();
+
     @Override
     public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
         Grid[] grids = new Grid[6];
@@ -140,7 +140,7 @@ public class CciL3FileType extends AbstractCciFileType {
     }
 
     @Override
-    public CellFactory getCellFactory(CellTypes cellType) {
+    public CellFactory getCellFactory(final CellTypes cellType) {
         switch (cellType) {
             case SYNOPTIC_CELL_1:
                 return new CellFactory<L3USynopticAreaCell1>() {
@@ -164,30 +164,28 @@ public class CciL3FileType extends AbstractCciFileType {
                     }
                 };
             case CELL_90: {
-                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
                 return new CellFactory<CellAggregationCell>() {
                     @Override
                     public L3UCell90 createCell(int cellX, int cellY) {
-                        return new L3UCell90(coverageUncertaintyProvider, cellX, cellY);
+                        return new L3UCell90(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
                     }
                 };
             }
             case SPATIAL_CELL_5: {
-                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
                 return new CellFactory<SpatialAggregationCell>() {
                     @Override
                     public L3UCell5 createCell(int cellX, int cellY) {
-                        return new L3UCell5(coverageUncertaintyProvider, cellX, cellY);
+                        return new L3UCell5(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
                     }
                 };
             }
             case SPATIAL_CELL_REGRIDDING: {
-                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
-                final SynopticAreaCountEstimator synopticAreaCountEstimator = cellType.getSynopticAreaCountEstimator();
                 return new CellFactory<SpatialAggregationCell>() {
                     @Override
                     public L3URegriddingCell createCell(int cellX, int cellY) {
-                        return new L3URegriddingCell(coverageUncertaintyProvider, synopticAreaCountEstimator, cellX, cellY);
+                        return new L3URegriddingCell(cellType.getCoverageUncertaintyProvider(),
+                                cellType.getSynopticAreaCountEstimator(),
+                                CellTypes.getMinCoverage(), cellX, cellY);
                     }
                 };
             }
@@ -293,26 +291,33 @@ public class CciL3FileType extends AbstractCciFileType {
     }
 
     private static class L3URegriddingCell extends AbstractL3UCell implements SpatialAggregationCell {
+        private double minCoverage;
+        private int maximumSampleCount;
         private SynopticAreaCountEstimator synopticAreaCountEstimator;
         protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new SynopticUncertaintyAccumulator();
         protected final NumberAccumulator adjustmentUncertaintyAccu = new SynopticUncertaintyAccumulator();
 
 
         private L3URegriddingCell(CoverageUncertaintyProvider coverageUncertaintyProvider,
-                                  SynopticAreaCountEstimator synopticAreaCountEstimator, int x, int y) {
+                                  SynopticAreaCountEstimator synopticAreaCountEstimator, double minCoverage, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
             this.synopticAreaCountEstimator = synopticAreaCountEstimator;
+            this.minCoverage = minCoverage;
         }
 
         public double computeSynopticallyCorrelatedUncertaintyAverage() {
-            return synopticallyCorrelatedUncertaintyAccu.combine() / synopticAreaCountEstimator.calculateEta(this);
+            return checkMinCoverage(synopticallyCorrelatedUncertaintyAccu.combine() / calculateEta());
         }
 
         public double computeAdjustmentUncertaintyAverage() {
             if (adjustmentUncertaintyAccu == null) {
                 return 0.0;
             }
-            return adjustmentUncertaintyAccu.combine() / synopticAreaCountEstimator.calculateEta(this);
+            return checkMinCoverage(adjustmentUncertaintyAccu.combine() / calculateEta());
+        }
+
+        private double calculateEta() {
+            return synopticAreaCountEstimator.calculateEta(getX(), getY(), getSampleCount());
         }
 
         @Override
@@ -322,6 +327,8 @@ public class CciL3FileType extends AbstractCciFileType {
 
         @Override
         public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            maximumSampleCount = rect.height * rect.width;
+
             final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
             final Grid qualityLevelGrid = spatialAggregationContext.getSourceGrids()[1];
             final Grid uncorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[2];
@@ -359,12 +366,28 @@ public class CciL3FileType extends AbstractCciFileType {
 
         @Override
         public Number[] getResults() {
-            //Note: know the ordering from AbstractL3UCell#getResults
-            Number[] superResults = super.getResults();
-            Number[] results = Arrays.copyOf(superResults, superResults.length + 2);
-            results[results.length - 2] = computeSynopticallyCorrelatedUncertaintyAverage();
-            results[results.length - 1] = computeAdjustmentUncertaintyAverage();
-            return results;
+            // Note: Result types must match those defined in FileType.createOutputVariables().
+            return new Number[]{
+                    (float) checkMinCoverage(computeSstAverage()),
+                    (float) checkMinCoverage(computeSstAnomalyAverage()),
+                    (float) checkMinCoverage(computeCoverageUncertainty()),
+                    (float) checkMinCoverage(computeUncorrelatedUncertaintyAverage()),
+                    (float) checkMinCoverage(computeLargeScaleCorrelatedUncertaintyAverage()),
+                    (float) checkMinCoverage(computeSynopticallyCorrelatedUncertaintyAverage()),
+                    (float) checkMinCoverage(computeAdjustmentUncertaintyAverage())
+            };
+        }
+
+        public double checkMinCoverage(double result) {
+            if (hasMinCoverage()) {
+                return result;
+            } else {
+                return Double.NaN;
+            }
+        }
+
+        private boolean hasMinCoverage() {
+            return minCoverage < sstAccu.getSampleCount() * 1.0 / maximumSampleCount;
         }
     }
 

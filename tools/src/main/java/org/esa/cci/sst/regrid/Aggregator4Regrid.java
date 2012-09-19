@@ -3,7 +3,6 @@ package org.esa.cci.sst.regrid;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.auxiliary.LUT1;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
@@ -15,6 +14,7 @@ import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
+import org.esa.cci.sst.regrid.auxiliary.LUT3;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -33,48 +33,51 @@ public class Aggregator4Regrid extends AbstractAggregator {
 
     private RegionMask combinedRegionMask;
     private SpatialResolution spatialTargetResolution;
+    private final LUT3 lut3;
 
     public Aggregator4Regrid(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
-                             LUT1 lut1, LUT2 lut2, SstDepth sstDepth,
-                             SpatialResolution spatialTargetResolution) {
+                             LUT1 lut1, LUT2 lut2, LUT3 lut3, SstDepth sstDepth,
+                             double minCoverage, SpatialResolution spatialTargetResolution) {
 
         super(fileStore, climatology, lut1, lut2, sstDepth);
         this.combinedRegionMask = RegionMask.combine(regionMaskList);
         this.spatialTargetResolution = spatialTargetResolution;
+        this.lut3 = lut3;
+        FileType.CellTypes.setMinCoverage(minCoverage);
     }
 
     @Override
     public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException {
-        final List<RegriddingTimeStep> resultList = new ArrayList<RegriddingTimeStep>();
+        final List<RegriddingTimeStep> resultGridList = new ArrayList<RegriddingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
         while (calendar.getTime().before(endDate)) {
             Date date1 = calendar.getTime();
-            CellGrid<? extends AggregationCell> result;
+            CellGrid<? extends AggregationCell> resultGrid;
             if (temporalResolution == TemporalResolution.daily) {
                 calendar.add(Calendar.DATE, 1);
                 Date date2 = calendar.getTime();
-                result = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution);
+                resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution);
             } else if (temporalResolution == TemporalResolution.monthly) {
                 calendar.add(Calendar.MONTH, 1);
                 Date date2 = calendar.getTime();
-                result = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution);
+                resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution);
             } else if (temporalResolution == TemporalResolution.seasonal) {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
                 List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
-                result = aggregateMultiMonths(monthlyTimeSteps);
+                resultGrid = aggregateMultiMonths(monthlyTimeSteps);
             } else /*if (temporalResolution == TemporalResolution.annual)*/ {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
                 List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
-                result = aggregateMultiMonths(monthlyTimeSteps);
+                resultGrid = aggregateMultiMonths(monthlyTimeSteps);
             }
-            if (result != null) {
-                resultList.add(new RegriddingTimeStep(date1, calendar.getTime(), result));
+            if (resultGrid != null) {
+                resultGridList.add(new RegriddingTimeStep(date1, calendar.getTime(), resultGrid));
             }
         }
-        return resultList;
+        return resultGridList;
     }
 
     private CellGrid<SpatialAggregationCell> aggregateTimeRangeAndRegrid(Date date1, Date date2,
@@ -89,12 +92,13 @@ public class Aggregator4Regrid extends AbstractAggregator {
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
 
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, spatialResolution);
-        FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_REGRIDDING;
-        cellType.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
-        cellType.setSynopticAreaCountEstimator(new SynopticAreaCountEstimator()); //todo bs: Need to know the lut first
-        final CellFactory<SpatialAggregationCell> regriddingCellFactory = getFileType().getCellFactory(cellType);
         GridDef gridDef = GridDef.createGlobal(spatialResolution.getValue());
+        FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_REGRIDDING;
+        cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(date1, spatialResolution));
+        if (getFileType().hasSynopticUncertainties()) {
+            cellType.setSynopticAreaCountEstimator(createSynopticAreaCountEstimator(spatialResolution));
+        }
+        final CellFactory<SpatialAggregationCell> regriddingCellFactory = getFileType().getCellFactory(cellType);
         final CellGrid<SpatialAggregationCell> regriddingCellGrid = new CellGrid<SpatialAggregationCell>(gridDef, regriddingCellFactory);
 
         for (File file : fileList) { //loop time (fileList contains files in required time range)
@@ -136,5 +140,20 @@ public class Aggregator4Regrid extends AbstractAggregator {
             }
         }
         return cellGrid;
+    }
+
+    private SynopticAreaCountEstimator createSynopticAreaCountEstimator(SpatialResolution spatialResolution) {
+        return new SynopticAreaCountEstimator(spatialResolution) {
+
+            @Override
+            public double getDxy(int x, int y) {
+               return lut3.getGridDxy().getSampleDouble(x, y);
+            }
+
+            @Override
+            public double getDt(int x, int y) {
+                return lut3.getGridDt().getSampleDouble(x, y);
+            }
+        };
     }
 }

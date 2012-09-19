@@ -115,32 +115,30 @@ public class CciL4FileType extends AbstractCciFileType {
     }
 
     @Override
-    public CellFactory getCellFactory(CellTypes cellType) {
+    public CellFactory getCellFactory(final CellTypes cellType) {
         switch (cellType) {
             case CELL_90: {
-                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
                 return new CellFactory<CellAggregationCell>() {
                     @Override
                     public L4Cell90 createCell(int cellX, int cellY) {
-                        return new L4Cell90(coverageUncertaintyProvider, cellX, cellY);
+                        return new L4Cell90(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
                     }
                 };
             }
             case SPATIAL_CELL_5: {
-                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
                 return new CellFactory<SpatialAggregationCell>() {
                     @Override
                     public L4UCell5 createCell(int cellX, int cellY) {
-                        return new L4UCell5(coverageUncertaintyProvider, cellX, cellY);
+                        return new L4UCell5(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
                     }
                 };
             }
             case SPATIAL_CELL_REGRIDDING: {
-                final CoverageUncertaintyProvider coverageUncertaintyProvider = cellType.getCoverageUncertaintyProvider();
                 return new CellFactory<SpatialAggregationCell>() {
                     @Override
                     public L4URegriddingCell createCell(int cellX, int cellY) {
-                        return new L4URegriddingCell(coverageUncertaintyProvider, cellX, cellY);
+                        return new L4URegriddingCell(cellType.getCoverageUncertaintyProvider(),
+                                CellTypes.getMinCoverage(), cellX, cellY);
                     }
                 };
             }
@@ -202,19 +200,17 @@ public class CciL4FileType extends AbstractCciFileType {
         }
     }
 
-    private static class L4UCell5 extends AbstractL4Cell implements SpatialAggregationCell {
+    private static abstract class AbstractL4USpatialAggregationCell extends AbstractL4Cell implements SpatialAggregationCell {
+        private int maximumSampleCount;
 
-        private L4UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private AbstractL4USpatialAggregationCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
         @Override
-        public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
-        }
-
-        @Override
         public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            maximumSampleCount = rect.height * rect.width;
+
             final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
             final Grid analysisErrorGrid = spatialAggregationContext.getSourceGrids()[1];
             final Grid seaIceFractionGrid = spatialAggregationContext.getSourceGrids()[2];
@@ -237,13 +233,30 @@ public class CciL4FileType extends AbstractCciFileType {
                 }
             }
         }
+
+        int getMaximumSampleCount() {
+            return maximumSampleCount;
+        }
     }
 
-    //todo regridd cell needs minCoverage
-    private static class L4URegriddingCell extends AbstractL4Cell implements SpatialAggregationCell {
+    private static class L4UCell5 extends AbstractL4USpatialAggregationCell {
 
-        private L4URegriddingCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private L4UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
+        }
+
+        @Override
+        public double computeCoverageUncertainty() {
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
+        }
+    }
+
+    private static class L4URegriddingCell extends AbstractL4USpatialAggregationCell {
+        private double minCoverage;
+
+        private L4URegriddingCell(CoverageUncertaintyProvider coverageUncertaintyProvider, double minCoverage, int x, int y) {
+            super(coverageUncertaintyProvider, x, y);
+            this.minCoverage = minCoverage;
         }
 
         @Override
@@ -252,27 +265,24 @@ public class CciL4FileType extends AbstractCciFileType {
         }
 
         @Override
-        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
-            final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
-            final Grid analysisErrorGrid = spatialAggregationContext.getSourceGrids()[1];
-            final Grid seaIceFractionGrid = spatialAggregationContext.getSourceGrids()[2];
-            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
-            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
+        public Number[] getResults() {
+            // Note: Result types must match those defined in FileType.createOutputVariables().
+            return new Number[]{
+                    (float) checkMinCoverage(computeSstAverage()),
+                    (float) checkMinCoverage(computeSstAnomalyAverage()),
+                    (float) checkMinCoverage(computeCoverageUncertainty()),
+                    (float) checkMinCoverage(computeAnalysisErrorAverage()),
+                    (float) computeSeaIceFractionAverage()
+            };
+        }
 
-            final int x0 = rect.x;
-            final int y0 = rect.y;
-            final int x1 = x0 + rect.width - 1;
-            final int y1 = y0 + rect.height - 1;
-            for (int y = y0; y <= y1; y++) {
-                for (int x = x0; x <= x1; x++) {
-                    final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
-                    if (seaCoverage > 0.0) {
-                        sstAccu.accumulate(sstGrid.getSampleDouble(x, y), seaCoverage);
-                        sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
-                        analysisErrorAccu.accumulate(analysisErrorGrid.getSampleDouble(x, y), seaCoverage);
-                    }
-                    seaIceFractionAccu.accumulate(seaIceFractionGrid.getSampleDouble(x, y), 1);
-                }
+        private double checkMinCoverage(double result) {
+            boolean hasMinCoverage = minCoverage < sstAccu.getSampleCount() * 1.0 / getMaximumSampleCount();
+
+            if (hasMinCoverage) {
+                return result;
+            } else {
+                return Double.NaN;
             }
         }
     }

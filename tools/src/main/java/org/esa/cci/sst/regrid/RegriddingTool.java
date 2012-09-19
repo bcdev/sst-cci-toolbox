@@ -27,7 +27,7 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.regavg.auxiliary.LUT2;
+import org.esa.cci.sst.regrid.auxiliary.LUT3;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
@@ -44,6 +44,12 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.*;
 
+/**
+ * A command line tool to regrid ARC/SST-CCI products from into coarser spatial and time resolutions.
+ * Call RegriddingTool#main with option -h to access the full description of the tool.
+ *
+ * @author Ralf Quast, Bettina Scholze
+ */
 public class RegriddingTool extends Tool {
 
     private static final String FILE_FORMAT_VERSION = "1.1";
@@ -93,21 +99,21 @@ public class RegriddingTool extends Tool {
     private static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
             "The directory path to the reference climatology.");
 
-    //    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
-//            "The minimum fractional coverage " +
-//                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
+    private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.5",
+            "The minimum fractional coverage " +
+                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
 
     //optional due to specification
     private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
-            "The maximum relative total uncertainty allowed for non-missing output.", true);  //todo ?explaination?
+            "The maximum relative total uncertainty allowed for non-missing output.", true);  //todo bs implement
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE = new Parameter("coverageUncertaintyFile", "FILE",
             "./conf/auxdata/coverage_uncertainty_parameters.nc",
-            "A NetCDF file that provides lookup table for coverage uncertainties.");
+            "A NetCDF file that provides lookup table for coverage uncertainties."); //todo bs resolutions
 
-//    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelationFile", "FILE",
-//            "./conf/auxdata/TBC",
-//            "A NetCDF file that provides lookup table for synoptically correlated uncertainties.");
+    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelationFile", "FILE",
+            "./conf/auxdata/TBC",
+            "A NetCDF file that provides lookup table for synoptically correlated uncertainties."); //todo bs add lut
 
     private ProductType productType;
 
@@ -130,17 +136,16 @@ public class RegriddingTool extends Tool {
         final TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         final File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         final RegionMaskList regionMaskList = parseRegionListInTargetSpatialResolution(configuration);
-        //todo
-//        final String minCoverage = configuration.getString(PARAM_MIN_COVERAGE, false);
+        final double minCoverage = Double.parseDouble(configuration.getString(PARAM_MIN_COVERAGE, false));
         final File lut1File = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE, true);
-        final File lut2File = null; //configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
+        final File lut3File = configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
         //todo
 //        String maxUncertainty = configuration.getString(PARAM_MAX_UNCERTAINTY, false);
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
         LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
-        LUT2 lut2 = getLUT2(lut2File); //todo
+        LUT3 lut3 = getLUT3(lut3File, spatialResolution);
 
         // Enable for debugging
         // printGrid(climatology);
@@ -148,7 +153,7 @@ public class RegriddingTool extends Tool {
         List<RegriddingTimeStep> timeSteps;
         try {
             Aggregator4Regrid aggregator = new Aggregator4Regrid(regionMaskList, fileStore, climatology,
-                    lut1, lut2, sstDepth, spatialResolution);
+                    lut1, null, lut3, sstDepth, minCoverage, spatialResolution);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
@@ -198,11 +203,11 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
-        //PARAM_SYNOPTIC_CORRELATION_FILE, PARAM_MIN_COVERAGE
         paramList.addAll(
                 Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
                         PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE, PARAM_FILENAME_REGEX,
-                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE));
+                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE,
+                        PARAM_MIN_COVERAGE, PARAM_SYNOPTIC_CORRELATION_FILE));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {
@@ -234,8 +239,8 @@ public class RegriddingTool extends Tool {
         return lut1;
     }
 
-    private LUT2 getLUT2(File lut2File) throws ToolException {
-        return null; // TODO - implement
+    private LUT3 getLUT3(File lut3File, SpatialResolution spatialResolution) throws ToolException {
+        return LUT3.read(lut3File, spatialResolution);
     }
 
     private void writeOutputs(File outputDir, ProductType productType, String filenameRegex,

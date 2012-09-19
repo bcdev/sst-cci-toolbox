@@ -89,6 +89,8 @@ public interface FileType {
         SPATIAL_CELL_REGRIDDING,
         TEMPORAL_CELL;
 
+        //Minumum coverage fraction is only used in Regridding Tool and only for spatial aggregation.
+        private static double minCoverage;
         private CoverageUncertaintyProvider coverageUncertaintyProvider;
         private SynopticAreaCountEstimator synopticAreaCountEstimator;
 
@@ -108,6 +110,14 @@ public interface FileType {
 
         public SynopticAreaCountEstimator getSynopticAreaCountEstimator() {
             return synopticAreaCountEstimator;
+        }
+
+        public static double getMinCoverage() {
+            return minCoverage;
+        }
+
+        public static void setMinCoverage(double minCoverage) {
+            CellTypes.minCoverage = minCoverage;
         }
     }
 }

@@ -158,7 +158,7 @@ class MapDataGenerator {
                     sstWriter.write(", ");
                 }
                 final short sst;
-                if ((i / lonCount) % 2 == 0) {
+                if (i != 0 && (lonCount / i) % 2 == 0) {
                     sst = (short) ((293.15f - 273.15f) / 0.01f);
                 } else {
                     sst = -32768;

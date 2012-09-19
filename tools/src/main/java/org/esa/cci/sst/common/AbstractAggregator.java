@@ -35,10 +35,10 @@ public abstract class AbstractAggregator {
 
     private final FileStore fileStore;
     private final FileType fileType;
+    private final SstDepth sstDepth;
     private final Climatology climatology;
     private final LUT1 lut1;
     private final LUT2 lut2;
-    private final SstDepth sstDepth;
 
     public AbstractAggregator(FileStore fileStore,
                               Climatology climatology, LUT1 lut1, LUT2 lut2, SstDepth sstDepth) {
