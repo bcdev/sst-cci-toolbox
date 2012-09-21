@@ -19,7 +19,10 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.AggregationFactory;
+import org.esa.cci.sst.common.RegionalAggregation;
+import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.*;
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
@@ -102,10 +105,11 @@ public class CciL3FileType extends AbstractCciFileType {
         adjustmentUncertaintyVar.addAttribute(new Attribute("long_name", "mean of adjustment uncertainty in kelvin"));
         adjustmentUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable totalUncertaintyVar = file.addVariable("total_uncertainty", DataType.FLOAT, dims);
-        totalUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-        totalUncertaintyVar.addAttribute(new Attribute("long_name", "the total uncertainty in kelvin"));
-        totalUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+        //todo bs implement totalUncertainty
+//        Variable totalUncertaintyVar = file.addVariable("total_uncertainty", DataType.FLOAT, dims);
+//        totalUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+//        totalUncertaintyVar.addAttribute(new Attribute("long_name", "the total uncertainty in kelvin"));
+//        totalUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         return new Variable[]{
                 sstVar,
@@ -115,7 +119,7 @@ public class CciL3FileType extends AbstractCciFileType {
                 largeScaleCorrelatedUncertaintyVar,
                 synopticallyCorrelatedUncertaintyVar,
                 adjustmentUncertaintyVar,
-                totalUncertaintyVar
+//                totalUncertaintyVar
         };
     }
 
@@ -196,12 +200,10 @@ public class CciL3FileType extends AbstractCciFileType {
 
     @Override
     public String getFilenameRegex() {
-        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST[a-z]{3,7}-[A-Z1-2_]{3,10}-[DMLT]{2}-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
-//        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST[a-z]{3,7}-[AST][TME][SVI][A-Z]{0,7}-[LD][TM].*";
-//        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST(skin)?(subskin)?(depth)?(fnd)?-(ATSR1)?(ATSR2)?(AATSR)?(AMSRE)?(SEVIRI_SST)?(TMI)?-(LT)?(DM)?.*";
-//        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L3U + "_GHRSST-SST[(skin)(subskin)(depth)(fnd)]{1}-[(ATSR1)(ATSR2)(AATSR)(AMSRE)(SEVIRI_SST)(TMI)]{1}-[(LT)(DM)]{1}.*";
-//        return "[(skin)(subskin)(depth)(fnd)]-[(ATSR1)(ATSR2)(AATSR)(AMSRE)(SEVIRI_SST)(TMI)]-[(LT)(DM)].*";
-//        return "(skin)?(subskin)?(depth)?(fnd)?-[(ATSR1)(ATSR2)(AATSR)(AMSRE)(SEVIRI_SST)(TMI)].*";
+//        return "\\d{14}-" + getRdac() + "-" + "L3[CU]{1}" + "_GHRSST-SST[a-z]{3,7}-[A-Z1-2_]{3,10}-[DMLT]{2}-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
+        return "\\d{14}-" + getRdac() + "-L3[CU]{1}_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))[-]" +
+                "((ATSR1)|(ATSR2)|(AATSR)|(AMSRE)|(SEVIRI_SST)|(TMI))[-]((LT)|(DM))-" +
+                "v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
     }
 
     private static abstract class AbstractL3UCell extends AbstractAggregationCell {
