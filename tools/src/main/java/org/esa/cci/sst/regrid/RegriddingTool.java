@@ -318,45 +318,23 @@ public class RegriddingTool extends Tool {
 
             //write header
             netcdfFile.create();
-
             //add data for base
             final Map<String, Array> baseArrays = spatialResolution.calculateBaseArrays();
             for (String baseVariable : baseArrays.keySet()) {
                 writeDataToNetCdfFile(netcdfFile, baseVariable, baseArrays.get(baseVariable));
             }
-
             //add data for regridded variables
             int height = cellGrid.getHeight();
             int width = cellGrid.getWidth();
-            HashMap<String, VectorContainer> data = new HashMap<String, VectorContainer>();
-            for (Variable variable : variables) {
-                data.put(variable.getName(), new VectorContainer(height * width));
-            }
-
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-
-                    AggregationCell cell = cellGrid.getCell(x, y);
-                    Number[] results = cell.getResults();
-                    assert results.length == variables.length : "results must have same length like variables";
-                    int index1D = y * width + x;
-
-                    for (int variableCount = 0; variableCount < variables.length; variableCount++) {
-                        Variable variable = variables[variableCount];
-                        VectorContainer vectorContainer = data.get(variable.getName());
-                        vectorContainer.put(index1D, results[variableCount].doubleValue());
-                    }
-                }
-            }
+            HashMap<String, VectorContainer> dataMap = prepareDataMap(cellGrid, variables, height, width);
 
             int[] shape = new int[]{gridDef.getTime(), gridDef.getHeight(), gridDef.getWidth()};
             for (Variable variable : variables) {
                 String name = variable.getName();
-                float[] vec = data.get(name).getAsFloats();
+                float[] vec = dataMap.get(name).getAsFloats();
                 writeDataToNetCdfFile(netcdfFile, name, Array.factory(DataType.FLOAT, shape, vec));
             }
             //copy data for time todo
-
         } finally {
             try {
                 netcdfFile.flush();
@@ -365,6 +343,29 @@ public class RegriddingTool extends Tool {
                 // ignore
             }
         }
+    }
+
+    /* rescale from 2D grid to 1D vector, one per variable */
+    private HashMap<String, VectorContainer> prepareDataMap(CellGrid<? extends AggregationCell> cellGrid, Variable[] variables, int height, int width) {
+        HashMap<String, VectorContainer> dataMap = new HashMap<String, VectorContainer>();
+        for (Variable variable : variables) {
+            dataMap.put(variable.getName(), new VectorContainer(height * width));
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                AggregationCell cell = cellGrid.getCell(x, y);
+                Number[] results = cell.getResults();
+                assert results.length == variables.length : "results must have same length like variables";
+                int index1D = y * width + x;
+                for (int variableCount = 0; variableCount < variables.length; variableCount++) {
+                    Variable variable = variables[variableCount];
+                    VectorContainer vectorContainer = dataMap.get(variable.getName());
+                    vectorContainer.put(index1D, results[variableCount].doubleValue());
+                }
+            }
+        }
+        return dataMap;
     }
 
     private static class VectorContainer {
