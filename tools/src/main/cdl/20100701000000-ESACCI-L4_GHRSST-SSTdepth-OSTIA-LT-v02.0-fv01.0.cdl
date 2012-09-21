@@ -44,7 +44,7 @@ variables:
 		time:axis = "T" ;
 		time:calendar = "gregorian" ;
 		time:bounds = "time_bnds" ;
-	float time_bnds(time, bnds) ;
+	int time_bnds(time, bnds) ;
 		time_bnds:units = "seconds since 1981-01-01 00:00:00" ;
 		time_bnds:long_name = "Time cell boundaries" ;
 		time_bnds:comment = "Contains the start and end times for the time period the data represent" ;
