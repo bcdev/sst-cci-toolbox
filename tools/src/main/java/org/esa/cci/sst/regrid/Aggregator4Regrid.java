@@ -51,7 +51,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
         final List<RegriddingTimeStep> resultGridList = new ArrayList<RegriddingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
-        while (calendar.getTime().before(endDate)) {
+        while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
             Date date1 = calendar.getTime();
             CellGrid<? extends AggregationCell> resultGrid;
             if (temporalResolution == TemporalResolution.daily) {
@@ -147,12 +147,12 @@ public class Aggregator4Regrid extends AbstractAggregator {
 
             @Override
             public double getDxy(int x, int y) {
-               return lut3.getGridDxy().getSampleDouble(x, y);
+                return lut3.getDxy(x, y);
             }
 
             @Override
             public double getDt(int x, int y) {
-                return lut3.getGridDt().getSampleDouble(x, y);
+                return lut3.getDt(x, y);
             }
         };
     }

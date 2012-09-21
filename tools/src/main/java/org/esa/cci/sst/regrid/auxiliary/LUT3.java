@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regrid.auxiliary;
 
-import org.esa.cci.sst.common.cellgrid.ArrayGrid;
+import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -14,8 +14,8 @@ import java.io.File;
  * Date: 19.09.12 15:26
  */
 public class LUT3 {
-    ArrayGrid gridDxy;
-    ArrayGrid gridDt;
+    Grid gridDxy;
+    Grid gridDt;
 
     public static LUT3 read(File lut3File, SpatialResolution spatialResolution) {
         //todo readGrid()
@@ -23,11 +23,13 @@ public class LUT3 {
         throw new NotImplementedException();
     }
 
-    public ArrayGrid getGridDxy() {
-        return gridDxy;
+    public double getDxy(int x, int y) {
+//        return gridDxy.getSampleDouble(x, y); //todo bs uncomment to implement it
+        return 0.0;
     }
 
-    public ArrayGrid getGridDt() {
-        return gridDt;
+    public double getDt(int x, int y) {
+//        return gridDt.getSampleDouble(x, y); //todo bs uncomment to implement it
+        return 0.0;
     }
 }

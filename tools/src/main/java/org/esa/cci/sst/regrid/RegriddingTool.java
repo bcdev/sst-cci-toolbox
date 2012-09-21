@@ -112,7 +112,7 @@ public class RegriddingTool extends Tool {
             "A NetCDF file that provides lookup table for coverage uncertainties."); //todo bs resolutions
 
     public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelationFile", "FILE",
-            "./conf/auxdata/TBC",
+            "./conf/auxdata/TBD.nc",
             "A NetCDF file that provides lookup table for synoptically correlated uncertainties."); //todo bs add lut
 
     private ProductType productType;
@@ -207,7 +207,7 @@ public class RegriddingTool extends Tool {
                 Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
                         PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE, PARAM_FILENAME_REGEX,
                         PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE,
-                        PARAM_MIN_COVERAGE, PARAM_SYNOPTIC_CORRELATION_FILE));
+                        PARAM_MIN_COVERAGE, PARAM_SYNOPTIC_CORRELATION_FILE, PARAM_TEMPORAL_RES));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {
@@ -407,8 +407,8 @@ public class RegriddingTool extends Tool {
      * @param regionName           Region Name or Description
      * @param processingLevel      Processing Level = L3C, L3U or L4
      * @param sstType              SST Type
-     * @param productString        Product String (see Table 5 in PSD) // todo - find out from PSD what productString is
-     * @param additionalSegregator Additional Segregator = LT or DM  // todo - find out from PSD what additionalSegregator is
+     * @param productString        Product String (see Table 5 in PSD, e.g. AATSR, OSTIA)
+     * @param additionalSegregator Additional Segregator = LT or DM
      * @return The filename.
      */
     public String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName,
@@ -416,9 +416,13 @@ public class RegriddingTool extends Tool {
                                     String productString, String additionalSegregator) {
 
         String rdac = productType.getFileType().getRdac(); //ESACCI or ARC
-        return String.format("%s-%s-%s_regrid-" + rdac + "-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+        return String.format("%s-%s-%s-" + rdac + "-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                 startOfPeriod, endOfPeriod, regionName,
                 processingLevel, sstType, productString, additionalSegregator,
                 TOOL_VERSION, FILE_FORMAT_VERSION);
+    }
+
+    void setProductType(ProductType productType) { //for test only
+        this.productType = productType;
     }
 }
