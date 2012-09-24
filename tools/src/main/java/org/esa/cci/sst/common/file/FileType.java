@@ -71,7 +71,7 @@ public interface FileType {
 
     Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException;
 
-    Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims);
+    Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims);
 
     AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory();
 

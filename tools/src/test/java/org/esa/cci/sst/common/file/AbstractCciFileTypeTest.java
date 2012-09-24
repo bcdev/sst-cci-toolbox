@@ -77,7 +77,7 @@ public class AbstractCciFileTypeTest {
             }
 
             @Override
-            public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims) {
+            public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims) {
                 return new Variable[0];
             }
 

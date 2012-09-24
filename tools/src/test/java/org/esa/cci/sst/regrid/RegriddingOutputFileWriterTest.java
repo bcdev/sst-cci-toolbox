@@ -11,7 +11,7 @@ import static org.junit.Assert.assertEquals;
  * {@author Bettina Scholze}
  * Date: 21.09.12 09:48
  */
-public class RegriddingToolTest {
+public class RegriddingOutputFileWriterTest {
 
     @Test
     public void testOutputFileName() throws Exception {
@@ -21,8 +21,10 @@ public class RegriddingToolTest {
         String sstType = "SST_" + SstDepth.depth_20 + "_regridded";
         String productString = "PS";
         String additionalSegregator = "DM";
-        RegriddingTool regriddingTool = new RegriddingTool();
-        regriddingTool.setProductType(ProductType.valueOf("CCI_L3C"));
+        String toolVersion = "0.1";
+        String fileFormatVersion = "1.1";
+        RegriddingOutputFileWriter regriddingTool = new RegriddingOutputFileWriter(ProductType.valueOf("CCI_L3C"),
+                "toolName", toolVersion, fileFormatVersion, false);
 
         //execution
         String filename = regriddingTool.getOutputFilename(startOfPeriod, endOfPeriod, regionName,

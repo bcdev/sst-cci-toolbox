@@ -94,7 +94,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims) {
+    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims) {
         throw notImplemented();
     }
 

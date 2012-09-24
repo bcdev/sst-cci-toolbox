@@ -38,11 +38,11 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- *
  * @author Norman Fomferra, Bettina Scholze
  */
 public class CciL3FileType extends AbstractCciFileType {
     public final static CciL3FileType INSTANCE = new CciL3FileType();
+    public static final String OUT_VAR_TOTAL_UNCERTAINTY = "total_uncertainty";
 
     @Override
     public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
@@ -67,9 +67,10 @@ public class CciL3FileType extends AbstractCciFileType {
         return grids;
     }
 
-    //todo bs: Parameter if total or separated uncertainties wished in output file
     @Override
-    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, Dimension[] dims) {
+    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims) {
+        Variable[] variables;
+
         Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
         sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin", sstDepth)));
@@ -80,47 +81,56 @@ public class CciL3FileType extends AbstractCciFileType {
         sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
-        coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
-        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
-        coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+        if (totalUncertainty) {
+            Variable totalUncertaintyVar = file.addVariable(OUT_VAR_TOTAL_UNCERTAINTY, DataType.FLOAT, dims);
+            totalUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+            totalUncertaintyVar.addAttribute(new Attribute("long_name", "the total uncertainty in kelvin"));
+            totalUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable uncorrelatedUncertaintyVar = file.addVariable("uncorrelated_uncertainty", DataType.FLOAT, dims);
-        uncorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-        uncorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of uncorrelated uncertainty in kelvin"));
-        uncorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+            variables = new Variable[]{
+                    sstVar,
+                    sstAnomalyVar,
+                    totalUncertaintyVar
+            };
+        } else {
+            Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+            coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
+            coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
+            coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable largeScaleCorrelatedUncertaintyVar = file.addVariable("large_scale_correlated_uncertainty", DataType.FLOAT, dims);
-        largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-        largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of large scale correlated uncertainty in kelvin"));
-        largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+            Variable uncorrelatedUncertaintyVar = file.addVariable("uncorrelated_uncertainty", DataType.FLOAT, dims);
+            uncorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+            uncorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of uncorrelated uncertainty in kelvin"));
+            uncorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable synopticallyCorrelatedUncertaintyVar = file.addVariable("synoptically_correlated_uncertainty", DataType.FLOAT, dims);
-        synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-        synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of synoptically correlated uncertainty in kelvin"));
-        synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+            Variable largeScaleCorrelatedUncertaintyVar = file.addVariable("large_scale_correlated_uncertainty", DataType.FLOAT, dims);
+            largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+            largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of large scale correlated uncertainty in kelvin"));
+            largeScaleCorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable adjustmentUncertaintyVar = file.addVariable("adjustment_uncertainty", DataType.FLOAT, dims);
-        adjustmentUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-        adjustmentUncertaintyVar.addAttribute(new Attribute("long_name", "mean of adjustment uncertainty in kelvin"));
-        adjustmentUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+            Variable synopticallyCorrelatedUncertaintyVar = file.addVariable("synoptically_correlated_uncertainty", DataType.FLOAT, dims);
+            synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+            synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("long_name", "mean of synoptically correlated uncertainty in kelvin"));
+            synopticallyCorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        //todo bs implement totalUncertainty
-//        Variable totalUncertaintyVar = file.addVariable("total_uncertainty", DataType.FLOAT, dims);
-//        totalUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-//        totalUncertaintyVar.addAttribute(new Attribute("long_name", "the total uncertainty in kelvin"));
-//        totalUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+            Variable adjustmentUncertaintyVar = file.addVariable("adjustment_uncertainty", DataType.FLOAT, dims);
+            adjustmentUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
+            adjustmentUncertaintyVar.addAttribute(new Attribute("long_name", "mean of adjustment uncertainty in kelvin"));
+            adjustmentUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        return new Variable[]{
-                sstVar,
-                sstAnomalyVar,
-                coverageUncertaintyVar,
-                uncorrelatedUncertaintyVar,
-                largeScaleCorrelatedUncertaintyVar,
-                synopticallyCorrelatedUncertaintyVar,
-                adjustmentUncertaintyVar,
-//                totalUncertaintyVar
-        };
+            variables = new Variable[]{
+                    sstVar,
+                    sstAnomalyVar,
+                    coverageUncertaintyVar,
+                    uncorrelatedUncertaintyVar,
+                    largeScaleCorrelatedUncertaintyVar,
+                    synopticallyCorrelatedUncertaintyVar,
+                    adjustmentUncertaintyVar
+            };
+
+        }
+
+        return variables;
     }
 
     @Override
