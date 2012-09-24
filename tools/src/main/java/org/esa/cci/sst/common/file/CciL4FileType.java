@@ -71,15 +71,15 @@ public class CciL4FileType extends AbstractCciFileType {
         sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable analysisErrorVar = file.addVariable("analysis_error", DataType.FLOAT, dims);
-        analysisErrorVar.addAttribute(new Attribute("units", "kelvin"));
-        analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error in kelvin"));
-        analysisErrorVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-
         Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
         coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
+        Variable analysisErrorVar = file.addVariable("analysis_error", DataType.FLOAT, dims);
+        analysisErrorVar.addAttribute(new Attribute("units", "kelvin"));
+        analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error in kelvin"));
+        analysisErrorVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         Variable seaIceCoverageVar = file.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
         seaIceCoverageVar.addAttribute(new Attribute("units", "1"));
@@ -89,8 +89,9 @@ public class CciL4FileType extends AbstractCciFileType {
         return new Variable[]{
                 sstVar,
                 sstAnomalyVar,
+                coverageUncertaintyVar,
                 analysisErrorVar,
-                seaIceCoverageVar,
+                seaIceCoverageVar
         };
     }
 
