@@ -306,7 +306,7 @@ public final class RegionalAverageTool extends Tool {
             netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
 
             int numSteps = timeSteps.size();
-            Dimension timeDimension = netcdfFile.addDimension("time", numSteps, true, false, false);
+            Dimension timeDimension = netcdfFile.addDimension("start_time", numSteps, true, false, false); //todo bs: start_time => time???
             Dimension[] dims = {timeDimension};
 
             Variable startTimeVar = netcdfFile.addVariable("start_time", DataType.FLOAT, dims);
