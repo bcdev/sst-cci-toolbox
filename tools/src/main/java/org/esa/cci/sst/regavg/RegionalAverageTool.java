@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * The SST_cci Regional-Average tool.
@@ -288,7 +289,7 @@ public final class RegionalAverageTool extends Tool {
                                         RegionMask regionMask, int regionIndex,
                                         List<AveragingTimeStep> timeSteps) throws IOException {
 
-        NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
+        final NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
             netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(), sstDepth.toString()));
             netcdfFile.addGlobalAttribute("institution", "IAES, University of Edinburgh");
@@ -306,7 +307,7 @@ public final class RegionalAverageTool extends Tool {
             netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
 
             int numSteps = timeSteps.size();
-            Dimension timeDimension = netcdfFile.addDimension("start_time", numSteps, true, false, false); //todo bs: start_time => time???
+            Dimension timeDimension = netcdfFile.addDimension("time", numSteps, true, false, false);
             Dimension[] dims = {timeDimension};
 
             Variable startTimeVar = netcdfFile.addVariable("start_time", DataType.FLOAT, dims);
@@ -353,8 +354,13 @@ public final class RegionalAverageTool extends Tool {
 
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
+        } catch (Exception e) {
+            //otherwise the exception will not meaningfully logged
+            LOGGER.log(Level.SEVERE, "", e);
+            throw new IOException(e);
         } finally {
             try {
+                netcdfFile.flush();
                 netcdfFile.close();
             } catch (IOException e) {
                 // ignore

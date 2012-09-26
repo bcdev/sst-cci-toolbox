@@ -21,8 +21,10 @@ import ucar.nc2.NetcdfFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * The one and only aggregator for the RegionalAveraging Tool.
@@ -46,7 +48,7 @@ public class Aggregator4Regav extends AbstractAggregator {
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
-        while (calendar.getTime().before(endDate)) {
+        while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
             Date date1 = calendar.getTime();
             List<RegionalAggregation> result;
             if (temporalResolution == TemporalResolution.daily) {
@@ -90,15 +92,9 @@ public class Aggregator4Regav extends AbstractAggregator {
                 getClimatology().getSeaCoverageCell90Grid());
     }
 
-    //For the RegionalAveraging Tool
     private ArrayList<CellGrid<? extends AggregationCell>> aggregateTimeRangeAndRegrid(Date date1, Date date2) throws IOException {
         //todo check if time range is less or equal a month
         final List<File> fileList = getFileStore().getFiles(date1, date2);
-        if (fileList.isEmpty()) {
-            LOGGER.warning("No matching files found in " + Arrays.toString(getFileStore().getInputPaths()) + " for period " +
-                    SimpleDateFormat.getDateInstance().format(date1) + " - " + SimpleDateFormat.getDateInstance().format(date2));
-            return null;
-        }
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                 UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
@@ -110,11 +106,15 @@ public class Aggregator4Regav extends AbstractAggregator {
 
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
         final CellFactory<SpatialAggregationCell> spatialCellFactory = getFileType().getCellFactory(cellType);
-        final CellFactory<SpatialAggregationCell> synopticCell1Factory = getFileType().getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
-        final CellFactory<CellAggregationCell> synopticCell5Factory = getFileType().getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5);
         final CellGrid<SpatialAggregationCell> cellGridSpatial = new CellGrid<SpatialAggregationCell>(globalGridDef5, spatialCellFactory);
-        final CellGrid<SpatialAggregationCell> cellGridSynoptic1 = new CellGrid<SpatialAggregationCell>(globalGridDef1, synopticCell1Factory);
-        final CellGrid<CellAggregationCell> cellGridSynoptic5 = new CellGrid<CellAggregationCell>(globalGridDef5, synopticCell5Factory);
+        CellGrid<SpatialAggregationCell> cellGridSynoptic1 = null;
+        CellGrid<CellAggregationCell> cellGridSynoptic5 = null;
+        if (getFileType().hasSynopticUncertainties()) {
+            final CellFactory<SpatialAggregationCell> synopticCell1Factory = getFileType().getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
+            final CellFactory<CellAggregationCell> synopticCell5Factory = getFileType().getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5);
+            cellGridSynoptic1 = new CellGrid<SpatialAggregationCell>(globalGridDef1, synopticCell1Factory);
+            cellGridSynoptic5 = new CellGrid<CellAggregationCell>(globalGridDef5, synopticCell5Factory);
+        }
 
         for (File file : fileList) { //loop time (fileList contains files in required time range)
             LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));

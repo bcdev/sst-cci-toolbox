@@ -403,7 +403,7 @@ public class CciL3FileType extends AbstractCciFileType {
         }
     }
 
-    private static class L3UTemporalCell extends AbstractL3UCell implements CellAggregationCell<AggregationCell> {
+    private static class L3UTemporalCell extends AbstractL3UCell implements CellAggregationCell<AggregationCell> { //used in regridding tool
         private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
         protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new RandomUncertaintyAccumulator();
         protected final NumberAccumulator adjustmentUncertaintyAccu = new RandomUncertaintyAccumulator();

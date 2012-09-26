@@ -50,7 +50,7 @@ public class Configuration {
         if (property == null && mandatory) {
             throw new ToolException("Missing value for mandatory parameter '" + name + "'", ExitCode.USAGE_ERROR);
         }
-        return property;
+        return property == null ? property : property.trim();
     }
 
     public File getFile(Parameter parameter, boolean mandatory) throws ToolException {

@@ -49,7 +49,6 @@ public class RegriddingTool extends Tool {
             "of this and divide neatly into 180 degrees. Output are SSTs and their uncertainties.";
     private static final String TOOL_FOOTER = "";
 
-    //important for input selection of which files ("product types") should be regridded.
     public static final Parameter PARAM_SST_DEPTH = new Parameter("sstDepth", "DEPTH", SstDepth.skin.name(),
             "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
 
@@ -98,11 +97,11 @@ public class RegriddingTool extends Tool {
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE = new Parameter("coverageUncertaintyFile", "FILE",
             "./conf/auxdata/coverage_uncertainty_parameters.nc",
-            "A NetCDF file that provides lookup table for coverage uncertainties."); //todo bs add luts for different resolutions
+            "A NetCDF file that provides lookup table for coverage uncertainties."); //todo bs add LUTS for different resolutions
 
     public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelationFile", "FILE",
             "./conf/auxdata/TBD.nc",
-            "A NetCDF file that provides lookup table for synoptically correlated uncertainties."); //todo bs add lut
+            "A NetCDF file that provides lookup table for synoptically correlated uncertainties."); //todo bs add LUT
 
     private ProductType productType;
 
@@ -204,11 +203,22 @@ public class RegriddingTool extends Tool {
     @Override
     protected Parameter[] getParameters() {
         ArrayList<Parameter> paramList = new ArrayList<Parameter>();
-        paramList.addAll(
-                Arrays.asList(PARAM_REGION, PARAM_CLIMATOLOGY_DIR, PARAM_MAX_UNCERTAINTY, PARAM_TOTAL_UNCERTAINTY,
-                        PARAM_SPATIAL_RESOLUTION, PARAM_START_DATE, PARAM_END_DATE, PARAM_FILENAME_REGEX,
-                        PARAM_SST_DEPTH, PARAM_OUTPUT_DIR, PARAM_PRODUCT_TYPE, PARAM_COVERAGE_UNCERTAINTY_FILE,
-                        PARAM_MIN_COVERAGE, PARAM_SYNOPTIC_CORRELATION_FILE, PARAM_TEMPORAL_RES));
+        paramList.addAll(Arrays.asList(
+                PARAM_REGION,
+                PARAM_CLIMATOLOGY_DIR,
+                PARAM_MAX_UNCERTAINTY,
+                PARAM_TOTAL_UNCERTAINTY,
+                PARAM_SPATIAL_RESOLUTION,
+                PARAM_START_DATE,
+                PARAM_END_DATE,
+                PARAM_FILENAME_REGEX,
+                PARAM_SST_DEPTH,
+                PARAM_OUTPUT_DIR,
+                PARAM_PRODUCT_TYPE,
+                PARAM_COVERAGE_UNCERTAINTY_FILE,
+                PARAM_MIN_COVERAGE,
+                PARAM_SYNOPTIC_CORRELATION_FILE,
+                PARAM_TEMPORAL_RES));
 
         ProductType[] values = ProductType.values();
         for (ProductType value : values) {
