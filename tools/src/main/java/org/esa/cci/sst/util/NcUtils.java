@@ -148,6 +148,10 @@ public class NcUtils {
         return variable;
     }
 
+    public static boolean missesVariable(NetcdfFile netcdfFile, String variableName) {
+        return netcdfFile.findTopVariable(variableName) == null;
+    }
+
     /**
      * Reads in all variables of an sst defined L3 NetCDF product in their dimension (time, lat, lon).
      * Variables concerning lat, lon and time are ignored, only the geophysical variables are read in.

@@ -34,7 +34,7 @@ import java.util.Date;
  */
 public enum ProductType {
     ARC_L3U(ArcL3UFileType.INSTANCE, ProcessingLevel.L3U),
-    ARC_L2P(ArcL2PFileType.INSTANCE, ProcessingLevel.L2P),
+    CCI_L2P(CciL2PFileType.INSTANCE, ProcessingLevel.L2P),
     CCI_L3U(CciL3FileType.INSTANCE, ProcessingLevel.L3U),
     CCI_L3C(CciL3FileType.INSTANCE, ProcessingLevel.L3C),
     CCI_L4(CciL4FileType.INSTANCE, ProcessingLevel.L4);

@@ -130,7 +130,7 @@ public class RegriddingOutputFileWriter {
 
             //write header
             netcdfFile.create();
-            //add data for base
+            //add data for base - lat lon
             final Map<String, Array> baseArrays = spatialResolution.calculateBaseArrays();
             for (String baseVariable : baseArrays.keySet()) {
                 writeDataToNetCdfFile(netcdfFile, baseVariable, baseArrays.get(baseVariable));
