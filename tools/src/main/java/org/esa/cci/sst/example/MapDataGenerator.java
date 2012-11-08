@@ -158,7 +158,7 @@ class MapDataGenerator {
                     sstWriter.write(", ");
                 }
                 final short sst;
-                if (i != 0 && (lonCount / i) % 2 == 0) {
+                if (isEvenLine(i)) {
                     sst = (short) ((293.15f - 273.15f) / 0.01f);
                 } else {
                     sst = -32768;
@@ -174,6 +174,10 @@ class MapDataGenerator {
                 }
             }
         }
+    }
+
+    boolean isEvenLine(int i) {
+        return (i / lonCount) % 2 == 0;
     }
 
     String getLatFilePath() {
