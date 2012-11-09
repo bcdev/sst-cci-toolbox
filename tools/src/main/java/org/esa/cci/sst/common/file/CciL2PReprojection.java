@@ -18,7 +18,7 @@ import java.util.Arrays;
  * Satellite coordinates are changed to Lat-Lon coordinate system.
  * The result is fully comparable with an sst-cci-L3U product.
  * The result is collected in a NetCdf-Array.
- *
+ * <p/>
  * {@author Bettina Scholze, Sabine Embacher}
  * Date: 18.10.12 09:28
  */
@@ -31,12 +31,8 @@ public class CciL2PReprojection {
     private Number fillValue;
     private double scaling;
     private double offset;
-    private static File logfile = new File("C:/Users/bettina/Desktop/log.txt");
-
 
     public Array doReprojection(File file, String format, String variable) throws IOException {
-        append(variable);
-
         this.array = initialiseArray();
         this.variable = variable;
         Product product = ProductIO.readProduct(file, format); //opens product
@@ -77,40 +73,28 @@ public class CciL2PReprojection {
 
         int offsetY = (int) Math.round((90 - latMaxUpShifted) / 0.05);
         int offsetX = (int) Math.round(Math.abs(-180 - lonMinLeftShifted) / 0.05);
-        int startIndex = offsetY * extent.getWidth() + offsetX;
+        int startIndex = offsetY * gridDef.getWidth() + offsetX;
 
-        int existentValueCounter = 0;
-        int nonNanCounter = 0;
-        int valueCounter = 0;
         for (int y = 0; y < extent.getHeight(); y++) {
             for (int x = 0; x < extent.getWidth(); x++) {
-                valueCounter++;
                 int sourceIndex = y * extent.getWidth() + x;
                 int targetIndex = startIndex + y * gridDef.getWidth() + x;
+
                 double existentValue = this.array.getDouble(targetIndex);
-                double recentValue = values[sourceIndex];
-                if (!Double.isNaN(existentValue)) {
-                    recentValue = (existentValue + recentValue) / 2.0;
-                    existentValueCounter++;
+                double currentValue = values[sourceIndex];
+
+                boolean currentHasValue = !Double.isNaN(currentValue);
+                boolean currentIsNAN = Double.isNaN(currentValue);
+                boolean existentHasValue = !Double.isNaN(existentValue);
+                if (currentHasValue && existentHasValue) {
+                    currentValue = (existentValue + currentValue) / 2.0;
+                } else if (currentIsNAN && existentHasValue) {
+                    currentValue = existentValue;
                 }
-                this.array.setDouble(targetIndex, recentValue);
-                //debug
-                if (!Double.isNaN(recentValue)) {
-                    nonNanCounter++;
-                }
+
+                this.array.setDouble(targetIndex, currentValue);
             }
         }
-        append("Had to overwrite: " + existentValueCounter + " values.");
-        append(" There are: " + valueCounter + " entries in values.");
-        append(" Non-NaN values : " + nonNanCounter);
-    }
-
-    public static void append(String entry) throws IOException {
-        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(logfile, true));
-        PrintWriter printWriter = new PrintWriter(fileWriter);
-        printWriter.print(entry);
-        printWriter.flush();
-        printWriter.close();
     }
 
     IntPoint createBoundingBoxInPixels(DoublePoint origin, double lonMax, double latMin, double resolution) {
@@ -245,7 +229,11 @@ public class CciL2PReprojection {
 
     }
 
-    void setVariable(String variable) { //for test only
-        this.variable = variable;
+    private static void append(String entry) throws IOException { //for debugging only
+        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(new File("C:/Users/bettina/Desktop/log.txt"), true));
+        PrintWriter printWriter = new PrintWriter(fileWriter);
+        printWriter.print(entry);
+        printWriter.flush();
+        printWriter.close();
     }
 }
