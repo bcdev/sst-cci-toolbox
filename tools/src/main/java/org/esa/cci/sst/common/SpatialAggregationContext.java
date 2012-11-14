@@ -32,6 +32,9 @@ public final class SpatialAggregationContext {
     private final Grid[] sourceGrids;
     private final Grid analysedSstGrid; //in source resolution
     private final Grid seaCoverageGrid; //in source resolution
+    //todo
+    private Grid stdDeviationGrid; //in source resolution
+
 
     public SpatialAggregationContext(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid) {
         this.sourceGridDef = sourceGridDef;

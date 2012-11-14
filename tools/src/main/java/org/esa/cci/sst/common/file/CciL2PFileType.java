@@ -92,7 +92,7 @@ public class CciL2PFileType extends CciL3FileType {
         grids[5] = createArrayGrid(adjustmentUncertaintyReprojection, adjustmentUncertaintyArray, variable);
 
         //for debugging
-//        writeIntermediate(grids);
+        writeIntermediate(grids);
         return grids;
     }
 

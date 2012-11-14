@@ -306,6 +306,7 @@ public class CciL3FileType extends AbstractCciFileType {
         private SynopticAreaCountEstimator synopticAreaCountEstimator;
         protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new SynopticUncertaintyAccumulator();
         protected final NumberAccumulator adjustmentUncertaintyAccu = new SynopticUncertaintyAccumulator();
+        protected final NumberAccumulator stdDeviationAccu = new ArithmeticMeanAccumulator();
 
 
         private L3URegriddingCell(CoverageUncertaintyProvider coverageUncertaintyProvider,
@@ -332,6 +333,8 @@ public class CciL3FileType extends AbstractCciFileType {
 
         @Override
         public double computeCoverageUncertainty() {
+            //todo
+//            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount(), stdDeviationAccu.combine());
             return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
         }
 
@@ -369,6 +372,8 @@ public class CciL3FileType extends AbstractCciFileType {
                         if (adjustmentUncertaintyGrid != null) {
                             adjustmentUncertaintyAccu.accumulate(adjustmentUncertaintyGrid.getSampleDouble(x, y), seaCoverage);
                         }
+                        //todo
+//                        stdDeviationAccu.accumulate(stdDeviationGrid.getSampleDouble(x,y)*stdDeviationGrid.getSampleDouble(x,y));
                     }
                 }
             }

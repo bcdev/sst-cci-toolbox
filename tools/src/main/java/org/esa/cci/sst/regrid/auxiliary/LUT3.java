@@ -2,7 +2,6 @@ package org.esa.cci.sst.regrid.auxiliary;
 
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.regrid.SpatialResolution;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 
@@ -20,7 +19,8 @@ public class LUT3 {
     public static LUT3 read(File lut3File, SpatialResolution spatialResolution) {
         //todo readGrid()
         //todo bs scale(spatialResolution) if not on demanded resolution
-        throw new NotImplementedException();
+//        throw new NotImplementedException();
+        return new LUT3();
     }
 
     public double getDxy(int x, int y) {
