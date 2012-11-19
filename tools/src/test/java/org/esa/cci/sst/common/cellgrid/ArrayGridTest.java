@@ -6,6 +6,7 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 import static java.lang.Double.NaN;
+import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
 
 /**
@@ -93,4 +94,27 @@ public class ArrayGridTest {
         assertArrayEquals(expected, actual, 1e-10);
     }
 
+    @Test
+    public void testGetSample() throws Exception {
+        ArrayGrid arrayGrid = ArrayGrid.createWith2DDoubleArray(GridDef.createGlobal(0.05));
+
+        assertEquals(3600, arrayGrid.getHeight());
+        assertEquals(7200, arrayGrid.getWidth());
+        assertEquals(1.0, arrayGrid.getScaling(), 0.0);
+        assertEquals(0.0, arrayGrid.getOffset(), 0.0);
+
+        assertEquals(0.0, arrayGrid.getSampleDouble(0, 0), 0.0);
+        assertEquals(0.0, arrayGrid.getSampleDouble(0, 3559), 0.0);
+        try {
+            arrayGrid.getSampleDouble(0, 3600);
+            fail("ArrayIndexOutOfBoundsException expected");
+        } catch (ArrayIndexOutOfBoundsException expected) {
+        }
+        assertEquals(0.0, arrayGrid.getSampleDouble(7199, 3559), 0.0);
+        try {
+            arrayGrid.getSampleDouble(7200, 3559);
+            fail("ArrayIndexOutOfBoundsException expected");
+        } catch (Exception e) {
+        }
+    }
 }

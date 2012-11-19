@@ -122,6 +122,10 @@ public class ArrayGrid implements Grid {
 
     @Override
     public double getSampleDouble(int x, int y) {
+        if (x >= width || y >= height) {
+            throw new ArrayIndexOutOfBoundsException("width: " + width + "; height: " + height + "    x=" + x + "; y=" + y);
+        }
+
         int index = y * width + x;
         double sample = array.getDouble(index);
         if (fillTest.isFill(sample)) {
