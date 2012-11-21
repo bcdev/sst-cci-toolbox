@@ -170,7 +170,7 @@ public class Climatology {
         LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         if (!OSTIA_GRID_DEF.equals(gridDef)) {
-            sstGrid = scaleDown(sstGrid, gridDef);
+            sstGrid = ArrayGrid.scaleDown(sstGrid, gridDef);
         }
         LOGGER.fine(String.format("Transforming 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         cachedGrid.dayOfYear = dayOfYear;
@@ -185,13 +185,13 @@ public class Climatology {
         t0 = System.currentTimeMillis();
         seaCoverageSourceGrid = maskGrid.unmask(0x01);
         if (!OSTIA_GRID_DEF.equals(gridDef)) {
-            seaCoverageSourceGrid = scaleDown(seaCoverageSourceGrid, gridDef);
+            seaCoverageSourceGrid = ArrayGrid.scaleDown(seaCoverageSourceGrid, gridDef);
         }
         // Uncomment for debugging
         // writeMaskImage();
-        seaCoverageCell1Grid = scaleDown(seaCoverageSourceGrid, GLOBAL_1D_GRID_DEF);
-        seaCoverageCell5Grid = scaleDown(seaCoverageSourceGrid, GLOBAL_5D_GRID_DEF);
-        seaCoverageCell90Grid = scaleDown(seaCoverageCell5Grid, GLOBAL_90D_GRID_DEF);
+        seaCoverageCell1Grid = ArrayGrid.scaleDown(seaCoverageSourceGrid, GLOBAL_1D_GRID_DEF);
+        seaCoverageCell5Grid = ArrayGrid.scaleDown(seaCoverageSourceGrid, GLOBAL_5D_GRID_DEF);
+        seaCoverageCell90Grid = ArrayGrid.scaleDown(seaCoverageCell5Grid, GLOBAL_90D_GRID_DEF);
         LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
 
         LOGGER.info(String.format("Sea-water coverages in 90x90 deg. cells: %s", seaCoverageCell90Grid.getArray()));
@@ -205,25 +205,6 @@ public class Climatology {
         byte[] dest = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
         System.arraycopy(src, 0, dest, 0, image.getWidth() * image.getHeight());
         ImageIO.write(image, "PNG", new File("sea-coverage-grid.png"));
-    }
-
-    private static ArrayGrid scaleDown(ArrayGrid grid, GridDef targetGridDef) {
-        int sourceWidth = grid.getWidth();
-        int sourceHeight = grid.getHeight();
-        int targetWidth = targetGridDef.getWidth();
-        int targetHeight = targetGridDef.getHeight();
-        int scaleX = sourceWidth / targetWidth;
-        int scaleY = sourceHeight / targetHeight;
-        if (scaleX == 0 || scaleX * targetWidth != sourceWidth
-                || scaleY == 0 || scaleY * targetHeight != sourceHeight) {
-            throw new IllegalStateException(String.format("Climatology grid cannot be adapted scaled to %d x %d cells.", targetWidth, targetHeight));
-        }
-        LOGGER.fine(String.format("Scaling climatology grid from %dx%d down to %dx%d cells...", grid.getWidth(), grid.getHeight(),
-                targetGridDef.getWidth(), targetGridDef.getHeight()));
-        long t0 = System.currentTimeMillis();
-        grid = grid.scaleDown(scaleX, scaleY);
-        LOGGER.fine(String.format("Scaling took %d ms", System.currentTimeMillis() - t0));
-        return grid;
     }
 
     private static String[] getMissingDays(File[] files) {

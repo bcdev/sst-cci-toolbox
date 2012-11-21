@@ -139,6 +139,24 @@ public class ArrayGrid implements Grid {
         array.setDouble(index, sample);
     }
 
+    public static ArrayGrid scaleDown(ArrayGrid grid, GridDef targetGridDef) {
+        int sourceWidth = grid.getWidth();
+        int sourceHeight = grid.getHeight();
+        int targetWidth = targetGridDef.getWidth();
+        int targetHeight = targetGridDef.getHeight();
+        int scaleX = sourceWidth / targetWidth;
+        int scaleY = sourceHeight / targetHeight;
+
+        if (scaleX == 0 || scaleX * targetWidth != sourceWidth
+                || scaleY == 0 || scaleY * targetHeight != sourceHeight) {
+            throw new IllegalStateException(String.format(
+                    grid.getVariable() + " grid cannot be adapted scaled to %d x %d cells.",
+                    targetWidth, targetHeight));
+        }
+
+        return grid.scaleDown(scaleX, scaleY);
+    }
+
     public ArrayGrid scaleDown(int scaleX, int scaleY) {
         final GridDef newGridDef = new GridDef(gridDef.getWidth() / scaleX,
                 gridDef.getHeight() / scaleY,

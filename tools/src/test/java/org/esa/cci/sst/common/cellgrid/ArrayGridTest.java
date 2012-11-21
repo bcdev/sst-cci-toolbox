@@ -51,6 +51,25 @@ public class ArrayGridTest {
     }
 
     @Test
+    public void testScaleDownUtil() throws Exception {
+        ArrayGrid arrayGrid2 = ArrayGrid.scaleDown(arrayGrid,  GridDef.createGlobalGrid(4, 2));
+
+        assertNotNull(arrayGrid2);
+        assertEquals(gridDef.getWidth() / 2, arrayGrid2.getGridDef().getWidth());
+        assertEquals(gridDef.getHeight() / 2, arrayGrid2.getGridDef().getHeight());
+        assertEquals(gridDef.getEasting(), arrayGrid2.getGridDef().getEasting(), 1e-10);
+        assertEquals(gridDef.getNorthing(), arrayGrid2.getGridDef().getNorthing(), 1e-10);
+        assertEquals(gridDef.getResolutionX() * 2, arrayGrid2.getGridDef().getResolutionX(), 1e-10);
+        assertEquals(gridDef.getResolutionY() * 2, arrayGrid2.getGridDef().getResolutionY(), 1e-10);
+        double[] expected = new double[]{
+                0.25, 0.4, 0.2, 0.4,
+                0.2, 0.2, 0.3, NaN,
+        };
+        double[] actual = (double[]) arrayGrid2.getArray().getStorage();
+        assertArrayEquals(expected, actual, 1e-10);
+    }
+
+    @Test
     public void testFillValue() throws Exception {
 
         double[] expected = new double[]{
