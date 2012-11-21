@@ -19,7 +19,13 @@ public class LutForStdDeviationTest {
 
     @Before
     public void setUp() throws Exception {
-        file = new File("./src/main/conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc");
+        try {
+            file = new File("./src/main/conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc");
+        } catch (Exception e) {
+            throw new RuntimeException("Lut '20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc' not found. " +
+                    "Get the Lut from fs1:/projects/ongoing/SST-CCI/docs/technical-specification/tools/ " +
+                    "and put it in: ./src/main/conf/auxdata/");
+        }
     }
 
     @Test
