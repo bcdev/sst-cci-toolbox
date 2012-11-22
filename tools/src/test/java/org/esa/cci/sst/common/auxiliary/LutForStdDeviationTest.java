@@ -27,7 +27,7 @@ public class LutForStdDeviationTest {
 
     @Before
     public void setUp() throws Exception {
-        file = new File("./src/main/conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc");
+        file = new File("./src/main/conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev_subset.nc");
     }
 
     private LutForStdDeviation createLutForStdDeviation(GridDef gridDef) throws IOException {
@@ -64,10 +64,10 @@ public class LutForStdDeviationTest {
         assertEquals(1800, grid.getHeight());
         assertEquals(3600, grid.getWidth());
 
-//        grid.setVariable("uncertainty");
-//        final Grid[] grids = new Grid[1];
-//        grids[0] = grid;
-//        writeIntermediate(grids);
+        grid.setVariable("uncertainty");
+        final Grid[] grids = new Grid[1];
+        grids[0] = grid;
+        writeIntermediate(grids);
     }
 
     private void writeIntermediate(Grid[] grids) throws IOException {
