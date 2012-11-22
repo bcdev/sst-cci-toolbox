@@ -4,6 +4,7 @@ import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -42,6 +43,7 @@ public class LutForXTimeTest {
         assertEquals(179, LutForXTimeSpace.calculateCorner(360));
     }
 
+    @Ignore
     @Test
     public void testRead() throws Exception {
         SpatialResolution degree1000 = SpatialResolution.DEGREE_10_00;
