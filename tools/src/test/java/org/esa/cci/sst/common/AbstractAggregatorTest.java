@@ -58,25 +58,25 @@ public class AbstractAggregatorTest {
                         new ScalarGrid(sourceGridDef, 292.0),
                 },
                 new ScalarGrid(sourceGridDef, 292.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+                new ScalarGrid(sourceGridDef, 0.8), null);
         SpatialAggregationContext context2 = new SpatialAggregationContext(sourceGridDef,
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 293.0),
                 },
                 new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+                new ScalarGrid(sourceGridDef, 0.8), null);
         SpatialAggregationContext context3 = new SpatialAggregationContext(sourceGridDef,
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 291.0),
                 },
                 new ScalarGrid(sourceGridDef, 289.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+                new ScalarGrid(sourceGridDef, 0.8), null);
         SpatialAggregationContext context4 = new SpatialAggregationContext(sourceGridDef,
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 291.0),
                 },
                 new ScalarGrid(sourceGridDef, 288.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+                new ScalarGrid(sourceGridDef, 0.8), null);
 
         RegionMask regionMask = RegionMask.create("East_Atlantic", -25, 45, -15, 35);
 

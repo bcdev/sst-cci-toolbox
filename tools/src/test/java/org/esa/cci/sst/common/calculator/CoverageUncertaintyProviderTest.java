@@ -13,17 +13,17 @@ public class CoverageUncertaintyProviderTest {
     @Test
     public void testCell5() throws Exception {
         CoverageUncertaintyProvider provider = create();
-        Assert.assertEquals(Double.NaN, provider.calculateCoverageUncertainty5(0, 0, 0L), 1.0e-10);
-        Assert.assertEquals(1.1 * (1.0 - pow(5L / 77500.0, 0.5)), provider.calculateCoverageUncertainty5(0, 0, 5L), 1.0e-10);
-        Assert.assertEquals(1.1 * (1.0 - pow(12L / 77500.0, 0.5)), provider.calculateCoverageUncertainty5(0, 0, 12L), 1.0e-10);
+        Assert.assertEquals(Double.NaN, provider.calculateCoverageUncertainty(0, 0, 0L, 5.0), 1.0e-10);
+        Assert.assertEquals(1.1 * (1.0 - pow(5L / 77500.0, 0.5)), provider.calculateCoverageUncertainty(0, 0, 5L, 5.0), 1.0e-10);
+        Assert.assertEquals(1.1 * (1.0 - pow(12L / 77500.0, 0.5)), provider.calculateCoverageUncertainty(0, 0, 12L, 5.0), 1.0e-10);
     }
 
     @Test
     public void testCell90() throws Exception {
         CoverageUncertaintyProvider provider = create();
-        Assert.assertEquals(Double.NaN, provider.calculateCoverageUncertainty90(0, 0, 0L), 1.0e-10);
-        Assert.assertEquals(1.2 / sqrt(5L), provider.calculateCoverageUncertainty90(0, 0, 5L), 1.0e-10);
-        Assert.assertEquals(1.2 / sqrt(12L), provider.calculateCoverageUncertainty90(0, 0, 12L), 1.0e-10);
+        Assert.assertEquals(Double.NaN, provider.calculateCoverageUncertainty(0, 0, 0L, 90.0), 1.0e-10);
+        Assert.assertEquals(1.2 / sqrt(5L), provider.calculateCoverageUncertainty(0, 0, 5L, 90.0), 1.0e-10);
+        Assert.assertEquals(1.2 / sqrt(12L), provider.calculateCoverageUncertainty(0, 0, 12L, 90.0), 1.0e-10);
     }
 
     private CoverageUncertaintyProvider create() {

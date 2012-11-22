@@ -57,6 +57,18 @@ public class ArrayGrid implements Grid {
         height = gridDef.getHeight();
     }
 
+    ArrayGrid(ArrayGrid arrayGrid) {
+        this.gridDef = arrayGrid.getGridDef();
+        this.variable = arrayGrid.getVariable();
+        this.array = arrayGrid.getArray();
+        this.scaling = arrayGrid.getScaling();
+        this.offset = arrayGrid.getOffset();
+        this.fillValue = arrayGrid.getFillValue();
+        this.fillTest = createFillTest(fillValue);
+        width = gridDef.getWidth();
+        height = gridDef.getHeight();
+    }
+
     public String getVariable() {
         return variable;
     }

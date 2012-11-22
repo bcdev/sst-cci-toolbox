@@ -37,7 +37,7 @@ public class CciL4FileTypeTest {
                         new ScalarGrid(sourceGridDef, 0.5), //seaIceFractionGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
@@ -75,7 +75,7 @@ public class CciL4FileTypeTest {
                         new ScalarGrid(sourceGridDef, 0.5), //sea_ice_fraction
                 },
                 new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+                new ScalarGrid(sourceGridDef, 0.8), null);
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);

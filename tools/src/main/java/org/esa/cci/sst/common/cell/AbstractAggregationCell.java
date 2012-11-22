@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.common.cell;
 
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculator.CoverageUncertainty;
 
 /**
  * A daily or monthly / 5º or 90º cell.
@@ -27,14 +27,14 @@ import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
  * @author Norman Fomferra
  */
 public abstract class AbstractAggregationCell extends AbstractCell implements AggregationCell {
-    private final CoverageUncertaintyProvider coverageUncertaintyProvider;
+    private final CoverageUncertainty coverageUncertaintyProvider;
 
-    protected AbstractAggregationCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+    protected AbstractAggregationCell(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
         super(x, y);
         this.coverageUncertaintyProvider = coverageUncertaintyProvider;
     }
 
-    public final CoverageUncertaintyProvider getCoverageUncertaintyProvider() {
+    public final CoverageUncertainty getCoverageUncertaintyProvider() {
         return coverageUncertaintyProvider;
     }
 

@@ -32,15 +32,15 @@ public final class SpatialAggregationContext {
     private final Grid[] sourceGrids;
     private final Grid analysedSstGrid; //in source resolution
     private final Grid seaCoverageGrid; //in source resolution
-    //todo
     private Grid stdDeviationGrid; //in source resolution
 
 
-    public SpatialAggregationContext(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid) {
+    public SpatialAggregationContext(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid, Grid stdDeviationGrid) {
         this.sourceGridDef = sourceGridDef;
         this.sourceGrids = sourceGrids;
         this.analysedSstGrid = analysedSstGrid;
         this.seaCoverageGrid = seaCoverageGrid;
+        this.stdDeviationGrid = stdDeviationGrid;
     }
 
     public GridDef getSourceGridDef() {
@@ -57,5 +57,9 @@ public final class SpatialAggregationContext {
 
     public Grid getSeaCoverageGrid() {
         return seaCoverageGrid;
+    }
+
+    public Grid getStdDeviationGrid() {
+        return stdDeviationGrid;
     }
 }

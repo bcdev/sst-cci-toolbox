@@ -36,9 +36,13 @@ public class Aggregator4Regav extends AbstractAggregator {
 
     private final RegionMaskList regionMaskList;
     private RegionMask combinedRegionMask;
+    private LUT1 lut1;
+    private LUT2 lut2;
 
     public Aggregator4Regav(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1, LUT2 lut2, SstDepth sstDepth) {
-        super(fileStore, climatology, lut1, lut2, sstDepth);
+        super(fileStore, climatology, null, sstDepth);
+        this.lut1 = lut1;
+        this.lut2 = lut2;
         this.regionMaskList = regionMaskList;
         this.combinedRegionMask = RegionMask.combine(regionMaskList);
     }
@@ -254,5 +258,26 @@ public class Aggregator4Regav extends AbstractAggregator {
             resultList.add(multiMonthAggregation);
         }
         return resultList;
+    }
+
+    protected CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date, SpatialResolution spatialResolution) {
+        int month = UTC.createCalendar(date).get(Calendar.MONTH);
+
+        return new CoverageUncertaintyProvider(month, spatialResolution) {
+            @Override
+            protected double getMagnitude5(int cellX, int cellY) {
+                return lut1.getMagnitudeGrid5().getSampleDouble(cellX, cellY);
+            }
+
+            @Override
+            protected double getExponent5(int cellX, int cellY) {
+                return lut1.getExponentGrid5().getSampleDouble(cellX, cellY);
+            }
+
+            @Override
+            protected double getMagnitude90(int cellX, int cellY, int month11) {
+                return lut2.getMagnitude90(month11, cellX, cellY);
+            }
+        };
     }
 }

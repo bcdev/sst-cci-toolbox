@@ -20,7 +20,8 @@ import org.esa.cci.sst.common.RegionMaskList;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.auxiliary.LUT1;
+import org.esa.cci.sst.common.auxiliary.LutForStdDeviation;
+import org.esa.cci.sst.common.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.regrid.auxiliary.LUT3;
 import org.esa.cci.sst.tool.*;
@@ -95,11 +96,19 @@ public class RegriddingTool extends Tool {
     private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
             "The maximum relative total uncertainty allowed for non-missing output.", true);  //todo bs implement
 
-    public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE = new Parameter("coverageUncertaintyFile", "FILE",
-            "./conf/auxdata/coverage_uncertainty_parameters.nc",
-            "A NetCDF file that provides lookup table for coverage uncertainties."); //todo bs add LUTS for different resolutions
+    public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV = new Parameter("coverageUncertainty.StdDev", "FILE",
+            "./conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc",
+            "A NetCDF file that provides lookup table 1/3 for coverage uncertainties.");
 
-    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelationFile", "FILE",
+    public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME = new Parameter("coverageUncertainty.x0Time", "FILE",
+            "./conf/auxdata/x0_time.txt",
+            "A txt file that provides lookup table 2/3 for coverage uncertainties.");
+
+    public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE = new Parameter("coverageUncertainty.x0Space", "FILE",
+            "./conf/auxdata/x0_space.txt",
+            "A txt file that provides lookup table 3/3 for coverage uncertainties.");
+
+    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelation", "FILE",
             "./conf/auxdata/TBD.nc",
             "A NetCDF file that provides lookup table for synoptically correlated uncertainties."); //todo bs add LUT
 
@@ -125,7 +134,9 @@ public class RegriddingTool extends Tool {
         final File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         final RegionMaskList regionMaskList = parseRegionListInTargetSpatialResolution(configuration);
         final double minCoverage = Double.parseDouble(configuration.getString(PARAM_MIN_COVERAGE, false));
-        final File lut1File = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE, true);
+        final File lutCuFileStddev = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
+        final File lutCuFileTime = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME, true);
+        final File lutCuFileSpace = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
         final File lut3File = configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
         boolean totalUncertainty = checkTotalUncertainty(configuration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true));
         //todo
@@ -133,16 +144,15 @@ public class RegriddingTool extends Tool {
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
-        LUT1 lut1 = getLUT1(lut1File); //coverage uncertainty (magnitude5, exponent5)
+        LutForStdDeviation lutCuStddev = createLutForStdDeviation(lutCuFileStddev);
+        LutForXTimeSpace lutCuTime = getLutCoverageUncertainty(lutCuFileTime, spatialResolution, -32768.0);
+        LutForXTimeSpace lutCuSpace = getLutCoverageUncertainty(lutCuFileSpace, spatialResolution, 0.0);
         LUT3 lut3 = getLUT3(lut3File, spatialResolution);
-
-        // Enable for debugging
-        // printGrid(climatology);
 
         List<RegriddingTimeStep> timeSteps;
         try {
-            Aggregator4Regrid aggregator = new Aggregator4Regrid(
-                    regionMaskList, fileStore, climatology, lut1, null, lut3, sstDepth, minCoverage, spatialResolution);
+            Aggregator4Regrid aggregator = new Aggregator4Regrid(regionMaskList, fileStore, climatology,
+                    lut3, lutCuStddev, lutCuTime, lutCuSpace, sstDepth, minCoverage, spatialResolution);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
@@ -215,7 +225,9 @@ public class RegriddingTool extends Tool {
                 PARAM_SST_DEPTH,
                 PARAM_OUTPUT_DIR,
                 PARAM_PRODUCT_TYPE,
-                PARAM_COVERAGE_UNCERTAINTY_FILE,
+                PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV,
+                PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME,
+                PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE,
                 PARAM_MIN_COVERAGE,
                 PARAM_SYNOPTIC_CORRELATION_FILE,
                 PARAM_TEMPORAL_RES));
@@ -239,15 +251,26 @@ public class RegriddingTool extends Tool {
         }
     }
 
-    private LUT1 getLUT1(File lut1File) throws ToolException {
-        LUT1 lut1;
+    private LutForStdDeviation createLutForStdDeviation(File lutFile) throws ToolException {
+        LutForStdDeviation lutForStdDeviation;
         try {
-            lut1 = LUT1.read(lut1File);
-            LOGGER.info(String.format("LUT-1 read from '%s'", lut1File));
+            lutForStdDeviation = LutForStdDeviation.create(lutFile, productType.getGridDef());
+            LOGGER.info(String.format("LUT read from '%s'", lutFile));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
         }
-        return lut1;
+        return lutForStdDeviation;
+    }
+
+    private LutForXTimeSpace getLutCoverageUncertainty(File lutFile, SpatialResolution spatialResolution, double fillValue) throws ToolException {
+        LutForXTimeSpace lutForXTimeSpace;
+        try {
+            lutForXTimeSpace = LutForXTimeSpace.read(lutFile, spatialResolution, fillValue);
+            LOGGER.info(String.format("LUT read from '%s'", lutFile));
+        } catch (IOException e) {
+            throw new ToolException(e, ExitCode.IO_ERROR);
+        }
+        return lutForXTimeSpace;
     }
 
     private LUT3 getLUT3(File lut3File, SpatialResolution spatialResolution) throws ToolException {

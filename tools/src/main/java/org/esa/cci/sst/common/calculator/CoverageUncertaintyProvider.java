@@ -26,14 +26,15 @@ import static java.lang.Math.sqrt;
 
 /**
  * Access to coverage uncertainties.
+ * Deprecated but still used in Regional Averaging Tool.
  *
  * @author Norman Fomnferra
  */
-public abstract class CoverageUncertaintyProvider {
+@Deprecated
+public abstract class CoverageUncertaintyProvider implements CoverageUncertainty {
 
     private final int month;
     private final SpatialResolution spatialResolution;
-    //todo Coverage Uncertainty for other target resolutions than 5 or 90 °
 
     protected CoverageUncertaintyProvider(int month, SpatialResolution spatialResolution) {
         this.month = month;
@@ -52,7 +53,7 @@ public abstract class CoverageUncertaintyProvider {
      * @param n     The number of 5° grid boxes contributing to the 90° cell.
      * @return The coverage uncertainty for a 90° cell
      */
-    public double calculateCoverageUncertainty90(int cellX, int cellY, long n) {
+    private double calculateCoverageUncertainty90(int cellX, int cellY, long n) {
         if (n == 0L) {
             return Double.NaN;
         }
@@ -63,14 +64,25 @@ public abstract class CoverageUncertaintyProvider {
     protected abstract double getMagnitude90(int cellX, int cellY, int month);
 
     /**
-     * Returns the coverage uncertainty for a 5° cell.
+     * Returns the coverage uncertainty for a 5° or 90° cell. Returns 0.0 if another resolution is demanded.
      *
-     * @param cellX The 5° cell X index.
-     * @param cellY The 5° cell Y index.
-     * @param n     The number of observations contributing to the 5° cell.
-     * @return The coverage uncertainty for a 5° cell
+     * @param cellX The 5°/90° cell X index.
+     * @param cellY The 5°/90° cell Y index.
+     * @param n     The number of observations contributing to the 5°/90° cell.
+     * @return The coverage uncertainty for a 5°/90° cell
      */
-    public double calculateCoverageUncertainty5(int cellX, int cellY, long n) {
+    @Override
+    public double calculateCoverageUncertainty(int cellX, int cellY, long n, double resolution) {
+        if (5.0 == resolution) {
+            return calculateCoverageUncertainty5(cellX, cellY, n);
+        } else if (90.0 == resolution){
+            return calculateCoverageUncertainty90(cellX, cellY, n);
+        } else {
+            return 0.0;
+        }
+    }
+
+    private double calculateCoverageUncertainty5(int cellX, int cellY, long n) {
         if (!SpatialResolution.DEGREE_5_00.equals(this.spatialResolution)) {
             return 0.0;
         }

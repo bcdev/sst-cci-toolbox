@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.common;
 
+import java.util.Date;
+
 /**
  * Possible temporal resolutions.
  *
@@ -28,5 +30,15 @@ public enum TemporalResolution {
     daily,
     monthly,
     seasonal,
-    annual
+    annual;
+
+    private Date date1;
+
+    public void setDate1(Date date1) {
+        this.date1 = date1;
+    }
+
+    public Date getDate1() {
+        return date1;
+    }
 }

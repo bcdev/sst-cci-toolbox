@@ -1,8 +1,7 @@
 package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.auxiliary.LUT1;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.auxiliary.LutForStdDeviation;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
@@ -12,8 +11,6 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
@@ -21,7 +18,6 @@ import ucar.nc2.NetcdfFile;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -34,21 +30,17 @@ public abstract class AbstractAggregator {
     protected static final Logger LOGGER = Tool.LOGGER;
 
     private final FileStore fileStore;
+    private final LutForStdDeviation lutForStdDeviation;
     private final FileType fileType;
     private final SstDepth sstDepth;
     private final Climatology climatology;
-    private final LUT1 lut1;
-    private final LUT2 lut2;
 
-    public AbstractAggregator(FileStore fileStore,
-                              Climatology climatology, LUT1 lut1, LUT2 lut2, SstDepth sstDepth) {
-
+    public AbstractAggregator(FileStore fileStore, Climatology climatology, LutForStdDeviation lutForStdDeviation, SstDepth sstDepth) {
         this.fileStore = fileStore;
-        this.fileType = fileStore.getProductType().getFileType();
         this.climatology = climatology;
-        this.lut1 = lut1;
-        this.lut2 = lut2;
+        this.lutForStdDeviation = lutForStdDeviation;
         this.sstDepth = sstDepth;
+        this.fileType = fileStore.getProductType().getFileType();
     }
 
     abstract public List<? extends TimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException;
@@ -62,7 +54,8 @@ public abstract class AbstractAggregator {
         return new SpatialAggregationContext(fileStore.getProductType().getGridDef(),
                 readSourceGrids(netcdfFile),
                 climatology.getAnalysedSstGrid(dayOfYear),
-                climatology.getSeaCoverageSourceGrid());
+                climatology.getSeaCoverageSourceGrid(),
+                lutForStdDeviation == null ? null : lutForStdDeviation.getStdDeviationGrid());
     }
 
     private Grid[] readSourceGrids(NetcdfFile netcdfFile) throws IOException {
@@ -110,27 +103,6 @@ public abstract class AbstractAggregator {
             }
         }
         return cellTargetGrid;
-    }
-
-    protected CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date, SpatialResolution spatialResolution) {
-        int month = UTC.createCalendar(date).get(Calendar.MONTH);
-
-        return new CoverageUncertaintyProvider(month, spatialResolution) {
-            @Override
-            protected double getMagnitude5(int cellX, int cellY) {
-                return lut1.getMagnitudeGrid5().getSampleDouble(cellX, cellY);
-            }
-
-            @Override
-            protected double getExponent5(int cellX, int cellY) {
-                return lut1.getExponentGrid5().getSampleDouble(cellX, cellY);
-            }
-
-            @Override
-            protected double getMagnitude90(int cellX, int cellY, int month11) {
-                return lut2.getMagnitude90(month11, cellX, cellY);
-            }
-        };
     }
 
     public FileStore getFileStore() {

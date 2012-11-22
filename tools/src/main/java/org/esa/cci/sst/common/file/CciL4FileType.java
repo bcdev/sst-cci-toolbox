@@ -21,7 +21,7 @@ package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculator.CoverageUncertainty;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.*;
@@ -129,16 +129,16 @@ public class CciL4FileType extends AbstractCciFileType {
             case SPATIAL_CELL_5: {
                 return new CellFactory<SpatialAggregationCell>() {
                     @Override
-                    public L4UCell5 createCell(int cellX, int cellY) {
-                        return new L4UCell5(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
+                    public L4Cell5 createCell(int cellX, int cellY) {
+                        return new L4Cell5(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
                     }
                 };
             }
             case SPATIAL_CELL_REGRIDDING: {
                 return new CellFactory<SpatialAggregationCell>() {
                     @Override
-                    public L4URegriddingCell createCell(int cellX, int cellY) {
-                        return new L4URegriddingCell(cellType.getCoverageUncertaintyProvider(),
+                    public L4RegriddingCell createCell(int cellX, int cellY) {
+                        return new L4RegriddingCell(cellType.getCoverageUncertaintyProvider(),
                                 CellTypes.getMinCoverage(), cellX, cellY);
                     }
                 };
@@ -161,7 +161,7 @@ public class CciL4FileType extends AbstractCciFileType {
         protected final NumberAccumulator analysisErrorAccu = new RandomUncertaintyAccumulator();
         protected final NumberAccumulator seaIceFractionAccu = new ArithmeticMeanAccumulator();
 
-        private AbstractL4Cell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private AbstractL4Cell(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
@@ -204,7 +204,7 @@ public class CciL4FileType extends AbstractCciFileType {
     private static abstract class AbstractL4USpatialAggregationCell extends AbstractL4Cell implements SpatialAggregationCell {
         private int maximumSampleCount;
 
-        private AbstractL4USpatialAggregationCell(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private AbstractL4USpatialAggregationCell(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
@@ -240,29 +240,29 @@ public class CciL4FileType extends AbstractCciFileType {
         }
     }
 
-    private static class L4UCell5 extends AbstractL4USpatialAggregationCell {
+    private static class L4Cell5 extends AbstractL4USpatialAggregationCell {
 
-        private L4UCell5(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private L4Cell5(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
         @Override
         public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
         }
     }
 
-    private static class L4URegriddingCell extends AbstractL4USpatialAggregationCell {
+    private static class L4RegriddingCell extends AbstractL4USpatialAggregationCell {
         private double minCoverage;
 
-        private L4URegriddingCell(CoverageUncertaintyProvider coverageUncertaintyProvider, double minCoverage, int x, int y) {
+        private L4RegriddingCell(CoverageUncertainty coverageUncertaintyProvider, double minCoverage, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
             this.minCoverage = minCoverage;
         }
 
         @Override
         public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().calculateCoverageUncertainty5(getX(), getY(), sstAnomalyAccu.getSampleCount());
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
         }
 
         @Override
@@ -312,12 +312,12 @@ public class CciL4FileType extends AbstractCciFileType {
         }
     }
 
-    private static class L4Cell90 extends AbstractL4Cell implements CellAggregationCell<L4UCell5> {
+    private static class L4Cell90 extends AbstractL4Cell implements CellAggregationCell<L4Cell5> {
 
         // New 5-to-90 deg coverage uncertainty aggregation
         protected final NumberAccumulator coverageUncertainty5Accu = new RandomUncertaintyAccumulator();
 
-        private L4Cell90(CoverageUncertaintyProvider coverageUncertaintyProvider, int x, int y) {
+        private L4Cell90(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
@@ -328,12 +328,12 @@ public class CciL4FileType extends AbstractCciFileType {
         @Override
         public double computeCoverageUncertainty() {
             final double uncertainty5 = computeCoverageUncertainty5Average();
-            final double uncertainty90 = getCoverageUncertaintyProvider().calculateCoverageUncertainty90(getX(), getY(), sstAnomalyAccu.getSampleCount());
+            final double uncertainty90 = getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 90.0);
             return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
         }
 
         @Override
-        public void accumulate(L4UCell5 cell, double seaCoverage90) {
+        public void accumulate(L4Cell5 cell, double seaCoverage90) {
             sstAccu.accumulate(cell.computeSstAverage(), seaCoverage90);
             sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage90);
             // New 5-to-90 deg coverage uncertainty aggregation
