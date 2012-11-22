@@ -71,7 +71,7 @@ public class LutForXTimeTest {
         StringBuilder stringBuilder = new StringBuilder();
         for (int y = 0; y < gridDef.getHeight(); y++) {
             for (int x = 0; x < gridDef.getWidth(); x++) {
-                double xTime = lut.getXTime(x, y);
+                double xTime = lut.getXValue(x, y);
                 stringBuilder.append(String.format("%4.2f ", xTime));
 
             }

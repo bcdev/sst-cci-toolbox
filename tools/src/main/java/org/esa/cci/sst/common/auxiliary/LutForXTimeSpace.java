@@ -12,6 +12,10 @@ import java.io.FileReader;
 import java.io.IOException;
 
 /**
+ * Lookup table as demanded by Regridding Tool specification equations 1.6x.
+ * Used to calculate the sampling/coverage uncertainty for the new grid box.
+ * <p/>
+
  * {@author Bettina Scholze}
  * Date: 09.11.12 15:32
  */
@@ -54,7 +58,7 @@ public class LutForXTimeSpace {
      * @param cellY y
      * @return
      */
-    public double getXTime(int cellX, int cellY) {
+    public double getXValue(int cellX, int cellY) {
         return this.lutGrid.getSampleDouble(cellX, cellY);
     }
 
