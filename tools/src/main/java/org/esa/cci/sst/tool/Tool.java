@@ -193,6 +193,7 @@ public abstract class Tool {
 
     private void printHelp() {
         HelpFormatter helpFormatter = new HelpFormatter();
+        helpFormatter.setWidth(120);
         helpFormatter.printHelp(getSyntax(),
                 getHeader(),
                 options,
