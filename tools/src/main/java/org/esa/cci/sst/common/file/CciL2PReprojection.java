@@ -12,6 +12,7 @@ import ucar.ma2.DataType;
 import java.awt.*;
 import java.io.*;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 /**
  * This class does a reprojection of an cci-L2P product per variable/band.
@@ -140,6 +141,7 @@ public class CciL2PReprojection {
 
     Product subset(Product product, int step) { //step starts with 0
         SubsetOp subsetOp = new SubsetOp();
+        subsetOp.getLogger().setLevel(Level.SEVERE);
         subsetOp.setSourceProduct(product);
 
         int stepSizeY = 1000;
@@ -151,6 +153,7 @@ public class CciL2PReprojection {
 
     Product reproject(Product subProduct, DoublePoint origin, IntPoint boundingBoxExtension) {
         ReprojectionOp reprojectionOp = new ReprojectionOp();
+        reprojectionOp.getLogger().setLevel(Level.SEVERE);
         reprojectionOp.setSourceProduct(subProduct);
 
         reprojectionOp.setParameter("crs", "GEOGCS[\"WGS84(DD)\", \n" +
