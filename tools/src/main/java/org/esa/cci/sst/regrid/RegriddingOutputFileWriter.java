@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * {@author Bettina Scholze}
  * Date: 24.09.12 09:04
  */
-public class RegriddingOutputFileWriter {
+class RegriddingOutputFileWriter {
     public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst.regrid");
     private final ProductType productType;
     private final String toolName;
@@ -55,17 +55,16 @@ public class RegriddingOutputFileWriter {
     }
 
 
-    void writeOutputs(File outputDir, boolean totalUncertainty, String filenameRegex,
-                      SstDepth sstDepth, TemporalResolution temporalResolution,
-                      RegionMask regionMask, List<RegriddingTimeStep> timeSteps) throws IOException {
+    public void writeOutputs(File outputDir, String filenameRegex,
+                             SstDepth sstDepth, TemporalResolution temporalResolution,
+                             RegionMask regionMask, List<RegriddingTimeStep> timeSteps) throws IOException {
 
         for (RegriddingTimeStep timeStep : timeSteps) {
-            writeOutputs(outputDir, totalUncertainty, filenameRegex, sstDepth,
-                    temporalResolution, regionMask, timeStep);
+            writeOutputs(outputDir, filenameRegex, sstDepth, temporalResolution, regionMask, timeStep);
         }
     }
 
-    private void writeOutputs(File outputDir, boolean totalUncertainty, String filenameRegex,
+    private void writeOutputs(File outputDir, String filenameRegex,
                               SstDepth sstDepth, TemporalResolution temporalResolution,
                               RegionMask regionMask, RegriddingTimeStep regriddingTimeStep) throws IOException {
 
@@ -146,7 +145,6 @@ public class RegriddingOutputFileWriter {
                 float[] vec = dataMap.get(name).getAsFloats();
                 writeDataToNetCdfFile(netcdfFile, name, Array.factory(DataType.FLOAT, shape, vec));
             }
-            //copy data for time todo
         } finally {
             try {
                 netcdfFile.flush();

@@ -161,8 +161,7 @@ public class RegriddingTool extends Tool {
         try {
             RegriddingOutputFileWriter outputWriter = new RegriddingOutputFileWriter(
                     productType, TOOL_NAME, TOOL_VERSION, FILE_FORMAT_VERSION, totalUncertainty);
-            outputWriter.writeOutputs(
-                    outputDir, totalUncertainty, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0), timeSteps);
+            outputWriter.writeOutputs(outputDir, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0), timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
