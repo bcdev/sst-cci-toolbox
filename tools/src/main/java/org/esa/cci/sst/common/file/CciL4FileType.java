@@ -20,10 +20,7 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.*;
-import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
-import org.esa.cci.sst.common.calculator.CoverageUncertainty;
-import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculator.*;
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
@@ -201,16 +198,19 @@ public class CciL4FileType extends AbstractCciFileType {
         }
     }
 
-    private static abstract class AbstractL4USpatialAggregationCell extends AbstractL4Cell implements SpatialAggregationCell {
-        private int maximumSampleCount;
+    private static class L4Cell5 extends AbstractL4Cell implements SpatialAggregationCell {
 
-        private AbstractL4USpatialAggregationCell(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
+        private L4Cell5(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
         @Override
+        public double computeCoverageUncertainty() {
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
+        }
+
+        @Override
         public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
-            maximumSampleCount = rect.height * rect.width;
 
             final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
             final Grid analysisErrorGrid = spatialAggregationContext.getSourceGrids()[1];
@@ -234,26 +234,12 @@ public class CciL4FileType extends AbstractCciFileType {
                 }
             }
         }
-
-        int getMaximumSampleCount() {
-            return maximumSampleCount;
-        }
     }
 
-    private static class L4Cell5 extends AbstractL4USpatialAggregationCell {
-
-        private L4Cell5(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
-            super(coverageUncertaintyProvider, x, y);
-        }
-
-        @Override
-        public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
-        }
-    }
-
-    private static class L4RegriddingCell extends AbstractL4USpatialAggregationCell {
+    private static class L4RegriddingCell extends AbstractL4Cell implements SpatialAggregationCell {
         private double minCoverage;
+        private int maximumSampleCount;
+        protected final NumberAccumulator stdDeviationAccu = new SquaredAverageAccumulator();
 
         private L4RegriddingCell(CoverageUncertainty coverageUncertaintyProvider, double minCoverage, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
@@ -262,7 +248,38 @@ public class CciL4FileType extends AbstractCciFileType {
 
         @Override
         public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
+            final long sampleCount = sstAccu.getSampleCount();
+            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sampleCount, stdDeviationAccu.combine());
+        }
+
+        @Override
+        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            maximumSampleCount = rect.height * rect.width;
+
+            final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
+            final Grid analysisErrorGrid = spatialAggregationContext.getSourceGrids()[1];
+            final Grid seaIceFractionGrid = spatialAggregationContext.getSourceGrids()[2];
+            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
+            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
+            final Grid stdDeviationGrid = spatialAggregationContext.getStdDeviationGrid();
+
+            final int x0 = rect.x;
+            final int y0 = rect.y;
+            final int x1 = x0 + rect.width - 1;
+            final int y1 = y0 + rect.height - 1;
+            for (int y = y0; y <= y1; y++) {
+                for (int x = x0; x <= x1; x++) {
+                    final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
+                    final double sst = sstGrid.getSampleDouble(x, y);
+                    if (seaCoverage > 0.0 && sst > 0) {
+                        sstAccu.accumulate(sst, seaCoverage);
+                        sstAnomalyAccu.accumulate(sst - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
+                        analysisErrorAccu.accumulate(analysisErrorGrid.getSampleDouble(x, y), seaCoverage);
+                    }
+                    seaIceFractionAccu.accumulate(seaIceFractionGrid.getSampleDouble(x, y), 1);
+                    stdDeviationAccu.accumulate(stdDeviationGrid.getSampleDouble(x, y), seaCoverage);
+                }
+            }
         }
 
         @Override
@@ -285,6 +302,10 @@ public class CciL4FileType extends AbstractCciFileType {
             } else {
                 return Double.NaN;
             }
+        }
+
+        int getMaximumSampleCount() {
+            return maximumSampleCount;
         }
     }
 

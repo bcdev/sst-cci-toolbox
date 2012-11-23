@@ -127,7 +127,6 @@ public class CciL3FileType extends AbstractCciFileType {
             };
 
         }
-
         return variables;
     }
 
@@ -334,7 +333,7 @@ public class CciL3FileType extends AbstractCciFileType {
 
         @Override
         public double computeCoverageUncertainty() {
-            final long sampleCount = sstAnomalyAccu.getSampleCount();
+            final long sampleCount = sstAccu.getSampleCount();
             return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sampleCount, stdDeviationAccu.combine());
         }
 

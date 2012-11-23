@@ -5,11 +5,13 @@ import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.tool.Tool;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Lookup table as demanded by Regridding Tool specification equations 1.6x.
@@ -20,6 +22,7 @@ import java.io.IOException;
  * Date: 09.11.12 15:32
  */
 public class LutForXTimeSpace {
+    private static final Logger LOGGER = Tool.LOGGER;
 
     private static final GridDef sourceGridDef = GridDef.createGlobal(2.0);
     private static final int LENGTH_OF_A_LUT_ENTRY = 9;
@@ -40,14 +43,15 @@ public class LutForXTimeSpace {
      * @throws IOException
      */
     public static LutForXTimeSpace read(File file, SpatialResolution targetResolution, double fillValue) throws IOException {
-
+        long t0 = System.currentTimeMillis();
+        LOGGER.info(String.format("Processing input LUT for coverage uncertainty file '%s'", file.getPath()));
         ArrayGrid lutIn2Degree = readInAndFlip(file, fillValue);
-
         ArrayGrid lutIn005Degree = interpolateTo005(lutIn2Degree);
 
         int scaleFactor = (int) (targetResolution.getValue() / 0.05);
         ArrayGrid lutInTargetResolution = lutIn005Degree.scaleDown(scaleFactor, scaleFactor);
 
+        LOGGER.info(String.format("Ready processing input LUT for coverage uncertainty in%d ms", System.currentTimeMillis() - t0));
         return new LutForXTimeSpace(lutInTargetResolution);
     }
 

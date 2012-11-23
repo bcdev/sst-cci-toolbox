@@ -89,8 +89,8 @@ public class RegriddingTool extends Tool {
             "The directory path to the reference climatology.");
 
     private static final Parameter PARAM_MIN_COVERAGE = new Parameter("minCoverage", "NUM", "0.0",
-            "The minimum fractional coverage " +
-                    "required for non-missing output. (fraction of valid values in input per grid box in output) ");
+            "The minimum fractional coverage required for non-missing output. " +
+                    "(fraction of valid values in input per grid box in output) ");
 
     //optional due to specification
     private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
