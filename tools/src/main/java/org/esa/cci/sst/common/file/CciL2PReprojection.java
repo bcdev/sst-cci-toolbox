@@ -67,8 +67,8 @@ public class CciL2PReprojection {
 
         Product reprojectProduct = reproject(subProduct, origin, extent); //product piece with aligned bounding box
 
-        //debug todo
-        write(reprojectProduct);
+        //debug
+//        write(reprojectProduct);
 
         //transfer values from bounding box in reprojected product to array
         double[] values = new double[extent.getWidth() * extent.getHeight()];
@@ -98,11 +98,6 @@ public class CciL2PReprojection {
                 this.array.setDouble(targetIndex, currentValue);
             }
         }
-    }
-
-    private void write(Product reprojectProduct) throws IOException {
-        ProductIO.writeProduct(reprojectProduct,
-                "C:\\Users\\bettina\\Development\\test-data\\sst-cci\\l2p\\output\\regridding\\2012-11-08\\part.dim", null);
     }
 
     IntPoint createBoundingBoxInPixels(DoublePoint origin, double lonMax, double latMin, double resolution) {
@@ -244,4 +239,10 @@ public class CciL2PReprojection {
         printWriter.flush();
         printWriter.close();
     }
+
+    private void write(Product reprojectProduct) throws IOException { //for debugging only
+        ProductIO.writeProduct(reprojectProduct,
+                "C:\\Users\\bettina\\Development\\test-data\\sst-cci\\l2p\\output\\regridding\\2012-11-08\\part.dim", null);
+    }
+
 }

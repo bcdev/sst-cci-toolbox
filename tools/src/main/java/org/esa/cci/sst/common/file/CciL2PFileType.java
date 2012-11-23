@@ -92,7 +92,7 @@ public class CciL2PFileType extends CciL3FileType {
         grids[5] = createArrayGrid(adjustmentUncertaintyReprojection, adjustmentUncertaintyArray, variable);
 
         //for debugging
-        writeIntermediate(grids);
+//        writeIntermediate(grids);
         return grids;
     }
 
@@ -112,7 +112,7 @@ public class CciL2PFileType extends CciL3FileType {
         return arrayGrid;
     }
 
-    private void writeIntermediate(Grid[] grids) throws IOException {
+    private void writeIntermediate(Grid[] grids) throws IOException { //for debugging only
         GridDef gridDef = grids[0].getGridDef();
         SpatialResolution spatialResolution = SpatialResolution.getFromValue(String.valueOf(gridDef.getResolution()));
 
@@ -185,7 +185,7 @@ public class CciL2PFileType extends CciL3FileType {
         }
     }
 
-    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws IOException {
+    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws IOException { //for debugging only
         try {
             netcdfFile.write(variable, array);
         } catch (InvalidRangeException e) {
