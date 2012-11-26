@@ -8,6 +8,7 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.CciL3FileType;
+import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
@@ -107,25 +108,7 @@ class RegriddingOutputFileWriter {
             Dimension bndsDim = netcdfFile.addDimension("bnds", 2);
             Dimension[] dimensionMeasurementRelated = {timeDim, latDim, lonDim};
 
-            Variable latVar = netcdfFile.addVariable("lat", DataType.FLOAT, new Dimension[]{latDim});
-            latVar.addAttribute(new Attribute("units", "degrees_north"));
-            latVar.addAttribute(new Attribute("long_name", "latitude"));
-            latVar.addAttribute(new Attribute("bounds", "lat_bnds"));
-
-            Variable latBnds = netcdfFile.addVariable("lat_bnds", DataType.FLOAT, new Dimension[]{latDim, bndsDim});
-            latBnds.addAttribute(new Attribute("units", "degrees_north"));
-            latBnds.addAttribute(new Attribute("long_name", "latitude cell boundaries"));
-
-            Variable lonVar = netcdfFile.addVariable("lon", DataType.FLOAT, new Dimension[]{lonDim});
-            lonVar.addAttribute(new Attribute("units", "degrees_east"));
-            lonVar.addAttribute(new Attribute("long_name", "longitude"));
-            lonVar.addAttribute(new Attribute("bounds", "lon_bnds"));
-
-            Variable lonBnds = netcdfFile.addVariable("lon_bnds", DataType.FLOAT, new Dimension[]{lonDim, bndsDim});
-            lonBnds.addAttribute(new Attribute("units", "degrees_east"));
-            lonBnds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
-
-            Variable[] variables = productType.getFileType().createOutputVariables(netcdfFile, sstDepth, totalUncertainty, dimensionMeasurementRelated);
+            Variable[] variables = createVariables(sstDepth, netcdfFile, latDim, lonDim, bndsDim, dimensionMeasurementRelated);
 
             //write header
             netcdfFile.create();
@@ -155,6 +138,32 @@ class RegriddingOutputFileWriter {
         }
     }
 
+    Variable[] createVariables(SstDepth sstDepth,
+                               NetcdfFileWriteable netcdfFile,
+                               Dimension latDim, Dimension lonDim, Dimension bndsDim,
+                               Dimension[] dimensionMeasurementRelated) {
+        Variable latVar = netcdfFile.addVariable("lat", DataType.FLOAT, new Dimension[]{latDim});
+        latVar.addAttribute(new Attribute("units", "degrees_north"));
+        latVar.addAttribute(new Attribute("long_name", "latitude"));
+        latVar.addAttribute(new Attribute("bounds", "lat_bnds"));
+
+        Variable latBnds = netcdfFile.addVariable("lat_bnds", DataType.FLOAT, new Dimension[]{latDim, bndsDim});
+        latBnds.addAttribute(new Attribute("units", "degrees_north"));
+        latBnds.addAttribute(new Attribute("long_name", "latitude cell boundaries"));
+
+        Variable lonVar = netcdfFile.addVariable("lon", DataType.FLOAT, new Dimension[]{lonDim});
+        lonVar.addAttribute(new Attribute("units", "degrees_east"));
+        lonVar.addAttribute(new Attribute("long_name", "longitude"));
+        lonVar.addAttribute(new Attribute("bounds", "lon_bnds"));
+
+        Variable lonBnds = netcdfFile.addVariable("lon_bnds", DataType.FLOAT, new Dimension[]{lonDim, bndsDim});
+        lonBnds.addAttribute(new Attribute("units", "degrees_east"));
+        lonBnds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
+
+        final FileType fileType = productType.getFileType();
+        return fileType.createOutputVariables(netcdfFile, sstDepth, totalUncertainty, dimensionMeasurementRelated);
+    }
+
     /* rescale from 2D grid to 1D vector, one per variable */
     private HashMap<String, VectorContainer> prepareDataMap(CellGrid<? extends AggregationCell> cellGrid, int height, int width, Variable[] variables) {
 
@@ -174,7 +183,7 @@ class RegriddingOutputFileWriter {
                     String variableName = variable.getName();
                     VectorContainer vectorContainer = dataMap.get(variableName);
 
-                    if (mustCalculateTotalUncertainty(variableName)) {
+                    if (isWantedTotalUncertainty(variableName)) {
                         double totalUncertainty = calculateTotalUncertaintyFromUncertainties(variables, results, variableCount);
                         vectorContainer.put(index1D, totalUncertainty);
                         break;
@@ -187,19 +196,19 @@ class RegriddingOutputFileWriter {
         return dataMap;
     }
 
-    private boolean mustCalculateTotalUncertainty(String variableName) {
+    private boolean isWantedTotalUncertainty(String variableName) {
         return CciL3FileType.OUT_VAR_TOTAL_UNCERTAINTY.equals(variableName) && totalUncertainty;
     }
 
     /*Per convention the ordering is such, that all relevant uncertainties are at the end of the result[] vector*/
-    private static double calculateTotalUncertaintyFromUncertainties(Variable[] variables,
-                                                                     Number[] results,
-                                                                     int variableCount) {
+    static double calculateTotalUncertaintyFromUncertainties(Variable[] variables,
+                                                             Number[] results,
+                                                             int startIndexOfUncertaintyVariables) {
         double uncertaintySum = 0.0;
-        while (variableCount < variables.length) {
-            double value = results[variableCount].doubleValue();
-            uncertaintySum += value * value;
-            variableCount++;
+        while (startIndexOfUncertaintyVariables < results.length) { //uncertainties are at the end of results
+            double value = results[startIndexOfUncertaintyVariables].doubleValue();
+            uncertaintySum += (value * value);
+            startIndexOfUncertaintyVariables++;
         }
         return Math.sqrt(uncertaintySum);
     }
