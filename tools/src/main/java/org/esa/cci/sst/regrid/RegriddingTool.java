@@ -92,9 +92,8 @@ public class RegriddingTool extends Tool {
             "The minimum fractional coverage required for non-missing output. " +
                     "(fraction of valid values in input per grid box in output) ");
 
-    //optional due to specification
-    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxUncertainty", "NUM", "",
-            "The maximum relative total uncertainty allowed for non-missing output.", true);  //todo bs implement
+    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxTotalUncertainty", "NUM", "1.0",
+            "The maximum relative total uncertainty allowed for non-missing output.", true);
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV = new Parameter("coverageUncertainty.StdDev", "FILE",
             "./conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc",
@@ -139,8 +138,7 @@ public class RegriddingTool extends Tool {
         final File lutCuFileSpace = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
         final File lut3File = configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
         boolean totalUncertainty = checkTotalUncertainty(configuration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true));
-        //todo
-//        String maxUncertainty = configuration.getString(PARAM_MAX_UNCERTAINTY, false);
+        double maxTotalUncertainty = Double.parseDouble(configuration.getString(PARAM_MAX_UNCERTAINTY, false));
 
         Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
         FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
@@ -160,7 +158,7 @@ public class RegriddingTool extends Tool {
 
         try {
             RegriddingOutputFileWriter outputWriter = new RegriddingOutputFileWriter(
-                    productType, TOOL_NAME, TOOL_VERSION, FILE_FORMAT_VERSION, totalUncertainty);
+                    productType, TOOL_NAME, TOOL_VERSION, FILE_FORMAT_VERSION, totalUncertainty, maxTotalUncertainty);
             outputWriter.writeOutputs(outputDir, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0), timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);

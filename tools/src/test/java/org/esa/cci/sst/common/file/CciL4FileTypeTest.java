@@ -55,9 +55,9 @@ public class CciL4FileTypeTest {
         assertEquals("Expected count of accumulators", 5, results.length);
         assertEquals(292.0, results[0].doubleValue(), 1e-6); //sst
         assertEquals(0.5, results[1].doubleValue(), 1e-6); //sstAnomaly
-        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[2].doubleValue(), 1e-6); //coverageUncertainty
-        assertEquals(sqrt((0.8 * 0.8 * 300) / ((0.8 * 300) * (0.8 * 300))), results[3].doubleValue(), 1e-6); //analysisError
-        assertEquals((0.5 * 300) / 300, results[4].doubleValue(), 1e-6); //seaIceFraction
+        assertEquals((0.5 * 300) / 300, results[2].doubleValue(), 1e-6); //seaIceFraction
+        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[3].doubleValue(), 1e-6); //coverageUncertainty
+        assertEquals(sqrt((0.8 * 0.8 * 300) / ((0.8 * 300) * (0.8 * 300))), results[4].doubleValue(), 1e-6); //analysisError
     }
 
     @Test
@@ -116,9 +116,9 @@ public class CciL4FileTypeTest {
         assertEquals(292.0, results[0].doubleValue(), 1e-6); //sst
         assertEquals(0.5, results[1].doubleValue(), 1e-6); //sstAnomaly
         // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.86736869, results[2].doubleValue(), 1e-6); //coverageUncertainty
-        assertEquals(0.00467707, results[3].doubleValue(), 1e-6); //analysisError
-        assertEquals(0.5, results[4].doubleValue(), 1e-6); //seaIceFraction
+        assertEquals(0.5, results[2].doubleValue(), 1e-6); //seaIceFraction
+        assertEquals(0.86736869, results[3].doubleValue(), 1e-6); //coverageUncertainty
+        assertEquals(0.00467707, results[4].doubleValue(), 1e-6); //analysisError
     }
 
 

@@ -89,8 +89,8 @@ public class ArcL3UFileTypeTest {
         assertEquals(4, results.length);
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        assertEquals(sqrt(300 * sqr(0.1 * 0.8) / sqr(300 * 0.8)), results[2].doubleValue(), 1e-6);
-        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[3].doubleValue(), 1e-6);
+        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[2].doubleValue(), 1e-6);
+        assertEquals(sqrt(300 * sqr(0.1 * 0.8) / sqr(300 * 0.8)), results[3].doubleValue(), 1e-6);
     }
 
     @Test
@@ -147,8 +147,8 @@ public class ArcL3UFileTypeTest {
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
         // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.0046771, results[2].doubleValue(), 1e-6);
-        assertEquals(0.8673687, results[3].doubleValue(), 1e-6);
+        assertEquals(0.8673687, results[2].doubleValue(), 1e-6);
+        assertEquals(0.0046771, results[3].doubleValue(), 1e-6);
     }
 
     @Test
@@ -198,8 +198,8 @@ public class ArcL3UFileTypeTest {
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
         // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.00414578, results[2].doubleValue(), 1e-6);
-        assertEquals(0.66611642, results[3].doubleValue(), 1e-6);
+        assertEquals(0.66611642, results[2].doubleValue(), 1e-6);
+        assertEquals(0.00414578, results[3].doubleValue(), 1e-6);
     }
 
     @Test
@@ -256,8 +256,8 @@ public class ArcL3UFileTypeTest {
         assertEquals(292.0, results[0].doubleValue(), 1e-6);
         assertEquals(0.5, results[1].doubleValue(), 1e-6);
         // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.00381517, results[2].doubleValue(), 1e-6);
-        assertEquals(0.62927276, results[3].doubleValue(), 1e-6);
+        assertEquals(0.62927276, results[2].doubleValue(), 1e-6);
+        assertEquals(0.00381517, results[3].doubleValue(), 1e-6);
     }
 
     public static double sqr(double x) {

@@ -68,6 +68,11 @@ public class CciL4FileType extends AbstractCciFileType {
         sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
+        Variable seaIceCoverageVar = file.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
+        seaIceCoverageVar.addAttribute(new Attribute("units", "1"));
+        seaIceCoverageVar.addAttribute(new Attribute("long_name", "mean of sea ice fraction"));
+        seaIceCoverageVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
         Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
         coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
@@ -78,17 +83,12 @@ public class CciL4FileType extends AbstractCciFileType {
         analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error in kelvin"));
         analysisErrorVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable seaIceCoverageVar = file.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
-        seaIceCoverageVar.addAttribute(new Attribute("units", "1"));
-        seaIceCoverageVar.addAttribute(new Attribute("long_name", "mean of sea ice fraction"));
-        seaIceCoverageVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-
         return new Variable[]{
                 sstVar,
                 sstAnomalyVar,
+                seaIceCoverageVar,
                 coverageUncertaintyVar,
                 analysisErrorVar,
-                seaIceCoverageVar
         };
     }
 
@@ -191,9 +191,9 @@ public class CciL4FileType extends AbstractCciFileType {
             return new Number[]{
                     (float) computeSstAverage(),
                     (float) computeSstAnomalyAverage(),
+                    (float) computeSeaIceFractionAverage(),
                     (float) computeCoverageUncertainty(),
                     (float) computeAnalysisErrorAverage(),
-                    (float) computeSeaIceFractionAverage()
             };
         }
     }
@@ -288,9 +288,9 @@ public class CciL4FileType extends AbstractCciFileType {
             return new Number[]{
                     (float) checkMinCoverage(computeSstAverage()),
                     (float) checkMinCoverage(computeSstAnomalyAverage()),
+                    (float) computeSeaIceFractionAverage(),
                     (float) checkMinCoverage(computeCoverageUncertainty()),
-                    (float) checkMinCoverage(computeAnalysisErrorAverage()),
-                    (float) computeSeaIceFractionAverage()
+                    (float) checkMinCoverage(computeAnalysisErrorAverage())
             };
         }
 
@@ -327,9 +327,9 @@ public class CciL4FileType extends AbstractCciFileType {
             //Note: know the ordering from AbstractL4Cell#getResults
             sstAccu.accumulate(values[0].floatValue(), 1);
             sstAnomalyAccu.accumulate(values[1].floatValue(), 1);
-            coverageUncertaintyAccu.accumulate(values[2].floatValue(), 1);
-            analysisErrorAccu.accumulate(values[3].floatValue(), 1);
-            seaIceFractionAccu.accumulate(values[4].floatValue(), 1);
+            seaIceFractionAccu.accumulate(values[2].floatValue(), 1);
+            coverageUncertaintyAccu.accumulate(values[3].floatValue(), 1);
+            analysisErrorAccu.accumulate(values[4].floatValue(), 1);
         }
     }
 
@@ -402,9 +402,9 @@ public class CciL4FileType extends AbstractCciFileType {
             return new Number[]{
                     (float) computeSstAverage(),
                     (float) computeSstAnomalyAverage(),
+                    (float) computeSeaIceFractionAverage(),
                     (float) computeCoverageUncertaintyAverage(),
                     (float) computeAnalysisErrorAverage(),
-                    (float) computeSeaIceFractionAverage()
             };
         }
     }

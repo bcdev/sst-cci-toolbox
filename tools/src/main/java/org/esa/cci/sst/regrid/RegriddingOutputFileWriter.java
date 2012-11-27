@@ -36,9 +36,10 @@ class RegriddingOutputFileWriter {
     private final String toolVersion;
     private final String fileFormatVersion;
     private boolean totalUncertainty;
+    private double maxTotalUncertainty;
 
     public RegriddingOutputFileWriter(ProductType productType, String toolName, String toolVersion,
-                                      String fileFormatVersion, boolean totalUncertaintyWanted) {
+                                      String fileFormatVersion, boolean totalUncertaintyWanted, double maxTotalUncertainty) {
         this.productType = productType;
         this.toolName = toolName;
         this.toolVersion = toolVersion;
@@ -47,6 +48,7 @@ class RegriddingOutputFileWriter {
         if (totalUncertaintyWanted && isTotalUncertaintyPossible(productType)) {
             this.totalUncertainty = true;
         }
+        this.maxTotalUncertainty = maxTotalUncertainty;
     }
 
     public static boolean isTotalUncertaintyPossible(ProductType productType) {
@@ -167,53 +169,77 @@ class RegriddingOutputFileWriter {
     /* rescale from 2D grid to 1D vector, one per variable */
     private HashMap<String, VectorContainer> prepareDataMap(CellGrid<? extends AggregationCell> cellGrid, int height, int width, Variable[] variables) {
 
-        HashMap<String, VectorContainer> dataMap = new HashMap<String, VectorContainer>();
-        for (Variable variable : variables) {
-            dataMap.put(variable.getName(), new VectorContainer(height * width));
-        }
-
+        HashMap<String, VectorContainer> dataMap = initialiseDataMap(variables, height, width);
         //walk the grid
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 AggregationCell cell = cellGrid.getCell(x, y);
                 Number[] results = cell.getResults(); //results never contain totalUncertainty
                 int index1D = y * width + x;
-                for (int variableCount = 0; variableCount < variables.length; variableCount++) {
-                    Variable variable = variables[variableCount];
-                    String variableName = variable.getName();
-                    VectorContainer vectorContainer = dataMap.get(variableName);
-
-                    if (isWantedTotalUncertainty(variableName)) {
-                        double totalUncertainty = calculateTotalUncertaintyFromUncertainties(variables, results, variableCount);
-                        vectorContainer.put(index1D, totalUncertainty);
-                        break;
-                    } else {
-                        vectorContainer.put(index1D, results[variableCount].doubleValue());
-                    }
-                }
+                fillInDataMap(variables, dataMap, results, index1D);
             }
         }
         return dataMap;
     }
 
-    private boolean isWantedTotalUncertainty(String variableName) {
+    HashMap<String, VectorContainer> initialiseDataMap(Variable[] variables, int height, int width) {
+        HashMap<String, VectorContainer> dataMap = new HashMap<String, VectorContainer>();
+        for (Variable variable : variables) {
+            dataMap.put(variable.getName(), new VectorContainer(height * width));
+        }
+        return dataMap;
+    }
+
+    void fillInDataMap(Variable[] variables, HashMap<String, VectorContainer> dataMap, Number[] results, int index1D) {
+
+        double totalUncertainty = calculateTotalUncertainty(variables, results);
+
+        for (int variableCount = 0; variableCount < variables.length; variableCount++) {
+            Variable variable = variables[variableCount];
+            String variableName = variable.getName();
+            VectorContainer vectorContainer = dataMap.get(variableName);
+
+            if (isWantedAndAllowedTotalUncertainty(variableName)) {
+                double value = totalUncertainty < maxTotalUncertainty ? totalUncertainty : Double.NaN;
+                vectorContainer.put(index1D, value);
+                break;
+            } else {
+                double value = totalUncertainty < maxTotalUncertainty ? results[variableCount].doubleValue() : Double.NaN;
+                vectorContainer.put(index1D, value);
+            }
+        }
+    }
+
+    private boolean isWantedAndAllowedTotalUncertainty(String variableName) {
         return CciL3FileType.OUT_VAR_TOTAL_UNCERTAINTY.equals(variableName) && totalUncertainty;
     }
 
+
     /*Per convention the ordering is such, that all relevant uncertainties are at the end of the result[] vector*/
-    static double calculateTotalUncertaintyFromUncertainties(Variable[] variables,
-                                                             Number[] results,
-                                                             int startIndexOfUncertaintyVariables) {
+    static double calculateTotalUncertainty(Variable[] variables, Number[] results) {
+
         double uncertaintySum = 0.0;
-        while (startIndexOfUncertaintyVariables < results.length) { //uncertainties are at the end of results
-            double value = results[startIndexOfUncertaintyVariables].doubleValue();
-            uncertaintySum += (value * value);
-            startIndexOfUncertaintyVariables++;
+        for (int i = 0; i < variables.length; i++) {
+            final String variable = variables[i].getName();
+
+            if (identifyFirstUncertainty(variable)) {
+                while (i < results.length) {
+                    double value = results[i].doubleValue();
+                    if (!Double.isNaN(value)) {
+                        uncertaintySum += (value * value);
+                    }
+                    i++;
+                }
+            }
         }
         return Math.sqrt(uncertaintySum);
     }
 
-    private static class VectorContainer {
+    private static boolean identifyFirstUncertainty(String variable) {
+        return variable.contains("uncertainty") || variable.contains("error");
+    }
+
+    static class VectorContainer {
         double[] vec;
 
         private VectorContainer(int length) {

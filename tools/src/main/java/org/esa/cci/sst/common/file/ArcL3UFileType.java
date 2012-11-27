@@ -131,27 +131,21 @@ public class ArcL3UFileType implements FileType {
         sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
+        Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+        coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
+        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
+        coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
+
         Variable arcUncertaintyVar = file.addVariable("arc_uncertainty", DataType.FLOAT, dims);
         arcUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         arcUncertaintyVar.addAttribute(new Attribute("long_name", "mean of arc uncertainty in kelvin"));
         arcUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
-        coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
-        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
-        coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-        /*
-        Variable sampleCountVar = file.addVariable("sample_count", DataType.DOUBLE, dims);
-        arcUncertaintyVar.addAttribute(new Attribute("units", "1"));
-        sampleCountVar.addAttribute(new Attribute("long_name", String.format("counts of sst %s contributions.", sstDepth)));
-        */
-
         return new Variable[]{
                 sstVar,
                 sstAnomalyVar,
-                arcUncertaintyVar,
                 coverageUncertaintyVar,
-                // sampleCountVar,
+                arcUncertaintyVar
         };
     }
 
@@ -250,8 +244,8 @@ public class ArcL3UFileType implements FileType {
             return new Number[]{
                     (float) computeSstAverage(),
                     (float) computeSstAnomalyAverage(),
-                    (float) computeArcUncertaintyAverage(),
-                    (float) computeCoverageUncertainty()
+                    (float) computeCoverageUncertainty(),
+                    (float) computeArcUncertaintyAverage()
             };
         }
     }
@@ -273,8 +267,8 @@ public class ArcL3UFileType implements FileType {
             Number[] values = cell.getResults();
             sstAccu.accumulate(values[0].floatValue(), 1);
             sstAnomalyAccu.accumulate(values[1].floatValue(), 1);
-            arcUncertaintyAccu.accumulate(values[2].floatValue(), 1);
-            coverageUncertaintyAccu.accumulate(values[3].floatValue(), 1);
+            coverageUncertaintyAccu.accumulate(values[2].floatValue(), 1);
+            arcUncertaintyAccu.accumulate(values[3].floatValue(), 1);
         }
     }
 
@@ -366,8 +360,8 @@ public class ArcL3UFileType implements FileType {
             return new Number[]{
                     (float) checkMinCoverage(computeSstAverage()),
                     (float) checkMinCoverage(computeSstAnomalyAverage()),
-                    (float) checkMinCoverage(computeArcUncertaintyAverage()),
-                    (float) checkMinCoverage(computeCoverageUncertainty())
+                    (float) checkMinCoverage(computeCoverageUncertainty()),
+                    (float) checkMinCoverage(computeArcUncertaintyAverage())
             };
         }
 
@@ -444,8 +438,8 @@ public class ArcL3UFileType implements FileType {
             return new Number[]{
                     (float) computeSstAverage(),
                     (float) computeSstAnomalyAverage(),
-                    (float) computeArcUncertaintyAverage(),
-                    (float) computeCoverageUncertaintyAverage()
+                    (float) computeCoverageUncertaintyAverage(),
+                    (float) computeArcUncertaintyAverage()
             };
         }
     }
