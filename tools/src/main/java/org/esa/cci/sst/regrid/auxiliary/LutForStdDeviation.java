@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.auxiliary;
+package org.esa.cci.sst.regrid.auxiliary;
 
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;

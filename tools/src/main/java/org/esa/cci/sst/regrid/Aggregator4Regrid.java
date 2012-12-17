@@ -3,8 +3,6 @@ package org.esa.cci.sst.regrid;
 import org.apache.commons.lang.NotImplementedException;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.auxiliary.LutForStdDeviation;
-import org.esa.cci.sst.common.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyForRegridding;
 import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
 import org.esa.cci.sst.common.cell.AggregationCell;
@@ -16,7 +14,9 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
+import org.esa.cci.sst.regrid.auxiliary.LutForStdDeviation;
 import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
+import org.esa.cci.sst.regrid.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 

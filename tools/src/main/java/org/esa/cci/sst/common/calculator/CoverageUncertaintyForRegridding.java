@@ -2,8 +2,8 @@ package org.esa.cci.sst.common.calculator;
 
 import org.esa.beam.util.math.MathUtils;
 import org.esa.cci.sst.common.TemporalResolution;
-import org.esa.cci.sst.common.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.regrid.auxiliary.LutForXTimeSpace;
 
 import java.util.Calendar;
 

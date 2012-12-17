@@ -20,10 +20,10 @@ import org.esa.cci.sst.common.RegionMaskList;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.auxiliary.LutForStdDeviation;
-import org.esa.cci.sst.common.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.common.file.FileStore;
+import org.esa.cci.sst.regrid.auxiliary.LutForStdDeviation;
 import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
+import org.esa.cci.sst.regrid.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 

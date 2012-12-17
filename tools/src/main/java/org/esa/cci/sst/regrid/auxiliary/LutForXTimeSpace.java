@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.auxiliary;
+package org.esa.cci.sst.regrid.auxiliary;
 
 import org.esa.beam.util.math.MathUtils;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
