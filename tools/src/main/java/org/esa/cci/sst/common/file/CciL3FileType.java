@@ -316,15 +316,15 @@ public class CciL3FileType extends AbstractCciFileType {
             this.minCoverage = minCoverage;
         }
 
-        public double computeSynopticallyCorrelatedUncertaintyAverage() {
-            return checkMinCoverage(synopticallyCorrelatedUncertaintyAccu.combine() / calculateEta());
-        }
-
         public double computeAdjustmentUncertaintyAverage() {
             if (adjustmentUncertaintyAccu == null) {
                 return 0.0;
             }
             return checkMinCoverage(adjustmentUncertaintyAccu.combine() / calculateEta());
+        }
+
+        public double computeSynopticallyCorrelatedUncertaintyAverage() {
+            return checkMinCoverage(synopticallyCorrelatedUncertaintyAccu.combine() / calculateEta());
         }
 
         private double calculateEta() {

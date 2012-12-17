@@ -1,5 +1,6 @@
 package org.esa.cci.sst.regrid;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.auxiliary.LutForStdDeviation;
@@ -15,7 +16,7 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.regrid.auxiliary.LUT3;
+import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -36,10 +37,10 @@ public class Aggregator4Regrid extends AbstractAggregator {
     private SpatialResolution spatialTargetResolution;
     private final LutForXTimeSpace lutCuTime;
     private final LutForXTimeSpace lutCuSpace;
-    private final LUT3 lut3; //synoptically correlated uncertainties
+    private final LutForSynopticAreas lutForSynopticAreas;
 
     public Aggregator4Regrid(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
-                             LUT3 lut3, LutForStdDeviation lutCuStddev, LutForXTimeSpace lutCuTime, LutForXTimeSpace lutCuSpace,
+                             LutForSynopticAreas lutForSynopticAreas, LutForStdDeviation lutCuStddev, LutForXTimeSpace lutCuTime, LutForXTimeSpace lutCuSpace,
                              SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
 
         super(fileStore, climatology, lutCuStddev, sstDepth);
@@ -47,7 +48,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
         this.spatialTargetResolution = spatialTargetResolution;
         this.lutCuTime = lutCuTime;
         this.lutCuSpace = lutCuSpace;
-        this.lut3 = lut3;
+        this.lutForSynopticAreas = lutForSynopticAreas;
         FileType.CellTypes.setMinCoverage(minCoverage);
     }
 
@@ -103,7 +104,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
         temporalResolution.setDate1(date1);
         cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(temporalResolution, spatialResolution));
         if (getFileType().hasSynopticUncertainties()) {
-            cellType.setSynopticAreaCountEstimator(createSynopticAreaCountEstimator(spatialResolution));
+            cellType.setSynopticAreaCountEstimator(createSynopticAreaCountEstimator());
         }
         final CellFactory<SpatialAggregationCell> regriddingCellFactory = getFileType().getCellFactory(cellType);
         final CellGrid<SpatialAggregationCell> regriddingCellGrid = new CellGrid<SpatialAggregationCell>(gridDef, regriddingCellFactory);
@@ -155,17 +156,13 @@ public class Aggregator4Regrid extends AbstractAggregator {
         return new CoverageUncertaintyForRegridding(temporalResolution, spatialResolution, lutCuTime, lutCuSpace);
     }
 
-    private SynopticAreaCountEstimator createSynopticAreaCountEstimator(SpatialResolution spatialResolution) {
-        return new SynopticAreaCountEstimator(spatialResolution) {
+    private SynopticAreaCountEstimator createSynopticAreaCountEstimator() {
+        return new SynopticAreaCountEstimator(lutForSynopticAreas) {
 
             @Override
             public double getDxy(int x, int y) {
-                return lut3.getDxy(x, y);
-            }
-
-            @Override
-            public double getDt(int x, int y) {
-                return lut3.getDt(x, y);
+                throw new NotImplementedException();
+//                return lutForSynopticAreas.getDxy(x, y);
             }
         };
     }

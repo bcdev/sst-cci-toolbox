@@ -1,29 +1,35 @@
 package org.esa.cci.sst.common.calculator;
 
-import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
 
 /**
  * Eta is the estimated effective number of synoptic areas in the new grid box.
  * According to the Regridding Tool Specification equation 1.5 for synoptically correlated uncertainties.
- *
+ * <p/>
  * {@author Bettina Scholze}
  * Date: 13.09.12 10:08
  */
 public abstract class SynopticAreaCountEstimator {
-    private double spatialResolution;
-    
-    public SynopticAreaCountEstimator(SpatialResolution spatialResolution) {
-        this.spatialResolution = spatialResolution.getValue();
+
+    private LutForSynopticAreas lutForSynopticAreas;
+
+    public SynopticAreaCountEstimator(LutForSynopticAreas lutForSynopticAreas) {
+        this.lutForSynopticAreas = lutForSynopticAreas;
     }
 
-    public double getSpatialResolution() {
-        return spatialResolution;
-    }
-
+    /**
+     * Calculates eta, the parameter for the aggregation of synoptically correlated uncertainties.
+     *
+     * @param x           cell index x
+     * @param y           cell index y
+     * @param sampleCount valid input boxes
+     * @return eta
+     */
     public double calculateEta(int x, int y, long sampleCount) {
 
+        //average time separation between each pair of input grid boxes
+        double dt = lutForSynopticAreas.getDt();
         double dxy = getDxy(x, y);
-        double dt = getDt(x, y);
 
         double lxy = 100.0; //km
         double lt = 1.0; //day
@@ -35,18 +41,11 @@ public abstract class SynopticAreaCountEstimator {
     }
 
     /**
-     * 
+     * dxy average distance in space between each pair of input grid boxes
+     *
      * @param x cell index x
      * @param y cell index y
      * @return in km
      */
-   public abstract double getDxy(int x, int y);
-
-    /**
-     * 
-     * @param x cell index x
-     * @param y cell index y
-     * @return in days
-     */
-    public abstract double getDt(int x, int y);
+    public abstract double getDxy(int x, int y);
 }

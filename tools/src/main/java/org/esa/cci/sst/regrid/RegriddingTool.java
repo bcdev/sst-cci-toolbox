@@ -23,7 +23,7 @@ import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.auxiliary.LutForStdDeviation;
 import org.esa.cci.sst.common.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.regrid.auxiliary.LUT3;
+import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 
@@ -145,12 +145,12 @@ public class RegriddingTool extends Tool {
         LutForStdDeviation lutCuStddev = createLutForStdDeviation(lutCuFileStddev);
         LutForXTimeSpace lutCuTime = getLutCoverageUncertainty(lutCuFileTime, spatialResolution, -32768.0);
         LutForXTimeSpace lutCuSpace = getLutCoverageUncertainty(lutCuFileSpace, spatialResolution, 0.0);
-        LUT3 lut3 = getLUT3(lut3File, spatialResolution);
+        LutForSynopticAreas lutSynopticAreas = new LutForSynopticAreas(temporalResolution, spatialResolution);
 
         List<RegriddingTimeStep> timeSteps;
         try {
             Aggregator4Regrid aggregator = new Aggregator4Regrid(regionMaskList, fileStore, climatology,
-                    lut3, lutCuStddev, lutCuTime, lutCuSpace, sstDepth, minCoverage, spatialResolution);
+                    lutSynopticAreas, lutCuStddev, lutCuTime, lutCuSpace, sstDepth, minCoverage, spatialResolution);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
@@ -270,7 +270,4 @@ public class RegriddingTool extends Tool {
         return lutForXTimeSpace;
     }
 
-    private LUT3 getLUT3(File lut3File, SpatialResolution spatialResolution) throws ToolException {
-        return LUT3.read(lut3File, spatialResolution);
-    }
 }
