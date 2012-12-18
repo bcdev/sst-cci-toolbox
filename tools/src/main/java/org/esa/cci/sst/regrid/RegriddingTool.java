@@ -107,10 +107,6 @@ public class RegriddingTool extends Tool {
             "./conf/auxdata/x0_space.txt",
             "A txt file that provides lookup table 3/3 for coverage uncertainties.");
 
-    public static final Parameter PARAM_SYNOPTIC_CORRELATION_FILE = new Parameter("synopticCorrelation", "FILE",
-            "./conf/auxdata/TBD.nc",
-            "A NetCDF file that provides lookup table for synoptically correlated uncertainties."); //todo bs add LUT
-
     private ProductType productType;
 
 
@@ -136,7 +132,6 @@ public class RegriddingTool extends Tool {
         final File lutCuFileStddev = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
         final File lutCuFileTime = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME, true);
         final File lutCuFileSpace = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
-        final File lut3File = configuration.getExistingFile(PARAM_SYNOPTIC_CORRELATION_FILE, true);
         boolean totalUncertainty = checkTotalUncertainty(configuration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true));
         double maxTotalUncertainty = Double.parseDouble(configuration.getString(PARAM_MAX_UNCERTAINTY, false));
 
@@ -226,7 +221,6 @@ public class RegriddingTool extends Tool {
                 PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME,
                 PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE,
                 PARAM_MIN_COVERAGE,
-                PARAM_SYNOPTIC_CORRELATION_FILE,
                 PARAM_TEMPORAL_RES));
 
         ProductType[] values = ProductType.values();
