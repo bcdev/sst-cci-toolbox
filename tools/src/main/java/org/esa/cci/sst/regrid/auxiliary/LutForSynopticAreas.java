@@ -47,17 +47,44 @@ public class LutForSynopticAreas {
 
         if (targetTemporalResolution.equals(TemporalResolution.daily)) {
             return 0.0;
-//        } else if (targetTemporalResolution.equals(TemporalResolution.weekly)) //todo introduce weekly first
+        } else if (targetTemporalResolution.equals(TemporalResolution.weekly5d)) {
+            if (targetSpatialResolution.getValue() <= 1.5) {
+                return 2.0;
+            } else if (targetSpatialResolution.getValue() <= 2.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        } else if (targetTemporalResolution.equals(TemporalResolution.weekly7d)) {
+            if (targetSpatialResolution.getValue() <= 1.75) {
+                return 2.0;
+            } else if (targetSpatialResolution.getValue() <= 2.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
         } else if (targetTemporalResolution.equals(TemporalResolution.monthly)) {
             if (targetSpatialResolution.getValue() <= 0.5) {
                 return 10.0;
             } else if (targetSpatialResolution.getValue() <= 0.75) {
                 return 9.0;
-            } else if (targetSpatialResolution.getValue() == 0.8) {
-                return 8.0;
-            } else if (targetSpatialResolution.getValue() == 1.0) {
+            } else if (targetSpatialResolution.getValue() <= 0.8) {
+                return 8.5;
+            } else if (targetSpatialResolution.getValue() <= 1.0) {
                 return 6.0;
-            } else {//if (targetSpatialResolution.getValue() >= 2.0) {
+            } else if (targetSpatialResolution.getValue() <= 1.2) {
+                return 3.5;
+            } else if (targetSpatialResolution.getValue() <= 1.25) {
+                return 3.0;
+            } else if (targetSpatialResolution.getValue() <= 2.00) {
+                return 0.5;
+            } else if (targetSpatialResolution.getValue() <= 2.25) {
+                return 0.25;
+            } else if (targetSpatialResolution.getValue() <= 2.5) {
+                return 0.2;
+            } else if (targetSpatialResolution.getValue() <= 3.0) {
+                return 0.1;
+            } else {
                 return 0.0;
             }
         } else {
