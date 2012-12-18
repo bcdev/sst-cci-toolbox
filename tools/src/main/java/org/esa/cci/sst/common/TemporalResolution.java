@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.common;
 
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -28,6 +29,8 @@ import java.util.Date;
  */
 public enum TemporalResolution {
     daily,
+    weekly7d,
+    weekly5d,
     monthly,
     seasonal,
     annual;
@@ -40,5 +43,19 @@ public enum TemporalResolution {
 
     public Date getDate1() {
         return date1;
+    }
+
+    public static String valuesForAveraging() {
+        final TemporalResolution[] values = values();
+
+        String[] valuesForAveraging = new String[4];
+        int i = 0;
+        for (TemporalResolution value : values) {
+            if (!"weekly5d".equals(value.name()) && !"weekly7d".equals(value.name())){
+                valuesForAveraging[i++] = value.name();
+            }
+        }
+
+        return Arrays.toString(valuesForAveraging);
     }
 }

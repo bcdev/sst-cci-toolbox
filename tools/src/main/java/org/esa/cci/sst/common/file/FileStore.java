@@ -64,6 +64,13 @@ public class FileStore {
         return inputPaths;
     }
 
+    /**
+     * Returns a list of files starting with date1 and ending 1 day before date2.
+     *
+     * @param date1 inclusive
+     * @param date2 exclusive
+     * @return a list of files starting with date1 and ending 1 day before date2
+     */
     public List<File> getFiles(Date date1, Date date2) {
         Calendar calendar = UTC.createCalendar(date1);
         ArrayList<File> files = new ArrayList<File>();

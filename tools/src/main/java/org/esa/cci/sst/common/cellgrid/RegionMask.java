@@ -188,7 +188,7 @@ public class RegionMask implements Grid {
     }
 
     public static RegionMask combine(RegionMaskList regionMaskList) {
-        if (regionMaskList.size() == 0) {
+        if (regionMaskList == null || regionMaskList.size() == 0) {
             return null;
         }
         if (regionMaskList.size() == 1) {

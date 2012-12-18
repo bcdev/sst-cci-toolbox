@@ -12,6 +12,7 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regrid.auxiliary.LutForStdDeviation;
 import org.esa.cci.sst.tool.Tool;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -31,7 +32,7 @@ public abstract class AbstractAggregator {
 
     private final FileStore fileStore;
     private final LutForStdDeviation lutForStdDeviation;
-    private final FileType fileType;
+    private FileType fileType;
     private final SstDepth sstDepth;
     private final Climatology climatology;
 
@@ -40,10 +41,13 @@ public abstract class AbstractAggregator {
         this.climatology = climatology;
         this.lutForStdDeviation = lutForStdDeviation;
         this.sstDepth = sstDepth;
-        this.fileType = fileStore.getProductType().getFileType();
+        if (fileStore != null) {
+            this.fileType = fileStore.getProductType().getFileType();
+        }
     }
 
-    abstract public List<? extends TimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException;
+    abstract public List<? extends TimeStep> aggregate(
+            Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException, ToolException;
 
     // Hardly testable, because NetCDF file of given fileType required
     protected SpatialAggregationContext createAggregationCellContext(NetcdfFile netcdfFile) throws IOException {

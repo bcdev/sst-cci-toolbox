@@ -96,7 +96,7 @@ public final class RegionalAverageTool extends Tool {
     public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
             "The directory path to the reference climatology.");
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "",
-            "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
+            "The temporal resolution. Must be one of " + TemporalResolution.valuesForAveraging() + ".");
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
             "The product type. Must be one of " + Arrays.toString(ProductType.values()) + ".");
     public static final Parameter PARAM_FILENAME_REGEX = new Parameter("filenameRegex", "REGEX", null,

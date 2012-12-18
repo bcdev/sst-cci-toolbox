@@ -16,6 +16,8 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.tool.ExitCode;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -48,7 +50,7 @@ public class Aggregator4Regav extends AbstractAggregator {
     }
 
     @Override
-    public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException {
+    public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException, ToolException {
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
@@ -68,12 +70,15 @@ public class Aggregator4Regav extends AbstractAggregator {
                 Date date2 = calendar.getTime();
                 List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
                 result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
-            } else /*if (temporalResolution == TemporalResolution.annual)*/ {
+            } else if (temporalResolution == TemporalResolution.annual) {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
                 List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
                 result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
+            } else {
+                throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);
             }
+
             results.add(new AveragingTimeStep(date1, calendar.getTime(), result));
         }
         return results;
