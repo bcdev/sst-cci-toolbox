@@ -28,7 +28,7 @@ import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
  * {@author Bettina Scholze}
  * Date: 13.09.12 10:08
  */
-public abstract class SynopticAreaCountEstimator {
+public class SynopticAreaCountEstimator {
 
     private LutForSynopticAreas lutForSynopticAreas;
 
@@ -48,7 +48,7 @@ public abstract class SynopticAreaCountEstimator {
 
         //average time separation between each pair of input grid boxes
         double dt = lutForSynopticAreas.getDt();
-        double dxy = getDxy(x, y);
+        double dxy = lutForSynopticAreas.getDxy(y);
 
         double lxy = 100.0; //km
         double lt = 1.0; //day
@@ -58,13 +58,4 @@ public abstract class SynopticAreaCountEstimator {
 
         return sampleCount / (1 + r * (sampleCount - 1));
     }
-
-    /**
-     * dxy average distance in space between each pair of input grid boxes
-     *
-     * @param x cell index x
-     * @param y cell index y
-     * @return in km
-     */
-    public abstract double getDxy(int x, int y);
 }

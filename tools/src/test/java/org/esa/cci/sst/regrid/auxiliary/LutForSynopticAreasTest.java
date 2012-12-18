@@ -13,7 +13,28 @@ import static junit.framework.Assert.assertEquals;
 public class LutForSynopticAreasTest {
 
     @Test
-    public void testWeekly5days() throws Exception {
+    public void testInterpolateSlope() throws Exception {
+        LutForSynopticAreas lut = new LutForSynopticAreas(TemporalResolution.weekly5d, SpatialResolution.DEGREE_0_50);
+        assertEquals(5.0, lut.interpolateSlope(45.0));
+        assertEquals(5.0, lut.interpolateSlope(-45.0));
+        assertEquals(2.5, lut.interpolateSlope(22.5));
+        assertEquals(2.5, lut.interpolateSlope(-22.5));
+        assertEquals(7.5, lut.interpolateSlope(67.5));
+        assertEquals(7.5, lut.interpolateSlope(-67.5));
+    }
+
+    @Test
+    public void testDistanceSep_smallestOutputResolution() throws Exception {
+        LutForSynopticAreas lut = new LutForSynopticAreas(null, SpatialResolution.DEGREE_0_05);
+        assertEquals(0.0, lut.getDxy(1));
+        assertEquals(0.0, lut.getDxy(45));
+        assertEquals(0.0, lut.getDxy(78));
+        assertEquals(0.0, lut.getDxy(2));
+        assertEquals(0.0, lut.getDxy(88));
+    }
+
+    @Test
+    public void testTimeSep_weekly5days() throws Exception {
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
             LutForSynopticAreas lut = new LutForSynopticAreas(TemporalResolution.weekly5d, spatialResolution);
 
@@ -55,7 +76,7 @@ public class LutForSynopticAreasTest {
     }
 
     @Test
-    public void testWeekly7days() throws Exception {
+    public void testTimeSep_weekly7days() throws Exception {
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
             LutForSynopticAreas lut = new LutForSynopticAreas(TemporalResolution.weekly7d, spatialResolution);
 
@@ -97,7 +118,7 @@ public class LutForSynopticAreasTest {
     }
 
     @Test
-    public void testMonthly() throws Exception {
+    public void testTimeSep_monthly() throws Exception {
 
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
             LutForSynopticAreas lut = new LutForSynopticAreas(TemporalResolution.monthly, spatialResolution);
@@ -168,7 +189,7 @@ public class LutForSynopticAreasTest {
     }
 
     @Test
-    public void testDaily() throws Exception {
+    public void testTimeSep_daily() throws Exception {
 
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
             LutForSynopticAreas lut = new LutForSynopticAreas(TemporalResolution.daily, spatialResolution);
@@ -177,7 +198,7 @@ public class LutForSynopticAreasTest {
     }
 
     @Test
-    public void testSeasonalAndAnnual() throws Exception {
+    public void testTimeSep_seasonalAndAnnual() throws Exception {
 
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
             LutForSynopticAreas lut = new LutForSynopticAreas(TemporalResolution.seasonal, spatialResolution);

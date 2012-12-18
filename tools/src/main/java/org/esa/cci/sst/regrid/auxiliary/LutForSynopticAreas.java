@@ -20,6 +20,7 @@
 package org.esa.cci.sst.regrid.auxiliary;
 
 import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regrid.SpatialResolution;
 
 /**
@@ -41,7 +42,31 @@ public class LutForSynopticAreas {
     }
 
     /**
-     * @return average time separation in days
+     *
+     * @param cellY index of the cell in the target grid
+     * @return Average separation distance in km
+     */
+    public double getDxy(double cellY) {//todo implement it!
+        if (targetSpatialResolution.getValue() <= 0.05) {
+            return 0.0;
+        }
+
+        final GridDef gridDef = GridDef.createGlobal(targetSpatialResolution.getValue());
+        final double lat = gridDef.getLat(cellY); //unit: degree
+
+        double slope = interpolateSlope(lat);
+        return slope * targetSpatialResolution.getValue();
+    }
+
+    double interpolateSlope(double latitude) {  //todo implement it!
+        double aPole = 0.0;  //todo
+        double aEquator = 10.0; //todo
+
+        return (aPole + aEquator) * (Math.abs(latitude) / 90.0);
+    }
+
+    /**
+     * @return Average time separation in days
      */
     public double getDt() {
 

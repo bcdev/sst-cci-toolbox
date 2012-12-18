@@ -19,7 +19,6 @@
 
 package org.esa.cci.sst.regrid;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyForRegridding;
@@ -160,7 +159,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
         temporalResolution.setDate1(date1);
         cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(temporalResolution, spatialResolution));
         if (getFileType().hasSynopticUncertainties()) {
-            cellType.setSynopticAreaCountEstimator(createSynopticAreaCountEstimator());
+            cellType.setSynopticAreaCountEstimator(new SynopticAreaCountEstimator(lutForSynopticAreas));
         }
         final CellFactory<SpatialAggregationCell> regriddingCellFactory = getFileType().getCellFactory(cellType);
         return new CellGrid<SpatialAggregationCell>(gridDef, regriddingCellFactory);
@@ -193,14 +192,4 @@ public class Aggregator4Regrid extends AbstractAggregator {
         return new CoverageUncertaintyForRegridding(temporalResolution, spatialResolution, lutCuTime, lutCuSpace);
     }
 
-    private SynopticAreaCountEstimator createSynopticAreaCountEstimator() {
-        return new SynopticAreaCountEstimator(lutForSynopticAreas) {
-
-            @Override
-            public double getDxy(int x, int y) {
-                throw new NotImplementedException();
-//                return lutForSynopticAreas.getDxy(x, y);
-            }
-        };
-    }
 }
