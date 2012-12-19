@@ -34,7 +34,6 @@ import java.awt.*;
 import java.io.IOException;
 
 /**
- * todo bs document
  *
  * @author Norman Fomferra, Bettina Scholze
  */

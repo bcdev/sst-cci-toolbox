@@ -317,9 +317,6 @@ public class CciL3FileType extends AbstractCciFileType {
         }
 
         public double computeAdjustmentUncertaintyAverage() {
-            if (adjustmentUncertaintyAccu == null) {
-                return 0.0;
-            }
             return checkMinCoverage(adjustmentUncertaintyAccu.combine() / calculateEta());
         }
 
@@ -328,7 +325,7 @@ public class CciL3FileType extends AbstractCciFileType {
         }
 
         private double calculateEta() {
-            return synopticAreaCountEstimator.calculateEta(getX(), getY(), getSampleCount());
+            return synopticAreaCountEstimator.calculateEta(getY(), getSampleCount());
         }
 
         @Override

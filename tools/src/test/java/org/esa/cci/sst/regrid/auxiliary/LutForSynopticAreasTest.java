@@ -1,6 +1,7 @@
 package org.esa.cci.sst.regrid.auxiliary;
 
 import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.junit.Test;
 
@@ -13,24 +14,16 @@ import static junit.framework.Assert.assertEquals;
 public class LutForSynopticAreasTest {
 
     @Test
-    public void testInterpolateSlope() throws Exception {
-        LutForSynopticAreas lut = new LutForSynopticAreas(TemporalResolution.weekly5d, SpatialResolution.DEGREE_0_50);
-        assertEquals(5.0, lut.interpolateSlope(45.0));
-        assertEquals(5.0, lut.interpolateSlope(-45.0));
-        assertEquals(2.5, lut.interpolateSlope(22.5));
-        assertEquals(2.5, lut.interpolateSlope(-22.5));
-        assertEquals(7.5, lut.interpolateSlope(67.5));
-        assertEquals(7.5, lut.interpolateSlope(-67.5));
-    }
-
-    @Test
     public void testDistanceSep_smallestOutputResolution() throws Exception {
-        LutForSynopticAreas lut = new LutForSynopticAreas(null, SpatialResolution.DEGREE_0_05);
-        assertEquals(0.0, lut.getDxy(1));
-        assertEquals(0.0, lut.getDxy(45));
-        assertEquals(0.0, lut.getDxy(78));
-        assertEquals(0.0, lut.getDxy(2));
-        assertEquals(0.0, lut.getDxy(88));
+        LutForSynopticAreas lut = new LutForSynopticAreas(null, SpatialResolution.DEGREE_5_00);
+        assertEquals(36, GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getValue()).getHeight());
+        assertEquals(72, GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getValue()).getWidth());
+
+        assertEquals(185.932809, lut.getDxy(0), 0.000001); //north pole
+        assertEquals(289.713244, lut.getDxy(18), 0.000001); //equator
+        assertEquals(185.932809, lut.getDxy(36), 0.000001); //south pole
+        assertEquals(237.823026, lut.getDxy(9), 0.000001);
+        assertEquals(237.823026, lut.getDxy(27), 0.000001);
     }
 
     @Test

@@ -39,14 +39,13 @@ public class SynopticAreaCountEstimator {
     /**
      * Calculates eta, the parameter for the aggregation of synoptically correlated uncertainties.
      *
-     * @param x           cell index x
+     *
      * @param y           cell index y
      * @param sampleCount valid input boxes
      * @return eta
      */
-    public double calculateEta(int x, int y, long sampleCount) {
-
-        //average time separation between each pair of input grid boxes
+    public double calculateEta(int y, long sampleCount) {
+        //average time- and space-separation between each pair of input grid boxes
         double dt = lutForSynopticAreas.getDt();
         double dxy = lutForSynopticAreas.getDxy(y);
 

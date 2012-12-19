@@ -42,27 +42,33 @@ public class LutForSynopticAreas {
     }
 
     /**
+     * Calculates the average separation distance.
      *
      * @param cellY index of the cell in the target grid
      * @return Average separation distance in km
      */
-    public double getDxy(double cellY) {//todo implement it!
-        if (targetSpatialResolution.getValue() <= 0.05) {
+    public double getDxy(double cellY) {
+        final double targetResolution = targetSpatialResolution.getValue();
+        if (targetResolution <= 0.05) {
             return 0.0;
         }
 
-        final GridDef gridDef = GridDef.createGlobal(targetSpatialResolution.getValue());
-        final double lat = gridDef.getLat(cellY); //unit: degree
+        double aPole = 37.2069;
+        double bPole = -0.101691;
+        double distancePole = linear(targetResolution, aPole, bPole);
 
-        double slope = interpolateSlope(lat);
-        return slope * targetSpatialResolution.getValue();
+        double aEquator = 57.8881;
+        double bEquator = 0.272744;
+        double distanceEquator = linear(targetResolution, aEquator, bEquator);
+
+        //interpolate the actual latitude
+        final GridDef gridDef = GridDef.createGlobal(targetResolution);
+        final double lat = gridDef.getLat(cellY); //unit: degree
+        return distanceEquator - ((distanceEquator - distancePole) * (Math.abs(lat) / 90.0));
     }
 
-    double interpolateSlope(double latitude) {  //todo implement it!
-        double aPole = 0.0;  //todo
-        double aEquator = 10.0; //todo
-
-        return (aPole + aEquator) * (Math.abs(latitude) / 90.0);
+    private double linear(double x, double a, double b) {
+        return a * x + b;
     }
 
     /**
