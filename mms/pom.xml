@@ -20,8 +20,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>sst-cci-toolbox</groupId>
-    <artifactId>sst-cci-toolbox</artifactId>
+    <groupId>sst-cci-mms</groupId>
+    <artifactId>sst-cci-mms</artifactId>
     <version>1.1</version>
 
     <properties>
