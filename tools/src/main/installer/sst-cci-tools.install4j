@@ -517,6 +517,17 @@
         <customAttributes />
       </autoUpdate>
     </unixArchive>
+    <macosFolderArchive name="Mac OS X Folder Archive" id="174" customizedId="" mediaFileName="" installDir="sst-cci-tools" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" appleJre="true">
+      <excludedLaunchers />
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude />
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+    </macosFolderArchive>
   </mediaSets>
   <buildIds buildAll="true">
     <mediaSet refId="25" />
