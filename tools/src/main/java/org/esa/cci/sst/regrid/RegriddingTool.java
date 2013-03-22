@@ -35,10 +35,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A command line tool to regrid ARC/SST-CCI products from into coarser spatial and time resolutions.
- * Call RegriddingTool#main with option -h to access the full description of the tool.
+ * A command line tool for re-gridding ARC/CCI SST products to coarser spatial and time resolutions.
  *
- * @author Ralf Quast, Bettina Scholze
+ * @author Ralf Quast
+ * @author Bettina Scholze
  */
 public class RegriddingTool extends Tool {
 
