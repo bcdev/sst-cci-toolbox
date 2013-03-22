@@ -16,14 +16,14 @@ public class LutForSynopticAreasTest {
     @Test
     public void testDistanceSep_smallestOutputResolution() throws Exception {
         LutForSynopticAreas lut = new LutForSynopticAreas(null, SpatialResolution.DEGREE_5_00);
-        assertEquals(36, GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getValue()).getHeight());
-        assertEquals(72, GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getValue()).getWidth());
+        assertEquals(36, GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getResolution()).getHeight());
+        assertEquals(72, GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getResolution()).getWidth());
 
-        assertEquals(185.932809, lut.getDxy(0), 0.000001); //north pole
-        assertEquals(289.713244, lut.getDxy(18), 0.000001); //equator
-        assertEquals(185.932809, lut.getDxy(36), 0.000001); //south pole
-        assertEquals(237.823026, lut.getDxy(9), 0.000001);
-        assertEquals(237.823026, lut.getDxy(27), 0.000001);
+        assertEquals(188.815598, lut.getDxy(0), 0.000001); // almost north pole
+        assertEquals(286.830454, lut.getDxy(18), 0.000001); // almost equator
+        assertEquals(188.815598, lut.getDxy(35), 0.000001); // almost south pole
+        assertEquals(240.705816, lut.getDxy(9), 0.000001);
+        assertEquals(234.940236, lut.getDxy(27), 0.000001);
     }
 
     @Test

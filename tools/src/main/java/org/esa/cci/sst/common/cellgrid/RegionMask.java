@@ -48,10 +48,10 @@ public class RegionMask implements Grid {
 
     private static int width = 72;
     private static int height = 36;
-    private static GridDef gridDef = GridDef.createGlobalGrid(width, height);
+    private static GridDef gridDef = GridDef.createGlobal(width, height);
 
     public static void setSpatialResolution(SpatialResolution spatialResolution) {
-        GridDef associatedGridDef = spatialResolution.getAssociatedGridDef();
+        GridDef associatedGridDef = spatialResolution.getGridDef();
         width = associatedGridDef.getWidth();
         height = associatedGridDef.getHeight();
         gridDef = associatedGridDef;

@@ -29,97 +29,97 @@ import org.esa.cci.sst.regrid.SpatialResolution;
  * This Lut gives the values d_t - the average time separation.
  * <p/>
  * {@author Bettina Scholze}
- * Date: 17.12.12 09:39
  */
 public class LutForSynopticAreas {
 
-    private TemporalResolution targetTemporalResolution;
-    private SpatialResolution targetSpatialResolution;
+    private final TemporalResolution targetTemporalResolution;
+    private final SpatialResolution targetSpatialResolution;
+    private final GridDef targetGridDef;
 
     public LutForSynopticAreas(TemporalResolution targetTemporalResolution, SpatialResolution targetSpatialResolution) {
         this.targetTemporalResolution = targetTemporalResolution;
         this.targetSpatialResolution = targetSpatialResolution;
+        this.targetGridDef = GridDef.createGlobal(targetSpatialResolution.getResolution());
+
     }
 
     /**
      * Calculates the average separation distance.
      *
-     * @param cellY index of the cell in the target grid
-     * @return Average separation distance in km
+     * @param gridY The index of the cell in the target grid.
+     *
+     * @return the Average separation distance in km.
      */
-    public double getDxy(double cellY) {
-        final double targetResolution = targetSpatialResolution.getValue();
+    public double getDxy(int gridY) {
+        final double targetResolution = targetSpatialResolution.getResolution();
         if (targetResolution <= 0.05) {
             return 0.0;
         }
 
         double aPole = 37.2069;
         double bPole = -0.101691;
-        double distancePole = linear(targetResolution, aPole, bPole);
+        double dPole = aPole * targetResolution + bPole;
 
         double aEquator = 57.8881;
         double bEquator = 0.272744;
-        double distanceEquator = linear(targetResolution, aEquator, bEquator);
+        double dEquator = aEquator * targetResolution + bEquator;
 
-        //interpolate the actual latitude
-        final GridDef gridDef = GridDef.createGlobal(targetResolution);
-        final double lat = gridDef.getLat(cellY); //unit: degree
-        return distanceEquator - ((distanceEquator - distancePole) * (Math.abs(lat) / 90.0));
-    }
+        final double lat = targetGridDef.getCenterLat(gridY);
+        final double f = Math.abs(lat) / 90.0;
 
-    private double linear(double x, double a, double b) {
-        return a * x + b;
+        return dPole * f + dEquator * (1.0 - f);
     }
 
     /**
-     * @return Average time separation in days
+     * Returns the average time separation in days.
+     *
+     * @return the average time separation in days.
      */
     public double getDt() {
-
         if (targetTemporalResolution.equals(TemporalResolution.daily)) {
             return 0.0;
         } else if (targetTemporalResolution.equals(TemporalResolution.weekly5d)) {
-            if (targetSpatialResolution.getValue() <= 1.5) {
+            if (targetSpatialResolution.getResolution() <= 1.5) {
                 return 2.0;
-            } else if (targetSpatialResolution.getValue() <= 2.5) {
+            } else if (targetSpatialResolution.getResolution() <= 2.5) {
                 return 1.0;
             } else {
                 return 0.0;
             }
         } else if (targetTemporalResolution.equals(TemporalResolution.weekly7d)) {
-            if (targetSpatialResolution.getValue() <= 1.75) {
+            if (targetSpatialResolution.getResolution() <= 1.75) {
                 return 2.0;
-            } else if (targetSpatialResolution.getValue() <= 2.5) {
+            } else if (targetSpatialResolution.getResolution() <= 2.5) {
                 return 1.0;
             } else {
                 return 0.0;
             }
         } else if (targetTemporalResolution.equals(TemporalResolution.monthly)) {
-            if (targetSpatialResolution.getValue() <= 0.5) {
+            if (targetSpatialResolution.getResolution() <= 0.5) {
                 return 10.0;
-            } else if (targetSpatialResolution.getValue() <= 0.75) {
+            } else if (targetSpatialResolution.getResolution() <= 0.75) {
                 return 9.0;
-            } else if (targetSpatialResolution.getValue() <= 0.8) {
+            } else if (targetSpatialResolution.getResolution() <= 0.8) {
                 return 8.5;
-            } else if (targetSpatialResolution.getValue() <= 1.0) {
+            } else if (targetSpatialResolution.getResolution() <= 1.0) {
                 return 6.0;
-            } else if (targetSpatialResolution.getValue() <= 1.2) {
+            } else if (targetSpatialResolution.getResolution() <= 1.2) {
                 return 3.5;
-            } else if (targetSpatialResolution.getValue() <= 1.25) {
+            } else if (targetSpatialResolution.getResolution() <= 1.25) {
                 return 3.0;
-            } else if (targetSpatialResolution.getValue() <= 2.00) {
+            } else if (targetSpatialResolution.getResolution() <= 2.00) {
                 return 0.5;
-            } else if (targetSpatialResolution.getValue() <= 2.25) {
+            } else if (targetSpatialResolution.getResolution() <= 2.25) {
                 return 0.25;
-            } else if (targetSpatialResolution.getValue() <= 2.5) {
+            } else if (targetSpatialResolution.getResolution() <= 2.5) {
                 return 0.2;
-            } else if (targetSpatialResolution.getValue() <= 3.0) {
+            } else if (targetSpatialResolution.getResolution() <= 3.0) {
                 return 0.1;
             } else {
                 return 0.0;
             }
         } else {
-            return 0.0; //unit days
+            return 0.0;
         }
     }
 }

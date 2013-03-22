@@ -17,13 +17,8 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 public enum SpatialResolution {
 
@@ -52,126 +47,51 @@ public enum SpatialResolution {
     DEGREE_5_00(5.00),
     DEGREE_10_00(10.00);
 
-    private double value;
-    private GridDef gridDef;
+    private final double resolution;
+    private final GridDef gridDef;
 
-    private SpatialResolution(double value) {
-        this.value = value;
+    private SpatialResolution(double resolution) {
+        this.resolution = resolution;
+        this.gridDef = GridDef.createGlobal(this.resolution);
     }
 
-    public static String getDefaultValueAsString() {
-        return String.valueOf(DEGREE_5_00.getValue());
+    public static String getDefaultResolutionAsString() {
+        return String.valueOf(DEGREE_5_00.getResolution());
     }
 
-    public static String getValuesAsString() {
-        SpatialResolution[] values = SpatialResolution.values();
-        double[] resolutions = new double[values.length];
+    public static String getAllResolutionsAsString() {
+        final SpatialResolution[] values = values();
+        final double[] allDegrees = new double[values.length];
         int i = 0;
         for (SpatialResolution spatialResolution : values) {
-            resolutions[i++] = spatialResolution.getValue();
+            allDegrees[i++] = spatialResolution.getResolution();
         }
-        return Arrays.toString(resolutions);
+        return Arrays.toString(allDegrees);
     }
 
-    public static SpatialResolution getFromValue(String value) {
+    public static SpatialResolution getSpatialResolution(String resolutionString) {
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
-            if (Double.valueOf(value) == spatialResolution.value) {
+            if (Double.valueOf(resolutionString) == spatialResolution.getResolution()) {
                 return spatialResolution;
             }
         }
-        throw new IllegalArgumentException("argument must be one of the values of SpatialResolution.");
+        throw new IllegalArgumentException("Argument does not correspond to a SpatialResolution.");
     }
 
-    public GridDef getAssociatedGridDef() {
-        return getAssociatedGridDef(1);
-    }
-
-    public GridDef getAssociatedGridDef(int timeDimensionExtend) {
-        if (this.gridDef == null) {
-            this.gridDef = GridDef.createGlobal(this.value, timeDimensionExtend);
+    public static SpatialResolution getSpatialResolution(double resolution) {
+        for (SpatialResolution spatialResolution : SpatialResolution.values()) {
+            if (resolution == spatialResolution.getResolution()) {
+                return spatialResolution;
+            }
         }
+        throw new IllegalArgumentException("Argument does not correspond to a SpatialResolution.");
+    }
+
+    public final GridDef getGridDef() {
         return gridDef;
     }
 
-    public double getValue() {
-        return value;
-    }
-
-    public static int[] convertShape(SpatialResolution targetResolution, int[] sourceShape, GridDef sourceGridDef) throws IOException {
-        int dimension = sourceShape.length;
-        int[] shape = new int[dimension];
-        double sourceResolution = sourceGridDef.getResolution();
-        if (sourceResolution != sourceGridDef.getResolutionY()) {
-            throw new IOException("Different resolution on lat and lon are not supported.");
-        }
-
-        for (int i = 0; i < dimension; i++) {
-            int sourceDim = sourceShape[i];
-            if (sourceDim == sourceGridDef.getHeight()) {
-                shape[i] = (int) (180 / targetResolution.value);
-            } else if (sourceDim == sourceGridDef.getWidth()) {
-                shape[i] = (int) (360 / targetResolution.value);
-            } else {
-                shape[i] = sourceDim;
-            }
-        }
-        return shape;
-    }
-
-    public Map<String, Array> calculateBaseArrays() {
-        GridDef targetGridDef = getAssociatedGridDef();
-        HashMap<String, Array> arrayMap = new HashMap<String, Array>();
-
-        float[] dataLat = createArrayGridWith1DArray(targetGridDef, targetGridDef.getHeight(), 90f);
-        putDataInArrayGridMap("lat", dataLat, arrayMap);
-
-        float[] latBndsData = createBnds(targetGridDef, dataLat);
-        putDataInArrayGridMap("lat_bnds", latBndsData, arrayMap);
-
-        float[] dataLon = createArrayGridWith1DArray(targetGridDef, targetGridDef.getWidth(), 180f);
-        putDataInArrayGridMap("lon", dataLon, arrayMap);
-
-        float[] lonBndsData = createBnds(targetGridDef, dataLon);
-        putDataInArrayGridMap("lon_bnds", lonBndsData, arrayMap);
-
-        return arrayMap;
-    }
-
-    private static float[] createBnds(GridDef targetGridDef, float[] data) {
-        float[] bndsData = new float[data.length * 2];
-        int i = 0;
-        for (float value : data) {
-            float halfResolution = (float) targetGridDef.getResolutionX() / 2;
-            bndsData[i++] = value + halfResolution;
-            bndsData[i++] = value - halfResolution;
-        }
-        return bndsData;
-    }
-
-    private static void putDataInArrayGridMap(String key, float[] data, Map<String, Array> arrayMap) {
-        final Array array = Array.factory(DataType.FLOAT, new int[]{data.length}, data);
-        arrayMap.put(key, array);
-    }
-
-    static float[] createArrayGridWith1DArray(GridDef gridDef, int size, float start) {
-        if (!(gridDef.getHeight() == size || gridDef.getWidth() == size || gridDef.getTime() == size)) {
-            throw new IllegalArgumentException("Size must be one dimension's length (height, width or time)");
-        }
-
-        float resolution = (float) gridDef.getResolution();
-        float startResolution = resolution / 2;
-        int halfLength = size / 2;
-
-        float[] data = new float[size];
-        for (int i = 0; i < data.length; i++) {
-            if (i == 0) {
-                data[i] = start - startResolution;
-            } else if (i == halfLength) {
-                data[i] = -startResolution;
-            } else {
-                data[i] = data[i - 1] - resolution;
-            }
-        }
-        return data;
+    public final double getResolution() {
+        return resolution;
     }
 }

@@ -109,8 +109,8 @@ public class Aggregator4Regav extends AbstractAggregator {
                 UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
 
         SpatialResolution targetResolution = SpatialResolution.DEGREE_5_00;
-        GridDef globalGridDef5 = GridDef.createGlobal(targetResolution.getValue());
-        GridDef globalGridDef1 = GridDef.createGlobal(SpatialResolution.DEGREE_1_00.getValue());
+        GridDef globalGridDef5 = GridDef.createGlobal(targetResolution.getResolution());
+        GridDef globalGridDef1 = GridDef.createGlobal(SpatialResolution.DEGREE_1_00.getResolution());
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, targetResolution);
 
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(coverageUncertaintyProvider);

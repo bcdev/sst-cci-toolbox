@@ -38,7 +38,7 @@ import static java.lang.Math.round;
  * Date: 17.09.12 10:46
  */
 public abstract class AbstractCciFileType implements FileType {
-    public static final GridDef GRID_DEF = GridDef.createGlobalGrid(7200, 3600); //source per default on 0.05 ° resolution
+    public static final GridDef GRID_DEF = GridDef.createGlobal(7200, 3600); //source per default on 0.05 ° resolution
 
     @Override
     public Date parseDate(File file) throws ParseException {

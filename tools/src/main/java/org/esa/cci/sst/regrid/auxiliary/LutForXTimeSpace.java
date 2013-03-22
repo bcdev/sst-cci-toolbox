@@ -67,7 +67,7 @@ public class LutForXTimeSpace {
         ArrayGrid lutIn2Degree = readInAndFlip(file, fillValue);
         ArrayGrid lutIn005Degree = interpolateTo005(lutIn2Degree);
 
-        int scaleFactor = (int) (targetResolution.getValue() / 0.05);
+        int scaleFactor = (int) (targetResolution.getResolution() / 0.05);
         ArrayGrid lutInTargetResolution = lutIn005Degree.scaleDown(scaleFactor, scaleFactor);
 
         LOGGER.info(String.format("Ready processing input LUT for coverage uncertainty in%d ms", System.currentTimeMillis() - t0));

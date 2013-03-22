@@ -33,7 +33,6 @@ import ucar.nc2.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -114,7 +113,8 @@ public class CciL2PFileType extends CciL3FileType {
 
     private void writeIntermediate(Grid[] grids) throws IOException { //for debugging only
         GridDef gridDef = grids[0].getGridDef();
-        SpatialResolution spatialResolution = SpatialResolution.getFromValue(String.valueOf(gridDef.getResolution()));
+        SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(
+                String.valueOf(gridDef.getResolution()));
 
         final String outputFilename = "intermediate.nc";
         final File file = new File("C:\\Users\\bettina\\Development\\test-data\\sst-cci\\l2p\\output\\regridding\\2012-11-08", outputFilename);
@@ -160,13 +160,6 @@ public class CciL2PFileType extends CciL3FileType {
 
             //write header
             netcdfFile.create();
-            //add data for base - lat lon
-            final Map<String, Array> baseArrays = spatialResolution.calculateBaseArrays();
-            baseArrays.remove("lon_bnds");
-            baseArrays.remove("lat_bnds");
-            for (String baseVariable : baseArrays.keySet()) {
-                writeDataToNetCdfFile(netcdfFile, baseVariable, baseArrays.get(baseVariable));
-            }
             //add data variables
             for (int i = 0; i < variables.length; i++) {
                 Variable variable = variables[i];

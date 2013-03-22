@@ -101,7 +101,8 @@ class RegriddingOutputFileWriter {
 
         CellGrid<? extends AggregationCell> cellGrid = regriddingTimeStep.getCellGrid();
         GridDef gridDef = cellGrid.getGridDef();
-        SpatialResolution spatialResolution = SpatialResolution.getFromValue(String.valueOf(gridDef.getResolution()));
+        SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(
+                String.valueOf(gridDef.getResolution()));
         //global attributes
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
@@ -117,8 +118,8 @@ class RegriddingOutputFileWriter {
             netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
             netcdfFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
             netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
-            netcdfFile.addGlobalAttribute("geospatial_lon_resolution", spatialResolution.getValue());
-            netcdfFile.addGlobalAttribute("geospatial_lat_resolution", spatialResolution.getValue());
+            netcdfFile.addGlobalAttribute("geospatial_lon_resolution", spatialResolution.getResolution());
+            netcdfFile.addGlobalAttribute("geospatial_lat_resolution", spatialResolution.getResolution());
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
             netcdfFile.addGlobalAttribute("source_filename_regex", filenameRegex);
 
@@ -133,11 +134,17 @@ class RegriddingOutputFileWriter {
 
             //write header
             netcdfFile.create();
-            //add data for base - lat lon
-            final Map<String, Array> baseArrays = spatialResolution.calculateBaseArrays();
-            for (String baseVariable : baseArrays.keySet()) {
-                writeDataToNetCdfFile(netcdfFile, baseVariable, baseArrays.get(baseVariable));
-            }
+            //
+            final GridDef targetGridDef = spatialResolution.getGridDef();
+            final Array latArray = Array.factory(GridDefHelper.createLatData(targetGridDef));
+            writeDataToNetCdfFile(netcdfFile, "lat", latArray);
+            final Array lonArray = Array.factory(GridDefHelper.createLonData(targetGridDef));
+            writeDataToNetCdfFile(netcdfFile, "lon", lonArray);
+            final Array latBoundsArray = Array.factory(GridDefHelper.createLatBoundsData(targetGridDef));
+            writeDataToNetCdfFile(netcdfFile, "lat_bnds", latBoundsArray);
+            final Array lonBoundsArray = Array.factory(GridDefHelper.createLonBoundsData(targetGridDef));
+            writeDataToNetCdfFile(netcdfFile, "lon_bnds", lonBoundsArray);
+
             //add data for regridded variables
             int height = cellGrid.getHeight();
             int width = cellGrid.getWidth();

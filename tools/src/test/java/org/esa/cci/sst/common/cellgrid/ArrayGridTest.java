@@ -26,7 +26,7 @@ public class ArrayGridTest {
 
     @Before
     public void setUp() throws Exception {
-        gridDef = GridDef.createGlobalGrid(8, 4);
+        gridDef = GridDef.createGlobal(8, 4);
         int[] shape = {gridDef.getHeight(), gridDef.getWidth()};
         Array array = Array.factory(DataType.DOUBLE, shape, input);
         arrayGrid = new ArrayGrid(gridDef, array, 999, 1.0, 0.0);
@@ -52,7 +52,7 @@ public class ArrayGridTest {
 
     @Test
     public void testScaleDownUtil() throws Exception {
-        ArrayGrid arrayGrid2 = ArrayGrid.scaleDown(arrayGrid,  GridDef.createGlobalGrid(4, 2));
+        ArrayGrid arrayGrid2 = ArrayGrid.scaleDown(arrayGrid,  GridDef.createGlobal(4, 2));
 
         assertNotNull(arrayGrid2);
         assertEquals(gridDef.getWidth() / 2, arrayGrid2.getGridDef().getWidth());

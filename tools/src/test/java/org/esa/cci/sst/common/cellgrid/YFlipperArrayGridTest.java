@@ -28,7 +28,7 @@ public class YFlipperArrayGridTest {
 
     @Before
     public void setUp() throws Exception {
-        gridDef = GridDef.createGlobalGrid(8, 4);
+        gridDef = GridDef.createGlobal(8, 4);
         int[] shape = {gridDef.getHeight(), gridDef.getWidth()};
         Array array = Array.factory(DataType.DOUBLE, shape, input);
         arrayGrid = new ArrayGrid(gridDef, array, 999, 1.0, 0.0);

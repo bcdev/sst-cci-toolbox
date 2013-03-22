@@ -37,12 +37,12 @@ public class Aggregator4RegridTest {
 
             @Override
             CellGrid<SpatialAggregationCell> aggregateTimeRangeAndRegrid(Date date1, Date date2, SpatialResolution spatialResolution, TemporalResolution temporalResolution) throws IOException {
-                return new CellGrid<SpatialAggregationCell>(GridDef.createGlobal(spatialResolution.getValue()), null);
+                return new CellGrid<SpatialAggregationCell>(GridDef.createGlobal(spatialResolution.getResolution()), null);
             }
 
             @Override
             CellGrid<AggregationCell> aggregateMultiMonths(List<? extends TimeStep> monthlyTimeSteps) {
-                return new CellGrid<AggregationCell>(GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getValue()), null);
+                return new CellGrid<AggregationCell>(GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getResolution()), null);
 
             }
         };

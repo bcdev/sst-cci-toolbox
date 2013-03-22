@@ -68,7 +68,7 @@ public class ArcL3UFileType implements FileType {
     public final static ArcL3UFileType INSTANCE = new ArcL3UFileType();
     public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
     public final int filenameDateOffset = "ATS_AVG_3PAARC".length();
-    public final GridDef GRID_DEF = GridDef.createGlobalGrid(3600, 1800); //source always in 0.01 ° resolution
+    public final GridDef GRID_DEF = GridDef.createGlobal(3600, 1800); //source always in 0.01 ° resolution
 
     @Override
     public Date parseDate(File file) throws ParseException {

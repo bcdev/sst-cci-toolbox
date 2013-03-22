@@ -46,7 +46,7 @@ public class LutForXTimeTest {
     @Test
     public void testRead() throws Exception {
         SpatialResolution degree1000 = SpatialResolution.DEGREE_10_00;
-        GridDef gridDef = degree1000.getAssociatedGridDef();
+        GridDef gridDef = degree1000.getGridDef();
         LutForXTimeSpace lut = LutForXTimeSpace.read(file, degree1000, -32768.0);
 
         String expected = "" +

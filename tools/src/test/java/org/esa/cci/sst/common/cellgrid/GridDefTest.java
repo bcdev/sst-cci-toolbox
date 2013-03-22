@@ -85,17 +85,33 @@ public class GridDefTest {
     @Test
     public void testCenterLonLat() throws Exception {
 
-        assertEquals(135.0, gridDef90.getCenterLon(-1), 1e-10);
+        try {
+            assertEquals(135.0, gridDef90.getCenterLon(-1), 1e-10);
+            fail();
+        } catch (Exception expected) {
+        }
         assertEquals(-135.0, gridDef90.getCenterLon(0), 1e-10);
         assertEquals(-45.0, gridDef90.getCenterLon(1), 1e-10);
         assertEquals(45.0, gridDef90.getCenterLon(2), 1e-10);
         assertEquals(135.0, gridDef90.getCenterLon(3), 1e-10);
-        assertEquals(-135.0, gridDef90.getCenterLon(4), 1e-10);
+        try {
+            assertEquals(-135.0, gridDef90.getCenterLon(4), 1e-10);
+            fail();
+        } catch (Exception expected) {
+        }
 
-        assertEquals(90.0, gridDef90.getCenterLat(-1), 1e-10);
+        try {
+            assertEquals(90.0, gridDef90.getCenterLat(-1), 1e-10);
+            fail();
+        } catch (Exception expected) {
+        }
         assertEquals(45.0, gridDef90.getCenterLat(0), 1e-10);
         assertEquals(-45.0, gridDef90.getCenterLat(1), 1e-10);
-        assertEquals(-90.0, gridDef90.getCenterLat(3), 1e-10);
+        try {
+            assertEquals(-90.0, gridDef90.getCenterLat(3), 1e-10);
+            fail();
+        } catch (Exception expected) {
+        }
     }
 
     @Test
@@ -145,35 +161,22 @@ public class GridDefTest {
 
     @Test
     public void testEquals() throws Exception {
-
         assertTrue(GridDef.createGlobal(0.05).equals(
                 GridDef.createGlobal(0.05)));
 
         assertFalse(GridDef.createGlobal(0.04).equals(
                 GridDef.createGlobal(0.05)));
 
-        assertTrue(GridDef.createGlobalGrid(3600, 1800).equals(
-                GridDef.createGlobalGrid(3600, 1800)));
+        assertTrue(GridDef.createGlobal(3600, 1800).equals(
+                GridDef.createGlobal(3600, 1800)));
 
-        assertFalse(GridDef.createGlobalGrid(3600, 1800).equals(
-                GridDef.createGlobalGrid(3600, 1801)));
+        assertFalse(GridDef.createGlobal(3600, 1800).equals(
+                GridDef.createGlobal(3600, 1801)));
 
         assertTrue(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03).equals(
                 new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03)));
 
         assertFalse(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03).equals(
                 new GridDef(3, 6, 9.3, -8.4, 0.02, 0.03)));
-
-        GridDef expectedGridDef_1 = new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03);
-        expectedGridDef_1.setTime(345452445);
-        assertFalse(expectedGridDef_1.equals(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03)));
-
-        GridDef expectedGridDef_2 = new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03);
-        int time_2 = 345452445;
-        expectedGridDef_2.setTime(time_2);
-        GridDef gridDef_2 = new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03);
-        gridDef_2.setTime(time_2);
-        assertTrue(expectedGridDef_2.equals(gridDef_2));
-
     }
 }

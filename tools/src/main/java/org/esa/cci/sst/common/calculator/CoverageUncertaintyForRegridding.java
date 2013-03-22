@@ -66,12 +66,12 @@ public class CoverageUncertaintyForRegridding implements CoverageUncertainty {
     }
 
     double calculateXKm(int cellX, int cellY) {
-        final double boxSizeInDegree = spatialResolution.getValue();
+        final double boxSizeInDegree = spatialResolution.getResolution();
         final double x1 = cellX * boxSizeInDegree;
         final double y1 = cellY * boxSizeInDegree;
         final double x2 = x1 + boxSizeInDegree;
         final double y2 = y1 + boxSizeInDegree;
-
+        // TODO - use lat/lon from grid def; grid def has to be supplied to constructor (rq-20130213)
         return MathUtils.sphereDistanceDeg(6371.0, x1, y1, x2, y2);
     }
 

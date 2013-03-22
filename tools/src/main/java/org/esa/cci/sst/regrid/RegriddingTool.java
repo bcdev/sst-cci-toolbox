@@ -54,8 +54,8 @@ public class RegriddingTool extends Tool {
             "The SST depth. Must be one of " + Arrays.toString(SstDepth.values()) + ".");
 
     public static final Parameter PARAM_SPATIAL_RESOLUTION = new Parameter("spatialRes", "NUM",
-            SpatialResolution.getDefaultValueAsString(),
-            "The spatial resolution of the output grid in degrees. Must be one of " + SpatialResolution.getValuesAsString() + ".");
+            SpatialResolution.getDefaultResolutionAsString(),
+            "The spatial resolution of the output grid in degrees. Must be one of " + SpatialResolution.getAllResolutionsAsString() + ".");
 
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "",
             "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
@@ -169,7 +169,7 @@ public class RegriddingTool extends Tool {
     }
 
     private SpatialResolution fetchSpatialResolution(Configuration configuration) throws ToolException {
-        return SpatialResolution.getFromValue(configuration.getString(PARAM_SPATIAL_RESOLUTION, true));
+        return SpatialResolution.getSpatialResolution(configuration.getString(PARAM_SPATIAL_RESOLUTION, true));
     }
 
     @Override

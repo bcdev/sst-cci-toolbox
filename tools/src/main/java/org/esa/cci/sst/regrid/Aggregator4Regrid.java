@@ -153,7 +153,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
     }
 
     CellGrid<SpatialAggregationCell> prepareSpatialAggregationCellCellGrid(Date date1, SpatialResolution spatialResolution, TemporalResolution temporalResolution) {
-        GridDef gridDef = GridDef.createGlobal(spatialResolution.getValue());
+        GridDef gridDef = GridDef.createGlobal(spatialResolution.getResolution());
 
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_REGRIDDING;
         temporalResolution.setDate1(date1);
