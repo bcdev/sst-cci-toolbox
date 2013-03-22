@@ -13,11 +13,6 @@ import java.util.Map;
  */
 public class TestL3ProductMaker {
 
-    public static Map<String, ArrayGrid> fetchL3UProductForTest() throws IOException {
-        NetcdfFile file = readL3GridsSetup();
-        return NcUtils.readL3Grids(file, SpatialResolution.DEGREE_0_05.getAssociatedGridDef());
-    }
-
     public static NetcdfFile readL3GridsSetup() throws IOException {
         String userDirOrigin = System.getProperty("user.dir");
         String userDir = userDirOrigin.replace("\\", "/");

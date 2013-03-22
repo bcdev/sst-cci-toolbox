@@ -84,7 +84,7 @@ public class CciL2PFileType extends CciL3FileType {
         grids[4] = createArrayGrid(synopticallyCorrelatedUncertaintyReprojection, synopticallyCorrelatedUncertaintyArray, variable);
 
         variable = "adjustment_uncertainty";
-        if (NcUtils.missesVariable(netcdfFile, variable)) {
+        if (!NcUtils.hasVariable(netcdfFile, variable)) {
             return Arrays.copyOf(grids, 5);
         }
         CciL2PReprojection adjustmentUncertaintyReprojection = new CciL2PReprojection();

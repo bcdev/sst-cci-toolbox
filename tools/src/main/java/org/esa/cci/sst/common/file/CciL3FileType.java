@@ -58,7 +58,7 @@ public class CciL3FileType extends AbstractCciFileType {
         grids[3] = NcUtils.readGrid(file, "large_scale_correlated_uncertainty", getGridDef(), 0);
         grids[4] = NcUtils.readGrid(file, "synoptically_correlated_uncertainty", getGridDef(), 0);
 
-        if (NcUtils.missesVariable(file, "adjustment_uncertainty")) {
+        if (!NcUtils.hasVariable(file, "adjustment_uncertainty")) {
             return Arrays.copyOf(grids, 5);
         }
         grids[5] = NcUtils.readGrid(file, "adjustment_uncertainty", getGridDef(), 0);
