@@ -443,8 +443,8 @@ public final class RegionalAverageTool extends Tool {
     @SuppressWarnings("UnusedDeclaration")
     private void printGrid(Climatology climatology) {
         try {
-            climatology.getAnalysedSstGrid(1);
-            final ArrayGrid seaCoverageSourceGrid = (ArrayGrid) climatology.getSeaCoverageSourceGrid();
+            climatology.getAnalysedSst(1);
+            final ArrayGrid seaCoverageSourceGrid = (ArrayGrid) climatology.getSeaCoverage();
             final ArrayGrid arrayGrid = seaCoverageSourceGrid.scaleDown(10, 10);
             System.out.println("========= " + arrayGrid.getWidth() + ":" + seaCoverageSourceGrid.getWidth());
             for (int j = 0; j < arrayGrid.getHeight(); j++) {

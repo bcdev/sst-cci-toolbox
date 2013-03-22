@@ -57,8 +57,8 @@ public abstract class AbstractAggregator {
 
         return new SpatialAggregationContext(fileStore.getProductType().getGridDef(),
                 readSourceGrids(netcdfFile),
-                climatology.getAnalysedSstGrid(dayOfYear),
-                climatology.getSeaCoverageSourceGrid(),
+                climatology.getAnalysedSst(dayOfYear),
+                climatology.getSeaCoverage(),
                 lutForStdDeviation == null ? null : lutForStdDeviation.getStdDeviationGrid());
     }
 
