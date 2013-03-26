@@ -23,17 +23,17 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 /**
- * A {@link org.esa.cci.sst.common.cellgrid.Grid} that is backed by a {@code ucar.ma2.Array} (from NetCDF library) instance.
+ * A grid that is backed by an array instance.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class ArrayGrid implements Grid {
-    private String variable;
+
     private final GridDef gridDef;
     private final Array array;
     private final double scaling;
     private final double offset;
-    private final Number fillValue;
     private final FillTest fillTest;
     private final int width;
     private final int height;
@@ -43,7 +43,9 @@ public class ArrayGrid implements Grid {
     }
 
     public static ArrayGrid createWith2DDoubleArray(GridDef gridDef, double[] data) {
-        return new ArrayGrid(gridDef, Array.factory(DataType.DOUBLE, new int[]{gridDef.getHeight(), gridDef.getWidth()}, data), Double.NaN, 1.0, 0.0);
+        return new ArrayGrid(gridDef,
+                             Array.factory(DataType.DOUBLE, new int[]{gridDef.getHeight(), gridDef.getWidth()}, data),
+                             Double.NaN, 1.0, 0.0);
     }
 
     public ArrayGrid(GridDef gridDef, Array array, final Number fillValue, double scaling, double offset) {
@@ -51,34 +53,9 @@ public class ArrayGrid implements Grid {
         this.array = array;
         this.scaling = scaling;
         this.offset = offset;
-        this.fillValue = fillValue;
         this.fillTest = createFillTest(fillValue);
         width = gridDef.getWidth();
         height = gridDef.getHeight();
-    }
-
-    ArrayGrid(ArrayGrid arrayGrid) {
-        this.gridDef = arrayGrid.getGridDef();
-        this.variable = arrayGrid.getVariable();
-        this.array = arrayGrid.getArray();
-        this.scaling = arrayGrid.getScaling();
-        this.offset = arrayGrid.getOffset();
-        this.fillValue = arrayGrid.getFillValue();
-        this.fillTest = createFillTest(fillValue);
-        width = gridDef.getWidth();
-        height = gridDef.getHeight();
-    }
-
-    public String getVariable() {
-        return variable;
-    }
-
-    public ArrayGrid setVariable(String variable) {
-        if (this.variable != null) {
-            throw new RuntimeException("Variable is allowed to be set only once.");
-        }
-        this.variable = variable;
-        return this;
     }
 
     public int getWidth() {
@@ -97,14 +74,6 @@ public class ArrayGrid implements Grid {
         return offset;
     }
 
-    public Number getFillValue() {
-        return fillValue;
-    }
-
-    public Array getArray() {
-        return array;
-    }
-
     @Override
     public GridDef getGridDef() {
         return gridDef;
@@ -112,34 +81,33 @@ public class ArrayGrid implements Grid {
 
     @Override
     public boolean getSampleBoolean(int x, int y) {
-        int index = y * width + x;
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            throw new ArrayIndexOutOfBoundsException(
+                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
+        }
+        final int index = y * width + x;
         return array.getBoolean(index);
-    }
-
-    public void setSample(int x, int y, boolean sample) {
-        int index = y * width + x;
-        array.setBoolean(index, sample);
     }
 
     @Override
     public int getSampleInt(int x, int y) {
-        int index = y * width + x;
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            throw new ArrayIndexOutOfBoundsException(
+                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
+        }
+        final int index = y * width + x;
         return array.getInt(index);
-    }
-
-    public void setSample(int x, int y, int sample) {
-        int index = y * width + x;
-        array.setInt(index, sample);
     }
 
     @Override
     public double getSampleDouble(int x, int y) {
-        if (x >= width || y >= height) {
-            throw new ArrayIndexOutOfBoundsException("width: " + width + "; height: " + height + "    x=" + x + "; y=" + y);
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            throw new ArrayIndexOutOfBoundsException(
+                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
         }
 
-        int index = y * width + x;
-        double sample = array.getDouble(index);
+        final int index = y * width + x;
+        final double sample = array.getDouble(index);
         if (fillTest.isFill(sample)) {
             return Double.NaN;
         }
@@ -147,76 +115,16 @@ public class ArrayGrid implements Grid {
     }
 
     public void setSample(int x, int y, double sample) {
-        int index = y * width + x;
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            throw new ArrayIndexOutOfBoundsException(
+                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
+        }
+        final int index = y * width + x;
         array.setDouble(index, sample);
     }
 
-    public static ArrayGrid scaleDown(ArrayGrid grid, GridDef targetGridDef) {
-        int sourceWidth = grid.getWidth();
-        int sourceHeight = grid.getHeight();
-        int targetWidth = targetGridDef.getWidth();
-        int targetHeight = targetGridDef.getHeight();
-        int scaleX = sourceWidth / targetWidth;
-        int scaleY = sourceHeight / targetHeight;
-
-        if (scaleX == 0 || scaleX * targetWidth != sourceWidth
-                || scaleY == 0 || scaleY * targetHeight != sourceHeight) {
-            throw new IllegalStateException(String.format(
-                    grid.getVariable() + " grid cannot be adapted scaled to %d x %d cells.",
-                    targetWidth, targetHeight));
-        }
-
-        return grid.scaleDown(scaleX, scaleY);
-    }
-
-    public ArrayGrid scaleDown(int scaleX, int scaleY) {
-        final GridDef newGridDef = new GridDef(gridDef.getWidth() / scaleX,
-                gridDef.getHeight() / scaleY,
-                gridDef.getEasting(),
-                gridDef.getNorthing(),
-                gridDef.getResolutionX() * scaleX,
-                gridDef.getResolutionY() * scaleY);
-        Class elementType = array.getElementType();
-        Class newElementType;
-        if (Double.TYPE.equals(elementType)) {
-            newElementType = Double.TYPE;
-        } else {
-            newElementType = Float.TYPE;
-        }
-        final int newWidth = newGridDef.getWidth();
-        final int newHeight = newGridDef.getHeight();
-        final Array newArray = Array.factory(newElementType, new int[]{newHeight, newWidth});
-        final ArrayGrid newArrayGrid = new ArrayGrid(newGridDef, newArray, null, 1.0, 0.0);
-        for (int yd = 0; yd < newHeight; yd++) {
-            for (int xd = 0; xd < newWidth; xd++) {
-                double sum = 0.0;
-                int n = 0;
-                for (int dy = 0; dy < scaleY; dy++) {
-                    final int ys = yd * scaleY + dy;
-                    for (int dx = 0; dx < scaleX; dx++) {
-                        final int xs = xd * scaleX + dx;
-                        final double sample = getSampleDouble(xs, ys);
-                        if (!Double.isNaN(sample)) {
-                            sum += sample;
-                            n++;
-                        }
-                    }
-                }
-                newArrayGrid.setSample(xd, yd, n > 0 ? sum / n : Double.NaN);
-            }
-        }
-        return newArrayGrid;
-    }
-
-    public ArrayGrid unmask(int mask) {
-        final Array newArray = Array.factory(DataType.BYTE, new int[]{height, width});
-        for (int i = 0; i < width * height; i++) {
-            newArray.setByte(i, (array.getInt(i) & mask) != 0 ? (byte) 1 : (byte) 0);
-        }
-        return new ArrayGrid(gridDef, newArray, null, 1.0, 0.0);
-    }
-
     private interface FillTest {
+
         boolean isFill(double sample);
     }
 
@@ -248,5 +156,4 @@ public class ArrayGrid implements Grid {
             }
         }
     }
-
 }

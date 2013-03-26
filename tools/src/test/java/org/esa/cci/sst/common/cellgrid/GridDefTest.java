@@ -32,8 +32,35 @@ public class GridDefTest {
     }
 
     @Test
-    public void testGridXY() throws Exception {
+    public void testWrapX() throws Exception {
+        final GridDef gridDef = GridDef.createGlobal(8, 4);
 
+        assertEquals(0, gridDef.wrapX(0));
+        assertEquals(7, gridDef.wrapX(7));
+
+        assertEquals(7, gridDef.wrapX(-1));
+        assertEquals(6, gridDef.wrapX(-2));
+        assertEquals(5, gridDef.wrapX(-3));
+        assertEquals(4, gridDef.wrapX(-4));
+        assertEquals(3, gridDef.wrapX(-5));
+        assertEquals(2, gridDef.wrapX(-6));
+        assertEquals(1, gridDef.wrapX(-7));
+        assertEquals(0, gridDef.wrapX(-8));
+        assertEquals(7, gridDef.wrapX(-9));
+
+        assertEquals(0, gridDef.wrapX(8));
+        assertEquals(1, gridDef.wrapX(9));
+        assertEquals(2, gridDef.wrapX(10));
+        assertEquals(3, gridDef.wrapX(11));
+        assertEquals(4, gridDef.wrapX(12));
+        assertEquals(5, gridDef.wrapX(13));
+        assertEquals(6, gridDef.wrapX(14));
+        assertEquals(7, gridDef.wrapX(15));
+        assertEquals(0, gridDef.wrapX(16));
+    }
+
+    @Test
+    public void testGridXY() throws Exception {
         assertEquals(0, gridDef90.getGridX(-180.0, false));
         assertEquals(1, gridDef90.getGridX(-90.0, false));
         assertEquals(2, gridDef90.getGridX(0.0, false));
@@ -84,7 +111,6 @@ public class GridDefTest {
 
     @Test
     public void testCenterLonLat() throws Exception {
-
         try {
             assertEquals(135.0, gridDef90.getCenterLon(-1), 1e-10);
             fail();
@@ -116,7 +142,6 @@ public class GridDefTest {
 
     @Test
     public void testGetGridRectangle1() throws Exception {
-
         assertEquals(new Rectangle(0, 0, gridDef5.getWidth(), gridDef5.getHeight()),
                 gridDef5.getGridRectangle(-180.0, -90.0, 180.0, 90.0));
 
@@ -135,7 +160,6 @@ public class GridDefTest {
 
     @Test
     public void testGetGridRectangle2() throws Exception {
-
         assertEquals(new Rectangle(0, 0, gridDef5.getWidth(), gridDef5.getHeight()),
                 gridDef5.getGridRectangle(new Rectangle2D.Double(-180.0, -90.0, 360.0, 180.0)));
 
@@ -151,7 +175,6 @@ public class GridDefTest {
 
     @Test
     public void testGetLonLatRectangle() throws Exception {
-
         assertEquals(new Rectangle2D.Double(-180.0, 89.95, 0.05, 0.05),
                 gridDef05.getLonLatRectangle(0, 0));
 
@@ -172,11 +195,5 @@ public class GridDefTest {
 
         assertFalse(GridDef.createGlobal(3600, 1800).equals(
                 GridDef.createGlobal(3600, 1801)));
-
-        assertTrue(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03).equals(
-                new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03)));
-
-        assertFalse(new GridDef(3, 6, 9.3, -8.4, 0.01, 0.03).equals(
-                new GridDef(3, 6, 9.3, -8.4, 0.02, 0.03)));
     }
 }

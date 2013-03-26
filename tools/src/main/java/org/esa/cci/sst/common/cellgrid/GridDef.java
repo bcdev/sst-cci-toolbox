@@ -47,7 +47,7 @@ public class GridDef {
         return new GridDef(width, height, -180.0, 90.0, 360.0 / width, 180.0 / height);
     }
 
-    public GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
+    private GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
         this.time = 1;
         this.width = width;
         this.height = height;
@@ -93,6 +93,16 @@ public class GridDef {
         return resolutionY;
     }
 
+    public final int wrapX(int gridX) {
+        if (gridX < 0) {
+            return width - 1 + ((1 + gridX) % width);
+        }
+        if (gridX >= width) {
+            return gridX % width;
+        }
+        return gridX;
+    }
+
     public final double getCenterLon(int gridX) {
         return getLon(gridX + 0.5);
     }
@@ -108,7 +118,7 @@ public class GridDef {
         if (lon > 180.0) {
             throw new IllegalArgumentException("lon > 180.0");
         }
-        final int gridX = (int) ((lon - easting) / resolutionX);
+        final int gridX = (int) Math.floor((lon - easting) / resolutionX);
         if (crop) {
             if (gridX < 0) {
                 return 0;
@@ -127,7 +137,7 @@ public class GridDef {
         if (lat > 90.0) {
             throw new IllegalArgumentException("lat > 90.0");
         }
-        final int gridY = (int) ((lat - northing) / -resolutionY);
+        final int gridY = (int) Math.floor((northing - lat) / resolutionY);
         if (crop) {
             if (gridY < 0) {
                 return 0;
@@ -141,7 +151,7 @@ public class GridDef {
 
     public Rectangle2D getLonLatRectangle(int gridX, int gridY) {
         double lon1 = getLon(gridX);
-        double lat1 = getLat(gridY + 1);
+        double lat1 = getLat(gridY + 1.0);
         return new Rectangle2D.Double(lon1, lat1, resolutionX, resolutionY);
     }
 
@@ -151,8 +161,8 @@ public class GridDef {
         final double lon2 = lon1 + lonLatRectangle.getWidth();
         final double lat2 = lat1 + lonLatRectangle.getHeight();
 
-        return getGridRectangle(lon1, lat1, lon2,
-                                lat2); //spanned from upper left corner (as demanded by Java Doc of Rectangle)
+        //spanned from upper left corner (as demanded by Java Doc of Rectangle)
+        return getGridRectangle(lon1, lat1, lon2, lat2);
     }
 
     private double getLon(double gridX) {
@@ -182,14 +192,14 @@ public class GridDef {
      * @return The result-rectangle is spanned from the lower left corner (Different from Java Doc of @refer Rectangle ).
      */
     Rectangle getGridRectangle(double lon1, double lat1, double lon2, double lat2) {
-        double eps = 1.0e-10;
-        final int gridX1 = getGridX(lon1, true);
-        final int gridX2 = getGridX(lon2 - eps, true);
-        final int gridY1 = getGridY(lat2, true);
-        final int gridY2 = getGridY(lat1 + eps, true);
+        final double eps = 1.0e-10;
+        final int x1 = getGridX(lon1, true);
+        final int x2 = getGridX(lon2 - eps, true);
+        final int y1 = getGridY(lat2, true);
+        final int y2 = getGridY(lat1 + eps, true);
 
         //spanned from the lower left corner
-        return new Rectangle(gridX1, gridY1, gridX2 - gridX1 + 1, gridY2 - gridY1 + 1);
+        return new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
     }
 
 
@@ -206,7 +216,7 @@ public class GridDef {
             return false;
         }
 
-        GridDef gridDef = (GridDef) o;
+        final GridDef gridDef = (GridDef) o;
 
         return width == gridDef.width &&
                height == gridDef.height &&

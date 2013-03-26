@@ -14,20 +14,26 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-public class XTransposer extends AbstractSamplePermuter {
+public final class YFlip extends AbstractSamplePermuter {
 
-    public XTransposer(Grid grid) {
+    private final int h;
+
+    private YFlip(Grid grid) {
         super(grid);
+        h = getGridDef().getHeight();
+    }
+
+    public static Grid create(Grid grid) {
+        return new YFlip(grid);
     }
 
     @Override
-    protected int getSourceX(int x) { // swap left and right halves
-        final int h = getGridDef().getWidth() / 2;
-        return x < h ? x + h : x - h;
+    protected final int getSourceX(int x) {
+        return x;
     }
 
     @Override
-    protected int getSourceY(int y) {
-        return y;
+    protected final int getSourceY(int y) {
+        return h - y - 1;
     }
 }
