@@ -82,9 +82,7 @@ public class FileStore {
     }
 
     private static FileTree scanFiles(ProductType productType, FileFilter fileFilter, String... inputPaths) {
-
-        FileTree fileTree = new FileTree();
-
+        final FileTree fileTree = new FileTree();
         for (String inputPath : inputPaths) {
             scanFiles(productType, fileFilter, new File(inputPath), fileTree);
         }

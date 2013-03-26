@@ -21,8 +21,8 @@ package org.esa.cci.sst.common.auxiliary;
 
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.cellgrid.XTransposer;
-import org.esa.cci.sst.common.cellgrid.YFlipper;
+import org.esa.cci.sst.common.cellgrid.XSwap;
+import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
@@ -47,7 +47,7 @@ public class LUT1 {
             final GridDef gridDef = GridDef.createGlobal(5.0);
             final Grid magnitudeGrid = NcUtils.readGrid(netcdfFile, "MAGNITUDE", gridDef);
             final Grid exponentGrid = NcUtils.readGrid(netcdfFile, "EXPONENT", gridDef);
-            return new LUT1(new XTransposer(new YFlipper(magnitudeGrid)), new XTransposer(new YFlipper(exponentGrid)));
+            return new LUT1(XSwap.create(YFlip.create(magnitudeGrid)), XSwap.create(YFlip.create(exponentGrid)));
         } finally {
             netcdfFile.close();
         }

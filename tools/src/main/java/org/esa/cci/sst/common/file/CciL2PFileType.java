@@ -106,76 +106,7 @@ public class CciL2PFileType extends CciL3FileType {
         Number fillValue = cciL2PReprojection.getFillValue();
         double scaling = cciL2PReprojection.getScaling();
         double offset = cciL2PReprojection.getOffset();
-        ArrayGrid arrayGrid = new ArrayGrid(getGridDef(), array, fillValue, scaling, offset);
-        arrayGrid.setVariable(variable);
-        return arrayGrid;
-    }
-
-    private void writeIntermediate(Grid[] grids) throws IOException { //for debugging only
-        GridDef gridDef = grids[0].getGridDef();
-        SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(
-                String.valueOf(gridDef.getResolution()));
-
-        final String outputFilename = "intermediate.nc";
-        final File file = new File("C:\\Users\\bettina\\Development\\test-data\\sst-cci\\l2p\\output\\regridding\\2012-11-08", outputFilename);
-        LOGGER.info("Writing output file '" + file + "'...");
-
-        //global attributes
-        NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
-        try {
-            netcdfFile.addGlobalAttribute("title", "some title");
-            netcdfFile.addGlobalAttribute("source_filename_regex", getFilenameRegex());
-
-            //global dimensions
-            Dimension latDim = netcdfFile.addDimension("lat", gridDef.getHeight());
-            Dimension lonDim = netcdfFile.addDimension("lon", gridDef.getWidth());
-            Dimension[] dimensionMeasurementRelated = {latDim, lonDim};
-
-            Variable latVar = netcdfFile.addVariable("lat", DataType.FLOAT, new Dimension[]{latDim});
-            latVar.addAttribute(new Attribute("units", "degrees_north"));
-            latVar.addAttribute(new Attribute("long_name", "latitude"));
-            latVar.addAttribute(new Attribute("bounds", "lat_bnds"));
-
-            Variable lonVar = netcdfFile.addVariable("lon", DataType.FLOAT, new Dimension[]{lonDim});
-            lonVar.addAttribute(new Attribute("units", "degrees_east"));
-            lonVar.addAttribute(new Attribute("long_name", "longitude"));
-            lonVar.addAttribute(new Attribute("bounds", "lon_bnds"));
-
-            Variable sstVar = netcdfFile.addVariable("sea_surface_temperature", DataType.FLOAT, dimensionMeasurementRelated);
-            sstVar.addAttribute(new Attribute("units", "kelvin"));
-            sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst")));
-            sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-
-            Variable qVar = netcdfFile.addVariable("quality_level", DataType.FLOAT, dimensionMeasurementRelated);
-            qVar.addAttribute(new Attribute("units", "kelvin"));
-            qVar.addAttribute(new Attribute("long_name", String.format("quality_level")));
-            qVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-
-            Variable uuVar = netcdfFile.addVariable("uncorrelated_uncertainty", DataType.FLOAT, dimensionMeasurementRelated);
-            uuVar.addAttribute(new Attribute("units", "kelvin"));
-            uuVar.addAttribute(new Attribute("long_name", String.format("uncorrelated_uncertainty")));
-            uuVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-
-            Variable[] variables = new Variable[]{sstVar, qVar, uuVar};
-
-            //write header
-            netcdfFile.create();
-            //add data variables
-            for (int i = 0; i < variables.length; i++) {
-                Variable variable = variables[i];
-                System.out.print("variable = " + variable);
-                ArrayGrid grid = (ArrayGrid) grids[i];
-                System.out.println("  => " + grid.getVariable());
-                writeDataToNetCdfFile(netcdfFile, grid.getVariable(), grid.getArray());
-            }
-        } finally {
-            try {
-                netcdfFile.flush();
-                netcdfFile.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
+        return new ArrayGrid(getGridDef(), array, fillValue, scaling, offset);
     }
 
     private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws IOException { //for debugging only

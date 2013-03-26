@@ -23,7 +23,6 @@ import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.regrid.auxiliary.LutForStdDeviation;
 import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
-import org.esa.cci.sst.regrid.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 
@@ -116,36 +115,41 @@ public class RegriddingTool extends Tool {
 
     @Override
     protected void run(Configuration configuration, String[] arguments) throws ToolException {
-        final SpatialResolution spatialResolution = fetchSpatialResolution(configuration);
-        final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
+        final String resolutionString = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
+        final SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(resolutionString);
         productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+
         final String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
                 productType.getDefaultFilenameRegex(), false);
+
         final SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
-        final String productDir = configuration.getString(productType + ".dir", null, true);
+        final String productDir = configuration.getString(productType + ".dir", ".", true);
         final Date startDate = configuration.getDate(PARAM_START_DATE, true);
         final Date endDate = configuration.getDate(PARAM_END_DATE, true);
         final TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
         final File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        final RegionMaskList regionMaskList = parseRegionListInTargetSpatialResolution(configuration);
+        final RegionMaskList regionMaskList = getRegionMaskList(configuration);
         final double minCoverage = Double.parseDouble(configuration.getString(PARAM_MIN_COVERAGE, false));
-        final File lutCuFileStddev = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
-        final File lutCuFileTime = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME, true);
-        final File lutCuFileSpace = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
-        boolean totalUncertainty = checkTotalUncertainty(configuration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true));
-        double maxTotalUncertainty = Double.parseDouble(configuration.getString(PARAM_MAX_UNCERTAINTY, false));
+        final File cuStdDevFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
+        final File cuTimeFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME, true);
+        final File cuSpaceFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
 
-        Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
-        FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
-        LutForStdDeviation lutCuStddev = createLutForStdDeviation(lutCuFileStddev);
-        LutForXTimeSpace lutCuTime = getLutCoverageUncertainty(lutCuFileTime, spatialResolution, -32768.0);
-        LutForXTimeSpace lutCuSpace = getLutCoverageUncertainty(lutCuFileSpace, spatialResolution, 0.0);
-        LutForSynopticAreas lutSynopticAreas = new LutForSynopticAreas(temporalResolution, spatialResolution);
+        final boolean totalUncertainty = checkTotalUncertainty(configuration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true));
+        final double maxTotalUncertainty = Double.parseDouble(configuration.getString(PARAM_MAX_UNCERTAINTY, false));
+
+        final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
+        final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
+
+        final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
+        final LutForStdDeviation cuStdDevLut = createLutForStdDeviation(cuStdDevFile);
+        final LutX0 cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
+        final LutX0 cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
+        final LutForSynopticAreas lutSynopticAreas = new LutForSynopticAreas(temporalResolution, spatialResolution);
 
         List<RegriddingTimeStep> timeSteps;
         try {
             Aggregator4Regrid aggregator = new Aggregator4Regrid(regionMaskList, fileStore, climatology,
-                    lutSynopticAreas, lutCuStddev, lutCuTime, lutCuSpace, sstDepth, minCoverage, spatialResolution);
+                    lutSynopticAreas, cuStdDevLut, cuTimeLut, cuSpaceLut, sstDepth, minCoverage, spatialResolution);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
@@ -166,10 +170,6 @@ public class RegriddingTool extends Tool {
             throw new ToolException("Parameter 'totalUncertainty' is only available for CCI-L3 products.", ExitCode.USAGE_ERROR);
         }
         return totalUncertainty;
-    }
-
-    private SpatialResolution fetchSpatialResolution(Configuration configuration) throws ToolException {
-        return SpatialResolution.getSpatialResolution(configuration.getString(PARAM_SPATIAL_RESOLUTION, true));
     }
 
     @Override
@@ -232,36 +232,37 @@ public class RegriddingTool extends Tool {
         return paramList.toArray(new Parameter[paramList.size()]);
     }
 
-    private RegionMaskList parseRegionListInTargetSpatialResolution(Configuration configuration) throws ToolException {
+    private RegionMaskList getRegionMaskList(Configuration configuration) throws ToolException {
         try {
-            String region = configuration.getString(PARAM_REGION, false);
-            RegionMaskList.setSpatialResolution(fetchSpatialResolution(configuration));
+            final String region = configuration.getString(PARAM_REGION, false);
+            RegionMaskList.setSpatialResolution(
+                    SpatialResolution.getSpatialResolution(configuration.getString(PARAM_SPATIAL_RESOLUTION, true)));
             return RegionMaskList.parse(region);
         } catch (Exception e) {
             throw new ToolException(e, ExitCode.USAGE_ERROR);
         }
     }
 
-    private LutForStdDeviation createLutForStdDeviation(File lutFile) throws ToolException {
-        LutForStdDeviation lutForStdDeviation;
+    private LutForStdDeviation createLutForStdDeviation(File file) throws ToolException {
+        LutForStdDeviation lut;
         try {
-            lutForStdDeviation = LutForStdDeviation.create(lutFile, productType.getGridDef());
-            LOGGER.info(String.format("LUT read from '%s'", lutFile));
+            lut = LutForStdDeviation.create(file, productType.getGridDef());
+            LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
         }
-        return lutForStdDeviation;
+        return lut;
     }
 
-    private LutForXTimeSpace getLutCoverageUncertainty(File lutFile, SpatialResolution spatialResolution, double fillValue) throws ToolException {
-        LutForXTimeSpace lutForXTimeSpace;
+    private LutX0 getLutCoverageUncertainty(File file, SpatialResolution spatialResolution, double fillValue) throws ToolException {
+        LutX0 lutX0;
         try {
-            lutForXTimeSpace = LutForXTimeSpace.read(lutFile, spatialResolution, fillValue);
-            LOGGER.info(String.format("LUT read from '%s'", lutFile));
+            lutX0 = LutX0.create(file, fillValue, spatialResolution);
+            LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
         }
-        return lutForXTimeSpace;
+        return lutX0;
     }
 
 }

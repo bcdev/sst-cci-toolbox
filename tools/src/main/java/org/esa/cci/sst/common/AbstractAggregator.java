@@ -59,7 +59,7 @@ public abstract class AbstractAggregator {
                 readSourceGrids(netcdfFile),
                 climatology.getAnalysedSst(dayOfYear),
                 climatology.getSeaCoverage(),
-                lutForStdDeviation == null ? null : lutForStdDeviation.getStdDeviationGrid());
+                lutForStdDeviation == null ? null : lutForStdDeviation.getStandardDeviationGrid());
     }
 
     private Grid[] readSourceGrids(NetcdfFile netcdfFile) throws IOException {

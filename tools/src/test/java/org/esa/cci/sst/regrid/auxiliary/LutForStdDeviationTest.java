@@ -45,9 +45,7 @@ public class LutForStdDeviationTest {
     public void test90() throws Exception {
         LutForStdDeviation lutForStdDeviation = createLutForStdDeviation(GridDef.createGlobal(90.0));
 
-        ArrayGrid grid = lutForStdDeviation.getStdDeviationGrid();
-        assertEquals(2, grid.getHeight());
-        assertEquals(4, grid.getWidth());
+        final Grid grid = lutForStdDeviation.getStandardDeviationGrid();
 
         final String expected = "" +
                 " 47.20  40.11  23.81  39.62 \n" +
@@ -61,65 +59,23 @@ public class LutForStdDeviationTest {
     public void test01() throws Exception {
         LutForStdDeviation lutForStdDeviation = createLutForStdDeviation(GridDef.createGlobal(0.1));
 
-        ArrayGrid grid = lutForStdDeviation.getStdDeviationGrid();
-        assertEquals(1800, grid.getHeight());
-        assertEquals(3600, grid.getWidth());
-
-//        grid.setVariable("uncertainty");
-//        final Grid[] grids = new Grid[1];
-//        grids[0] = grid;
-//        writeIntermediate(grids);
-    }
-
-    private void writeIntermediate(Grid[] grids) throws IOException {
-        GridDef gridDef = grids[0].getGridDef();
-        final File file = new File("C:\\Users\\bettina\\Development\\test-data\\sst-cci\\arc\\output\\regridding\\2012-11-22", "intermediate.nc");
-        //global attributes
-        NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
-        try {
-            netcdfFile.addGlobalAttribute("title", "some title");
-            //global dimensions
-            Dimension latDim = netcdfFile.addDimension("lat", gridDef.getHeight());
-            Dimension lonDim = netcdfFile.addDimension("lon", gridDef.getWidth());
-            Dimension[] dimensionMeasurementRelated = {latDim, lonDim};
-
-            Variable uuVar = netcdfFile.addVariable("uncertainty", DataType.FLOAT, dimensionMeasurementRelated);
-            uuVar.addAttribute(new Attribute("units", "kelvin"));
-            uuVar.addAttribute(new Attribute("long_name", String.format("uncorrelated_uncertainty")));
-            uuVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-
-            Variable[] variables = new Variable[]{uuVar};
-            netcdfFile.create();
-            //add data variables
-            for (int i = 0; i < variables.length; i++) {
-                ArrayGrid grid = (ArrayGrid) grids[i];
-                try {
-                    netcdfFile.write(grid.getVariable(), grid.getArray());
-                } catch (InvalidRangeException e) {
-                    System.out.println("Regridding Tool" + "writeDataToNetCdfFile" + e.getMessage());
-                }
-            }
-        } finally {
-            try {
-                netcdfFile.flush();
-                netcdfFile.close();
-            } catch (IOException e) {// ignore
-            }
-        }
+        Grid grid = lutForStdDeviation.getStandardDeviationGrid();
+        assertEquals(1800, grid.getGridDef().getHeight());
+        assertEquals(3600, grid.getGridDef().getWidth());
     }
 
     @Test
     public void test10() throws Exception {
         LutForStdDeviation lutForStdDeviation = createLutForStdDeviation(GridDef.createGlobal(10.0));
 
-        ArrayGrid grid = lutForStdDeviation.getStdDeviationGrid();
-        assertEquals(18, grid.getHeight());
-        assertEquals(36, grid.getWidth());
+        final Grid grid = lutForStdDeviation.getStandardDeviationGrid();
+        assertEquals(18, grid.getGridDef().getHeight());
+        assertEquals(36, grid.getGridDef().getWidth());
 
         final String expected = "" +
                 "  7.65   2.67   0.39   0.01   0.00   0.00   0.00   0.01   0.03   0.10   0.08   0.53   0.00   0.00   0.02   0.48   4.63   6.22   9.64  17.45  14.13  11.93  12.02   7.99   4.99   5.98   6.65   3.76   1.46   2.38   7.22  17.26  16.46  13.30  11.87   9.80 \n" +
                 "115.93  88.99  64.02  64.68  60.70  52.52  15.25  15.72  25.07  11.91  29.06  46.37  19.89   0.00   0.00   6.50  47.82  62.75  72.07  59.77  57.06  85.97 112.69  90.57 100.92  69.36  44.52  14.64   8.42  33.06  62.59  74.32  53.57  77.31 103.38 125.87 \n" +
-                " 98.61  66.49   0.84   3.14   6.43   3.20   4.85   4.26  13.04  42.05  29.80  42.53  61.20  13.60  48.83  62.93  55.76  61.69  57.99  26.87  15.49  18.75  36.77  22.32   7.17   2.53   0.00   0.00   0.00   0.00   0.00   0.00   0.00   6.78  10.78  27.48 \n" +
+                " 98.61  66.49   0.84   3.14   6.43   3.20   4.85   4.26  13.04  42.05  29.80  42.53  61.20  13.60  48.83  62.93  55.76  61.69  57.99  26.87  15.49  18.75  36.77  22.32   7.17   2.53   0.00   0.00   0.00   0.00   0.00   0.00   0.00   6.79  10.78  27.48 \n" +
                 " 61.23  66.74  57.01  67.08  56.20   5.70   0.00   0.00  12.87  66.03  20.00  10.75  63.27  75.25  78.11  65.01  58.61  35.61  57.73  39.69  19.82   0.03   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00   0.00  11.81  98.53  69.81  65.06  60.80 \n" +
                 " 78.50  80.23  80.11  82.79  80.68  49.33   0.00   0.00   0.00   0.00   6.02  83.78 105.15  97.76  81.45  81.18  65.92  35.23  24.72  25.82  10.06  46.71  17.58  22.27   0.00   0.00   0.00   0.00   0.00   0.01   2.58  40.42  84.72  93.58  91.16  88.99 \n" +
                 " 99.47  95.97  92.55  91.06  79.59  73.63  14.59   0.00   0.16   5.04  64.62  74.63  58.11  59.35  63.34  66.88  61.41  17.37  20.59  58.20  40.82  16.20   2.79  13.30   0.00   0.00   0.00   0.00   0.00   4.30  65.85  67.28  90.70 101.84  97.21 100.24 \n" +
@@ -140,13 +96,13 @@ public class LutForStdDeviationTest {
         assertEquals(expected, result);
     }
 
-    private String createResultString(ArrayGrid grid) {
+    private String createResultString(Grid grid) {
         final Locale theDefault = Locale.getDefault();
         Locale.setDefault(new Locale("en", "US"));
 
         StringBuilder stringBuilder = new StringBuilder();
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
+        for (int y = 0; y < grid.getGridDef().getHeight(); y++) {
+            for (int x = 0; x < grid.getGridDef().getWidth(); x++) {
                 double value = grid.getSampleDouble(x, y);
                 stringBuilder.append(String.format("%6.2f ", value));
             }

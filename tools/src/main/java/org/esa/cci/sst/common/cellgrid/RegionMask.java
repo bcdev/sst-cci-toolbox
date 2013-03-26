@@ -51,10 +51,10 @@ public class RegionMask implements Grid {
     private static GridDef gridDef = GridDef.createGlobal(width, height);
 
     public static void setSpatialResolution(SpatialResolution spatialResolution) {
-        GridDef associatedGridDef = spatialResolution.getGridDef();
-        width = associatedGridDef.getWidth();
-        height = associatedGridDef.getHeight();
-        gridDef = associatedGridDef;
+        final GridDef gridDef = spatialResolution.getGridDef();
+        width = gridDef.getWidth();
+        height = gridDef.getHeight();
+        RegionMask.gridDef = gridDef;
     }
 
     public static RegionMask create(String name, String data) throws ParseException {

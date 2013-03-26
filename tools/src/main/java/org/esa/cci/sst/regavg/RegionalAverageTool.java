@@ -26,6 +26,8 @@ import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.auxiliary.LUT1;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
+import org.esa.cci.sst.common.cellgrid.Downscaling;
+import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
@@ -438,28 +440,6 @@ public final class RegionalAverageTool extends Tool {
                 additionalSegregator,
                 TOOL_VERSION,
                 FILE_FORMAT_VERSION);
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    private void printGrid(Climatology climatology) {
-        try {
-            climatology.getAnalysedSst(1);
-            final ArrayGrid seaCoverageSourceGrid = (ArrayGrid) climatology.getSeaCoverage();
-            final ArrayGrid arrayGrid = seaCoverageSourceGrid.scaleDown(10, 10);
-            System.out.println("========= " + arrayGrid.getWidth() + ":" + seaCoverageSourceGrid.getWidth());
-            for (int j = 0; j < arrayGrid.getHeight(); j++) {
-                for (int i = 0; i < arrayGrid.getWidth(); i++) {
-                    final double sampleDouble = arrayGrid.getSampleDouble(i, j);
-                    if (i > 0)
-                        System.out.print("\t");
-                    System.out.print(sampleDouble);
-                }
-                System.out.print("\n");
-            }
-            System.out.println("=========");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     void setProductType(ProductType productType) { //for test only

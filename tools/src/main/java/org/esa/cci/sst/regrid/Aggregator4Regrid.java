@@ -34,7 +34,6 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regrid.auxiliary.LutForStdDeviation;
 import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
-import org.esa.cci.sst.regrid.auxiliary.LutForXTimeSpace;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
@@ -55,12 +54,12 @@ public class Aggregator4Regrid extends AbstractAggregator {
 
     private RegionMask combinedRegionMask;
     private SpatialResolution spatialTargetResolution;
-    private final LutForXTimeSpace lutCuTime;
-    private final LutForXTimeSpace lutCuSpace;
+    private final LutX0 lutCuTime;
+    private final LutX0 lutCuSpace;
     private final LutForSynopticAreas lutForSynopticAreas;
 
     public Aggregator4Regrid(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
-                             LutForSynopticAreas lutForSynopticAreas, LutForStdDeviation lutCuStddev, LutForXTimeSpace lutCuTime, LutForXTimeSpace lutCuSpace,
+                             LutForSynopticAreas lutForSynopticAreas, LutForStdDeviation lutCuStddev, LutX0 lutCuTime, LutX0 lutCuSpace,
                              SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
 
         super(fileStore, climatology, lutCuStddev, sstDepth);

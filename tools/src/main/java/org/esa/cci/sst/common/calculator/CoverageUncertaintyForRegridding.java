@@ -21,8 +21,8 @@ package org.esa.cci.sst.common.calculator;
 
 import org.esa.beam.util.math.MathUtils;
 import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.regrid.LutX0;
 import org.esa.cci.sst.regrid.SpatialResolution;
-import org.esa.cci.sst.regrid.auxiliary.LutForXTimeSpace;
 
 import java.util.Calendar;
 
@@ -35,14 +35,14 @@ import java.util.Calendar;
 public class CoverageUncertaintyForRegridding implements CoverageUncertainty {
 
     private SpatialResolution spatialResolution;
-    private LutForXTimeSpace lutForXTime0;
-    private LutForXTimeSpace lutForXSpace0;
+    private LutX0 lutForXTime0;
+    private LutX0 lutForXSpace0;
     private final double xDay;
 
     public CoverageUncertaintyForRegridding(TemporalResolution temporalResolution,
                                             SpatialResolution spatialResolution,
-                                            LutForXTimeSpace lutCuTime0,
-                                            LutForXTimeSpace lutCuSpace0) {
+                                            LutX0 lutCuTime0,
+                                            LutX0 lutCuSpace0) {
         this.lutForXTime0 = lutCuTime0;
         this.lutForXSpace0 = lutCuSpace0;
         this.spatialResolution = spatialResolution;
