@@ -20,6 +20,7 @@
 package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
+import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -39,7 +40,8 @@ import java.util.logging.Logger;
 /**
  * NetCDF utility functions.
  *
- * @author Norman
+ * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class NcUtils {
 
@@ -55,15 +57,13 @@ public class NcUtils {
         return netcdfFile.findTopVariable(variableName) != null;
     }
 
-    public static ArrayGrid readGrid(NetcdfFile netcdfFile, String variableName, GridDef expectedGridDef) throws IOException {
+    public static Grid readGrid(NetcdfFile netcdfFile, String variableName, GridDef expectedGridDef) throws IOException {
         return readGrid(netcdfFile, variableName, expectedGridDef, 0);
     }
 
-    public static ArrayGrid readGrid(NetcdfFile netcdfFile, String variableName, GridDef expectedGridDef, int z) throws IOException {
+    public static Grid readGrid(NetcdfFile netcdfFile, String variableName, GridDef expectedGridDef, int z) throws IOException {
         final Variable variable = getVariable(netcdfFile, variableName);
-        ArrayGrid arrayGrid = readGrid(netcdfFile, variable, expectedGridDef, z);
-        arrayGrid.setVariable(variable.getName());
-        return arrayGrid;
+        return readGrid(netcdfFile, variable, expectedGridDef, z);
     }
 
     private static double getAddOffset(Variable variable) {
@@ -126,7 +126,7 @@ public class NcUtils {
         return array.reshapeNoCopy(new int[]{gridRectangle.height, gridRectangle.width});
     }
 
-    private static ArrayGrid readGrid(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef, int z) throws IOException {
+    private static Grid readGrid(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef, int z) throws IOException {
         final Rectangle gridRectangle = getGridRectangle(netcdfFile, variable, expectedGridDef);
         final double scaleFactor = getScaleFactor(variable);
         final double addOffset = getAddOffset(variable);
@@ -146,7 +146,7 @@ public class NcUtils {
         if (width != expectedGridDef.getWidth() || height != expectedGridDef.getHeight()) {
             throw new IOException(String.format("Variable '%s' in file '%s': Unexpected grid size.", variable.getName(), netcdfFile.getLocation()));
         }
-        // todo - check lat/lon fields to make sure they fit to expectedGridDef
+        // TODO - check lat/lon fields to make sure they fit to expectedGridDef
         return new Rectangle(0, 0, width, height);
     }
 }
