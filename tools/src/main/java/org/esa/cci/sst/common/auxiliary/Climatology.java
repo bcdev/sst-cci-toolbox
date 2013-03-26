@@ -19,19 +19,16 @@
 
 package org.esa.cci.sst.common.auxiliary;
 
-import org.esa.cci.sst.common.cellgrid.ArrayGrid;
+import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.cellgrid.YFlipper;
+import org.esa.cci.sst.common.cellgrid.Unmask;
+import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -44,6 +41,7 @@ import java.util.logging.Logger;
  * OSTIA monthly SST climatology.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class Climatology {
 
@@ -60,10 +58,10 @@ public class Climatology {
     private Grid sstGrid;
     private int dayOfYear;
 
-    private ArrayGrid seaCoverageGrid; //0.1 ° or 0.5 ° same as input files
+    private Grid seaCoverageGrid; //0.1° or 0.5° same as input files
     private Grid seaCoverageCell1Grid;
-    private ArrayGrid seaCoverageCell5Grid;
-    private ArrayGrid seaCoverageCell90Grid;
+    private Grid seaCoverageCell5Grid;
+    private Grid seaCoverageCell90Grid;
 
     private Climatology(File[] dailyClimatologyFiles, GridDef targetGridDef) {
         if (dailyClimatologyFiles.length != 365) {
@@ -111,8 +109,7 @@ public class Climatology {
             final String[] missingDays = getMissingDays(files);
             throw new ToolException(
                     String.format("Climatology directory is expected to contain 365 files, but found %d. Missing %s.",
-                                  files.length, Arrays.toString(missingDays)),
-                    ExitCode.USAGE_ERROR);
+                                  files.length, Arrays.toString(missingDays)), ExitCode.USAGE_ERROR);
         }
     }
 
@@ -121,24 +118,24 @@ public class Climatology {
             if (this.dayOfYear != dayOfYear) {
                 readGrids(dayOfYear);
             }
-            return new YFlipper(sstGrid);
+            return sstGrid;
         }
     }
 
     public Grid getSeaCoverage() {
-        return new YFlipper(seaCoverageGrid);
+        return seaCoverageGrid;
     }
 
     public Grid getSeaCoverageCell1Grid() {
-        return new YFlipper(seaCoverageCell1Grid);
+        return seaCoverageCell1Grid;
     }
 
     public Grid getSeaCoverageCell5Grid() {
-        return new YFlipper(seaCoverageCell5Grid);
+        return seaCoverageCell5Grid;
     }
 
     public Grid getSeaCoverageCell90Grid() {
-        return new YFlipper(seaCoverageCell90Grid);
+        return seaCoverageCell90Grid;
     }
 
     private void readGrids(int dayOfYear) throws IOException {
@@ -172,46 +169,31 @@ public class Climatology {
     private void readAnalysedSstGrid(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'analysed_sst'...");
-        ArrayGrid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", SOURCE_GRID_DEF, 0);
+        Grid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", SOURCE_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         if (!SOURCE_GRID_DEF.equals(targetGridDef)) {
-            sstGrid = ArrayGrid.scaleDown(sstGrid, targetGridDef);
+            sstGrid = Downscaling.create(sstGrid, targetGridDef);
         }
         LOGGER.fine(String.format("Transforming 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
-        this.sstGrid = sstGrid;
+        this.sstGrid = YFlip.create(sstGrid);
         this.dayOfYear = dayOfYear;
     }
 
     private void readSeaCoverageGrids(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'mask'...");
-        ArrayGrid maskGrid = NcUtils.readGrid(netcdfFile, "mask", SOURCE_GRID_DEF, 0);
+        final Grid maskGrid = NcUtils.readGrid(netcdfFile, "mask", SOURCE_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
-        seaCoverageGrid = maskGrid.unmask(0x01);
+        seaCoverageGrid = YFlip.create(Unmask.create(maskGrid, 0x01));
         if (!SOURCE_GRID_DEF.equals(targetGridDef)) {
-            seaCoverageGrid = ArrayGrid.scaleDown(seaCoverageGrid, targetGridDef);
+            seaCoverageGrid = Downscaling.create(seaCoverageGrid, targetGridDef);
         }
-        // Uncomment for debugging
-        // writeMaskImage();
-        seaCoverageCell1Grid = ArrayGrid.scaleDown(seaCoverageGrid, TARGET_1D_GRID_DEF);
-        seaCoverageCell5Grid = ArrayGrid.scaleDown(seaCoverageGrid, TARGET_5D_GRID_DEF);
-        seaCoverageCell90Grid = ArrayGrid.scaleDown(seaCoverageCell5Grid, TARGET_90D_GRID_DEF);
+        seaCoverageCell1Grid = Downscaling.create(seaCoverageGrid, TARGET_1D_GRID_DEF);
+        seaCoverageCell5Grid = Downscaling.create(seaCoverageGrid, TARGET_5D_GRID_DEF);
+        seaCoverageCell90Grid = Downscaling.create(seaCoverageCell5Grid, TARGET_90D_GRID_DEF);
         LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
-        LOGGER.info(String.format("Sea-water coverages in 90x90 deg. cells: %s", seaCoverageCell90Grid.getArray()));
-    }
-
-    // Leave for debugging
-    private void writeMaskImage() throws IOException {
-        final IndexColorModel colorModel = new IndexColorModel(8, 2, new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255},
-                                                         new byte[]{0, (byte) 255});
-        final BufferedImage image = new BufferedImage(seaCoverageGrid.getWidth(), seaCoverageGrid.getHeight(),
-                                                BufferedImage.TYPE_BYTE_INDEXED, colorModel);
-        final Object source = seaCoverageGrid.getArray().getStorage();
-        final byte[] target = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-        System.arraycopy(source, 0, target, 0, image.getWidth() * image.getHeight());
-        ImageIO.write(image, "PNG", new File("sea-coverage-grid.png"));
     }
 
     private static String[] getMissingDays(File[] files) {
