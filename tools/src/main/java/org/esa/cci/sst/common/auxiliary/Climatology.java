@@ -36,6 +36,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * OSTIA monthly SST climatology.
@@ -64,9 +66,6 @@ public class Climatology {
     private Grid seaCoverageCell90Grid;
 
     private Climatology(File[] dailyClimatologyFiles, GridDef targetGridDef) {
-        if (dailyClimatologyFiles.length != 365) {
-            throw new IllegalArgumentException("files.length != 365");
-        }
         this.dailyClimatologyFiles = dailyClimatologyFiles;
         this.targetGridDef = targetGridDef;
     }
@@ -75,45 +74,40 @@ public class Climatology {
         if (!dir.isDirectory()) {
             throw new ToolException("Not a directory or directory not found: " + dir, ExitCode.USAGE_ERROR);
         }
-        File[] files = dir.listFiles(new FilenameFilter() {
+        final File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.startsWith("D") && name.endsWith(".nc.bz2");
+                return name.matches(".*\\d\\d\\d.*\\.nc");
             }
         });
-        if (files == null || files.length < 365) {
-            files = dir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.startsWith("D") && name.endsWith(".nc");
-                }
-            });
-        }
         if (files == null) {
-            throw new ToolException("Climatology directory is empty: " + dir, ExitCode.USAGE_ERROR);
+            throw new ToolException(String.format("Climatology directory is empty: %s", dir), ExitCode.USAGE_ERROR);
         }
-        if (files.length == 365) {
-            final File[] dailyClimatologyFiles = new File[365];
+        if (files.length == 365 || files.length == 366) {
+            final File[] dailyClimatologyFiles = new File[files.length];
+            final Pattern pattern = Pattern.compile("\\d\\d\\d");
             for (final File file : files) {
-                final int day = Integer.parseInt(file.getName().substring(1, 4));
-                dailyClimatologyFiles[day - 1] = file;
+                final Matcher matcher = pattern.matcher(file.getName());
+                if (matcher.find()) {
+                    final int day = Integer.parseInt(file.getName().substring(matcher.start(), matcher.end()));
+                    dailyClimatologyFiles[day - 1] = file;
+                } else {
+                    throw new ToolException("An internal error occurred.", ExitCode.INTERNAL_ERROR);
+                }
             }
             return new Climatology(dailyClimatologyFiles, targetGridDef);
         } else if (files.length == 1) {
-            final File[] dailyClimatologyFiles = new File[365];
-            for (int i = 0; i < 365; i++) {
-                dailyClimatologyFiles[i] = files[0];
-            }
+            final File[] dailyClimatologyFiles = new File[]{files[0]};
             return new Climatology(dailyClimatologyFiles, targetGridDef);
         } else {
             final String[] missingDays = getMissingDays(files);
             throw new ToolException(
-                    String.format("Climatology directory is expected to contain 365 files, but found %d. Missing %s.",
+                    String.format("Climatology directory is expected to contain 365 or 366 files, but found %d. Missing %s.",
                                   files.length, Arrays.toString(missingDays)), ExitCode.USAGE_ERROR);
         }
     }
 
-    public Grid getAnalysedSst(int dayOfYear) throws IOException {
+    public Grid getSst(int dayOfYear) throws IOException {
         synchronized (this) {
             if (this.dayOfYear != dayOfYear) {
                 readGrids(dayOfYear);
@@ -143,8 +137,9 @@ public class Climatology {
             throw new IllegalArgumentException("dayOfYear < 1");
         } else if (dayOfYear > 366) {
             throw new IllegalArgumentException("dayOfYear > 366");
-        } else if (dayOfYear == 366) {
-            dayOfYear = 365; // leap year
+        }
+        if (dayOfYear > dailyClimatologyFiles.length) {
+            dayOfYear = dailyClimatologyFiles.length;
         }
         final File file = dailyClimatologyFiles[dayOfYear - 1];
         long t0 = System.currentTimeMillis();
@@ -169,6 +164,7 @@ public class Climatology {
     private void readAnalysedSstGrid(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'analysed_sst'...");
+        // TODO - use different SST name for new climatology files
         Grid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", SOURCE_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
@@ -183,6 +179,7 @@ public class Climatology {
     private void readSeaCoverageGrids(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'mask'...");
+        // TODO - create sea coverage grid from SST for new climatology files
         final Grid maskGrid = NcUtils.readGrid(netcdfFile, "mask", SOURCE_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
