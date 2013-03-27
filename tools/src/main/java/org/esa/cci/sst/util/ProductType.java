@@ -21,16 +21,22 @@ package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.file.*;
+import org.esa.cci.sst.common.file.ArcL3UFileType;
+import org.esa.cci.sst.common.file.CciL2PFileType;
+import org.esa.cci.sst.common.file.CciL3FileType;
+import org.esa.cci.sst.common.file.CciL4FileType;
+import org.esa.cci.sst.common.file.FileType;
 
 import java.io.File;
 import java.text.ParseException;
 import java.util.Date;
 
 /**
- * Represents the product types handled by the {@link org.esa.cci.sst.regavg.RegionalAverageTool}.
+ * Represents the product types handled by the SST tools.
  *
- * @author Norman Fomferra, Bettina Scholze
+ * @author Norman Fomferra
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public enum ProductType {
     ARC_L3U(ArcL3UFileType.INSTANCE, ProcessingLevel.L3U),
@@ -42,7 +48,7 @@ public enum ProductType {
     private final FileType fileType;
     private final ProcessingLevel processingLevel;
 
-    ProductType(FileType fileType, ProcessingLevel processingLevel) {
+    private ProductType(FileType fileType, ProcessingLevel processingLevel) {
         this.fileType = fileType;
         this.processingLevel = processingLevel;
     }

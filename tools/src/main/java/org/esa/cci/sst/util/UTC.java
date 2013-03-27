@@ -31,6 +31,7 @@ import java.util.TimeZone;
  * Utility methods for the UTC time zone.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public final class UTC {
 
@@ -47,6 +48,7 @@ public final class UTC {
      * english locale ('en') and a calendar returned by the {@link #createCalendar()} method.
      *
      * @param pattern The data format pattern
+     *
      * @return A date format
      */
     public static DateFormat getDateFormat(String pattern) {
@@ -56,14 +58,20 @@ public final class UTC {
     }
 
     /**
-     * @return A new Gregorian calendar
+     * Creates a new Gregorian calaendar.
+     *
+     * @return a new Gregorian calendar
      */
     public static Calendar createCalendar() {
         return new GregorianCalendar(TIME_ZONE, Locale.ENGLISH);
     }
 
     /**
-     * @return A new Gregorian calendar initialised to January, 1st of the given year.
+     * Create a new Gregorian calendar.
+     *
+     * @param year The calendar year used for initialization.
+     *
+     * @return a new Gregorian calendar initialised to January, 1st of the given year.
      */
     public static Calendar createCalendar(int year) {
         final Calendar calendar = createCalendar();
@@ -75,7 +83,10 @@ public final class UTC {
     }
 
     /**
-     * @param utc The UTC date
+     * Create a new Gregorian calendar.
+     *
+     * @param utc The UTC date.
+     *
      * @return A new Gregorian calendar initialised to the given UTC date.
      */
     public static Calendar createCalendar(Date utc) {
@@ -86,12 +97,13 @@ public final class UTC {
     }
 
     /**
-     * @param utc the UTC date
-     * @return The day of the year of the given UTC date. Ranges from to 1 to 366.
+     * Returns the day of year for a given UTC date.
+     *
+     * @param utc The UTC date.
+     *
+     * @return the day of the year of the given UTC date. Ranges from to 1 to 366.
      */
     public static int getDayOfYear(Date utc) {
-        Calendar calendar = createCalendar(utc);
-        int dayOfYear = calendar.get(Calendar.DAY_OF_YEAR);
-        return dayOfYear;
+        return createCalendar(utc).get(Calendar.DAY_OF_YEAR);
     }
 }
