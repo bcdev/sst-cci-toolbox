@@ -21,7 +21,6 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyForRegridding;
 import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
@@ -185,10 +184,10 @@ public class Aggregator4Regrid extends AbstractAggregator {
         return cellGrid;
     }
 
-    private CoverageUncertaintyForRegridding createCoverageUncertaintyProvider(TemporalResolution temporalResolution,
+    private RegriddingCoverageUncertainty createCoverageUncertaintyProvider(TemporalResolution temporalResolution,
                                                                                SpatialResolution spatialResolution) {
 
-        return new CoverageUncertaintyForRegridding(temporalResolution, spatialResolution, lutCuTime, lutCuSpace);
+        return new RegriddingCoverageUncertainty(temporalResolution, spatialResolution, lutCuTime, lutCuSpace);
     }
 
 }

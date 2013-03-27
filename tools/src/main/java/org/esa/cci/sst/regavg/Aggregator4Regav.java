@@ -99,7 +99,7 @@ public class Aggregator4Regav extends AbstractAggregator {
         final ArrayList<CellGrid<? extends AggregationCell>> combinedCell5Grids = aggregateTimeRangeAndRegrid(date1,
                                                                                                               date2);
 
-        CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
+        AveragingCoverageUncertainty coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
                                                                                                     targetResolution);
         FileType.CellTypes cell90Type = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(
                 coverageUncertaintyProvider);
@@ -123,7 +123,7 @@ public class Aggregator4Regav extends AbstractAggregator {
         SpatialResolution targetResolution = SpatialResolution.DEGREE_5_00;
         GridDef globalGridDef5 = GridDef.createGlobal(targetResolution.getResolution());
         GridDef globalGridDef1 = GridDef.createGlobal(SpatialResolution.DEGREE_1_00.getResolution());
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
+        final AveragingCoverageUncertainty coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
                                                                                                           targetResolution);
 
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(
@@ -285,11 +285,11 @@ public class Aggregator4Regav extends AbstractAggregator {
         return resultList;
     }
 
-    protected CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date,
+    protected AveragingCoverageUncertainty createCoverageUncertaintyProvider(Date date,
                                                                             SpatialResolution spatialResolution) {
         int month = UTC.createCalendar(date).get(Calendar.MONTH);
 
-        return new CoverageUncertaintyProvider(month, spatialResolution) {
+        return new AveragingCoverageUncertainty(month, spatialResolution) {
             @Override
             protected double getMagnitude5(int cellX, int cellY) {
                 return lut1.getMagnitudeGrid5().getSampleDouble(cellX, cellY);

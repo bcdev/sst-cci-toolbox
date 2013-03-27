@@ -17,12 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.calculator;
+package org.esa.cci.sst.regrid;
 
 import org.esa.beam.util.math.MathUtils;
 import org.esa.cci.sst.common.TemporalResolution;
-import org.esa.cci.sst.regrid.LutX0;
-import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.common.calculator.CoverageUncertainty;
 
 import java.util.Calendar;
 
@@ -32,17 +31,17 @@ import java.util.Calendar;
  * {@author Bettina Scholze}
  * Date: 09.11.12 15:28
  */
-public class CoverageUncertaintyForRegridding implements CoverageUncertainty {
+class RegriddingCoverageUncertainty implements CoverageUncertainty {
 
     private SpatialResolution spatialResolution;
     private LutX0 lutForXTime0;
     private LutX0 lutForXSpace0;
     private final double xDay;
 
-    public CoverageUncertaintyForRegridding(TemporalResolution temporalResolution,
-                                            SpatialResolution spatialResolution,
-                                            LutX0 lutCuTime0,
-                                            LutX0 lutCuSpace0) {
+    RegriddingCoverageUncertainty(TemporalResolution temporalResolution,
+                                  SpatialResolution spatialResolution,
+                                  LutX0 lutCuTime0,
+                                  LutX0 lutCuSpace0) {
         this.lutForXTime0 = lutCuTime0;
         this.lutForXSpace0 = lutCuSpace0;
         this.spatialResolution = spatialResolution;
@@ -51,7 +50,8 @@ public class CoverageUncertaintyForRegridding implements CoverageUncertainty {
 
     static double calculateXDay(TemporalResolution temporalResolution) {
         double t0;
-        if (TemporalResolution.seasonal.equals(temporalResolution) || TemporalResolution.annual.equals(temporalResolution)) {
+        if (TemporalResolution.seasonal.equals(temporalResolution) || TemporalResolution.annual.equals(
+                temporalResolution)) {
             throw new IllegalArgumentException("temporalResolution must be 'daily' or 'monthly'");
         }
         if (TemporalResolution.daily.equals(temporalResolution)) {
@@ -76,16 +76,16 @@ public class CoverageUncertaintyForRegridding implements CoverageUncertainty {
     }
 
     @Override
-    public double calculateCoverageUncertainty(int cellX, int cellY, long n, double stdDeviation) {
-        final double xKm = calculateXKm(cellX, cellY);
+    public double calculate(int gridX, int gridY, long n, double stdDeviation) {
+        final double xKm = calculateXKm(gridX, gridY);
 
         double r_bar_time;
         if (xDay == 0.0) {
             r_bar_time = 1.0;
         } else {
-            r_bar_time = (getX0Time(cellX, cellY) / xDay) * (1.0 - Math.exp(-xDay / getX0Time(cellX, cellY)));
+            r_bar_time = (getX0Time(gridX, gridY) / xDay) * (1.0 - Math.exp(-xDay / getX0Time(gridX, gridY)));
         }
-        double r_bar_space = (getX0Space(cellX, cellY) / xKm) * (1.0 - Math.exp(-xKm / getX0Space(cellX, cellY)));
+        double r_bar_space = (getX0Space(gridX, gridY) / xKm) * (1.0 - Math.exp(-xKm / getX0Space(gridX, gridY)));
 
         double r_bar = r_bar_space * r_bar_time;
         return Math.sqrt((stdDeviation * r_bar * (1.0 - r_bar)) / (1.0 + (n - 1.0) * r_bar));

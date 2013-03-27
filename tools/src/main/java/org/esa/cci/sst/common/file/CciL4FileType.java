@@ -205,7 +205,7 @@ public class CciL4FileType extends AbstractCciFileType {
 
         @Override
         public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
+            return getCoverageUncertaintyProvider().calculate(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
         }
 
         @Override
@@ -248,7 +248,7 @@ public class CciL4FileType extends AbstractCciFileType {
         @Override
         public double computeCoverageUncertainty() {
             final long sampleCount = sstAccu.getSampleCount();
-            return getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sampleCount, stdDeviationAccu.combine());
+            return getCoverageUncertaintyProvider().calculate(getX(), getY(), sampleCount, stdDeviationAccu.combine());
         }
 
         @Override
@@ -348,7 +348,9 @@ public class CciL4FileType extends AbstractCciFileType {
         @Override
         public double computeCoverageUncertainty() {
             final double uncertainty5 = computeCoverageUncertainty5Average();
-            final double uncertainty90 = getCoverageUncertaintyProvider().calculateCoverageUncertainty(getX(), getY(), sstAnomalyAccu.getSampleCount(), 90.0);
+            final double uncertainty90 = getCoverageUncertaintyProvider().calculate(getX(), getY(),
+                                                                                    sstAnomalyAccu.getSampleCount(),
+                                                                                    90.0);
             return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
         }
 

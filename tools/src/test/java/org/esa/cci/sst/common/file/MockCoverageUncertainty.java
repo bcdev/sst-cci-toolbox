@@ -18,7 +18,7 @@ class MockCoverageUncertainty implements CoverageUncertainty {
     }
 
     @Override
-    public final double calculateCoverageUncertainty(int cellX, int cellY, long n, double resolution) {
+    public final double calculate(int gridX, int gridY, long n, double resolution) {
         if (resolution == 5.0) {
             if (n == 0L) {
                 return Double.NaN;
