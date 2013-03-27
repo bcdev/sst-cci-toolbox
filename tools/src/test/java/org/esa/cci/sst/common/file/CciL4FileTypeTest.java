@@ -3,7 +3,6 @@ package org.esa.cci.sst.common.file;
 import org.esa.cci.sst.common.ScalarGrid;
 import org.esa.cci.sst.common.SpatialAggregationContext;
 import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.calculator.ScalarCoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
@@ -39,7 +38,7 @@ public class CciL4FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
@@ -62,7 +61,7 @@ public class CciL4FileTypeTest {
 
     @Test
     public void testCell90Aggregation() throws Exception {
-        ScalarCoverageUncertaintyProvider coverageUncertaintyProvider = new ScalarCoverageUncertaintyProvider(1.1, 1.2, 0.5);
+        MockCoverageUncertainty coverageUncertaintyProvider = new MockCoverageUncertainty(1.1, 1.2, 0.5);
         FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
         CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
         CellAggregationCell cell90 = cell90Factory.createCell(0, 0);

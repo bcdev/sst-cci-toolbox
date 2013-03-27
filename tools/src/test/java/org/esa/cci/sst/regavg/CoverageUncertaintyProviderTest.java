@@ -1,5 +1,6 @@
-package org.esa.cci.sst.common.calculator;
+package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.regavg.CoverageUncertaintyProvider;
 import org.junit.Assert;
 import org.junit.Test;
 

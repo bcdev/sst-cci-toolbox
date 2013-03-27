@@ -17,8 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.calculator;
+package org.esa.cci.sst.regavg;
 
+import org.esa.cci.sst.common.calculator.CoverageUncertainty;
 import org.esa.cci.sst.regrid.SpatialResolution;
 
 import static java.lang.Math.pow;
@@ -30,7 +31,6 @@ import static java.lang.Math.sqrt;
  *
  * @author Norman Fomnferra
  */
-@Deprecated
 public abstract class CoverageUncertaintyProvider implements CoverageUncertainty {
 
     private final int month;
@@ -40,28 +40,6 @@ public abstract class CoverageUncertaintyProvider implements CoverageUncertainty
         this.month = month;
         this.spatialResolution = spatialResolution;
     }
-
-    protected CoverageUncertaintyProvider(int month) {
-        this(month, SpatialResolution.DEGREE_5_00);
-    }
-
-    /**
-     * Returns the coverage uncertainty for a 90° cell.
-     *
-     * @param cellX The 90° cell X index.
-     * @param cellY The 90° cell Y index.
-     * @param n     The number of 5° grid boxes contributing to the 90° cell.
-     * @return The coverage uncertainty for a 90° cell
-     */
-    private double calculateCoverageUncertainty90(int cellX, int cellY, long n) {
-        if (n == 0L) {
-            return Double.NaN;
-        }
-        final double s = getMagnitude90(cellX, cellY, month);
-        return s / sqrt(n);
-    }
-
-    protected abstract double getMagnitude90(int cellX, int cellY, int month);
 
     /**
      * Returns the coverage uncertainty for a 5° or 90° cell. Returns 0.0 if another resolution is demanded.
@@ -82,6 +60,12 @@ public abstract class CoverageUncertaintyProvider implements CoverageUncertainty
         }
     }
 
+    protected CoverageUncertaintyProvider(int month) {
+        this(month, SpatialResolution.DEGREE_5_00);
+    }
+
+    protected abstract double getMagnitude90(int cellX, int cellY, int month);
+
     private double calculateCoverageUncertainty5(int cellX, int cellY, long n) {
         if (!SpatialResolution.DEGREE_5_00.equals(this.spatialResolution)) {
             return 0.0;
@@ -94,6 +78,22 @@ public abstract class CoverageUncertaintyProvider implements CoverageUncertainty
         final double p = getExponent5(cellX, cellY);
         final double f = n / 77500.0;
         return s0 * (1.0 - pow(f, p));
+    }
+
+    /**
+     * Returns the coverage uncertainty for a 90° cell.
+     *
+     * @param cellX The 90° cell X index.
+     * @param cellY The 90° cell Y index.
+     * @param n     The number of 5° grid boxes contributing to the 90° cell.
+     * @return The coverage uncertainty for a 90° cell
+     */
+    private double calculateCoverageUncertainty90(int cellX, int cellY, long n) {
+        if (n == 0L) {
+            return Double.NaN;
+        }
+        final double s = getMagnitude90(cellX, cellY, month);
+        return s / sqrt(n);
     }
 
     protected abstract double getMagnitude5(int cellX, int cellY);
