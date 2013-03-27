@@ -27,9 +27,10 @@ import java.text.ParseException;
 import java.util.StringTokenizer;
 
 /**
- * A global mask comprising 72 x 35 5º cells.
+ * A global mask comprising 72 x 36 5º cells.
  *
  * @author Norman
+ * @author Ralf Quast
  */
 public class RegionMask implements Grid {
 
@@ -38,12 +39,12 @@ public class RegionMask implements Grid {
     private final Coverage coverage;
 
     public enum Coverage {
-        Empty,
-        Globe,
-        N_Hemisphere,
-        S_Hemisphere,
+        EMPTY,
+        GLOBE,
+        N_HEMISPHERE,
+        S_HEMISPHERE,
         // may add: Ninety_deg_cells?
-        Other,
+        OTHER,
     }
 
     private static int width = 72;
@@ -139,15 +140,15 @@ public class RegionMask implements Grid {
 
         int nTotal = width * height;
         if (nG == 0) {
-            coverage = Coverage.Empty;
+            coverage = Coverage.EMPTY;
         } else if (nG == nTotal) {
-            coverage = Coverage.Globe;
+            coverage = Coverage.GLOBE;
         } else if (nN == nG && nN == nTotal / 2) {
-            coverage = Coverage.N_Hemisphere;
+            coverage = Coverage.N_HEMISPHERE;
         } else if (nS == nG && nS == nTotal / 2) {
-            coverage = Coverage.S_Hemisphere;
+            coverage = Coverage.S_HEMISPHERE;
         } else {
-            coverage = Coverage.Other;
+            coverage = Coverage.OTHER;
         }
     }
 

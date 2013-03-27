@@ -17,6 +17,11 @@ package org.esa.cci.sst.common.cellgrid;/*
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ucar.ma2.Array;
 
+/**
+ * Decorator for downscaling an existing grid to a lower resolution.
+ *
+ * @author Ralf Quast
+ */
 public final class Downscaling implements Grid {
 
     private final Grid targetGrid;

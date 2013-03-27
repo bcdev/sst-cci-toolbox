@@ -26,6 +26,7 @@ import java.awt.geom.Rectangle2D;
  * The layout and geo-coding of a {@link CellGrid}.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class GridDef {
 
@@ -87,8 +88,7 @@ public class GridDef {
 
     public double getResolution() {
         if (resolutionX != resolutionY) {
-            throw new IllegalStateException("To get a valid result, resolutionX and resolutionY must be equal. " +
-                                            "Get resolutionX with getResolutionX() and resolutionY with getResolutionY().");
+            throw new IllegalStateException("resolutionX != resolutionY");
         }
         return resolutionY;
     }

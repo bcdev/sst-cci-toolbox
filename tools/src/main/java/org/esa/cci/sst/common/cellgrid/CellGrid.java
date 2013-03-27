@@ -29,6 +29,8 @@ import java.util.List;
 /**
  * A sparsely filled, regular, rectangular arrangement of {@link org.esa.cci.sst.common.cell.Cell}s used for numeric aggregations.
  *
+ * TODO - inspect
+ *
  * @author Norman Fomferra
  */
 public class CellGrid<C extends Cell> {

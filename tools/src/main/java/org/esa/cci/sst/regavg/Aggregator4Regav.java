@@ -222,9 +222,9 @@ public class Aggregator4Regav extends AbstractAggregator {
 
 
     static boolean mustAggregateTo90(RegionMask regionMask) {
-        return regionMask.getCoverage() == RegionMask.Coverage.Globe
-               || regionMask.getCoverage() == RegionMask.Coverage.N_Hemisphere
-               || regionMask.getCoverage() == RegionMask.Coverage.S_Hemisphere;
+        return regionMask.getCoverage() == RegionMask.Coverage.GLOBE
+               || regionMask.getCoverage() == RegionMask.Coverage.N_HEMISPHERE
+               || regionMask.getCoverage() == RegionMask.Coverage.S_HEMISPHERE;
     }
 
     static <C extends AggregationCell> void aggregateCell5OrCell90Grid(CellGrid<C> cellGrid, Grid seaCoverageGrid,

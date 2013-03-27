@@ -14,6 +14,11 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+/**
+ * Decorator for swapping the left and right halves of an existing grid.
+ *
+ * @author Ralf Quast
+ */
 public final class XSwap extends AbstractSamplePermuter {
 
     private final int h;

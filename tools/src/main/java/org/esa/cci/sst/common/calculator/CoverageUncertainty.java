@@ -22,8 +22,8 @@ package org.esa.cci.sst.common.calculator;
 /**
  * Interface for coverage uncertainty calculation.
  *
- * @author Ralf Quast
  * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public interface CoverageUncertainty {
 

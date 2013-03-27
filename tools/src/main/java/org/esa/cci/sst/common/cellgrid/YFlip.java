@@ -14,6 +14,11 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+/**
+ * Decorator for flipping an existing grid upside down.
+ *
+ * @author Ralf Quast
+ */
 public final class YFlip extends AbstractSamplePermuter {
 
     private final int h;

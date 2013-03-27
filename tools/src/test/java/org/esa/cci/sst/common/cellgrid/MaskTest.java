@@ -20,7 +20,7 @@ import ucar.ma2.DataType;
 
 import static org.junit.Assert.assertArrayEquals;
 
-public class UnmaskTest {
+public class MaskTest {
 
     @Test
     public void testUnmask() throws Exception {
@@ -38,7 +38,7 @@ public class UnmaskTest {
         });
 
         final Grid sourceGrid = new ArrayGrid(gridDef, array, null, 1, 0);
-        final Grid targetGrid = Unmask.create(sourceGrid, 0x01);
+        final Grid targetGrid = Mask.create(sourceGrid, 0x01);
         final int[] expected = new int[]{
                 1, 1, 1, 1, 0, 0, 0, 1,
                 1, 1, 1, 0, 0, 0, 1, 1,

@@ -16,6 +16,11 @@ package org.esa.cci.sst.common.cellgrid;/*
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+/**
+ * Decorator for interpolating an existing grid to higher resolution.
+ *
+ * @author Ralf Quast
+ */
 public final class Interpolation implements Grid {
 
     private final Grid sourceGrid;

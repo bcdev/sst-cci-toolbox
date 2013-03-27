@@ -22,7 +22,7 @@ package org.esa.cci.sst.common.auxiliary;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.cellgrid.Unmask;
+import org.esa.cci.sst.common.cellgrid.Mask;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
@@ -183,7 +183,7 @@ public class Climatology {
         final Grid maskGrid = NcUtils.readGrid(netcdfFile, "mask", SOURCE_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
-        seaCoverageGrid = YFlip.create(Unmask.create(maskGrid, 0x01));
+        seaCoverageGrid = YFlip.create(Mask.create(maskGrid, 0x01));
         if (!SOURCE_GRID_DEF.equals(targetGridDef)) {
             seaCoverageGrid = Downscaling.create(seaCoverageGrid, targetGridDef);
         }

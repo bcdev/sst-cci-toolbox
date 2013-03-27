@@ -14,18 +14,23 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-public final class Unmask implements Grid {
+/**
+ * Decorator for creating a mask from an existing grid.
+ *
+ * @author Ralf Quast
+ */
+public final class Mask implements Grid {
 
     private final Grid sourceGrid;
     private final int mask;
 
-    private Unmask(Grid sourceGrid, int mask) {
+    private Mask(Grid sourceGrid, int mask) {
         this.sourceGrid = sourceGrid;
         this.mask = mask;
     }
 
     public static Grid create(Grid sourceGrid, int mask) {
-        return new Unmask(sourceGrid, mask);
+        return new Mask(sourceGrid, mask);
     }
 
     @Override
