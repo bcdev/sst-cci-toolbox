@@ -76,16 +76,16 @@ class RegriddingCoverageUncertainty implements CoverageUncertainty {
     }
 
     @Override
-    public double calculate(int gridX, int gridY, long n, double stdDeviation) {
-        final double xKm = calculateXKm(gridX, gridY);
+    public double calculate(int cellX, int cellY, long n, double stdDeviation) {
+        final double xKm = calculateXKm(cellX, cellY);
 
         double r_bar_time;
         if (xDay == 0.0) {
             r_bar_time = 1.0;
         } else {
-            r_bar_time = (getX0Time(gridX, gridY) / xDay) * (1.0 - Math.exp(-xDay / getX0Time(gridX, gridY)));
+            r_bar_time = (getX0Time(cellX, cellY) / xDay) * (1.0 - Math.exp(-xDay / getX0Time(cellX, cellY)));
         }
-        double r_bar_space = (getX0Space(gridX, gridY) / xKm) * (1.0 - Math.exp(-xKm / getX0Space(gridX, gridY)));
+        double r_bar_space = (getX0Space(cellX, cellY) / xKm) * (1.0 - Math.exp(-xKm / getX0Space(cellX, cellY)));
 
         double r_bar = r_bar_space * r_bar_time;
         return Math.sqrt((stdDeviation * r_bar * (1.0 - r_bar)) / (1.0 + (n - 1.0) * r_bar));

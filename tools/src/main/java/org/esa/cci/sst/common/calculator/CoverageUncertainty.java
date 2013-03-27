@@ -30,12 +30,12 @@ public interface CoverageUncertainty {
     /**
      * Calculates the coverage uncertainty of the cell, which is a grosser target cell.
      *
-     * @param gridX The x index of a cell.
-     * @param gridY The y index of a cell.
+     * @param cellX The x index of a cell.
+     * @param cellY The y index of a cell.
      * @param n     The number of grid cells used for averaging.
      * @param a     An additional parameter.
      *
      * @return Coverage uncertainty for current cell
      */
-    double calculate(int gridX, int gridY, long n, double a);
+    double calculate(int cellX, int cellY, long n, double a);
 }

@@ -47,19 +47,19 @@ abstract class AveragingCoverageUncertainty implements CoverageUncertainty {
     /**
      * Returns the coverage uncertainty for a 5° or 90° cell. Returns 0.0 if another resolution is demanded.
      *
-     * @param gridX      The cell X index.
-     * @param gridY      The cell Y index.
+     * @param cellX      The cell X index.
+     * @param cellY      The cell Y index.
      * @param n          The number of observations contributing to a cell.
      * @param resolution The resolution of the cell grid (either 5° or 90°).
      *
      * @return The coverage uncertainty for a cell.
      */
     @Override
-    public double calculate(int gridX, int gridY, long n, double resolution) {
+    public double calculate(int cellX, int cellY, long n, double resolution) {
         if (resolution == 5.0) {
-            return calculateCoverageUncertainty5(gridX, gridY, n);
+            return calculateCoverageUncertainty5(cellX, cellY, n);
         } else if (resolution == 90.0) {
-            return calculateCoverageUncertainty90(gridX, gridY, n);
+            return calculateCoverageUncertainty90(cellX, cellY, n);
         } else {
             return 0.0;
         }
