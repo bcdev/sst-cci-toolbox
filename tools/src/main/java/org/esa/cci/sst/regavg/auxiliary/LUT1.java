@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.auxiliary;
+package org.esa.cci.sst.regavg.auxiliary;
 
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -31,10 +31,12 @@ import java.io.IOException;
 
 /**
  * Represents LUT1.
+ *
  * Enables calculation of coverage/sampling uncertainty for an average via the number of values comprising that average.
  * LUT1 contains values of two parameters (magnitude and exponent) for each 5° monthly grid box.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class LUT1 {
 
@@ -42,7 +44,7 @@ public class LUT1 {
     private final Grid exponentGrid;
 
     public static LUT1 read(File file) throws IOException {
-        NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace("\\", "/"));
+        final NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace("\\", "/"));
         try {
             final GridDef gridDef = GridDef.createGlobal(5.0);
             final Grid magnitudeGrid = NcUtils.readGrid(netcdfFile, "MAGNITUDE", gridDef);

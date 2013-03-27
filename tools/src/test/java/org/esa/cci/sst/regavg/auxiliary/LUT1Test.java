@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.auxiliary;
+package org.esa.cci.sst.regavg.auxiliary;
 
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.junit.BeforeClass;

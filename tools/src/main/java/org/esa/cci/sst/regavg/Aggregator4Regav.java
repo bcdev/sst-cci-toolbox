@@ -1,8 +1,13 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.common.*;
+import org.esa.cci.sst.common.AbstractAggregator;
+import org.esa.cci.sst.common.AggregationFactory;
+import org.esa.cci.sst.common.RegionMaskList;
+import org.esa.cci.sst.common.RegionalAggregation;
+import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.auxiliary.LUT1;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
@@ -14,6 +19,7 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
+import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.tool.ExitCode;
@@ -41,7 +47,8 @@ public class Aggregator4Regav extends AbstractAggregator {
     private LUT1 lut1;
     private LUT2 lut2;
 
-    public Aggregator4Regav(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1, LUT2 lut2, SstDepth sstDepth) {
+    public Aggregator4Regav(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1,
+                            LUT2 lut2, SstDepth sstDepth) {
         super(fileStore, climatology, null, sstDepth);
         this.lut1 = lut1;
         this.lut2 = lut2;
@@ -50,7 +57,9 @@ public class Aggregator4Regav extends AbstractAggregator {
     }
 
     @Override
-    public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException, ToolException {
+    public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws
+                                                                                                                  IOException,
+                                                                                                                  ToolException {
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
@@ -88,39 +97,48 @@ public class Aggregator4Regav extends AbstractAggregator {
         //Compute the cell 5 grid for *all* combined regions first
         //regrid spatially from 0.1/0.5 ° to 5 °, and aggregate given time range (<= monthly)
         SpatialResolution targetResolution = SpatialResolution.DEGREE_5_00;
-        final ArrayList<CellGrid<? extends AggregationCell>> combinedCell5Grids = aggregateTimeRangeAndRegrid(date1, date2);
+        final ArrayList<CellGrid<? extends AggregationCell>> combinedCell5Grids = aggregateTimeRangeAndRegrid(date1,
+                                                                                                              date2);
 
-        CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, targetResolution);
-        FileType.CellTypes cell90Type = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
+        CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
+                                                                                                    targetResolution);
+        FileType.CellTypes cell90Type = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(
+                coverageUncertaintyProvider);
 
         return aggregateRegions(combinedCell5Grids,
-                regionMaskList,
-                getFileType().getSameMonthAggregationFactory(),
-                getFileType().getCellFactory(cell90Type),
-                getClimatology().getSeaCoverageCell5Grid(),
-                getClimatology().getSeaCoverageCell90Grid());
+                                regionMaskList,
+                                getFileType().getSameMonthAggregationFactory(),
+                                getFileType().getCellFactory(cell90Type),
+                                getClimatology().getSeaCoverageCell5Grid(),
+                                getClimatology().getSeaCoverageCell90Grid());
     }
 
-    private ArrayList<CellGrid<? extends AggregationCell>> aggregateTimeRangeAndRegrid(Date date1, Date date2) throws IOException {
+    private ArrayList<CellGrid<? extends AggregationCell>> aggregateTimeRangeAndRegrid(Date date1, Date date2) throws
+                                                                                                               IOException {
         //todo check if time range is less or equal a month
         final List<File> fileList = getFileStore().getFiles(date1, date2);
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
+                                  UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
 
         SpatialResolution targetResolution = SpatialResolution.DEGREE_5_00;
         GridDef globalGridDef5 = GridDef.createGlobal(targetResolution.getResolution());
         GridDef globalGridDef1 = GridDef.createGlobal(SpatialResolution.DEGREE_1_00.getResolution());
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, targetResolution);
+        final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
+                                                                                                          targetResolution);
 
-        FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
+        FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(
+                coverageUncertaintyProvider);
         final CellFactory<SpatialAggregationCell> spatialCellFactory = getFileType().getCellFactory(cellType);
-        final CellGrid<SpatialAggregationCell> cellGridSpatial = new CellGrid<SpatialAggregationCell>(globalGridDef5, spatialCellFactory);
+        final CellGrid<SpatialAggregationCell> cellGridSpatial = new CellGrid<SpatialAggregationCell>(globalGridDef5,
+                                                                                                      spatialCellFactory);
         CellGrid<SpatialAggregationCell> cellGridSynoptic1 = null;
         CellGrid<CellAggregationCell> cellGridSynoptic5 = null;
         if (getFileType().hasSynopticUncertainties()) {
-            final CellFactory<SpatialAggregationCell> synopticCell1Factory = getFileType().getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
-            final CellFactory<CellAggregationCell> synopticCell5Factory = getFileType().getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5);
+            final CellFactory<SpatialAggregationCell> synopticCell1Factory = getFileType().getCellFactory(
+                    FileType.CellTypes.SYNOPTIC_CELL_1);
+            final CellFactory<CellAggregationCell> synopticCell5Factory = getFileType().getCellFactory(
+                    FileType.CellTypes.SYNOPTIC_CELL_5);
             cellGridSynoptic1 = new CellGrid<SpatialAggregationCell>(globalGridDef1, synopticCell1Factory);
             cellGridSynoptic5 = new CellGrid<CellAggregationCell>(globalGridDef5, synopticCell5Factory);
         }
@@ -139,7 +157,8 @@ public class Aggregator4Regav extends AbstractAggregator {
                     //aggregate to synoptic areas (1 °, monthly)
                     aggregateSources(aggregationCellContext, combinedRegionMask, cellGridSynoptic1);
                     //1 ° -> 5 °
-                    aggregateCellGridToCoarserCellGrid(cellGridSynoptic1, getClimatology().getSeaCoverageCell1Grid(), cellGridSynoptic5); //todo ??? climatology resolution ???
+                    aggregateCellGridToCoarserCellGrid(cellGridSynoptic1, getClimatology().getSeaCoverageCell1Grid(),
+                                                       cellGridSynoptic5); //todo ??? climatology resolution ???
                 }
 
                 LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
@@ -147,7 +166,7 @@ public class Aggregator4Regav extends AbstractAggregator {
                 netcdfFile.close();
             }
             LOGGER.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
-                    System.currentTimeMillis() - t0));
+                                      System.currentTimeMillis() - t0));
         }
 
         ArrayList<CellGrid<? extends AggregationCell>> arrayGrids = new ArrayList<CellGrid<? extends AggregationCell>>();
@@ -181,7 +200,8 @@ public class Aggregator4Regav extends AbstractAggregator {
             final SameMonthAggregation aggregation = aggregationFactory.createAggregation();
             boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
             if (mustAggregateTo90) {
-                final CellGrid<CellAggregationCell> cell90Grid = new CellGrid<CellAggregationCell>(GridDef.createGlobal(90.0), cell90Factory);
+                final CellGrid<CellAggregationCell> cell90Grid = new CellGrid<CellAggregationCell>(
+                        GridDef.createGlobal(90.0), cell90Factory);
                 // aggregateCell5GridToCell90Grid
                 aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverageCell5Grid, cell90Grid);
                 if (hasSynopticUncertainties) {
@@ -204,8 +224,8 @@ public class Aggregator4Regav extends AbstractAggregator {
 
     static boolean mustAggregateTo90(RegionMask regionMask) {
         return regionMask.getCoverage() == RegionMask.Coverage.Globe
-                || regionMask.getCoverage() == RegionMask.Coverage.N_Hemisphere
-                || regionMask.getCoverage() == RegionMask.Coverage.S_Hemisphere;
+               || regionMask.getCoverage() == RegionMask.Coverage.N_Hemisphere
+               || regionMask.getCoverage() == RegionMask.Coverage.S_Hemisphere;
     }
 
     static <C extends AggregationCell> void aggregateCell5OrCell90Grid(CellGrid<C> cellGrid, Grid seaCoverageGrid,
@@ -223,7 +243,8 @@ public class Aggregator4Regav extends AbstractAggregator {
         }
     }
 
-    static <C extends AggregationCell> CellGrid<C> getCell5GridForRegion(CellGrid<C> combinedGrid5, RegionMask regionMask) {
+    static <C extends AggregationCell> CellGrid<C> getCell5GridForRegion(CellGrid<C> combinedGrid5,
+                                                                         RegionMask regionMask) {
 
         final CellGrid<C> regionalGrid5 = new CellGrid<C>(combinedGrid5.getGridDef(), combinedGrid5.getCellFactory());
         final int width = combinedGrid5.getWidth();
@@ -244,7 +265,7 @@ public class Aggregator4Regav extends AbstractAggregator {
     private List<RegionalAggregation> aggregateMonthlyTimeSteps(List<AveragingTimeStep> monthlyTimeSteps) {
 
         return aggregateMonthlyTimeSteps(monthlyTimeSteps,
-                regionMaskList.size(), getFileType().getMultiMonthAggregationFactory());
+                                         regionMaskList.size(), getFileType().getMultiMonthAggregationFactory());
     }
 
     static List<RegionalAggregation> aggregateMonthlyTimeSteps(
@@ -265,7 +286,8 @@ public class Aggregator4Regav extends AbstractAggregator {
         return resultList;
     }
 
-    protected CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date, SpatialResolution spatialResolution) {
+    protected CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date,
+                                                                            SpatialResolution spatialResolution) {
         int month = UTC.createCalendar(date).get(Calendar.MONTH);
 
         return new CoverageUncertaintyProvider(month, spatialResolution) {
