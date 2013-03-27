@@ -22,9 +22,10 @@ package org.esa.cci.sst.common.cell;
 /**
  * Filters cells.
  *
- * @author Norman
+ * @author Norman Fomferra
  */
 public interface CellFilter<C extends Cell> {
+
     CellFilter ALL = new CellFilter() {
         @Override
         public boolean accept(Cell cell) {

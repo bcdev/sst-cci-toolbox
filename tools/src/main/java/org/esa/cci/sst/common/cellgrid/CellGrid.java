@@ -27,25 +27,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A sparsely filled, regular, rectangular arrangement of {@link org.esa.cci.sst.common.cell.Cell}s used for numeric aggregations.
- *
- * TODO - inspect
+ * A sparsely filled, regular, rectangular arrangement of {@link Cell}s used for numeric aggregations.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class CellGrid<C extends Cell> {
+
     private final GridDef gridDef;
     private final int width;
     private final int height;
     private final CellFactory<C> cellFactory;
     private final C[] cells;
 
+    @SuppressWarnings("unchecked")
     public CellGrid(GridDef gridDef, CellFactory<C> cellFactory) {
         this.gridDef = gridDef;
         this.cellFactory = cellFactory;
         width = gridDef.getWidth();
-        height = this.gridDef.getHeight();
-        cells = (C[]) new Cell[gridDef.getWidth() * gridDef.getHeight()];
+        height = gridDef.getHeight();
+        cells = (C[]) new Cell[width * height];
     }
 
     public int getWidth() {
@@ -74,7 +75,6 @@ public class CellGrid<C extends Cell> {
     }
 
     public C getCell(int x, int y) {
-        //noinspection unchecked
         return cells[y * width + x];
     }
 
@@ -93,6 +93,7 @@ public class CellGrid<C extends Cell> {
         return getCellFactory().createCell(x, y);
     }
 
+    @SuppressWarnings("unchecked")
     public List<C> getCells() {
         return getCells(CellFilter.ALL);
     }
@@ -106,5 +107,4 @@ public class CellGrid<C extends Cell> {
         }
         return cellList;
     }
-
 }
