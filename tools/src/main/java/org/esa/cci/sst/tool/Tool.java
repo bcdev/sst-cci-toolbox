@@ -37,7 +37,7 @@ import java.util.logging.*;
  */
 public abstract class Tool {
 
-    private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.info;
+    private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.INFO;
     private CommandLine commandLine;
     private boolean dumpStackTrace;
     private Options options;
@@ -232,7 +232,7 @@ public abstract class Tool {
                 "Dumps a full error stack trace."));
         options.addOption(createOption("l", "logLevel", "LEVEL",
                 String.format("sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
-                        Arrays.toString(LogLevel.values()), LogLevel.all, DEFAULT_LOG_LEVEL)));
+                        Arrays.toString(LogLevel.values()), LogLevel.ALL, DEFAULT_LOG_LEVEL)));
         return options;
     }
 

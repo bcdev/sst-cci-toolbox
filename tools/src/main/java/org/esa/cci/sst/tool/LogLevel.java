@@ -25,13 +25,14 @@ import java.util.logging.Level;
  * All possible log levels.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public enum LogLevel {
-    off(Level.OFF),
-    error(Level.SEVERE),
-    warning(Level.WARNING),
-    info(Level.INFO),
-    all(Level.ALL);
+    OFF(Level.OFF),
+    ERROR(Level.SEVERE),
+    WARNING(Level.WARNING),
+    INFO(Level.INFO),
+    ALL(Level.ALL);
 
     private final Level value;
 
