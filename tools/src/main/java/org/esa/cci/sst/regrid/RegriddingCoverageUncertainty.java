@@ -35,14 +35,14 @@ import java.util.Calendar;
 class RegriddingCoverageUncertainty implements CoverageUncertainty {
 
     private SpatialResolution spatialResolution;
-    private LutX0 lutForXTime0;
-    private LutX0 lutForXSpace0;
+    private X0Lut lutForXTime0;
+    private X0Lut lutForXSpace0;
     private final double xDay;
 
     RegriddingCoverageUncertainty(TemporalResolution temporalResolution,
                                   SpatialResolution spatialResolution,
-                                  LutX0 lutCuTime0,
-                                  LutX0 lutCuSpace0) {
+                                  X0Lut lutCuTime0,
+                                  X0Lut lutCuSpace0) {
         this.lutForXTime0 = lutCuTime0;
         this.lutForXSpace0 = lutCuSpace0;
         this.spatialResolution = spatialResolution;
@@ -93,10 +93,10 @@ class RegriddingCoverageUncertainty implements CoverageUncertainty {
     }
 
     private double getX0Time(int cellX, int cellY) {
-        return lutForXTime0.getXValue(cellX, cellY);
+        return lutForXTime0.getValue(cellX, cellY);
     }
 
     private double getX0Space(int cellX, int cellY) {
-        return lutForXSpace0.getXValue(cellX, cellY);
+        return lutForXSpace0.getValue(cellX, cellY);
     }
 }

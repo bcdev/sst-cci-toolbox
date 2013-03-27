@@ -1,16 +1,9 @@
 package org.esa.cci.sst.regrid.auxiliary;
 
-import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.junit.Before;
 import org.junit.Test;
-import ucar.ma2.DataType;
-import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFileWriteable;
-import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +15,7 @@ import static junit.framework.Assert.assertEquals;
  * {@author Bettina Scholze}
  * Date: 20.11.12 14:33
  */
-public class LutForStdDeviationTest {
+public class StdDevLutTest {
 
     private File file;
 
@@ -31,9 +24,9 @@ public class LutForStdDeviationTest {
         file = new File("./src/main/conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev_subset.nc");
     }
 
-    private LutForStdDeviation createLutForStdDeviation(GridDef gridDef) throws IOException {
+    private StdDevLut createLutForStdDeviation(GridDef gridDef) throws IOException {
         try {
-            return LutForStdDeviation.create(file, gridDef);
+            return StdDevLut.create(file, gridDef);
         } catch (Exception e) {
             throw new RuntimeException("Lut '20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc' not found. " +
                     "Get the Lut from fs1:/projects/ongoing/SST-CCI/docs/technical-specification/tools/ " +
@@ -43,9 +36,9 @@ public class LutForStdDeviationTest {
 
     @Test
     public void test90() throws Exception {
-        LutForStdDeviation lutForStdDeviation = createLutForStdDeviation(GridDef.createGlobal(90.0));
+        StdDevLut stdDevLut = createLutForStdDeviation(GridDef.createGlobal(90.0));
 
-        final Grid grid = lutForStdDeviation.getStandardDeviationGrid();
+        final Grid grid = stdDevLut.getStandardDeviationGrid();
 
         final String expected = "" +
                 " 47.20  40.11  23.81  39.62 \n" +
@@ -57,18 +50,18 @@ public class LutForStdDeviationTest {
 
     @Test
     public void test01() throws Exception {
-        LutForStdDeviation lutForStdDeviation = createLutForStdDeviation(GridDef.createGlobal(0.1));
+        StdDevLut stdDevLut = createLutForStdDeviation(GridDef.createGlobal(0.1));
 
-        Grid grid = lutForStdDeviation.getStandardDeviationGrid();
+        Grid grid = stdDevLut.getStandardDeviationGrid();
         assertEquals(1800, grid.getGridDef().getHeight());
         assertEquals(3600, grid.getGridDef().getWidth());
     }
 
     @Test
     public void test10() throws Exception {
-        LutForStdDeviation lutForStdDeviation = createLutForStdDeviation(GridDef.createGlobal(10.0));
+        StdDevLut stdDevLut = createLutForStdDeviation(GridDef.createGlobal(10.0));
 
-        final Grid grid = lutForStdDeviation.getStandardDeviationGrid();
+        final Grid grid = stdDevLut.getStandardDeviationGrid();
         assertEquals(18, grid.getGridDef().getHeight());
         assertEquals(36, grid.getGridDef().getWidth());
 

@@ -15,15 +15,13 @@ package org.esa.cci.sst.regrid;/*
  */
 
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import ucar.ma2.Array;
-import ucar.ma2.DataType;
 
-import java.util.HashMap;
-import java.util.Map;
+class WriterHelper {
 
-public class GridDefHelper {
+    private WriterHelper() {
+    }
 
-    public static float[] createLatData(GridDef gridDef) {
+    static float[] createLatData(GridDef gridDef) {
         final float[] latData = new float[gridDef.getHeight()];
 
         for (int y = 0; y < gridDef.getHeight(); y++) {
@@ -32,7 +30,7 @@ public class GridDefHelper {
         return latData;
     }
 
-    public static float[] createLonData(GridDef gridDef) {
+    static float[] createLonData(GridDef gridDef) {
         final float[] lonData = new float[gridDef.getWidth()];
 
         for (int x = 0; x < gridDef.getWidth(); x++) {
@@ -41,7 +39,7 @@ public class GridDefHelper {
         return lonData;
     }
 
-    public static float[][] createLatBoundsData(GridDef gridDef) {
+    static float[][] createLatBoundsData(GridDef gridDef) {
         final float[][] data = new float[gridDef.getHeight()][2];
 
         for (int y = 0; y < gridDef.getHeight(); y++) {
@@ -51,7 +49,7 @@ public class GridDefHelper {
         return data;
     }
 
-    public static float[][] createLonBoundsData(GridDef gridDef) {
+    static float[][] createLonBoundsData(GridDef gridDef) {
         final float[][] data = new float[gridDef.getWidth()][2];
 
         for (int x = 0; x < gridDef.getWidth(); x++) {
@@ -59,21 +57,5 @@ public class GridDefHelper {
             data[x][1] = (float) (gridDef.getCenterLon(x) + gridDef.getResolution() * 0.5);
         }
         return data;
-    }
-
-    private static float[] createBnds(GridDef targetGridDef, float[] data) {
-        float[] bndsData = new float[data.length * 2];
-        int i = 0;
-        for (float value : data) {
-            float halfResolution = (float) targetGridDef.getResolutionX() / 2;
-            bndsData[i++] = value + halfResolution;
-            bndsData[i++] = value - halfResolution;
-        }
-        return bndsData;
-    }
-
-    private static void putDataInArrayGridMap(String key, float[] data, Map<String, Array> arrayMap) {
-        final Array array = Array.factory(DataType.FLOAT, new int[]{data.length}, data);
-        arrayMap.put(key, array);
     }
 }

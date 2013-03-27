@@ -22,8 +22,7 @@ import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.regrid.auxiliary.LutForStdDeviation;
-import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
+import org.esa.cci.sst.regrid.auxiliary.StdDevLut;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 
@@ -35,9 +34,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A command line tool for re-gridding ARC/CCI SST products to coarser spatial and time resolutions.
+ * The SST-CCI re-gridding tool.
  *
- * @author Ralf Quast
  * @author Bettina Scholze
  */
 public class RegriddingTool extends Tool {
@@ -142,10 +140,10 @@ public class RegriddingTool extends Tool {
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
 
         final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
-        final LutForStdDeviation cuStdDevLut = createLutForStdDeviation(cuStdDevFile);
-        final LutX0 cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
-        final LutX0 cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
-        final LutForSynopticAreas lutSynopticAreas = new LutForSynopticAreas(temporalResolution, spatialResolution);
+        final StdDevLut cuStdDevLut = createLutForStdDeviation(cuStdDevFile);
+        final X0Lut cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
+        final X0Lut cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
+        final AverageSeparations lutSynopticAreas = new AverageSeparations(spatialResolution, temporalResolution);
 
         List<RegriddingTimeStep> timeSteps;
         try {
@@ -157,7 +155,7 @@ public class RegriddingTool extends Tool {
         }
 
         try {
-            RegriddingOutputFileWriter outputWriter = new RegriddingOutputFileWriter(
+            Writer outputWriter = new Writer(
                     productType, TOOL_NAME, TOOL_VERSION, FILE_FORMAT_VERSION, totalUncertainty, maxTotalUncertainty);
             outputWriter.writeOutputs(outputDir, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0), timeSteps);
         } catch (IOException e) {
@@ -166,7 +164,7 @@ public class RegriddingTool extends Tool {
     }
 
     private boolean checkTotalUncertainty(boolean totalUncertainty) throws ToolException {
-        boolean totalUncertaintyPossible = RegriddingOutputFileWriter.isTotalUncertaintyPossible(productType);
+        boolean totalUncertaintyPossible = Writer.isTotalUncertaintyPossible(productType);
         if (totalUncertainty && !totalUncertaintyPossible) {
             throw new ToolException("Parameter 'totalUncertainty' is only available for CCI-L3 products.", ExitCode.USAGE_ERROR);
         }
@@ -244,10 +242,10 @@ public class RegriddingTool extends Tool {
         }
     }
 
-    private LutForStdDeviation createLutForStdDeviation(File file) throws ToolException {
-        LutForStdDeviation lut;
+    private StdDevLut createLutForStdDeviation(File file) throws ToolException {
+        StdDevLut lut;
         try {
-            lut = LutForStdDeviation.create(file, productType.getGridDef());
+            lut = StdDevLut.create(file, productType.getGridDef());
             LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
@@ -255,15 +253,15 @@ public class RegriddingTool extends Tool {
         return lut;
     }
 
-    private LutX0 getLutCoverageUncertainty(File file, SpatialResolution spatialResolution, double fillValue) throws ToolException {
-        LutX0 lutX0;
+    private X0Lut getLutCoverageUncertainty(File file, SpatialResolution spatialResolution, double fillValue) throws ToolException {
+        X0Lut x0Lut;
         try {
-            lutX0 = LutX0.create(file, fillValue, spatialResolution);
+            x0Lut = X0Lut.create(file, fillValue, spatialResolution);
             LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
         }
-        return lutX0;
+        return x0Lut;
     }
 
 }

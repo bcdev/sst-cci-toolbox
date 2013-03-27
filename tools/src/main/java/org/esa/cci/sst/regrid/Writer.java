@@ -42,14 +42,18 @@ import ucar.nc2.Variable;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
  * {@author Bettina Scholze}
  * Date: 24.09.12 09:04
  */
-class RegriddingOutputFileWriter {
+class Writer {
+
     public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst.regrid");
     private final ProductType productType;
     private final String toolName;
@@ -58,8 +62,8 @@ class RegriddingOutputFileWriter {
     private boolean totalUncertainty;
     private double maxTotalUncertainty;
 
-    public RegriddingOutputFileWriter(ProductType productType, String toolName, String toolVersion,
-                                      String fileFormatVersion, boolean totalUncertaintyWanted, double maxTotalUncertainty) {
+    Writer(ProductType productType, String toolName, String toolVersion,
+                  String fileFormatVersion, boolean totalUncertaintyWanted, double maxTotalUncertainty) {
         this.productType = productType;
         this.toolName = toolName;
         this.toolVersion = toolVersion;
@@ -107,7 +111,8 @@ class RegriddingOutputFileWriter {
         //global attributes
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
-            netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(), sstDepth.toString()));
+            netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(),
+                                                                 sstDepth.toString()));
             netcdfFile.addGlobalAttribute("institution", "IAES, University of Edinburgh");
             netcdfFile.addGlobalAttribute("contact", "c.merchant@ed.ac.uk");
             netcdfFile.addGlobalAttribute("fileFormatVersion", fileFormatVersion);
@@ -131,19 +136,20 @@ class RegriddingOutputFileWriter {
             Dimension bndsDim = netcdfFile.addDimension("bnds", 2);
             Dimension[] dimensionMeasurementRelated = {timeDim, latDim, lonDim};
 
-            Variable[] variables = createVariables(sstDepth, netcdfFile, latDim, lonDim, bndsDim, dimensionMeasurementRelated);
+            Variable[] variables = createVariables(sstDepth, netcdfFile, latDim, lonDim, bndsDim,
+                                                   dimensionMeasurementRelated);
 
             //write header
             netcdfFile.create();
             //
             final GridDef targetGridDef = spatialResolution.getGridDef();
-            final Array latArray = Array.factory(GridDefHelper.createLatData(targetGridDef));
+            final Array latArray = Array.factory(WriterHelper.createLatData(targetGridDef));
             writeDataToNetCdfFile(netcdfFile, "lat", latArray);
-            final Array lonArray = Array.factory(GridDefHelper.createLonData(targetGridDef));
+            final Array lonArray = Array.factory(WriterHelper.createLonData(targetGridDef));
             writeDataToNetCdfFile(netcdfFile, "lon", lonArray);
-            final Array latBoundsArray = Array.factory(GridDefHelper.createLatBoundsData(targetGridDef));
+            final Array latBoundsArray = Array.factory(WriterHelper.createLatBoundsData(targetGridDef));
             writeDataToNetCdfFile(netcdfFile, "lat_bnds", latBoundsArray);
-            final Array lonBoundsArray = Array.factory(GridDefHelper.createLonBoundsData(targetGridDef));
+            final Array lonBoundsArray = Array.factory(WriterHelper.createLonBoundsData(targetGridDef));
             writeDataToNetCdfFile(netcdfFile, "lon_bnds", lonBoundsArray);
 
             //add data for regridded variables
@@ -194,7 +200,8 @@ class RegriddingOutputFileWriter {
     }
 
     /* rescale from 2D grid to 1D vector, one per variable */
-    private HashMap<String, VectorContainer> prepareDataMap(CellGrid<? extends AggregationCell> cellGrid, int height, int width, Variable[] variables) {
+    private HashMap<String, VectorContainer> prepareDataMap(CellGrid<? extends AggregationCell> cellGrid, int height,
+                                                            int width, Variable[] variables) {
 
         HashMap<String, VectorContainer> dataMap = initialiseDataMap(variables, height, width);
         //walk the grid
@@ -267,6 +274,7 @@ class RegriddingOutputFileWriter {
     }
 
     static class VectorContainer {
+
         double[] vec;
 
         private VectorContainer(int length) {
@@ -287,7 +295,8 @@ class RegriddingOutputFileWriter {
         }
     }
 
-    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws IOException {
+    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws
+                                                                                                     IOException {
         try {
             netcdfFile.write(variable, array);
         } catch (InvalidRangeException e) {
@@ -308,6 +317,7 @@ class RegriddingOutputFileWriter {
      * @param sstType              SST Type
      * @param productString        Product String (see Table 5 in PSD, e.g. AATSR, OSTIA)
      * @param additionalSegregator Additional Segregator = LT or DM
+     *
      * @return The filename.
      */
     String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName,
@@ -316,8 +326,8 @@ class RegriddingOutputFileWriter {
 
         String rdac = productType.getFileType().getRdac(); //ESACCI or ARC
         return String.format("%s-%s-%s-" + rdac + "-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
-                startOfPeriod, endOfPeriod, regionName,
-                processingLevel, sstType, productString, additionalSegregator,
-                toolVersion, fileFormatVersion);
+                             startOfPeriod, endOfPeriod, regionName,
+                             processingLevel, sstType, productString, additionalSegregator,
+                             toolVersion, fileFormatVersion);
     }
 }

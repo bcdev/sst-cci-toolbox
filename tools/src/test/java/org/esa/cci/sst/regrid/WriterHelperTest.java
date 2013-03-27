@@ -23,13 +23,13 @@ import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class GridDefHelperTest {
+public class WriterHelperTest {
 
     @Test
     public void testCreateLatData() throws Exception {
         final GridDef gridDef = SpatialResolution.DEGREE_10_00.getGridDef();
 
-        final float[] latData = GridDefHelper.createLatData(gridDef);
+        final float[] latData = WriterHelper.createLatData(gridDef);
         assertEquals(18, latData.length);
 
         final float[] expected = new float[]{
@@ -59,7 +59,7 @@ public class GridDefHelperTest {
     public void testCreateLonData() throws Exception {
         GridDef gridDef = SpatialResolution.DEGREE_10_00.getGridDef();
 
-        final float[] lonData = GridDefHelper.createLonData(gridDef);
+        final float[] lonData = WriterHelper.createLonData(gridDef);
         assertEquals(36, lonData.length);
 
         final float[] expected = new float[]{

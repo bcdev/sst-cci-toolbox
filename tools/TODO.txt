@@ -1,5 +1,9 @@
-- seasonal and yearly aggregation
+Review code in packages:
 
-- calculate targetResolution from input parameter
+regrid/auxiliary
 
-- include minCoverage (0..1 below threshold NaN)
+common
+common/calculator
+common/cell
+common/file
+

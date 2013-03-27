@@ -11,12 +11,12 @@ import java.net.URL;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class LutX0Test {
+public class X0LutTest {
 
     @Test
     public void testReadGrid() throws Exception {
         final File file = getResourceAsFile("x0_time.txt");
-        final Grid grid = LutX0.readGrid(file, -32768.0);
+        final Grid grid = X0Lut.readGrid(file, -32768.0);
 
         assertTrue(Double.isNaN(grid.getSampleDouble(0, 0)));
         assertEquals(4.29, grid.getSampleDouble(1, 5), 0.0);

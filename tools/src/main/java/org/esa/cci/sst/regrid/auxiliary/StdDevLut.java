@@ -38,7 +38,7 @@ import java.util.logging.Logger;
  * {@author Bettina Scholze}
  * Date: 09.11.12 15:30
  */
-public class LutForStdDeviation {
+public class StdDevLut {
 
     private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
     private static final GridDef SOURCE_GRID_DEF = GridDef.createGlobal(0.05);
@@ -47,12 +47,12 @@ public class LutForStdDeviation {
     private Grid standardDeviationGrid; //0.1 ° or 0.5 ° same as input files
 
 
-    private LutForStdDeviation(GridDef targetGridDef) {
+    private StdDevLut(GridDef targetGridDef) {
         this.gridDef = targetGridDef;
     }
 
-    public static LutForStdDeviation create(File file, GridDef sourceProductGridDef) throws IOException {
-        LutForStdDeviation lut = new LutForStdDeviation(sourceProductGridDef);
+    public static StdDevLut create(File file, GridDef sourceProductGridDef) throws IOException {
+        StdDevLut lut = new StdDevLut(sourceProductGridDef);
         lut.readGrid(file);
         return lut;
     }

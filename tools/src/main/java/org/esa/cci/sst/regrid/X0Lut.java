@@ -34,20 +34,20 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
- * Lookup table (LUT) for X0 quantities (spatial distance or time) used for calculating
- * coverage uncertainty.
+ * Provides 'X0' quantities (spatial distance or time) used for calculating
+ * coverage uncertainties.
  *
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public final class LutX0 {
+public final class X0Lut {
 
     private static final GridDef GRID_DEF_005 = GridDef.createGlobal(0.05);
     private static final GridDef GRID_DEF_020 = GridDef.createGlobal(2.00);
 
     private final Grid grid;
 
-    private LutX0(Grid grid) {
+    private X0Lut(Grid grid) {
         this.grid = grid;
     }
 
@@ -62,7 +62,7 @@ public final class LutX0 {
      *
      * @throws IOException when an error occurred.
      */
-    public static LutX0 create(File file, double fillValue, SpatialResolution targetResolution) throws IOException {
+    public static X0Lut create(File file, double fillValue, SpatialResolution targetResolution) throws IOException {
         final Logger logger = Logger.getLogger("org.esa.cci.sst");
 
         final long t0 = System.currentTimeMillis();
@@ -84,19 +84,19 @@ public final class LutX0 {
         final long t1 = System.currentTimeMillis();
         logger.info(String.format("Ready creating LUT in%d ms", t1 - t0));
 
-        return new LutX0(lutGrid);
+        return new X0Lut(lutGrid);
     }
 
     /**
      * Returns the value of the X0 quantity (either spatial distance or time) in target resolution.
      *
-     * @param gridX The x coordinate.
-     * @param gridY The y coordinate.
+     * @param x The x grid coordinate.
+     * @param y The y grid coordinate.
      *
      * @return the value of the X0 quantity.
      */
-    public double getXValue(int gridX, int gridY) {
-        return getGrid().getSampleDouble(gridX, gridY);
+    public double getValue(int x, int y) {
+        return getGrid().getSampleDouble(x, y);
     }
 
     /**

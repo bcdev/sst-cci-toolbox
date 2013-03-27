@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
  * {@author Bettina Scholze}
  * Date: 21.09.12 09:48
  */
-public class RegriddingOutputFileWriterTest {
+public class WriterTest {
 
     private Dimension latDim;
     private Dimension lonDim;
@@ -54,7 +54,7 @@ public class RegriddingOutputFileWriterTest {
         String additionalSegregator = "DM";
         String toolVersion = "0.1";
         String fileFormatVersion = "1.1";
-        RegriddingOutputFileWriter regriddingTool = new RegriddingOutputFileWriter(ProductType.valueOf("CCI_L3C"),
+        Writer regriddingTool = new Writer(ProductType.valueOf("CCI_L3C"),
                 "toolName", toolVersion, fileFormatVersion, false, 0.0);
 
         //execution
@@ -66,7 +66,7 @@ public class RegriddingOutputFileWriterTest {
 
     @Test
     public void testCreateVariables_withTotalUncertainty() throws Exception {
-        RegriddingOutputFileWriter writerWithTotalUncertainty = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", true, 0.5);
+        Writer writerWithTotalUncertainty = new Writer(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", true, 0.5);
 
         Variable[] variables = writerWithTotalUncertainty.createVariables(
                 SstDepth.depth_20, netcdfFileWithTotalUncertainty, latDim, lonDim, bndsDim, measurementsDims);
@@ -78,7 +78,7 @@ public class RegriddingOutputFileWriterTest {
 
     @Test
     public void testCreateVariables() throws Exception {
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", false, 0.5);
+        Writer writer = new Writer(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", false, 0.5);
 
         Variable[] variables = writer.createVariables(
                 SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
@@ -94,7 +94,7 @@ public class RegriddingOutputFileWriterTest {
 
     @Test
     public void testCalculateTotalUncertaintyFromUncertainties_withNaN() throws Exception {
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "", "", "", false, 0.5);
+        Writer writer = new Writer(ProductType.CCI_L3U, "", "", "", false, 0.5);
 
         final Variable[] variables = writer.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
 
@@ -108,14 +108,14 @@ public class RegriddingOutputFileWriterTest {
                 0.0034      //[6] adjustment uncertainty
         };
 
-        final double totalUncertainty = RegriddingOutputFileWriter.calculateTotalUncertainty(variables, res);
+        final double totalUncertainty = Writer.calculateTotalUncertainty(variables, res);
         assertEquals(0.0046, totalUncertainty, 1e-4);
     }
 
     @Test
     public void testCalculateTotalUncertaintyFromUncertainties() throws Exception {
 
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "", "", "", false, 0.5);
+        Writer writer = new Writer(ProductType.CCI_L3U, "", "", "", false, 0.5);
         final Variable[] variables = writer.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
 
         Number[] res = new Number[]{
@@ -128,16 +128,16 @@ public class RegriddingOutputFileWriterTest {
                 0.0034  //[6] adjustment uncertainty
         };
 
-        final double totalUncertainty = RegriddingOutputFileWriter.calculateTotalUncertainty(variables, res);
+        final double totalUncertainty = Writer.calculateTotalUncertainty(variables, res);
         assertEquals(0.0204, totalUncertainty, 1e-4);
     }
 
     @Test
     public void testFillInDataMap_withTotalUncertainty() throws Exception {
 
-        RegriddingOutputFileWriter writerWithTotalUncertainty = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", true, 0.5);
+        Writer writerWithTotalUncertainty = new Writer(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", true, 0.5);
         final Variable[] variables = writerWithTotalUncertainty.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writerWithTotalUncertainty.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{
@@ -163,9 +163,9 @@ public class RegriddingOutputFileWriterTest {
     public void testFillInDataMap_withTotalUncertainty_totalUncertaintyMaximumExceeded() throws Exception {
         final double maxTotalUncertainty = 0.0;
         final boolean totalUncertaintyWanted = true;
-        RegriddingOutputFileWriter writerWithTotalUncertainty = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
+        Writer writerWithTotalUncertainty = new Writer(ProductType.CCI_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
         final Variable[] variables = writerWithTotalUncertainty.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writerWithTotalUncertainty.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{
@@ -191,9 +191,9 @@ public class RegriddingOutputFileWriterTest {
     public void testFillInDataMap_totalUncertaintyMaximumExceeded() throws Exception {
         final double maxTotalUncertainty = 0.0;
         final boolean totalUncertaintyWanted = false;
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
+        Writer writer = new Writer(ProductType.CCI_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
         final Variable[] variables = writer.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writer.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{
@@ -222,9 +222,9 @@ public class RegriddingOutputFileWriterTest {
     @Test
     public void testFillInDataMap() throws Exception {
 
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", false, 0.5);
+        Writer writer = new Writer(ProductType.CCI_L3U, "myTool", "v0.0", "NetCDF", false, 0.5);
         final Variable[] variables = writer.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writer.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{
@@ -255,9 +255,9 @@ public class RegriddingOutputFileWriterTest {
 
         final boolean totalUncertaintyWanted = false; //but is ignored for L4
         final double maxTotalUncertainty = 1.0;
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.CCI_L4, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
+        Writer writer = new Writer(ProductType.CCI_L4, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
         final Variable[] variables = writer.createVariables(SstDepth.skin, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writer.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{
@@ -284,9 +284,9 @@ public class RegriddingOutputFileWriterTest {
 
         final boolean totalUncertaintyWanted = false; //but is ignored for L4
         final double maxTotalUncertainty = 0.0;
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.CCI_L4, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
+        Writer writer = new Writer(ProductType.CCI_L4, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
         final Variable[] variables = writer.createVariables(SstDepth.skin, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writer.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{
@@ -313,9 +313,9 @@ public class RegriddingOutputFileWriterTest {
 
         final boolean totalUncertaintyWanted = false; //but is ignored for Arc
         final double maxTotalUncertainty = 1.0;
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.ARC_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
+        Writer writer = new Writer(ProductType.ARC_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
         final Variable[] variables = writer.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writer.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{
@@ -340,9 +340,9 @@ public class RegriddingOutputFileWriterTest {
 
         final boolean totalUncertaintyWanted = false; //but is ignored for Arc
         final double maxTotalUncertainty = 0.0;
-        RegriddingOutputFileWriter writer = new RegriddingOutputFileWriter(ProductType.ARC_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
+        Writer writer = new Writer(ProductType.ARC_L3U, "", "", "", totalUncertaintyWanted, maxTotalUncertainty);
         final Variable[] variables = writer.createVariables(SstDepth.depth_20, netcdfFile, latDim, lonDim, bndsDim, measurementsDims);
-        final HashMap<String, RegriddingOutputFileWriter.VectorContainer> dataMap =
+        final HashMap<String, Writer.VectorContainer> dataMap =
                 writer.initialiseDataMap(variables, latDim.getLength(), lonDim.getLength());
 
         Number[] res = new Number[]{

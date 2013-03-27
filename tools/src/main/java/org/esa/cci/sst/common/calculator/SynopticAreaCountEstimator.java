@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.common.calculator;
 
-import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
+import org.esa.cci.sst.regrid.AverageSeparations;
 
 /**
  * Eta is the estimated effective number of synoptic areas in the new grid box.
@@ -30,10 +30,10 @@ import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
  */
 public class SynopticAreaCountEstimator {
 
-    private LutForSynopticAreas lutForSynopticAreas;
+    private AverageSeparations averageSeparations;
 
-    public SynopticAreaCountEstimator(LutForSynopticAreas lutForSynopticAreas) {
-        this.lutForSynopticAreas = lutForSynopticAreas;
+    public SynopticAreaCountEstimator(AverageSeparations averageSeparations) {
+        this.averageSeparations = averageSeparations;
     }
 
     /**
@@ -46,8 +46,8 @@ public class SynopticAreaCountEstimator {
      */
     public double calculateEta(int y, long sampleCount) {
         //average time- and space-separation between each pair of input grid boxes
-        double dt = lutForSynopticAreas.getDt();
-        double dxy = lutForSynopticAreas.getDxy(y);
+        double dt = averageSeparations.getDt();
+        double dxy = averageSeparations.getDxy(y);
 
         double lxy = 100.0; //km
         double lt = 1.0; //day

@@ -31,8 +31,7 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.regrid.auxiliary.LutForStdDeviation;
-import org.esa.cci.sst.regrid.auxiliary.LutForSynopticAreas;
+import org.esa.cci.sst.regrid.auxiliary.StdDevLut;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
@@ -53,12 +52,12 @@ public class Aggregator4Regrid extends AbstractAggregator {
 
     private RegionMask combinedRegionMask;
     private SpatialResolution spatialTargetResolution;
-    private final LutX0 lutCuTime;
-    private final LutX0 lutCuSpace;
-    private final LutForSynopticAreas lutForSynopticAreas;
+    private final X0Lut lutCuTime;
+    private final X0Lut lutCuSpace;
+    private final AverageSeparations averageSeparations;
 
     public Aggregator4Regrid(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
-                             LutForSynopticAreas lutForSynopticAreas, LutForStdDeviation lutCuStddev, LutX0 lutCuTime, LutX0 lutCuSpace,
+                             AverageSeparations averageSeparations, StdDevLut lutCuStddev, X0Lut lutCuTime, X0Lut lutCuSpace,
                              SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
 
         super(fileStore, climatology, lutCuStddev, sstDepth);
@@ -66,7 +65,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
         this.spatialTargetResolution = spatialTargetResolution;
         this.lutCuTime = lutCuTime;
         this.lutCuSpace = lutCuSpace;
-        this.lutForSynopticAreas = lutForSynopticAreas;
+        this.averageSeparations = averageSeparations;
         FileType.CellTypes.setMinCoverage(minCoverage);
     }
 
@@ -157,7 +156,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
         temporalResolution.setDate1(date1);
         cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(temporalResolution, spatialResolution));
         if (getFileType().hasSynopticUncertainties()) {
-            cellType.setSynopticAreaCountEstimator(new SynopticAreaCountEstimator(lutForSynopticAreas));
+            cellType.setSynopticAreaCountEstimator(new SynopticAreaCountEstimator(averageSeparations));
         }
         final CellFactory<SpatialAggregationCell> regriddingCellFactory = getFileType().getCellFactory(cellType);
         return new CellGrid<SpatialAggregationCell>(gridDef, regriddingCellFactory);
