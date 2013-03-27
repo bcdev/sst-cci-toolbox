@@ -1,11 +1,8 @@
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.common.cellgrid.ArrayGrid;
-import org.esa.cci.sst.regrid.SpatialResolution;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * @author Bettina Scholze

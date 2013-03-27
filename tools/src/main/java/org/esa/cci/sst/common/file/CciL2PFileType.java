@@ -22,11 +22,8 @@ package org.esa.cci.sst.common.file;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regrid.SpatialResolution;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.ma2.Array;
-import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.*;
 

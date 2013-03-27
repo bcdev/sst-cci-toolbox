@@ -14,12 +14,19 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.regrid;
+package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.cellgrid.GridDef;
 
 import java.util.Arrays;
 
+/**
+ * Possible spatial resolutions.
+ *
+ * @author Norman Fomferra
+ * @author Bettina Scholze
+ * @author Ralf Quast
+ */
 public enum SpatialResolution {
 
     DEGREE_0_05(0.05),

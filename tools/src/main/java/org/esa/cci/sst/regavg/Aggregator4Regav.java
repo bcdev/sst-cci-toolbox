@@ -20,7 +20,7 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;

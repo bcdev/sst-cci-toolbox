@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.Grid;
@@ -35,9 +36,9 @@ import java.util.logging.Logger;
 /**
  * Lookup table (LUT) for X0 quantities (spatial distance or time) used for calculating
  * coverage uncertainty.
- * <p/>
- * @author Ralf Quast
+ *
  * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public final class LutX0 {
 

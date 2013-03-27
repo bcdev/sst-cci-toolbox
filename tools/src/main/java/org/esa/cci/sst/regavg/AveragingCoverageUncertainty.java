@@ -20,7 +20,7 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.common.calculator.CoverageUncertainty;
-import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.common.SpatialResolution;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;

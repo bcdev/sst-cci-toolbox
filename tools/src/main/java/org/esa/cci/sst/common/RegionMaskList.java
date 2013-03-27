@@ -20,7 +20,6 @@
 package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.cellgrid.RegionMask;
-import org.esa.cci.sst.regrid.SpatialResolution;
 
 import java.io.File;
 import java.io.FileReader;

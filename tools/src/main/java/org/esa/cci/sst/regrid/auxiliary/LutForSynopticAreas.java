@@ -21,7 +21,7 @@ package org.esa.cci.sst.regrid.auxiliary;
 
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.common.SpatialResolution;
 
 /**
  * In the Regridding Tool the synoptically correlated uncertainties are aggregated (equation 1.3)

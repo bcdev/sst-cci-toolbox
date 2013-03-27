@@ -20,6 +20,7 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.ProcessingLevel;
+import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.cell.AggregationCell;

@@ -19,7 +19,13 @@
 
 package org.esa.cci.sst.tool;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.io.File;
 import java.io.FileReader;
@@ -28,12 +34,17 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
- * The SST_cci Regional-Average tool.
+ * Abstract base class for all SST-CCI tools.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public abstract class Tool {
 
@@ -195,9 +206,9 @@ public abstract class Tool {
         HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.setWidth(120);
         helpFormatter.printHelp(getSyntax(),
-                getHeader(),
-                options,
-                getFooter(), false);
+                                getHeader(),
+                                options,
+                                getFooter(), false);
     }
 
     private void printVersion() {
@@ -223,16 +234,17 @@ public abstract class Tool {
         }
 
         options.addOption(createOption("h", "help", null,
-                "Displays this help."));
+                                       "Displays this help."));
         options.addOption(createOption("v", "version", null,
-                "Displays the version of this program and exits."));
+                                       "Displays the version of this program and exits."));
         options.addOption(createOption("c", "config", "FILE",
-                "Reads a configuration (key-value pairs) from given FILE."));
+                                       "Reads a configuration (key-value pairs) from given FILE."));
         options.addOption(createOption("e", "errors", null,
-                "Dumps a full error stack trace."));
+                                       "Dumps a full error stack trace."));
         options.addOption(createOption("l", "logLevel", "LEVEL",
-                String.format("sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
-                        Arrays.toString(LogLevel.values()), LogLevel.ALL, DEFAULT_LOG_LEVEL)));
+                                       String.format(
+                                               "sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
+                                               Arrays.toString(LogLevel.values()), LogLevel.ALL, DEFAULT_LOG_LEVEL)));
         return options;
     }
 
@@ -246,16 +258,17 @@ public abstract class Tool {
 
     protected static void initLogger(LogLevel logLevel) {
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Formatter formatter = new Formatter() {
+        final Formatter formatter = new Formatter() {
             @Override
             public String format(LogRecord record) {
-                StringBuilder sb = new StringBuilder();
+                final StringBuilder sb = new StringBuilder();
                 sb.append(dateFormat.format(new Date(record.getMillis())));
                 sb.append(" - ");
                 sb.append(record.getLevel().getName());
                 sb.append(": ");
                 sb.append(record.getMessage());
                 sb.append("\n");
+                @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
                 final Throwable thrown = record.getThrown();
                 if (thrown != null) {
                     sb.append(thrown.toString());
@@ -264,7 +277,7 @@ public abstract class Tool {
                 return sb.toString();
             }
         };
-        ConsoleHandler handler = new ConsoleHandler();
+        final ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(formatter);
         handler.setLevel(Level.ALL);
         LOGGER.setUseParentHandlers(false);

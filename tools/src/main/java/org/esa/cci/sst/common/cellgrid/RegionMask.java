@@ -20,7 +20,7 @@
 package org.esa.cci.sst.common.cellgrid;
 
 import org.esa.cci.sst.common.RegionMaskList;
-import org.esa.cci.sst.regrid.SpatialResolution;
+import org.esa.cci.sst.common.SpatialResolution;
 
 import java.awt.*;
 import java.text.ParseException;

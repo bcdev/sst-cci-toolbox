@@ -20,6 +20,7 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.beam.util.math.MathUtils;
+import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.calculator.CoverageUncertainty;
 

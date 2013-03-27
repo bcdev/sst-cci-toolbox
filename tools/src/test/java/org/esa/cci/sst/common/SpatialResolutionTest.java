@@ -1,18 +1,11 @@
-package org.esa.cci.sst.regrid;
+package org.esa.cci.sst.common;
 
+import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.junit.Test;
-import ucar.ma2.Array;
-
-import java.util.Arrays;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Bettina Scholze
- *         Date: 23.07.12 14:13
- */
 public class SpatialResolutionTest {
 
     @Test
