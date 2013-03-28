@@ -50,7 +50,7 @@ public class AverageSeparations {
     }
 
     /**
-     * Calculates the average separation distance.
+     * Calculates the average synoptic separation distance.
      *
      * @param y The index of a cell in the target grid.
      *
@@ -77,7 +77,7 @@ public class AverageSeparations {
     }
 
     /**
-     * Returns the average time separation.
+     * Returns the average synoptic time separation.
      *
      * @return the average time separation (days).
      */
