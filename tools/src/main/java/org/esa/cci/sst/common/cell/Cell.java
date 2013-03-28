@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.common.cell;
 
+import org.esa.cci.sst.common.cellgrid.CellGrid;
+
 /**
  * A cell of a {@link org.esa.cci.sst.common.cellgrid.CellGrid} used for numeric aggregations.
  *

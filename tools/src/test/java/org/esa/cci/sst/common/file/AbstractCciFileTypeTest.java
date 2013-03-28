@@ -60,7 +60,7 @@ public class AbstractCciFileTypeTest {
     @Test
     public void testGetGridDef() throws Exception {
         GridDef gridDef = fileType.getGridDef();
-        assertEquals(25920000, gridDef.getAbsoluteNumberOfCells());
+        assertEquals(25920000, gridDef.getWidth() * gridDef.getHeight() * gridDef.getTime());
         assertEquals(0.05, gridDef.getResolution());
     }
 

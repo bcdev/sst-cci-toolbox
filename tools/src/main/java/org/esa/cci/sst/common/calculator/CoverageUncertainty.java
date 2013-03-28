@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.common.calculator;
 
+import org.esa.cci.sst.common.cell.AggregationCell;
+
 /**
  * Interface for coverage uncertainty calculation.
  *
@@ -28,14 +30,12 @@ package org.esa.cci.sst.common.calculator;
 public interface CoverageUncertainty {
 
     /**
-     * Calculates the coverage uncertainty of the cell, which is a grosser target cell.
+     * Calculates the coverage uncertainty of an aggregation cell.
      *
-     * @param cellX The x index of a cell.
-     * @param cellY The y index of a cell.
-     * @param n     The number of grid cells used for averaging.
-     * @param a     An additional parameter.
+     * @param cell The aggregation cell.
+     * @param a    An additional parameter.
      *
-     * @return Coverage uncertainty for current cell
+     * @return the coverage uncertainty for the given cell.
      */
-    double calculate(int cellX, int cellY, long n, double a);
+    double calculate(AggregationCell cell, double a);
 }

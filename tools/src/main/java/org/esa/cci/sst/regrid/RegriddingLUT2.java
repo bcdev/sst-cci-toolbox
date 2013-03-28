@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.LUT;
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
@@ -34,20 +35,20 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
- * Provides 'X0' quantities (spatial distance or time) used for calculating
+ * Lookup table for 'X0' quantities (LUT2 and LUT3) used for calculating
  * coverage uncertainties.
  *
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public final class X0Lut {
+final class RegriddingLUT2 implements LUT {
 
     private static final GridDef GRID_DEF_005 = GridDef.createGlobal(0.05);
     private static final GridDef GRID_DEF_020 = GridDef.createGlobal(2.00);
 
     private final Grid grid;
 
-    private X0Lut(Grid grid) {
+    private RegriddingLUT2(Grid grid) {
         this.grid = grid;
     }
 
@@ -62,7 +63,7 @@ public final class X0Lut {
      *
      * @throws IOException when an error occurred.
      */
-    public static X0Lut create(File file, double fillValue, SpatialResolution targetResolution) throws IOException {
+    static RegriddingLUT2 create(File file, double fillValue, SpatialResolution targetResolution) throws IOException {
         final Logger logger = Logger.getLogger("org.esa.cci.sst");
 
         final long t0 = System.currentTimeMillis();
@@ -84,19 +85,7 @@ public final class X0Lut {
         final long t1 = System.currentTimeMillis();
         logger.info(String.format("Ready creating LUT in%d ms", t1 - t0));
 
-        return new X0Lut(lutGrid);
-    }
-
-    /**
-     * Returns the value of the X0 quantity (either spatial distance or time) in target resolution.
-     *
-     * @param x The x grid coordinate.
-     * @param y The y grid coordinate.
-     *
-     * @return the value of the X0 quantity.
-     */
-    public double getValue(int x, int y) {
-        return getGrid().getSampleDouble(x, y);
+        return new RegriddingLUT2(lutGrid);
     }
 
     /**
@@ -104,6 +93,7 @@ public final class X0Lut {
      *
      * @return the LUT grid.
      */
+    @Override
     public Grid getGrid() {
         return grid;
     }

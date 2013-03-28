@@ -31,7 +31,6 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.regrid.auxiliary.StdDevLut;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
@@ -52,12 +51,12 @@ public class Aggregator4Regrid extends AbstractAggregator {
 
     private RegionMask combinedRegionMask;
     private SpatialResolution spatialTargetResolution;
-    private final X0Lut lutCuTime;
-    private final X0Lut lutCuSpace;
+    private final RegriddingLUT2 lutCuTime;
+    private final RegriddingLUT2 lutCuSpace;
     private final AverageSeparations averageSeparations;
 
     public Aggregator4Regrid(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
-                             AverageSeparations averageSeparations, StdDevLut lutCuStddev, X0Lut lutCuTime, X0Lut lutCuSpace,
+                             AverageSeparations averageSeparations, LUT lutCuStddev, RegriddingLUT2 lutCuTime, RegriddingLUT2 lutCuSpace,
                              SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
 
         super(fileStore, climatology, lutCuStddev, sstDepth);
@@ -186,7 +185,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
     private RegriddingCoverageUncertainty createCoverageUncertaintyProvider(TemporalResolution temporalResolution,
                                                                                SpatialResolution spatialResolution) {
 
-        return new RegriddingCoverageUncertainty(temporalResolution, spatialResolution, lutCuTime, lutCuSpace);
+        return new RegriddingCoverageUncertainty(spatialResolution, temporalResolution, lutCuTime, lutCuSpace);
     }
 
 }

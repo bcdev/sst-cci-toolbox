@@ -10,7 +10,6 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.regrid.auxiliary.StdDevLut;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
@@ -31,15 +30,15 @@ public abstract class AbstractAggregator {
     protected static final Logger LOGGER = Tool.LOGGER;
 
     private final FileStore fileStore;
-    private final StdDevLut stdDevLut;
+    private final LUT regriddingLUT1;
     private FileType fileType;
     private final SstDepth sstDepth;
     private final Climatology climatology;
 
-    public AbstractAggregator(FileStore fileStore, Climatology climatology, StdDevLut stdDevLut, SstDepth sstDepth) {
+    public AbstractAggregator(FileStore fileStore, Climatology climatology, LUT regriddingLUT1, SstDepth sstDepth) {
         this.fileStore = fileStore;
         this.climatology = climatology;
-        this.stdDevLut = stdDevLut;
+        this.regriddingLUT1 = regriddingLUT1;
         this.sstDepth = sstDepth;
         if (fileStore != null) {
             this.fileType = fileStore.getProductType().getFileType();
@@ -59,7 +58,7 @@ public abstract class AbstractAggregator {
                 readSourceGrids(netcdfFile),
                 climatology.getSst(dayOfYear),
                 climatology.getSeaCoverage(),
-                stdDevLut == null ? null : stdDevLut.getStandardDeviationGrid());
+                regriddingLUT1 == null ? null : regriddingLUT1.getGrid());
     }
 
     private Grid[] readSourceGrids(NetcdfFile netcdfFile) throws IOException {

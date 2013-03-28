@@ -16,33 +16,6 @@ import static junit.framework.Assert.fail;
 public class RegriddingCoverageUncertaintyTest {
 
     @Test
-    public void testCalculateXSpace() throws Exception {
-        RegriddingCoverageUncertainty coverageUncertainty = new RegriddingCoverageUncertainty(
-                TemporalResolution.daily, SpatialResolution.DEGREE_10_00, null, null);
-        assertEquals("diagonale in km", 1144.58, coverageUncertainty.calculateXKm(10, 10), 1e-02);
-
-        coverageUncertainty = new RegriddingCoverageUncertainty(
-                TemporalResolution.daily, SpatialResolution.DEGREE_10_00, null, null);
-        assertEquals("diagonale in km", 1568.52, coverageUncertainty.calculateXKm(0, 0), 1e-02);
-
-        coverageUncertainty = new RegriddingCoverageUncertainty(
-                TemporalResolution.daily, SpatialResolution.DEGREE_1_00, null, null);
-        assertEquals("diagonale in km", 155.94, coverageUncertainty.calculateXKm(10, 10), 1e-02);
-
-        coverageUncertainty = new RegriddingCoverageUncertainty(
-                TemporalResolution.daily, SpatialResolution.DEGREE_1_00, null, null);
-        assertEquals("diagonale in km", 113.02, coverageUncertainty.calculateXKm(1000, 1000), 1e-02);
-
-        coverageUncertainty = new RegriddingCoverageUncertainty(
-                TemporalResolution.daily, SpatialResolution.DEGREE_0_05, null, null);
-        assertEquals("diagonale in km", 7.86, coverageUncertainty.calculateXKm(10, 10), 1e-02);
-
-        coverageUncertainty = new RegriddingCoverageUncertainty(
-                TemporalResolution.daily, SpatialResolution.DEGREE_0_05, null, null);
-        assertEquals("diagonale in km", 6.61, coverageUncertainty.calculateXKm(5000, 1000), 1e-02);
-    }
-
-    @Test
     public void testCalculateXDay_monthly() throws Exception {
         final TemporalResolution temporalResolution = TemporalResolution.monthly;
         final Calendar calendar = Calendar.getInstance();
@@ -72,8 +45,7 @@ public class RegriddingCoverageUncertaintyTest {
         try {
             RegriddingCoverageUncertainty.calculateXDay(temporalResolution);
             fail("Exception expected.");
-        } catch (Exception expected) {
-            assertEquals("temporalResolution must be 'daily' or 'monthly'", expected.getMessage());
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -83,8 +55,7 @@ public class RegriddingCoverageUncertaintyTest {
         try {
             RegriddingCoverageUncertainty.calculateXDay(temporalResolution);
             fail("Exception expected.");
-        } catch (Exception expected) {
-            assertEquals("temporalResolution must be 'daily' or 'monthly'", expected.getMessage());
+        } catch (IllegalArgumentException expected) {
         }
     }
 }

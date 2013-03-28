@@ -25,6 +25,7 @@ package org.esa.cci.sst.common.cell;
  * @author Normasn Fomferra
  */
 public abstract class AbstractCell implements Cell {
+
     private final int x;
     private final int y;
 

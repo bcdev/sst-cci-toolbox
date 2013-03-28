@@ -1,11 +1,12 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.calculator.CoverageUncertainty;
+import org.esa.cci.sst.common.cell.AggregationCell;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
-class MockCoverageUncertainty implements CoverageUncertainty {
+final class MockCoverageUncertainty implements CoverageUncertainty {
 
     private final double magnitude90;
     private final double magnitude5;
@@ -18,18 +19,22 @@ class MockCoverageUncertainty implements CoverageUncertainty {
     }
 
     @Override
-    public final double calculate(int cellX, int cellY, long n, double resolution) {
+    public double calculate(AggregationCell cell, double resolution) {
+        return calculate(cell.getX(), cell.getY(), cell.getSampleCount(), resolution);
+    }
+
+    double calculate(int cellX, int cellY, long sampleCount, double resolution) {
         if (resolution == 5.0) {
-            if (n == 0L) {
+            if (sampleCount == 0L) {
                 return Double.NaN;
             } else {
-                return magnitude5 * (1.0 - pow(n / 77500.0, exponent5));
+                return magnitude5 * (1.0 - pow(sampleCount / 77500.0, exponent5));
             }
         } else if (resolution == 90.0) {
-            if (n == 0L) {
+            if (sampleCount == 0L) {
                 return Double.NaN;
             } else {
-                return magnitude90 / sqrt(n);
+                return magnitude90 / sqrt(sampleCount);
             }
         } else {
             return 0.0;

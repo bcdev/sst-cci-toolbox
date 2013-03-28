@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.common.cellgrid;
 
+import org.esa.beam.util.math.MathUtils;
+
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
@@ -28,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  * @author Norman Fomferra
  * @author Ralf Quast
  */
-public class GridDef {
+public final class GridDef {
 
     private final int time;
     private final int width;
@@ -93,7 +95,7 @@ public class GridDef {
         return resolutionY;
     }
 
-    public final int wrapX(int gridX) {
+    public int wrapX(int gridX) {
         if (gridX < 0) {
             return width - 1 + ((1 + gridX) % width);
         }
@@ -103,12 +105,29 @@ public class GridDef {
         return gridX;
     }
 
-    public final double getCenterLon(int gridX) {
+    public double getCenterLon(int gridX) {
         return getLon(gridX + 0.5);
     }
 
-    public final double getCenterLat(int gridY) {
+    public double getCenterLat(int gridY) {
         return getLat(gridY + 0.5);
+    }
+
+    /**
+     * Returns the length of the diagonal for the grid cell at (x, y).
+     *
+     * @param gridX The cell x coordinate.
+     * @param gridY The cell y coordinate.
+     *
+     * @return the length of the cell diagonal (km).
+     */
+    public final double getCellDiagonal(int gridX, int gridY) {
+        final double lon1 = getLon(gridX);
+        final double lat1 = getLat(gridY);
+        final double lon2 = lon1 + resolutionX;
+        final double lat2 = lat1 - resolutionY;
+
+        return MathUtils.sphereDistanceDeg(6371.0, lon1, lat1, lon2, lat2);
     }
 
     public final int getGridX(double lon, boolean crop) {
@@ -165,22 +184,6 @@ public class GridDef {
         return getGridRectangle(lon1, lat1, lon2, lat2);
     }
 
-    private double getLon(double gridX) {
-        double lon = easting + resolutionX * gridX;
-        if (lon < -180.0 || lon > 180.0) {
-            throw new ArithmeticException("Longitude coordinate is out of range.");
-        }
-        return lon;
-    }
-
-    private double getLat(double gridY) {
-        double lat = northing - resolutionY * gridY;
-        if (lat < -90.0 || lat > 90.0) {
-            throw new ArithmeticException("Latitude coordinate is out of range.");
-        }
-        return lat;
-    }
-
     /**
      * Creates a grid rectangle from the given geographic coordinates.
      *
@@ -202,10 +205,22 @@ public class GridDef {
         return new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
     }
 
-
-    public int getAbsoluteNumberOfCells() {
-        return width * height * time;
+    private double getLon(double gridX) {
+        double lon = easting + resolutionX * gridX;
+        if (lon < -180.0 || lon > 180.0) {
+            throw new ArithmeticException("Longitude coordinate is out of range.");
+        }
+        return lon;
     }
+
+    private double getLat(double gridY) {
+        double lat = northing - resolutionY * gridY;
+        if (lat < -90.0 || lat > 90.0) {
+            throw new ArithmeticException("Latitude coordinate is out of range.");
+        }
+        return lat;
+    }
+
 
     @Override
     public boolean equals(Object o) {

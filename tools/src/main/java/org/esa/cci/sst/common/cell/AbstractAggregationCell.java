@@ -27,15 +27,15 @@ import org.esa.cci.sst.common.calculator.CoverageUncertainty;
  * @author Norman Fomferra
  */
 public abstract class AbstractAggregationCell extends AbstractCell implements AggregationCell {
-    private final CoverageUncertainty coverageUncertaintyProvider;
+    private final CoverageUncertainty coverageUncertainty;
 
-    protected AbstractAggregationCell(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
+    protected AbstractAggregationCell(CoverageUncertainty coverageUncertainty, int x, int y) {
         super(x, y);
-        this.coverageUncertaintyProvider = coverageUncertaintyProvider;
+        this.coverageUncertainty = coverageUncertainty;
     }
 
-    public final CoverageUncertainty getCoverageUncertaintyProvider() {
-        return coverageUncertaintyProvider;
+    public final CoverageUncertainty getCoverageUncertainty() {
+        return coverageUncertainty;
     }
 
     @Override

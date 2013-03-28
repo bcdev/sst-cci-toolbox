@@ -13,6 +13,7 @@ public class AveragingCoverageUncertaintyTest {
     @Test
     public void testCell5() throws Exception {
         AveragingCoverageUncertainty provider = create();
+
         Assert.assertEquals(Double.NaN, provider.calculate(0, 0, 0L, 5.0), 1.0e-10);
         Assert.assertEquals(1.1 * (1.0 - pow(5L / 77500.0, 0.5)), provider.calculate(0, 0, 5L, 5.0), 1.0e-10);
         Assert.assertEquals(1.1 * (1.0 - pow(12L / 77500.0, 0.5)), provider.calculate(0, 0, 12L, 5.0), 1.0e-10);

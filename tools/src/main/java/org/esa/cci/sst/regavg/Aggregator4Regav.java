@@ -289,7 +289,7 @@ public class Aggregator4Regav extends AbstractAggregator {
                                                                             SpatialResolution spatialResolution) {
         int month = UTC.createCalendar(date).get(Calendar.MONTH);
 
-        return new AveragingCoverageUncertainty(month, spatialResolution) {
+        return new AveragingCoverageUncertainty(month) {
             @Override
             protected double getMagnitude5(int cellX, int cellY) {
                 return lut1.getMagnitudeGrid5().getSampleDouble(cellX, cellY);

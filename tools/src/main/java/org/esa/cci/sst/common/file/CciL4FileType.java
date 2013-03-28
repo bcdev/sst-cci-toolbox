@@ -205,7 +205,7 @@ public class CciL4FileType extends AbstractCciFileType {
 
         @Override
         public double computeCoverageUncertainty() {
-            return getCoverageUncertaintyProvider().calculate(getX(), getY(), sstAnomalyAccu.getSampleCount(), 5.0);
+            return getCoverageUncertainty().calculate(this, 5.0);
         }
 
         @Override
@@ -247,8 +247,7 @@ public class CciL4FileType extends AbstractCciFileType {
 
         @Override
         public double computeCoverageUncertainty() {
-            final long sampleCount = sstAccu.getSampleCount();
-            return getCoverageUncertaintyProvider().calculate(getX(), getY(), sampleCount, stdDeviationAccu.combine());
+            return getCoverageUncertainty().calculate(this, stdDeviationAccu.combine());
         }
 
         @Override
@@ -270,13 +269,13 @@ public class CciL4FileType extends AbstractCciFileType {
                 for (int x = x0; x <= x1; x++) {
                     final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
                     final double sst = sstGrid.getSampleDouble(x, y);
-                    if (seaCoverage > 0.0 && sst > 0) {
+                    if (seaCoverage > 0.0 && sst > 0.0) {
                         sstAccu.accumulate(sst, seaCoverage);
                         sstAnomalyAccu.accumulate(sst - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
                         analysisErrorAccu.accumulate(analysisErrorGrid.getSampleDouble(x, y), seaCoverage);
+                        stdDeviationAccu.accumulate(stdDeviationGrid.getSampleDouble(x, y), seaCoverage);
                     }
                     seaIceFractionAccu.accumulate(seaIceFractionGrid.getSampleDouble(x, y), 1);
-                    stdDeviationAccu.accumulate(stdDeviationGrid.getSampleDouble(x, y), seaCoverage);
                 }
             }
         }
@@ -348,9 +347,7 @@ public class CciL4FileType extends AbstractCciFileType {
         @Override
         public double computeCoverageUncertainty() {
             final double uncertainty5 = computeCoverageUncertainty5Average();
-            final double uncertainty90 = getCoverageUncertaintyProvider().calculate(getX(), getY(),
-                                                                                    sstAnomalyAccu.getSampleCount(),
-                                                                                    90.0);
+            final double uncertainty90 = getCoverageUncertainty().calculate(this, 90.0);
             return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
         }
 

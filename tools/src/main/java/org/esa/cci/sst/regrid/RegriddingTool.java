@@ -16,13 +16,13 @@
 
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.LUT;
 import org.esa.cci.sst.common.RegionMaskList;
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.regrid.auxiliary.StdDevLut;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
 
@@ -140,15 +140,15 @@ public class RegriddingTool extends Tool {
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
 
         final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
-        final StdDevLut cuStdDevLut = createLutForStdDeviation(cuStdDevFile);
-        final X0Lut cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
-        final X0Lut cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
+        final LUT regriddingLUT1 = createLutForStdDeviation(cuStdDevFile);
+        final RegriddingLUT2 cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
+        final RegriddingLUT2 cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
         final AverageSeparations lutSynopticAreas = new AverageSeparations(spatialResolution, temporalResolution);
 
         List<RegriddingTimeStep> timeSteps;
         try {
             Aggregator4Regrid aggregator = new Aggregator4Regrid(regionMaskList, fileStore, climatology,
-                    lutSynopticAreas, cuStdDevLut, cuTimeLut, cuSpaceLut, sstDepth, minCoverage, spatialResolution);
+                    lutSynopticAreas, regriddingLUT1, cuTimeLut, cuSpaceLut, sstDepth, minCoverage, spatialResolution);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
@@ -242,10 +242,10 @@ public class RegriddingTool extends Tool {
         }
     }
 
-    private StdDevLut createLutForStdDeviation(File file) throws ToolException {
-        StdDevLut lut;
+    private LUT createLutForStdDeviation(File file) throws ToolException {
+        LUT lut;
         try {
-            lut = StdDevLut.create(file, productType.getGridDef());
+            lut = RegriddingLUT1.create(file, productType.getGridDef());
             LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
@@ -253,15 +253,15 @@ public class RegriddingTool extends Tool {
         return lut;
     }
 
-    private X0Lut getLutCoverageUncertainty(File file, SpatialResolution spatialResolution, double fillValue) throws ToolException {
-        X0Lut x0Lut;
+    private RegriddingLUT2 getLutCoverageUncertainty(File file, SpatialResolution spatialResolution, double fillValue) throws ToolException {
+        RegriddingLUT2 regriddingLUT2;
         try {
-            x0Lut = X0Lut.create(file, fillValue, spatialResolution);
+            regriddingLUT2 = RegriddingLUT2.create(file, fillValue, spatialResolution);
             LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);
         }
-        return x0Lut;
+        return regriddingLUT2;
     }
 
 }
