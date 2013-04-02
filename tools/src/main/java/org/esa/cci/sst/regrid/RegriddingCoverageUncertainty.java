@@ -27,6 +27,7 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Calculates sampling/coverage uncertainties for regridding (Eq. 1.6)
@@ -41,26 +42,26 @@ class RegriddingCoverageUncertainty implements CoverageUncertainty {
     private final GridDef gridDef;
     private final double xDay;
 
-    RegriddingCoverageUncertainty(SpatialResolution spatialResolution, TemporalResolution temporalResolution,
-                                  LUT lut3, LUT lut2) {
+    RegriddingCoverageUncertainty(LUT lut2, LUT lut3,
+                                  SpatialResolution spatialResolution,
+                                  TemporalResolution temporalResolution,
+                                  Date date) {
         this.lut2 = lut2;
         this.lut3 = lut3;
         this.gridDef = GridDef.createGlobal(spatialResolution.getResolution());
-        this.xDay = calculateXDay(temporalResolution);
+        this.xDay = calculateXDay(temporalResolution, date);
     }
 
-    static double calculateXDay(TemporalResolution temporalResolution) {
-        if (TemporalResolution.seasonal.equals(temporalResolution) || TemporalResolution.annual.equals(
-                temporalResolution)) {
-            throw new IllegalArgumentException("TemporalResolution must be 'daily' or 'monthly'.");
-        }
-        if (TemporalResolution.daily.equals(temporalResolution)) {
+    static double calculateXDay(TemporalResolution temporalResolution, Date date) {
+        if (TemporalResolution.DAILY.equals(temporalResolution)) {
             return 0.0;
-        } else {
+        } else if (TemporalResolution.MONTHLY.equals(temporalResolution)) {
             final Calendar calendar = Calendar.getInstance();
-            calendar.setTime(temporalResolution.getDate1());
+            calendar.setTime(date);
 
             return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        } else {
+            throw new IllegalArgumentException("TemporalResolution must be 'daily' or 'monthly'.");
         }
     }
 

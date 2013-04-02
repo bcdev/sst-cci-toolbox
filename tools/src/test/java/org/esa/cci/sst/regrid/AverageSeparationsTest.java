@@ -3,7 +3,6 @@ package org.esa.cci.sst.regrid;
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.regrid.AverageSeparations;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -27,7 +26,7 @@ public class AverageSeparationsTest {
     public void testGetDt_weekly5days() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.weekly5d);
+                                                                          TemporalResolution.WEEKLY_5D);
 
             switch (spatialResolution) {
                 case DEGREE_0_05:
@@ -70,7 +69,7 @@ public class AverageSeparationsTest {
     public void testGetDt_weekly7days() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.weekly7d);
+                                                                          TemporalResolution.WEEKLY_7D);
 
             switch (spatialResolution) {
                 case DEGREE_0_05:
@@ -113,7 +112,7 @@ public class AverageSeparationsTest {
     public void testGetDt_monthly() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.monthly);
+                                                                          TemporalResolution.MONTHLY);
 
             switch (spatialResolution) {
                 case DEGREE_0_05:
@@ -183,7 +182,7 @@ public class AverageSeparationsTest {
     @Test
     public void testGetDt_daily() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
-            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.daily);
+            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.DAILY);
             assertEquals(0.0, separations.getDt());
         }
     }
@@ -192,12 +191,12 @@ public class AverageSeparationsTest {
     public void testGetDt_seasonalAndAnnual() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.seasonal);
+                                                                          TemporalResolution.SEASONAL);
             assertEquals(0.0, separations.getDt());
         }
 
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
-            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.annual);
+            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.ANNUAL);
             assertEquals(0.0, separations.getDt());
         }
     }

@@ -101,8 +101,8 @@ public final class RegionalAverageTool extends Tool {
     public static final Parameter PARAM_CLIMATOLOGY_DIR = new Parameter("climatologyDir", "DIR", "./climatology",
                                                                         "The directory path to the reference climatology.");
     public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM",
-                                                                     TemporalResolution.monthly + "",
-                                                                     "The temporal resolution. Must be one of " + TemporalResolution.valuesForAveraging() + ".");
+                                                                     TemporalResolution.MONTHLY + "",
+                                                                     "The temporal resolution. Must be one of " + valuesForAveraging() + ".");
     public static final Parameter PARAM_PRODUCT_TYPE = new Parameter("productType", "NAME", null,
                                                                      "The product type. Must be one of " + Arrays.toString(
                                                                              ProductType.values()) + ".");
@@ -128,6 +128,19 @@ public final class RegionalAverageTool extends Tool {
 
     public static void main(String[] arguments) {
         new RegionalAverageTool().run(arguments);
+    }
+
+    static String valuesForAveraging() {
+        final String[] valuesForAveraging = new String[4];
+
+        int i = 0;
+        for (TemporalResolution value : TemporalResolution.values()) {
+            if (!TemporalResolution.WEEKLY_5D.equals(value) && !TemporalResolution.WEEKLY_7D.equals(value)){
+                valuesForAveraging[i++] = value.name();
+            }
+        }
+
+        return Arrays.toString(valuesForAveraging);
     }
 
     @Override

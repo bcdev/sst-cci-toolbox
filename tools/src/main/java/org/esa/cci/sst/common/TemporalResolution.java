@@ -28,34 +28,10 @@ import java.util.Date;
  * @author Norman Fomferra
  */
 public enum TemporalResolution {
-    daily,
-    weekly7d,
-    weekly5d,
-    monthly,
-    seasonal,
-    annual;
-
-    private Date date1;
-
-    public void setDate1(Date date1) {
-        this.date1 = date1;
-    }
-
-    public Date getDate1() {
-        return date1;
-    }
-
-    public static String valuesForAveraging() {
-        final TemporalResolution[] values = values();
-
-        String[] valuesForAveraging = new String[4];
-        int i = 0;
-        for (TemporalResolution value : values) {
-            if (!"weekly5d".equals(value.name()) && !"weekly7d".equals(value.name())){
-                valuesForAveraging[i++] = value.name();
-            }
-        }
-
-        return Arrays.toString(valuesForAveraging);
-    }
+    DAILY,
+    WEEKLY_7D,
+    WEEKLY_5D,
+    MONTHLY,
+    SEASONAL,
+    ANNUAL
 }

@@ -76,31 +76,31 @@ public class Aggregator4Regrid extends AbstractAggregator {
         while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
             Date date1 = calendar.getTime();
             CellGrid<? extends AggregationCell> resultGrid;
-            if (temporalResolution == TemporalResolution.daily) {
+            if (temporalResolution == TemporalResolution.DAILY) {
                 calendar.add(Calendar.DATE, 1);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.weekly5d) {
+            } else if (temporalResolution == TemporalResolution.WEEKLY_5D) {
                 calendar.add(Calendar.DATE, 5);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.weekly7d) {
+            } else if (temporalResolution == TemporalResolution.WEEKLY_7D) {
                 calendar.add(Calendar.DATE, 7);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.monthly) {
+            } else if (temporalResolution == TemporalResolution.MONTHLY) {
                 calendar.add(Calendar.MONTH, 1);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.seasonal) {
+            } else if (temporalResolution == TemporalResolution.SEASONAL) {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
-                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
+                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
                 resultGrid = aggregateMultiMonths(monthlyTimeSteps);
-            } else if (temporalResolution == TemporalResolution.annual) {
+            } else if (temporalResolution == TemporalResolution.ANNUAL) {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
-                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
+                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
                 resultGrid = aggregateMultiMonths(monthlyTimeSteps);
             } else {
                 throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);
@@ -152,8 +152,7 @@ public class Aggregator4Regrid extends AbstractAggregator {
         GridDef gridDef = GridDef.createGlobal(spatialResolution.getResolution());
 
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_REGRIDDING;
-        temporalResolution.setDate1(date1);
-        cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(temporalResolution, spatialResolution));
+        cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(temporalResolution, spatialResolution, date1));
         if (getFileType().hasSynopticUncertainties()) {
             cellType.setSynopticAreaCountEstimator(new SynopticAreaCountEstimator(averageSeparations));
         }
@@ -183,9 +182,10 @@ public class Aggregator4Regrid extends AbstractAggregator {
     }
 
     private RegriddingCoverageUncertainty createCoverageUncertaintyProvider(TemporalResolution temporalResolution,
-                                                                               SpatialResolution spatialResolution) {
+                                                                               SpatialResolution spatialResolution,
+                                                                               Date date) {
 
-        return new RegriddingCoverageUncertainty(spatialResolution, temporalResolution, lutCuTime, lutCuSpace);
+        return new RegriddingCoverageUncertainty(lutCuSpace, lutCuTime, spatialResolution, temporalResolution, date);
     }
 
 }

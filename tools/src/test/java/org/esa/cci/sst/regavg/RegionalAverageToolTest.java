@@ -19,4 +19,8 @@ public class RegionalAverageToolTest {
         assertEquals("20000101-20101231-Global_average-ESACCI-L3U_GHRSST-SSTskin-PS-DM-v1.2-fv1.1.nc", filename);
     }
 
+    @Test
+    public void testValuesForAveraging() throws Exception {
+        assertEquals("[daily, monthly, seasonal, annual]", RegionalAverageTool.valuesForAveraging());
+    }
 }

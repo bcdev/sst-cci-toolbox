@@ -65,23 +65,23 @@ public class Aggregator4Regav extends AbstractAggregator {
         while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
             Date date1 = calendar.getTime();
             List<RegionalAggregation> result;
-            if (temporalResolution == TemporalResolution.daily) {
+            if (temporalResolution == TemporalResolution.DAILY) {
                 calendar.add(Calendar.DATE, 1);
                 Date date2 = calendar.getTime();
                 result = aggregateRegions(date1, date2);
-            } else if (temporalResolution == TemporalResolution.monthly) {
+            } else if (temporalResolution == TemporalResolution.MONTHLY) {
                 calendar.add(Calendar.MONTH, 1);
                 Date date2 = calendar.getTime();
                 result = aggregateRegions(date1, date2);
-            } else if (temporalResolution == TemporalResolution.seasonal) {
+            } else if (temporalResolution == TemporalResolution.SEASONAL) {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
-                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
+                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
                 result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
-            } else if (temporalResolution == TemporalResolution.annual) {
+            } else if (temporalResolution == TemporalResolution.ANNUAL) {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
-                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
+                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
                 result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
             } else {
                 throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);

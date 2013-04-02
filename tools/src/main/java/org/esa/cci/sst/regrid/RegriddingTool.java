@@ -55,7 +55,7 @@ public class RegriddingTool extends Tool {
             SpatialResolution.getDefaultResolutionAsString(),
             "The spatial resolution of the output grid in degrees. Must be one of " + SpatialResolution.getAllResolutionsAsString() + ".");
 
-    public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.monthly + "",
+    public static final Parameter PARAM_TEMPORAL_RES = new Parameter("temporalRes", "NUM", TemporalResolution.MONTHLY + "",
             "The temporal resolution. Must be one of " + Arrays.toString(TemporalResolution.values()) + ".");
 
     private static final Parameter PARAM_REGION = new Parameter("region", "REGION", "Global=-180,90,180,-90 (NAME=REGION)",
