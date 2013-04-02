@@ -56,14 +56,14 @@ final class RegriddingLUT2 implements LUT {
      * Creates a new lookup table.
      *
      * @param file             The path to the LUT file (spatial resolution of 2.0 degrees).
-     * @param fillValue        The fill value used in the LUT file.
      * @param targetResolution The spatial resolution of the target grid.
+     * @param fillValue        The fill value used in the LUT file.
      *
      * @return the lookup table.
      *
      * @throws IOException when an error occurred.
      */
-    static RegriddingLUT2 create(File file, double fillValue, SpatialResolution targetResolution) throws IOException {
+    static RegriddingLUT2 create(File file, SpatialResolution targetResolution, double fillValue) throws IOException {
         final Logger logger = Logger.getLogger("org.esa.cci.sst");
 
         final long t0 = System.currentTimeMillis();

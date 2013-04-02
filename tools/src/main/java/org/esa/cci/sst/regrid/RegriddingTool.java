@@ -256,7 +256,7 @@ public class RegriddingTool extends Tool {
     private RegriddingLUT2 getLutCoverageUncertainty(File file, SpatialResolution spatialResolution, double fillValue) throws ToolException {
         RegriddingLUT2 regriddingLUT2;
         try {
-            regriddingLUT2 = RegriddingLUT2.create(file, fillValue, spatialResolution);
+            regriddingLUT2 = RegriddingLUT2.create(file, spatialResolution, fillValue);
             LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
             throw new ToolException(e, ExitCode.IO_ERROR);

@@ -20,6 +20,7 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.LUT;
+import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -48,12 +49,12 @@ final class RegriddingLUT1 implements LUT {
         this.grid = grid;
     }
 
-    public static LUT create(File file, GridDef targetGridDef) throws IOException {
+    public static LUT create(File file, GridDef gridDef) throws IOException {
         Grid grid = readGrid(file);
-        if (SOURCE_GRID_DEF.getResolution() != targetGridDef.getResolution()) {
+        if (SOURCE_GRID_DEF.getResolution() != gridDef.getResolution()) {
             long t0 = System.currentTimeMillis();
             LOGGER.fine("Downscaling regridding LUT1");
-            grid = Downscaling.create(grid, targetGridDef);
+            grid = Downscaling.create(grid, gridDef);
             LOGGER.fine(String.format("Downscaling regridding LUT1 took %d ms", System.currentTimeMillis() - t0));
         }
         return new RegriddingLUT1(YFlip.create(grid));
@@ -64,7 +65,7 @@ final class RegriddingLUT1 implements LUT {
         return grid;
     }
 
-    private static Grid readGrid(File file) throws IOException {
+    static Grid readGrid(File file) throws IOException {
         LOGGER.info(String.format("Opening file for regridding LUT1 '%s'", file.getPath()));
 
         final NetcdfFile gridFile = NetcdfFile.open("file:" + file.getPath());
