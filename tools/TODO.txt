@@ -1,7 +1,5 @@
 Review code in packages:
 
-regrid/auxiliary
-
 common
 common/calculator
 common/cell

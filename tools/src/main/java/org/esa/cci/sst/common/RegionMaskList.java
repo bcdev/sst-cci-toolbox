@@ -35,25 +35,25 @@ import java.util.StringTokenizer;
 public class RegionMaskList extends ArrayList<RegionMask> {
 
     public static RegionMaskList parse(String value) throws ParseException, IOException {
-        StringTokenizer stringTokenizer = new StringTokenizer(value, ";");
-        RegionMaskList regionMaskList = new RegionMaskList();
+        final StringTokenizer stringTokenizer = new StringTokenizer(value, ";");
+        final RegionMaskList regionMaskList = new RegionMaskList();
 
         while (stringTokenizer.hasMoreTokens()) {
-            String entry = stringTokenizer.nextToken().trim();
-            int entryNo = regionMaskList.size() + 1;
-            int pos = entry.indexOf('=');
+            final String entry = stringTokenizer.nextToken().trim();
+            final int entryNo = regionMaskList.size() + 1;
+            final int pos = entry.indexOf('=');
             if (pos == -1) {
                 throw new ParseException(String.format("Illegal region entry %d: is missing the '=' character.", entryNo), 0);
             }
-            String name = entry.substring(0, pos).trim();
-            String mask = entry.substring(pos + 1).trim();
+            final String name = entry.substring(0, pos).trim();
+            final String mask = entry.substring(pos + 1).trim();
             if (name.isEmpty()) {
                 throw new ParseException(String.format("Illegal region entry %d: Name is empty.", entryNo), 0);
             }
             if (mask.isEmpty()) {
                 throw new ParseException(String.format("Illegal region entry %d: Mask is empty.", entryNo), 0);
             }
-            String[] splits = mask.split(",");
+            final String[] splits = mask.split(",");
             if (splits.length == 4) {
                 fromWNES(name, splits, regionMaskList);
             } else if (splits.length == 1) {
@@ -65,12 +65,16 @@ public class RegionMaskList extends ArrayList<RegionMask> {
         return regionMaskList;
     }
 
+    public static void setSpatialResolution(SpatialResolution spatialResolution) {
+        RegionMask.setSpatialResolution(spatialResolution);
+    }
+
     private static void fromWNES(String name, String[] wnes, List<RegionMask> regionMasks) throws ParseException {
-        int entryNo = regionMasks.size() + 1;
-        double west;
-        double north;
-        double east;
-        double south;
+        final int entryNo = regionMasks.size() + 1;
+        final double west;
+        final double north;
+        final double east;
+        final double south;
         try {
             west = Double.parseDouble(wnes[0]);
             north = Double.parseDouble(wnes[1]);
@@ -86,13 +90,13 @@ public class RegionMaskList extends ArrayList<RegionMask> {
     }
 
     private static void fromMaskFile(String name, String split, List<RegionMask> regionMasks) throws IOException, ParseException {
-        int entryNo = regionMasks.size() + 1;
-        File file = new File(split);
+        final int entryNo = regionMasks.size() + 1;
+        final File file = new File(split);
         if (!file.exists()) {
             throw new IOException(String.format("Illegal region entry %d: Mask file not found: %s", entryNo, file));
         }
-        char[] data = new char[(int) file.length()];
-        FileReader reader = new FileReader(file);
+        final char[] data = new char[(int) file.length()];
+        final FileReader reader = new FileReader(file);
         try {
             int read = reader.read(data);
             if (read != data.length) {
@@ -102,9 +106,5 @@ public class RegionMaskList extends ArrayList<RegionMask> {
             reader.close();
         }
         regionMasks.add(RegionMask.create(name, new String(data)));
-    }
-
-    public static void setSpatialResolution(SpatialResolution spatialResolution) {
-        RegionMask.setSpatialResolution(spatialResolution);
     }
 }

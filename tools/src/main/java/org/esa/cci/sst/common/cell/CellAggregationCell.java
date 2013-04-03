@@ -23,9 +23,10 @@ import org.esa.cci.sst.common.CellAccumulator;
 
 /**
  * A cell that aggregates SpatialAggregationCells.
- * <p>
- * E.g. for the RegionalAveraging Tool: A daily or monthly / 90º cell that accumulates daily or monthly / 5º cells ({@link org.esa.cci.sst.common.cell.SpatialAggregationCell}).
- * </p>
+ * <p/>
+ * For the regional averaging tool: A daily or monthly / 90º cell that accumulates daily or
+ * monthly / 5º cells ({@link org.esa.cci.sst.common.cell.SpatialAggregationCell}).
+ *
  * @author Norman Fomferra
  */
 public interface CellAggregationCell<C extends AggregationCell> extends AggregationCell, CellAccumulator<C> {

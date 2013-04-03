@@ -28,10 +28,10 @@ import java.util.Date;
  * @author Norman Fomferra
  */
 public enum TemporalResolution {
-    DAILY,
-    WEEKLY_7D,
-    WEEKLY_5D,
-    MONTHLY,
-    SEASONAL,
-    ANNUAL
+    daily,
+    weekly7d,
+    weekly5d,
+    monthly,
+    seasonal,
+    annual
 }

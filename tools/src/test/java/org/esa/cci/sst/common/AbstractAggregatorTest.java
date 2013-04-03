@@ -2,6 +2,7 @@ package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.*;
+import org.esa.cci.sst.regavg.Aggregator4Regav;
 import org.junit.Test;
 
 import java.awt.*;
@@ -33,7 +34,7 @@ public class AbstractAggregatorTest {
         seaCoverage5Grid.setSample(39, 1, 0.7);
         final CellGrid<MyCell90> cell90Grid = new CellGrid<MyCell90>(GridDef.createGlobal(90.0), new MyCell90Factory());
 
-        AbstractAggregator.aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverage5Grid, cell90Grid);
+        Aggregator4Regav.aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverage5Grid, cell90Grid);
 
         java.util.List<MyCell90> cell90List = cell90Grid.getCells(CellFilter.NON_EMPTY);
         assertEquals(2, cell90List.size());

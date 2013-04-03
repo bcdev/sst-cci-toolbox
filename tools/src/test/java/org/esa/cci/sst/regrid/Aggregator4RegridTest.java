@@ -51,7 +51,7 @@ public class Aggregator4RegridTest {
 
     @Test
     public void testWeeklyWith7days() throws Exception {
-        final TemporalResolution daily = TemporalResolution.WEEKLY_7D;
+        final TemporalResolution daily = TemporalResolution.weekly7d;
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-01");
 
         //execution 1
@@ -78,7 +78,7 @@ public class Aggregator4RegridTest {
 
     @Test
     public void testWeeklyWith5days() throws Exception {
-        final TemporalResolution daily = TemporalResolution.WEEKLY_5D;
+        final TemporalResolution daily = TemporalResolution.weekly5d;
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-01");
 
         //execution 1
@@ -106,7 +106,7 @@ public class Aggregator4RegridTest {
 
     @Test
     public void testDaily() throws Exception {
-        final TemporalResolution daily = TemporalResolution.DAILY;
+        final TemporalResolution daily = TemporalResolution.daily;
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-01");
 
         //execution 1
@@ -138,7 +138,7 @@ public class Aggregator4RegridTest {
 
     @Test
     public void testMonthly() throws Exception {
-        final TemporalResolution daily = TemporalResolution.MONTHLY;
+        final TemporalResolution daily = TemporalResolution.monthly;
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-09-01");
 
         //execution 1
@@ -176,7 +176,7 @@ public class Aggregator4RegridTest {
 
     @Test
     public void testSeasonal() throws Exception {
-        final TemporalResolution daily = TemporalResolution.SEASONAL;
+        final TemporalResolution daily = TemporalResolution.seasonal;
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-01-01");
 
         //execution 1
@@ -195,7 +195,7 @@ public class Aggregator4RegridTest {
     @Ignore
     @Test
     public void testNotSupportedTemporalResolution() throws Exception {
-        final TemporalResolution daily = TemporalResolution.WEEKLY_5D;
+        final TemporalResolution daily = TemporalResolution.weekly5d;
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-09-01");
 
         //execution

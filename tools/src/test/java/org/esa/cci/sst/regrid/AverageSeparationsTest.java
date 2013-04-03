@@ -26,7 +26,7 @@ public class AverageSeparationsTest {
     public void testGetDt_weekly5days() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.WEEKLY_5D);
+                                                                          TemporalResolution.weekly5d);
 
             switch (spatialResolution) {
                 case DEGREE_0_05:
@@ -69,7 +69,7 @@ public class AverageSeparationsTest {
     public void testGetDt_weekly7days() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.WEEKLY_7D);
+                                                                          TemporalResolution.weekly7d);
 
             switch (spatialResolution) {
                 case DEGREE_0_05:
@@ -112,7 +112,7 @@ public class AverageSeparationsTest {
     public void testGetDt_monthly() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.MONTHLY);
+                                                                          TemporalResolution.monthly);
 
             switch (spatialResolution) {
                 case DEGREE_0_05:
@@ -182,7 +182,7 @@ public class AverageSeparationsTest {
     @Test
     public void testGetDt_daily() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
-            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.DAILY);
+            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.daily);
             assertEquals(0.0, separations.getDt());
         }
     }
@@ -191,12 +191,12 @@ public class AverageSeparationsTest {
     public void testGetDt_seasonalAndAnnual() throws Exception {
         for (final SpatialResolution spatialResolution : SpatialResolution.values()) {
             final AverageSeparations separations = new AverageSeparations(spatialResolution,
-                                                                          TemporalResolution.SEASONAL);
+                                                                          TemporalResolution.seasonal);
             assertEquals(0.0, separations.getDt());
         }
 
         for (SpatialResolution spatialResolution : SpatialResolution.values()) {
-            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.ANNUAL);
+            final AverageSeparations separations = new AverageSeparations(spatialResolution, TemporalResolution.annual);
             assertEquals(0.0, separations.getDt());
         }
     }

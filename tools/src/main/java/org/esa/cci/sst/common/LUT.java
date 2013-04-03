@@ -16,6 +16,11 @@ package org.esa.cci.sst.common;/*
 
 import org.esa.cci.sst.common.cellgrid.Grid;
 
+/**
+ * A look-up table.
+ *
+ * @author Ralf Quast
+ */
 public interface LUT {
 
     Grid getGrid();

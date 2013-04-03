@@ -16,6 +16,11 @@ package org.esa.cci.sst.common;/*
 
 import java.util.Date;
 
+/**
+ * A time step.
+ *
+ * @author Ralf Quast
+ */
 public interface TimeStep {
 
     Date getStartDate();

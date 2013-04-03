@@ -26,5 +26,5 @@ import org.esa.cci.sst.common.Aggregation;
  *
  * @author Norman Fomferra
  */
-public interface AggregationCell extends Cell, Aggregation {
+public interface AggregationCell extends Aggregation, Cell {
 }

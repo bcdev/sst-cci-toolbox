@@ -53,9 +53,9 @@ class RegriddingCoverageUncertainty implements CoverageUncertainty {
     }
 
     static double calculateXDay(TemporalResolution temporalResolution, Date date) {
-        if (TemporalResolution.DAILY.equals(temporalResolution)) {
+        if (TemporalResolution.daily.equals(temporalResolution)) {
             return 0.0;
-        } else if (TemporalResolution.MONTHLY.equals(temporalResolution)) {
+        } else if (TemporalResolution.monthly.equals(temporalResolution)) {
             final Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
 

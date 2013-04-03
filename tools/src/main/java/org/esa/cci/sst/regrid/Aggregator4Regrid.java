@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * The one and only aggregator for the Regridding Tool.
@@ -48,6 +49,8 @@ import java.util.*;
  * Date: 13.09.12 16:29
  */
 public class Aggregator4Regrid extends AbstractAggregator {
+
+    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     private RegionMask combinedRegionMask;
     private SpatialResolution spatialTargetResolution;
@@ -76,31 +79,31 @@ public class Aggregator4Regrid extends AbstractAggregator {
         while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
             Date date1 = calendar.getTime();
             CellGrid<? extends AggregationCell> resultGrid;
-            if (temporalResolution == TemporalResolution.DAILY) {
+            if (temporalResolution == TemporalResolution.daily) {
                 calendar.add(Calendar.DATE, 1);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.WEEKLY_5D) {
+            } else if (temporalResolution == TemporalResolution.weekly5d) {
                 calendar.add(Calendar.DATE, 5);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.WEEKLY_7D) {
+            } else if (temporalResolution == TemporalResolution.weekly7d) {
                 calendar.add(Calendar.DATE, 7);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.MONTHLY) {
+            } else if (temporalResolution == TemporalResolution.monthly) {
                 calendar.add(Calendar.MONTH, 1);
                 Date date2 = calendar.getTime();
                 resultGrid = aggregateTimeRangeAndRegrid(date1, date2, spatialTargetResolution, temporalResolution);
-            } else if (temporalResolution == TemporalResolution.SEASONAL) {
+            } else if (temporalResolution == TemporalResolution.seasonal) {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
-                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
+                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
                 resultGrid = aggregateMultiMonths(monthlyTimeSteps);
-            } else if (temporalResolution == TemporalResolution.ANNUAL) {
+            } else if (temporalResolution == TemporalResolution.annual) {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
-                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
+                List<? extends TimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
                 resultGrid = aggregateMultiMonths(monthlyTimeSteps);
             } else {
                 throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);

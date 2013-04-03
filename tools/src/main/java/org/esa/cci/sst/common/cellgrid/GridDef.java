@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  */
 public final class GridDef {
 
-    private final int time;
+    private final int time = 1;
     private final int width;
     private final int height;
     private final double northing;
@@ -51,7 +51,6 @@ public final class GridDef {
     }
 
     private GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
-        this.time = 1;
         this.width = width;
         this.height = height;
         this.northing = northing;

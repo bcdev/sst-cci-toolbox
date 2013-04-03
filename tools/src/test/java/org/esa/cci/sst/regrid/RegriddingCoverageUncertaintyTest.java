@@ -16,7 +16,7 @@ public class RegriddingCoverageUncertaintyTest {
 
     @Test
     public void testCalculateXDay_monthly() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.MONTHLY;
+        final TemporalResolution temporalResolution = TemporalResolution.monthly;
         final Calendar calendar = Calendar.getInstance();
 
         calendar.set(2010, Calendar.APRIL, 11);
@@ -34,13 +34,13 @@ public class RegriddingCoverageUncertaintyTest {
 
     @Test
     public void testCalculateXDay_daily() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.DAILY;
+        final TemporalResolution temporalResolution = TemporalResolution.daily;
         assertEquals(0.0, RegriddingCoverageUncertainty.calculateXDay(temporalResolution, null));
     }
 
     @Test
     public void testCalculateXDay_seasonal() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.SEASONAL;
+        final TemporalResolution temporalResolution = TemporalResolution.seasonal;
         try {
             RegriddingCoverageUncertainty.calculateXDay(temporalResolution, null);
             fail();
@@ -50,7 +50,7 @@ public class RegriddingCoverageUncertaintyTest {
 
     @Test
     public void testCalculateXDay_annual() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.ANNUAL;
+        final TemporalResolution temporalResolution = TemporalResolution.annual;
         try {
             RegriddingCoverageUncertainty.calculateXDay(temporalResolution, null);
             fail();

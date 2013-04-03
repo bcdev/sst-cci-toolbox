@@ -10,12 +10,11 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Date;
@@ -23,11 +22,14 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * {@author Bettina Scholze}
- * Date: 13.09.12 15:47
+ * The base class for the averaging and re-gridding aggregators.
+ *
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public abstract class AbstractAggregator {
-    protected static final Logger LOGGER = Tool.LOGGER;
+
+    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     private final FileStore fileStore;
     private final LUT regriddingLUT1;
@@ -35,7 +37,7 @@ public abstract class AbstractAggregator {
     private final SstDepth sstDepth;
     private final Climatology climatology;
 
-    public AbstractAggregator(FileStore fileStore, Climatology climatology, LUT regriddingLUT1, SstDepth sstDepth) {
+    protected AbstractAggregator(FileStore fileStore, Climatology climatology, LUT regriddingLUT1, SstDepth sstDepth) {
         this.fileStore = fileStore;
         this.climatology = climatology;
         this.regriddingLUT1 = regriddingLUT1;
@@ -48,64 +50,45 @@ public abstract class AbstractAggregator {
     abstract public List<? extends TimeStep> aggregate(
             Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException, ToolException;
 
-    // Hardly testable, because NetCDF file of given fileType required
-    protected SpatialAggregationContext createAggregationCellContext(NetcdfFile netcdfFile) throws IOException {
+    protected final SpatialAggregationContext createAggregationCellContext(NetcdfFile netcdfFile) throws IOException {
         final Date date = fileType.readDate(netcdfFile);
         final int dayOfYear = UTC.getDayOfYear(date);
         LOGGER.fine("Day of year is " + dayOfYear);
 
+        final Grid[] sourceGrids = readSourceGrids(netcdfFile);
+
         return new SpatialAggregationContext(fileStore.getProductType().getGridDef(),
-                readSourceGrids(netcdfFile),
-                climatology.getSst(dayOfYear),
-                climatology.getSeaCoverage(),
-                regriddingLUT1 == null ? null : regriddingLUT1.getGrid());
+                                             sourceGrids,
+                                             climatology.getSst(dayOfYear),
+                                             climatology.getSeaCoverage(),
+                                             regriddingLUT1 == null ? null : regriddingLUT1.getGrid());
     }
 
     private Grid[] readSourceGrids(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading source grid(s)...");
-        Grid[] grids = fileType.readSourceGrids(netcdfFile, sstDepth);
+        final Grid[] grids = fileType.readSourceGrids(netcdfFile, sstDepth);
         LOGGER.fine(String.format("Reading source grid(s) took %d ms", (System.currentTimeMillis() - t0)));
+
         return grids;
     }
 
-    protected static <C extends SpatialAggregationCell> void aggregateSources(SpatialAggregationContext aggregationContext,
-                                                                              RegionMask regionMask, CellGrid<C> cellGrid) {
-
-        final GridDef sourceGridDef = aggregationContext.getSourceGridDef();
+    protected static <C extends SpatialAggregationCell> void aggregateSources(SpatialAggregationContext context,
+                                                                              RegionMask regionMask,
+                                                                              CellGrid<C> cellGrid) {
+        final GridDef sourceGridDef = context.getSourceGridDef();
         final int width = regionMask.getWidth();
         final int height = regionMask.getHeight();
         for (int cellY = 0; cellY < height; cellY++) {
             for (int cellX = 0; cellX < width; cellX++) {
                 if (regionMask.getSampleBoolean(cellX, cellY)) {
-                    Rectangle2D lonLatRectangle = regionMask.getGridDef().getLonLatRectangle(cellX, cellY);
-                    Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
-                    SpatialAggregationCell cell = cellGrid.getCellSafe(cellX, cellY);
-                    cell.accumulate(aggregationContext, sourceGridRectangle);
+                    final Rectangle2D lonLatRectangle = regionMask.getGridDef().getLonLatRectangle(cellX, cellY);
+                    final Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
+                    final SpatialAggregationCell cell = cellGrid.getCellSafe(cellX, cellY);
+                    cell.accumulate(context, sourceGridRectangle);
                 }
             }
         }
-    }
-
-    protected static <CSource extends AggregationCell, CTarget extends CellAggregationCell> CellGrid<CTarget> aggregateCellGridToCoarserCellGrid(
-            CellGrid<CSource> cellSourceGrid, Grid seaCoverageGridInSourceResolution, CellGrid<CTarget> cellTargetGrid) {
-
-        final int width = cellSourceGrid.getGridDef().getWidth();
-        final int height = cellSourceGrid.getGridDef().getHeight();
-        for (int cellSourceY = 0; cellSourceY < height; cellSourceY++) {
-            for (int cellSourceX = 0; cellSourceX < width; cellSourceX++) {
-                CSource cellSource = cellSourceGrid.getCell(cellSourceX, cellSourceY);
-                if (cellSource != null && !cellSource.isEmpty()) {
-                    int cellTargetX = (cellSourceX * cellTargetGrid.getGridDef().getWidth()) / width;
-                    int cellTargetY = (cellSourceY * cellTargetGrid.getGridDef().getHeight()) / height;
-                    CTarget cellTarget = cellTargetGrid.getCellSafe(cellTargetX, cellTargetY);
-                    double seaCoverage = seaCoverageGridInSourceResolution.getSampleDouble(cellSourceX, cellSourceY);
-                    // noinspection unchecked
-                    cellTarget.accumulate(cellSource, seaCoverage);
-                }
-            }
-        }
-        return cellTargetGrid;
     }
 
     public FileStore getFileStore() {

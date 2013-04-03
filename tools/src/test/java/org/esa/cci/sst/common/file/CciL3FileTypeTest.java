@@ -323,7 +323,6 @@ public class CciL3FileTypeTest {
         assertTrue("20121101000000-ESACCI-L3U_GHRSST-SSTsubskin-ATSR2-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
         assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
         assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-SEVIRI_SST-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
-
     }
 
     @Test

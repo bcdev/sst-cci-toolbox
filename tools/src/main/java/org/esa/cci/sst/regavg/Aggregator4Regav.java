@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * The one and only aggregator for the RegionalAveraging Tool.
@@ -40,6 +41,8 @@ import java.util.List;
  * Date: 13.09.12 16:29
  */
 public class Aggregator4Regav extends AbstractAggregator {
+
+    private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     private final RegionMaskList regionMaskList;
     private RegionMask combinedRegionMask;
@@ -55,6 +58,28 @@ public class Aggregator4Regav extends AbstractAggregator {
         this.combinedRegionMask = RegionMask.combine(regionMaskList);
     }
 
+    public static <CSource extends AggregationCell, CTarget extends CellAggregationCell> CellGrid<CTarget> aggregateCellGridToCoarserCellGrid(
+            CellGrid<CSource> cellSourceGrid,
+            Grid seaCoverageGridInSourceResolution,
+            CellGrid<CTarget> cellTargetGrid) {
+        final int width = cellSourceGrid.getGridDef().getWidth();
+        final int height = cellSourceGrid.getGridDef().getHeight();
+        for (int cellSourceY = 0; cellSourceY < height; cellSourceY++) {
+            for (int cellSourceX = 0; cellSourceX < width; cellSourceX++) {
+                CSource cellSource = cellSourceGrid.getCell(cellSourceX, cellSourceY);
+                if (cellSource != null && !cellSource.isEmpty()) {
+                    int cellTargetX = (cellSourceX * cellTargetGrid.getGridDef().getWidth()) / width;
+                    int cellTargetY = (cellSourceY * cellTargetGrid.getGridDef().getHeight()) / height;
+                    CTarget cellTarget = cellTargetGrid.getCellSafe(cellTargetX, cellTargetY);
+                    double seaCoverage = seaCoverageGridInSourceResolution.getSampleDouble(cellSourceX, cellSourceY);
+                    // noinspection unchecked
+                    cellTarget.accumulate(cellSource, seaCoverage);
+                }
+            }
+        }
+        return cellTargetGrid;
+    }
+
     @Override
     public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws
                                                                                                                   IOException,
@@ -65,23 +90,23 @@ public class Aggregator4Regav extends AbstractAggregator {
         while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
             Date date1 = calendar.getTime();
             List<RegionalAggregation> result;
-            if (temporalResolution == TemporalResolution.DAILY) {
+            if (temporalResolution == TemporalResolution.daily) {
                 calendar.add(Calendar.DATE, 1);
                 Date date2 = calendar.getTime();
                 result = aggregateRegions(date1, date2);
-            } else if (temporalResolution == TemporalResolution.MONTHLY) {
+            } else if (temporalResolution == TemporalResolution.monthly) {
                 calendar.add(Calendar.MONTH, 1);
                 Date date2 = calendar.getTime();
                 result = aggregateRegions(date1, date2);
-            } else if (temporalResolution == TemporalResolution.SEASONAL) {
+            } else if (temporalResolution == TemporalResolution.seasonal) {
                 calendar.add(Calendar.MONTH, 3);
                 Date date2 = calendar.getTime();
-                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
+                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
                 result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
-            } else if (temporalResolution == TemporalResolution.ANNUAL) {
+            } else if (temporalResolution == TemporalResolution.annual) {
                 calendar.add(Calendar.YEAR, 1);
                 Date date2 = calendar.getTime();
-                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.MONTHLY);
+                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
                 result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
             } else {
                 throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);

@@ -82,9 +82,9 @@ public class AverageSeparations {
      * @return the average time separation (days).
      */
     public double getDt() {
-        if (temporalResolution.equals(TemporalResolution.DAILY)) {
+        if (temporalResolution.equals(TemporalResolution.daily)) {
             return 0.0;
-        } else if (temporalResolution.equals(TemporalResolution.WEEKLY_5D)) {
+        } else if (temporalResolution.equals(TemporalResolution.weekly5d)) {
             if (spatialResolution.getResolution() <= 1.5) {
                 return 2.0;
             } else if (spatialResolution.getResolution() <= 2.5) {
@@ -92,7 +92,7 @@ public class AverageSeparations {
             } else {
                 return 0.0;
             }
-        } else if (temporalResolution.equals(TemporalResolution.WEEKLY_7D)) {
+        } else if (temporalResolution.equals(TemporalResolution.weekly7d)) {
             if (spatialResolution.getResolution() <= 1.75) {
                 return 2.0;
             } else if (spatialResolution.getResolution() <= 2.5) {
@@ -100,7 +100,7 @@ public class AverageSeparations {
             } else {
                 return 0.0;
             }
-        } else if (temporalResolution.equals(TemporalResolution.MONTHLY)) {
+        } else if (temporalResolution.equals(TemporalResolution.monthly)) {
             if (spatialResolution.getResolution() <= 0.5) {
                 return 10.0;
             } else if (spatialResolution.getResolution() <= 0.75) {
