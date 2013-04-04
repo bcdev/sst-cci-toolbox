@@ -123,4 +123,17 @@ public class AverageSeparations {
             return 0.0;
         }
     }
+
+    public double calculateEta(int y, long sampleCount) {
+        final double dt = getDt();
+        final double dxy = getDxy(y);
+
+        final double lxy = 100.0; // km
+        final double lt = 1.0; // day
+
+        final double r = Math.exp(-0.5 * (dxy / lxy + dt / lt));
+
+        return sampleCount / (1 + r * (sampleCount - 1));
+    }
+
 }

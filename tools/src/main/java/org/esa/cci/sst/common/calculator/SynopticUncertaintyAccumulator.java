@@ -19,6 +19,9 @@
 
 package org.esa.cci.sst.common.calculator;
 
+import org.esa.cci.sst.common.SpatialResolution;
+import org.esa.cci.sst.common.TemporalResolution;
+
 /**
  * {@author Bettina Scholze}
  * Date: 06.09.12 14:41
@@ -35,8 +38,8 @@ public class SynopticUncertaintyAccumulator extends NumberAccumulator {
 
     @Override
     protected void accumulateSample(double sample, double weight) {
-        if (weight != 1.0){
-            throw new IllegalArgumentException("is calculated non-weighted");
+        if (weight != 1.0) {
+            throw new IllegalArgumentException("weight != 1.0");
         }
         sumXX += sample * sample;
         sampleCount++;

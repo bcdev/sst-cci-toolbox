@@ -39,7 +39,8 @@ public class RegriddingAggregatorTest {
         final FileStore fileStore = FileStore.create(productType, productType.getDefaultFilenameRegex());
 
         regriddingAggregator = new RegriddingAggregator(null, fileStore, null, null, null, null, null,
-                                                        SstDepth.skin, 0.0, SpatialResolution.DEGREE_0_50) {
+                                                        SstDepth.skin, 0.0, SpatialResolution.DEGREE_0_50
+        ) {
 
             @Override
             CellGrid<SpatialAggregationCell> aggregateTimeRangeAndRegrid(Date date1, Date date2,

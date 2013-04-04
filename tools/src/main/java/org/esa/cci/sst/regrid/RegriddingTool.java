@@ -24,7 +24,11 @@ import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.calculator.AverageSeparations;
 import org.esa.cci.sst.common.file.FileStore;
-import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.tool.Configuration;
+import org.esa.cci.sst.tool.ExitCode;
+import org.esa.cci.sst.tool.Parameter;
+import org.esa.cci.sst.tool.Tool;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.ProductType;
 
 import java.io.File;
@@ -146,7 +150,7 @@ public class RegriddingTool extends Tool {
         final RegriddingLUT2 cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
         final AverageSeparations lutSynopticAreas = new AverageSeparations(spatialResolution, temporalResolution);
 
-        List<RegriddingTimeStep> timeSteps;
+        final List<RegriddingTimeStep> timeSteps;
         try {
             RegriddingAggregator aggregator = new RegriddingAggregator(regionMaskList, fileStore, climatology,
                     lutSynopticAreas, regriddingLUT1, cuTimeLut, cuSpaceLut, sstDepth, minCoverage, spatialResolution);

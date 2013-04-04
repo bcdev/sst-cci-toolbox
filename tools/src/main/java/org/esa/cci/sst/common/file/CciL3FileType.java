@@ -195,7 +195,7 @@ public class CciL3FileType extends AbstractCciFileType {
                     @Override
                     public L3URegriddingCell createCell(int cellX, int cellY) {
                         return new L3URegriddingCell(cellType.getCoverageUncertaintyProvider(),
-                                cellType.getSynopticAreaCountEstimator(),
+                                cellType.getAverageSeparations(),
                                 CellTypes.getMinCoverage(), cellX, cellY);
                     }
                 };
@@ -302,17 +302,17 @@ public class CciL3FileType extends AbstractCciFileType {
     private static class L3URegriddingCell extends AbstractL3UCell implements SpatialAggregationCell {
         private double minCoverage;
         private int maximumSampleCount;
-        private SynopticAreaCountEstimator synopticAreaCountEstimator;
+        private AverageSeparations averageSeparations;
         protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new SynopticUncertaintyAccumulator();
         protected final NumberAccumulator adjustmentUncertaintyAccu = new SynopticUncertaintyAccumulator();
         protected final NumberAccumulator stdDeviationAccu = new SquaredAverageAccumulator();
 
 
         private L3URegriddingCell(CoverageUncertainty coverageUncertaintyProvider,
-                                  SynopticAreaCountEstimator synopticAreaCountEstimator,
+                                  AverageSeparations averageSeparations,
                                   double minCoverage, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
-            this.synopticAreaCountEstimator = synopticAreaCountEstimator;
+            this.averageSeparations = averageSeparations;
             this.minCoverage = minCoverage;
         }
 
@@ -325,7 +325,7 @@ public class CciL3FileType extends AbstractCciFileType {
         }
 
         private double calculateEta() {
-            return synopticAreaCountEstimator.calculateEta(getY(), getSampleCount());
+            return averageSeparations.calculateEta(getY(), getSampleCount());
         }
 
         @Override

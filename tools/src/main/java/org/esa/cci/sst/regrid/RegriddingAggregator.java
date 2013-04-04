@@ -22,7 +22,6 @@ package org.esa.cci.sst.regrid;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.calculator.AverageSeparations;
-import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -64,15 +63,14 @@ public class RegriddingAggregator extends AbstractAggregator {
                                 AverageSeparations averageSeparations, LUT lutCuStddev, RegriddingLUT2 lutCuTime,
                                 RegriddingLUT2 lutCuSpace,
                                 SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
-
         super(fileStore, climatology, sstDepth);
         this.lutCuStddev = lutCuStddev;
         this.combinedRegionMask = RegionMask.combine(regionMaskList);
         this.spatialTargetResolution = spatialTargetResolution;
         this.lutCuTime = lutCuTime;
         this.lutCuSpace = lutCuSpace;
-        this.averageSeparations = averageSeparations;
         FileType.CellTypes.setMinCoverage(minCoverage);
+        this.averageSeparations = averageSeparations;
     }
 
     @Override
@@ -166,7 +164,7 @@ public class RegriddingAggregator extends AbstractAggregator {
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_REGRIDDING;
         cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(temporalResolution, spatialResolution, date1));
         if (getFileType().hasSynopticUncertainties()) {
-            cellType.setSynopticAreaCountEstimator(new SynopticAreaCountEstimator(averageSeparations));
+            cellType.setAverageSeparations(averageSeparations);
         }
         final CellFactory<SpatialAggregationCell> regriddingCellFactory = getFileType().getCellFactory(cellType);
         return new CellGrid<SpatialAggregationCell>(gridDef, regriddingCellFactory);
@@ -197,7 +195,7 @@ public class RegriddingAggregator extends AbstractAggregator {
                                                                                SpatialResolution spatialResolution,
                                                                                Date date) {
 
-        return new RegriddingCoverageUncertainty(lutCuSpace, lutCuTime, spatialResolution, temporalResolution, date);
+        return new RegriddingCoverageUncertainty(lutCuSpace, lutCuTime, temporalResolution, date);
     }
 
 }

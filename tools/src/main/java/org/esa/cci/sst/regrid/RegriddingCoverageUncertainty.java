@@ -24,6 +24,7 @@ import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.calculator.CoverageUncertainty;
 import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 
 import java.util.Calendar;
@@ -37,19 +38,14 @@ import java.util.Date;
  */
 class RegriddingCoverageUncertainty implements CoverageUncertainty {
 
-    private final LUT lut2;
-    private final LUT lut3;
-    private final GridDef gridDef;
+    private final Grid x0space;
+    private final Grid x0time;
     private final double xDay;
 
-    RegriddingCoverageUncertainty(LUT lut2, LUT lut3,
-                                  SpatialResolution spatialResolution,
-                                  TemporalResolution temporalResolution,
-                                  Date date) {
-        this.lut2 = lut2;
-        this.lut3 = lut3;
-        this.gridDef = GridDef.createGlobal(spatialResolution.getResolution());
-        this.xDay = calculateXDay(temporalResolution, date);
+    RegriddingCoverageUncertainty(LUT lut2, LUT lut3, TemporalResolution temporalResolution, Date date) {
+        x0space = lut2.getGrid();
+        x0time = lut3.getGrid();
+        xDay = calculateXDay(temporalResolution, date);
     }
 
     static double calculateXDay(TemporalResolution temporalResolution, Date date) {
@@ -70,18 +66,17 @@ class RegriddingCoverageUncertainty implements CoverageUncertainty {
         final int x = cell.getX();
         final int y = cell.getY();
 
-        final double x0Space = lut2.getGrid().getSampleDouble(x, y);
-        final double xKm = gridDef.getDiagonal(x, y);
-        final double rBarSpace = (x0Space / xKm) * (1.0 - Math.exp(-xKm / x0Space));
+        final double x0s = x0space.getSampleDouble(x, y);
+        final double xKm = x0space.getGridDef().getDiagonal(x, y);
+        final double rBarSpace = (x0s / xKm) * (1.0 - Math.exp(-xKm / x0s));
 
         final double rBarTime;
         if (xDay == 0.0) {
             rBarTime = 1.0;
         } else {
-            final double x0Time = lut3.getGrid().getSampleDouble(x, y);
-            rBarTime = (x0Time / xDay) * (1.0 - Math.exp(-xDay / x0Time));
+            final double x0t = x0time.getSampleDouble(x, y);
+            rBarTime = (x0t / xDay) * (1.0 - Math.exp(-xDay / x0t));
         }
-
         final double rBar = rBarSpace * rBarTime;
 
         return Math.sqrt((a * rBar * (1.0 - rBar)) / (1.0 + (cell.getSampleCount() - 1.0) * rBar));

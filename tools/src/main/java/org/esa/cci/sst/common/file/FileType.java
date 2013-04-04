@@ -21,8 +21,8 @@ package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.calculator.AverageSeparations;
 import org.esa.cci.sst.common.calculator.CoverageUncertainty;
-import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -92,15 +92,15 @@ public interface FileType {
         //Minumum coverage fraction is only used in Regridding Tool and only for spatial aggregation.
         private static double minCoverage;
         private CoverageUncertainty coverageUncertaintyProvider;
-        private SynopticAreaCountEstimator synopticAreaCountEstimator;
+        private AverageSeparations averageSeparations;
 
         public CellTypes setCoverageUncertaintyProvider(CoverageUncertainty coverageUncertaintyProvider) {
             this.coverageUncertaintyProvider = coverageUncertaintyProvider;
             return this;
         }
 
-        public CellTypes setSynopticAreaCountEstimator(SynopticAreaCountEstimator synopticAreaCountEstimator) {
-            this.synopticAreaCountEstimator = synopticAreaCountEstimator;
+        public CellTypes setAverageSeparations(AverageSeparations averageSeparations) {
+            this.averageSeparations = averageSeparations;
             return this;
         }
 
@@ -108,8 +108,8 @@ public interface FileType {
             return coverageUncertaintyProvider;
         }
 
-        public SynopticAreaCountEstimator getSynopticAreaCountEstimator() {
-            return synopticAreaCountEstimator;
+        public AverageSeparations getAverageSeparations() {
+            return averageSeparations;
         }
 
         public static double getMinCoverage() {
