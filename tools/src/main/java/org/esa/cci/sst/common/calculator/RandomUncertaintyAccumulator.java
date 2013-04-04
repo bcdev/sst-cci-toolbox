@@ -26,8 +26,9 @@ package org.esa.cci.sst.common.calculator;
  * (see http://en.wikipedia.org/wiki/Weighted_mean).
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
-public class RandomUncertaintyAccumulator extends NumberAccumulator {
+public final class RandomUncertaintyAccumulator extends NumberAccumulator {
 
     private double sumXX;
     private double sumW;
@@ -57,8 +58,8 @@ public class RandomUncertaintyAccumulator extends NumberAccumulator {
         if (sumW == 0.0) {
             return Double.NaN;
         }
-        final double weightedSqrSum = sumXX / (sumW * sumW);
-        return weightedSqrSum > 0.0 ? Math.sqrt(weightedSqrSum) : 0.0;
+        final double variance = sumXX / (sumW * sumW);
+        return variance > 0.0 ? Math.sqrt(variance) : 0.0;
     }
 
 }
