@@ -22,7 +22,7 @@ import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.calculator.AverageSeparations;
+import org.esa.cci.sst.common.calculator.SynopticUncertaintyHelper;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ExitCode;
@@ -148,7 +148,7 @@ public class RegriddingTool extends Tool {
         final LUT regriddingLUT1 = createLutForStdDeviation(cuStdDevFile);
         final RegriddingLUT2 cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
         final RegriddingLUT2 cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
-        final AverageSeparations lutSynopticAreas = new AverageSeparations(spatialResolution, temporalResolution);
+        final SynopticUncertaintyHelper lutSynopticAreas = new SynopticUncertaintyHelper(spatialResolution, temporalResolution);
 
         final List<RegriddingTimeStep> timeSteps;
         try {

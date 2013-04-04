@@ -195,7 +195,7 @@ public class CciL3FileType extends AbstractCciFileType {
                     @Override
                     public L3URegriddingCell createCell(int cellX, int cellY) {
                         return new L3URegriddingCell(cellType.getCoverageUncertaintyProvider(),
-                                cellType.getAverageSeparations(),
+                                cellType.getSynopticUncertaintyHelper(),
                                 CellTypes.getMinCoverage(), cellX, cellY);
                     }
                 };
@@ -302,17 +302,17 @@ public class CciL3FileType extends AbstractCciFileType {
     private static class L3URegriddingCell extends AbstractL3UCell implements SpatialAggregationCell {
         private double minCoverage;
         private int maximumSampleCount;
-        private AverageSeparations averageSeparations;
+        private SynopticUncertaintyHelper synopticUncertaintyHelper;
         protected final NumberAccumulator synopticallyCorrelatedUncertaintyAccu = new SynopticUncertaintyAccumulator();
         protected final NumberAccumulator adjustmentUncertaintyAccu = new SynopticUncertaintyAccumulator();
         protected final NumberAccumulator stdDeviationAccu = new SquaredAverageAccumulator();
 
 
         private L3URegriddingCell(CoverageUncertainty coverageUncertaintyProvider,
-                                  AverageSeparations averageSeparations,
+                                  SynopticUncertaintyHelper synopticUncertaintyHelper,
                                   double minCoverage, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
-            this.averageSeparations = averageSeparations;
+            this.synopticUncertaintyHelper = synopticUncertaintyHelper;
             this.minCoverage = minCoverage;
         }
 
@@ -325,7 +325,7 @@ public class CciL3FileType extends AbstractCciFileType {
         }
 
         private double calculateEta() {
-            return averageSeparations.calculateEta(getY(), getSampleCount());
+            return synopticUncertaintyHelper.eta(getY(), getSampleCount());
         }
 
         @Override

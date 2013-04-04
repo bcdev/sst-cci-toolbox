@@ -29,7 +29,7 @@ import org.esa.cci.sst.common.TemporalResolution;
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public class AverageSeparations {
+public class SynopticUncertaintyHelper {
 
     private final double spatialResolution;
     private final TemporalResolution temporalResolution;
@@ -40,7 +40,7 @@ public class AverageSeparations {
      * @param spatialResolution  The spatial target resolution.
      * @param temporalResolution The temporal target resolution.
      */
-    public AverageSeparations(SpatialResolution spatialResolution, TemporalResolution temporalResolution) {
+    public SynopticUncertaintyHelper(SpatialResolution spatialResolution, TemporalResolution temporalResolution) {
         this.spatialResolution = spatialResolution.getResolution();
         this.temporalResolution = temporalResolution;
     }
@@ -48,11 +48,11 @@ public class AverageSeparations {
     /**
      * Calculates the average synoptic separation distance.
      *
-     * @param y The index of a cell in the target grid.
+     * @param y The y index of a cell in the target grid.
      *
      * @return the average separation distance (km).
      */
-    public double getDxy(int y) {
+    double dxy(int y) {
         if (spatialResolution <= 0.05) {
             return 0.0;
         }
@@ -76,7 +76,7 @@ public class AverageSeparations {
      *
      * @return the average time separation (days).
      */
-    public double getDt() {
+    double dt() {
         if (TemporalResolution.daily.equals(temporalResolution)) {
             return 0.0;
         } else if (TemporalResolution.weekly5d.equals(temporalResolution)) {
@@ -124,9 +124,17 @@ public class AverageSeparations {
         }
     }
 
-    public double calculateEta(int y, long sampleCount) {
-        final double dt = getDt();
-        final double dxy = getDxy(y);
+    /**
+     * Returns the effective number of synoptic areas in a grid cell.
+     *
+     * @param y           The y index of the grid cell.
+     * @param sampleCount The number of samples accumulated.
+     *
+     * @return the effective number of synoptic areas.
+     */
+    public double eta(int y, long sampleCount) {
+        final double dt = dt();
+        final double dxy = dxy(y);
 
         final double lxy = 100.0; // km
         final double lt = 1.0; // day
@@ -135,5 +143,4 @@ public class AverageSeparations {
 
         return sampleCount / (1 + r * (sampleCount - 1));
     }
-
 }

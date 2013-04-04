@@ -21,7 +21,7 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.calculator.AverageSeparations;
+import org.esa.cci.sst.common.calculator.SynopticUncertaintyHelper;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -57,10 +57,10 @@ public class RegriddingAggregator extends AbstractAggregator {
     private SpatialResolution spatialTargetResolution;
     private final RegriddingLUT2 lutCuTime;
     private final RegriddingLUT2 lutCuSpace;
-    private final AverageSeparations averageSeparations;
+    private final SynopticUncertaintyHelper synopticUncertaintyHelper;
 
     public RegriddingAggregator(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
-                                AverageSeparations averageSeparations, LUT lutCuStddev, RegriddingLUT2 lutCuTime,
+                                SynopticUncertaintyHelper synopticUncertaintyHelper, LUT lutCuStddev, RegriddingLUT2 lutCuTime,
                                 RegriddingLUT2 lutCuSpace,
                                 SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
         super(fileStore, climatology, sstDepth);
@@ -70,7 +70,7 @@ public class RegriddingAggregator extends AbstractAggregator {
         this.lutCuTime = lutCuTime;
         this.lutCuSpace = lutCuSpace;
         FileType.CellTypes.setMinCoverage(minCoverage);
-        this.averageSeparations = averageSeparations;
+        this.synopticUncertaintyHelper = synopticUncertaintyHelper;
     }
 
     @Override
@@ -164,7 +164,7 @@ public class RegriddingAggregator extends AbstractAggregator {
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_REGRIDDING;
         cellType.setCoverageUncertaintyProvider(createCoverageUncertaintyProvider(temporalResolution, spatialResolution, date1));
         if (getFileType().hasSynopticUncertainties()) {
-            cellType.setAverageSeparations(averageSeparations);
+            cellType.setSynopticUncertaintyHelper(synopticUncertaintyHelper);
         }
         final CellFactory<SpatialAggregationCell> regriddingCellFactory = getFileType().getCellFactory(cellType);
         return new CellGrid<SpatialAggregationCell>(gridDef, regriddingCellFactory);
