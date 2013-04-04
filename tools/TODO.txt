@@ -1,6 +1,5 @@
 Review code in packages:
 
-common
 common/calculator
 common/cell
 common/file

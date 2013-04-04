@@ -94,35 +94,35 @@ public final class GridDef {
         return resolutionY;
     }
 
-    public int wrapX(int gridX) {
-        if (gridX < 0) {
-            return width - 1 + ((1 + gridX) % width);
+    public int wrapX(int x) {
+        if (x < 0) {
+            return width - 1 + ((1 + x) % width);
         }
-        if (gridX >= width) {
-            return gridX % width;
+        if (x >= width) {
+            return x % width;
         }
-        return gridX;
+        return x;
     }
 
-    public double getCenterLon(int gridX) {
-        return getLon(gridX + 0.5);
+    public double getCenterLon(int x) {
+        return getLon(x + 0.5);
     }
 
-    public double getCenterLat(int gridY) {
-        return getLat(gridY + 0.5);
+    public double getCenterLat(int y) {
+        return getLat(y + 0.5);
     }
 
     /**
      * Returns the length of the diagonal for the grid cell at (x, y).
      *
-     * @param gridX The cell x coordinate.
-     * @param gridY The cell y coordinate.
+     * @param x The cell x coordinate.
+     * @param y The cell y coordinate.
      *
      * @return the length of the cell diagonal (km).
      */
-    public final double getCellDiagonal(int gridX, int gridY) {
-        final double lon1 = getLon(gridX);
-        final double lat1 = getLat(gridY);
+    public final double getDiagonal(int x, int y) {
+        final double lon1 = getLon(x);
+        final double lat1 = getLat(y);
         final double lon2 = lon1 + resolutionX;
         final double lat2 = lat1 - resolutionY;
 
@@ -167,9 +167,10 @@ public final class GridDef {
         return gridY;
     }
 
-    public Rectangle2D getLonLatRectangle(int gridX, int gridY) {
-        double lon1 = getLon(gridX);
-        double lat1 = getLat(gridY + 1.0);
+    public Rectangle2D getLonLatRectangle(int x, int y) {
+        double lon1 = getLon(x);
+        double lat1 = getLat(y + 1.0);
+
         return new Rectangle2D.Double(lon1, lat1, resolutionX, resolutionY);
     }
 
@@ -179,41 +180,39 @@ public final class GridDef {
         final double lon2 = lon1 + lonLatRectangle.getWidth();
         final double lat2 = lat1 + lonLatRectangle.getHeight();
 
-        //spanned from upper left corner (as demanded by Java Doc of Rectangle)
         return getGridRectangle(lon1, lat1, lon2, lat2);
     }
 
     /**
      * Creates a grid rectangle from the given geographic coordinates.
      *
-     * @param lon1 Minimum lon coordinate (lower left corner)
-     * @param lat1 Minimum lat coordinate (lower left corner)
-     * @param lon2 Maximum lon coordinate (upper right corner)
-     * @param lat2 Maximum lat coordinate (upper right corner)
+     * @param minLon The minimum lon coordinate (west)
+     * @param minLat The minimum lat coordinate (south)
+     * @param maxLon The maximum lon coordinate (east)
+     * @param maxLat The maximum lat coordinate (north)
      *
-     * @return The result-rectangle is spanned from the lower left corner (Different from Java Doc of @refer Rectangle ).
+     * @return The result rectangle.
      */
-    Rectangle getGridRectangle(double lon1, double lat1, double lon2, double lat2) {
+    Rectangle getGridRectangle(double minLon, double minLat, double maxLon, double maxLat) {
         final double eps = 1.0e-10;
-        final int x1 = getGridX(lon1, true);
-        final int x2 = getGridX(lon2 - eps, true);
-        final int y1 = getGridY(lat2, true);
-        final int y2 = getGridY(lat1 + eps, true);
+        final int minX = getGridX(minLon, true);
+        final int maxX = getGridX(maxLon - eps, true);
+        final int minY = getGridY(maxLat, true);
+        final int maxY = getGridY(minLat + eps, true);
 
-        //spanned from the lower left corner
-        return new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+        return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
     }
 
-    private double getLon(double gridX) {
-        double lon = easting + resolutionX * gridX;
+    private double getLon(double x) {
+        double lon = easting + resolutionX * x;
         if (lon < -180.0 || lon > 180.0) {
             throw new ArithmeticException("Longitude coordinate is out of range.");
         }
         return lon;
     }
 
-    private double getLat(double gridY) {
-        double lat = northing - resolutionY * gridY;
+    private double getLat(double y) {
+        double lat = northing - resolutionY * y;
         if (lat < -90.0 || lat > 90.0) {
             throw new ArithmeticException("Latitude coordinate is out of range.");
         }

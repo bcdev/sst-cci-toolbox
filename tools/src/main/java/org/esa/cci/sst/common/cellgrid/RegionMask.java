@@ -59,8 +59,9 @@ public class RegionMask implements Grid {
     }
 
     public static RegionMask create(String name, String data) throws ParseException {
-        boolean[][] samples = new boolean[height][width];
-        StringTokenizer stringTokenizer = new StringTokenizer(data, "\n");
+        final boolean[][] samples = new boolean[height][width];
+        final StringTokenizer stringTokenizer = new StringTokenizer(data, "\n");
+
         int lineNo = 0;
         int y = 0;
         while (stringTokenizer.hasMoreTokens()) {
@@ -85,6 +86,7 @@ public class RegionMask implements Grid {
         if (y != height) {
             throw new ParseException(String.format("Region %s: Illegal mask format in line %d: Exactly %d lines are required, but found %d.", name, lineNo, height, y), 0);
         }
+
         return new RegionMask(name, samples);
     }
 
@@ -92,28 +94,30 @@ public class RegionMask implements Grid {
         if (north < south) {
             throw new IllegalArgumentException("north < south");
         }
-        Rectangle gridRectangle = gridDef.getGridRectangle(west, south, east, north);
-        int gridX1 = gridRectangle.x;
-        int gridY1 = gridRectangle.y;
-        int gridX2 = gridRectangle.x + gridRectangle.width - 1;
-        int gridY2 = gridRectangle.y + gridRectangle.height - 1;
+        final Rectangle gridRectangle = gridDef.getGridRectangle(west, south, east, north);
+        final int minX = gridRectangle.x;
+        final int minY = gridRectangle.y;
+        final int maxX = gridRectangle.x + gridRectangle.width - 1;
+        final int maxY = gridRectangle.y + gridRectangle.height - 1;
         boolean[][] samples = new boolean[height][width];
-        for (int y = gridY1; y <= gridY2; y++) {
-            if (gridX1 <= gridX2) {
+
+        for (int y = minY; y <= maxY; y++) {
+            if (minX <= maxX) {
                 // westing-->easting is within -180...180
-                for (int x = gridX1; x <= gridX2; x++) {
+                for (int x = minX; x <= maxX; x++) {
                     samples[y][x] = true;
                 }
             } else {
                 // westing-->easting intersects with anti-meridian
-                for (int x = gridX1; x <= width - 1; x++) {
+                for (int x = minX; x <= width - 1; x++) {
                     samples[y][x] = true;
                 }
-                for (int x = 0; x <= gridX2; x++) {
+                for (int x = 0; x <= maxX; x++) {
                     samples[y][x] = true;
                 }
             }
         }
+
         return new RegionMask(name, samples);
     }
 

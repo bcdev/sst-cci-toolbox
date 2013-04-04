@@ -71,7 +71,7 @@ class RegriddingCoverageUncertainty implements CoverageUncertainty {
         final int y = cell.getY();
 
         final double x0Space = lut2.getGrid().getSampleDouble(x, y);
-        final double xKm = gridDef.getCellDiagonal(x, y);
+        final double xKm = gridDef.getDiagonal(x, y);
         final double rBarSpace = (x0Space / xKm) * (1.0 - Math.exp(-xKm / x0Space));
 
         final double rBarTime;
