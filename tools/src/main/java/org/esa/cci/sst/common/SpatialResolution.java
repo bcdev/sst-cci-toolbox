@@ -77,12 +77,7 @@ public enum SpatialResolution {
     }
 
     public static SpatialResolution getSpatialResolution(String resolutionString) {
-        for (SpatialResolution spatialResolution : SpatialResolution.values()) {
-            if (Double.valueOf(resolutionString) == spatialResolution.getResolution()) {
-                return spatialResolution;
-            }
-        }
-        throw new IllegalArgumentException("Argument does not correspond to a SpatialResolution.");
+        return getSpatialResolution(Double.valueOf(resolutionString));
     }
 
     public static SpatialResolution getSpatialResolution(double resolution) {

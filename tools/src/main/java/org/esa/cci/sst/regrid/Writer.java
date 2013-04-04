@@ -106,8 +106,7 @@ class Writer {
 
         CellGrid<? extends AggregationCell> cellGrid = regriddingTimeStep.getCellGrid();
         GridDef gridDef = cellGrid.getGridDef();
-        SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(
-                String.valueOf(gridDef.getResolution()));
+        SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(gridDef.getResolution());
         //global attributes
         NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
