@@ -25,7 +25,7 @@ package org.esa.cci.sst.common.calculator;
  *
  * @author Norman Fomferra
  */
-public class ArithmeticMeanAccumulator extends NumberAccumulator {
+public final class ArithmeticMeanAccumulator extends NumberAccumulator {
 
     private double sumX;
     private double sumW;
