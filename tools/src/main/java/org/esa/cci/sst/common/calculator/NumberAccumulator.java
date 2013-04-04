@@ -23,6 +23,7 @@ package org.esa.cci.sst.common.calculator;
  * An accumulator whose samples are single, weighted numbers.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public abstract class NumberAccumulator implements Accumulator {
 
@@ -30,7 +31,7 @@ public abstract class NumberAccumulator implements Accumulator {
     }
 
     public void accumulate(double sample, double weight) {
-        if (!Double.isNaN(sample) && !Double.isNaN(weight)) {
+        if (!Double.isNaN(sample) && !Double.isNaN(weight) && weight != 0.0) {
             accumulateSample(sample, weight);
         }
     }
