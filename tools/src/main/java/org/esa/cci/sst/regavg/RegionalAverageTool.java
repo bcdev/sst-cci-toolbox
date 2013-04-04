@@ -226,7 +226,7 @@ public final class RegionalAverageTool extends Tool {
 
         List<AveragingTimeStep> timeSteps;
         try {
-            Aggregator4Regav aggregator = new Aggregator4Regav(regionMaskList, fileStore, climatology, lut1, lut2,
+            AveragingAggregator aggregator = new AveragingAggregator(regionMaskList, fileStore, climatology, lut1, lut2,
                                                                sstDepth);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {

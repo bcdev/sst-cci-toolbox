@@ -1,8 +1,6 @@
 package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.cell.AggregationCell;
-import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
@@ -22,7 +20,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * The base class for the averaging and re-gridding aggregators.
+ * The base class for the averaging and regridding aggregators.
  *
  * @author Bettina Scholze
  * @author Ralf Quast
@@ -32,74 +30,64 @@ public abstract class AbstractAggregator {
     private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
     private final FileStore fileStore;
-    private final LUT regriddingLUT1;
-    private FileType fileType;
-    private final SstDepth sstDepth;
     private final Climatology climatology;
+    private final SstDepth sstDepth;
+    private final FileType fileType;
 
-    protected AbstractAggregator(FileStore fileStore, Climatology climatology, LUT regriddingLUT1, SstDepth sstDepth) {
+    protected AbstractAggregator(FileStore fileStore, Climatology climatology, SstDepth sstDepth) {
         this.fileStore = fileStore;
         this.climatology = climatology;
-        this.regriddingLUT1 = regriddingLUT1;
         this.sstDepth = sstDepth;
-        if (fileStore != null) {
-            this.fileType = fileStore.getProductType().getFileType();
-        }
+        this.fileType = fileStore.getProductType().getFileType();
     }
 
     abstract public List<? extends TimeStep> aggregate(
             Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException, ToolException;
 
-    protected final SpatialAggregationContext createAggregationCellContext(NetcdfFile netcdfFile) throws IOException {
-        final Date date = fileType.readDate(netcdfFile);
+    protected SpatialAggregationContext createSpatialAggregationContext(NetcdfFile file) throws IOException {
+        final Date date = fileType.readDate(file);
         final int dayOfYear = UTC.getDayOfYear(date);
         LOGGER.fine("Day of year is " + dayOfYear);
 
-        final Grid[] sourceGrids = readSourceGrids(netcdfFile);
-
-        return new SpatialAggregationContext(fileStore.getProductType().getGridDef(),
-                                             sourceGrids,
-                                             climatology.getSst(dayOfYear),
-                                             climatology.getSeaCoverage(),
-                                             regriddingLUT1 == null ? null : regriddingLUT1.getGrid());
-    }
-
-    private Grid[] readSourceGrids(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading source grid(s)...");
-        final Grid[] grids = fileType.readSourceGrids(netcdfFile, sstDepth);
+        final Grid[] sourceGrids = fileType.readSourceGrids(file, sstDepth);
         LOGGER.fine(String.format("Reading source grid(s) took %d ms", (System.currentTimeMillis() - t0)));
 
-        return grids;
+        return new SpatialAggregationContext(fileType.getGridDef(),
+                                             sourceGrids,
+                                             climatology.getSst(dayOfYear),
+                                             climatology.getSeaCoverage());
     }
 
-    protected static <C extends SpatialAggregationCell> void aggregateSources(SpatialAggregationContext context,
-                                                                              RegionMask regionMask,
-                                                                              CellGrid<C> cellGrid) {
+    protected static <C extends SpatialAggregationCell> void aggregateSourcePixels(SpatialAggregationContext context,
+                                                                                   RegionMask regionMask,
+                                                                                   CellGrid<C> cellGrid) {
         final GridDef sourceGridDef = context.getSourceGridDef();
-        final int width = regionMask.getWidth();
-        final int height = regionMask.getHeight();
-        for (int cellY = 0; cellY < height; cellY++) {
-            for (int cellX = 0; cellX < width; cellX++) {
-                if (regionMask.getSampleBoolean(cellX, cellY)) {
-                    final Rectangle2D lonLatRectangle = regionMask.getGridDef().getLonLatRectangle(cellX, cellY);
-                    final Rectangle sourceGridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
-                    final SpatialAggregationCell cell = cellGrid.getCellSafe(cellX, cellY);
-                    cell.accumulate(context, sourceGridRectangle);
+        final int w = regionMask.getWidth();
+        final int h = regionMask.getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (regionMask.getSampleBoolean(x, y)) {
+                    final Rectangle2D lonLatRectangle = regionMask.getGridDef().getLonLatRectangle(x, y);
+                    final Rectangle gridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
+                    final SpatialAggregationCell cell = cellGrid.getCellSafe(x, y);
+
+                    cell.accumulate(context, gridRectangle);
                 }
             }
         }
     }
 
-    public FileStore getFileStore() {
+    protected final FileStore getFileStore() {
         return fileStore;
     }
 
-    public FileType getFileType() {
-        return fileType;
+    protected final Climatology getClimatology() {
+        return climatology;
     }
 
-    public Climatology getClimatology() {
-        return climatology;
+    protected final FileType getFileType() {
+        return fileType;
     }
 }

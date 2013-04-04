@@ -23,24 +23,25 @@ import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 
 /**
- * Provides the input grids for an {@link org.esa.cci.sst.common.cell.SpatialAggregationCell}.
+ * Provides the input grids for a {@link org.esa.cci.sst.common.cell.SpatialAggregationCell}.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public final class SpatialAggregationContext {
     private final GridDef sourceGridDef;
     private final Grid[] sourceGrids;
-    private final Grid analysedSstGrid; //in source resolution
-    private final Grid seaCoverageGrid; //in source resolution
-    private Grid stdDeviationGrid; //in source resolution
+    private final Grid climatologySst; //in source resolution
+    private final Grid climatologySeaCoverage; //in source resolution
+
+    private Grid standardDeviation; //in source resolution
 
 
-    public SpatialAggregationContext(GridDef sourceGridDef, Grid[] sourceGrids, Grid analysedSstGrid, Grid seaCoverageGrid, Grid stdDeviationGrid) {
+    public SpatialAggregationContext(GridDef sourceGridDef, Grid[] sourceGrids, Grid climatologySst, Grid climatologySeaCoverage) {
         this.sourceGridDef = sourceGridDef;
         this.sourceGrids = sourceGrids;
-        this.analysedSstGrid = analysedSstGrid;
-        this.seaCoverageGrid = seaCoverageGrid;
-        this.stdDeviationGrid = stdDeviationGrid;
+        this.climatologySst = climatologySst;
+        this.climatologySeaCoverage = climatologySeaCoverage;
     }
 
     public GridDef getSourceGridDef() {
@@ -51,15 +52,20 @@ public final class SpatialAggregationContext {
         return sourceGrids;
     }
 
-    public Grid getAnalysedSstGrid() {
-        return analysedSstGrid;
+    public Grid getClimatologySst() {
+        return climatologySst;
     }
 
-    public Grid getSeaCoverageGrid() {
-        return seaCoverageGrid;
+    public Grid getClimatologySeaCoverage() {
+        return climatologySeaCoverage;
     }
 
-    public Grid getStdDeviationGrid() {
-        return stdDeviationGrid;
+    public Grid getStandardDeviation() {
+        return standardDeviation;
+    }
+
+    public SpatialAggregationContext setStandardDeviation(Grid standardDeviation) {
+        this.standardDeviation = standardDeviation;
+        return this;
     }
 }

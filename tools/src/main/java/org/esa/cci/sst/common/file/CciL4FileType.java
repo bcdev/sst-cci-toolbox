@@ -214,8 +214,8 @@ public class CciL4FileType extends AbstractCciFileType {
             final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
             final Grid analysisErrorGrid = spatialAggregationContext.getSourceGrids()[1];
             final Grid seaIceFractionGrid = spatialAggregationContext.getSourceGrids()[2];
-            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
-            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
+            final Grid analysedSstGrid = spatialAggregationContext.getClimatologySst();
+            final Grid seaCoverageGrid = spatialAggregationContext.getClimatologySeaCoverage();
 
             final int x0 = rect.x;
             final int y0 = rect.y;
@@ -257,9 +257,9 @@ public class CciL4FileType extends AbstractCciFileType {
             final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
             final Grid analysisErrorGrid = spatialAggregationContext.getSourceGrids()[1];
             final Grid seaIceFractionGrid = spatialAggregationContext.getSourceGrids()[2];
-            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
-            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
-            final Grid stdDeviationGrid = spatialAggregationContext.getStdDeviationGrid();
+            final Grid analysedSstGrid = spatialAggregationContext.getClimatologySst();
+            final Grid seaCoverageGrid = spatialAggregationContext.getClimatologySeaCoverage();
+            final Grid stdDeviationGrid = spatialAggregationContext.getStandardDeviation();
 
             final int x0 = rect.x;
             final int y0 = rect.y;

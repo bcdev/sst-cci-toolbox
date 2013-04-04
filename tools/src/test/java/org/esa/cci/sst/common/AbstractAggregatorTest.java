@@ -2,7 +2,7 @@ package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.common.cell.*;
 import org.esa.cci.sst.common.cellgrid.*;
-import org.esa.cci.sst.regavg.Aggregator4Regav;
+import org.esa.cci.sst.regavg.AveragingAggregator;
 import org.junit.Test;
 
 import java.awt.*;
@@ -34,7 +34,7 @@ public class AbstractAggregatorTest {
         seaCoverage5Grid.setSample(39, 1, 0.7);
         final CellGrid<MyCell90> cell90Grid = new CellGrid<MyCell90>(GridDef.createGlobal(90.0), new MyCell90Factory());
 
-        Aggregator4Regav.aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverage5Grid, cell90Grid);
+        AveragingAggregator.aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverage5Grid, cell90Grid);
 
         java.util.List<MyCell90> cell90List = cell90Grid.getCells(CellFilter.NON_EMPTY);
         assertEquals(2, cell90List.size());
@@ -59,33 +59,33 @@ public class AbstractAggregatorTest {
                         new ScalarGrid(sourceGridDef, 292.0),
                 },
                 new ScalarGrid(sourceGridDef, 292.5),
-                new ScalarGrid(sourceGridDef, 0.8), null);
+                new ScalarGrid(sourceGridDef, 0.8));
         SpatialAggregationContext context2 = new SpatialAggregationContext(sourceGridDef,
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 293.0),
                 },
                 new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8), null);
+                new ScalarGrid(sourceGridDef, 0.8));
         SpatialAggregationContext context3 = new SpatialAggregationContext(sourceGridDef,
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 291.0),
                 },
                 new ScalarGrid(sourceGridDef, 289.5),
-                new ScalarGrid(sourceGridDef, 0.8), null);
+                new ScalarGrid(sourceGridDef, 0.8));
         SpatialAggregationContext context4 = new SpatialAggregationContext(sourceGridDef,
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 291.0),
                 },
                 new ScalarGrid(sourceGridDef, 288.5),
-                new ScalarGrid(sourceGridDef, 0.8), null);
+                new ScalarGrid(sourceGridDef, 0.8));
 
         RegionMask regionMask = RegionMask.create("East_Atlantic", -25, 45, -15, 35);
 
         CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(GridDef.createGlobal(5.0), new MyCell5Factory());
-        AbstractAggregator.aggregateSources(context1, regionMask, cell5Grid);
-        AbstractAggregator.aggregateSources(context2, regionMask, cell5Grid);
-        AbstractAggregator.aggregateSources(context3, regionMask, cell5Grid);
-        AbstractAggregator.aggregateSources(context4, regionMask, cell5Grid);
+        AbstractAggregator.aggregateSourcePixels(context1, regionMask, cell5Grid);
+        AbstractAggregator.aggregateSourcePixels(context2, regionMask, cell5Grid);
+        AbstractAggregator.aggregateSourcePixels(context3, regionMask, cell5Grid);
+        AbstractAggregator.aggregateSourcePixels(context4, regionMask, cell5Grid);
 
         assertNull(cell5Grid.getCell(30, 8));
         assertNull(cell5Grid.getCell(31, 8));
@@ -160,7 +160,7 @@ public class AbstractAggregatorTest {
         @Override
         public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
             sumX += spatialAggregationContext.getSourceGrids()[0].getSampleDouble(0, 0)
-                    - spatialAggregationContext.getAnalysedSstGrid().getSampleDouble(0, 0);
+                    - spatialAggregationContext.getClimatologySst().getSampleDouble(0, 0);
             sumW++;
             sampleCount++;
         }

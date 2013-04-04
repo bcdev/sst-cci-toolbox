@@ -276,8 +276,8 @@ public class CciL3FileType extends AbstractCciFileType {
             final Grid qualityLevelGrid = spatialAggregationContext.getSourceGrids()[1];
             final Grid uncorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[2];
             final Grid largeScaleCorrelatedUncertaintyGrid = spatialAggregationContext.getSourceGrids()[3];
-            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
-            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
+            final Grid analysedSstGrid = spatialAggregationContext.getClimatologySst();
+            final Grid seaCoverageGrid = spatialAggregationContext.getClimatologySeaCoverage();
 
             final int x0 = rect.x;
             final int y0 = rect.y;
@@ -346,9 +346,9 @@ public class CciL3FileType extends AbstractCciFileType {
             if (spatialAggregationContext.getSourceGrids().length > 5) {
                 adjustmentUncertaintyGrid = spatialAggregationContext.getSourceGrids()[5];
             }
-            final Grid analysedSstGrid = spatialAggregationContext.getAnalysedSstGrid();
-            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
-            final Grid stdDeviationGrid = spatialAggregationContext.getStdDeviationGrid();
+            final Grid analysedSstGrid = spatialAggregationContext.getClimatologySst();
+            final Grid seaCoverageGrid = spatialAggregationContext.getClimatologySeaCoverage();
+            final Grid stdDeviationGrid = spatialAggregationContext.getStandardDeviation();
 
             final int x0 = rect.x;
             final int y0 = rect.y;
@@ -573,7 +573,7 @@ public class CciL3FileType extends AbstractCciFileType {
             if (spatialAggregationContext.getSourceGrids().length > 5) {
                 adjustmentUncertaintyGrid = spatialAggregationContext.getSourceGrids()[5];
             }
-            final Grid seaCoverageGrid = spatialAggregationContext.getSeaCoverageGrid();
+            final Grid seaCoverageGrid = spatialAggregationContext.getClimatologySeaCoverage();
 
             final int x0 = rect.x;
             final int y0 = rect.y;

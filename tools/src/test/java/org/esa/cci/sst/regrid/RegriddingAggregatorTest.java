@@ -8,7 +8,9 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -26,24 +28,32 @@ import static junit.framework.Assert.fail;
  * {@author Bettina Scholze}
  * Date: 17.12.12 14:45
  */
-public class Aggregator4RegridTest {
+public class RegriddingAggregatorTest {
 
-    private Aggregator4Regrid aggregator4Regrid;
+    private RegriddingAggregator regriddingAggregator;
     private final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
     @Before
     public void setUp() throws Exception {
-        this.aggregator4Regrid = new Aggregator4Regrid(null, null, null, null, null, null, null,
-                SstDepth.skin, 0.0, SpatialResolution.DEGREE_0_50) {
+        final ProductType productType = ProductType.ARC_L3U;
+        final FileStore fileStore = FileStore.create(productType, productType.getDefaultFilenameRegex());
+
+        regriddingAggregator = new RegriddingAggregator(null, fileStore, null, null, null, null, null,
+                                                        SstDepth.skin, 0.0, SpatialResolution.DEGREE_0_50) {
 
             @Override
-            CellGrid<SpatialAggregationCell> aggregateTimeRangeAndRegrid(Date date1, Date date2, SpatialResolution spatialResolution, TemporalResolution temporalResolution) throws IOException {
-                return new CellGrid<SpatialAggregationCell>(GridDef.createGlobal(spatialResolution.getResolution()), null);
+            CellGrid<SpatialAggregationCell> aggregateTimeRangeAndRegrid(Date date1, Date date2,
+                                                                         SpatialResolution spatialResolution,
+                                                                         TemporalResolution temporalResolution) throws
+                                                                                                                IOException {
+                return new CellGrid<SpatialAggregationCell>(GridDef.createGlobal(spatialResolution.getResolution()),
+                                                            null);
             }
 
             @Override
             CellGrid<AggregationCell> aggregateMultiMonths(List<? extends TimeStep> monthlyTimeSteps) {
-                return new CellGrid<AggregationCell>(GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getResolution()), null);
+                return new CellGrid<AggregationCell>(
+                        GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getResolution()), null);
 
             }
         };
@@ -56,13 +66,13 @@ public class Aggregator4RegridTest {
 
         //execution 1
         Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-07");
-        List<RegriddingTimeStep> results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        List<RegriddingTimeStep> results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 1
         assertEquals("7 days, will give 1 week", 1, results.size());
 
         //execution 2
         endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-23");
-        results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 2
         assertEquals("23 days, will give 3 weeks plus 1 incomplete week", 4, results.size());
         assertEquals("2012-11-01", df.format(results.get(0).getStartDate()));
@@ -83,13 +93,13 @@ public class Aggregator4RegridTest {
 
         //execution 1
         Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-05");
-        List<RegriddingTimeStep> results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        List<RegriddingTimeStep> results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 1
         assertEquals(1, results.size());
 
         //execution 2
         endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-23");
-        results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 2
         assertEquals("", 5, results.size());
         assertEquals("2012-11-01", df.format(results.get(0).getStartDate()));
@@ -111,7 +121,7 @@ public class Aggregator4RegridTest {
 
         //execution 1
         Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-07");
-        List<RegriddingTimeStep> results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        List<RegriddingTimeStep> results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 1
         assertEquals("7 days, will give 7 coarser files", 7, results.size());
         assertEquals("2012-11-01", df.format(results.get(0).getStartDate()));
@@ -131,7 +141,7 @@ public class Aggregator4RegridTest {
 
         //execution 2
         endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-23");
-        results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 2
         assertEquals("23 days, will give 23 coarser files", 23, results.size());
     }
@@ -143,7 +153,7 @@ public class Aggregator4RegridTest {
 
         //execution 1
         Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-10-31");
-        List<RegriddingTimeStep> results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        List<RegriddingTimeStep> results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 1
         assertEquals("2 months, will give 3 coarser files", 2, results.size());
         assertEquals("2012-09-01", df.format(results.get(0).getStartDate()));
@@ -153,7 +163,7 @@ public class Aggregator4RegridTest {
 
         //execution 2
         endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-01");
-        results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 2
         assertEquals("2 and a started 3rd months, will give 3 coarser files", 3, results.size());
         assertEquals("2012-09-01", df.format(results.get(0).getStartDate()));
@@ -166,7 +176,7 @@ public class Aggregator4RegridTest {
         //execution 3
         startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-03-04");
         endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-04-03");
-        results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 3
         assertEquals("1 month, will give 1 coarser file", 1, results.size());
         assertEquals("2012-03-04", df.format(results.get(0).getStartDate()));
@@ -181,7 +191,7 @@ public class Aggregator4RegridTest {
 
         //execution 1
         Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-09-30");
-        List<RegriddingTimeStep> results = aggregator4Regrid.aggregate(startDate, endDate, daily);
+        List<RegriddingTimeStep> results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 1
         assertEquals("3 seasons, will give 3 coarser files", 3, results.size());
         assertEquals("2012-01-01", df.format(results.get(0).getStartDate()));
@@ -201,13 +211,12 @@ public class Aggregator4RegridTest {
         //execution
         Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-10-31");
         try {
-            aggregator4Regrid.aggregate(startDate, endDate, daily);
+            regriddingAggregator.aggregate(startDate, endDate, daily);
             fail("ToolException expected");
         } catch (IOException e) {
             fail("ToolException expected");
         } catch (ToolException expected) {
             assertEquals("Not supported: weekly5d", expected.getMessage());
         }
-
     }
 }

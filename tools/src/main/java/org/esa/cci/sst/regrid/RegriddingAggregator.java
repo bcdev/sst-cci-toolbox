@@ -21,6 +21,7 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
+import org.esa.cci.sst.common.calculator.AverageSeparations;
 import org.esa.cci.sst.common.calculator.SynopticAreaCountEstimator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
@@ -48,9 +49,10 @@ import java.util.logging.Logger;
  * {@author Bettina Scholze}
  * Date: 13.09.12 16:29
  */
-public class Aggregator4Regrid extends AbstractAggregator {
+public class RegriddingAggregator extends AbstractAggregator {
 
     private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
+    private final LUT lutCuStddev;
 
     private RegionMask combinedRegionMask;
     private SpatialResolution spatialTargetResolution;
@@ -58,17 +60,24 @@ public class Aggregator4Regrid extends AbstractAggregator {
     private final RegriddingLUT2 lutCuSpace;
     private final AverageSeparations averageSeparations;
 
-    public Aggregator4Regrid(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
-                             AverageSeparations averageSeparations, LUT lutCuStddev, RegriddingLUT2 lutCuTime, RegriddingLUT2 lutCuSpace,
-                             SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
+    public RegriddingAggregator(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology,
+                                AverageSeparations averageSeparations, LUT lutCuStddev, RegriddingLUT2 lutCuTime,
+                                RegriddingLUT2 lutCuSpace,
+                                SstDepth sstDepth, double minCoverage, SpatialResolution spatialTargetResolution) {
 
-        super(fileStore, climatology, lutCuStddev, sstDepth);
+        super(fileStore, climatology, sstDepth);
+        this.lutCuStddev = lutCuStddev;
         this.combinedRegionMask = RegionMask.combine(regionMaskList);
         this.spatialTargetResolution = spatialTargetResolution;
         this.lutCuTime = lutCuTime;
         this.lutCuSpace = lutCuSpace;
         this.averageSeparations = averageSeparations;
         FileType.CellTypes.setMinCoverage(minCoverage);
+    }
+
+    @Override
+    protected final SpatialAggregationContext createSpatialAggregationContext(NetcdfFile file) throws IOException {
+        return super.createSpatialAggregationContext(file).setStandardDeviation(lutCuStddev.getGrid());
     }
 
     @Override
@@ -136,10 +145,10 @@ public class Aggregator4Regrid extends AbstractAggregator {
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                SpatialAggregationContext aggregationCellContext = createAggregationCellContext(netcdfFile);
+                SpatialAggregationContext aggregationCellContext = createSpatialAggregationContext(netcdfFile);
                 LOGGER.fine("Aggregating grid(s)...");
                 long t01 = System.currentTimeMillis();
-                aggregateSources(aggregationCellContext, combinedRegionMask, regriddingCellGrid);
+                aggregateSourcePixels(aggregationCellContext, combinedRegionMask, regriddingCellGrid);
                 LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
             } finally {
                 netcdfFile.close();

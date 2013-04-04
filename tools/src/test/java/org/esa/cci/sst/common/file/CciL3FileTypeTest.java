@@ -69,7 +69,7 @@ public class CciL3FileTypeTest {
                         new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
@@ -107,7 +107,7 @@ public class CciL3FileTypeTest {
                         new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
         SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
@@ -146,7 +146,7 @@ public class CciL3FileTypeTest {
                         new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         CellFactory<SpatialAggregationCell> cellFactory = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
         SpatialAggregationCell cell = cellFactory.createCell(0, 0);
@@ -178,7 +178,7 @@ public class CciL3FileTypeTest {
                         new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
@@ -217,7 +217,7 @@ public class CciL3FileTypeTest {
                         new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         //preparation: 3) Synoptic1 -> Synoptic5
         CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
@@ -438,7 +438,7 @@ public class CciL3FileTypeTest {
                         new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
         SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
@@ -466,7 +466,7 @@ public class CciL3FileTypeTest {
                         new ScalarGrid(sourceGridDef, 2.0), //largeScaleCorrelatedUncertaintyGrid
                 },
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8), null); //seaCoverageGrid
+                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         MockCoverageUncertainty uncertaintyProvider = new MockCoverageUncertainty(1.1, 1.2, 0.5);
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(uncertaintyProvider);

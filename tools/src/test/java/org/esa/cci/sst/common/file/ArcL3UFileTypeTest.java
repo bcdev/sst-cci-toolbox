@@ -71,7 +71,7 @@ public class ArcL3UFileTypeTest {
                         new ScalarGrid(sourceGridDef, 0.1),
                 },
                 new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8) ,null);
+                new ScalarGrid(sourceGridDef, 0.8));
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
@@ -105,7 +105,7 @@ public class ArcL3UFileTypeTest {
                         new ScalarGrid(sourceGridDef, 0.1),
                 },
                 new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8), null);
+                new ScalarGrid(sourceGridDef, 0.8));
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
@@ -161,7 +161,7 @@ public class ArcL3UFileTypeTest {
                         new ScalarGrid(sourceGridDef, 0.1),
                 },
                 new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8), null);
+                new ScalarGrid(sourceGridDef, 0.8));
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
@@ -213,7 +213,7 @@ public class ArcL3UFileTypeTest {
                         new ScalarGrid(sourceGridDef, 0.1),
                 },
                 new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8), null);
+                new ScalarGrid(sourceGridDef, 0.8));
 
         FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
         CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);

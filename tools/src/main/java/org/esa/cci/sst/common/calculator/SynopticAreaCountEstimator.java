@@ -19,8 +19,6 @@
 
 package org.esa.cci.sst.common.calculator;
 
-import org.esa.cci.sst.regrid.AverageSeparations;
-
 /**
  * Eta is the estimated effective number of synoptic areas in the new grid box.
  * According to the Regridding Tool Specification equation 1.5 for synoptically correlated uncertainties.

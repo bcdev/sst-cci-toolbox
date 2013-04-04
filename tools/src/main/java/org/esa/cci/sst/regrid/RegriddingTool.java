@@ -22,6 +22,7 @@ import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
+import org.esa.cci.sst.common.calculator.AverageSeparations;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.tool.*;
 import org.esa.cci.sst.util.ProductType;
@@ -147,7 +148,7 @@ public class RegriddingTool extends Tool {
 
         List<RegriddingTimeStep> timeSteps;
         try {
-            Aggregator4Regrid aggregator = new Aggregator4Regrid(regionMaskList, fileStore, climatology,
+            RegriddingAggregator aggregator = new RegriddingAggregator(regionMaskList, fileStore, climatology,
                     lutSynopticAreas, regriddingLUT1, cuTimeLut, cuSpaceLut, sstDepth, minCoverage, spatialResolution);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {

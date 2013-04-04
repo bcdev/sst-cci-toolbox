@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Norman
  */
-public class Aggregator4RegavTest {
+public class AveragingAggregatorTest {
     static final GridDef GRID_DEF_GLOBAL_5 = GridDef.createGlobal(5.0); //for tests only
 
     @Test
@@ -40,7 +40,7 @@ public class Aggregator4RegavTest {
 
         MyCellSameMonthAggregation aggregation = new MyCellSameMonthAggregation();
         //execution
-        Aggregator4Regav.aggregateCell5OrCell90Grid(cell5Grid, seaCoverage5Grid, aggregation);
+        AveragingAggregator.aggregateCell5OrCell90Grid(cell5Grid, seaCoverage5Grid, aggregation);
 
         assertEquals(5, aggregation.getSampleCount());
         assertEquals((3.0 * 0.8 + 7.0 * 0.5 + 4.0 * 0.7 + 5.0 * 0.5 + 5.2 * 0.7) / (0.8 + 0.5 + 0.7 + 0.5 + 0.7),
@@ -67,11 +67,11 @@ public class Aggregator4RegavTest {
 
     @Test
     public void testMustAggregateTo90() throws Exception {
-        assertEquals(true, Aggregator4Regav.mustAggregateTo90(RegionMask.create("G", -180, 90, 180, -90)));
-        assertEquals(true, Aggregator4Regav.mustAggregateTo90(RegionMask.create("NH", -180, 90, 180, 0)));
-        assertEquals(true, Aggregator4Regav.mustAggregateTo90(RegionMask.create("SH", -180, 0, 180, -90)));
-        assertEquals(false, Aggregator4Regav.mustAggregateTo90(RegionMask.create("X", -180, 90, 180, -85)));
-        assertEquals(false, Aggregator4Regav.mustAggregateTo90(RegionMask.create("X", 0, 10, 10, 0)));
+        assertEquals(true, AveragingAggregator.mustAggregateTo90(RegionMask.create("G", -180, 90, 180, -90)));
+        assertEquals(true, AveragingAggregator.mustAggregateTo90(RegionMask.create("NH", -180, 90, 180, 0)));
+        assertEquals(true, AveragingAggregator.mustAggregateTo90(RegionMask.create("SH", -180, 0, 180, -90)));
+        assertEquals(false, AveragingAggregator.mustAggregateTo90(RegionMask.create("X", -180, 90, 180, -85)));
+        assertEquals(false, AveragingAggregator.mustAggregateTo90(RegionMask.create("X", 0, 10, 10, 0)));
     }
 
     private static class MyCell5Factory implements CellFactory<MyCell5> {
@@ -129,7 +129,7 @@ public class Aggregator4RegavTest {
         @Override
         public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
             sumX += spatialAggregationContext.getSourceGrids()[0].getSampleDouble(0, 0)
-                    - spatialAggregationContext.getAnalysedSstGrid().getSampleDouble(0, 0);
+                    - spatialAggregationContext.getClimatologySst().getSampleDouble(0, 0);
             sumW++;
             sampleCount++;
         }

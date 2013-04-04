@@ -22,7 +22,7 @@ package org.esa.cci.sst.common.cell;
 import org.esa.cci.sst.common.calculator.CoverageUncertainty;
 
 /**
- * A daily or monthly / 5º or 90º cell.
+ * An abstract aggregation cell.
  *
  * @author Norman Fomferra
  */
@@ -39,7 +39,7 @@ public abstract class AbstractAggregationCell extends AbstractCell implements Ag
     }
 
     @Override
-    public boolean isEmpty() {
+    public final boolean isEmpty() {
         return getSampleCount() == 0;
     }
 }

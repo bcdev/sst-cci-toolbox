@@ -5,6 +5,7 @@ import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.RegionMaskList;
 import org.esa.cci.sst.common.RegionalAggregation;
 import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
@@ -20,7 +21,6 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * {@author Bettina Scholze}
  * Date: 13.09.12 16:29
  */
-public class Aggregator4Regav extends AbstractAggregator {
+public class AveragingAggregator extends AbstractAggregator {
 
     private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
@@ -49,9 +49,9 @@ public class Aggregator4Regav extends AbstractAggregator {
     private LUT1 lut1;
     private LUT2 lut2;
 
-    public Aggregator4Regav(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1,
-                            LUT2 lut2, SstDepth sstDepth) {
-        super(fileStore, climatology, null, sstDepth);
+    public AveragingAggregator(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1,
+                               LUT2 lut2, SstDepth sstDepth) {
+        super(fileStore, climatology, sstDepth);
         this.lut1 = lut1;
         this.lut2 = lut2;
         this.regionMaskList = regionMaskList;
@@ -125,7 +125,7 @@ public class Aggregator4Regav extends AbstractAggregator {
                                                                                                               date2);
 
         AveragingCoverageUncertainty coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
-                                                                                                    targetResolution);
+                                                                                                     targetResolution);
         FileType.CellTypes cell90Type = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(
                 coverageUncertaintyProvider);
 
@@ -149,7 +149,7 @@ public class Aggregator4Regav extends AbstractAggregator {
         GridDef globalGridDef5 = GridDef.createGlobal(targetResolution.getResolution());
         GridDef globalGridDef1 = GridDef.createGlobal(SpatialResolution.DEGREE_1_00.getResolution());
         final AveragingCoverageUncertainty coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1,
-                                                                                                          targetResolution);
+                                                                                                           targetResolution);
 
         FileType.CellTypes cellType = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(
                 coverageUncertaintyProvider);
@@ -172,14 +172,14 @@ public class Aggregator4Regav extends AbstractAggregator {
             long t0 = System.currentTimeMillis();
             NetcdfFile netcdfFile = NetcdfFile.open(file.getPath());
             try {
-                SpatialAggregationContext aggregationCellContext = createAggregationCellContext(netcdfFile);
+                SpatialAggregationContext aggregationCellContext = createSpatialAggregationContext(netcdfFile);
                 LOGGER.fine("Aggregating grid(s)...");
                 long t01 = System.currentTimeMillis();
 
-                aggregateSources(aggregationCellContext, combinedRegionMask, cellGridSpatial);
+                aggregateSourcePixels(aggregationCellContext, combinedRegionMask, cellGridSpatial);
                 if (getFileType().hasSynopticUncertainties()) {
                     //aggregate to synoptic areas (1 °, monthly)
-                    aggregateSources(aggregationCellContext, combinedRegionMask, cellGridSynoptic1);
+                    aggregateSourcePixels(aggregationCellContext, combinedRegionMask, cellGridSynoptic1);
                     //1 ° -> 5 °
                     aggregateCellGridToCoarserCellGrid(cellGridSynoptic1, getClimatology().getSeaCoverageCell1Grid(),
                                                        cellGridSynoptic5); //todo ??? climatology resolution ???
@@ -311,7 +311,7 @@ public class Aggregator4Regav extends AbstractAggregator {
     }
 
     protected AveragingCoverageUncertainty createCoverageUncertaintyProvider(Date date,
-                                                                            SpatialResolution spatialResolution) {
+                                                                             SpatialResolution spatialResolution) {
         int month = UTC.createCalendar(date).get(Calendar.MONTH);
 
         return new AveragingCoverageUncertainty(month) {
