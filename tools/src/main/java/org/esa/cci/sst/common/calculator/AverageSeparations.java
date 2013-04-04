@@ -46,7 +46,6 @@ public class AverageSeparations {
         this.temporalResolution = temporalResolution;
         this.spatialResolution = spatialResolution;
         this.gridDef = GridDef.createGlobal(spatialResolution.getResolution());
-
     }
 
     /**
