@@ -29,8 +29,8 @@ import java.util.Date;
  */
 public enum TemporalResolution {
     daily,
-    weekly7d,
     weekly5d,
+    weekly7d,
     monthly,
     seasonal,
     annual
