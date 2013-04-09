@@ -29,10 +29,10 @@ public class DefaultSpatialAggregationCell extends AbstractAggregationCell imple
     private final NumberAccumulator sstAnomalyAccumulator;
     private final NumberAccumulator randomUncertaintyAccumulator;
     private final NumberAccumulator varianceAccumulator;
-    private final ArithmeticMeanAccumulator largeScaleUncertaintyAccumulator;
-    private final SynopticUncertaintyAccumulator adjustmentUncertaintyAccumulator;
-    private final SynopticUncertaintyAccumulator synopticUncertaintyAccumulator;
-    private final ArithmeticMeanAccumulator seaIceFractionAccumulator;
+    private final NumberAccumulator largeScaleUncertaintyAccumulator;
+    private final NumberAccumulator adjustmentUncertaintyAccumulator;
+    private final NumberAccumulator synopticUncertaintyAccumulator;
+    private final NumberAccumulator seaIceFractionAccumulator;
 
     private boolean enoughSamples;
 
