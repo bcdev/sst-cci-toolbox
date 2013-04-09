@@ -181,6 +181,6 @@ public class DefaultSpatialAggregationCell extends AbstractAggregationCell imple
     }
 
     private boolean isValid(int x, int y, double seaCoverage, double sst, Grid qualityGrid) {
-        return seaCoverage > 0.0 & sst > 0.0 && qualityGrid != null && qualityGrid.getSampleInt(x, y) == 5;
+        return seaCoverage > 0.0 && sst > 0.0 && (qualityGrid == null || qualityGrid.getSampleInt(x, y) == 5);
     }
 }
