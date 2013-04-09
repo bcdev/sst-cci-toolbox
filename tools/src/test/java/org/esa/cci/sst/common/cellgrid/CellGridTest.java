@@ -93,7 +93,7 @@ public class CellGridTest {
     }
 
     private CellGrid<MyCell> createGrid(GridDef gridDef) {
-        return new CellGrid<MyCell>(gridDef, new CellFactory<MyCell>() {
+        return CellGrid.create(gridDef, new CellFactory<MyCell>() {
             @Override
             public MyCell createCell(int cellX, int cellY) {
                 return new MyCell(cellX, cellY);

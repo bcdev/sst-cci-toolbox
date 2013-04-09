@@ -30,7 +30,13 @@ public abstract class NumberAccumulator implements Accumulator {
     protected NumberAccumulator() {
     }
 
-    public void accumulate(double sample, double weight) {
+    public final void accumulate(double sample) {
+        if (!Double.isNaN(sample)) {
+            accumulateSample(sample, 1.0);
+        }
+    }
+
+    public final void accumulate(double sample, double weight) {
         if (!Double.isNaN(sample) && !Double.isNaN(weight) && weight != 0.0) {
             accumulateSample(sample, weight);
         }

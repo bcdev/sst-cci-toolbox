@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.cell.AbstractCell;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -23,7 +23,7 @@ public class AveragingAggregatorTest {
 
     @Test
     public void testAggregateCell5OrCell90Grid() throws Exception {
-        CellGrid<MyCell5> cell5Grid = new CellGrid<MyCell5>(GRID_DEF_GLOBAL_5, new MyCell5Factory());
+        CellGrid<MyCell5> cell5Grid = CellGrid.create(GRID_DEF_GLOBAL_5, new MyCell5Factory());
         cell5Grid.getCellSafe(34, 1).set(3.0, 1);
         cell5Grid.getCellSafe(35, 1).set(7.0, 1);
         cell5Grid.getCellSafe(36, 1).set(4.0, 1);
@@ -127,9 +127,9 @@ public class AveragingAggregatorTest {
         }
 
         @Override
-        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
-            sumX += spatialAggregationContext.getSourceGrids()[0].getSampleDouble(0, 0)
-                    - spatialAggregationContext.getClimatologySst().getSampleDouble(0, 0);
+        public void accumulate(AggregationContext aggregationContext, Rectangle rectangle) {
+            sumX += aggregationContext.getSourceGrids()[0].getSampleDouble(0, 0)
+                    - aggregationContext.getClimatologySstGrid().getSampleDouble(0, 0);
             sumW++;
             sampleCount++;
         }

@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.common.cell;
 
-import org.esa.cci.sst.common.calculator.CoverageUncertainty;
+import org.esa.cci.sst.common.AggregationContext;
 
 /**
  * An abstract aggregation cell.
@@ -27,15 +27,16 @@ import org.esa.cci.sst.common.calculator.CoverageUncertainty;
  * @author Norman Fomferra
  */
 public abstract class AbstractAggregationCell extends AbstractCell implements AggregationCell {
-    private final CoverageUncertainty coverageUncertainty;
 
-    protected AbstractAggregationCell(CoverageUncertainty coverageUncertainty, int x, int y) {
+    private final AggregationContext aggregationContext;
+
+    protected AbstractAggregationCell(AggregationContext aggregationContext, int x, int y) {
         super(x, y);
-        this.coverageUncertainty = coverageUncertainty;
+        this.aggregationContext = aggregationContext;
     }
 
-    public final CoverageUncertainty getCoverageUncertainty() {
-        return coverageUncertainty;
+    public final AggregationContext getAggregationContext() {
+        return aggregationContext;
     }
 
     @Override

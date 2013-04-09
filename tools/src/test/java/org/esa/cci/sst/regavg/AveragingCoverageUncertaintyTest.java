@@ -12,7 +12,7 @@ import static java.lang.Math.sqrt;
 public class AveragingCoverageUncertaintyTest {
     @Test
     public void testCell5() throws Exception {
-        AveragingCoverageUncertainty provider = create();
+        AveragingCoverageUncertaintyProvider provider = create();
 
         Assert.assertEquals(Double.NaN, provider.calculate(0, 0, 0L, 5.0), 1.0e-10);
         Assert.assertEquals(1.1 * (1.0 - pow(5L / 77500.0, 0.5)), provider.calculate(0, 0, 5L, 5.0), 1.0e-10);
@@ -21,14 +21,14 @@ public class AveragingCoverageUncertaintyTest {
 
     @Test
     public void testCell90() throws Exception {
-        AveragingCoverageUncertainty provider = create();
+        AveragingCoverageUncertaintyProvider provider = create();
         Assert.assertEquals(Double.NaN, provider.calculate(0, 0, 0L, 90.0), 1.0e-10);
         Assert.assertEquals(1.2 / sqrt(5L), provider.calculate(0, 0, 5L, 90.0), 1.0e-10);
         Assert.assertEquals(1.2 / sqrt(12L), provider.calculate(0, 0, 12L, 90.0), 1.0e-10);
     }
 
-    private AveragingCoverageUncertainty create() {
-        return new AveragingCoverageUncertainty(0) {
+    private AveragingCoverageUncertaintyProvider create() {
+        return new AveragingCoverageUncertaintyProvider(0) {
             @Override
             protected double getMagnitude5(int cellX, int cellY) {
                 return 1.1;

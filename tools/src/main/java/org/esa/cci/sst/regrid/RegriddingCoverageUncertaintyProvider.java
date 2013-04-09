@@ -20,49 +20,36 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.LUT;
-import org.esa.cci.sst.common.SpatialResolution;
-import org.esa.cci.sst.common.TemporalResolution;
-import org.esa.cci.sst.common.calculator.CoverageUncertainty;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
 
-import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Calculates sampling/coverage uncertainties for regridding (Eq. 1.6)
+ * For calculating coverage uncertainties for regridding (Eq. 1.6)
  *
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-class RegriddingCoverageUncertainty implements CoverageUncertainty {
+class RegriddingCoverageUncertaintyProvider implements CoverageUncertaintyProvider {
 
     private final Grid x0space;
     private final Grid x0time;
     private final double xDay;
 
-    RegriddingCoverageUncertainty(LUT lut2, LUT lut3, TemporalResolution temporalResolution, Date date) {
+    RegriddingCoverageUncertaintyProvider(LUT lut2, LUT lut3, Date date1, Date date2) {
         x0space = lut2.getGrid();
         x0time = lut3.getGrid();
-        xDay = calculateXDay(temporalResolution, date);
+        xDay = calculateXDay(date1, date2);
     }
 
-    static double calculateXDay(TemporalResolution temporalResolution, Date date) {
-        if (TemporalResolution.daily.equals(temporalResolution)) {
-            return 0.0;
-        } else if (TemporalResolution.monthly.equals(temporalResolution)) {
-            final Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-
-            return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        } else {
-            throw new IllegalArgumentException("TemporalResolution must be 'daily' or 'monthly'.");
-        }
+    static double calculateXDay(Date date1, Date date2) {
+        return (date2.getTime() - date1.getTime()) / 86400000;
     }
 
     @Override
-    public double calculate(AggregationCell cell, double a) {
+    public double calculate(AggregationCell cell, double variance) {
         final int x = cell.getX();
         final int y = cell.getY();
 
@@ -79,6 +66,6 @@ class RegriddingCoverageUncertainty implements CoverageUncertainty {
         }
         final double rBar = rBarSpace * rBarTime;
 
-        return Math.sqrt((a * rBar * (1.0 - rBar)) / (1.0 + (cell.getSampleCount() - 1.0) * rBar));
+        return Math.sqrt((variance * rBar * (1.0 - rBar)) / (1.0 + (cell.getSampleCount() - 1.0) * rBar));
     }
 }

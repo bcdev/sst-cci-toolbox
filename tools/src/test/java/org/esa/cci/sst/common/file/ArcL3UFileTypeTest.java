@@ -1,8 +1,9 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.ScalarGrid;
-import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -14,19 +15,22 @@ import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.UTC;
 import org.junit.Test;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * @author Norman Fomferra
  */
 public class ArcL3UFileTypeTest {
+
     FileType fileType = ArcL3UFileType.INSTANCE;
 
     @Test
@@ -52,9 +56,10 @@ public class ArcL3UFileTypeTest {
 
     @Test
     public void testCell5Factory() throws Exception {
-        MockCoverageUncertainty provider = new MockCoverageUncertainty(1.1, 1.2, 0.5);
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(provider);
-        CellFactory<? extends AggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        final AggregationContext context = new AggregationContext();
+        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
+        context.setCoverageUncertaintyProvider(provider);
+        CellFactory<? extends AggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
         assertNotNull(cell5Factory);
         AggregationCell cell5 = cell5Factory.createCell(52, 78);
         assertNotNull(cell5);
@@ -65,7 +70,7 @@ public class ArcL3UFileTypeTest {
     @Test
     public void testCell5Aggregation() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0),
                         new ScalarGrid(sourceGridDef, 0.1),
@@ -73,8 +78,9 @@ public class ArcL3UFileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5),
                 new ScalarGrid(sourceGridDef, 0.8));
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        context.setCoverageUncertaintyProvider(
+                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -94,12 +100,8 @@ public class ArcL3UFileTypeTest {
 
     @Test
     public void testCell90Aggregation() throws Exception {
-        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
-
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0),
                         new ScalarGrid(sourceGridDef, 0.1),
@@ -107,8 +109,11 @@ public class ArcL3UFileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5),
                 new ScalarGrid(sourceGridDef, 0.8));
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        context.setCoverageUncertaintyProvider(
+                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
+        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -155,7 +160,7 @@ public class ArcL3UFileTypeTest {
         AggregationFactory<SameMonthAggregation> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0),
                         new ScalarGrid(sourceGridDef, 0.1),
@@ -163,8 +168,9 @@ public class ArcL3UFileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5),
                 new ScalarGrid(sourceGridDef, 0.8));
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        context.setCoverageUncertaintyProvider(
+                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -207,7 +213,7 @@ public class ArcL3UFileTypeTest {
         AggregationFactory<MultiMonthAggregation> multiMonthAggregationFactory = fileType.getMultiMonthAggregationFactory();
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0),
                         new ScalarGrid(sourceGridDef, 0.1),
@@ -215,8 +221,9 @@ public class ArcL3UFileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5),
                 new ScalarGrid(sourceGridDef, 0.8));
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        context.setCoverageUncertaintyProvider(
+                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));

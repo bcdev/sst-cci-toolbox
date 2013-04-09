@@ -16,13 +16,15 @@
 
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.LUT;
 import org.esa.cci.sst.common.RegionMaskList;
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
-import org.esa.cci.sst.common.calculator.SynopticUncertaintyHelper;
+import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
+import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ExitCode;
@@ -145,15 +147,23 @@ public class RegriddingTool extends Tool {
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
 
         final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
-        final LUT regriddingLUT1 = createLutForStdDeviation(cuStdDevFile);
-        final RegriddingLUT2 cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
-        final RegriddingLUT2 cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
-        final SynopticUncertaintyHelper lutSynopticAreas = new SynopticUncertaintyHelper(spatialResolution, temporalResolution);
+        final LUT stdDevLut = createLutForStdDeviation(cuStdDevFile);
+        final LUT cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
+        final LUT cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
+        final SynopticUncertaintyProvider synopticUncertaintyProvider = new SynopticUncertaintyProvider(spatialResolution, temporalResolution);
+
+        final AggregationContext aggregationContext = new AggregationContext();
+        final GridDef targetGridDef = GridDef.createGlobal(spatialResolution.getResolution());
+        aggregationContext.setTargetGridDef(targetGridDef);
+        aggregationContext.setStandardDeviationGrid(stdDevLut.getGrid());
+        aggregationContext.setSynopticUncertaintyProvider(synopticUncertaintyProvider);
+        aggregationContext.setMinCoverage(minCoverage);
+        aggregationContext.setTargetRegionMaskList(regionMaskList);
 
         final List<RegriddingTimeStep> timeSteps;
         try {
-            RegriddingAggregator aggregator = new RegriddingAggregator(regionMaskList, fileStore, climatology,
-                    lutSynopticAreas, regriddingLUT1, cuTimeLut, cuSpaceLut, sstDepth, minCoverage, spatialResolution);
+            RegriddingAggregator aggregator = new RegriddingAggregator(fileStore, climatology,
+                                                                       sstDepth, aggregationContext, cuTimeLut, cuSpaceLut);
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
             throw new ToolException("Regridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);

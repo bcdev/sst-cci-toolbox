@@ -3,17 +3,14 @@ package org.esa.cci.sst.common;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.tool.ToolException;
-import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -44,36 +41,30 @@ public abstract class AbstractAggregator {
     abstract public List<? extends TimeStep> aggregate(
             Date startDate, Date endDate, TemporalResolution temporalResolution) throws IOException, ToolException;
 
-    protected SpatialAggregationContext createSpatialAggregationContext(NetcdfFile file) throws IOException {
-        final Date date = fileType.readDate(file);
-        final int dayOfYear = UTC.getDayOfYear(date);
-        LOGGER.fine("Day of year is " + dayOfYear);
-
-        long t0 = System.currentTimeMillis();
+    protected final void readSourceGrids(NetcdfFile dataFile, AggregationContext context) throws IOException {
+        final long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading source grid(s)...");
-        final Grid[] sourceGrids = fileType.readSourceGrids(file, sstDepth);
-        LOGGER.fine(String.format("Reading source grid(s) took %d ms", (System.currentTimeMillis() - t0)));
-
-        return new SpatialAggregationContext(fileType.getGridDef(),
-                                             sourceGrids,
-                                             climatology.getSst(dayOfYear),
-                                             climatology.getSeaCoverage());
+        fileType.readSourceGrids(dataFile, sstDepth, context);
+        final long t1 = System.currentTimeMillis();
+        LOGGER.fine(String.format("Reading source grid(s) took %d ms", t1 - t0));
     }
 
-    protected static <C extends SpatialAggregationCell> void aggregateSourcePixels(SpatialAggregationContext context,
+    protected static <C extends SpatialAggregationCell> void aggregateSourcePixels(AggregationContext context,
                                                                                    RegionMask regionMask,
-                                                                                   CellGrid<C> cellGrid) {
+                                                                                   CellGrid<C> targetGrid) {
         final GridDef sourceGridDef = context.getSourceGridDef();
+        final GridDef targetGridDef = regionMask.getGridDef();
+
         final int w = regionMask.getWidth();
         final int h = regionMask.getHeight();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (regionMask.getSampleBoolean(x, y)) {
-                    final Rectangle2D lonLatRectangle = regionMask.getGridDef().getLonLatRectangle(x, y);
-                    final Rectangle gridRectangle = sourceGridDef.getGridRectangle(lonLatRectangle);
-                    final SpatialAggregationCell cell = cellGrid.getCellSafe(x, y);
+                    final Rectangle sourceRectangle = sourceGridDef.getGridRectangle(
+                            targetGridDef.getLonLatRectangle(x, y));
+                    final SpatialAggregationCell targetCell = targetGrid.getCellSafe(x, y);
 
-                    cell.accumulate(context, gridRectangle);
+                    targetCell.accumulate(context, sourceRectangle);
                 }
             }
         }

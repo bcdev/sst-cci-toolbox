@@ -19,11 +19,13 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.calculator.SynopticUncertaintyHelper;
-import org.esa.cci.sst.common.calculator.CoverageUncertainty;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
@@ -69,7 +71,7 @@ public interface FileType {
 
     GridDef getGridDef();
 
-    Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException;
+    AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException;
 
     Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims);
 
@@ -77,47 +79,12 @@ public interface FileType {
 
     AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory();
 
-    CellFactory getCellFactory(CellTypes cellType);
+    CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final AggregationContext context);
+
+    CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory();
+
+    CellFactory getCellFactory(final AggregationContext context, CellTypes cellType);
 
     boolean hasSynopticUncertainties();
 
-    enum CellTypes {
-        SYNOPTIC_CELL_1,
-        SYNOPTIC_CELL_5,
-        SPATIAL_CELL_5,
-        CELL_90,
-        SPATIAL_CELL_REGRIDDING,
-        TEMPORAL_CELL;
-
-        //Minumum coverage fraction is only used in Regridding Tool and only for spatial aggregation.
-        private static double minCoverage;
-        private CoverageUncertainty coverageUncertaintyProvider;
-        private SynopticUncertaintyHelper synopticUncertaintyHelper;
-
-        public CellTypes setCoverageUncertaintyProvider(CoverageUncertainty coverageUncertaintyProvider) {
-            this.coverageUncertaintyProvider = coverageUncertaintyProvider;
-            return this;
-        }
-
-        public CellTypes setSynopticUncertaintyHelper(SynopticUncertaintyHelper synopticUncertaintyHelper) {
-            this.synopticUncertaintyHelper = synopticUncertaintyHelper;
-            return this;
-        }
-
-        public CoverageUncertainty getCoverageUncertaintyProvider() {
-            return coverageUncertaintyProvider;
-        }
-
-        public SynopticUncertaintyHelper getSynopticUncertaintyHelper() {
-            return synopticUncertaintyHelper;
-        }
-
-        public static double getMinCoverage() {
-            return minCoverage;
-        }
-
-        public static void setMinCoverage(double minCoverage) {
-            CellTypes.minCoverage = minCoverage;
-        }
-    }
 }

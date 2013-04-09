@@ -31,6 +31,8 @@ import java.util.StringTokenizer;
 
 /**
  * A list of regions.
+ *
+ * @author Norman Fomferra
  */
 public class RegionMaskList extends ArrayList<RegionMask> {
 

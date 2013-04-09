@@ -19,12 +19,13 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.util.NcUtils;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ucar.ma2.Array;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.*;
 
 import java.io.File;
@@ -43,8 +44,14 @@ public class CciL2PFileType extends CciL3FileType {
     private final String FORMAT = "NetCDF-CF";
 
     @Override
-    public Grid[] readSourceGrids(NetcdfFile netcdfFile, SstDepth sstDepth) throws IOException {
-        File file = new File(netcdfFile.getLocation());
+    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws
+                                                                                                                  IOException {
+        throw new NotImplementedException();
+    }
+
+    @Deprecated
+    public Grid[] readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth) throws IOException {
+        File file = new File(dataFile.getLocation());
         Grid[] grids = new Grid[6];
         String variable;
 
@@ -80,7 +87,7 @@ public class CciL2PFileType extends CciL3FileType {
         grids[4] = createArrayGrid(synopticallyCorrelatedUncertaintyReprojection, synopticallyCorrelatedUncertaintyArray, variable);
 
         variable = "adjustment_uncertainty";
-        if (!NcUtils.hasVariable(netcdfFile, variable)) {
+        if (!NcUtils.hasVariable(dataFile, variable)) {
             return Arrays.copyOf(grids, 5);
         }
         CciL2PReprojection adjustmentUncertaintyReprojection = new CciL2PReprojection();
@@ -104,13 +111,5 @@ public class CciL2PFileType extends CciL3FileType {
         double scaling = cciL2PReprojection.getScaling();
         double offset = cciL2PReprojection.getOffset();
         return new ArrayGrid(getGridDef(), array, fillValue, scaling, offset);
-    }
-
-    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws IOException { //for debugging only
-        try {
-            netcdfFile.write(variable, array);
-        } catch (InvalidRangeException e) {
-            LOGGER.throwing("Regridding Tool", "writeDataToNetCdfFile", e);
-        }
     }
 }

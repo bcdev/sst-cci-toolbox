@@ -1,60 +1,40 @@
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.common.TemporalResolution;
 import org.junit.Test;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
 
 /**
- * {@author Bettina Scholze}
- * Date: 21.11.12 14:39
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public class RegriddingCoverageUncertaintyTest {
 
     @Test
-    public void testCalculateXDay_monthly() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.monthly;
+    public void testCalculateXDay() throws Exception {
         final Calendar calendar = Calendar.getInstance();
+        Date date1;
+        Date date2;
 
         calendar.set(2010, Calendar.APRIL, 11);
-        assertEquals(30.0, RegriddingCoverageUncertainty.calculateXDay(temporalResolution,
-                                                                       calendar.getTime()));
+        date1 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_YEAR, 30);
+        date2 = calendar.getTime();
+        assertEquals(30.0, RegriddingCoverageUncertaintyProvider.calculateXDay(date1, date2));
 
         calendar.set(2012, Calendar.FEBRUARY, 7);
-        assertEquals(29.0, RegriddingCoverageUncertainty.calculateXDay(temporalResolution,
-                                                                       calendar.getTime()));
+        date1 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_YEAR, 1);
+        date2 = calendar.getTime();
+        assertEquals(1.0, RegriddingCoverageUncertaintyProvider.calculateXDay(date1, date2));
 
         calendar.set(2013, Calendar.FEBRUARY, 2);
-        assertEquals(28.0, RegriddingCoverageUncertainty.calculateXDay(temporalResolution,
-                                                                       calendar.getTime()));
-    }
-
-    @Test
-    public void testCalculateXDay_daily() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.daily;
-        assertEquals(0.0, RegriddingCoverageUncertainty.calculateXDay(temporalResolution, null));
-    }
-
-    @Test
-    public void testCalculateXDay_seasonal() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.seasonal;
-        try {
-            RegriddingCoverageUncertainty.calculateXDay(temporalResolution, null);
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
-    }
-
-    @Test
-    public void testCalculateXDay_annual() throws Exception {
-        final TemporalResolution temporalResolution = TemporalResolution.annual;
-        try {
-            RegriddingCoverageUncertainty.calculateXDay(temporalResolution, null);
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        date1 = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_YEAR, 5);
+        date2 = calendar.getTime();
+        assertEquals(5.0, RegriddingCoverageUncertaintyProvider.calculateXDay(date1, date2));
     }
 }

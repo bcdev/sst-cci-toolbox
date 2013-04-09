@@ -1,8 +1,9 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.ScalarGrid;
-import org.esa.cci.sst.common.SpatialAggregationContext;
 import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -14,11 +15,13 @@ import org.esa.cci.sst.util.TestL3ProductMaker;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 
-import java.awt.*;
+import java.awt.Rectangle;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -28,16 +31,18 @@ import static org.junit.Assert.fail;
  * Date: 04.09.12 14:32
  */
 public class CciL3FileTypeTest {
+
     FileType fileType = CciL3FileType.INSTANCE;
 
     @Test
     public void testGetFactory() throws Exception {
-        assertTrue(fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1).createCell(0, 0) instanceof SpatialAggregationCell);
-        assertTrue(fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5).createCell(0, 0) instanceof CellAggregationCell);
-        assertTrue(fileType.getCellFactory(FileType.CellTypes.SPATIAL_CELL_5).createCell(0, 0) instanceof SpatialAggregationCell);
-        assertTrue(fileType.getCellFactory(FileType.CellTypes.SPATIAL_CELL_REGRIDDING).createCell(0, 0) instanceof SpatialAggregationCell);
-        assertTrue(fileType.getCellFactory(FileType.CellTypes.CELL_90).createCell(0, 0) instanceof CellAggregationCell);
-        assertTrue(fileType.getCellFactory(FileType.CellTypes.TEMPORAL_CELL).createCell(0, 0) instanceof CellAggregationCell);
+        assertTrue(fileType.getCellFactory(null, CellTypes.SYNOPTIC_CELL_1).createCell(0,
+                                                                                       0) instanceof SpatialAggregationCell);
+        assertTrue(fileType.getCellFactory(null, CellTypes.SYNOPTIC_CELL_5).createCell(0,
+                                                                                       0) instanceof CellAggregationCell);
+        assertTrue(fileType.getCellFactory(null, CellTypes.SPATIAL_CELL_5).createCell(0,
+                                                                                      0) instanceof SpatialAggregationCell);
+        assertTrue(fileType.getCellFactory(null, CellTypes.CELL_90).createCell(0, 0) instanceof CellAggregationCell);
     }
 
     @Test
@@ -58,7 +63,7 @@ public class CciL3FileTypeTest {
     @Test
     public void testCell5Aggregation_invalidQualityLevels() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
                         new ScalarGrid(sourceGridDef, 2), //[1] qualityLevelGrid
@@ -71,8 +76,8 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -95,7 +100,7 @@ public class CciL3FileTypeTest {
     @Test
     public void testL3USynopticCell5Aggregation() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         //ignored grids in L3USynopticAreaCell1
                         new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
@@ -109,11 +114,13 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
+        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(context,
+                                                                                           CellTypes.SYNOPTIC_CELL_1);
         SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
         cellSynoptic1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5);
+        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(context,
+                                                                                        CellTypes.SYNOPTIC_CELL_5);
         CellAggregationCell cellSynoptic5 = cellFactorySynoptic5.createCell(0, 0);
 
         //execution
@@ -134,7 +141,7 @@ public class CciL3FileTypeTest {
     @Test
     public void testL3USynopticAreaCell1Aggregation() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         //ignored grids in L3USynopticAreaCell1
                         new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
@@ -148,7 +155,7 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        CellFactory<SpatialAggregationCell> cellFactory = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
+        CellFactory<SpatialAggregationCell> cellFactory = fileType.getCellFactory(context, CellTypes.SYNOPTIC_CELL_1);
         SpatialAggregationCell cell = cellFactory.createCell(0, 0);
 
         //execution
@@ -167,7 +174,7 @@ public class CciL3FileTypeTest {
     @Test
     public void testL3UCell5Aggregation() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0), //sstGrid
                         new ScalarGrid(sourceGridDef, 5), //qualityLevelGrid
@@ -180,8 +187,8 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         //execution
@@ -197,7 +204,8 @@ public class CciL3FileTypeTest {
         assertEquals(292.0, results[0].doubleValue(), 1e-6); //sst
         assertEquals(0.5, results[1].doubleValue(), 1e-6); //sstAnomaly
         assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[2].doubleValue(), 1e-6); //coverageUncertainty
-        assertEquals(sqrt((0.8 * 0.8 * 300) / ((0.8 * 300) * (0.8 * 300))), results[3].doubleValue(), 1e-6); //uncorrelatedUncertainty
+        assertEquals(sqrt((0.8 * 0.8 * 300) / ((0.8 * 300) * (0.8 * 300))), results[3].doubleValue(),
+                     1e-6); //uncorrelatedUncertainty
         assertEquals((2 * 0.8 * 300) / (0.8 * 300), results[4].doubleValue(), 1e-6); //largeScaleCorrelatedUncertainty
     }
 
@@ -205,7 +213,7 @@ public class CciL3FileTypeTest {
     public void testCell90Aggregation_fromSynopticCell5() throws Exception {
         //preparation: 1) sources
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         //ignored grids in L3USynopticAreaCell1
                         new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
@@ -220,17 +228,19 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         //preparation: 3) Synoptic1 -> Synoptic5
-        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
+        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(context,
+                                                                                           CellTypes.SYNOPTIC_CELL_1);
         SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
         cellSynoptic1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5);
+        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(context,
+                                                                                        CellTypes.SYNOPTIC_CELL_5);
         CellAggregationCell cellSynoptic5 = cellFactorySynoptic5.createCell(0, 0);
         cellSynoptic5.accumulate(cellSynoptic1, 0.5);
 
-        MockCoverageUncertainty provider = new MockCoverageUncertainty(1.1, 3.0, 2.5);
-        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
+        MockCoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
+        context.setCoverageUncertaintyProvider(provider);
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
         CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
 
         //execution
@@ -251,9 +261,9 @@ public class CciL3FileTypeTest {
 
     @Test
     public void testCell90Aggregation_fromL3UCell5() throws Exception {
-        MockCoverageUncertainty provider = new MockCoverageUncertainty(1.1, 3.0, 2.5);
-        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
+        final AggregationContext context = new AggregationContext();
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5));
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
         CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
 
         SpatialAggregationCell filledL3UCell5 = createFilledL3UCell5();
@@ -276,10 +286,11 @@ public class CciL3FileTypeTest {
 
     @Test
     public void testCell90Aggregation_IllegalCell() throws Exception {
-        MockCoverageUncertainty provider = new MockCoverageUncertainty(1.1, 3.0, 2.5);
-        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
+        final AggregationContext context = new AggregationContext();
+        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
+        context.setCoverageUncertaintyProvider(provider);
+        final CellFactory<CellAggregationCell> cellFactory = fileType.getCellFactory(context, CellTypes.CELL_90);
+        CellAggregationCell cell90 = cellFactory.createCell(0, 0);
         SpatialAggregationCell testCell = createTestSpatialAggregationCell();
 
         try {
@@ -293,12 +304,14 @@ public class CciL3FileTypeTest {
 
     @Test
     public void testCell5Factory() throws Exception {
-        MockCoverageUncertainty provider = new MockCoverageUncertainty(1.1, 3.0, 2.5);
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(provider);
-        CellFactory<SpatialAggregationCell> spatialAggregationCellFactory = fileType.getCellFactory(cellTypes);
+        final AggregationContext context = new AggregationContext();
+        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
+        context.setCoverageUncertaintyProvider(provider);
+        final CellFactory<SpatialAggregationCell> cellFactory = fileType.getCellFactory(context,
+                                                                                        CellTypes.SPATIAL_CELL_5);
 
-        assertNotNull(spatialAggregationCellFactory);
-        AggregationCell spatialAggregationCell = spatialAggregationCellFactory.createCell(18, 78);
+        assertNotNull(cellFactory);
+        AggregationCell spatialAggregationCell = cellFactory.createCell(18, 78);
         assertNotNull(spatialAggregationCell);
         assertEquals(18, spatialAggregationCell.getX());
         assertEquals(78, spatialAggregationCell.getY());
@@ -308,69 +321,87 @@ public class CciL3FileTypeTest {
     public void testFileNameRegex() throws Exception {
         assertFalse("Hallo".matches(fileType.getFilenameRegex()));
         assertFalse("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz".matches(fileType.getFilenameRegex()));
-        assertFalse("19950723120045-ESACCI-L2C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex())); //Processing level 'L2C' is wrong
-        assertFalse("20100701000000-ESACCI-L3A_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex())); //Processing level 'L3A' is wrong
-        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-04.1-01.1.nc".matches(fileType.getFilenameRegex())); //'04.1-01.1' should be 'v04.1-fv01.1'
-        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin--LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));  //miss 'SEVIRI_SST'
+        assertFalse("19950723120045-ESACCI-L2C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex())); //Processing level 'L2C' is wrong
+        assertFalse("20100701000000-ESACCI-L3A_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex())); //Processing level 'L3A' is wrong
+        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-04.1-01.1.nc".matches(
+                fileType.getFilenameRegex())); //'04.1-01.1' should be 'v04.1-fv01.1'
+        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin--LT-v04.1-fv01.1.nc".matches(
+                fileType.getFilenameRegex()));  //miss 'SEVIRI_SST'
 
-        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L3C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L3C_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("19950723120045-ESACCI-L3U_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("19950723120045-ESACCI-L3C_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTfnd-ATSR1-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20121101000000-ESACCI-L3U_GHRSST-SSTsubskin-ATSR2-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-SEVIRI_SST-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3C_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("19950723120045-ESACCI-L3U_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("19950723120045-ESACCI-L3C_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTfnd-ATSR1-LT-v04.1-fv01.1.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("20121101000000-ESACCI-L3U_GHRSST-SSTsubskin-ATSR2-LT-v04.1-fv01.1.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-v04.1-fv01.1.nc".matches(
+                fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-SEVIRI_SST-LT-v04.1-fv01.1.nc".matches(
+                fileType.getFilenameRegex()));
     }
 
     @Test
     public void testReadGrids() throws Exception {
         NetcdfFile l3UFile = TestL3ProductMaker.readL3GridsSetup();
         //execution
-        Grid[] grids = fileType.readSourceGrids(l3UFile, SstDepth.skin);
-        //verification
-        assertEquals(6, grids.length);
+        final AggregationContext context = fileType.readSourceGrids(l3UFile, SstDepth.skin, new AggregationContext());
 
         //sea_surface_temperature
-        assertEquals(2000, grids[0].getSampleInt(0, 0));
-        assertEquals(293.14999344944954, grids[0].getSampleDouble(0, 0));
-        assertEquals(1000, grids[0].getSampleInt(1, 0));
-        assertEquals(283.14999367296696, grids[0].getSampleDouble(1, 0));
+        final Grid sstGrid = context.getSstGrid();
+        assertEquals(2000, sstGrid.getSampleInt(0, 0));
+        assertEquals(293.14999344944954, sstGrid.getSampleDouble(0, 0));
+        assertEquals(1000, sstGrid.getSampleInt(1, 0));
+        assertEquals(283.14999367296696, sstGrid.getSampleDouble(1, 0));
         //quality_level
-        assertEquals(-127, grids[1].getSampleInt(0, 0));
-        assertEquals(-127.0, grids[1].getSampleDouble(0, 0));
-        assertEquals(-127, grids[1].getSampleInt(1, 0));
-        assertEquals(-127.0, grids[1].getSampleDouble(1, 0));
+        final Grid qualityGrid = context.getQualityGrid();
+        assertEquals(-127, qualityGrid.getSampleInt(0, 0));
+        assertEquals(-127.0, qualityGrid.getSampleDouble(0, 0));
+        assertEquals(-127, qualityGrid.getSampleInt(1, 0));
+        assertEquals(-127.0, qualityGrid.getSampleDouble(1, 0));
         //uncorrelated_uncertainty
-        assertEquals(-32768, grids[2].getSampleInt(0, 0));
-        assertEquals(Double.NaN, grids[2].getSampleDouble(0, 0));
-        assertEquals(-32768, grids[2].getSampleInt(1, 0));
-        assertEquals(Double.NaN, grids[2].getSampleDouble(1, 0));
+        final Grid randomUncertaintyGrid = context.getRandomUncertaintyGrid();
+        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(0, 0));
+        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(0, 0));
+        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(1, 0));
+        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(1, 0));
         //large_scale_correlated_uncertainty
-        assertEquals(-32768, grids[3].getSampleInt(0, 0));
-        assertEquals(Double.NaN, grids[3].getSampleDouble(0, 0));
-        assertEquals(-32768, grids[3].getSampleInt(1, 0));
-        assertEquals(Double.NaN, grids[3].getSampleDouble(1, 0));
+        final Grid largeScaleUncertaintyGrid = context.getLargeScaleUncertaintyGrid();
+        assertEquals(-32768, largeScaleUncertaintyGrid.getSampleInt(0, 0));
+        assertEquals(Double.NaN, largeScaleUncertaintyGrid.getSampleDouble(0, 0));
+        assertEquals(-32768, largeScaleUncertaintyGrid.getSampleInt(1, 0));
+        assertEquals(Double.NaN, largeScaleUncertaintyGrid.getSampleDouble(1, 0));
         //synoptically_correlated_uncertainty
-        assertEquals(-32768, grids[4].getSampleInt(0, 0));
-        assertEquals(Double.NaN, grids[4].getSampleDouble(0, 0));
-        assertEquals(-32768, grids[4].getSampleInt(1, 0));
-        assertEquals(Double.NaN, grids[4].getSampleDouble(1, 0));
+        final Grid synopticUncertaintyGrid = context.getSynopticUncertaintyGrid();
+        assertEquals(-32768, synopticUncertaintyGrid.getSampleInt(0, 0));
+        assertEquals(Double.NaN, synopticUncertaintyGrid.getSampleDouble(0, 0));
+        assertEquals(-32768, synopticUncertaintyGrid.getSampleInt(1, 0));
+        assertEquals(Double.NaN, synopticUncertaintyGrid.getSampleDouble(1, 0));
         //adjustment_uncertainty
         //Test file erroneous. Fill value is 'null'; actually it is in Byte and data in file are -127 in each cell
-        assertEquals(-32768, grids[5].getSampleInt(0, 0));
-        assertEquals(Double.NaN, grids[5].getSampleDouble(0, 0));
-        assertEquals(-32768, grids[5].getSampleInt(1, 0));
-        assertEquals(Double.NaN, grids[5].getSampleDouble(1, 0));
+        final Grid adjustmentUncertaintyGrid = context.getAdjustmentUncertaintyGrid();
+        assertEquals(-32768, adjustmentUncertaintyGrid.getSampleInt(0, 0));
+        assertEquals(Double.NaN, adjustmentUncertaintyGrid.getSampleDouble(0, 0));
+        assertEquals(-32768, adjustmentUncertaintyGrid.getSampleInt(1, 0));
+        assertEquals(Double.NaN, adjustmentUncertaintyGrid.getSampleDouble(1, 0));
     }
 
     private SpatialAggregationCell createTestSpatialAggregationCell() {
         return new SpatialAggregationCell() {
 
             @Override
-            public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+            public void accumulate(AggregationContext aggregationContext, Rectangle rectangle) {
             }
 
             @Override
@@ -401,13 +432,13 @@ public class CciL3FileTypeTest {
     }
 
     private CellAggregationCell createFilledL3UCell90() {
-        SpatialAggregationCell filledL3UCell5 = createFilledL3UCell5();
-        CellAggregationCell filledSynopticCell5 = createFilledSynopticCell5();
-
-        MockCoverageUncertainty provider = new MockCoverageUncertainty(1.1, 3.0, 2.5);
-        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(provider);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
+        final SpatialAggregationCell filledL3UCell5 = createFilledL3UCell5();
+        final CellAggregationCell filledSynopticCell5 = createFilledSynopticCell5();
+        final AggregationContext context = new AggregationContext();
+        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
+        context.setCoverageUncertaintyProvider(provider);
+        CellFactory<CellAggregationCell> cellFactory = fileType.getCellFactory(context, CellTypes.CELL_90);
+        CellAggregationCell cell90 = cellFactory.createCell(0, 0);
 
         cell90.accumulate(filledL3UCell5, 1.0);
         cell90.accumulate(filledSynopticCell5, 1.0);
@@ -419,14 +450,15 @@ public class CciL3FileTypeTest {
         assertEquals(1.5736546516418457, cell90.getResults()[2].doubleValue(), 1e-6); //coverageUncertainty
         assertEquals(0.05773502588272095, cell90.getResults()[3].doubleValue(), 1e-6); //uncorrelatedUncertainty
         assertEquals(2.0, cell90.getResults()[4].doubleValue(), 1e-6); //largeScaleCorrelatedUncertainty
-        assertEquals(2.1213202476501465, cell90.getResults()[5].doubleValue(), 1e-6); //synopticallyCorrelatedUncertaintyGrid
+        assertEquals(2.1213202476501465, cell90.getResults()[5].doubleValue(),
+                     1e-6); //synopticallyCorrelatedUncertaintyGrid
         assertEquals(2.8284270763397217, cell90.getResults()[6].doubleValue(), 1e-6); //adjustmentUncertaintyGrid
         return cell90;
     }
 
     private CellAggregationCell createFilledSynopticCell5() {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         //ignored grids in L3USynopticAreaCell1
                         new ScalarGrid(sourceGridDef, 292.0), //sstGrid
@@ -440,25 +472,28 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_1);
+        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(context,
+                                                                                           CellTypes.SYNOPTIC_CELL_1);
         SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
         cellSynoptic1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(FileType.CellTypes.SYNOPTIC_CELL_5);
+        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(context,
+                                                                                        CellTypes.SYNOPTIC_CELL_5);
         CellAggregationCell cellSynoptic5 = cellFactorySynoptic5.createCell(0, 0);
 
         cellSynoptic5.accumulate(cellSynoptic1, 1.0);
         cellSynoptic5.accumulate(cellSynoptic1, 1.0);
 
         assertEquals(2, cellSynoptic5.getSampleCount());
-        assertEquals(2.1213202476501465, cellSynoptic5.getResults()[0].doubleValue(), 1e-6); //synopticallyCorrelatedUncertaintyGrid
+        assertEquals(2.1213202476501465, cellSynoptic5.getResults()[0].doubleValue(),
+                     1e-6); //synopticallyCorrelatedUncertaintyGrid
         assertEquals(2.8284270763397217, cellSynoptic5.getResults()[1].doubleValue(), 1e-6); //adjustmentUncertaintyGrid
         return cellSynoptic5;
     }
 
     private SpatialAggregationCell createFilledL3UCell5() {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0), //sstGrid
                         new ScalarGrid(sourceGridDef, 5), //qualityLevelGrid
@@ -468,9 +503,9 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        MockCoverageUncertainty uncertaintyProvider = new MockCoverageUncertainty(1.1, 1.2, 0.5);
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(uncertaintyProvider);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        final CoverageUncertaintyProvider uncertaintyProvider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
+        context.setCoverageUncertaintyProvider(uncertaintyProvider);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));

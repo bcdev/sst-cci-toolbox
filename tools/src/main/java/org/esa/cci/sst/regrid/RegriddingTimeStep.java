@@ -25,17 +25,13 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 
 import java.util.Date;
 
-/**
- * {@author Bettina Scholze}
- * Date: 13.08.12 16:12
- */
-public class RegriddingTimeStep implements TimeStep {
+final class RegriddingTimeStep implements TimeStep {
 
     private final Date startDate;
     private final Date endDate;
     private final CellGrid<? extends AggregationCell> cellGrid;
 
-    public RegriddingTimeStep(Date startDate, Date endDate, CellGrid<? extends AggregationCell> cellGrid) {
+    RegriddingTimeStep(Date startDate, Date endDate, CellGrid<? extends AggregationCell> cellGrid) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.cellGrid = cellGrid;

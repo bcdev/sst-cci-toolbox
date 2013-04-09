@@ -19,8 +19,7 @@
 
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.common.calculator.CoverageUncertainty;
-import org.esa.cci.sst.common.SpatialResolution;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 
 import static java.lang.Math.pow;
@@ -31,11 +30,11 @@ import static java.lang.Math.sqrt;
  *
  * @author Norman Fomnferra
  */
-abstract class AveragingCoverageUncertainty implements CoverageUncertainty {
+abstract class AveragingCoverageUncertaintyProvider implements CoverageUncertaintyProvider {
 
     private final int month;
 
-    protected AveragingCoverageUncertainty(int month) {
+    protected AveragingCoverageUncertaintyProvider(int month) {
         this.month = month;
     }
 

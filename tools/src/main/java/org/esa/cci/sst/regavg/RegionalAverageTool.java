@@ -221,9 +221,6 @@ public final class RegionalAverageTool extends Tool {
         LUT1 lut1 = getLUT1(lut1File);
         LUT2 lut2 = getLUT2(lut2File);
 
-        // Enable for debugging
-        // printGrid(climatology);
-
         List<AveragingTimeStep> timeSteps;
         try {
             AveragingAggregator aggregator = new AveragingAggregator(regionMaskList, fileStore, climatology, lut1, lut2,

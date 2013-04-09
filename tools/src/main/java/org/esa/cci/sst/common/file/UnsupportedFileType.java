@@ -19,10 +19,11 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
@@ -69,7 +70,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
+    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException {
         throw notImplemented();
     }
 
@@ -84,7 +85,12 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public CellFactory getCellFactory(CellTypes cellType) {
+    public CellFactory getCellFactory(AggregationContext context, CellTypes cellType) {
+        throw notImplemented();
+    }
+
+    @Override
+    public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(AggregationContext context) {
         throw notImplemented();
     }
 
@@ -94,7 +100,8 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims) {
+    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty,
+                                            Dimension[] dims) {
         throw notImplemented();
     }
 

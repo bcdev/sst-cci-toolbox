@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.common.cell;
 
-import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.AggregationContext;
 
 import java.awt.*;
 
@@ -30,5 +30,5 @@ import java.awt.*;
  */
 public interface SpatialAggregationCell extends AggregationCell {
 
-    void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect);
+    void accumulate(AggregationContext aggregationContext, Rectangle rectangle);
 }

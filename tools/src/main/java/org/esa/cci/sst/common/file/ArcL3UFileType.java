@@ -19,12 +19,20 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.RegionalAggregation;
-import org.esa.cci.sst.common.SpatialAggregationContext;
 import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.calculator.*;
-import org.esa.cci.sst.common.cell.*;
+import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
+import org.esa.cci.sst.common.calculator.NumberAccumulator;
+import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.cell.AbstractAggregationCell;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellAggregationCell;
+import org.esa.cci.sst.common.cell.CellFactory;
+import org.esa.cci.sst.common.cell.DefaultSpatialAggregationCell;
+import org.esa.cci.sst.common.cell.DefaultSpatialAggregationCellFactory;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
@@ -32,13 +40,17 @@ import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.DataType;
-import ucar.nc2.*;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.Variable;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -62,6 +74,7 @@ import static java.lang.Math.round;
  * Find more info in the <a href="https://www.wiki.ed.ac.uk/display/arcwiki/Test+Data#TestData-NetCDFDataFiles">arcwiki</a>.
  *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class ArcL3UFileType implements FileType {
 
@@ -106,21 +119,27 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
-        Grid[] grids = new Grid[2];
-        if (sstDepth == SstDepth.depth_20) {
-            grids[0] = NcUtils.readGrid(file, "sst_depth", getGridDef(), 0);
-        } else if (sstDepth == SstDepth.depth_100) {
-            grids[0] = NcUtils.readGrid(file, "sst_depth", getGridDef(), 1);
-        } else /*if (sstDepth == SstDepth.skin)*/ {
-            grids[0] = NcUtils.readGrid(file, "sst_skin", getGridDef(), 0);
+    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException {
+        switch (sstDepth) {
+            case skin:
+                context.setSstGrid(NcUtils.readGrid(dataFile, "sst_skin", getGridDef(), 0));
+                break;
+            case depth_20:
+                context.setSstGrid(NcUtils.readGrid(dataFile, "sst_depth", getGridDef(), 0));
+                break;
+            case depth_100:
+                context.setSstGrid(NcUtils.readGrid(dataFile, "sst_depth", getGridDef(), 1));
+                break;
+            default:
+                throw new IllegalArgumentException(MessageFormat.format("sstDept = {0}", sstDepth));
         }
-        grids[1] = NcUtils.readGrid(file, "uncertainty", getGridDef(), 0);
-        return grids;
+        context.setRandomUncertaintyGrid(NcUtils.readGrid(dataFile, "uncertainty", getGridDef(), 0));
+        return context;
     }
 
     @Override
-    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims) {
+    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty,
+                                            Dimension[] dims) {
 
         Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
@@ -129,7 +148,8 @@ public class ArcL3UFileType implements FileType {
 
         Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
-        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
+        sstAnomalyVar.addAttribute(
+                new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
@@ -171,29 +191,28 @@ public class ArcL3UFileType implements FileType {
     }
 
     @Override
-    public CellFactory getCellFactory(final CellTypes cellType) {
+    public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(AggregationContext context) {
+        return new DefaultSpatialAggregationCellFactory(context);
+    }
+
+    @Override
+    public CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory() {
+        return new CellFactory<CellAggregationCell<AggregationCell>>() {
+            @Override
+            public ArcL3UTemporalCell createCell(int cellX, int cellY) {
+                return new ArcL3UTemporalCell(cellX, cellY);
+            }
+        };
+    }
+
+    @Override
+    public CellFactory getCellFactory(final AggregationContext context, final CellTypes cellType) {
         switch (cellType) {
-            case TEMPORAL_CELL:
-                return new CellFactory<AggregationCell>() {
-                    @Override
-                    public AggregationCell createCell(int cellX, int cellY) {
-                        return new ArcL3UTemporalCell(cellX, cellY);
-                    }
-                };
             case SPATIAL_CELL_5: {
                 return new CellFactory<SpatialAggregationCell>() {
                     @Override
                     public ArcL3UCell5 createCell(int cellX, int cellY) {
-                        return new ArcL3UCell5(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
-                    }
-                };
-            }
-            case SPATIAL_CELL_REGRIDDING: {
-                return new CellFactory<SpatialAggregationCell>() {
-                    @Override
-                    public ArcL3URegriddingCell createCell(int cellX, int cellY) {
-                        return new ArcL3URegriddingCell(cellType.getCoverageUncertaintyProvider(),
-                                CellTypes.getMinCoverage(), cellX, cellY);
+                        return new ArcL3UCell5(context, cellX, cellY);
                     }
                 };
             }
@@ -201,7 +220,7 @@ public class ArcL3UFileType implements FileType {
                 return new CellFactory<CellAggregationCell>() {
                     @Override
                     public ArcL3UCell90 createCell(int cellX, int cellY) {
-                        return new ArcL3UCell90(cellType.getCoverageUncertaintyProvider(), cellX, cellY);
+                        return new ArcL3UCell90(context, cellX, cellY);
                     }
                 };
             }
@@ -211,12 +230,13 @@ public class ArcL3UFileType implements FileType {
     }
 
     private static abstract class AbstractArcL3UCell extends AbstractAggregationCell {
+
         protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
         protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
         protected final NumberAccumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
 
-        private AbstractArcL3UCell(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
-            super(coverageUncertaintyProvider, x, y);
+        public AbstractArcL3UCell(AggregationContext context, int cellX, int cellY) {
+            super(context, cellX, cellY);
         }
 
         @Override
@@ -251,6 +271,7 @@ public class ArcL3UFileType implements FileType {
     }
 
     private static class ArcL3UTemporalCell extends AbstractArcL3UCell implements CellAggregationCell<AggregationCell> {
+
         private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
 
         private ArcL3UTemporalCell(int x, int y) {
@@ -275,112 +296,48 @@ public class ArcL3UFileType implements FileType {
 
     private static class ArcL3UCell5 extends AbstractArcL3UCell implements SpatialAggregationCell {
 
-        private ArcL3UCell5(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
-            super(coverageUncertaintyProvider, x, y);
+        private ArcL3UCell5(AggregationContext context, int cellX, int cellY) {
+            super(context, cellX, cellY);
         }
 
         @Override
         public double computeCoverageUncertainty() {
-            return getCoverageUncertainty().calculate(this, 5.0);
+            return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 5.0);
         }
 
         @Override
-        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
+        public void accumulate(AggregationContext aggregationContext, Rectangle rectangle) {
 
-            final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
-            final Grid uncertaintyGrid = spatialAggregationContext.getSourceGrids()[1];
-            final Grid analysedSstGrid = spatialAggregationContext.getClimatologySst();
-            final Grid seaCoverageGrid = spatialAggregationContext.getClimatologySeaCoverage();
+            final Grid sstGrid = aggregationContext.getSourceGrids()[0];
+            final Grid uncertaintyGrid = aggregationContext.getSourceGrids()[1];
+            final Grid analysedSstGrid = aggregationContext.getClimatologySstGrid();
+            final Grid seaCoverageGrid = aggregationContext.getSeaCoverageGrid();
 
-            final int x0 = rect.x;
-            final int y0 = rect.y;
-            final int x1 = x0 + rect.width - 1;
-            final int y1 = y0 + rect.height - 1;
+            final int x0 = rectangle.x;
+            final int y0 = rectangle.y;
+            final int x1 = x0 + rectangle.width - 1;
+            final int y1 = y0 + rectangle.height - 1;
             for (int y = y0; y <= y1; y++) {
                 for (int x = x0; x <= x1; x++) {
                     final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
                     if (seaCoverage > 0.0) {
                         sstAccu.accumulate(sstGrid.getSampleDouble(x, y), seaCoverage);
-                        sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
+                        sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y),
+                                                  seaCoverage);
                         arcUncertaintyAccu.accumulate(uncertaintyGrid.getSampleDouble(x, y), seaCoverage);
                     }
                 }
-            }
-        }
-    }
-
-    private static class ArcL3URegriddingCell extends AbstractArcL3UCell implements SpatialAggregationCell {
-        private double minCoverage;
-        private int maximumSampleCount;
-        protected final NumberAccumulator stdDeviationAccu = new SquaredAverageAccumulator();
-
-
-        private ArcL3URegriddingCell(CoverageUncertainty coverageUncertaintyProvider, double minCoverage, int x, int y) {
-            super(coverageUncertaintyProvider, x, y);
-            this.minCoverage = minCoverage;
-        }
-
-        @Override
-        public double computeCoverageUncertainty() {
-            return getCoverageUncertainty().calculate(this, stdDeviationAccu.combine());
-        }
-
-        @Override
-        public void accumulate(SpatialAggregationContext spatialAggregationContext, Rectangle rect) {
-            maximumSampleCount = rect.height * rect.width;
-
-            final Grid sstGrid = spatialAggregationContext.getSourceGrids()[0];
-            final Grid uncertaintyGrid = spatialAggregationContext.getSourceGrids()[1];
-            final Grid analysedSstGrid = spatialAggregationContext.getClimatologySst();
-            final Grid seaCoverageGrid = spatialAggregationContext.getClimatologySeaCoverage();
-            final Grid stdDeviationGrid = spatialAggregationContext.getStandardDeviation();
-
-            final int x0 = rect.x;
-            final int y0 = rect.y;
-            final int x1 = x0 + rect.width - 1;
-            final int y1 = y0 + rect.height - 1;
-            for (int y = y0; y <= y1; y++) {
-                for (int x = x0; x <= x1; x++) {
-                    final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
-                    final double sst = sstGrid.getSampleDouble(x, y);
-                    if (seaCoverage > 0.0 && sst > 0.0) {
-                        sstAccu.accumulate(sst, seaCoverage);
-                        sstAnomalyAccu.accumulate(sst - analysedSstGrid.getSampleDouble(x, y), seaCoverage);
-                        arcUncertaintyAccu.accumulate(uncertaintyGrid.getSampleDouble(x, y), seaCoverage);
-                        stdDeviationAccu.accumulate(stdDeviationGrid.getSampleDouble(x, y), seaCoverage);
-                    }
-                }
-            }
-        }
-
-        @Override
-        public Number[] getResults() {
-            // Note: Result types must match those defined in FileType.createOutputVariables().
-            return new Number[]{
-                    (float) checkMinCoverage(computeSstAverage()),
-                    (float) checkMinCoverage(computeSstAnomalyAverage()),
-                    (float) checkMinCoverage(computeCoverageUncertainty()),
-                    (float) checkMinCoverage(computeArcUncertaintyAverage())
-            };
-        }
-
-        private double checkMinCoverage(double result) {
-            boolean hasMinCoverage = minCoverage < sstAccu.getSampleCount() * 1.0 / maximumSampleCount;
-
-            if (hasMinCoverage) {
-                return result;
-            } else {
-                return Double.NaN;
             }
         }
     }
 
     private static class ArcL3UCell90 extends AbstractArcL3UCell implements CellAggregationCell<ArcL3UCell5> {
+
         // New 5-to-90 deg coverage uncertainty aggregation
         protected final NumberAccumulator coverageUncertainty5Accu = new RandomUncertaintyAccumulator();
 
-        private ArcL3UCell90(CoverageUncertainty coverageUncertaintyProvider, int x, int y) {
-            super(coverageUncertaintyProvider, x, y);
+        public ArcL3UCell90(AggregationContext context, int cellX, int cellY) {
+            super(context, cellX, cellY);
         }
 
         public double computeCoverageUncertainty5Average() {
@@ -390,7 +347,7 @@ public class ArcL3UFileType implements FileType {
         @Override
         public double computeCoverageUncertainty() {
             final double uncertainty5 = computeCoverageUncertainty5Average();
-            final double uncertainty90 = getCoverageUncertainty().calculate(this, 90.0);
+            final double uncertainty90 = getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 90.0);
             return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
         }
 
@@ -405,6 +362,7 @@ public class ArcL3UFileType implements FileType {
     }
 
     private static class ArcL3UAggregation implements RegionalAggregation {
+
         protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
         protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
         protected final NumberAccumulator arcUncertaintyAccu = new RandomUncertaintyAccumulator();
@@ -443,7 +401,9 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3USameMonthAggregation extends ArcL3UAggregation implements SameMonthAggregation<AbstractArcL3UCell> {
+    private static class ArcL3USameMonthAggregation extends ArcL3UAggregation
+            implements SameMonthAggregation<AbstractArcL3UCell> {
+
         @Override
         public void accumulate(AbstractArcL3UCell cell, double seaCoverage) {
             sstAccu.accumulate(cell.computeSstAverage(), seaCoverage);
@@ -453,7 +413,9 @@ public class ArcL3UFileType implements FileType {
         }
     }
 
-    private static class ArcL3UMultiMonthAggregation extends ArcL3UAggregation implements MultiMonthAggregation<ArcL3UAggregation> {
+    private static class ArcL3UMultiMonthAggregation extends ArcL3UAggregation
+            implements MultiMonthAggregation<ArcL3UAggregation> {
+
         @Override
         public void accumulate(ArcL3UAggregation aggregation) {
             sstAccu.accumulate(aggregation.computeSstAverage(), 1.0);

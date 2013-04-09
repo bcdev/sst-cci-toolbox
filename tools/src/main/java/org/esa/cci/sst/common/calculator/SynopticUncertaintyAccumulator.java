@@ -19,12 +19,11 @@
 
 package org.esa.cci.sst.common.calculator;
 
-import org.esa.cci.sst.common.SpatialResolution;
-import org.esa.cci.sst.common.TemporalResolution;
-
 /**
- * {@author Bettina Scholze}
- * Date: 06.09.12 14:41
+ * For accumulating synoptic and adjustment uncertainties.
+ *
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public class SynopticUncertaintyAccumulator extends NumberAccumulator {
 

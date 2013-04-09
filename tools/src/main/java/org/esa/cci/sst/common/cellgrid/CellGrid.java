@@ -37,11 +37,15 @@ public class CellGrid<C extends Cell> {
     private final GridDef gridDef;
     private final int width;
     private final int height;
-    private final CellFactory<C> cellFactory;
+    private final CellFactory<? extends C> cellFactory;
     private final C[] cells;
 
+    public static <C extends Cell> CellGrid<C> create(GridDef gridDef, CellFactory<? extends C> cellFactory) {
+        return new CellGrid<C>(gridDef, cellFactory);
+    }
+
     @SuppressWarnings("unchecked")
-    public CellGrid(GridDef gridDef, CellFactory<C> cellFactory) {
+    private CellGrid(GridDef gridDef, CellFactory<? extends C> cellFactory) {
         this.gridDef = gridDef;
         this.cellFactory = cellFactory;
         width = gridDef.getWidth();
@@ -61,7 +65,7 @@ public class CellGrid<C extends Cell> {
         return gridDef;
     }
 
-    public CellFactory<C> getCellFactory() {
+    public CellFactory<? extends C> getCellFactory() {
         return cellFactory;
     }
 
@@ -99,7 +103,7 @@ public class CellGrid<C extends Cell> {
     }
 
     public List<C> getCells(CellFilter<C> filter) {
-        ArrayList<C> cellList = new ArrayList<C>(getWidth() * getHeight());
+        final ArrayList<C> cellList = new ArrayList<C>(getWidth() * getHeight());
         for (C cell : cells) {
             if (cell != null && filter.accept(cell)) {
                 cellList.add(cell);

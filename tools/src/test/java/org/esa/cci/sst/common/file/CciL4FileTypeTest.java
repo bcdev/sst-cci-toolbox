@@ -1,8 +1,9 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.ScalarGrid;
-import org.esa.cci.sst.common.SpatialAggregationContext;
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
@@ -29,7 +30,7 @@ public class CciL4FileTypeTest {
     @Test
     public void testL3UCell5Aggregation() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0), //sstGrid
                         new ScalarGrid(sourceGridDef, 1.0), //analysisErrorGrid
@@ -38,8 +39,9 @@ public class CciL4FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(new MockCoverageUncertainty(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        context.setCoverageUncertaintyProvider(
+                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         //execution
@@ -61,13 +63,8 @@ public class CciL4FileTypeTest {
 
     @Test
     public void testCell90Aggregation() throws Exception {
-        MockCoverageUncertainty coverageUncertaintyProvider = new MockCoverageUncertainty(1.1, 1.2, 0.5);
-        FileType.CellTypes cellType = FileType.CellTypes.CELL_90.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(cellType);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
-
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        SpatialAggregationContext context = new SpatialAggregationContext(sourceGridDef,
+        AggregationContext context = new AggregationContext(
                 new Grid[]{
                         new ScalarGrid(sourceGridDef, 292.0), //analysed_sst
                         new ScalarGrid(sourceGridDef, 0.1), //analysis_error
@@ -76,8 +73,12 @@ public class CciL4FileTypeTest {
                 new ScalarGrid(sourceGridDef, 291.5),
                 new ScalarGrid(sourceGridDef, 0.8));
 
-        FileType.CellTypes cellTypes = FileType.CellTypes.SPATIAL_CELL_5.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(cellTypes);
+        final CoverageUncertaintyProvider coverageUncertaintyProvider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
+        context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
+
+        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
+        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -125,25 +126,26 @@ public class CciL4FileTypeTest {
     public void testReadSourceGrids() throws Exception {
         NetcdfFile l4File = TestL3ProductMaker.readL4GridsSetup();
         //execution
-        Grid[] grids = fileType.readSourceGrids(l4File, SstDepth.skin);
-        //verification
-        assertEquals(3, grids.length);
+        final AggregationContext context = fileType.readSourceGrids(l4File, SstDepth.skin, new AggregationContext());
 
         // analysed_sst
-        assertEquals(2000, grids[0].getSampleInt(0, 0));
-        assertEquals(293.14999344944954, grids[0].getSampleDouble(0, 0));
-        assertEquals(2000, grids[0].getSampleInt(1, 0));
-        assertEquals(293.14999344944954, grids[0].getSampleDouble(1, 0));
+        final Grid sstGrid = context.getSstGrid();
+        assertEquals(2000, sstGrid.getSampleInt(0, 0));
+        assertEquals(293.14999344944954, sstGrid.getSampleDouble(0, 0));
+        assertEquals(2000, sstGrid.getSampleInt(1, 0));
+        assertEquals(293.14999344944954, sstGrid.getSampleDouble(1, 0));
         // analysis_error
-        assertEquals(-32768, grids[1].getSampleInt(0, 0));
-        assertEquals(Double.NaN, grids[1].getSampleDouble(0, 0));
-        assertEquals(-32768, grids[1].getSampleInt(1, 0));
-        assertEquals(Double.NaN, grids[1].getSampleDouble(1, 0));
+        final Grid randomUncertaintyGrid = context.getRandomUncertaintyGrid();
+        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(0, 0));
+        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(0, 0));
+        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(1, 0));
+        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(1, 0));
         // sea_ice_fraction
-        assertEquals(-128, grids[2].getSampleInt(0, 0));
-        assertEquals(Double.NaN, grids[2].getSampleDouble(0, 0));
-        assertEquals(-128, grids[2].getSampleInt(1, 0));
-        assertEquals(Double.NaN, grids[2].getSampleDouble(1, 0));
+        final Grid seaIceFractionGrid = context.getSeaIceFractionGrid();
+        assertEquals(-128, seaIceFractionGrid.getSampleInt(0, 0));
+        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(0, 0));
+        assertEquals(-128, seaIceFractionGrid.getSampleInt(1, 0));
+        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(1, 0));
     }
 
     @Test

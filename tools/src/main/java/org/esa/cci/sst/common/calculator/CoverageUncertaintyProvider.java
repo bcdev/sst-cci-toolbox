@@ -27,7 +27,7 @@ import org.esa.cci.sst.common.cell.AggregationCell;
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public interface CoverageUncertainty {
+public interface CoverageUncertaintyProvider {
 
     /**
      * Calculates the coverage uncertainty of an aggregation cell.

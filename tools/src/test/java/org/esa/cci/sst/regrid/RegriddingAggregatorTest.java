@@ -1,9 +1,9 @@
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
-import org.esa.cci.sst.common.TimeStep;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
@@ -37,25 +37,19 @@ public class RegriddingAggregatorTest {
     public void setUp() throws Exception {
         final ProductType productType = ProductType.ARC_L3U;
         final FileStore fileStore = FileStore.create(productType, productType.getDefaultFilenameRegex());
+        final GridDef targetGridDef = GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getResolution());
 
-        regriddingAggregator = new RegriddingAggregator(null, fileStore, null, null, null, null, null,
-                                                        SstDepth.skin, 0.0, SpatialResolution.DEGREE_0_50
-        ) {
+        regriddingAggregator = new RegriddingAggregator(fileStore, null, SstDepth.skin, new AggregationContext(), null,
+                                                        null) {
 
             @Override
-            CellGrid<SpatialAggregationCell> aggregateTimeRangeAndRegrid(Date date1, Date date2,
-                                                                         SpatialResolution spatialResolution,
-                                                                         TemporalResolution temporalResolution) throws
-                                                                                                                IOException {
-                return new CellGrid<SpatialAggregationCell>(GridDef.createGlobal(spatialResolution.getResolution()),
-                                                            null);
+            CellGrid<SpatialAggregationCell> aggregateTimeStep(Date date1, Date date2) throws IOException {
+                return CellGrid.create(targetGridDef, null);
             }
 
             @Override
-            CellGrid<AggregationCell> aggregateMultiMonths(List<? extends TimeStep> monthlyTimeSteps) {
-                return new CellGrid<AggregationCell>(
-                        GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getResolution()), null);
-
+            CellGrid<? extends AggregationCell> aggregateMultiMonths(List<RegriddingTimeStep> monthlyTimeSteps) {
+                return CellGrid.create(targetGridDef, null);
             }
         };
     }
@@ -121,7 +115,7 @@ public class RegriddingAggregatorTest {
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-01");
 
         //execution 1
-        Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-07");
+        Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-08");
         List<RegriddingTimeStep> results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 1
         assertEquals("7 days, will give 7 coarser files", 7, results.size());
@@ -141,7 +135,7 @@ public class RegriddingAggregatorTest {
         assertEquals("2012-11-08", df.format(results.get(6).getEndDate()));
 
         //execution 2
-        endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-23");
+        endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-24");
         results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 2
         assertEquals("23 days, will give 23 coarser files", 23, results.size());
@@ -153,17 +147,17 @@ public class RegriddingAggregatorTest {
         Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-09-01");
 
         //execution 1
-        Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-10-31");
+        Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-01");
         List<RegriddingTimeStep> results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 1
-        assertEquals("2 months, will give 3 coarser files", 2, results.size());
+        assertEquals("2 months, will give 2 coarser files", 2, results.size());
         assertEquals("2012-09-01", df.format(results.get(0).getStartDate()));
         assertEquals("2012-10-01", df.format(results.get(0).getEndDate()));
         assertEquals("2012-10-01", df.format(results.get(1).getStartDate()));
         assertEquals("2012-11-01", df.format(results.get(1).getEndDate()));
 
         //execution 2
-        endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-01");
+        endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-11-02");
         results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 2
         assertEquals("2 and a started 3rd months, will give 3 coarser files", 3, results.size());
@@ -176,7 +170,7 @@ public class RegriddingAggregatorTest {
 
         //execution 3
         startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-03-04");
-        endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-04-03");
+        endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-04-04");
         results = regriddingAggregator.aggregate(startDate, endDate, daily);
         //verification 3
         assertEquals("1 month, will give 1 coarser file", 1, results.size());

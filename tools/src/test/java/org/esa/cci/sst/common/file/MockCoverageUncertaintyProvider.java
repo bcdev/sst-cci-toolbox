@@ -1,18 +1,18 @@
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.calculator.CoverageUncertainty;
+import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
-final class MockCoverageUncertainty implements CoverageUncertainty {
+final class MockCoverageUncertaintyProvider implements CoverageUncertaintyProvider {
 
     private final double magnitude90;
     private final double magnitude5;
     private final double exponent5;
 
-    MockCoverageUncertainty(double magnitude90, double magnitude5, double exponent5) {
+    MockCoverageUncertaintyProvider(double magnitude90, double magnitude5, double exponent5) {
         this.magnitude90 = magnitude90;
         this.magnitude5 = magnitude5;
         this.exponent5 = exponent5;

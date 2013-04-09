@@ -20,10 +20,7 @@
 package org.esa.cci.sst.common.calculator;
 
 /**
- * An {@link NumberAccumulator} used for weighted, uncorrelated uncertainty averaging.
- * <p/>
- * The actual result can be interpreted as the standard deviation of a weighted sample mean
- * (see http://en.wikipedia.org/wiki/Weighted_mean).
+ * For accumulating random uncertainties.
  *
  * @author Norman Fomferra
  * @author Ralf Quast

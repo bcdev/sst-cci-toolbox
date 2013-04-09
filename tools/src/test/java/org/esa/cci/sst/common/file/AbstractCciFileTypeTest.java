@@ -1,8 +1,12 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
@@ -72,8 +76,8 @@ public class AbstractCciFileTypeTest {
             }
 
             @Override
-            public Grid[] readSourceGrids(NetcdfFile file, SstDepth sstDepth) throws IOException {
-                return new Grid[0];
+            public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException {
+                return context;
             }
 
             @Override
@@ -92,7 +96,12 @@ public class AbstractCciFileTypeTest {
             }
 
             @Override
-            public CellFactory getCellFactory(CellTypes cellType) {
+            public CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory() {
+                return null;
+            }
+
+            @Override
+            public CellFactory getCellFactory(AggregationContext context, CellTypes cellType) {
                 return null;
             }
 

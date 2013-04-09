@@ -21,6 +21,7 @@ package org.esa.cci.sst.common.calculator;
 
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.common.cell.AggregationCell;
 
 /**
  * Calculates average spatial and temporal separations for calculating synoptic uncertainties.
@@ -29,7 +30,9 @@ import org.esa.cci.sst.common.TemporalResolution;
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public class SynopticUncertaintyHelper {
+public class SynopticUncertaintyProvider {
+
+    private static final double LXY = 100.0; // 100 km
 
     private final double spatialResolution;
     private final TemporalResolution temporalResolution;
@@ -40,7 +43,7 @@ public class SynopticUncertaintyHelper {
      * @param spatialResolution  The spatial target resolution.
      * @param temporalResolution The temporal target resolution.
      */
-    public SynopticUncertaintyHelper(SpatialResolution spatialResolution, TemporalResolution temporalResolution) {
+    public SynopticUncertaintyProvider(SpatialResolution spatialResolution, TemporalResolution temporalResolution) {
         this.spatialResolution = spatialResolution.getResolution();
         this.temporalResolution = temporalResolution;
     }
@@ -48,7 +51,7 @@ public class SynopticUncertaintyHelper {
     /**
      * Calculates the average synoptic separation distance.
      *
-     * @param y The y index of a cell in the target grid.
+     * @param y The y index of a cell in the target grid (km).
      *
      * @return the average separation distance (km).
      */
@@ -72,7 +75,7 @@ public class SynopticUncertaintyHelper {
     }
 
     /**
-     * Returns the average synoptic time separation.
+     * Returns the average synoptic time separation (days).
      *
      * @return the average time separation (days).
      */
@@ -124,6 +127,10 @@ public class SynopticUncertaintyHelper {
         }
     }
 
+    private double r(int y) {
+        return Math.exp(-0.5 * (dxy(y) / LXY + dt()));
+    }
+
     /**
      * Returns the effective number of synoptic areas in a grid cell.
      *
@@ -132,15 +139,19 @@ public class SynopticUncertaintyHelper {
      *
      * @return the effective number of synoptic areas.
      */
-    public double eta(int y, long sampleCount) {
-        final double dt = dt();
-        final double dxy = dxy(y);
+    double eta(int y, long sampleCount) {
+        return sampleCount / (1.0 + r(y) * (sampleCount - 1));
+    }
 
-        final double lxy = 100.0; // km
-        final double lt = 1.0; // day
-
-        final double r = Math.exp(-0.5 * (dxy / lxy + dt / lt));
-
-        return sampleCount / (1 + r * (sampleCount - 1));
+    /**
+     * Calculates the synoptic uncertainty for a given aggregation cell.
+     *
+     * @param cell The aggregation cell.
+     * @param a    The accumulated synoptic uncertainties.
+     *
+     * @return the synoptic uncertainty.
+     */
+    public double calculate(AggregationCell cell, double a) {
+        return a / eta(cell.getY(), cell.getSampleCount());
     }
 }
