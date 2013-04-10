@@ -21,7 +21,7 @@ package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.file.ArcL3UFileType;
+import org.esa.cci.sst.common.file.ArcL3FileType;
 import org.esa.cci.sst.common.file.CciL2PFileType;
 import org.esa.cci.sst.common.file.CciL3FileType;
 import org.esa.cci.sst.common.file.CciL4FileType;
@@ -39,7 +39,7 @@ import java.util.Date;
  * @author Ralf Quast
  */
 public enum ProductType {
-    ARC_L3U(ArcL3UFileType.INSTANCE, ProcessingLevel.L3U),
+    ARC_L3U(ArcL3FileType.INSTANCE, ProcessingLevel.L3U),
     CCI_L2P(CciL2PFileType.INSTANCE, ProcessingLevel.L2P),
     CCI_L3U(CciL3FileType.INSTANCE, ProcessingLevel.L3U),
     CCI_L3C(CciL3FileType.INSTANCE, ProcessingLevel.L3C),

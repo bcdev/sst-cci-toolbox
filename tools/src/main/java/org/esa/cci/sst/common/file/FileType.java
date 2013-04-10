@@ -54,11 +54,11 @@ public interface FileType {
     Date parseDate(File file) throws ParseException;
 
     /**
-     * @param file The NetCDF file.
+     * @param dataFile The NetCDF file.
      * @return The date as read from the NetCDF file.
      * @throws java.io.IOException If the date could not be read.
      */
-    Date readDate(NetcdfFile file) throws IOException;
+    Date readDate(NetcdfFile dataFile) throws IOException;
 
     /**
      * Gives the RDAC (Regional Data Assembly Center) of the origin product.

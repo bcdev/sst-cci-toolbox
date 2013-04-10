@@ -65,7 +65,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public Date readDate(NetcdfFile file) throws IOException {
+    public Date readDate(NetcdfFile dataFile) throws IOException {
         throw notImplemented();
     }
 

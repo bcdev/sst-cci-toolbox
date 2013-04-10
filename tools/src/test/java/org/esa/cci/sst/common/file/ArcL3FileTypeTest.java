@@ -29,9 +29,9 @@ import static org.junit.Assert.fail;
 /**
  * @author Norman Fomferra
  */
-public class ArcL3UFileTypeTest {
+public class ArcL3FileTypeTest {
 
-    FileType fileType = ArcL3UFileType.INSTANCE;
+    FileType fileType = ArcL3FileType.INSTANCE;
 
     @Test
     public void testParseDate() throws Exception {

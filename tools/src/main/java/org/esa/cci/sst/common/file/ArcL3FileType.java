@@ -54,8 +54,6 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 
-import static java.lang.Math.round;
-
 /**
  * Represents the ARC_L3U file type.
  * <p/>
@@ -75,18 +73,18 @@ import static java.lang.Math.round;
  * @author Norman Fomferra
  * @author Ralf Quast
  */
-public class ArcL3UFileType implements FileType {
+public final class ArcL3FileType implements FileType {
 
-    public static final ArcL3UFileType INSTANCE = new ArcL3UFileType();
+    public static final ArcL3FileType INSTANCE = new ArcL3FileType();
 
-    public final DateFormat dateFormat = UTC.getDateFormat("yyyyMMdd");
-    public final int filenameDateOffset = "ATS_AVG_3PAARC".length();
-    public final GridDef gridDef = GridDef.createGlobal(3600, 1800); //source always in 0.01 ° resolution
+    private static final DateFormat DATE_FORMAT = UTC.getDateFormat("yyyyMMdd");
+    private static final int FILENAME_DATE_OFFSET = "ATS_AVG_3PAARC".length();
+    private static final GridDef GRID_DEF = GridDef.createGlobal(3600, 1800); //source always in 0.01 ° resolution
 
     @Override
     public Date parseDate(File file) throws ParseException {
-        String dateString = file.getName().substring(filenameDateOffset, filenameDateOffset + 8);
-        return dateFormat.parse(dateString);
+        final String dateString = file.getName().substring(FILENAME_DATE_OFFSET, FILENAME_DATE_OFFSET + 8);
+        return DATE_FORMAT.parse(dateString);
     }
 
     @Override
@@ -101,24 +99,26 @@ public class ArcL3UFileType implements FileType {
 
     @Override
     public GridDef getGridDef() {
-        return gridDef;
+        return GRID_DEF;
     }
 
     @Override
-    public Date readDate(NetcdfFile file) throws IOException {
-        Variable variable = file.findTopVariable("time");
+    public Date readDate(NetcdfFile dataFile) throws IOException {
+        final Variable variable = dataFile.findTopVariable("time");
         if (variable == null) {
-            throw new IOException("Missing variable 'time' in file '" + file.getLocation() + "'");
+            throw new IOException("Missing variable 'time' in dataFile '" + dataFile.getLocation() + "'");
         }
-        // The time of ARC files is encoded as seconds since 01.01.1981
-        int secondsSince1981 = round(variable.readScalarFloat());
-        Calendar calendar = UTC.createCalendar(1981);
+        // time of ARC is encoded as seconds since 01.01.1981
+        final int secondsSince1981 = Math.round(variable.readScalarFloat());
+        final Calendar calendar = UTC.createCalendar(1981);
         calendar.add(Calendar.SECOND, secondsSince1981);
+
         return calendar.getTime();
     }
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException {
+    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws
+                                                                                                                  IOException {
         switch (sstDepth) {
             case skin:
                 context.setSstGrid(NcUtils.readGrid(dataFile, "sst_skin", getGridDef(), 0));
