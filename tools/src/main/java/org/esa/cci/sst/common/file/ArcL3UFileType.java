@@ -28,10 +28,9 @@ import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
 import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CciSpatialAggregationCellFactory;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.DefaultSpatialAggregationCell;
-import org.esa.cci.sst.common.cell.DefaultSpatialAggregationCellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -192,7 +191,7 @@ public class ArcL3UFileType implements FileType {
 
     @Override
     public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(AggregationContext context) {
-        return new DefaultSpatialAggregationCellFactory(context);
+        return new CciSpatialAggregationCellFactory(context);
     }
 
     @Override

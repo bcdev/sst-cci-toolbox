@@ -23,7 +23,7 @@ import org.esa.cci.sst.common.cellgrid.Grid;
 
 import java.awt.Rectangle;
 
-public class DefaultSpatialAggregationCell extends AbstractAggregationCell implements SpatialAggregationCell {
+public class CciSpatialAggregationCell extends AbstractAggregationCell implements SpatialAggregationCell {
 
     private final NumberAccumulator sstAccumulator;
     private final NumberAccumulator sstAnomalyAccumulator;
@@ -36,7 +36,7 @@ public class DefaultSpatialAggregationCell extends AbstractAggregationCell imple
 
     private boolean enoughSamples;
 
-    public DefaultSpatialAggregationCell(AggregationContext aggregationContext, int x, int y) {
+    public CciSpatialAggregationCell(AggregationContext aggregationContext, int x, int y) {
         super(aggregationContext, x, y);
 
         sstAccumulator = new ArithmeticMeanAccumulator();

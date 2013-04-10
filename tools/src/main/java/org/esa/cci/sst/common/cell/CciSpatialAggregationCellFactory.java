@@ -16,16 +16,16 @@ package org.esa.cci.sst.common.cell;/*
 
 import org.esa.cci.sst.common.AggregationContext;
 
-public class DefaultSpatialAggregationCellFactory implements CellFactory<SpatialAggregationCell> {
+public class CciSpatialAggregationCellFactory implements CellFactory<SpatialAggregationCell> {
 
     private final AggregationContext context;
 
-    public DefaultSpatialAggregationCellFactory(AggregationContext context) {
+    public CciSpatialAggregationCellFactory(AggregationContext context) {
         this.context = context;
     }
 
     @Override
     public SpatialAggregationCell createCell(int cellX, int cellY) {
-        return new DefaultSpatialAggregationCell(context, cellX, cellY);
+        return new CciSpatialAggregationCell(context, cellX, cellY);
     }
 }
