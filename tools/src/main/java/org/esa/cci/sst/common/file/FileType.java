@@ -21,6 +21,7 @@ package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
+import org.esa.cci.sst.common.RegionalAggregation;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
@@ -75,15 +76,17 @@ public interface FileType {
 
     Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims);
 
-    AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory();
+    AggregationFactory<SameMonthAggregation<AggregationCell>> getSameMonthAggregationFactory();
 
-    AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory();
+    AggregationFactory<MultiMonthAggregation<RegionalAggregation>> getMultiMonthAggregationFactory();
+
+    CellFactory<SpatialAggregationCell> getCellFactory5(final AggregationContext context);
+
+    CellFactory<CellAggregationCell<AggregationCell>> getCellFactory90(final AggregationContext context);
 
     CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final AggregationContext context);
 
     CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory();
-
-    CellFactory getCellFactory(final AggregationContext context, CellTypes cellType);
 
     boolean hasSynopticUncertainties();
 

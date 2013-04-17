@@ -4,6 +4,7 @@ import org.esa.cci.sst.common.ScalarGrid;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
@@ -41,7 +42,7 @@ public class CciL4FileTypeTest {
 
         context.setCoverageUncertaintyProvider(
                 new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         //execution
@@ -76,9 +77,9 @@ public class CciL4FileTypeTest {
         final CoverageUncertaintyProvider coverageUncertaintyProvider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
         context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
 
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<CellAggregationCell<AggregationCell>> cell90Factory = fileType.getCellFactory90(context);
+        CellAggregationCell<AggregationCell> cell90 = cell90Factory.createCell(0, 0);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));

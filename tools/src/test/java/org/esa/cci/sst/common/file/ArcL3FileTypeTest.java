@@ -2,6 +2,7 @@ package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
+import org.esa.cci.sst.common.RegionalAggregation;
 import org.esa.cci.sst.common.ScalarGrid;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
@@ -59,7 +60,7 @@ public class ArcL3FileTypeTest {
         final AggregationContext context = new AggregationContext();
         final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
         context.setCoverageUncertaintyProvider(provider);
-        CellFactory<? extends AggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<? extends AggregationCell> cell5Factory = fileType.getCellFactory5(context);
         assertNotNull(cell5Factory);
         AggregationCell cell5 = cell5Factory.createCell(52, 78);
         assertNotNull(cell5);
@@ -80,7 +81,7 @@ public class ArcL3FileTypeTest {
 
         context.setCoverageUncertaintyProvider(
                 new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -111,9 +112,9 @@ public class ArcL3FileTypeTest {
 
         context.setCoverageUncertaintyProvider(
                 new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<CellAggregationCell<AggregationCell>> cell90Factory = fileType.getCellFactory90(context);
+        CellAggregationCell<AggregationCell> cell90 = cell90Factory.createCell(0, 0);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -157,7 +158,7 @@ public class ArcL3FileTypeTest {
 
     @Test
     public void testSameMonthAggregation() throws Exception {
-        AggregationFactory<SameMonthAggregation> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
+        AggregationFactory<SameMonthAggregation<AggregationCell>> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
         AggregationContext context = new AggregationContext(
@@ -170,7 +171,7 @@ public class ArcL3FileTypeTest {
 
         context.setCoverageUncertaintyProvider(
                 new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -188,7 +189,7 @@ public class ArcL3FileTypeTest {
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
-        SameMonthAggregation aggregation = sameMonthAggregationFactory.createAggregation();
+        SameMonthAggregation<AggregationCell> aggregation = sameMonthAggregationFactory.createAggregation();
 
         aggregation.accumulate(cell5_1, 0.25);
         aggregation.accumulate(cell5_2, 0.5);
@@ -209,8 +210,8 @@ public class ArcL3FileTypeTest {
 
     @Test
     public void testMultiMonthAggregation() throws Exception {
-        AggregationFactory<SameMonthAggregation> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
-        AggregationFactory<MultiMonthAggregation> multiMonthAggregationFactory = fileType.getMultiMonthAggregationFactory();
+        AggregationFactory<SameMonthAggregation<AggregationCell>> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
+        AggregationFactory<MultiMonthAggregation<RegionalAggregation>> multiMonthAggregationFactory = fileType.getMultiMonthAggregationFactory();
 
         GridDef sourceGridDef = GridDef.createGlobal(0.1);
         AggregationContext context = new AggregationContext(
@@ -223,7 +224,7 @@ public class ArcL3FileTypeTest {
 
         context.setCoverageUncertaintyProvider(
                 new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
@@ -241,8 +242,8 @@ public class ArcL3FileTypeTest {
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
-        SameMonthAggregation aggregation1 = sameMonthAggregationFactory.createAggregation();
-        SameMonthAggregation aggregation2 = sameMonthAggregationFactory.createAggregation();
+        SameMonthAggregation<AggregationCell> aggregation1 = sameMonthAggregationFactory.createAggregation();
+        SameMonthAggregation<AggregationCell> aggregation2 = sameMonthAggregationFactory.createAggregation();
 
         aggregation1.accumulate(cell5_1, 0.25);
         aggregation1.accumulate(cell5_2, 0.5);
@@ -250,7 +251,7 @@ public class ArcL3FileTypeTest {
         aggregation2.accumulate(cell5_3, 0.25);
         aggregation2.accumulate(cell5_4, 1.0);
 
-        MultiMonthAggregation aggregation3 = multiMonthAggregationFactory.createAggregation();
+        MultiMonthAggregation<RegionalAggregation> aggregation3 = multiMonthAggregationFactory.createAggregation();
         aggregation3.accumulate(aggregation1);
         aggregation3.accumulate(aggregation2);
 

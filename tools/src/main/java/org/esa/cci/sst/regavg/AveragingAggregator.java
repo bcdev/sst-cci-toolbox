@@ -1,10 +1,10 @@
 package org.esa.cci.sst.regavg;
 
 import org.esa.cci.sst.common.AbstractAggregator;
+import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.RegionMaskList;
 import org.esa.cci.sst.common.RegionalAggregation;
-import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
@@ -18,7 +18,6 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
-import org.esa.cci.sst.common.file.CellTypes;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
@@ -134,7 +133,7 @@ public class AveragingAggregator extends AbstractAggregator {
         return aggregateRegions(combinedCell5Grids,
                                 regionMaskList,
                                 getFileType().getSameMonthAggregationFactory(),
-                                getFileType().getCellFactory(aggregationContext, CellTypes.CELL_90),
+                                getFileType().getCellFactory90(aggregationContext),
                                 getClimatology().getSeaCoverageCell5Grid(),
                                 getClimatology().getSeaCoverageCell90Grid());
     }
@@ -149,21 +148,11 @@ public class AveragingAggregator extends AbstractAggregator {
 
         SpatialResolution targetResolution = SpatialResolution.DEGREE_5_00;
         GridDef globalGridDef5 = GridDef.createGlobal(targetResolution.getResolution());
-        GridDef globalGridDef1 = GridDef.createGlobal(SpatialResolution.DEGREE_1_00.getResolution());
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
         aggregationContext.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
-        final CellFactory<SpatialAggregationCell> spatialCellFactory = getFileType().getCellFactory(aggregationContext, CellTypes.SPATIAL_CELL_5);
+        final CellFactory<SpatialAggregationCell> spatialCellFactory = getFileType().getCellFactory5(
+                aggregationContext);
         final CellGrid<SpatialAggregationCell> cellGridSpatial = CellGrid.create(globalGridDef5, spatialCellFactory);
-        CellGrid<SpatialAggregationCell> cellGridSynoptic1 = null;
-        CellGrid<CellAggregationCell> cellGridSynoptic5 = null;
-        if (getFileType().hasSynopticUncertainties()) {
-            final CellFactory<SpatialAggregationCell> synopticCell1Factory = getFileType().getCellFactory(aggregationContext,
-                    CellTypes.SYNOPTIC_CELL_1);
-            final CellFactory<CellAggregationCell> synopticCell5Factory = getFileType().getCellFactory(aggregationContext,
-                    CellTypes.SYNOPTIC_CELL_5);
-            cellGridSynoptic1 = CellGrid.create(globalGridDef1, synopticCell1Factory);
-            cellGridSynoptic5 = CellGrid.create(globalGridDef5, synopticCell5Factory);
-        }
 
         for (File file : fileList) { //loop time (fileList contains files in required time range)
             LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
@@ -180,13 +169,6 @@ public class AveragingAggregator extends AbstractAggregator {
                 long t01 = System.currentTimeMillis();
 
                 aggregateSourcePixels(aggregationContext, combinedRegionMask, cellGridSpatial);
-                if (getFileType().hasSynopticUncertainties()) {
-                    //aggregate to synoptic areas (1 °, monthly)
-                    aggregateSourcePixels(aggregationContext, combinedRegionMask, cellGridSynoptic1);
-                    //1 ° -> 5 °
-                    aggregateCellGridToCoarserCellGrid(cellGridSynoptic1, getClimatology().getSeaCoverageCell1Grid(),
-                                                       cellGridSynoptic5); //todo ??? climatology resolution ???
-                }
 
                 LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
             } finally {
@@ -198,15 +180,14 @@ public class AveragingAggregator extends AbstractAggregator {
 
         ArrayList<CellGrid<? extends AggregationCell>> arrayGrids = new ArrayList<CellGrid<? extends AggregationCell>>();
         arrayGrids.add(cellGridSpatial);
-        arrayGrids.add(cellGridSynoptic5);
         return arrayGrids;
     }
 
 
     List<RegionalAggregation> aggregateRegions(ArrayList<CellGrid<? extends AggregationCell>> combinedCell5Grids,
                                                RegionMaskList regionMaskList,
-                                               AggregationFactory<SameMonthAggregation> aggregationFactory,
-                                               CellFactory<CellAggregationCell> cell90Factory,
+                                               AggregationFactory<SameMonthAggregation<AggregationCell>> aggregationFactory,
+                                               CellFactory<CellAggregationCell<AggregationCell>> cell90Factory,
                                                Grid seaCoverageCell5Grid,
                                                Grid seaCoverageCell90Grid) {
 
@@ -227,7 +208,7 @@ public class AveragingAggregator extends AbstractAggregator {
             final SameMonthAggregation aggregation = aggregationFactory.createAggregation();
             boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
             if (mustAggregateTo90) {
-                final CellGrid<CellAggregationCell> cell90Grid = CellGrid.create(
+                final CellGrid<CellAggregationCell<AggregationCell>> cell90Grid = CellGrid.create(
                         GridDef.createGlobal(90.0), cell90Factory);
                 // aggregateCell5GridToCell90Grid
                 aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverageCell5Grid, cell90Grid);
@@ -297,7 +278,7 @@ public class AveragingAggregator extends AbstractAggregator {
 
     static List<RegionalAggregation> aggregateMonthlyTimeSteps(
             List<AveragingTimeStep> monthlyTimeSteps, int regionCount,
-            AggregationFactory<MultiMonthAggregation> aggregationFactory) {
+            AggregationFactory<MultiMonthAggregation<RegionalAggregation>> aggregationFactory) {
 
         final MultiMonthAggregation multiMonthAggregation = aggregationFactory.createAggregation();
         final ArrayList<RegionalAggregation> resultList = new ArrayList<RegionalAggregation>();

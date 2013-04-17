@@ -14,9 +14,20 @@ package org.esa.cci.sst.common.file;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-public enum CellTypes {
-    SYNOPTIC_CELL_1,
-    SYNOPTIC_CELL_5,
-    SPATIAL_CELL_5,
-    CELL_90,
+import org.esa.cci.sst.common.AggregationContext;
+import org.esa.cci.sst.common.cell.CellFactory;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+
+class SpatialAggregationCellFactory implements CellFactory<SpatialAggregationCell> {
+
+    private final AggregationContext context;
+
+    SpatialAggregationCellFactory(AggregationContext context) {
+        this.context = context;
+    }
+
+    @Override
+    public SpatialAggregationCell createCell(int cellX, int cellY) {
+        return new DefaultSpatialAggregationCell(context, cellX, cellY);
+    }
 }

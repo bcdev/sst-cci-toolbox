@@ -35,143 +35,6 @@ public class CciL3FileTypeTest {
     FileType fileType = CciL3FileType.INSTANCE;
 
     @Test
-    public void testGetFactory() throws Exception {
-        assertTrue(fileType.getCellFactory(null, CellTypes.SYNOPTIC_CELL_1).createCell(0,
-                                                                                       0) instanceof SpatialAggregationCell);
-        assertTrue(fileType.getCellFactory(null, CellTypes.SYNOPTIC_CELL_5).createCell(0,
-                                                                                       0) instanceof CellAggregationCell);
-        assertTrue(fileType.getCellFactory(null, CellTypes.SPATIAL_CELL_5).createCell(0,
-                                                                                      0) instanceof SpatialAggregationCell);
-        assertTrue(fileType.getCellFactory(null, CellTypes.CELL_90).createCell(0, 0) instanceof CellAggregationCell);
-    }
-
-    @Test
-    public void testSameMonthAggregation_testTypes() throws Exception {
-        SameMonthAggregation aggregation = fileType.getSameMonthAggregationFactory().createAggregation();
-
-        //L3UCell5
-        SpatialAggregationCell filledL3UCell5 = createFilledL3UCell5();
-        aggregation.accumulate(filledL3UCell5, 1.0);
-        //SynopticCell5
-        CellAggregationCell filledSynopticCell5 = createFilledSynopticCell5();
-        aggregation.accumulate(filledSynopticCell5, 1.0);
-        //L3UCell90
-        CellAggregationCell filledL3UCell90 = createFilledL3UCell90();
-        aggregation.accumulate(filledL3UCell90, 1.0);
-    }
-
-    @Test
-    public void testCell5Aggregation_invalidQualityLevels() throws Exception {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
-                        new ScalarGrid(sourceGridDef, 2), //[1] qualityLevelGrid
-                        new ScalarGrid(sourceGridDef, 1.0), //[2] uncorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 2.0), //[3] largeScaleCorrelatedUncertaintyGrid
-                        //ignored grids in L3UCell5
-                        new ScalarGrid(sourceGridDef, 3.0), //synopticallyCorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
-                },
-                new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
-
-        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
-
-        SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
-        cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
-        cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
-
-        assertEquals("zero samples counted", 0, cell5.getSampleCount());
-        Number[] results = cell5.getResults();
-        assertNotNull(results);
-        assertEquals("Expected count of accumulators", 5, results.length);
-        assertEquals(Double.NaN, results[0].doubleValue()); //sst
-        assertEquals(Double.NaN, results[1].doubleValue()); //sstAnomaly
-        assertEquals(Double.NaN, results[2].doubleValue()); //uncorrelatedUncertainty
-        assertEquals(Double.NaN, results[3].doubleValue()); //largeScaleCorrelatedUncertainty
-        assertEquals(Double.NaN, results[4].doubleValue()); //synopticallyCorrelatedUncertainty
-//        assertEquals(Double.NaN, results[5].doubleValue()); //adjustmentUncertainty
-//        assertEquals(Double.NaN, results[6].doubleValue()); //coverageUncertainty
-    }
-
-
-    @Test
-    public void testL3USynopticCell5Aggregation() throws Exception {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        //ignored grids in L3USynopticAreaCell1
-                        new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
-                        new ScalarGrid(sourceGridDef, 5), //[1] qualityLevelGrid
-                        new ScalarGrid(sourceGridDef, 1.0), //[2] uncorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 2.0), //[3] largeScaleCorrelatedUncertaintyGrid
-                        //
-                        new ScalarGrid(sourceGridDef, 3.0), //synopticallyCorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
-                },
-                new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
-
-        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(context,
-                                                                                           CellTypes.SYNOPTIC_CELL_1);
-        SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
-        cellSynoptic1.accumulate(context, new Rectangle(0, 0, 10, 10));
-
-        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(context,
-                                                                                        CellTypes.SYNOPTIC_CELL_5);
-        CellAggregationCell cellSynoptic5 = cellFactorySynoptic5.createCell(0, 0);
-
-        //execution
-        cellSynoptic5.accumulate(cellSynoptic1, 0.5);
-        cellSynoptic5.accumulate(cellSynoptic1, 0.2);
-        cellSynoptic5.accumulate(cellSynoptic1, 0.8);
-        cellSynoptic5.accumulate(cellSynoptic1, 0.8);
-
-        assertEquals(4, cellSynoptic5.getSampleCount());
-        Number[] results = cellSynoptic5.getResults();
-        assertNotNull(results);
-        assertEquals("Expected count of accumulators", 2, results.length);
-        //todo could written here in a clearer way
-        assertEquals(1.634343147277832, results[0].doubleValue(), 1e-6); //synopticallyCorrelatedUncertaintyGrid
-        assertEquals(2.179124116897583, results[1].doubleValue(), 1e-6); //adjustmentUncertaintyGrid
-    }
-
-    @Test
-    public void testL3USynopticAreaCell1Aggregation() throws Exception {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        //ignored grids in L3USynopticAreaCell1
-                        new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
-                        new ScalarGrid(sourceGridDef, 5), //[1] qualityLevelGrid
-                        new ScalarGrid(sourceGridDef, 1.0), //[2] uncorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 2.0), //[3] largeScaleCorrelatedUncertaintyGrid
-                        //
-                        new ScalarGrid(sourceGridDef, 3.0), //synopticallyCorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
-                },
-                new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
-
-        CellFactory<SpatialAggregationCell> cellFactory = fileType.getCellFactory(context, CellTypes.SYNOPTIC_CELL_1);
-        SpatialAggregationCell cell = cellFactory.createCell(0, 0);
-
-        //execution
-        cell.accumulate(context, new Rectangle(0, 0, 10, 10));
-        cell.accumulate(context, new Rectangle(10, 0, 10, 10));
-
-        int expectedN = 2 * 10 * 10;
-        assertEquals(expectedN, cell.getSampleCount());
-        Number[] results = cell.getResults();
-        assertNotNull(results);
-        assertEquals("Expected count of accumulators", 2, results.length);
-        assertEquals(3.0, results[0].doubleValue(), 1e-6); //synopticallyCorrelatedUncertaintyGrid
-        assertEquals(4.0, results[1].doubleValue(), 1e-6); //adjustmentUncertaintyGrid
-    }
-
-    @Test
     public void testL3UCell5Aggregation() throws Exception {
         GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
         AggregationContext context = new AggregationContext(
@@ -188,7 +51,7 @@ public class CciL3FileTypeTest {
                 new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
 
         context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         //execution
@@ -210,61 +73,11 @@ public class CciL3FileTypeTest {
     }
 
     @Test
-    public void testCell90Aggregation_fromSynopticCell5() throws Exception {
-        //preparation: 1) sources
-        GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        //ignored grids in L3USynopticAreaCell1
-                        new ScalarGrid(sourceGridDef, 292.0), //[0] sstGrid
-                        new ScalarGrid(sourceGridDef, 5), //[1] qualityLevelGrid
-                        new ScalarGrid(sourceGridDef, 1.0), //[2] uncorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 2.0), //[3] largeScaleCorrelatedUncertaintyGrid
-                        //
-                        new ScalarGrid(sourceGridDef, 3.0), //synopticallyCorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
-                },
-                new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
-
-        //preparation: 3) Synoptic1 -> Synoptic5
-        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(context,
-                                                                                           CellTypes.SYNOPTIC_CELL_1);
-        SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
-        cellSynoptic1.accumulate(context, new Rectangle(0, 0, 10, 10));
-
-        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(context,
-                                                                                        CellTypes.SYNOPTIC_CELL_5);
-        CellAggregationCell cellSynoptic5 = cellFactorySynoptic5.createCell(0, 0);
-        cellSynoptic5.accumulate(cellSynoptic1, 0.5);
-
-        MockCoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        context.setCoverageUncertaintyProvider(provider);
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
-
-        //execution
-        cell90.accumulate(cellSynoptic5, 1.0);
-
-        assertEquals(1, cell90.getSampleCount());
-        Number[] results = cell90.getResults();
-        assertNotNull(results);
-        assertEquals("Expected count of accumulators", 7, results.length);
-        assertEquals(Double.NaN, results[0].doubleValue(), 1e-6); //sst
-        assertEquals(Double.NaN, results[1].doubleValue(), 1e-6); //sstAnomaly
-        assertEquals(Double.NaN, results[2].doubleValue(), 1e-6); //coverageUncertainty
-        assertEquals(Double.NaN, results[3].doubleValue(), 1e-6); //uncorrelatedUncertainty
-        assertEquals(Double.NaN, results[4].doubleValue(), 1e-6); //largeScaleCorrelatedUncertainty
-        assertEquals(3.0, results[5].doubleValue(), 1e-6); //synopticallyCorrelatedUncertainty
-        assertEquals(4.0, results[6].doubleValue(), 1e-6); //adjustmentUncertainty
-    }
-
-    @Test
     public void testCell90Aggregation_fromL3UCell5() throws Exception {
         final AggregationContext context = new AggregationContext();
         context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5));
-        CellFactory<CellAggregationCell> cell90Factory = fileType.getCellFactory(context, CellTypes.CELL_90);
-        CellAggregationCell cell90 = cell90Factory.createCell(0, 0);
+        CellFactory<CellAggregationCell<AggregationCell>> cell90Factory = fileType.getCellFactory90(context);
+        CellAggregationCell<AggregationCell> cell90 = cell90Factory.createCell(0, 0);
 
         SpatialAggregationCell filledL3UCell5 = createFilledL3UCell5();
 
@@ -282,39 +95,6 @@ public class CciL3FileTypeTest {
         assertEquals(2.0, results[4].doubleValue(), 1e-6); //largeScaleCorrelatedUncertainty
         assertEquals(Double.NaN, results[5].doubleValue(), 1e-6); //synopticallyCorrelatedUncertainty
         assertEquals(Double.NaN, results[6].doubleValue(), 1e-6); //adjustmentUncertainty
-    }
-
-    @Test
-    public void testCell90Aggregation_IllegalCell() throws Exception {
-        final AggregationContext context = new AggregationContext();
-        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        context.setCoverageUncertaintyProvider(provider);
-        final CellFactory<CellAggregationCell> cellFactory = fileType.getCellFactory(context, CellTypes.CELL_90);
-        CellAggregationCell cell90 = cellFactory.createCell(0, 0);
-        SpatialAggregationCell testCell = createTestSpatialAggregationCell();
-
-        try {
-            //execution
-            cell90.accumulate(testCell, 0.5);
-            fail("IllegalStateException expected");
-        } catch (IllegalStateException expected) {
-            assertEquals("L3UCell5 or L3USynopticCell5 expected.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testCell5Factory() throws Exception {
-        final AggregationContext context = new AggregationContext();
-        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        context.setCoverageUncertaintyProvider(provider);
-        final CellFactory<SpatialAggregationCell> cellFactory = fileType.getCellFactory(context,
-                                                                                        CellTypes.SPATIAL_CELL_5);
-
-        assertNotNull(cellFactory);
-        AggregationCell spatialAggregationCell = cellFactory.createCell(18, 78);
-        assertNotNull(spatialAggregationCell);
-        assertEquals(18, spatialAggregationCell.getX());
-        assertEquals(78, spatialAggregationCell.getY());
     }
 
     @Test
@@ -389,106 +169,11 @@ public class CciL3FileTypeTest {
         assertEquals(-32768, synopticUncertaintyGrid.getSampleInt(1, 0));
         assertEquals(Double.NaN, synopticUncertaintyGrid.getSampleDouble(1, 0));
         //adjustment_uncertainty
-        //Test file erroneous. Fill value is 'null'; actually it is in Byte and data in file are -127 in each cell
         final Grid adjustmentUncertaintyGrid = context.getAdjustmentUncertaintyGrid();
         assertEquals(-32768, adjustmentUncertaintyGrid.getSampleInt(0, 0));
         assertEquals(Double.NaN, adjustmentUncertaintyGrid.getSampleDouble(0, 0));
         assertEquals(-32768, adjustmentUncertaintyGrid.getSampleInt(1, 0));
         assertEquals(Double.NaN, adjustmentUncertaintyGrid.getSampleDouble(1, 0));
-    }
-
-    private SpatialAggregationCell createTestSpatialAggregationCell() {
-        return new SpatialAggregationCell() {
-
-            @Override
-            public void accumulate(AggregationContext aggregationContext, Rectangle rectangle) {
-            }
-
-            @Override
-            public long getSampleCount() {
-                return 0;
-            }
-
-            @Override
-            public Number[] getResults() {
-                return new Number[0];
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public int getX() {
-                return 0;
-            }
-
-            @Override
-            public int getY() {
-                return 0;
-            }
-        };
-    }
-
-    private CellAggregationCell createFilledL3UCell90() {
-        final SpatialAggregationCell filledL3UCell5 = createFilledL3UCell5();
-        final CellAggregationCell filledSynopticCell5 = createFilledSynopticCell5();
-        final AggregationContext context = new AggregationContext();
-        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 3.0, 2.5);
-        context.setCoverageUncertaintyProvider(provider);
-        CellFactory<CellAggregationCell> cellFactory = fileType.getCellFactory(context, CellTypes.CELL_90);
-        CellAggregationCell cell90 = cellFactory.createCell(0, 0);
-
-        cell90.accumulate(filledL3UCell5, 1.0);
-        cell90.accumulate(filledSynopticCell5, 1.0);
-
-        assertEquals(1, cell90.getSampleCount());
-        assertEquals(7, cell90.getResults().length);
-        assertEquals(292.0, cell90.getResults()[0].doubleValue(), 1e-6); //sst
-        assertEquals(0.5, cell90.getResults()[1].doubleValue(), 1e-6); //sstAnomaly
-        assertEquals(1.5736546516418457, cell90.getResults()[2].doubleValue(), 1e-6); //coverageUncertainty
-        assertEquals(0.05773502588272095, cell90.getResults()[3].doubleValue(), 1e-6); //uncorrelatedUncertainty
-        assertEquals(2.0, cell90.getResults()[4].doubleValue(), 1e-6); //largeScaleCorrelatedUncertainty
-        assertEquals(2.1213202476501465, cell90.getResults()[5].doubleValue(),
-                     1e-6); //synopticallyCorrelatedUncertaintyGrid
-        assertEquals(2.8284270763397217, cell90.getResults()[6].doubleValue(), 1e-6); //adjustmentUncertaintyGrid
-        return cell90;
-    }
-
-    private CellAggregationCell createFilledSynopticCell5() {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        //ignored grids in L3USynopticAreaCell1
-                        new ScalarGrid(sourceGridDef, 292.0), //sstGrid
-                        new ScalarGrid(sourceGridDef, 5), //qualityLevelGrid
-                        new ScalarGrid(sourceGridDef, 1.0), //uncorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 2.0), //largeScaleCorrelatedUncertaintyGrid
-                        //
-                        new ScalarGrid(sourceGridDef, 3.0), //synopticallyCorrelatedUncertaintyGrid
-                        new ScalarGrid(sourceGridDef, 4.0), //adjustmentUncertaintyGrid
-                },
-                new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
-
-        CellFactory<SpatialAggregationCell> cellFactorySynoptic1 = fileType.getCellFactory(context,
-                                                                                           CellTypes.SYNOPTIC_CELL_1);
-        SpatialAggregationCell cellSynoptic1 = cellFactorySynoptic1.createCell(0, 0);
-        cellSynoptic1.accumulate(context, new Rectangle(0, 0, 10, 10));
-
-        CellFactory<CellAggregationCell> cellFactorySynoptic5 = fileType.getCellFactory(context,
-                                                                                        CellTypes.SYNOPTIC_CELL_5);
-        CellAggregationCell cellSynoptic5 = cellFactorySynoptic5.createCell(0, 0);
-
-        cellSynoptic5.accumulate(cellSynoptic1, 1.0);
-        cellSynoptic5.accumulate(cellSynoptic1, 1.0);
-
-        assertEquals(2, cellSynoptic5.getSampleCount());
-        assertEquals(2.1213202476501465, cellSynoptic5.getResults()[0].doubleValue(),
-                     1e-6); //synopticallyCorrelatedUncertaintyGrid
-        assertEquals(2.8284270763397217, cellSynoptic5.getResults()[1].doubleValue(), 1e-6); //adjustmentUncertaintyGrid
-        return cellSynoptic5;
     }
 
     private SpatialAggregationCell createFilledL3UCell5() {
@@ -505,7 +190,7 @@ public class CciL3FileTypeTest {
 
         final CoverageUncertaintyProvider uncertaintyProvider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
         context.setCoverageUncertaintyProvider(uncertaintyProvider);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory(context, CellTypes.SPATIAL_CELL_5);
+        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
 
         SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));

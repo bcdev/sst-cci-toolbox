@@ -20,7 +20,7 @@
 package org.esa.cci.sst.common.calculator;
 
 /**
- * For accumulating random uncertainties.
+ * For accumulating random (i.e. uncorrelated) uncertainties.
  *
  * @author Norman Fomferra
  * @author Ralf Quast

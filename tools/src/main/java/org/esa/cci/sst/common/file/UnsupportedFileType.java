@@ -21,7 +21,9 @@ package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
+import org.esa.cci.sst.common.RegionalAggregation;
 import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -75,17 +77,12 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
+    public AggregationFactory<SameMonthAggregation<AggregationCell>> getSameMonthAggregationFactory() {
         throw notImplemented();
     }
 
     @Override
-    public AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory() {
-        throw notImplemented();
-    }
-
-    @Override
-    public CellFactory getCellFactory(AggregationContext context, CellTypes cellType) {
+    public AggregationFactory<MultiMonthAggregation<RegionalAggregation>> getMultiMonthAggregationFactory() {
         throw notImplemented();
     }
 

@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.AbstractAggregation;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.ProcessingLevel;
@@ -27,12 +28,10 @@ import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
-import org.esa.cci.sst.common.cell.AbstractAggregationCell;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
@@ -43,7 +42,6 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
-import java.awt.Rectangle;
 import java.io.IOException;
 
 /**
@@ -60,7 +58,8 @@ public class CciL4FileType extends AbstractCciFileType {
     }
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException {
+    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws
+                                                                                                                  IOException {
         context.setSstGrid(NcUtils.readGrid(dataFile, "analysed_sst", getGridDef(), 0));
         context.setRandomUncertaintyGrid(NcUtils.readGrid(dataFile, "analysis_error", getGridDef(), 0));
         context.setSeaIceFractionGrid(NcUtils.readGrid(dataFile, "sea_ice_fraction", getGridDef(), 0));
@@ -107,268 +106,143 @@ public class CciL4FileType extends AbstractCciFileType {
     }
 
     @Override
-    public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
-        return new AggregationFactory<SameMonthAggregation>() {
+    public AggregationFactory<SameMonthAggregation<AggregationCell>> getSameMonthAggregationFactory() {
+        return new AggregationFactory<SameMonthAggregation<AggregationCell>>() {
             @Override
-            public SameMonthAggregation createAggregation() {
-                return new L4SameMonthAggregation();
+            public SameMonthAggregation<AggregationCell> createAggregation() {
+                return new MultiPurposeAggregation();
             }
         };
     }
 
     @Override
-    public AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory() {
-        return new AggregationFactory<MultiMonthAggregation>() {
+    public AggregationFactory<MultiMonthAggregation<RegionalAggregation>> getMultiMonthAggregationFactory() {
+        return new AggregationFactory<MultiMonthAggregation<RegionalAggregation>>() {
             @Override
-            public MultiMonthAggregation createAggregation() {
-                return new L4MultiMonthAggregation();
+            public MultiMonthAggregation<RegionalAggregation> createAggregation() {
+                return new MultiPurposeAggregation();
+            }
+        };
+    }
+
+
+    @Override
+    public CellFactory<SpatialAggregationCell> getCellFactory5(final AggregationContext context) {
+        return new CellFactory<SpatialAggregationCell>() {
+            @Override
+            public Cell5 createCell(int cellX, int cellY) {
+                return new Cell5(context, cellX, cellY);
             }
         };
     }
 
     @Override
-    public CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory() {
+    public CellFactory<CellAggregationCell<AggregationCell>> getCellFactory90(final AggregationContext context) {
         return new CellFactory<CellAggregationCell<AggregationCell>>() {
             @Override
-            public L4TemporalCell createCell(int cellX, int cellY) {
-                return new L4TemporalCell(cellX, cellY);
+            public Cell90 createCell(int cellX, int cellY) {
+                return new Cell90(context, cellX, cellY);
             }
         };
     }
 
-    @Override
-    public CellFactory getCellFactory(final AggregationContext context, final CellTypes cellType) {
-        switch (cellType) {
-            case CELL_90: {
-                return new CellFactory<CellAggregationCell>() {
-                    @Override
-                    public L4Cell90 createCell(int cellX, int cellY) {
-                        return new L4Cell90(context, cellX, cellY);
-                    }
-                };
-            }
-            case SPATIAL_CELL_5: {
-                return new CellFactory<SpatialAggregationCell>() {
-                    @Override
-                    public L4Cell5 createCell(int cellX, int cellY) {
-                        return new L4Cell5(context, cellX, cellY);
-                    }
-                };
-            }
-            default:
-                throw new IllegalStateException("never come here.");
-        }
-    }
+    private static class Cell5 extends DefaultSpatialAggregationCell {
 
-    private static abstract class AbstractL4Cell extends AbstractAggregationCell {
-
-        protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
-        protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
-        protected final NumberAccumulator analysisErrorAccu = new RandomUncertaintyAccumulator();
-        protected final NumberAccumulator seaIceFractionAccu = new ArithmeticMeanAccumulator();
-
-        private AbstractL4Cell(AggregationContext context, int x, int y) {
-            super(context, x, y);
-        }
-
-        @Override
-        public long getSampleCount() {
-            return sstAnomalyAccu.getSampleCount();
-        }
-
-        public double computeSstAverage() {
-            return sstAccu.combine();
-        }
-
-        public double computeSstAnomalyAverage() {
-            return sstAnomalyAccu.combine();
-        }
-
-        public double computeAnalysisErrorAverage() {
-            return analysisErrorAccu.combine();
-        }
-
-        public double computeSeaIceFractionAverage() {
-            return seaIceFractionAccu.combine();
-        }
-
-        public abstract double computeCoverageUncertainty();
-
-        @Override
-        public Number[] getResults() {
-            // Note: Result types must match those defined in FileType.createOutputVariables().
-            return new Number[]{
-                    (float) computeSstAverage(),
-                    (float) computeSstAnomalyAverage(),
-                    (float) computeSeaIceFractionAverage(),
-                    (float) computeCoverageUncertainty(),
-                    (float) computeAnalysisErrorAverage(),
-            };
-        }
-    }
-
-    private static class L4Cell5 extends AbstractL4Cell implements SpatialAggregationCell {
-
-        private L4Cell5(AggregationContext coverageUncertaintyProvider, int x, int y) {
+        private Cell5(AggregationContext coverageUncertaintyProvider, int x, int y) {
             super(coverageUncertaintyProvider, x, y);
         }
 
         @Override
-        public double computeCoverageUncertainty() {
+        public double getCoverageUncertainty() {
             return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 5.0);
         }
-
-        @Override
-        public void accumulate(AggregationContext aggregationContext, Rectangle rectangle) {
-
-            final Grid sstGrid = aggregationContext.getSourceGrids()[0];
-            final Grid analysisErrorGrid = aggregationContext.getSourceGrids()[1];
-            final Grid seaIceFractionGrid = aggregationContext.getSourceGrids()[2];
-            final Grid analysedSstGrid = aggregationContext.getClimatologySstGrid();
-            final Grid seaCoverageGrid = aggregationContext.getSeaCoverageGrid();
-
-            final int x0 = rectangle.x;
-            final int y0 = rectangle.y;
-            final int x1 = x0 + rectangle.width - 1;
-            final int y1 = y0 + rectangle.height - 1;
-            for (int y = y0; y <= y1; y++) {
-                for (int x = x0; x <= x1; x++) {
-                    final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
-                    if (seaCoverage > 0.0) {
-                        sstAccu.accumulate(sstGrid.getSampleDouble(x, y), seaCoverage);
-                        sstAnomalyAccu.accumulate(sstGrid.getSampleDouble(x, y) - analysedSstGrid.getSampleDouble(x, y),
-                                                  seaCoverage);
-                        analysisErrorAccu.accumulate(analysisErrorGrid.getSampleDouble(x, y), seaCoverage);
-                    }
-                    seaIceFractionAccu.accumulate(seaIceFractionGrid.getSampleDouble(x, y), 1);
-                }
-            }
-        }
     }
 
-    private static class L4TemporalCell extends AbstractL4Cell implements CellAggregationCell<AggregationCell> {
+    private static class Cell90 extends DefaultCellAggregationCell {
 
-        private final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
-
-        private L4TemporalCell(int x, int y) {
-            super(null, x, y);
+        private Cell90(AggregationContext aggregationContext, int x, int y) {
+            super(aggregationContext, x, y);
         }
 
         @Override
-        public double computeCoverageUncertainty() {
-            return coverageUncertaintyAccu.combine();
-        }
-
-        @Override
-        public void accumulate(AggregationCell cell, double weight) {
-            Number[] values = cell.getResults();
-            //Note: know the ordering from AbstractL4Cell#getResults
-            sstAccu.accumulate(values[0].floatValue(), 1);
-            sstAnomalyAccu.accumulate(values[1].floatValue(), 1);
-            seaIceFractionAccu.accumulate(values[2].floatValue(), 1);
-            coverageUncertaintyAccu.accumulate(values[3].floatValue(), 1);
-            analysisErrorAccu.accumulate(values[4].floatValue(), 1);
-        }
-    }
-
-    private static class L4Cell90 extends AbstractL4Cell implements CellAggregationCell<L4Cell5> {
-
-        // New 5-to-90 deg coverage uncertainty aggregation
-        protected final NumberAccumulator coverageUncertainty5Accu = new RandomUncertaintyAccumulator();
-
-        private L4Cell90(AggregationContext coverageUncertaintyProvider, int x, int y) {
-            super(coverageUncertaintyProvider, x, y);
-        }
-
-        public double computeCoverageUncertainty5Average() {
-            return coverageUncertainty5Accu.combine();
-        }
-
-        @Override
-        public double computeCoverageUncertainty() {
-            final double uncertainty5 = computeCoverageUncertainty5Average();
+        public double getCoverageUncertainty() {
+            final double uncertainty5 = super.getCoverageUncertainty();
             final double uncertainty90 = getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 90.0);
             return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
         }
-
-        @Override
-        public void accumulate(L4Cell5 cell, double seaCoverage90) {
-            sstAccu.accumulate(cell.computeSstAverage(), seaCoverage90);
-            sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage90);
-            // New 5-to-90 deg coverage uncertainty aggregation
-            coverageUncertainty5Accu.accumulate(cell.computeCoverageUncertainty(), seaCoverage90);
-            analysisErrorAccu.accumulate(cell.computeAnalysisErrorAverage(), seaCoverage90);
-            seaIceFractionAccu.accumulate(cell.computeSeaIceFractionAverage(), seaCoverage90);
-        }
     }
 
-    private static class L4Aggregation implements RegionalAggregation {
+    private static class MultiPurposeAggregation extends AbstractAggregation implements RegionalAggregation,
+                                                                                        SameMonthAggregation<AggregationCell>,
+                                                                                        MultiMonthAggregation<RegionalAggregation> {
 
-        protected final NumberAccumulator sstAccu = new ArithmeticMeanAccumulator();
-        protected final NumberAccumulator sstAnomalyAccu = new ArithmeticMeanAccumulator();
-        protected final NumberAccumulator coverageUncertaintyAccu = new RandomUncertaintyAccumulator();
-        protected final NumberAccumulator analysisErrorAccu = new RandomUncertaintyAccumulator();
-        protected final NumberAccumulator seaIceFractionAccu = new ArithmeticMeanAccumulator();
+        private final NumberAccumulator sstAccumulator = new ArithmeticMeanAccumulator();
+        private final NumberAccumulator sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
+        private final NumberAccumulator coverageUncertaintyAccumulator = new RandomUncertaintyAccumulator();
+        private final NumberAccumulator randomUncertaintyAccumulator = new RandomUncertaintyAccumulator();
+        private final NumberAccumulator seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
 
         @Override
         public long getSampleCount() {
-            return sstAccu.getSampleCount();
-        }
-
-        public double computeSstAverage() {
-            return sstAccu.combine();
-        }
-
-        public double computeSstAnomalyAverage() {
-            return sstAnomalyAccu.combine();
-        }
-
-        public double computeAnalysisErrorAverage() {
-            return analysisErrorAccu.combine();
-        }
-
-        public double computeCoverageUncertaintyAverage() {
-            return coverageUncertaintyAccu.combine();
-        }
-
-        public double computeSeaIceFractionAverage() {
-            return seaIceFractionAccu.combine();
+            return sstAccumulator.getSampleCount();
         }
 
         @Override
-        public Number[] getResults() {
-            // Note: Result types must match those defined in FileType.createOutputVariables().
-            return new Number[]{
-                    (float) computeSstAverage(),
-                    (float) computeSstAnomalyAverage(),
-                    (float) computeSeaIceFractionAverage(),
-                    (float) computeCoverageUncertaintyAverage(),
-                    (float) computeAnalysisErrorAverage(),
-            };
+        public double getSeaSurfaceTemperature() {
+            return sstAccumulator.combine();
         }
-    }
-
-    private static class L4SameMonthAggregation extends L4Aggregation implements SameMonthAggregation<AbstractL4Cell> {
 
         @Override
-        public void accumulate(AbstractL4Cell cell, double seaCoverage) {
-            sstAccu.accumulate(cell.computeSstAverage(), seaCoverage);
-            sstAnomalyAccu.accumulate(cell.computeSstAnomalyAverage(), seaCoverage);
-            coverageUncertaintyAccu.accumulate(cell.computeCoverageUncertainty(), seaCoverage);
-            analysisErrorAccu.accumulate(cell.computeAnalysisErrorAverage(), seaCoverage);
-            seaIceFractionAccu.accumulate(cell.computeSeaIceFractionAverage(), 1.0);
+        public double getSeaSurfaceTemperatureAnomaly() {
+            return sstAnomalyAccumulator.combine();
         }
-    }
-
-    private static class L4MultiMonthAggregation extends L4Aggregation implements MultiMonthAggregation<L4Aggregation> {
 
         @Override
-        public void accumulate(L4Aggregation aggregation) {
-            sstAccu.accumulate(aggregation.computeSstAverage(), 1.0);
-            sstAnomalyAccu.accumulate(aggregation.computeSstAnomalyAverage(), 1.0);
-            coverageUncertaintyAccu.accumulate(aggregation.computeCoverageUncertaintyAverage(), 1.0);
-            analysisErrorAccu.accumulate(aggregation.computeAnalysisErrorAverage(), 1.0);
-            seaIceFractionAccu.accumulate(aggregation.computeSeaIceFractionAverage(), 1.0);
+        public double getRandomUncertainty() {
+            return randomUncertaintyAccumulator.combine();
+        }
+
+        @Override
+        public double getLargeScaleUncertainty() {
+            return Double.NaN;
+        }
+
+        @Override
+        public double getCoverageUncertainty() {
+            return coverageUncertaintyAccumulator.combine();
+        }
+
+        @Override
+        public double getAdjustmentUncertainty() {
+            return Double.NaN;
+        }
+
+        @Override
+        public double getSynopticUncertainty() {
+            return Double.NaN;
+        }
+
+        @Override
+        public double getSeaIceFraction() {
+            return seaIceFractionAccumulator.combine();
+        }
+
+        @Override
+        public void accumulate(AggregationCell cell, double seaCoverage) {
+            sstAccumulator.accumulate(cell.getSeaSurfaceTemperature(), seaCoverage);
+            sstAnomalyAccumulator.accumulate(cell.getSeaSurfaceTemperatureAnomaly(), seaCoverage);
+            coverageUncertaintyAccumulator.accumulate(cell.getCoverageUncertainty(), seaCoverage);
+            randomUncertaintyAccumulator.accumulate(cell.getRandomUncertainty(), seaCoverage);
+            seaIceFractionAccumulator.accumulate(cell.getSeaIceFraction(), 1.0);
+        }
+
+        @Override
+        public void accumulate(RegionalAggregation aggregation) {
+            sstAccumulator.accumulate(aggregation.getSeaSurfaceTemperature());
+            sstAnomalyAccumulator.accumulate(aggregation.getSeaSurfaceTemperatureAnomaly());
+            coverageUncertaintyAccumulator.accumulate(aggregation.getCoverageUncertainty());
+            randomUncertaintyAccumulator.accumulate(aggregation.getRandomUncertainty());
+            seaIceFractionAccumulator.accumulate(aggregation.getSeaIceFraction());
         }
     }
 

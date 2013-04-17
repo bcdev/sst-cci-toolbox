@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.cell;/*
+package org.esa.cci.sst.common.file;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -19,11 +19,13 @@ import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
 import org.esa.cci.sst.common.calculator.SynopticUncertaintyAccumulator;
+import org.esa.cci.sst.common.cell.AbstractAggregationCell;
+import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
 
 import java.awt.Rectangle;
 
-public class CciSpatialAggregationCell extends AbstractAggregationCell implements SpatialAggregationCell {
+class DefaultSpatialAggregationCell extends AbstractAggregationCell implements SpatialAggregationCell {
 
     private final NumberAccumulator sstAccumulator;
     private final NumberAccumulator sstAnomalyAccumulator;
@@ -36,7 +38,7 @@ public class CciSpatialAggregationCell extends AbstractAggregationCell implement
 
     private boolean enoughSamples;
 
-    public CciSpatialAggregationCell(AggregationContext aggregationContext, int x, int y) {
+    DefaultSpatialAggregationCell(AggregationContext aggregationContext, int x, int y) {
         super(aggregationContext, x, y);
 
         sstAccumulator = new ArithmeticMeanAccumulator();
@@ -52,20 +54,6 @@ public class CciSpatialAggregationCell extends AbstractAggregationCell implement
     @Override
     public final long getSampleCount() {
         return sstAccumulator.getSampleCount();
-    }
-
-    @Override
-    public final Double[] getResults() {
-        return new Double[]{
-                getSeaSurfaceTemperature(),
-                getSeaSurfaceTemperatureAnomaly(),
-                getRandomUncertainty(),
-                getLargeScaleUncertainty(),
-                getCoverageUncertainty(),
-                getAdjustmentUncertainty(),
-                getSynopticUncertainty(),
-                getSeaIceFraction()
-        };
     }
 
     @Override
@@ -124,27 +112,31 @@ public class CciSpatialAggregationCell extends AbstractAggregationCell implement
         enoughSamples = getSampleCount() > getAggregationContext().getMinCoverage() * maxSampleCount;
     }
 
-    public final double getSeaSurfaceTemperature() {
+    @Override
+    public double getSeaSurfaceTemperature() {
         if (enoughSamples) {
             return sstAccumulator.combine();
         }
         return Double.NaN;
     }
 
-    public final double getSeaSurfaceTemperatureAnomaly() {
+    @Override
+    public double getSeaSurfaceTemperatureAnomaly() {
         if (enoughSamples) {
             return sstAnomalyAccumulator.combine();
         }
         return Double.NaN;
     }
 
-    public final double getRandomUncertainty() {
+    @Override
+    public double getRandomUncertainty() {
         if (enoughSamples) {
             return randomUncertaintyAccumulator.combine();
         }
         return Double.NaN;
     }
 
+    @Override
     public double getLargeScaleUncertainty() {
         if (enoughSamples) {
             return largeScaleUncertaintyAccumulator.combine();
@@ -152,7 +144,8 @@ public class CciSpatialAggregationCell extends AbstractAggregationCell implement
         return Double.NaN;
     }
 
-    public final double getCoverageUncertainty() {
+    @Override
+    public double getCoverageUncertainty() {
         if (enoughSamples) {
             final double result = varianceAccumulator.combine();
             return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, result);
@@ -160,6 +153,7 @@ public class CciSpatialAggregationCell extends AbstractAggregationCell implement
         return Double.NaN;
     }
 
+    @Override
     public double getAdjustmentUncertainty() {
         if (enoughSamples) {
             final double result = adjustmentUncertaintyAccumulator.combine();
@@ -168,6 +162,7 @@ public class CciSpatialAggregationCell extends AbstractAggregationCell implement
         return Double.NaN;
     }
 
+    @Override
     public double getSynopticUncertainty() {
         if (enoughSamples) {
             final double result = synopticUncertaintyAccumulator.combine();
@@ -176,6 +171,7 @@ public class CciSpatialAggregationCell extends AbstractAggregationCell implement
         return Double.NaN;
     }
 
+    @Override
     public double getSeaIceFraction() {
         return seaIceFractionAccumulator.combine();
     }

@@ -2,12 +2,12 @@ package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
+import org.esa.cci.sst.common.RegionalAggregation;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
@@ -31,15 +31,20 @@ import static org.junit.Assert.fail;
  * Date: 17.09.12 10:52
  */
 public class AbstractCciFileTypeTest {
-    FileType fileType = newFileTypeInstance();
+
+    final FileType fileType = newFileTypeInstance();
 
     @Test
     public void testParseDate() throws Exception {
         DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
-        assertEquals(format.parse("2010-07-01"), fileType.parseDate(new File("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
-        assertEquals(format.parse("2012-12-01"), fileType.parseDate(new File("20121201000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
-        assertEquals(format.parse("1995-07-31"), fileType.parseDate(new File("19950731000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
-        assertEquals(format.parse("1995-07-31"), fileType.parseDate(new File("19950731000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+        assertEquals(format.parse("2010-07-01"),
+                     fileType.parseDate(new File("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+        assertEquals(format.parse("2012-12-01"),
+                     fileType.parseDate(new File("20121201000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+        assertEquals(format.parse("1995-07-31"),
+                     fileType.parseDate(new File("19950731000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+        assertEquals(format.parse("1995-07-31"),
+                     fileType.parseDate(new File("19950731000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
 
         try {
             fileType.parseDate(new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz"));
@@ -76,32 +81,34 @@ public class AbstractCciFileTypeTest {
             }
 
             @Override
-            public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException {
+            public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth,
+                                                      AggregationContext context) throws IOException {
                 return context;
             }
 
             @Override
-            public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims) {
+            public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth,
+                                                    boolean totalUncertainty, Dimension[] dims) {
                 return new Variable[0];
             }
 
             @Override
-            public AggregationFactory<SameMonthAggregation> getSameMonthAggregationFactory() {
+            public AggregationFactory<SameMonthAggregation<AggregationCell>> getSameMonthAggregationFactory() {
                 return null;
             }
 
             @Override
-            public AggregationFactory<MultiMonthAggregation> getMultiMonthAggregationFactory() {
+            public AggregationFactory<MultiMonthAggregation<RegionalAggregation>> getMultiMonthAggregationFactory() {
                 return null;
             }
 
             @Override
-            public CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory() {
+            public CellFactory<SpatialAggregationCell> getCellFactory5(AggregationContext context) {
                 return null;
             }
 
             @Override
-            public CellFactory getCellFactory(AggregationContext context, CellTypes cellType) {
+            public CellFactory<CellAggregationCell<AggregationCell>> getCellFactory90(AggregationContext context) {
                 return null;
             }
 

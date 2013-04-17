@@ -30,4 +30,20 @@ public interface Aggregation {
     long getSampleCount();
 
     Number[] getResults();
+
+    public double getSeaSurfaceTemperature();
+
+    public double getSeaSurfaceTemperatureAnomaly();
+
+    public double getRandomUncertainty();
+
+    public double getLargeScaleUncertainty();
+
+    public double getCoverageUncertainty();
+
+    public double getAdjustmentUncertainty();
+
+    public double getSynopticUncertainty();
+
+    public double getSeaIceFraction();
 }

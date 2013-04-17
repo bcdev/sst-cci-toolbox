@@ -93,10 +93,10 @@ class Writer {
 
     private void writeOutputs(File outputDir, String filenameRegex,
                               SstDepth sstDepth, TemporalResolution temporalResolution,
-                              RegionMask regionMask, RegriddingTimeStep regriddingTimeStep) throws IOException {
+                              RegionMask regionMask, RegriddingTimeStep timeStep) throws IOException {
 
-        Date startDate = regriddingTimeStep.getStartDate();
-        Date endDate = regriddingTimeStep.getEndDate();
+        Date startDate = timeStep.getStartDate();
+        Date endDate = timeStep.getEndDate();
         final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
         final String outputFilename = getOutputFilename(
                 filenameDateFormat.format(startDate), filenameDateFormat.format(endDate), regionMask.getName(),
@@ -104,7 +104,7 @@ class Writer {
         final File file = new File(outputDir, outputFilename);
         LOGGER.info("Writing output file '" + file + "'...");
 
-        CellGrid<? extends AggregationCell> cellGrid = regriddingTimeStep.getCellGrid();
+        CellGrid<? extends AggregationCell> cellGrid = timeStep.getCellGrid();
         GridDef gridDef = cellGrid.getGridDef();
         SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(gridDef.getResolution());
         //global attributes

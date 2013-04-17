@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.cell;/*
+package org.esa.cci.sst.common.file;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -18,8 +18,11 @@ import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.cell.AbstractAggregationCell;
+import org.esa.cci.sst.common.cell.AggregationCell;
+import org.esa.cci.sst.common.cell.CellAggregationCell;
 
-public class CciTemporalAggregationCell extends AbstractAggregationCell implements CellAggregationCell<CciSpatialAggregationCell> {
+class DefaultCellAggregationCell extends AbstractAggregationCell implements CellAggregationCell<AggregationCell> {
 
     private final NumberAccumulator sstAccumulator;
     private final NumberAccumulator sstAnomalyAccumulator;
@@ -30,7 +33,7 @@ public class CciTemporalAggregationCell extends AbstractAggregationCell implemen
     private final NumberAccumulator synopticUncertaintyAccumulator;
     private final NumberAccumulator seaIceFractionAccumulator;
 
-    public CciTemporalAggregationCell(AggregationContext aggregationContext, int x, int y) {
+    DefaultCellAggregationCell(AggregationContext aggregationContext, int x, int y) {
         super(aggregationContext, x, y);
 
         sstAccumulator = new ArithmeticMeanAccumulator();
@@ -49,21 +52,7 @@ public class CciTemporalAggregationCell extends AbstractAggregationCell implemen
     }
 
     @Override
-    public final Double[] getResults() {
-        return new Double[]{
-                getSeaSurfaceTemperature(),
-                getSeaSurfaceTemperatureAnomaly(),
-                getRandomUncertainty(),
-                getLargeScaleUncertainty(),
-                getCoverageUncertainty(),
-                getAdjustmentUncertainty(),
-                getSynopticUncertainty(),
-                getSeaIceFraction()
-        };
-    }
-
-    @Override
-    public void accumulate(CciSpatialAggregationCell cell, double weight) {
+    public void accumulate(AggregationCell cell, double weight) {
         sstAccumulator.accumulate(cell.getSeaSurfaceTemperature());
         sstAnomalyAccumulator.accumulate(cell.getSeaSurfaceTemperatureAnomaly());
         randomUncertaintyAccumulator.accumulate(cell.getRandomUncertainty());
@@ -74,34 +63,42 @@ public class CciTemporalAggregationCell extends AbstractAggregationCell implemen
         seaIceFractionAccumulator.accumulate(cell.getSeaIceFraction());
     }
 
-    public final double getSeaSurfaceTemperature() {
+    @Override
+    public double getSeaSurfaceTemperature() {
         return sstAccumulator.combine();
     }
 
-    public final double getSeaSurfaceTemperatureAnomaly() {
+    @Override
+    public double getSeaSurfaceTemperatureAnomaly() {
         return sstAnomalyAccumulator.combine();
     }
 
-    public final double getRandomUncertainty() {
+    @Override
+    public double getRandomUncertainty() {
         return randomUncertaintyAccumulator.combine();
     }
 
+    @Override
     public double getLargeScaleUncertainty() {
         return largeScaleUncertaintyAccumulator.combine();
     }
 
-    public final double getCoverageUncertainty() {
+    @Override
+    public double getCoverageUncertainty() {
         return coverageUncertaintyAccumulator.combine();
     }
 
+    @Override
     public double getAdjustmentUncertainty() {
         return adjustmentUncertaintyAccumulator.combine();
     }
 
+    @Override
     public double getSynopticUncertainty() {
         return synopticUncertaintyAccumulator.combine();
     }
 
+    @Override
     public double getSeaIceFraction() {
         return seaIceFractionAccumulator.combine();
     }
