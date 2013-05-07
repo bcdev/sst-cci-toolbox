@@ -1,5 +1,6 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.Aggregation;
 import org.esa.cci.sst.common.ScalarGrid;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SstDepth;
@@ -26,78 +27,69 @@ import static org.junit.Assert.assertNotNull;
  * Date: 17.09.12 11:02
  */
 public class CciL4FileTypeTest {
-    FileType fileType = CciL4FileType.INSTANCE;
+    private static final FileType FILE_TYPE = CciL4FileType.INSTANCE;
 
     @Test
     public void testL3UCell5Aggregation() throws Exception {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1); //whatever
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        new ScalarGrid(sourceGridDef, 292.0), //sstGrid
-                        new ScalarGrid(sourceGridDef, 1.0), //analysisErrorGrid
-                        new ScalarGrid(sourceGridDef, 0.5), //seaIceFractionGrid
-                },
-                new ScalarGrid(sourceGridDef, 291.5), //analysedSstGrid
-                new ScalarGrid(sourceGridDef, 0.8)); //seaCoverageGrid
+        final GridDef sourceGridDef = FILE_TYPE.getGridDef();
+        final AggregationContext context = new AggregationContext();
+        context.setSstGrid(new ScalarGrid(sourceGridDef, 292.0));
+        context.setRandomUncertaintyGrid(new ScalarGrid(sourceGridDef, 1.0));
+        context.setSeaIceFractionGrid(new ScalarGrid(sourceGridDef, 0.5));
+        context.setClimatologySstGrid(new ScalarGrid(sourceGridDef, 291.5));
+        context.setSeaCoverageGrid(new ScalarGrid(sourceGridDef, 0.8));
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        context.setCoverageUncertaintyProvider(
-                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
+        final CellFactory<SpatialAggregationCell> cell5Factory = FILE_TYPE.getCellFactory5(context);
+        final SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
 
-        SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         //execution
-        cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
-        cell5.accumulate(context, new Rectangle(10, 0, 10, 10));
-        cell5.accumulate(context, new Rectangle(20, 0, 10, 10));
+        cell5.accumulate(context, new Rectangle(0, 0, 100, 100));
 
-        int expectedN = 3 * 10 * 10;
+        final int expectedN = 100 * 100;
         assertEquals(expectedN, cell5.getSampleCount());
+
         Number[] results = cell5.getResults();
         assertNotNull(results);
-        assertEquals("Expected count of accumulators", 5, results.length);
-        assertEquals(292.0, results[0].doubleValue(), 1e-6); //sst
-        assertEquals(0.5, results[1].doubleValue(), 1e-6); //sstAnomaly
-        assertEquals((0.5 * 300) / 300, results[2].doubleValue(), 1e-6); //seaIceFraction
-        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[3].doubleValue(), 1e-6); //coverageUncertainty
-        assertEquals(sqrt((0.8 * 0.8 * 300) / ((0.8 * 300) * (0.8 * 300))), results[4].doubleValue(), 1e-6); //analysisError
+        assertEquals(8, results.length);
+        assertEquals(292.0, results[Aggregation.SST].doubleValue(), 1.0e-6);
+        assertEquals(0.5, results[Aggregation.SST_ANOMALY].doubleValue(), 1.0e-6);
+        assertEquals((0.5 * 10000) / 10000, results[Aggregation.SEA_ICE_FRACTION].doubleValue(), 1e-6);
+        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
+        assertEquals(sqrt((0.8 * 0.8 * 10000) / ((0.8 * 10000) * (0.8 * 10000))), results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
     @Test
     public void testCell90Aggregation() throws Exception {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        new ScalarGrid(sourceGridDef, 292.0), //analysed_sst
-                        new ScalarGrid(sourceGridDef, 0.1), //analysis_error
-                        new ScalarGrid(sourceGridDef, 0.5), //sea_ice_fraction
-                },
-                new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+        final GridDef sourceGridDef = FILE_TYPE.getGridDef();
+        final AggregationContext context = new AggregationContext();
+        context.setSstGrid(new ScalarGrid(sourceGridDef, 292.0));
+        context.setRandomUncertaintyGrid(new ScalarGrid(sourceGridDef, 0.1));
+        context.setSeaIceFractionGrid(new ScalarGrid(sourceGridDef, 0.5));
+        context.setClimatologySstGrid(new ScalarGrid(sourceGridDef, 291.5));
+        context.setSeaCoverageGrid(new ScalarGrid(sourceGridDef, 0.8));
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        final CoverageUncertaintyProvider coverageUncertaintyProvider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
-        context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
+        final CellFactory<CellAggregationCell<AggregationCell>> cell90Factory = FILE_TYPE.getCellFactory90(context);
+        final CellAggregationCell<AggregationCell> cell90 = cell90Factory.createCell(0, 0);
+        final CellFactory<SpatialAggregationCell> cell5Factory = FILE_TYPE.getCellFactory5(context);
 
-        CellFactory<CellAggregationCell<AggregationCell>> cell90Factory = fileType.getCellFactory90(context);
-        CellAggregationCell<AggregationCell> cell90 = cell90Factory.createCell(0, 0);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
+        final SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
+        cell5_1.accumulate(context, new Rectangle(0, 0, 100, 100));
 
-        SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
-        cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
+        final SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
+        cell5_2.accumulate(context, new Rectangle(100, 0, 100, 100));
 
-        SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
-        cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
+        final SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
+        cell5_3.accumulate(context, new Rectangle(200, 0, 100, 100));
 
-        SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
-        cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
+        final SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
+        cell5_4.accumulate(context, new Rectangle(300, 0, 100, 100));
 
-        SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
-        cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
-        cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
-
-        int expectedN5_1 = 100;
-        int expectedN5_2 = 100;
-        int expectedN5_3 = 100;
-        int expectedN5_4 = 200;
+        int expectedN5_1 = 10000;
+        int expectedN5_2 = 10000;
+        int expectedN5_3 = 10000;
+        int expectedN5_4 = 10000;
         assertEquals(expectedN5_1, cell5_1.getSampleCount());
         assertEquals(expectedN5_2, cell5_2.getSampleCount());
         assertEquals(expectedN5_3, cell5_3.getSampleCount());
@@ -108,18 +100,19 @@ public class CciL4FileTypeTest {
         cell90.accumulate(cell5_3, 0.25); // --> w=0.125, n = 100
         cell90.accumulate(cell5_4, 1.0);  // --> w=0.5, n = 200
 
-        int expectedN90 = 4;
+        final int expectedN90 = 4;
         assertEquals(expectedN90, cell90.getSampleCount());
 
-        Number[] results = cell90.getResults();
+        final Number[] results = cell90.getResults();
         assertNotNull(results);
-        assertEquals(5, results.length);
-        assertEquals(292.0, results[0].doubleValue(), 1e-6); //sst
-        assertEquals(0.5, results[1].doubleValue(), 1e-6); //sstAnomaly
+        assertEquals(8, results.length);
+
+        assertEquals(292.0, results[Aggregation.SST].doubleValue(), 1.0e-6);
+        assertEquals(0.5, results[Aggregation.SST_ANOMALY].doubleValue(), 1.0e-6);
         // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.5, results[2].doubleValue(), 1e-6); //seaIceFraction
-        assertEquals(0.86736869, results[3].doubleValue(), 1e-6); //coverageUncertainty
-        assertEquals(0.00467707, results[4].doubleValue(), 1e-6); //analysisError
+        assertEquals(0.5, results[Aggregation.SEA_ICE_FRACTION].doubleValue(), 1e-6);
+        assertEquals(0.7111627589581172, results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
+        assertEquals(5.86301969977808E-4, results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
 
@@ -127,7 +120,7 @@ public class CciL4FileTypeTest {
     public void testReadSourceGrids() throws Exception {
         NetcdfFile l4File = TestL3ProductMaker.readL4GridsSetup();
         //execution
-        final AggregationContext context = fileType.readSourceGrids(l4File, SstDepth.skin, new AggregationContext());
+        final AggregationContext context = FILE_TYPE.readSourceGrids(l4File, SstDepth.skin, new AggregationContext());
 
         // analysed_sst
         final Grid sstGrid = context.getSstGrid();
@@ -151,17 +144,17 @@ public class CciL4FileTypeTest {
 
     @Test
     public void testFileNameRegex() throws Exception {
-        assertFalse("Hallo".matches(fileType.getFilenameRegex()));
-        assertFalse("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz".matches(fileType.getFilenameRegex()));
-        assertFalse("19950723120045-ESACCI-L3C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-04.1-01.1.nc".matches(fileType.getFilenameRegex()));
+        assertFalse("Hallo".matches(FILE_TYPE.getFilenameRegex()));
+        assertFalse("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz".matches(FILE_TYPE.getFilenameRegex()));
+        assertFalse("19950723120045-ESACCI-L3C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-04.1-01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
 
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("19950723120045-ESACCI-L4_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTfnd-ATSR1-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20121101000000-ESACCI-L4_GHRSST-SSTsubskin-ATSR2-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTsubskin-AMSRE-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTsubskin-SEVIRI_SST-LT-v04.1-fv01.1.nc".matches(fileType.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("19950723120045-ESACCI-L4_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTfnd-ATSR1-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20121101000000-ESACCI-L4_GHRSST-SSTsubskin-ATSR2-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTsubskin-AMSRE-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTsubskin-SEVIRI_SST-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
     }
 }

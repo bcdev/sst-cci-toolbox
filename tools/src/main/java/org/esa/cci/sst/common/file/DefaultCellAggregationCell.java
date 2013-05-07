@@ -53,13 +53,13 @@ class DefaultCellAggregationCell extends AbstractAggregationCell implements Cell
 
     @Override
     public void accumulate(AggregationCell cell, double weight) {
-        sstAccumulator.accumulate(cell.getSeaSurfaceTemperature());
-        sstAnomalyAccumulator.accumulate(cell.getSeaSurfaceTemperatureAnomaly());
-        randomUncertaintyAccumulator.accumulate(cell.getRandomUncertainty());
-        coverageUncertaintyAccumulator.accumulate(cell.getCoverageUncertainty());
-        largeScaleUncertaintyAccumulator.accumulate(cell.getLargeScaleUncertainty());
-        synopticUncertaintyAccumulator.accumulate(cell.getSynopticUncertainty());
-        adjustmentUncertaintyAccumulator.accumulate(cell.getAdjustmentUncertainty());
+        sstAccumulator.accumulate(cell.getSeaSurfaceTemperature(), weight);
+        sstAnomalyAccumulator.accumulate(cell.getSeaSurfaceTemperatureAnomaly(), weight);
+        randomUncertaintyAccumulator.accumulate(cell.getRandomUncertainty(), weight);
+        coverageUncertaintyAccumulator.accumulate(cell.getCoverageUncertainty(), weight);
+        largeScaleUncertaintyAccumulator.accumulate(cell.getLargeScaleUncertainty(), weight);
+        synopticUncertaintyAccumulator.accumulate(cell.getSynopticUncertainty(), weight);
+        adjustmentUncertaintyAccumulator.accumulate(cell.getAdjustmentUncertainty(), weight);
         seaIceFractionAccumulator.accumulate(cell.getSeaIceFraction());
     }
 

@@ -20,6 +20,7 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AbstractAggregation;
+import org.esa.cci.sst.common.Aggregation;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.RegionalAggregation;
@@ -90,7 +91,7 @@ public class CciL3FileType extends AbstractCciFileType {
     @Override
     public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty,
                                             Dimension[] dims) {
-        Variable[] variables;
+        Variable[] variables = new Variable[9];
 
         Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
@@ -109,11 +110,9 @@ public class CciL3FileType extends AbstractCciFileType {
             totalUncertaintyVar.addAttribute(new Attribute("long_name", "the total uncertainty in kelvin"));
             totalUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-            variables = new Variable[]{
-                    sstVar,
-                    sstAnomalyVar,
-                    totalUncertaintyVar
-            };
+            variables[Aggregation.SST] = sstVar;
+            variables[Aggregation.SST_ANOMALY] = sstAnomalyVar;
+            variables[8] = totalUncertaintyVar; // TODO - do this in Writer
         } else {
             Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
             coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
@@ -146,16 +145,13 @@ public class CciL3FileType extends AbstractCciFileType {
                     new Attribute("long_name", "mean of adjustment uncertainty in kelvin"));
             adjustmentUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-            variables = new Variable[]{
-                    sstVar,
-                    sstAnomalyVar,
-                    coverageUncertaintyVar,
-                    uncorrelatedUncertaintyVar,
-                    largeScaleCorrelatedUncertaintyVar,
-                    synopticallyCorrelatedUncertaintyVar,
-                    adjustmentUncertaintyVar
-            };
-
+            variables[Aggregation.SST] = sstVar;
+            variables[Aggregation.SST_ANOMALY] = sstAnomalyVar;
+            variables[Aggregation.RANDOM_UNCERTAINTY] = uncorrelatedUncertaintyVar;
+            variables[Aggregation.COVERAGE_UNCERTAINTY] = coverageUncertaintyVar;
+            variables[Aggregation.LARGE_SCALE_UNCERTAINTY] = largeScaleCorrelatedUncertaintyVar;
+            variables[Aggregation.SYNOPTIC_UNCERTAINTY] = synopticallyCorrelatedUncertaintyVar;
+            variables[Aggregation.ADJUSTMENT_UNCERTAINTY] = adjustmentUncertaintyVar;
         }
         return variables;
     }
@@ -213,7 +209,6 @@ public class CciL3FileType extends AbstractCciFileType {
         private final NumberAccumulator sstAccumulator;
         private final NumberAccumulator sstAnomalyAccumulator;
         private final NumberAccumulator randomUncertaintyAccumulator;
-        private final NumberAccumulator varianceAccumulator;
         private final NumberAccumulator largeScaleUncertaintyAccumulator;
         private final NumberAccumulator adjustmentUncertaintyAccumulator5;
         private final NumberAccumulator synopticUncertaintyAccumulator5;
@@ -225,11 +220,22 @@ public class CciL3FileType extends AbstractCciFileType {
             sstAccumulator = new ArithmeticMeanAccumulator();
             sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
             randomUncertaintyAccumulator = new RandomUncertaintyAccumulator();
-            varianceAccumulator = new ArithmeticMeanAccumulator();
             largeScaleUncertaintyAccumulator = new ArithmeticMeanAccumulator();
-            adjustmentUncertaintyAccumulator5 = new RandomUncertaintyAccumulator();
-            synopticUncertaintyAccumulator5 = new RandomUncertaintyAccumulator();
-            seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
+            if (aggregationContext.getAdjustmentUncertaintyGrid() != null) {
+                adjustmentUncertaintyAccumulator5 = new RandomUncertaintyAccumulator();
+            } else {
+                adjustmentUncertaintyAccumulator5 = null;
+            }
+            if (aggregationContext.getSynopticUncertaintyGrid() != null) {
+                synopticUncertaintyAccumulator5 = new RandomUncertaintyAccumulator();
+            } else {
+                synopticUncertaintyAccumulator5 = null;
+            }
+            if (aggregationContext.getSeaIceFractionGrid() != null) {
+                seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
+            } else {
+                seaIceFractionAccumulator = null;
+            }
         }
 
         @Override
@@ -248,13 +254,10 @@ public class CciL3FileType extends AbstractCciFileType {
 
             final Grid climatologySstGrid = aggregationContext.getClimatologySstGrid();
             final Grid seaCoverageGrid = aggregationContext.getSeaCoverageGrid();
-            final Grid standardDeviationGrid = aggregationContext.getStandardDeviationGrid();
             final Grid seaIceFractionGrid = aggregationContext.getSeaIceFractionGrid();
 
             final int minX = rectangle.x;
             final int minY = rectangle.y;
-            final int maxX = minX + rectangle.width - 1;
-            final int maxY = minY + rectangle.height - 1;
 
             for (int y1 = 0; y1 < 5; y1++) { // 1° loop
                 for (int x1 = 0; x1 < 5; x1++) { // 1° loop
@@ -265,44 +268,40 @@ public class CciL3FileType extends AbstractCciFileType {
                         for (int x0 = 0; x0 < 20; x0++) { // 0.05° loop
                             final int y = minY + 5 * y1 + y0;
                             final int x = minX + 5 * x1 + x0;
+
                             final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
                             final double sst = sstGrid.getSampleDouble(x, y);
 
                             if (isValid(x, y, seaCoverage, sst, qualityGrid)) {
                                 final double climatologySst = climatologySstGrid.getSampleDouble(x, y);
                                 final double randomUncertainty = randomUncertaintyGrid.getSampleDouble(x, y);
-                                final double standardDeviation = standardDeviationGrid.getSampleDouble(x, y);
 
                                 sstAccumulator.accumulate(sst, seaCoverage);
                                 sstAnomalyAccumulator.accumulate(sst - climatologySst, seaCoverage);
                                 randomUncertaintyAccumulator.accumulate(randomUncertainty, seaCoverage);
-                                varianceAccumulator.accumulate(standardDeviation * standardDeviation, seaCoverage);
-
-                                if (largeScaleUncertaintyGrid != null) {
-                                    final double largeScaleUncertainty = largeScaleUncertaintyGrid.getSampleDouble(x,
-                                                                                                                   y);
-                                    largeScaleUncertaintyAccumulator.accumulate(largeScaleUncertainty, seaCoverage);
+                                if (largeScaleUncertaintyAccumulator != null) {
+                                    final double sample = largeScaleUncertaintyGrid.getSampleDouble(x, y);
+                                    largeScaleUncertaintyAccumulator.accumulate(sample, seaCoverage);
                                 }
-                                if (adjustmentUncertaintyGrid != null) {
-                                    final double adjustmentUncertainty = adjustmentUncertaintyGrid.getSampleDouble(x,
-                                                                                                                   y);
-                                    adjustmentUncertaintyAccumulator1.accumulate(adjustmentUncertainty);
+                                if (adjustmentUncertaintyAccumulator5 != null) {
+                                    final double sample = adjustmentUncertaintyGrid.getSampleDouble(x, y);
+                                    adjustmentUncertaintyAccumulator1.accumulate(sample);
                                 }
-                                if (synopticUncertaintyGrid != null) {
-                                    final double synopticUncertainty = synopticUncertaintyGrid.getSampleDouble(x, y);
-                                    synopticUncertaintyAccumulator1.accumulate(synopticUncertainty);
+                                if (synopticUncertaintyAccumulator5 != null) {
+                                    final double sample = synopticUncertaintyGrid.getSampleDouble(x, y);
+                                    synopticUncertaintyAccumulator1.accumulate(sample);
                                 }
                             }
-                            if (seaIceFractionGrid != null) {
-                                final double seaIceFraction = seaIceFractionGrid.getSampleDouble(x, y);
-                                seaIceFractionAccumulator.accumulate(seaIceFraction);
+                            if (seaIceFractionAccumulator != null) {
+                                final double sample = seaIceFractionGrid.getSampleDouble(x, y);
+                                seaIceFractionAccumulator.accumulate(sample);
                             }
                         }
                     }
-                    if (adjustmentUncertaintyGrid != null) {
+                    if (adjustmentUncertaintyAccumulator5 != null) {
                         adjustmentUncertaintyAccumulator5.accumulate(adjustmentUncertaintyAccumulator1.combine(), 0.04);
                     }
-                    if (synopticUncertaintyGrid != null) {
+                    if (synopticUncertaintyAccumulator5 != null) {
                         synopticUncertaintyAccumulator5.accumulate(synopticUncertaintyAccumulator1.combine(), 0.04);
                     }
                 }
@@ -331,25 +330,33 @@ public class CciL3FileType extends AbstractCciFileType {
 
         @Override
         public double getCoverageUncertainty() {
-            final double result = varianceAccumulator.combine();
-            return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, result);
+                return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 5.0);
         }
 
         @Override
         public double getAdjustmentUncertainty() {
-            final double result = adjustmentUncertaintyAccumulator5.combine();
-            return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
+            if (adjustmentUncertaintyAccumulator5 != null) {
+                final double result = adjustmentUncertaintyAccumulator5.combine();
+                return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
+            }
+            return Double.NaN;
         }
 
         @Override
         public double getSynopticUncertainty() {
-            final double result = synopticUncertaintyAccumulator5.combine();
-            return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
+            if (synopticUncertaintyAccumulator5 != null) {
+                final double result = synopticUncertaintyAccumulator5.combine();
+                return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
+            }
+            return Double.NaN;
         }
 
         @Override
         public double getSeaIceFraction() {
-            return seaIceFractionAccumulator.combine();
+            if (seaIceFractionAccumulator != null) {
+                return seaIceFractionAccumulator.combine();
+            }
+            return Double.NaN;
         }
 
         private boolean isValid(int x, int y, double seaCoverage, double sst, Grid qualityGrid) {

@@ -20,6 +20,7 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AbstractAggregation;
+import org.esa.cci.sst.common.Aggregation;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.ProcessingLevel;
@@ -96,13 +97,14 @@ public class CciL4FileType extends AbstractCciFileType {
         analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error in kelvin"));
         analysisErrorVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        return new Variable[]{
-                sstVar,
-                sstAnomalyVar,
-                seaIceCoverageVar,
-                coverageUncertaintyVar,
-                analysisErrorVar,
-        };
+        final Variable[] variables = new Variable[8];
+        variables[Aggregation.SST] = sstVar;
+        variables[Aggregation.SST_ANOMALY] = sstAnomalyVar;
+        variables[Aggregation.RANDOM_UNCERTAINTY] = analysisErrorVar;
+        variables[Aggregation.COVERAGE_UNCERTAINTY] = coverageUncertaintyVar;
+        variables[Aggregation.SEA_ICE_FRACTION] = seaIceCoverageVar;
+
+        return variables;
     }
 
     @Override

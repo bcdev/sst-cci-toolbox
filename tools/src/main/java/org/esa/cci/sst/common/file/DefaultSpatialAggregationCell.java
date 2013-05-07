@@ -44,11 +44,37 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
         sstAccumulator = new ArithmeticMeanAccumulator();
         sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
         randomUncertaintyAccumulator = new RandomUncertaintyAccumulator();
-        varianceAccumulator = new ArithmeticMeanAccumulator();
-        largeScaleUncertaintyAccumulator = new ArithmeticMeanAccumulator();
-        adjustmentUncertaintyAccumulator = new SynopticUncertaintyAccumulator();
-        synopticUncertaintyAccumulator = new SynopticUncertaintyAccumulator();
-        seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
+
+        final Grid standardDeviationGrid = aggregationContext.getStandardDeviationGrid();
+        if (standardDeviationGrid != null) {
+            varianceAccumulator = new ArithmeticMeanAccumulator();
+        } else {
+            varianceAccumulator = null;
+        }
+        final Grid largeScaleUncertaintyGrid = aggregationContext.getLargeScaleUncertaintyGrid();
+        if (largeScaleUncertaintyGrid != null) {
+            largeScaleUncertaintyAccumulator = new ArithmeticMeanAccumulator();
+        } else {
+            largeScaleUncertaintyAccumulator = null;
+        }
+        final Grid adjustmentUncertaintyGrid = aggregationContext.getAdjustmentUncertaintyGrid();
+        if (adjustmentUncertaintyGrid != null) {
+            adjustmentUncertaintyAccumulator = new SynopticUncertaintyAccumulator();
+        } else {
+            adjustmentUncertaintyAccumulator = null;
+        }
+        final Grid synopticUncertaintyGrid = aggregationContext.getSynopticUncertaintyGrid();
+        if (synopticUncertaintyGrid != null) {
+            synopticUncertaintyAccumulator = new SynopticUncertaintyAccumulator();
+        } else {
+            synopticUncertaintyAccumulator = null;
+        }
+        final Grid seaIceFractionGrid = aggregationContext.getSeaIceFractionGrid();
+        if (seaIceFractionGrid != null) {
+            seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
+        } else {
+            seaIceFractionAccumulator = null;
+        }
     }
 
     @Override
@@ -82,29 +108,31 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
                 if (isValid(x, y, seaCoverage, sst, qualityGrid)) {
                     final double climatologySst = climatologySstGrid.getSampleDouble(x, y);
                     final double randomUncertainty = randomUncertaintyGrid.getSampleDouble(x, y);
-                    final double standardDeviation = standardDeviationGrid.getSampleDouble(x, y);
 
                     sstAccumulator.accumulate(sst, seaCoverage);
                     sstAnomalyAccumulator.accumulate(sst - climatologySst, seaCoverage);
                     randomUncertaintyAccumulator.accumulate(randomUncertainty, seaCoverage);
-                    varianceAccumulator.accumulate(standardDeviation * standardDeviation, seaCoverage);
 
-                    if (largeScaleUncertaintyGrid != null) {
-                        final double largeScaleUncertainty = largeScaleUncertaintyGrid.getSampleDouble(x, y);
-                        largeScaleUncertaintyAccumulator.accumulate(largeScaleUncertainty, seaCoverage);
+                    if (varianceAccumulator != null) {
+                        final double sample = standardDeviationGrid.getSampleDouble(x, y);
+                        varianceAccumulator.accumulate(sample * sample, seaCoverage);
                     }
-                    if (adjustmentUncertaintyGrid != null) {
-                        final double adjustmentUncertainty = adjustmentUncertaintyGrid.getSampleDouble(x, y);
-                        adjustmentUncertaintyAccumulator.accumulate(adjustmentUncertainty);
+                    if (largeScaleUncertaintyAccumulator != null) {
+                        final double sample = largeScaleUncertaintyGrid.getSampleDouble(x, y);
+                        largeScaleUncertaintyAccumulator.accumulate(sample, seaCoverage);
                     }
-                    if (synopticUncertaintyGrid != null) {
-                        final double synopticUncertainty = synopticUncertaintyGrid.getSampleDouble(x, y);
-                        synopticUncertaintyAccumulator.accumulate(synopticUncertainty);
+                    if (adjustmentUncertaintyAccumulator != null) {
+                        final double sample = adjustmentUncertaintyGrid.getSampleDouble(x, y);
+                        adjustmentUncertaintyAccumulator.accumulate(sample);
+                    }
+                    if (synopticUncertaintyAccumulator != null) {
+                        final double sample = synopticUncertaintyGrid.getSampleDouble(x, y);
+                        synopticUncertaintyAccumulator.accumulate(sample);
                     }
                 }
-                if (seaIceFractionGrid != null) {
-                    final double seaIceFraction = seaIceFractionGrid.getSampleDouble(x, y);
-                    seaIceFractionAccumulator.accumulate(seaIceFraction);
+                if (seaIceFractionAccumulator != null) {
+                    final double sample = seaIceFractionGrid.getSampleDouble(x, y);
+                    seaIceFractionAccumulator.accumulate(sample);
                 }
             }
         }
@@ -138,7 +166,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
 
     @Override
     public double getLargeScaleUncertainty() {
-        if (enoughSamples) {
+        if (enoughSamples && largeScaleUncertaintyAccumulator != null) {
             return largeScaleUncertaintyAccumulator.combine();
         }
         return Double.NaN;
@@ -146,7 +174,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
 
     @Override
     public double getCoverageUncertainty() {
-        if (enoughSamples) {
+        if (enoughSamples && varianceAccumulator != null) {
             final double result = varianceAccumulator.combine();
             return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, result);
         }
@@ -155,7 +183,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
 
     @Override
     public double getAdjustmentUncertainty() {
-        if (enoughSamples) {
+        if (enoughSamples && adjustmentUncertaintyAccumulator != null) {
             final double result = adjustmentUncertaintyAccumulator.combine();
             return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
         }
@@ -164,7 +192,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
 
     @Override
     public double getSynopticUncertainty() {
-        if (enoughSamples) {
+        if (enoughSamples && synopticUncertaintyAccumulator != null) {
             final double result = synopticUncertaintyAccumulator.combine();
             return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
         }
@@ -173,7 +201,10 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
 
     @Override
     public double getSeaIceFraction() {
-        return seaIceFractionAccumulator.combine();
+        if (seaIceFractionAccumulator != null) {
+            return seaIceFractionAccumulator.combine();
+        }
+        return Double.NaN;
     }
 
     private boolean isValid(int x, int y, double seaCoverage, double sst, Grid qualityGrid) {

@@ -35,8 +35,6 @@ import java.util.List;
  */
 public final class AggregationContext {
 
-    private Grid[] sourceGrids;
-
     private Grid sstGrid;
     private Grid climatologySstGrid;
     private Grid randomUncertaintyGrid;
@@ -61,21 +59,11 @@ public final class AggregationContext {
     public AggregationContext() {
     }
 
-    @Deprecated
-    public AggregationContext(Grid[] sourceGrids, Grid climatologySstGrid, Grid seaCoverageGrid) {
-        this.sourceGrids = sourceGrids;
-        this.climatologySstGrid = climatologySstGrid;
-        this.seaCoverageGrid = seaCoverageGrid;
-    }
-
     public GridDef getSourceGridDef() {
-        if (getSstGrid() != null) {
+        if (sstGrid != null) {
             return sstGrid.getGridDef();
         }
-        if (sourceGrids != null && sourceGrids.length > 0) {
-            return sourceGrids[0].getGridDef();
-        }
-        throw new IllegalStateException("No SST grid.");
+        throw new IllegalStateException("No SST grid has been set.");
     }
 
     public GridDef getTargetGridDef() {
@@ -84,11 +72,6 @@ public final class AggregationContext {
 
     public void setTargetGridDef(GridDef targetGridDef) {
         this.targetGridDef = targetGridDef;
-    }
-
-    @Deprecated
-    public Grid[] getSourceGrids() {
-        return sourceGrids;
     }
 
     public Grid getClimatologySstGrid() {

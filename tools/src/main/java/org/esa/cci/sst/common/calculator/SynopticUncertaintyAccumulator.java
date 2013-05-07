@@ -25,7 +25,7 @@ package org.esa.cci.sst.common.calculator;
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public class SynopticUncertaintyAccumulator extends NumberAccumulator {
+public final class SynopticUncertaintyAccumulator extends NumberAccumulator {
 
     private double sumXX;
     private long sampleCount;

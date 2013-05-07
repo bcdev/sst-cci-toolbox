@@ -20,6 +20,7 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AbstractAggregation;
+import org.esa.cci.sst.common.Aggregation;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.RegionalAggregation;
@@ -54,18 +55,7 @@ import java.util.Date;
 /**
  * Represents the ARC_L3U file type.
  * <p/>
- * The filename regex pattern is <code>AT[12S]_AVG_3PAARC\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?</code>
- * with
- * <p/>
- * AT[12S] = ATSR1, ATSR2, AATSR<br/>
- * \d{8} = date in the format YYYYMMDD <br/>
- * [DTEM] = daily, ?, ?, monthly
- * [nd] = night or day<br/>
- * [ND] = Nadir or Dual view<br/>
- * [23] = 2 or 3 channel retrieval (3 channel only valid during night)<br/>
- * [bms] = bayes, min-bayes, SADIST cloud screening<br/>
- * <p/>
- * Find more info in the <a href="https://www.wiki.ed.ac.uk/display/arcwiki/Test+Data#TestData-NetCDFDataFiles">arcwiki</a>.
+ * Further info in the <a href="https://www.wiki.ed.ac.uk/display/arcwiki/Test+Data#TestData-NetCDFDataFiles">arcwiki</a>.
  *
  * @author Norman Fomferra
  * @author Ralf Quast
@@ -76,7 +66,7 @@ public final class ArcL3FileType implements FileType {
 
     private static final DateFormat DATE_FORMAT = UTC.getDateFormat("yyyyMMdd");
     private static final int FILENAME_DATE_OFFSET = "ATS_AVG_3PAARC".length();
-    private static final GridDef GRID_DEF = GridDef.createGlobal(3600, 1800); //source always in 0.01 ° resolution
+    private static final GridDef GRID_DEF = GridDef.createGlobal(3600, 1800); // 0.01°
 
     @Override
     public Date parseDate(File file) throws ParseException {
@@ -89,6 +79,20 @@ public final class ArcL3FileType implements FileType {
         return "ARC";
     }
 
+    /**
+     * The filename regex pattern is <code>AT[12S]_AVG_3PAARC\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?</code>,
+     * where
+     * <p/>
+     * AT[12S] = ATSR1, ATSR2, AATSR<br/>
+     * \d{8} = date in the format YYYYMMDD <br/>
+     * [DTEM] = daily, ?, ?, monthly
+     * [nd] = night or day<br/>
+     * [ND] = Nadir or Dual view<br/>
+     * [23] = 2 or 3 channel retrieval (3 channel only valid during night)<br/>
+     * [bms] = bayes, min-bayes, SADIST cloud screening<br/>
+     *
+     * @return the filename regex.
+     */
     @Override
     public String getFilenameRegex() {
         return "AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?";
@@ -158,12 +162,13 @@ public final class ArcL3FileType implements FileType {
         arcUncertaintyVar.addAttribute(new Attribute("long_name", "mean of arc uncertainty in kelvin"));
         arcUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        return new Variable[]{
-                sstVar,
-                sstAnomalyVar,
-                coverageUncertaintyVar,
-                arcUncertaintyVar
-        };
+        final Variable[] variables = new Variable[8];
+        variables[Aggregation.SST] = sstVar;
+        variables[Aggregation.SST_ANOMALY] = sstAnomalyVar;
+        variables[Aggregation.RANDOM_UNCERTAINTY] = arcUncertaintyVar;
+        variables[Aggregation.COVERAGE_UNCERTAINTY] = coverageUncertaintyVar;
+
+        return variables;
     }
 
     @Override
@@ -272,28 +277,8 @@ public final class ArcL3FileType implements FileType {
         }
 
         @Override
-        public double getLargeScaleUncertainty() {
-            return Double.NaN;
-        }
-
-        @Override
         public double getCoverageUncertainty() {
-            return Double.NaN;
-        }
-
-        @Override
-        public double getAdjustmentUncertainty() {
-            return Double.NaN;
-        }
-
-        @Override
-        public double getSynopticUncertainty() {
-            return Double.NaN;
-        }
-
-        @Override
-        public double getSeaIceFraction() {
-            return Double.NaN;
+            return coverageUncertaintyAccumulator.combine();
         }
 
         @Override

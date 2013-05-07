@@ -27,6 +27,15 @@ package org.esa.cci.sst.common;
  */
 public interface Aggregation {
 
+    final int SST = 0;
+    final int SST_ANOMALY = 1;
+    final int RANDOM_UNCERTAINTY = 2;
+    final int COVERAGE_UNCERTAINTY = 3;
+    final int LARGE_SCALE_UNCERTAINTY = 4;
+    final int ADJUSTMENT_UNCERTAINTY = 5;
+    final int SYNOPTIC_UNCERTAINTY = 6;
+    final int SEA_ICE_FRACTION = 7;
+
     long getSampleCount();
 
     Number[] getResults();

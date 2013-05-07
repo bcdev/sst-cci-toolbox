@@ -1,15 +1,14 @@
 package org.esa.cci.sst.common.file;
 
+import org.esa.cci.sst.common.Aggregation;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.AggregationFactory;
 import org.esa.cci.sst.common.RegionalAggregation;
 import org.esa.cci.sst.common.ScalarGrid;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
@@ -28,41 +27,43 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
+ * Tests for ARC-L3 file type.
+ *
  * @author Norman Fomferra
+ * @author Ralf Quast
  */
 public class ArcL3FileTypeTest {
 
-    FileType fileType = ArcL3FileType.INSTANCE;
+    private static final FileType FILE_TYPE = ArcL3FileType.INSTANCE;
 
     @Test
     public void testParseDate() throws Exception {
-        DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
-        assertEquals(format.parse("2002-01-12"), fileType.parseDate(new File("AT2_AVG_3PAARC20020112_D_dN2b.nc.gz")));
-        assertEquals(format.parse("2002-04-16"), fileType.parseDate(new File("AT1_AVG_3PAARC20020416_D_dN2b.nc.gz")));
-        assertEquals(format.parse("2002-01-20"), fileType.parseDate(new File("AT2_AVG_3PAARC20020120_D_nN2b.nc.gz")));
-        assertEquals(format.parse("2002-09-15"), fileType.parseDate(new File("ATS_AVG_3PAARC20020915_D_nD3b.nc.gz")));
+
+        final DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
+        assertEquals(format.parse("2002-01-12"), FILE_TYPE.parseDate(new File("AT2_AVG_3PAARC20020112_D_dN2b.nc.gz")));
+        assertEquals(format.parse("2002-04-16"), FILE_TYPE.parseDate(new File("AT1_AVG_3PAARC20020416_D_dN2b.nc.gz")));
+        assertEquals(format.parse("2002-01-20"), FILE_TYPE.parseDate(new File("AT2_AVG_3PAARC20020120_D_nN2b.nc.gz")));
+        assertEquals(format.parse("2002-09-15"), FILE_TYPE.parseDate(new File("ATS_AVG_3PAARC20020915_D_nD3b.nc.gz")));
 
         try {
-            fileType.parseDate(new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz"));
-            fail("ParseException expected.");
-        } catch (ParseException e) {
-            // ok
+            FILE_TYPE.parseDate(new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz"));
+            fail();
+        } catch (ParseException expected) {
         }
     }
 
     @Test
-    public void testOtherProperties() throws Exception {
-        assertEquals("AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?", fileType.getFilenameRegex());
+    public void testFilenameRegex() throws Exception {
+        assertEquals("AT[12S]_AVG_3PAARC\\d{8}_[DTEM]_[nd][ND][23][bms][.]nc([.]gz)?", FILE_TYPE.getFilenameRegex());
     }
 
     @Test
     public void testCell5Factory() throws Exception {
         final AggregationContext context = new AggregationContext();
-        final CoverageUncertaintyProvider provider = new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5);
-        context.setCoverageUncertaintyProvider(provider);
-        CellFactory<? extends AggregationCell> cell5Factory = fileType.getCellFactory5(context);
+        final CellFactory<? extends AggregationCell> cell5Factory = FILE_TYPE.getCellFactory5(context);
         assertNotNull(cell5Factory);
-        AggregationCell cell5 = cell5Factory.createCell(52, 78);
+
+        final AggregationCell cell5 = cell5Factory.createCell(52, 78);
         assertNotNull(cell5);
         assertEquals(52, cell5.getX());
         assertEquals(78, cell5.getY());
@@ -70,62 +71,59 @@ public class ArcL3FileTypeTest {
 
     @Test
     public void testCell5Aggregation() throws Exception {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        new ScalarGrid(sourceGridDef, 292.0),
-                        new ScalarGrid(sourceGridDef, 0.1),
-                },
-                new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+        final GridDef sourceGridDef = FILE_TYPE.getGridDef();
+        final AggregationContext context = new AggregationContext();
+        context.setSstGrid(new ScalarGrid(sourceGridDef, 292.0));
+        context.setRandomUncertaintyGrid(new ScalarGrid(sourceGridDef, 0.1));
+        context.setClimatologySstGrid(new ScalarGrid(sourceGridDef, 291.5));
+        context.setSeaCoverageGrid(new ScalarGrid(sourceGridDef, 0.8));
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        context.setCoverageUncertaintyProvider(
-                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
-
-        SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
+        final CellFactory<SpatialAggregationCell> cell5Factory = FILE_TYPE.getCellFactory5(context);
+        final SpatialAggregationCell cell5 = cell5Factory.createCell(0, 0);
         cell5.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5.accumulate(context, new Rectangle(10, 0, 10, 10));
         cell5.accumulate(context, new Rectangle(20, 0, 10, 10));
 
-        int expectedN = 3 * 10 * 10;
+        final int expectedN = 3 * 10 * 10;
         assertEquals(expectedN, cell5.getSampleCount());
-        Number[] results = cell5.getResults();
+
+        final Number[] results = cell5.getResults();
         assertNotNull(results);
-        assertEquals(4, results.length);
-        assertEquals(292.0, results[0].doubleValue(), 1e-6);
-        assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)), results[2].doubleValue(), 1e-6);
-        assertEquals(sqrt(300 * sqr(0.1 * 0.8) / sqr(300 * 0.8)), results[3].doubleValue(), 1e-6);
+
+        assertEquals(8, results.length);
+        assertEquals(292.0, results[Aggregation.SST].doubleValue(), 1e-6);
+        assertEquals(0.5, results[Aggregation.SST_ANOMALY].doubleValue(), 1e-6);
+        assertEquals(sqrt(300 * sqr(0.1 * 0.8) / sqr(300 * 0.8)), results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(),
+                     1e-6);
+        assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)),
+                     results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
     @Test
     public void testCell90Aggregation() throws Exception {
-        GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        new ScalarGrid(sourceGridDef, 292.0),
-                        new ScalarGrid(sourceGridDef, 0.1),
-                },
-                new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+        final GridDef sourceGridDef = FILE_TYPE.getGridDef();
+        final AggregationContext context = new AggregationContext();
+        context.setSstGrid(new ScalarGrid(sourceGridDef, 292.0));
+        context.setRandomUncertaintyGrid(new ScalarGrid(sourceGridDef, 0.1));
+        context.setClimatologySstGrid(new ScalarGrid(sourceGridDef, 291.5));
+        context.setSeaCoverageGrid(new ScalarGrid(sourceGridDef, 0.8));
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        context.setCoverageUncertaintyProvider(
-                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<CellAggregationCell<AggregationCell>> cell90Factory = fileType.getCellFactory90(context);
-        CellAggregationCell<AggregationCell> cell90 = cell90Factory.createCell(0, 0);
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
+        final CellFactory<CellAggregationCell<AggregationCell>> cell90Factory = FILE_TYPE.getCellFactory90(context);
+        final CellAggregationCell<AggregationCell> cell90 = cell90Factory.createCell(0, 0);
+        final CellFactory<SpatialAggregationCell> cell5Factory = FILE_TYPE.getCellFactory5(context);
 
-        SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
+        final SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
+        final SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
         cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
+        final SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
         cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
+        final SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
@@ -143,107 +141,102 @@ public class ArcL3FileTypeTest {
         cell90.accumulate(cell5_3, 0.25); // --> w=0.125, n = 100
         cell90.accumulate(cell5_4, 1.0);  // --> w=0.5, n = 200
 
-        int expectedN90 = 4;
+        final int expectedN90 = 4;
         assertEquals(expectedN90, cell90.getSampleCount());
 
-        Number[] results = cell90.getResults();
+        final Number[] results = cell90.getResults();
         assertNotNull(results);
-        assertEquals(4, results.length);
-        assertEquals(292.0, results[0].doubleValue(), 1e-6);
-        assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.8673687, results[2].doubleValue(), 1e-6);
-        assertEquals(0.0046771, results[3].doubleValue(), 1e-6);
+        assertEquals(8, results.length);
+
+        assertEquals(292.0, results[Aggregation.SST].doubleValue(), 1e-6);
+        assertEquals(0.5, results[Aggregation.SST_ANOMALY].doubleValue(), 1e-6);
+        // TODO - replace inexplicable numbers by formulas, testCell5Aggregation()
+        assertEquals(0.0046771, results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(), 1e-6);
+        assertEquals(0.8673687, results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
     @Test
     public void testSameMonthAggregation() throws Exception {
-        AggregationFactory<SameMonthAggregation<AggregationCell>> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
+        final GridDef sourceGridDef = FILE_TYPE.getGridDef();
+        final AggregationFactory<SameMonthAggregation<AggregationCell>> aggregationFactory = FILE_TYPE.getSameMonthAggregationFactory();
+        final AggregationContext context = new AggregationContext();
+        context.setSstGrid(new ScalarGrid(sourceGridDef, 292.0));
+        context.setRandomUncertaintyGrid(new ScalarGrid(sourceGridDef, 0.1));
+        context.setClimatologySstGrid(new ScalarGrid(sourceGridDef, 291.5));
+        context.setSeaCoverageGrid(new ScalarGrid(sourceGridDef, 0.8));
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        new ScalarGrid(sourceGridDef, 292.0),
-                        new ScalarGrid(sourceGridDef, 0.1),
-                },
-                new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+        final CellFactory<SpatialAggregationCell> cell5Factory = FILE_TYPE.getCellFactory5(context);
 
-        context.setCoverageUncertaintyProvider(
-                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
-
-        SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
+        final SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
+        final SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
         cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 10, 10, 10));
         cell5_2.accumulate(context, new Rectangle(0, 10, 10, 10));
 
-        SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
+        final SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
         cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
+        final SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
-        SameMonthAggregation<AggregationCell> aggregation = sameMonthAggregationFactory.createAggregation();
+        final SameMonthAggregation<AggregationCell> aggregation = aggregationFactory.createAggregation();
 
         aggregation.accumulate(cell5_1, 0.25);
         aggregation.accumulate(cell5_2, 0.5);
         aggregation.accumulate(cell5_3, 0.25);
         aggregation.accumulate(cell5_4, 1.0);
 
-        int expectedN = 4;
+        final int expectedN = 4;
         assertEquals(expectedN, aggregation.getSampleCount());
-        Number[] results = aggregation.getResults();
+
+        final Number[] results = aggregation.getResults();
         assertNotNull(results);
-        assertEquals(4, results.length);
-        assertEquals(292.0, results[0].doubleValue(), 1e-6);
-        assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.66611642, results[2].doubleValue(), 1e-6);
-        assertEquals(0.00414578, results[3].doubleValue(), 1e-6);
+        assertEquals(8, results.length);
+
+        assertEquals(292.0, results[Aggregation.SST].doubleValue(), 1e-6);
+        assertEquals(0.5, results[Aggregation.SST_ANOMALY].doubleValue(), 1e-6);
+        // TODO - replace inexplicable numbers by formulas, testCell5Aggregation()
+        assertEquals(0.00414578, results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(), 1e-6);
+        assertEquals(0.66611642, results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
     @Test
     public void testMultiMonthAggregation() throws Exception {
-        AggregationFactory<SameMonthAggregation<AggregationCell>> sameMonthAggregationFactory = fileType.getSameMonthAggregationFactory();
-        AggregationFactory<MultiMonthAggregation<RegionalAggregation>> multiMonthAggregationFactory = fileType.getMultiMonthAggregationFactory();
+        final GridDef sourceGridDef = FILE_TYPE.getGridDef();
+        final AggregationFactory<SameMonthAggregation<AggregationCell>> sameMonthAggregationFactory = FILE_TYPE.getSameMonthAggregationFactory();
+        final AggregationFactory<MultiMonthAggregation<RegionalAggregation>> multiMonthAggregationFactory = FILE_TYPE.getMultiMonthAggregationFactory();
 
-        GridDef sourceGridDef = GridDef.createGlobal(0.1);
-        AggregationContext context = new AggregationContext(
-                new Grid[]{
-                        new ScalarGrid(sourceGridDef, 292.0),
-                        new ScalarGrid(sourceGridDef, 0.1),
-                },
-                new ScalarGrid(sourceGridDef, 291.5),
-                new ScalarGrid(sourceGridDef, 0.8));
+        final AggregationContext context = new AggregationContext();
+        context.setSstGrid(new ScalarGrid(sourceGridDef, 292.0));
+        context.setRandomUncertaintyGrid(new ScalarGrid(sourceGridDef, 0.1));
+        context.setClimatologySstGrid(new ScalarGrid(sourceGridDef, 291.5));
+        context.setSeaCoverageGrid(new ScalarGrid(sourceGridDef, 0.8));
+        context.setCoverageUncertaintyProvider(new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
 
-        context.setCoverageUncertaintyProvider(
-                new MockCoverageUncertaintyProvider(1.1, 1.2, 0.5));
-        CellFactory<SpatialAggregationCell> cell5Factory = fileType.getCellFactory5(context);
-
-        SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
+        final CellFactory<SpatialAggregationCell> cell5Factory = FILE_TYPE.getCellFactory5(context);
+        final SpatialAggregationCell cell5_1 = cell5Factory.createCell(0, 0);
         cell5_1.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
+        final SpatialAggregationCell cell5_2 = cell5Factory.createCell(1, 0);
         cell5_2.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 0, 10, 10));
         cell5_2.accumulate(context, new Rectangle(10, 10, 10, 10));
         cell5_2.accumulate(context, new Rectangle(0, 10, 10, 10));
 
-        SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
+        final SpatialAggregationCell cell5_3 = cell5Factory.createCell(2, 0);
         cell5_3.accumulate(context, new Rectangle(0, 0, 10, 10));
 
-        SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
+        final SpatialAggregationCell cell5_4 = cell5Factory.createCell(3, 0);
         cell5_4.accumulate(context, new Rectangle(0, 0, 10, 10));
         cell5_4.accumulate(context, new Rectangle(10, 10, 10, 10));
 
-        SameMonthAggregation<AggregationCell> aggregation1 = sameMonthAggregationFactory.createAggregation();
-        SameMonthAggregation<AggregationCell> aggregation2 = sameMonthAggregationFactory.createAggregation();
+        final SameMonthAggregation<AggregationCell> aggregation1 = sameMonthAggregationFactory.createAggregation();
+        final SameMonthAggregation<AggregationCell> aggregation2 = sameMonthAggregationFactory.createAggregation();
 
         aggregation1.accumulate(cell5_1, 0.25);
         aggregation1.accumulate(cell5_2, 0.5);
@@ -251,23 +244,25 @@ public class ArcL3FileTypeTest {
         aggregation2.accumulate(cell5_3, 0.25);
         aggregation2.accumulate(cell5_4, 1.0);
 
-        MultiMonthAggregation<RegionalAggregation> aggregation3 = multiMonthAggregationFactory.createAggregation();
+        final MultiMonthAggregation<RegionalAggregation> aggregation3 = multiMonthAggregationFactory.createAggregation();
         aggregation3.accumulate(aggregation1);
         aggregation3.accumulate(aggregation2);
 
-        int expectedN = 2;
+        final int expectedN = 2;
         assertEquals(expectedN, aggregation3.getSampleCount());
-        Number[] results = aggregation3.getResults();
+
+        final Number[] results = aggregation3.getResults();
         assertNotNull(results);
-        assertEquals(4, results.length);
-        assertEquals(292.0, results[0].doubleValue(), 1e-6);
-        assertEquals(0.5, results[1].doubleValue(), 1e-6);
-        // todo - replace inexplicable numbers by formulas, testCell5Aggregation() (nf)
-        assertEquals(0.62927276, results[2].doubleValue(), 1e-6);
-        assertEquals(0.00381517, results[3].doubleValue(), 1e-6);
+        assertEquals(8, results.length);
+
+        assertEquals(292.0, results[Aggregation.SST].doubleValue(), 1e-6);
+        assertEquals(0.5, results[Aggregation.SST_ANOMALY].doubleValue(), 1e-6);
+        // TODO - replace inexplicable numbers by formulas, testCell5Aggregation()
+        assertEquals(0.00381517, results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(), 1e-6);
+        assertEquals(0.62927276, results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
-    public static double sqr(double x) {
+    private static double sqr(double x) {
         return x * x;
     }
 }
