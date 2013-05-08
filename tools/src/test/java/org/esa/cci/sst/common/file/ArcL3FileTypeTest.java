@@ -40,13 +40,18 @@ public class ArcL3FileTypeTest {
     public void testParseDate() throws Exception {
 
         final DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
-        assertEquals(format.parse("2002-01-12"), FILE_TYPE.parseDate(new File("AT2_AVG_3PAARC20020112_D_dN2b.nc.gz")));
-        assertEquals(format.parse("2002-04-16"), FILE_TYPE.parseDate(new File("AT1_AVG_3PAARC20020416_D_dN2b.nc.gz")));
-        assertEquals(format.parse("2002-01-20"), FILE_TYPE.parseDate(new File("AT2_AVG_3PAARC20020120_D_nN2b.nc.gz")));
-        assertEquals(format.parse("2002-09-15"), FILE_TYPE.parseDate(new File("ATS_AVG_3PAARC20020915_D_nD3b.nc.gz")));
+        final File file = new File("AT2_AVG_3PAARC20020112_D_dN2b.nc.gz");
+        assertEquals(format.parse("2002-01-12"), FILE_TYPE.parseDate(file.getName()));
+        final File file1 = new File("AT1_AVG_3PAARC20020416_D_dN2b.nc.gz");
+        assertEquals(format.parse("2002-04-16"), FILE_TYPE.parseDate(file1.getName()));
+        final File file2 = new File("AT2_AVG_3PAARC20020120_D_nN2b.nc.gz");
+        assertEquals(format.parse("2002-01-20"), FILE_TYPE.parseDate(file2.getName()));
+        final File file3 = new File("ATS_AVG_3PAARC20020915_D_nD3b.nc.gz");
+        assertEquals(format.parse("2002-09-15"), FILE_TYPE.parseDate(file3.getName()));
 
         try {
-            FILE_TYPE.parseDate(new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz"));
+            final File file4 = new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz");
+            FILE_TYPE.parseDate(file4.getName());
             fail();
         } catch (ParseException expected) {
         }

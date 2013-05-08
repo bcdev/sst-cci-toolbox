@@ -34,7 +34,6 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
@@ -47,7 +46,7 @@ import java.util.Date;
 public abstract class UnsupportedFileType implements FileType {
 
     @Override
-    public Date parseDate(File file) throws ParseException {
+    public Date parseDate(String fileName) throws ParseException {
         throw notImplemented();
     }
 
@@ -97,8 +96,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty,
-                                            Dimension[] dims) {
+    public Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth) {
         throw notImplemented();
     }
 

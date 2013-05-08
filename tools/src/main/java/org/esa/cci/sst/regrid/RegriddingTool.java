@@ -97,8 +97,8 @@ public class RegriddingTool extends Tool {
             "The minimum fractional coverage required for non-missing output. " +
                     "(fraction of valid values in input per grid box in output) ");
 
-    private static final Parameter PARAM_MAX_UNCERTAINTY = new Parameter("maxTotalUncertainty", "NUM", "1.0",
-            "The maximum relative total uncertainty allowed for non-missing output.", true);
+    private static final Parameter PARAM_MAX_TOTAL_UNCERTAINTY = new Parameter("maxTotalUncertainty", "NUM", "0.0",
+            "The maximum relative total uncertainty allowed for non-missing output, if greater than zero.", true);
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV = new Parameter("coverageUncertainty.StdDev", "FILE",
             "./conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc",
@@ -125,7 +125,7 @@ public class RegriddingTool extends Tool {
         final SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(resolutionString);
         productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
 
-        final String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
+        final String sourceFilenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
                 productType.getDefaultFilenameRegex(), false);
 
         final SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
@@ -133,7 +133,7 @@ public class RegriddingTool extends Tool {
         final Date startDate = configuration.getDate(PARAM_START_DATE, true);
         final Date endDate = configuration.getDate(PARAM_END_DATE, true);
         final TemporalResolution temporalResolution = TemporalResolution.valueOf(configuration.getString(PARAM_TEMPORAL_RES, true));
-        final File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+        final File targetDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         final RegionMaskList regionMaskList = getRegionMaskList(configuration);
         final double minCoverage = Double.parseDouble(configuration.getString(PARAM_MIN_COVERAGE, false));
         final File cuStdDevFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
@@ -141,12 +141,12 @@ public class RegriddingTool extends Tool {
         final File cuSpaceFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
 
         final boolean totalUncertainty = checkTotalUncertainty(configuration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true));
-        final double maxTotalUncertainty = Double.parseDouble(configuration.getString(PARAM_MAX_UNCERTAINTY, false));
+        final double maxTotalUncertainty = Double.parseDouble(configuration.getString(PARAM_MAX_TOTAL_UNCERTAINTY, false));
 
         final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
 
-        final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
+        final FileStore fileStore = FileStore.create(productType, sourceFilenameRegex, productDir);
         final LUT stdDevLut = createLutForStdDeviation(cuStdDevFile);
         final LUT cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
         final LUT cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
@@ -170,16 +170,21 @@ public class RegriddingTool extends Tool {
         }
 
         try {
-            Writer outputWriter = new Writer(
+            final Writer writer = new Writer(
                     productType, TOOL_NAME, TOOL_VERSION, FILE_FORMAT_VERSION, totalUncertainty, maxTotalUncertainty);
-            outputWriter.writeOutputs(outputDir, filenameRegex, sstDepth, temporalResolution, regionMaskList.get(0), timeSteps);
+            writer.writeTargetFiles(targetDir,
+                                    sourceFilenameRegex,
+                                    sstDepth,
+                                    temporalResolution,
+                                    regionMaskList.get(0),
+                                    timeSteps);
         } catch (IOException e) {
             throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
     }
 
     private boolean checkTotalUncertainty(boolean totalUncertainty) throws ToolException {
-        boolean totalUncertaintyPossible = Writer.isTotalUncertaintyPossible(productType);
+        boolean totalUncertaintyPossible = true;
         if (totalUncertainty && !totalUncertaintyPossible) {
             throw new ToolException("Parameter 'totalUncertainty' is only available for CCI-L3 products.", ExitCode.USAGE_ERROR);
         }
@@ -222,7 +227,7 @@ public class RegriddingTool extends Tool {
         paramList.addAll(Arrays.asList(
                 PARAM_REGION,
                 PARAM_CLIMATOLOGY_DIR,
-                PARAM_MAX_UNCERTAINTY,
+                PARAM_MAX_TOTAL_UNCERTAINTY,
                 PARAM_TOTAL_UNCERTAINTY,
                 PARAM_SPATIAL_RESOLUTION,
                 PARAM_START_DATE,

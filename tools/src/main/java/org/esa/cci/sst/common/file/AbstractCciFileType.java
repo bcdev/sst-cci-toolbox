@@ -29,7 +29,6 @@ import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -45,10 +44,10 @@ public abstract class AbstractCciFileType implements FileType {
     public static final GridDef GRID_DEF = GridDef.createGlobal(7200, 3600);
 
     @Override
-    public final Date parseDate(File file) throws ParseException {
+    public final Date parseDate(String filename) throws ParseException {
         final String dateFormatString = "yyyyMMdd";
         final DateFormat dateFormat = UTC.getDateFormat(dateFormatString);
-        final String dateString = file.getName().substring(0, dateFormatString.length());
+        final String dateString = filename.substring(0, dateFormatString.length());
 
         return dateFormat.parse(dateString);
     }

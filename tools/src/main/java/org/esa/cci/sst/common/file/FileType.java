@@ -48,11 +48,11 @@ import java.util.Date;
  */
 public interface FileType {
     /**
-     * @param file The file path.
-     * @return The date as parsed from the file path.
+     * @return The date as parsed from the filename.
      * @throws java.text.ParseException If the date could not be parsed.
+     * @param fileName
      */
-    Date parseDate(File file) throws ParseException;
+    Date parseDate(String fileName) throws ParseException;
 
     /**
      * @param dataFile The NetCDF file.
@@ -74,7 +74,7 @@ public interface FileType {
 
     AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException;
 
-    Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty, Dimension[] dims);
+    Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth);
 
     AggregationFactory<SameMonthAggregation<AggregationCell>> getSameMonthAggregationFactory();
 

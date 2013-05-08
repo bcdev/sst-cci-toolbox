@@ -37,24 +37,30 @@ public class AbstractCciFileTypeTest {
     @Test
     public void testParseDate() throws Exception {
         DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
+        final File file = new File("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
         assertEquals(format.parse("2010-07-01"),
-                     fileType.parseDate(new File("20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+                     fileType.parseDate(file.getName()));
+        final File file1 = new File("20121201000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
         assertEquals(format.parse("2012-12-01"),
-                     fileType.parseDate(new File("20121201000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+                     fileType.parseDate(file1.getName()));
+        final File file2 = new File("19950731000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
         assertEquals(format.parse("1995-07-31"),
-                     fileType.parseDate(new File("19950731000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+                     fileType.parseDate(file2.getName()));
+        final File file3 = new File("19950731000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
         assertEquals(format.parse("1995-07-31"),
-                     fileType.parseDate(new File("19950731000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc")));
+                     fileType.parseDate(file3.getName()));
 
         try {
-            fileType.parseDate(new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz"));
+            final File file4 = new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz");
+            fileType.parseDate(file4.getName());
             fail("ParseException expected.");
         } catch (ParseException e) {
             // ok
         }
 
         try {
-            fileType.parseDate(new File("A20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc"));
+            final File file4 = new File("A20100701000000-ESACCI-L3U_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc");
+            fileType.parseDate(file4.getName());
             fail("ParseException expected.");
         } catch (ParseException e) {
             // ok
@@ -87,8 +93,7 @@ public class AbstractCciFileTypeTest {
             }
 
             @Override
-            public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth,
-                                                    boolean totalUncertainty, Dimension[] dims) {
+            public Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth) {
                 return new Variable[0];
             }
 

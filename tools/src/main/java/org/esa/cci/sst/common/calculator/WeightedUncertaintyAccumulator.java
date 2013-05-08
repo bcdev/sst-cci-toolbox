@@ -20,14 +20,15 @@
 package org.esa.cci.sst.common.calculator;
 
 /**
- * For accumulating synoptic and adjustment uncertainties.
+ * For weighted accumulating of random (i.e. uncorrelated) uncertainties.
  *
- * @author Bettina Scholze
+ * @author Norman Fomferra
  * @author Ralf Quast
  */
-public final class SynopticUncertaintyAccumulator extends NumberAccumulator {
+public final class WeightedUncertaintyAccumulator extends NumberAccumulator {
 
     private double sumXX;
+    private double sumW;
     private long sampleCount;
 
     @Override
@@ -37,10 +38,9 @@ public final class SynopticUncertaintyAccumulator extends NumberAccumulator {
 
     @Override
     protected void accumulateSample(double sample, double weight) {
-        if (weight != 1.0) {
-            throw new IllegalArgumentException("weight != 1.0");
-        }
-        sumXX += sample * sample;
+        final double weightedSample = weight * sample;
+        sumXX += weightedSample * weightedSample;
+        sumW += weight;
         sampleCount++;
     }
 
@@ -52,7 +52,11 @@ public final class SynopticUncertaintyAccumulator extends NumberAccumulator {
         if (sumXX == 0.0) {
             return 0.0;
         }
-
-        return Math.sqrt(sumXX);
+        if (sumW == 0.0) {
+            return Double.NaN;
+        }
+        final double variance = sumXX / (sumW * sumW);
+        return variance > 0.0 ? Math.sqrt(variance) : 0.0;
     }
+
 }

@@ -28,7 +28,7 @@ import org.esa.cci.sst.common.RegionalAggregation;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -69,32 +69,30 @@ public class CciL4FileType extends AbstractCciFileType {
     }
 
     @Override
-    public Variable[] createOutputVariables(NetcdfFileWriteable file, SstDepth sstDepth, boolean totalUncertainty,
-                                            Dimension[] dims) {
-        Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
+    public Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth) {
+        final Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
-        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin", sstDepth)));
+        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s", sstDepth)));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
+        final Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
-        sstAnomalyVar.addAttribute(
-                new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
+        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable seaIceCoverageVar = file.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
+        final Variable seaIceCoverageVar = file.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
         seaIceCoverageVar.addAttribute(new Attribute("units", "1"));
         seaIceCoverageVar.addAttribute(new Attribute("long_name", "mean of sea ice fraction"));
         seaIceCoverageVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+        final Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
         coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        Variable analysisErrorVar = file.addVariable("analysis_error", DataType.FLOAT, dims);
+        final Variable analysisErrorVar = file.addVariable("analysis_error", DataType.FLOAT, dims);
         analysisErrorVar.addAttribute(new Attribute("units", "kelvin"));
-        analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error in kelvin"));
+        analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error"));
         analysisErrorVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable[] variables = new Variable[8];
@@ -180,8 +178,8 @@ public class CciL4FileType extends AbstractCciFileType {
 
         private final NumberAccumulator sstAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
-        private final NumberAccumulator coverageUncertaintyAccumulator = new RandomUncertaintyAccumulator();
-        private final NumberAccumulator randomUncertaintyAccumulator = new RandomUncertaintyAccumulator();
+        private final NumberAccumulator coverageUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
+        private final NumberAccumulator randomUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
         private final NumberAccumulator seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
 
         @Override

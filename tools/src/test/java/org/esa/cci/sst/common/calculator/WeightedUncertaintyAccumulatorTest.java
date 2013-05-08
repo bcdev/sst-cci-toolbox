@@ -9,18 +9,18 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Norman Fomferra
  */
-public class RandomUncertaintyAccumulatorTest {
+public class WeightedUncertaintyAccumulatorTest {
 
     @Test
     public void testInitState() throws Exception {
-        RandomUncertaintyAccumulator acc = new RandomUncertaintyAccumulator();
+        WeightedUncertaintyAccumulator acc = new WeightedUncertaintyAccumulator();
         assertEquals(NaN, acc.combine(), 1e-10);
         assertEquals(0L, acc.getSampleCount());
     }
 
     @Test
     public void testAccumulateUnweighted() throws Exception {
-        RandomUncertaintyAccumulator acc = new RandomUncertaintyAccumulator();
+        WeightedUncertaintyAccumulator acc = new WeightedUncertaintyAccumulator();
         acc.accumulate(0.5, 1.0);
         acc.accumulate(0.7, 1.0);
         acc.accumulate(NaN, 1.0);  // ignored
@@ -37,7 +37,7 @@ public class RandomUncertaintyAccumulatorTest {
 
     @Test
     public void testAccumulateWeighted() throws Exception {
-        RandomUncertaintyAccumulator acc = new RandomUncertaintyAccumulator();
+        WeightedUncertaintyAccumulator acc = new WeightedUncertaintyAccumulator();
         acc.accumulate(0.5, 0.1);
         acc.accumulate(0.7, 0.6);
         acc.accumulate(NaN, 0.1);  // ignored

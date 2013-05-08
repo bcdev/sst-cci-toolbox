@@ -25,8 +25,8 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /**
- * {@author Bettina Scholze}
- * Date: 17.12.12 14:45
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public class RegriddingAggregatorTest {
 
@@ -197,21 +197,4 @@ public class RegriddingAggregatorTest {
         assertEquals("2012-10-01", df.format(results.get(2).getEndDate()));
     }
 
-    @Ignore
-    @Test
-    public void testNotSupportedTemporalResolution() throws Exception {
-        final TemporalResolution daily = TemporalResolution.weekly5d;
-        Date startDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-09-01");
-
-        //execution
-        Date endDate = UTC.getDateFormat("yyyy-MM-dd").parse("2012-10-31");
-        try {
-            regriddingAggregator.aggregate(startDate, endDate, daily);
-            fail("ToolException expected");
-        } catch (IOException e) {
-            fail("ToolException expected");
-        } catch (ToolException expected) {
-            assertEquals("Not supported: weekly5d", expected.getMessage());
-        }
-    }
 }

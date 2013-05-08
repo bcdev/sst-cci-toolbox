@@ -346,8 +346,8 @@ public final class RegionalAverageTool extends Tool {
             endTimeVar.addAttribute(new Attribute("long_name",
                                                   "reference end time of averaging period in seconds until 1981-01-01T00:00:00"));
 
-            Variable[] outputVariables = productType.getFileType().createOutputVariables(netcdfFile, sstDepth, false,
-                                                                                         dims);
+            Variable[] outputVariables = productType.getFileType().addResultVariables(netcdfFile, dims, sstDepth
+            );
             Array[] outputArrays = new Array[outputVariables.length];
             for (int i = 0; i < outputVariables.length; i++) {
                 Variable outputVariable = outputVariables[i];

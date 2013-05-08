@@ -51,8 +51,8 @@ public class CciL2PFileType extends CciL3FileType {
 
     @Deprecated
     public Grid[] readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth) throws IOException {
-        File file = new File(dataFile.getLocation());
-        Grid[] grids = new Grid[6];
+        final File file = new File(dataFile.getLocation());
+        final Grid[] grids = new Grid[6];
         String variable;
 
         if (sstDepth == SstDepth.depth_20 || sstDepth == SstDepth.depth_100) {
@@ -94,8 +94,6 @@ public class CciL2PFileType extends CciL3FileType {
         Array adjustmentUncertaintyArray = adjustmentUncertaintyReprojection.doReprojection(file, FORMAT, variable);
         grids[5] = createArrayGrid(adjustmentUncertaintyReprojection, adjustmentUncertaintyArray, variable);
 
-        //for debugging
-//        writeIntermediate(grids);
         return grids;
     }
 

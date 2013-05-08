@@ -17,8 +17,8 @@ package org.esa.cci.sst.common.file;/*
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
-import org.esa.cci.sst.common.calculator.SynopticUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculator.UncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
@@ -43,7 +43,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
 
         sstAccumulator = new ArithmeticMeanAccumulator();
         sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
-        randomUncertaintyAccumulator = new RandomUncertaintyAccumulator();
+        randomUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
 
         final Grid standardDeviationGrid = aggregationContext.getStandardDeviationGrid();
         if (standardDeviationGrid != null) {
@@ -59,13 +59,13 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
         }
         final Grid adjustmentUncertaintyGrid = aggregationContext.getAdjustmentUncertaintyGrid();
         if (adjustmentUncertaintyGrid != null) {
-            adjustmentUncertaintyAccumulator = new SynopticUncertaintyAccumulator();
+            adjustmentUncertaintyAccumulator = new UncertaintyAccumulator();
         } else {
             adjustmentUncertaintyAccumulator = null;
         }
         final Grid synopticUncertaintyGrid = aggregationContext.getSynopticUncertaintyGrid();
         if (synopticUncertaintyGrid != null) {
-            synopticUncertaintyAccumulator = new SynopticUncertaintyAccumulator();
+            synopticUncertaintyAccumulator = new UncertaintyAccumulator();
         } else {
             synopticUncertaintyAccumulator = null;
         }

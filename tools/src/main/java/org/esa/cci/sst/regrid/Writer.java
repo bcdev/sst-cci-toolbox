@@ -19,15 +19,16 @@
 
 package org.esa.cci.sst.regrid;
 
+import org.esa.cci.sst.common.Aggregation;
 import org.esa.cci.sst.common.ProcessingLevel;
-import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.common.calculator.NumberAccumulator;
+import org.esa.cci.sst.common.calculator.UncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
-import org.esa.cci.sst.common.file.CciL3FileType;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
@@ -42,264 +43,241 @@ import ucar.nc2.Variable;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * {@author Bettina Scholze}
- * Date: 24.09.12 09:04
+ * For writing target files.
+ *
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
-class Writer {
+final class Writer {
 
     public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst.regrid");
+
     private final ProductType productType;
     private final String toolName;
     private final String toolVersion;
     private final String fileFormatVersion;
-    private boolean totalUncertainty;
-    private double maxTotalUncertainty;
+    private final boolean totalUncertaintyWanted;
+    private final double maxTotalUncertainty;
 
-    Writer(ProductType productType, String toolName, String toolVersion,
-                  String fileFormatVersion, boolean totalUncertaintyWanted, double maxTotalUncertainty) {
+    Writer(ProductType productType,
+           String toolName,
+           String toolVersion,
+           String fileFormatVersion,
+           boolean totalUncertaintyWanted,
+           double maxTotalUncertainty) {
         this.productType = productType;
         this.toolName = toolName;
         this.toolVersion = toolVersion;
         this.fileFormatVersion = fileFormatVersion;
-
-        if (totalUncertaintyWanted && isTotalUncertaintyPossible(productType)) {
-            this.totalUncertainty = true;
-        }
+        this.totalUncertaintyWanted = totalUncertaintyWanted;
         this.maxTotalUncertainty = maxTotalUncertainty;
     }
 
-    public static boolean isTotalUncertaintyPossible(ProductType productType) {
-        boolean synopticUncertainties = productType.getFileType().hasSynopticUncertainties();
-        boolean rightProductType = productType.equals(ProductType.CCI_L3C) || productType.equals(ProductType.CCI_L3U);
-        return rightProductType && synopticUncertainties;
-    }
-
-
-    public void writeOutputs(File outputDir, String filenameRegex,
-                             SstDepth sstDepth, TemporalResolution temporalResolution,
-                             RegionMask regionMask, List<RegriddingTimeStep> timeSteps) throws IOException {
+    void writeTargetFiles(File targetDir,
+                                 String filenameRegex,
+                                 SstDepth sstDepth,
+                                 TemporalResolution temporalResolution,
+                                 RegionMask regionMask,
+                                 List<RegriddingTimeStep> timeSteps) throws IOException {
 
         for (RegriddingTimeStep timeStep : timeSteps) {
-            writeOutputs(outputDir, filenameRegex, sstDepth, temporalResolution, regionMask, timeStep);
+            writeTargetFile(targetDir, filenameRegex, sstDepth, temporalResolution, regionMask, timeStep);
         }
     }
 
-    private void writeOutputs(File outputDir, String filenameRegex,
-                              SstDepth sstDepth, TemporalResolution temporalResolution,
-                              RegionMask regionMask, RegriddingTimeStep timeStep) throws IOException {
-
-        Date startDate = timeStep.getStartDate();
-        Date endDate = timeStep.getEndDate();
+    private void writeTargetFile(File targetDir,
+                                 String sourceFilenameRegex,
+                                 SstDepth sstDepth,
+                                 TemporalResolution temporalResolution,
+                                 RegionMask regionMask,
+                                 RegriddingTimeStep timeStep) throws IOException {
+        final Date startDate = timeStep.getStartDate();
+        final Date endDate = timeStep.getEndDate();
         final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
-        final String outputFilename = getOutputFilename(
-                filenameDateFormat.format(startDate), filenameDateFormat.format(endDate), regionMask.getName(),
-                productType.getProcessingLevel(), "SST_" + sstDepth + "_regridded", "PS", "DM");
-        final File file = new File(outputDir, outputFilename);
-        LOGGER.info("Writing output file '" + file + "'...");
+        final String targetFilename = getTargetFileName(filenameDateFormat.format(startDate),
+                                                        filenameDateFormat.format(endDate),
+                                                        regionMask.getName(),
+                                                        productType.getProcessingLevel(),
+                                                        "SST_" + sstDepth + "_regridded", "PS", "DM");
+        final File targetFile = new File(targetDir, targetFilename);
+        LOGGER.info("Writing target file '" + targetFile + "'...");
 
-        CellGrid<? extends AggregationCell> cellGrid = timeStep.getCellGrid();
-        GridDef gridDef = cellGrid.getGridDef();
-        SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(gridDef.getResolution());
-        //global attributes
-        NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
+        final CellGrid<? extends AggregationCell> targetCellGrid = timeStep.getCellGrid();
+        final GridDef targetGridDef = targetCellGrid.getGridDef();
+        final int rowCount = targetGridDef.getHeight();
+        final int colCount = targetGridDef.getWidth();
+
+        final NetcdfFileWriteable dataFile = NetcdfFileWriteable.createNew(targetFile.getPath());
         try {
-            netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(),
-                                                                 sstDepth.toString()));
-            netcdfFile.addGlobalAttribute("institution", "IAES, University of Edinburgh");
-            netcdfFile.addGlobalAttribute("contact", "c.merchant@ed.ac.uk");
-            netcdfFile.addGlobalAttribute("fileFormatVersion", fileFormatVersion);
-            netcdfFile.addGlobalAttribute("toolName", toolName);
-            netcdfFile.addGlobalAttribute("toolVersion", toolVersion);
-            netcdfFile.addGlobalAttribute("generated_at", UTC.getIsoFormat().format(new Date()));
-            netcdfFile.addGlobalAttribute("product_type", productType.toString());
-            netcdfFile.addGlobalAttribute("sst_depth", sstDepth.toString());
-            netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
-            netcdfFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
-            netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
-            netcdfFile.addGlobalAttribute("geospatial_lon_resolution", spatialResolution.getResolution());
-            netcdfFile.addGlobalAttribute("geospatial_lat_resolution", spatialResolution.getResolution());
-            netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
-            netcdfFile.addGlobalAttribute("source_filename_regex", filenameRegex);
+            // define global attributes
+            dataFile.addGlobalAttribute("title", String.format("Re-gridded %s SST", productType.toString()));
+            dataFile.addGlobalAttribute("institution", "IAES, University of Edinburgh");
+            dataFile.addGlobalAttribute("contact", "c.merchant@ed.ac.uk");
+            dataFile.addGlobalAttribute("fileFormatVersion", fileFormatVersion);
+            dataFile.addGlobalAttribute("toolName", toolName);
+            dataFile.addGlobalAttribute("toolVersion", toolVersion);
+            dataFile.addGlobalAttribute("generated_at", UTC.getIsoFormat().format(new Date()));
+            dataFile.addGlobalAttribute("product_type", productType.toString());
+            dataFile.addGlobalAttribute("sst_depth", sstDepth.toString());
+            dataFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
+            dataFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
+            dataFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
+            dataFile.addGlobalAttribute("geospatial_lon_resolution", targetGridDef.getResolutionX());
+            dataFile.addGlobalAttribute("geospatial_lat_resolution", targetGridDef.getResolutionY());
+            dataFile.addGlobalAttribute("region_name", regionMask.getName());
+            dataFile.addGlobalAttribute("source_filename_regex", sourceFilenameRegex);
 
-            //global dimensions
-            Dimension latDim = netcdfFile.addDimension("lat", gridDef.getHeight());
-            Dimension lonDim = netcdfFile.addDimension("lon", gridDef.getWidth());
-            Dimension timeDim = netcdfFile.addDimension("time", gridDef.getTime(), true, false, false);
-            Dimension bndsDim = netcdfFile.addDimension("bnds", 2);
-            Dimension[] dimensionMeasurementRelated = {timeDim, latDim, lonDim};
+            // define global dims
+            final Dimension latDim = dataFile.addDimension("lat", rowCount);
+            final Dimension lonDim = dataFile.addDimension("lon", colCount);
+            final Dimension timeDim = dataFile.addDimension("time", targetGridDef.getTime(), true, false, false);
+            final Dimension boundsDim = dataFile.addDimension("bnds", 2);
+            final Dimension[] dims = {timeDim, latDim, lonDim};
 
-            Variable[] variables = createVariables(sstDepth, netcdfFile, latDim, lonDim, bndsDim,
-                                                   dimensionMeasurementRelated);
+            // add variables
+            final Variable lat = dataFile.addVariable("lat", DataType.FLOAT, new Dimension[]{latDim});
+            lat.addAttribute(new Attribute("units", "degrees_north"));
+            lat.addAttribute(new Attribute("long_name", "latitude"));
+            lat.addAttribute(new Attribute("bounds", "lat_bnds"));
+            final Variable lon = dataFile.addVariable("lon", DataType.FLOAT, new Dimension[]{lonDim});
+            lon.addAttribute(new Attribute("units", "degrees_east"));
+            lon.addAttribute(new Attribute("long_name", "longitude"));
+            lon.addAttribute(new Attribute("bounds", "lon_bnds"));
+            final Variable latBounds = dataFile.addVariable("lat_bnds", DataType.FLOAT, new Dimension[]{latDim, boundsDim});
+            latBounds.addAttribute(new Attribute("units", "degrees_north"));
+            latBounds.addAttribute(new Attribute("long_name", "latitude cell boundaries"));
+            final Variable lonBounds = dataFile.addVariable("lon_bnds", DataType.FLOAT, new Dimension[]{lonDim, boundsDim});
+            lonBounds.addAttribute(new Attribute("units", "degrees_east"));
+            lonBounds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
+            final Variable[] resultVariables = addResultVariables(dataFile, sstDepth, dims);
+            // define file structure
+            dataFile.create();
 
-            //write header
-            netcdfFile.create();
-            //
-            final GridDef targetGridDef = spatialResolution.getGridDef();
+            // write data of coordinate variables
             final Array latArray = Array.factory(WriterHelper.createLatData(targetGridDef));
-            writeDataToNetCdfFile(netcdfFile, "lat", latArray);
+            writeData(dataFile, "lat", latArray);
             final Array lonArray = Array.factory(WriterHelper.createLonData(targetGridDef));
-            writeDataToNetCdfFile(netcdfFile, "lon", lonArray);
+            writeData(dataFile, "lon", lonArray);
             final Array latBoundsArray = Array.factory(WriterHelper.createLatBoundsData(targetGridDef));
-            writeDataToNetCdfFile(netcdfFile, "lat_bnds", latBoundsArray);
+            writeData(dataFile, "lat_bnds", latBoundsArray);
             final Array lonBoundsArray = Array.factory(WriterHelper.createLonBoundsData(targetGridDef));
-            writeDataToNetCdfFile(netcdfFile, "lon_bnds", lonBoundsArray);
+            writeData(dataFile, "lon_bnds", lonBoundsArray);
 
-            //add data for regridded variables
-            int height = cellGrid.getHeight();
-            int width = cellGrid.getWidth();
-            HashMap<String, VectorContainer> dataMap = prepareDataMap(cellGrid, height, width, variables);
-
-            int[] shape = new int[]{gridDef.getTime(), gridDef.getHeight(), gridDef.getWidth()};
-            for (Variable variable : variables) {
-                String name = variable.getName();
-                float[] vec = dataMap.get(name).getAsFloats();
-                writeDataToNetCdfFile(netcdfFile, name, Array.factory(DataType.FLOAT, shape, vec));
+            // write data of result variables
+            if (totalUncertaintyWanted) {
+                writeTotalUncertaintyData(dataFile, resultVariables[0], targetCellGrid);
+            } else {
+                writeResultVariables(dataFile, resultVariables, targetCellGrid);
             }
         } finally {
             try {
-                netcdfFile.flush();
-                netcdfFile.close();
+                dataFile.close();
             } catch (IOException e) {
                 // ignore
             }
         }
     }
 
-    Variable[] createVariables(SstDepth sstDepth,
-                               NetcdfFileWriteable netcdfFile,
-                               Dimension latDim, Dimension lonDim, Dimension bndsDim,
-                               Dimension[] dimensionMeasurementRelated) {
-        Variable latVar = netcdfFile.addVariable("lat", DataType.FLOAT, new Dimension[]{latDim});
-        latVar.addAttribute(new Attribute("units", "degrees_north"));
-        latVar.addAttribute(new Attribute("long_name", "latitude"));
-        latVar.addAttribute(new Attribute("bounds", "lat_bnds"));
-
-        Variable latBnds = netcdfFile.addVariable("lat_bnds", DataType.FLOAT, new Dimension[]{latDim, bndsDim});
-        latBnds.addAttribute(new Attribute("units", "degrees_north"));
-        latBnds.addAttribute(new Attribute("long_name", "latitude cell boundaries"));
-
-        Variable lonVar = netcdfFile.addVariable("lon", DataType.FLOAT, new Dimension[]{lonDim});
-        lonVar.addAttribute(new Attribute("units", "degrees_east"));
-        lonVar.addAttribute(new Attribute("long_name", "longitude"));
-        lonVar.addAttribute(new Attribute("bounds", "lon_bnds"));
-
-        Variable lonBnds = netcdfFile.addVariable("lon_bnds", DataType.FLOAT, new Dimension[]{lonDim, bndsDim});
-        lonBnds.addAttribute(new Attribute("units", "degrees_east"));
-        lonBnds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
-
+    private Variable[] addResultVariables(NetcdfFileWriteable dataFile,
+                                          SstDepth sstDepth,
+                                          Dimension[] dims) {
         final FileType fileType = productType.getFileType();
-        return fileType.createOutputVariables(netcdfFile, sstDepth, totalUncertainty, dimensionMeasurementRelated);
-    }
+        final Variable[] resultVariables;
 
-    /* rescale from 2D grid to 1D vector, one per variable */
-    private HashMap<String, VectorContainer> prepareDataMap(CellGrid<? extends AggregationCell> cellGrid, int height,
-                                                            int width, Variable[] variables) {
+        if (totalUncertaintyWanted) {
+            final Variable totalUncertainty = dataFile.addVariable("total_uncertainty", DataType.FLOAT, dims);
+            totalUncertainty.addAttribute(new Attribute("units", "kelvin"));
+            totalUncertainty.addAttribute(new Attribute("long_name", "the total uncertainty"));
+            totalUncertainty.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        HashMap<String, VectorContainer> dataMap = initialiseDataMap(variables, height, width);
-        //walk the grid
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                AggregationCell cell = cellGrid.getCell(x, y);
-                Number[] results = cell.getResults(); //results never contain totalUncertainty
-                int index1D = y * width + x;
-                fillInDataMap(variables, dataMap, results, index1D);
-            }
+            resultVariables = new Variable[]{totalUncertainty};
+        } else {
+            resultVariables = fileType.addResultVariables(dataFile, dims, sstDepth);
         }
-        return dataMap;
+
+        return resultVariables;
     }
 
-    HashMap<String, VectorContainer> initialiseDataMap(Variable[] variables, int height, int width) {
-        HashMap<String, VectorContainer> dataMap = new HashMap<String, VectorContainer>();
-        for (Variable variable : variables) {
-            dataMap.put(variable.getName(), new VectorContainer(height * width));
-        }
-        return dataMap;
-    }
+    private void writeResultVariables(NetcdfFileWriteable dataFile,
+                                      Variable[] resultVariables,
+                                      CellGrid<? extends AggregationCell> resultCellGrid) throws IOException {
+        final int colCount = resultCellGrid.getWidth();
+        final int rowCount = resultCellGrid.getHeight();
 
-    void fillInDataMap(Variable[] variables, HashMap<String, VectorContainer> dataMap, Number[] results, int index1D) {
-
-        double totalUncertainty = calculateTotalUncertainty(variables, results);
-
-        for (int variableCount = 0; variableCount < variables.length; variableCount++) {
-            Variable variable = variables[variableCount];
-            String variableName = variable.getName();
-            VectorContainer vectorContainer = dataMap.get(variableName);
-
-            if (isWantedAndAllowedTotalUncertainty(variableName)) {
-                double value = totalUncertainty < maxTotalUncertainty ? totalUncertainty : Double.NaN;
-                vectorContainer.put(index1D, value);
-                break;
-            } else {
-                double value = totalUncertainty < maxTotalUncertainty ? results[variableCount].doubleValue() : Double.NaN;
-                vectorContainer.put(index1D, value);
-            }
-        }
-    }
-
-    private boolean isWantedAndAllowedTotalUncertainty(String variableName) {
-        return CciL3FileType.OUT_VAR_TOTAL_UNCERTAINTY.equals(variableName) && totalUncertainty;
-    }
-
-
-    /*Per convention the ordering is such, that all relevant uncertainties are at the end of the result[] vector*/
-    static double calculateTotalUncertainty(Variable[] variables, Number[] results) {
-
-        double uncertaintySum = 0.0;
-        for (int i = 0; i < variables.length; i++) {
-            final String variable = variables[i].getName();
-
-            if (identifyFirstUncertainty(variable)) {
-                while (i < results.length) {
-                    double value = results[i].doubleValue();
-                    if (!Double.isNaN(value)) {
-                        uncertaintySum += (value * value);
+        for (int v = 0; v < resultVariables.length; v++) {
+            final Variable variable = resultVariables[v];
+            if (variable != null) {
+                final Array array = Array.factory(variable.getDataType(), variable.getShape());
+                for (int y = 0; y < rowCount; y++) {
+                    for (int x = 0; x < colCount; x++) {
+                        final AggregationCell cell = resultCellGrid.getCell(x, y);
+                        if (cell != null) {
+                            final Number[] results = cell.getResults();
+                            final double totalUncertainty = calculateTotalUncertainty(results);
+                            final int i = y * colCount + x;
+                            if (maxTotalUncertainty <= 0.0 || totalUncertainty <= maxTotalUncertainty) {
+                                array.setDouble(i, results[v].doubleValue());
+                            } else {
+                                array.setDouble(i, Double.NaN);
+                            }
+                        }
                     }
-                    i++;
+                }
+                writeData(dataFile, variable.getName(), array);
+            }
+        }
+    }
+
+    private void writeTotalUncertaintyData(NetcdfFileWriteable dataFile,
+                                           Variable totalUncertaintyVariable,
+                                           CellGrid<? extends AggregationCell> cellGrid) throws IOException {
+        final int colCount = cellGrid.getWidth();
+        final int rowCount = cellGrid.getHeight();
+        final Array array = Array.factory(totalUncertaintyVariable.getDataType(), totalUncertaintyVariable.getShape());
+
+        for (int y = 0; y < rowCount; y++) {
+            for (int x = 0; x < colCount; x++) {
+                final AggregationCell cell = cellGrid.getCell(x, y);
+                final int index = y * colCount + x;
+                if (cell != null) {
+                    final Number[] results = cell.getResults();
+                    final double totalUncertainty = calculateTotalUncertainty(results);
+                    if (maxTotalUncertainty <= 0.0 || totalUncertainty <= maxTotalUncertainty) {
+                        array.setDouble(index, totalUncertainty);
+                    } else {
+                        array.setDouble(index, Double.NaN);
+                    }
+                } else {
+                    array.setDouble(index, Double.NaN);
                 }
             }
         }
-        return Math.sqrt(uncertaintySum);
+        writeData(dataFile, totalUncertaintyVariable.getName(), array);
     }
 
-    private static boolean identifyFirstUncertainty(String variable) {
-        return variable.contains("uncertainty") || variable.contains("error");
+
+    static double calculateTotalUncertainty(Number[] results) {
+        final NumberAccumulator uncertaintyAccumulator = new UncertaintyAccumulator();
+
+        uncertaintyAccumulator.accumulate(results[Aggregation.RANDOM_UNCERTAINTY].doubleValue());
+        uncertaintyAccumulator.accumulate(results[Aggregation.ADJUSTMENT_UNCERTAINTY].doubleValue());
+        uncertaintyAccumulator.accumulate(results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue());
+        uncertaintyAccumulator.accumulate(results[Aggregation.LARGE_SCALE_UNCERTAINTY].doubleValue());
+        uncertaintyAccumulator.accumulate(results[Aggregation.SYNOPTIC_UNCERTAINTY].doubleValue());
+
+        return uncertaintyAccumulator.combine();
     }
 
-    static class VectorContainer {
-
-        double[] vec;
-
-        private VectorContainer(int length) {
-            this.vec = new double[length];
-            Arrays.fill(vec, 0);
-        }
-
-        public void put(int i, double value) {
-            vec[i] = value;
-        }
-
-        public float[] getAsFloats() {
-            float[] floats = new float[vec.length];
-            for (int i = 0; i < floats.length; i++) {
-                floats[i] = (float) vec[i];
-            }
-            return floats;
-        }
-    }
-
-    private void writeDataToNetCdfFile(NetcdfFileWriteable netcdfFile, String variable, Array array) throws
-                                                                                                     IOException {
+    private void writeData(NetcdfFileWriteable dataFile, String variable, Array array) throws IOException {
         try {
-            netcdfFile.write(variable, array);
-        } catch (InvalidRangeException e) {
-            LOGGER.throwing("Regridding Tool", "writeDataToNetCdfFile", e);
+            dataFile.write(variable, array);
+        } catch (InvalidRangeException cannotHappen) {
+            LOGGER.throwing(getClass().getName(), "writeData", cannotHappen);
         }
     }
 
@@ -319,14 +297,23 @@ class Writer {
      *
      * @return The filename.
      */
-    String getOutputFilename(String startOfPeriod, String endOfPeriod, String regionName,
-                             ProcessingLevel processingLevel, String sstType,
-                             String productString, String additionalSegregator) {
-
-        String rdac = productType.getFileType().getRdac(); //ESACCI or ARC
+    String getTargetFileName(String startOfPeriod,
+                             String endOfPeriod,
+                             String regionName,
+                             ProcessingLevel processingLevel,
+                             String sstType,
+                             String productString,
+                             String additionalSegregator) {
+        final String rdac = productType.getFileType().getRdac();
         return String.format("%s-%s-%s-" + rdac + "-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
-                             startOfPeriod, endOfPeriod, regionName,
-                             processingLevel, sstType, productString, additionalSegregator,
-                             toolVersion, fileFormatVersion);
+                             startOfPeriod,
+                             endOfPeriod,
+                             regionName,
+                             processingLevel,
+                             sstType,
+                             productString,
+                             additionalSegregator,
+                             toolVersion,
+                             fileFormatVersion);
     }
 }

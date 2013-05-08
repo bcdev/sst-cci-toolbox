@@ -17,7 +17,7 @@ package org.esa.cci.sst.common.file;/*
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
-import org.esa.cci.sst.common.calculator.RandomUncertaintyAccumulator;
+import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
@@ -38,11 +38,11 @@ class DefaultCellAggregationCell extends AbstractAggregationCell implements Cell
 
         sstAccumulator = new ArithmeticMeanAccumulator();
         sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
-        randomUncertaintyAccumulator = new RandomUncertaintyAccumulator();
-        coverageUncertaintyAccumulator = new RandomUncertaintyAccumulator(); // TODO - check
+        randomUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
+        coverageUncertaintyAccumulator = new WeightedUncertaintyAccumulator(); // TODO - check
         largeScaleUncertaintyAccumulator = new ArithmeticMeanAccumulator();  // TODO - check
-        adjustmentUncertaintyAccumulator = new RandomUncertaintyAccumulator(); // TODO - check
-        synopticUncertaintyAccumulator = new RandomUncertaintyAccumulator(); // TODO - check
+        adjustmentUncertaintyAccumulator = new WeightedUncertaintyAccumulator(); // TODO - check
+        synopticUncertaintyAccumulator = new WeightedUncertaintyAccumulator(); // TODO - check
         seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
     }
 

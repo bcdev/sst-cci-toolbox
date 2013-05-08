@@ -1,1 +1,0 @@
-synopticCorrelationFile (PARAM_SYNOPTIC_CORRELATION_FILE) for LUT3 implementation needed

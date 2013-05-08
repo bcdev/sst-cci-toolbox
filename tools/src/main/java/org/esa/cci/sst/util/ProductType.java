@@ -58,7 +58,7 @@ public enum ProductType {
     }
 
     public Date parseDate(File file) throws ParseException {
-        return getFileType().parseDate(file);
+        return getFileType().parseDate(file.getName());
     }
 
     public String getDefaultFilenameRegex() {
