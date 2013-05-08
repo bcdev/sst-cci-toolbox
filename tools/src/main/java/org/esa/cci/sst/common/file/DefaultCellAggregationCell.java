@@ -35,7 +35,7 @@ class DefaultCellAggregationCell extends AbstractAggregationCell implements Cell
 
     DefaultCellAggregationCell(AggregationContext aggregationContext, int x, int y) {
         super(aggregationContext, x, y);
-
+        // TODO - create accumulator depending on context
         sstAccumulator = new ArithmeticMeanAccumulator();
         sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
         randomUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
@@ -52,7 +52,7 @@ class DefaultCellAggregationCell extends AbstractAggregationCell implements Cell
     }
 
     @Override
-    public void accumulate(AggregationCell cell, double weight) {
+    public final void accumulate(AggregationCell cell, double weight) {
         sstAccumulator.accumulate(cell.getSeaSurfaceTemperature(), weight);
         sstAnomalyAccumulator.accumulate(cell.getSeaSurfaceTemperatureAnomaly(), weight);
         randomUncertaintyAccumulator.accumulate(cell.getRandomUncertainty(), weight);
@@ -64,22 +64,22 @@ class DefaultCellAggregationCell extends AbstractAggregationCell implements Cell
     }
 
     @Override
-    public double getSeaSurfaceTemperature() {
+    public final double getSeaSurfaceTemperature() {
         return sstAccumulator.combine();
     }
 
     @Override
-    public double getSeaSurfaceTemperatureAnomaly() {
+    public final double getSeaSurfaceTemperatureAnomaly() {
         return sstAnomalyAccumulator.combine();
     }
 
     @Override
-    public double getRandomUncertainty() {
+    public final double getRandomUncertainty() {
         return randomUncertaintyAccumulator.combine();
     }
 
     @Override
-    public double getLargeScaleUncertainty() {
+    public final double getLargeScaleUncertainty() {
         return largeScaleUncertaintyAccumulator.combine();
     }
 
@@ -89,17 +89,17 @@ class DefaultCellAggregationCell extends AbstractAggregationCell implements Cell
     }
 
     @Override
-    public double getAdjustmentUncertainty() {
+    public final double getAdjustmentUncertainty() {
         return adjustmentUncertaintyAccumulator.combine();
     }
 
     @Override
-    public double getSynopticUncertainty() {
+    public final double getSynopticUncertainty() {
         return synopticUncertaintyAccumulator.combine();
     }
 
     @Override
-    public double getSeaIceFraction() {
+    public final double getSeaIceFraction() {
         return seaIceFractionAccumulator.combine();
     }
 }

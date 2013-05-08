@@ -103,10 +103,10 @@ public final class ArcL3FileType implements FileType {
     }
 
     @Override
-    public Date readDate(NetcdfFile dataFile) throws IOException {
-        final Variable variable = dataFile.findTopVariable("time");
+    public Date readDate(NetcdfFile datafile) throws IOException {
+        final Variable variable = datafile.findTopVariable("time");
         if (variable == null) {
-            throw new IOException("Missing variable 'time' in dataFile '" + dataFile.getLocation() + "'");
+            throw new IOException("Missing variable 'time' in dataFile '" + datafile.getLocation() + "'");
         }
         // time of ARC is encoded as seconds since 01.01.1981
         final int secondsSince1981 = Math.round(variable.readScalarFloat());
@@ -217,32 +217,6 @@ public final class ArcL3FileType implements FileType {
         };
     }
 
-    private static final class Cell5 extends DefaultSpatialAggregationCell {
-
-        private Cell5(AggregationContext context, int cellX, int cellY) {
-            super(context, cellX, cellY);
-        }
-
-        @Override
-        public double getCoverageUncertainty() {
-            return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 5.0);
-        }
-    }
-
-    private static final class Cell90 extends DefaultCellAggregationCell {
-
-        private Cell90(AggregationContext context, int cellX, int cellY) {
-            super(context, cellX, cellY);
-        }
-
-        @Override
-        public double getCoverageUncertainty() {
-            final double uncertainty5 = super.getCoverageUncertainty();
-            final double uncertainty90 = getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 90.0);
-            return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
-        }
-    }
-
     private static final class MultiPurposeAggregation extends AbstractAggregation implements RegionalAggregation,
                                                                                               SameMonthAggregation<AggregationCell>,
                                                                                               MultiMonthAggregation<RegionalAggregation> {
@@ -294,8 +268,4 @@ public final class ArcL3FileType implements FileType {
         }
     }
 
-    @Override
-    public boolean hasSynopticUncertainties() {
-        return false;
-    }
 }

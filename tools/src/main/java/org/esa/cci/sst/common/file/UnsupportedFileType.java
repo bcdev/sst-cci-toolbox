@@ -46,7 +46,7 @@ import java.util.Date;
 public abstract class UnsupportedFileType implements FileType {
 
     @Override
-    public Date parseDate(String fileName) throws ParseException {
+    public Date parseDate(String filename) throws ParseException {
         throw notImplemented();
     }
 
@@ -66,7 +66,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public Date readDate(NetcdfFile dataFile) throws IOException {
+    public Date readDate(NetcdfFile datafile) throws IOException {
         throw notImplemented();
     }
 
@@ -87,11 +87,6 @@ public abstract class UnsupportedFileType implements FileType {
 
     @Override
     public CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(AggregationContext context) {
-        throw notImplemented();
-    }
-
-    @Override
-    public boolean hasSynopticUncertainties() {
         throw notImplemented();
     }
 

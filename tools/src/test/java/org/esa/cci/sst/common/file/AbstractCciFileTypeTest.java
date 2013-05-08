@@ -117,10 +117,6 @@ public class AbstractCciFileTypeTest {
                 return null;
             }
 
-            @Override
-            public boolean hasSynopticUncertainties() {
-                return false;
-            }
         };
     }
 }

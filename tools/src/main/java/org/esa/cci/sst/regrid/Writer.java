@@ -99,7 +99,7 @@ final class Writer {
         final Date startDate = timeStep.getStartDate();
         final Date endDate = timeStep.getEndDate();
         final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
-        final String targetFilename = getTargetFileName(filenameDateFormat.format(startDate),
+        final String targetFilename = getTargetFilename(filenameDateFormat.format(startDate),
                                                         filenameDateFormat.format(endDate),
                                                         regionMask.getName(),
                                                         productType.getProcessingLevel(),
@@ -297,7 +297,7 @@ final class Writer {
      *
      * @return The filename.
      */
-    String getTargetFileName(String startOfPeriod,
+    String getTargetFilename(String startOfPeriod,
                              String endOfPeriod,
                              String regionName,
                              ProcessingLevel processingLevel,

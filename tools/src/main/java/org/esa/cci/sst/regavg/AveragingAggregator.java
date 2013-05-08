@@ -191,7 +191,6 @@ public class AveragingAggregator extends AbstractAggregator {
                                                Grid seaCoverageCell5Grid,
                                                Grid seaCoverageCell90Grid) {
 
-        final boolean hasSynopticUncertainties = getFileType().hasSynopticUncertainties();
         final CellGrid<? extends AggregationCell> combinedCell5Grid = combinedCell5Grids.get(0);
         final List<RegionalAggregation> regionalAggregations = new ArrayList<RegionalAggregation>();
 
@@ -200,10 +199,6 @@ public class AveragingAggregator extends AbstractAggregator {
             CellGrid<? extends AggregationCell> cell5Grid = getCell5GridForRegion(combinedCell5Grid, regionMask);
             // Same for synoptic grid
             CellGrid<? extends AggregationCell> cell5GridSynoptic = null;
-            if (hasSynopticUncertainties) {
-                CellGrid<? extends AggregationCell> combinedCell5GridSynoptic = combinedCell5Grids.get(1);
-                cell5GridSynoptic = getCell5GridForRegion(combinedCell5GridSynoptic, regionMask);
-            }
             // Check if region is Globe or Hemisphere, if so apply special averaging for all 90 deg grid boxes.
             final SameMonthAggregation aggregation = aggregationFactory.createAggregation();
             boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
@@ -212,17 +207,11 @@ public class AveragingAggregator extends AbstractAggregator {
                         GridDef.createGlobal(90.0), cell90Factory);
                 // aggregateCell5GridToCell90Grid
                 aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverageCell5Grid, cell90Grid);
-                if (hasSynopticUncertainties) {
-                    aggregateCellGridToCoarserCellGrid(cell5GridSynoptic, seaCoverageCell5Grid, cell90Grid);
-                }
                 // Removes spatial extent
                 aggregateCell5OrCell90Grid(cell90Grid, seaCoverageCell90Grid, aggregation);
             } else {
                 // Removes spatial extent
                 aggregateCell5OrCell90Grid(cell5Grid, seaCoverageCell5Grid, aggregation);
-                if (hasSynopticUncertainties) {
-                    aggregateCell5OrCell90Grid(cell5GridSynoptic, seaCoverageCell5Grid, aggregation);
-                }
             }
             regionalAggregations.add(aggregation);
         }

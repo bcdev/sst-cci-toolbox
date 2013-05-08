@@ -27,7 +27,6 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
@@ -36,7 +35,6 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
@@ -47,24 +45,15 @@ import java.util.Date;
  * @author Norman Fomferra
  */
 public interface FileType {
-    /**
-     * @return The date as parsed from the filename.
-     * @throws java.text.ParseException If the date could not be parsed.
-     * @param fileName
-     */
-    Date parseDate(String fileName) throws ParseException;
+
+    Date parseDate(String filename) throws ParseException;
+
+    Date readDate(NetcdfFile datafile) throws IOException;
 
     /**
-     * @param dataFile The NetCDF file.
-     * @return The date as read from the NetCDF file.
-     * @throws java.io.IOException If the date could not be read.
-     */
-    Date readDate(NetcdfFile dataFile) throws IOException;
-
-    /**
-     * Gives the RDAC (Regional Data Assembly Center) of the origin product.
+     * Returns the Regional Data Assembly Center (RDAC) of the product.
      *
-     * @return RDAC
+     * @return the RDAC.
      */
     String getRdac();
 
@@ -87,7 +76,5 @@ public interface FileType {
     CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final AggregationContext context);
 
     CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory();
-
-    boolean hasSynopticUncertainties();
 
 }

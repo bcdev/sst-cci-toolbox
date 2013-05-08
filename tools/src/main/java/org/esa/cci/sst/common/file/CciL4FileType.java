@@ -146,36 +146,9 @@ public class CciL4FileType extends AbstractCciFileType {
         };
     }
 
-    private static class Cell5 extends DefaultSpatialAggregationCell {
-
-        private Cell5(AggregationContext coverageUncertaintyProvider, int x, int y) {
-            super(coverageUncertaintyProvider, x, y);
-        }
-
-        @Override
-        public double getCoverageUncertainty() {
-            return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 5.0);
-        }
-    }
-
-    private static class Cell90 extends DefaultCellAggregationCell {
-
-        private Cell90(AggregationContext aggregationContext, int x, int y) {
-            super(aggregationContext, x, y);
-        }
-
-        @Override
-        public double getCoverageUncertainty() {
-            final double uncertainty5 = super.getCoverageUncertainty();
-            final double uncertainty90 = getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 90.0);
-            return Math.sqrt(uncertainty5 * uncertainty5 + uncertainty90 * uncertainty90);
-        }
-    }
-
     private static class MultiPurposeAggregation extends AbstractAggregation implements RegionalAggregation,
                                                                                         SameMonthAggregation<AggregationCell>,
                                                                                         MultiMonthAggregation<RegionalAggregation> {
-
         private final NumberAccumulator sstAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator coverageUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
@@ -246,8 +219,4 @@ public class CciL4FileType extends AbstractCciFileType {
         }
     }
 
-    @Override
-    public boolean hasSynopticUncertainties() {
-        return false;
-    }
 }

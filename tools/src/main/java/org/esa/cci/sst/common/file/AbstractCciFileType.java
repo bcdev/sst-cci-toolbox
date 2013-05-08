@@ -53,10 +53,10 @@ public abstract class AbstractCciFileType implements FileType {
     }
 
     @Override
-    public final Date readDate(NetcdfFile dataFile) throws IOException {
-        final Variable variable = dataFile.findTopVariable("time");
+    public final Date readDate(NetcdfFile datafile) throws IOException {
+        final Variable variable = datafile.findTopVariable("time");
         if (variable == null) {
-            throw new IOException("Missing variable 'time' in file '" + dataFile.getLocation() + "'");
+            throw new IOException("Missing variable 'time' in file '" + datafile.getLocation() + "'");
         }
         // time is encoded as seconds since 01.01.1981
         final int secondsSince1981 = variable.readScalarInt();

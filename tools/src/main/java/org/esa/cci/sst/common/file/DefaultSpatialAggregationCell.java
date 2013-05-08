@@ -83,7 +83,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public void accumulate(AggregationContext aggregationContext, Rectangle rectangle) {
+    public final void accumulate(AggregationContext aggregationContext, Rectangle rectangle) {
         final Grid sstGrid = aggregationContext.getSstGrid();
         final Grid qualityGrid = aggregationContext.getQualityGrid();
         final Grid randomUncertaintyGrid = aggregationContext.getRandomUncertaintyGrid();
@@ -141,7 +141,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public double getSeaSurfaceTemperature() {
+    public final double getSeaSurfaceTemperature() {
         if (enoughSamples) {
             return sstAccumulator.combine();
         }
@@ -149,7 +149,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public double getSeaSurfaceTemperatureAnomaly() {
+    public final double getSeaSurfaceTemperatureAnomaly() {
         if (enoughSamples) {
             return sstAnomalyAccumulator.combine();
         }
@@ -157,7 +157,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public double getRandomUncertainty() {
+    public final double getRandomUncertainty() {
         if (enoughSamples) {
             return randomUncertaintyAccumulator.combine();
         }
@@ -165,7 +165,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public double getLargeScaleUncertainty() {
+    public final double getLargeScaleUncertainty() {
         if (enoughSamples && largeScaleUncertaintyAccumulator != null) {
             return largeScaleUncertaintyAccumulator.combine();
         }
@@ -182,7 +182,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public double getAdjustmentUncertainty() {
+    public final double getAdjustmentUncertainty() {
         if (enoughSamples && adjustmentUncertaintyAccumulator != null) {
             final double result = adjustmentUncertaintyAccumulator.combine();
             return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
@@ -191,7 +191,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public double getSynopticUncertainty() {
+    public final double getSynopticUncertainty() {
         if (enoughSamples && synopticUncertaintyAccumulator != null) {
             final double result = synopticUncertaintyAccumulator.combine();
             return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
@@ -200,7 +200,7 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
     }
 
     @Override
-    public double getSeaIceFraction() {
+    public final double getSeaIceFraction() {
         if (seaIceFractionAccumulator != null) {
             return seaIceFractionAccumulator.combine();
         }

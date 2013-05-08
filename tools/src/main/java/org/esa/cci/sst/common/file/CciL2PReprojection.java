@@ -253,18 +253,4 @@ public class CciL2PReprojection {
         }
 
     }
-
-    private static void append(String entry) throws IOException { //for debugging only
-        BufferedWriter fileWriter = new BufferedWriter(new FileWriter(new File("C:/Users/bettina/Desktop/log.txt"), true));
-        PrintWriter printWriter = new PrintWriter(fileWriter);
-        printWriter.print(entry);
-        printWriter.flush();
-        printWriter.close();
-    }
-
-    private void write(Product reprojectProduct) throws IOException { //for debugging only
-        ProductIO.writeProduct(reprojectProduct,
-                "C:\\Users\\bettina\\Development\\test-data\\sst-cci\\l2p\\output\\regridding\\2012-11-08\\part.dim", null);
-    }
-
 }
