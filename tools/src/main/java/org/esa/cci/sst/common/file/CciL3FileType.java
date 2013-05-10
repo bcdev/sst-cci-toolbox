@@ -47,83 +47,85 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 /**
+ * Represents the SST-CCI L3U and L3C file types.
+ *
  * @author Norman Fomferra
  * @author Bettina Scholze
  * @author Ralf Quast
  */
-public class CciL3FileType extends AbstractCciFileType {
+class CciL3FileType extends AbstractCciFileType {
 
-    public final static CciL3FileType INSTANCE = new CciL3FileType();
+    final static FileType INSTANCE = new CciL3FileType();
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws
+    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
                                                                                                                   IOException {
         final GridDef gridDef = getGridDef();
 
         switch (sstDepth) {
             case depth_20:
             case depth_100:
-                context.setSstGrid(NcUtils.readGrid(dataFile, "sea_surface_temperature_depth", gridDef, 0));
+                context.setSstGrid(NcUtils.readGrid(datafile, "sea_surface_temperature_depth", gridDef, 0));
                 break;
             case skin:
-                context.setSstGrid(NcUtils.readGrid(dataFile, "sea_surface_temperature", gridDef, 0));
+                context.setSstGrid(NcUtils.readGrid(datafile, "sea_surface_temperature", gridDef, 0));
                 break;
             default:
                 throw new IllegalArgumentException(MessageFormat.format("sstDepth = {0}", sstDepth));
         }
-        context.setQualityGrid(NcUtils.readGrid(dataFile, "quality_level", gridDef, 0));
-        context.setRandomUncertaintyGrid(NcUtils.readGrid(dataFile, "uncorrelated_uncertainty", gridDef, 0));
+        context.setQualityGrid(NcUtils.readGrid(datafile, "quality_level", gridDef, 0));
+        context.setRandomUncertaintyGrid(NcUtils.readGrid(datafile, "uncorrelated_uncertainty", gridDef, 0));
         context.setLargeScaleUncertaintyGrid(
-                NcUtils.readGrid(dataFile, "large_scale_correlated_uncertainty", gridDef, 0));
+                NcUtils.readGrid(datafile, "large_scale_correlated_uncertainty", gridDef, 0));
         context.setSynopticUncertaintyGrid(
-                NcUtils.readGrid(dataFile, "synoptically_correlated_uncertainty", gridDef, 0));
-        if (NcUtils.hasVariable(dataFile, "adjustment_uncertainty")) {
-            context.setAdjustmentUncertaintyGrid(NcUtils.readGrid(dataFile, "adjustment_uncertainty", gridDef, 0));
+                NcUtils.readGrid(datafile, "synoptically_correlated_uncertainty", gridDef, 0));
+        if (NcUtils.hasVariable(datafile, "adjustment_uncertainty")) {
+            context.setAdjustmentUncertaintyGrid(NcUtils.readGrid(datafile, "adjustment_uncertainty", gridDef, 0));
         }
         return context;
     }
 
     @Override
-    public Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth) {
+    public Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth) {
         final Variable[] variables = new Variable[9];
 
-        final Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
+        final Variable sstVar = datafile.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
         sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin", sstDepth)));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
+        final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(
                 new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+        final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
         coverageUncertaintyVar.addAttribute(new Attribute("long_name", "coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable uncorrelatedUncertaintyVar = file.addVariable("uncorrelated_uncertainty", DataType.FLOAT, dims);
+        final Variable uncorrelatedUncertaintyVar = datafile.addVariable("uncorrelated_uncertainty", DataType.FLOAT, dims);
         uncorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         uncorrelatedUncertaintyVar.addAttribute(
                 new Attribute("long_name", "uncorrelated uncertainty in kelvin"));
         uncorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable largeScaleUncertaintyVar = file.addVariable("large_scale_correlated_uncertainty",
+        final Variable largeScaleUncertaintyVar = datafile.addVariable("large_scale_correlated_uncertainty",
                                                                        DataType.FLOAT, dims);
         largeScaleUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         largeScaleUncertaintyVar.addAttribute(
                 new Attribute("long_name", "large scale correlated uncertainty in kelvin"));
         largeScaleUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable synopticUncertaintyVar = file.addVariable("synoptically_correlated_uncertainty",
+        final Variable synopticUncertaintyVar = datafile.addVariable("synoptically_correlated_uncertainty",
                                                                          DataType.FLOAT, dims);
         synopticUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         synopticUncertaintyVar.addAttribute(
                 new Attribute("long_name", "synoptically correlated uncertainty in kelvin"));
         synopticUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable adjustmentUncertaintyVar = file.addVariable("adjustment_uncertainty", DataType.FLOAT, dims);
+        final Variable adjustmentUncertaintyVar = datafile.addVariable("adjustment_uncertainty", DataType.FLOAT, dims);
         adjustmentUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         adjustmentUncertaintyVar.addAttribute(
                 new Attribute("long_name", "adjustment uncertainty in kelvin"));

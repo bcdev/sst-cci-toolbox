@@ -31,7 +31,7 @@ import org.esa.cci.sst.tool.ExitCode;
 import org.esa.cci.sst.tool.Parameter;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
-import org.esa.cci.sst.util.ProductType;
+import org.esa.cci.sst.common.file.ProductType;
 
 import java.io.File;
 import java.io.IOException;

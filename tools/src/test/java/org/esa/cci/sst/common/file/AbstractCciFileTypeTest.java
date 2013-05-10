@@ -87,13 +87,13 @@ public class AbstractCciFileTypeTest {
             }
 
             @Override
-            public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth,
+            public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth,
                                                       AggregationContext context) throws IOException {
                 return context;
             }
 
             @Override
-            public Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth) {
+            public Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth) {
                 return new Variable[0];
             }
 

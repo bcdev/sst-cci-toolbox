@@ -17,15 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.ProcessingLevel;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.file.ArcL3FileType;
-import org.esa.cci.sst.common.file.CciL2PFileType;
-import org.esa.cci.sst.common.file.CciL3FileType;
-import org.esa.cci.sst.common.file.CciL4FileType;
-import org.esa.cci.sst.common.file.FileType;
 
 import java.io.File;
 import java.text.ParseException;
@@ -40,7 +35,7 @@ import java.util.Date;
  */
 public enum ProductType {
     ARC_L3U(ArcL3FileType.INSTANCE, ProcessingLevel.L3U),
-    CCI_L2P(CciL2PFileType.INSTANCE, ProcessingLevel.L2P),
+    CCI_L2P(CciL2FileType.INSTANCE, ProcessingLevel.L2P),
     CCI_L3U(CciL3FileType.INSTANCE, ProcessingLevel.L3U),
     CCI_L3C(CciL3FileType.INSTANCE, ProcessingLevel.L3C),
     CCI_L4(CciL4FileType.INSTANCE, ProcessingLevel.L4);

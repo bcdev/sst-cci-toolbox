@@ -46,11 +46,15 @@ import ucar.nc2.Variable;
 import java.io.IOException;
 
 /**
- * @author Norman Fomferra, Bettina Scholze
+ * Represents the SST-CCI L4 file type.
+ *
+ * @author Norman Fomferra
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
-public class CciL4FileType extends AbstractCciFileType {
+class CciL4FileType extends AbstractCciFileType {
 
-    public final static CciL4FileType INSTANCE = new CciL4FileType();
+    final static FileType INSTANCE = new CciL4FileType();
 
     @Override
     public String getFilenameRegex() {
@@ -59,38 +63,39 @@ public class CciL4FileType extends AbstractCciFileType {
     }
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws
+    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
                                                                                                                   IOException {
-        context.setSstGrid(NcUtils.readGrid(dataFile, "analysed_sst", getGridDef(), 0));
-        context.setRandomUncertaintyGrid(NcUtils.readGrid(dataFile, "analysis_error", getGridDef(), 0));
-        context.setSeaIceFractionGrid(NcUtils.readGrid(dataFile, "sea_ice_fraction", getGridDef(), 0));
+        context.setSstGrid(NcUtils.readGrid(datafile, "analysed_sst", getGridDef(), 0));
+        context.setRandomUncertaintyGrid(NcUtils.readGrid(datafile, "analysis_error", getGridDef(), 0));
+        context.setSeaIceFractionGrid(NcUtils.readGrid(datafile, "sea_ice_fraction", getGridDef(), 0));
 
         return context;
     }
 
     @Override
-    public Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth) {
-        final Variable sstVar = file.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
+    public Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth) {
+        final Variable sstVar = datafile.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
         sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s", sstDepth)));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable sstAnomalyVar = file.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
+        final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
+                                                            dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable seaIceCoverageVar = file.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
+        final Variable seaIceCoverageVar = datafile.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
         seaIceCoverageVar.addAttribute(new Attribute("units", "1"));
         seaIceCoverageVar.addAttribute(new Attribute("long_name", "mean of sea ice fraction"));
         seaIceCoverageVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable coverageUncertaintyVar = file.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+        final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
         coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable analysisErrorVar = file.addVariable("analysis_error", DataType.FLOAT, dims);
+        final Variable analysisErrorVar = datafile.addVariable("analysis_error", DataType.FLOAT, dims);
         analysisErrorVar.addAttribute(new Attribute("units", "kelvin"));
         analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error"));
         analysisErrorVar.addAttribute(new Attribute("_FillValue", Float.NaN));
@@ -149,6 +154,7 @@ public class CciL4FileType extends AbstractCciFileType {
     private static class MultiPurposeAggregation extends AbstractAggregation implements RegionalAggregation,
                                                                                         SameMonthAggregation<AggregationCell>,
                                                                                         MultiMonthAggregation<RegionalAggregation> {
+
         private final NumberAccumulator sstAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator coverageUncertaintyAccumulator = new WeightedUncertaintyAccumulator();

@@ -54,7 +54,7 @@ public class ArrayGridTest {
 
     @Test
     public void testGetSample() throws Exception {
-        ArrayGrid arrayGrid = ArrayGrid.createWith2DDoubleArray(GridDef.createGlobal(0.05));
+        ArrayGrid arrayGrid = ArrayGrid.create(GridDef.createGlobal(0.05), (double[]) null);
 
         assertEquals(3600, arrayGrid.getHeight());
         assertEquals(7200, arrayGrid.getWidth());

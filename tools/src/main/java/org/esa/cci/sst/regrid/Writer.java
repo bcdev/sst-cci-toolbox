@@ -30,7 +30,7 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.util.ProductType;
+import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;

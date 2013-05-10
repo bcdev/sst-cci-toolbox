@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
  * Date: 16.10.12 11:20
  */
 public class CciL2FileTypeTest {
-    FileType fileType = CciL2PFileType.INSTANCE;
+    FileType fileType = CciL2FileType.INSTANCE;
 
     @Test
     public void testGetFileNameRegex() throws Exception {

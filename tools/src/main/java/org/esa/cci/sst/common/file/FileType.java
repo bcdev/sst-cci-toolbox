@@ -61,9 +61,9 @@ public interface FileType {
 
     GridDef getGridDef();
 
-    AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException;
+    AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws IOException;
 
-    Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth);
+    Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth);
 
     AggregationFactory<SameMonthAggregation<AggregationCell>> getSameMonthAggregationFactory();
 

@@ -98,7 +98,7 @@ final class RegriddingLUT2 implements LUT {
         return grid;
     }
 
-    static ArrayGrid readGrid(File file, double fillValue) throws IOException {
+    static Grid readGrid(File file, double fillValue) throws IOException {
         final int w = GRID_DEF_020.getWidth();
         final int h = GRID_DEF_020.getHeight();
         final double[] data = new double[w * h];
@@ -126,6 +126,6 @@ final class RegriddingLUT2 implements LUT {
             }
         }
 
-        return ArrayGrid.createWith2DDoubleArray(GRID_DEF_020, data);
+        return ArrayGrid.create(GRID_DEF_020, data);
     }
 }

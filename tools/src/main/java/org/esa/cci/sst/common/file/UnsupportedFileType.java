@@ -71,7 +71,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws IOException {
+    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws IOException {
         throw notImplemented();
     }
 
@@ -91,7 +91,7 @@ public abstract class UnsupportedFileType implements FileType {
     }
 
     @Override
-    public Variable[] addResultVariables(NetcdfFileWriteable file, Dimension[] dims, SstDepth sstDepth) {
+    public Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth) {
         throw notImplemented();
     }
 

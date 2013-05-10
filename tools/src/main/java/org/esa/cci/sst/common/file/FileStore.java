@@ -20,7 +20,6 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.util.ProductType;
 import org.esa.cci.sst.util.UTC;
 
 import java.io.File;

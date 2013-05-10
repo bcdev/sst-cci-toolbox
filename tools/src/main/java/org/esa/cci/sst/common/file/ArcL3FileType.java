@@ -52,16 +52,16 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Represents the ARC_L3U file type.
+ * Represents the ARC-L3U and L3C file types.
  * <p/>
  * Further info in the <a href="https://www.wiki.ed.ac.uk/display/arcwiki/Test+Data#TestData-NetCDFDataFiles">arcwiki</a>.
  *
  * @author Norman Fomferra
  * @author Ralf Quast
  */
-public final class ArcL3FileType implements FileType {
+class ArcL3FileType implements FileType {
 
-    public static final ArcL3FileType INSTANCE = new ArcL3FileType();
+    static final FileType INSTANCE = new ArcL3FileType();
 
     private static final DateFormat DATE_FORMAT = UTC.getDateFormat("yyyyMMdd");
     private static final int FILENAME_DATE_OFFSET = "ATS_AVG_3PAARC".length();
@@ -117,43 +117,44 @@ public final class ArcL3FileType implements FileType {
     }
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile dataFile, SstDepth sstDepth, AggregationContext context) throws
+    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
                                                                                                                   IOException {
         switch (sstDepth) {
             case skin:
-                context.setSstGrid(NcUtils.readGrid(dataFile, "sst_skin", getGridDef(), 0));
+                context.setSstGrid(NcUtils.readGrid(datafile, "sst_skin", getGridDef(), 0));
                 break;
             case depth_20:
-                context.setSstGrid(NcUtils.readGrid(dataFile, "sst_depth", getGridDef(), 0));
+                context.setSstGrid(NcUtils.readGrid(datafile, "sst_depth", getGridDef(), 0));
                 break;
             case depth_100:
-                context.setSstGrid(NcUtils.readGrid(dataFile, "sst_depth", getGridDef(), 1));
+                context.setSstGrid(NcUtils.readGrid(datafile, "sst_depth", getGridDef(), 1));
                 break;
             default:
                 throw new IllegalArgumentException(MessageFormat.format("sstDept = {0}", sstDepth));
         }
-        context.setRandomUncertaintyGrid(NcUtils.readGrid(dataFile, "uncertainty", getGridDef(), 0));
+        context.setRandomUncertaintyGrid(NcUtils.readGrid(datafile, "uncertainty", getGridDef(), 0));
         return context;
     }
 
     @Override
-    public Variable[] addResultVariables(NetcdfFileWriteable dataFile, Dimension[] dims, SstDepth sstDepth) {
-        final Variable sstVar = dataFile.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
+    public Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth) {
+        final Variable sstVar = datafile.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
         sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s", sstDepth)));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable sstAnomalyVar = dataFile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
+        final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
+                                                            dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable coverageUncertaintyVar = dataFile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
+        final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
         coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable arcUncertaintyVar = dataFile.addVariable("arc_uncertainty", DataType.FLOAT, dims);
+        final Variable arcUncertaintyVar = datafile.addVariable("arc_uncertainty", DataType.FLOAT, dims);
         arcUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         arcUncertaintyVar.addAttribute(new Attribute("long_name", "mean of ARC uncertainty"));
         arcUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
