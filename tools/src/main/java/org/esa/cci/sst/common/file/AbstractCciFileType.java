@@ -59,7 +59,12 @@ public abstract class AbstractCciFileType implements FileType {
             throw new IOException("Missing variable 'time' in file '" + datafile.getLocation() + "'");
         }
         // time is encoded as seconds since 01.01.1981
-        final int secondsSince1981 = variable.readScalarInt();
+        final int secondsSince1981;
+        try {
+            secondsSince1981 = variable.readScalarInt();
+        } catch (Exception e) {
+            throw new IOException("Invalid variable 'time' in file '" + datafile.getLocation() + "'");
+        }
         final Calendar calendar = UTC.createCalendar(1981);
         calendar.add(Calendar.SECOND, secondsSince1981);
 

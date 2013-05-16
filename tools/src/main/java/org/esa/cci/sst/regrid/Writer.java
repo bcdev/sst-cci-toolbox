@@ -90,7 +90,7 @@ final class Writer {
         }
     }
 
-    private void writeTargetFile(File targetDir,
+    void writeTargetFile(File targetDir,
                                  String sourceFilenameRegex,
                                  SstDepth sstDepth,
                                  TemporalResolution temporalResolution,
@@ -215,15 +215,15 @@ final class Writer {
                 final Array array = Array.factory(variable.getDataType(), variable.getShape());
                 for (int y = 0; y < rowCount; y++) {
                     for (int x = 0; x < colCount; x++) {
+                        final int index = y * colCount + x;
+                        array.setDouble(index, Double.NaN);
+
                         final AggregationCell cell = resultCellGrid.getCell(x, y);
                         if (cell != null) {
                             final Number[] results = cell.getResults();
                             final double totalUncertainty = calculateTotalUncertainty(results);
-                            final int i = y * colCount + x;
                             if (maxTotalUncertainty <= 0.0 || totalUncertainty <= maxTotalUncertainty) {
-                                array.setDouble(i, results[v].doubleValue());
-                            } else {
-                                array.setDouble(i, Double.NaN);
+                                array.setDouble(index, results[v].doubleValue());
                             }
                         }
                     }

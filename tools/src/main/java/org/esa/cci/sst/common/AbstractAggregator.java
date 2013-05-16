@@ -62,10 +62,16 @@ public abstract class AbstractAggregator {
                 if (regionMask.getSampleBoolean(x, y)) {
                     final Rectangle sourceRectangle = sourceGridDef.getGridRectangle(
                             targetGridDef.getLonLatRectangle(x, y));
-                    // TODO - optimize: if sample count == 0, then do not put target cell into cell grid
-                    final SpatialAggregationCell targetCell = targetGrid.getCellSafe(x, y);
-
-                    targetCell.accumulate(context, sourceRectangle);
+                    C targetCell = targetGrid.getCell(x, y);
+                    if (targetCell != null) {
+                        targetCell.accumulate(context, sourceRectangle);
+                    } else {
+                        targetCell = targetGrid.createCell(x, y);
+                        targetCell.accumulate(context, sourceRectangle);
+                        if (!targetCell.isEmpty()) {
+                            targetGrid.setCell(targetCell);
+                        }
+                    }
                 }
             }
         }

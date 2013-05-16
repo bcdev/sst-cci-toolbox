@@ -108,8 +108,12 @@ class ArcL3FileType implements FileType {
         if (variable == null) {
             throw new IOException("Missing variable 'time' in dataFile '" + datafile.getLocation() + "'");
         }
-        // time of ARC is encoded as seconds since 01.01.1981
-        final int secondsSince1981 = Math.round(variable.readScalarFloat());
+        final int secondsSince1981;
+        try {
+            secondsSince1981 = Math.round(variable.readScalarFloat());
+        } catch (Exception e) {
+            throw new IOException("Invalid variable 'time' in file '" + datafile.getLocation() + "'");
+        }
         final Calendar calendar = UTC.createCalendar(1981);
         calendar.add(Calendar.SECOND, secondsSince1981);
 

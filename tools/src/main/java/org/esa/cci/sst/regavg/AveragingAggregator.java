@@ -152,7 +152,7 @@ public class AveragingAggregator extends AbstractAggregator {
         aggregationContext.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
         final CellFactory<SpatialAggregationCell> spatialCellFactory = getFileType().getCellFactory5(
                 aggregationContext);
-        final CellGrid<SpatialAggregationCell> cellGridSpatial = CellGrid.create(globalGridDef5, spatialCellFactory);
+        final CellGrid<SpatialAggregationCell> spatialCellGrid = CellGrid.create(globalGridDef5, spatialCellFactory);
 
         for (File file : fileList) { //loop time (fileList contains files in required time range)
             LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
@@ -168,9 +168,11 @@ public class AveragingAggregator extends AbstractAggregator {
                 LOGGER.fine("Aggregating grid(s)...");
                 long t01 = System.currentTimeMillis();
 
-                aggregateSourcePixels(aggregationContext, combinedRegionMask, cellGridSpatial);
+                aggregateSourcePixels(aggregationContext, combinedRegionMask, spatialCellGrid);
 
                 LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
+            } catch (IOException e) {
+                LOGGER.warning(e.getMessage());
             } finally {
                 dataFile.close();
             }
@@ -178,9 +180,9 @@ public class AveragingAggregator extends AbstractAggregator {
                                       System.currentTimeMillis() - t0));
         }
 
-        ArrayList<CellGrid<? extends AggregationCell>> arrayGrids = new ArrayList<CellGrid<? extends AggregationCell>>();
-        arrayGrids.add(cellGridSpatial);
-        return arrayGrids;
+        final ArrayList<CellGrid<? extends AggregationCell>> cellGrids = new ArrayList<CellGrid<? extends AggregationCell>>();
+        cellGrids.add(spatialCellGrid);
+        return cellGrids;
     }
 
 

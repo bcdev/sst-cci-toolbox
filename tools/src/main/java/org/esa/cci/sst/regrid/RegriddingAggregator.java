@@ -31,7 +31,6 @@ import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.tool.ExitCode;
@@ -128,6 +127,7 @@ class RegriddingAggregator extends AbstractAggregator {
                     throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);
             }
             if (resultGrid != null) {
+                // TODO - write time step and do not aff them to the list!
                 resultGridList.add(new RegriddingTimeStep(date1, calendar.getTime(), resultGrid));
             }
         }
@@ -143,9 +143,9 @@ class RegriddingAggregator extends AbstractAggregator {
                                                 SimpleDateFormat.getDateInstance().format(date2)));
             return null;
         }
-        LOGGER.info(MessageFormat.format("Aggregating output time step from %s to %s, %d file(s) found.",
-                                         UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2),
-                                         fileList.size()));
+        LOGGER.info(String.format("Aggregating output time step from %s to %s, %d file(s) found.",
+                                  UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2),
+                                  fileList.size()));
 
         final CellGrid<SpatialAggregationCell> targetGrid = createSpatialAggregationCellGrid();
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, date2);
@@ -167,6 +167,8 @@ class RegriddingAggregator extends AbstractAggregator {
                 long t01 = System.currentTimeMillis();
                 aggregateSourcePixels(aggregationContext, aggregationContext.getTargetRegionMask(), targetGrid);
                 LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
+            } catch (IOException e) {
+                LOGGER.warning(e.getMessage());
             } finally {
                 dataFile.close();
             }
@@ -197,8 +199,18 @@ class RegriddingAggregator extends AbstractAggregator {
             for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
                     final AggregationCell sourceCell = sourceGrid.getCell(x, y);
-                    final CellAggregationCell<AggregationCell> targetCell = targetGrid.getCellSafe(x, y);
-                    targetCell.accumulate(sourceCell, 1.0);
+                    if (sourceCell != null) {
+                        CellAggregationCell<AggregationCell> targetCell = targetGrid.getCell(x, y);
+                        if (targetCell != null) {
+                            targetCell.accumulate(sourceCell, 1.0);
+                        } else {
+                            targetCell = targetGrid.createCell(x, y);
+                            targetCell.accumulate(sourceCell, 1.0);
+                            if (!targetCell.isEmpty()) {
+                                targetGrid.setCell(targetCell);
+                            }
+                        }
+                    }
                 }
             }
         }
