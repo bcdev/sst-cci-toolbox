@@ -109,7 +109,14 @@ public abstract class Tool {
 
     protected abstract String getHeader();
 
-    protected abstract String getFooter();
+    protected String getFooter() {
+        return "\n" +
+               "All parameter options may also be read from a key-value-pair file. The tool will always try " +
+               "to read settings in the default configuration file './" + getDefaultConfigFile() + "'. Optionally, a " +
+               "configuration file may be provided using the -c <FILE> option (see above)." +
+               "Command-line options overwrite the settings given by -c, which again overwrite settings in " +
+               "default configuration file.\n";
+    }
 
     protected abstract String getToolHome();
 

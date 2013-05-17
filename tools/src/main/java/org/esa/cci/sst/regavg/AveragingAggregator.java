@@ -19,10 +19,9 @@ import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileStore;
+import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -35,17 +34,18 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * The one and only aggregator for the RegionalAveraging Tool.
- * <p/>
- * {@author Bettina Scholze}
- * Date: 13.09.12 16:29
+ * Aggregator for the RegionalAveraging Tool.
+ *
+ * @author Norman Fomferra
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
 public class AveragingAggregator extends AbstractAggregator {
 
     private static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
 
+    private final AggregationContext context;
     private final RegionMaskList regionMaskList;
-    private final AggregationContext aggregationContext;
     private RegionMask combinedRegionMask;
     private LUT1 lut1;
     private LUT2 lut2;
@@ -53,66 +53,81 @@ public class AveragingAggregator extends AbstractAggregator {
     public AveragingAggregator(RegionMaskList regionMaskList, FileStore fileStore, Climatology climatology, LUT1 lut1,
                                LUT2 lut2, SstDepth sstDepth) {
         super(fileStore, climatology, sstDepth);
-        this.lut1 = lut1;
-        this.lut2 = lut2;
+
+        this.context = new AggregationContext();
         this.regionMaskList = regionMaskList;
         this.combinedRegionMask = RegionMask.combine(regionMaskList);
-
-        aggregationContext = new AggregationContext();
+        this.lut1 = lut1;
+        this.lut2 = lut2;
     }
 
-    public static <CSource extends AggregationCell, CTarget extends CellAggregationCell> CellGrid<CTarget> aggregateCellGridToCoarserCellGrid(
-            CellGrid<CSource> cellSourceGrid,
-            Grid seaCoverageGridInSourceResolution,
-            CellGrid<CTarget> cellTargetGrid) {
-        final int width = cellSourceGrid.getGridDef().getWidth();
-        final int height = cellSourceGrid.getGridDef().getHeight();
-        for (int cellSourceY = 0; cellSourceY < height; cellSourceY++) {
-            for (int cellSourceX = 0; cellSourceX < width; cellSourceX++) {
-                CSource cellSource = cellSourceGrid.getCell(cellSourceX, cellSourceY);
-                if (cellSource != null && !cellSource.isEmpty()) {
-                    int cellTargetX = (cellSourceX * cellTargetGrid.getGridDef().getWidth()) / width;
-                    int cellTargetY = (cellSourceY * cellTargetGrid.getGridDef().getHeight()) / height;
-                    CTarget cellTarget = cellTargetGrid.getCellSafe(cellTargetX, cellTargetY);
-                    double seaCoverage = seaCoverageGridInSourceResolution.getSampleDouble(cellSourceX, cellSourceY);
-                    // noinspection unchecked
-                    cellTarget.accumulate(cellSource, seaCoverage);
+    private static <CSource extends AggregationCell, CTarget extends CellAggregationCell> CellGrid<CTarget> aggregateCellGridToCoarserCellGrid(
+            CellGrid<CSource> sourceGrid, CellGrid<CTarget> targetGrid, Grid seaCoverageGrid) {
+        final GridDef sourceGridDef = sourceGrid.getGridDef();
+        final GridDef targetGridDef = targetGrid.getGridDef();
+        final int sourceW = sourceGridDef.getWidth();
+        final int sourceH = sourceGridDef.getHeight();
+        final int targetW = targetGridDef.getWidth();
+        final int targetH = targetGridDef.getHeight();
+
+        for (int sourceY = 0; sourceY < sourceH; sourceY++) {
+            for (int sourceX = 0; sourceX < sourceW; sourceX++) {
+                final CSource sourceCell = sourceGrid.getCell(sourceX, sourceY);
+                if (sourceCell != null && !sourceCell.isEmpty()) {
+                    final int targetX = (sourceX * targetW) / sourceW;
+                    final int targetY = (sourceY * targetH) / sourceH;
+                    final CTarget targetCell = targetGrid.getCellSafe(targetX, targetY);
+                    final double seaCoverage = seaCoverageGrid.getSampleDouble(sourceX, sourceY);
+                    //noinspection unchecked
+                    targetCell.accumulate(sourceCell, seaCoverage);
                 }
             }
         }
-        return cellTargetGrid;
+        return targetGrid;
     }
 
     @Override
-    public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution) throws
-                                                                                                                  IOException,
-                                                                                                                  ToolException {
+    public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution)
+            throws IOException {
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
         while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
-            Date date1 = calendar.getTime();
-            List<RegionalAggregation> result;
-            if (temporalResolution == TemporalResolution.daily) {
-                calendar.add(Calendar.DATE, 1);
-                Date date2 = calendar.getTime();
-                result = aggregateRegions(date1, date2);
-            } else if (temporalResolution == TemporalResolution.monthly) {
-                calendar.add(Calendar.MONTH, 1);
-                Date date2 = calendar.getTime();
-                result = aggregateRegions(date1, date2);
-            } else if (temporalResolution == TemporalResolution.seasonal) {
-                calendar.add(Calendar.MONTH, 3);
-                Date date2 = calendar.getTime();
-                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
-                result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
-            } else if (temporalResolution == TemporalResolution.annual) {
-                calendar.add(Calendar.YEAR, 1);
-                Date date2 = calendar.getTime();
-                List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2, TemporalResolution.monthly);
-                result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
-            } else {
-                throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);
+            final Date date1 = calendar.getTime();
+            final List<RegionalAggregation> result;
+
+            switch (temporalResolution) {
+                case daily: {
+                    calendar.add(Calendar.DATE, 1);
+                    final Date date2 = calendar.getTime();
+                    result = aggregateRegions(date1, date2);
+                    break;
+                }
+                case monthly: {
+                    calendar.add(Calendar.MONTH, 1);
+                    final Date date2 = calendar.getTime();
+                    result = aggregateRegions(date1, date2);
+                    break;
+                }
+                case seasonal: {
+                    calendar.add(Calendar.MONTH, 3);
+                    final Date date2 = calendar.getTime();
+                    final List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
+                                                                               TemporalResolution.monthly);
+                    result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
+                    break;
+                }
+                case annual: {
+                    calendar.add(Calendar.YEAR, 1);
+                    final Date date2 = calendar.getTime();
+                    final List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
+                                                                               TemporalResolution.monthly);
+                    result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
+                    break;
+                }
+                default:
+                    throw new IllegalArgumentException(
+                            String.format("Temporal resolution '%s' is not supported.", temporalResolution.toString()));
             }
 
             results.add(new AveragingTimeStep(date1, calendar.getTime(), result));
@@ -121,56 +136,56 @@ public class AveragingAggregator extends AbstractAggregator {
     }
 
     private List<RegionalAggregation> aggregateRegions(Date date1, Date date2) throws IOException {
-        //Compute the cell 5 grid for *all* combined regions first
-        //regrid spatially from 0.1/0.5 ° to 5 °, and aggregate given time range (<= monthly)
-        SpatialResolution targetResolution = SpatialResolution.DEGREE_5_00;
-        final ArrayList<CellGrid<? extends AggregationCell>> combinedCell5Grids = aggregateTimeRangeAndRegrid(date1,
-                                                                                                              date2);
+        // compute the cell 5 grid for *all* combined regions first
+        // re-grid spatially from 0.1/0.5 ° to 5 °, and aggregate given time range (<= monthly)
+        final CellGrid<SpatialAggregationCell> cellGrid5 = aggregateTimeSteps(date1, date2);
 
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
-        aggregationContext.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
+        context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
 
-        return aggregateRegions(combinedCell5Grids,
+        return aggregateRegions(cellGrid5,
+                                getClimatology().getSeaCoverageGrid5(),
+                                getClimatology().getSeaCoverageGrid90(),
                                 regionMaskList,
-                                getFileType().getSameMonthAggregationFactory(),
-                                getFileType().getCellFactory90(aggregationContext),
-                                getClimatology().getSeaCoverageCell5Grid(),
-                                getClimatology().getSeaCoverageCell90Grid());
+                                getFileType().getCellFactory90(context),
+                                getFileType().getSameMonthAggregationFactory()
+        );
     }
 
-    private ArrayList<CellGrid<? extends AggregationCell>> aggregateTimeRangeAndRegrid(Date date1, Date date2) throws
-                                                                                                               IOException {
-        //todo check if time range is less or equal a month
+    private CellGrid<SpatialAggregationCell> aggregateTimeSteps(Date date1, Date date2) throws IOException {
+        // TODO - check if time range is less or equal a month?
+        final Climatology climatology = getClimatology();
+        final FileType fileType = getFileType();
         final List<File> fileList = getFileStore().getFiles(date1, date2);
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                                   UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
 
-        SpatialResolution targetResolution = SpatialResolution.DEGREE_5_00;
-        GridDef globalGridDef5 = GridDef.createGlobal(targetResolution.getResolution());
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
-        aggregationContext.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
-        final CellFactory<SpatialAggregationCell> spatialCellFactory = getFileType().getCellFactory5(
-                aggregationContext);
-        final CellGrid<SpatialAggregationCell> spatialCellGrid = CellGrid.create(globalGridDef5, spatialCellFactory);
+        context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
+        final CellFactory<SpatialAggregationCell> targetCellFactory = fileType.getCellFactory5(context);
+        final GridDef targetGridDef = GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getResolution());
+        final CellGrid<SpatialAggregationCell> targetGrid = CellGrid.create(targetGridDef, targetCellFactory);
 
-        for (File file : fileList) { //loop time (fileList contains files in required time range)
+        for (final File file : fileList) {
             LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
-            long t0 = System.currentTimeMillis();
+
+            final long t0 = System.currentTimeMillis();
             final NetcdfFile dataFile = NetcdfFile.open(file.getPath());
+
             try {
-                final Date date = getFileType().readDate(dataFile);
+                final Date date = fileType.readDate(dataFile);
                 final int dayOfYear = UTC.getDayOfYear(date);
                 LOGGER.fine("Day of year is " + dayOfYear);
-                aggregationContext.setClimatologySstGrid(getClimatology().getSst(dayOfYear));
-                aggregationContext.setSeaCoverageGrid(getClimatology().getSeaCoverage());
-                readSourceGrids(dataFile, aggregationContext);
+                context.setClimatologySstGrid(climatology.getSst(dayOfYear));
+                context.setSeaCoverageGrid(climatology.getSeaCoverage());
+                readSourceGrids(dataFile, context);
                 LOGGER.fine("Aggregating grid(s)...");
-                long t01 = System.currentTimeMillis();
+                final long t1 = System.currentTimeMillis();
 
-                aggregateSourcePixels(aggregationContext, combinedRegionMask, spatialCellGrid);
+                aggregateSourcePixels(context, combinedRegionMask, targetGrid);
 
-                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
+                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
             } catch (IOException e) {
                 LOGGER.warning(e.getMessage());
             } finally {
@@ -180,112 +195,106 @@ public class AveragingAggregator extends AbstractAggregator {
                                       System.currentTimeMillis() - t0));
         }
 
-        final ArrayList<CellGrid<? extends AggregationCell>> cellGrids = new ArrayList<CellGrid<? extends AggregationCell>>();
-        cellGrids.add(spatialCellGrid);
-        return cellGrids;
+        return targetGrid;
     }
 
 
-    List<RegionalAggregation> aggregateRegions(ArrayList<CellGrid<? extends AggregationCell>> combinedCell5Grids,
-                                               RegionMaskList regionMaskList,
-                                               AggregationFactory<SameMonthAggregation<AggregationCell>> aggregationFactory,
-                                               CellFactory<CellAggregationCell<AggregationCell>> cell90Factory,
-                                               Grid seaCoverageCell5Grid,
-                                               Grid seaCoverageCell90Grid) {
-
-        final CellGrid<? extends AggregationCell> combinedCell5Grid = combinedCell5Grids.get(0);
+    private static List<RegionalAggregation> aggregateRegions(
+            CellGrid<SpatialAggregationCell> sourceCellGrid5,
+            Grid seaCoverageGrid5,
+            Grid seaCoverageGrid90,
+            RegionMaskList regionMaskList,
+            CellFactory<CellAggregationCell<AggregationCell>> cellFactory90,
+            AggregationFactory<SameMonthAggregation<AggregationCell>> aggregationFactory) {
         final List<RegionalAggregation> regionalAggregations = new ArrayList<RegionalAggregation>();
 
-        for (RegionMask regionMask : regionMaskList) {
-            // Extract the cell 5 grid for the current region
-            CellGrid<? extends AggregationCell> cell5Grid = getCell5GridForRegion(combinedCell5Grid, regionMask);
-            // Same for synoptic grid
-            CellGrid<? extends AggregationCell> cell5GridSynoptic = null;
+        for (final RegionMask regionMask : regionMaskList) {
+            final CellGrid<? extends AggregationCell> regionCellGrid5 = getCellGridForRegion(sourceCellGrid5,
+                                                                                             regionMask);
             // Check if region is Globe or Hemisphere, if so apply special averaging for all 90 deg grid boxes.
+            final boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
             final SameMonthAggregation aggregation = aggregationFactory.createAggregation();
-            boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
             if (mustAggregateTo90) {
-                final CellGrid<CellAggregationCell<AggregationCell>> cell90Grid = CellGrid.create(
-                        GridDef.createGlobal(90.0), cell90Factory);
+                final CellGrid<CellAggregationCell<AggregationCell>> grid90 = CellGrid.create(
+                        GridDef.createGlobal(90.0), cellFactory90);
                 // aggregateCell5GridToCell90Grid
-                aggregateCellGridToCoarserCellGrid(cell5Grid, seaCoverageCell5Grid, cell90Grid);
+                aggregateCellGridToCoarserCellGrid(regionCellGrid5, grid90, seaCoverageGrid5);
                 // Removes spatial extent
-                aggregateCell5OrCell90Grid(cell90Grid, seaCoverageCell90Grid, aggregation);
+                aggregateCellGrid(grid90, seaCoverageGrid90, aggregation);
             } else {
                 // Removes spatial extent
-                aggregateCell5OrCell90Grid(cell5Grid, seaCoverageCell5Grid, aggregation);
+                aggregateCellGrid(regionCellGrid5, seaCoverageGrid5, aggregation);
             }
             regionalAggregations.add(aggregation);
         }
+
         return regionalAggregations;
     }
 
 
-    static boolean mustAggregateTo90(RegionMask regionMask) {
+    private static boolean mustAggregateTo90(RegionMask regionMask) {
         return regionMask.getCoverage() == RegionMask.Coverage.GLOBE
                || regionMask.getCoverage() == RegionMask.Coverage.N_HEMISPHERE
                || regionMask.getCoverage() == RegionMask.Coverage.S_HEMISPHERE;
     }
 
-    static <C extends AggregationCell> void aggregateCell5OrCell90Grid(CellGrid<C> cellGrid, Grid seaCoverageGrid,
-                                                                       SameMonthAggregation aggregation) {
-        final int width = cellGrid.getGridDef().getWidth();
-        final int height = cellGrid.getGridDef().getHeight();
-        for (int cellY = 0; cellY < height; cellY++) {
-            for (int cellX = 0; cellX < width; cellX++) {
-                C cell = cellGrid.getCell(cellX, cellY);
+    private static <C extends AggregationCell> void aggregateCellGrid(CellGrid<C> cellGrid,
+                                                                      Grid seaCoverageGrid,
+                                                                      SameMonthAggregation aggregation) {
+        final int w = cellGrid.getGridDef().getWidth();
+        final int h = cellGrid.getGridDef().getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                final C cell = cellGrid.getCell(x, y);
                 if (cell != null && !cell.isEmpty()) {
                     // noinspection unchecked
-                    aggregation.accumulate(cell, seaCoverageGrid.getSampleDouble(cellX, cellY));
+                    aggregation.accumulate(cell, seaCoverageGrid.getSampleDouble(x, y));
                 }
             }
         }
     }
 
-    static <C extends AggregationCell> CellGrid<C> getCell5GridForRegion(CellGrid<C> combinedGrid5,
-                                                                         RegionMask regionMask) {
-
-        final CellGrid<C> regionalGrid5 = CellGrid.create(combinedGrid5.getGridDef(), combinedGrid5.getCellFactory());
-        final int width = combinedGrid5.getWidth();
-        final int height = combinedGrid5.getHeight();
-        for (int cellY = 0; cellY < height; cellY++) {
-            for (int cellX = 0; cellX < width; cellX++) {
-                if (regionMask.getSampleBoolean(cellX, cellY)) {
-                    C cell5 = combinedGrid5.getCell(cellX, cellY);
+    private static <C extends AggregationCell> CellGrid<C> getCellGridForRegion(CellGrid<C> sourceGrid,
+                                                                                RegionMask regionMask) {
+        final CellGrid<C> targetGrid = CellGrid.create(sourceGrid.getGridDef(), sourceGrid.getCellFactory());
+        final int w = sourceGrid.getWidth();
+        final int h = sourceGrid.getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (regionMask.getSampleBoolean(x, y)) {
+                    final C cell5 = sourceGrid.getCell(x, y);
                     if (cell5 != null && !cell5.isEmpty()) {
-                        regionalGrid5.setCell(cellX, cellY, cell5);
+                        targetGrid.setCell(x, y, cell5);
                     }
                 }
             }
         }
-        return regionalGrid5;
+        return targetGrid;
     }
 
     private List<RegionalAggregation> aggregateMonthlyTimeSteps(List<AveragingTimeStep> monthlyTimeSteps) {
-
-        return aggregateMonthlyTimeSteps(monthlyTimeSteps,
-                                         regionMaskList.size(), getFileType().getMultiMonthAggregationFactory());
+        return aggregateMonthlyTimeSteps(monthlyTimeSteps, regionMaskList.size(),
+                                         getFileType().getMultiMonthAggregationFactory());
     }
 
-    static List<RegionalAggregation> aggregateMonthlyTimeSteps(
-            List<AveragingTimeStep> monthlyTimeSteps, int regionCount,
-            AggregationFactory<MultiMonthAggregation<RegionalAggregation>> aggregationFactory) {
-
-        final MultiMonthAggregation multiMonthAggregation = aggregationFactory.createAggregation();
+    private static List<RegionalAggregation> aggregateMonthlyTimeSteps(List<AveragingTimeStep> monthlyTimeSteps,
+                                                                       int regionCount,
+                                                                       AggregationFactory<MultiMonthAggregation<RegionalAggregation>> aggregationFactory) {
+        final MultiMonthAggregation aggregation = aggregationFactory.createAggregation();
         final ArrayList<RegionalAggregation> resultList = new ArrayList<RegionalAggregation>();
 
         for (int regionIndex = 0; regionIndex < regionCount; regionIndex++) {
-            for (AveragingTimeStep timeStep : monthlyTimeSteps) {
+            for (final AveragingTimeStep timeStep : monthlyTimeSteps) {
                 RegionalAggregation sameMonthRegionalAggregation = timeStep.getRegionalAggregation(regionIndex);
                 // noinspection unchecked
-                multiMonthAggregation.accumulate(sameMonthRegionalAggregation);
+                aggregation.accumulate(sameMonthRegionalAggregation);
             }
-            resultList.add(multiMonthAggregation);
+            resultList.add(aggregation);
         }
         return resultList;
     }
 
-    protected CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date) {
+    private CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date) {
         final int month = UTC.createCalendar(date).get(Calendar.MONTH);
 
         return new AveragingCoverageUncertaintyProvider(month) {

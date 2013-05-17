@@ -33,8 +33,6 @@ import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -62,20 +60,22 @@ class RegriddingAggregator extends AbstractAggregator {
     private final AggregationContext aggregationContext;
     private final LUT timeLut;
     private final LUT spaceLut;
+    private final Writer writer;
 
     RegriddingAggregator(FileStore fileStore,
                          Climatology climatology,
                          SstDepth sstDepth, AggregationContext aggregationContext, LUT timeLut,
-                         LUT spaceLut) {
+                         LUT spaceLut, Writer writer) {
         super(fileStore, climatology, sstDepth);
         this.aggregationContext = aggregationContext;
         this.timeLut = timeLut;
         this.spaceLut = spaceLut;
+        this.writer = writer;
     }
 
     @Override
     public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate,
-                                              TemporalResolution temporalResolution) throws IOException, ToolException {
+                                              TemporalResolution temporalResolution) throws IOException {
         final List<RegriddingTimeStep> resultGridList = new ArrayList<RegriddingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
@@ -124,11 +124,20 @@ class RegriddingAggregator extends AbstractAggregator {
                     break;
                 }
                 default:
-                    throw new ToolException("Not supported: " + temporalResolution.toString(), ExitCode.USAGE_ERROR);
+                    throw new IllegalArgumentException(
+                            String.format("Temporal resolution '%s' is not supported.", temporalResolution.toString()));
             }
             if (resultGrid != null) {
-                // TODO - write time step and do not aff them to the list!
-                resultGridList.add(new RegriddingTimeStep(date1, calendar.getTime(), resultGrid));
+                final RegriddingTimeStep timeStep = new RegriddingTimeStep(date1, calendar.getTime(), resultGrid);
+                if (writer != null) {
+                    try {
+                        writer.writeTargetFile(timeStep);
+                    } catch (IOException e) {
+                        LOGGER.warning(e.getMessage());
+                    }
+                } else {
+                    resultGridList.add(timeStep);
+                }
             }
         }
         return resultGridList;

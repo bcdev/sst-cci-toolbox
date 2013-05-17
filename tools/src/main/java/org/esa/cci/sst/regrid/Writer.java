@@ -43,6 +43,7 @@ import ucar.nc2.Variable;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -63,39 +64,44 @@ final class Writer {
     private final String fileFormatVersion;
     private final boolean totalUncertaintyWanted;
     private final double maxTotalUncertainty;
+    private final File targetDir;
+    private final String sourceFilenameRegex;
+    private final SstDepth sstDepth;
+    private final TemporalResolution temporalResolution;
+    private final RegionMask regionMask;
 
     Writer(ProductType productType,
            String toolName,
            String toolVersion,
            String fileFormatVersion,
            boolean totalUncertaintyWanted,
-           double maxTotalUncertainty) {
+           double maxTotalUncertainty,
+           File targetDir,
+           String sourceFilenameRegex,
+           SstDepth sstDepth,
+           TemporalResolution temporalResolution,
+           RegionMask regionMask) {
         this.productType = productType;
         this.toolName = toolName;
         this.toolVersion = toolVersion;
         this.fileFormatVersion = fileFormatVersion;
         this.totalUncertaintyWanted = totalUncertaintyWanted;
         this.maxTotalUncertainty = maxTotalUncertainty;
+        this.targetDir = targetDir;
+        this.sourceFilenameRegex = sourceFilenameRegex;
+        this.sstDepth = sstDepth;
+        this.temporalResolution = temporalResolution;
+        this.regionMask = regionMask;
     }
 
-    void writeTargetFiles(File targetDir,
-                                 String filenameRegex,
-                                 SstDepth sstDepth,
-                                 TemporalResolution temporalResolution,
-                                 RegionMask regionMask,
-                                 List<RegriddingTimeStep> timeSteps) throws IOException {
+    void writeTargetFiles(List<RegriddingTimeStep> timeSteps) throws IOException {
 
-        for (RegriddingTimeStep timeStep : timeSteps) {
-            writeTargetFile(targetDir, filenameRegex, sstDepth, temporalResolution, regionMask, timeStep);
+        for (final RegriddingTimeStep timeStep : timeSteps) {
+            writeTargetFile(timeStep);
         }
     }
 
-    void writeTargetFile(File targetDir,
-                                 String sourceFilenameRegex,
-                                 SstDepth sstDepth,
-                                 TemporalResolution temporalResolution,
-                                 RegionMask regionMask,
-                                 RegriddingTimeStep timeStep) throws IOException {
+    void writeTargetFile(RegriddingTimeStep timeStep) throws IOException {
         final Date startDate = timeStep.getStartDate();
         final Date endDate = timeStep.getEndDate();
         final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
@@ -148,10 +154,12 @@ final class Writer {
             lon.addAttribute(new Attribute("units", "degrees_east"));
             lon.addAttribute(new Attribute("long_name", "longitude"));
             lon.addAttribute(new Attribute("bounds", "lon_bnds"));
-            final Variable latBounds = dataFile.addVariable("lat_bnds", DataType.FLOAT, new Dimension[]{latDim, boundsDim});
+            final Variable latBounds = dataFile.addVariable("lat_bnds", DataType.FLOAT,
+                                                            new Dimension[]{latDim, boundsDim});
             latBounds.addAttribute(new Attribute("units", "degrees_north"));
             latBounds.addAttribute(new Attribute("long_name", "latitude cell boundaries"));
-            final Variable lonBounds = dataFile.addVariable("lon_bnds", DataType.FLOAT, new Dimension[]{lonDim, boundsDim});
+            final Variable lonBounds = dataFile.addVariable("lon_bnds", DataType.FLOAT,
+                                                            new Dimension[]{lonDim, boundsDim});
             lonBounds.addAttribute(new Attribute("units", "degrees_east"));
             lonBounds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
             final Variable[] resultVariables = addResultVariables(dataFile, sstDepth, dims);
@@ -174,6 +182,10 @@ final class Writer {
             } else {
                 writeResultVariables(dataFile, resultVariables, targetCellGrid);
             }
+        } catch (IOException e) {
+            throw new IOException(MessageFormat.format("An exception occurred while writing target file ''{0}'':{1}",
+                                                       dataFile.getLocation(),
+                                                       e.getMessage()), e);
         } finally {
             try {
                 dataFile.close();

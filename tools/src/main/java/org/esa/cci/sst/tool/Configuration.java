@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.Properties;
 
 /**
- * The configuration used for the {@link org.esa.cci.sst.regavg.RegionalAverageTool}.
+ * The configuration used for the {@link org.esa.cci.sst.regavg.AveragingTool}.
  *
  * @author Norman Fomferra
  */

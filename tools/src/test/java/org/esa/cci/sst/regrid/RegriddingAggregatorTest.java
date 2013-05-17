@@ -38,7 +38,7 @@ public class RegriddingAggregatorTest {
         final GridDef targetGridDef = GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getResolution());
 
         regriddingAggregator = new RegriddingAggregator(fileStore, null, SstDepth.skin, new AggregationContext(), null,
-                                                        null) {
+                                                        null, null) {
 
             @Override
             CellGrid<SpatialAggregationCell> aggregateTimeStep(Date date1, Date date2) throws IOException {

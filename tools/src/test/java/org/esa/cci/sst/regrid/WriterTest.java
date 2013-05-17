@@ -23,8 +23,8 @@ public class WriterTest {
         final String additionalSegregator = "DM";
         final String toolVersion = "0.1";
         final String fileFormatVersion = "1.1";
-        final Writer writer = new Writer(ProductType.valueOf("CCI_L3C"), "toolName", toolVersion, fileFormatVersion, false, 0.0);
-
+        final Writer writer = new Writer(ProductType.valueOf("CCI_L3C"), "toolName", toolVersion, fileFormatVersion,
+                                         false, 0.0, null, null, null, null, null);
         //execution
         final String filename = writer.getTargetFilename(startOfPeriod, endOfPeriod, regionName,
                                                          ProcessingLevel.L3C, sstType, productString,

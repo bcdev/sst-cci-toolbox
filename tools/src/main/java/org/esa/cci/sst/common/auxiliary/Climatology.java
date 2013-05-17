@@ -48,7 +48,6 @@ import java.util.regex.Pattern;
 public class Climatology {
 
     private static final GridDef SOURCE_GRID_DEF = GridDef.createGlobal(0.05);
-    private static final GridDef TARGET_1D_GRID_DEF = GridDef.createGlobal(1.0);
     private static final GridDef TARGET_5D_GRID_DEF = GridDef.createGlobal(5.0);
     private static final GridDef TARGET_90D_GRID_DEF = GridDef.createGlobal(90.0);
 
@@ -60,8 +59,7 @@ public class Climatology {
     private Grid sstGrid;
     private int dayOfYear;
 
-    private Grid seaCoverageGrid; //0.1° or 0.5° same as input files
-    private Grid seaCoverageCell1Grid;
+    private Grid seaCoverageGrid; // 0.1° or 0.5° same as input files
     private Grid seaCoverageCell5Grid;
     private Grid seaCoverageCell90Grid;
 
@@ -102,8 +100,9 @@ public class Climatology {
         } else {
             final String[] missingDays = getMissingDays(files);
             throw new ToolException(
-                    String.format("Climatology directory is expected to contain 365 or 366 files, but found %d. Missing %s.",
-                                  files.length, Arrays.toString(missingDays)), ExitCode.USAGE_ERROR);
+                    String.format(
+                            "Climatology directory is expected to contain 365 or 366 files, but found %d. Missing %s.",
+                            files.length, Arrays.toString(missingDays)), ExitCode.USAGE_ERROR);
         }
     }
 
@@ -120,15 +119,11 @@ public class Climatology {
         return seaCoverageGrid;
     }
 
-    public Grid getSeaCoverageCell1Grid() {
-        return seaCoverageCell1Grid;
-    }
-
-    public Grid getSeaCoverageCell5Grid() {
+    public Grid getSeaCoverageGrid5() {
         return seaCoverageCell5Grid;
     }
 
-    public Grid getSeaCoverageCell90Grid() {
+    public Grid getSeaCoverageGrid90() {
         return seaCoverageCell90Grid;
     }
 
@@ -187,7 +182,6 @@ public class Climatology {
         if (!SOURCE_GRID_DEF.equals(targetGridDef)) {
             seaCoverageGrid = Downscaling.create(seaCoverageGrid, targetGridDef);
         }
-        seaCoverageCell1Grid = Downscaling.create(seaCoverageGrid, TARGET_1D_GRID_DEF);
         seaCoverageCell5Grid = Downscaling.create(seaCoverageGrid, TARGET_5D_GRID_DEF);
         seaCoverageCell90Grid = Downscaling.create(seaCoverageCell5Grid, TARGET_90D_GRID_DEF);
         LOGGER.fine(String.format("Transforming 'mask' took %d ms", System.currentTimeMillis() - t0));
