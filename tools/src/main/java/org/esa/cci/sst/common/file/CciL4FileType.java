@@ -76,7 +76,8 @@ class CciL4FileType extends AbstractCciFileType {
 
     private Grid readGrid(NetcdfFile datafile, String variableName, int z) throws IOException {
         // TODO - check if grids need to be flipped
-        return YFlip.create(NcUtils.readGrid(datafile, variableName, getGridDef(), z));
+        // return YFlip.create(NcUtils.readGrid(datafile, variableName, getGridDef(), z));
+        return NcUtils.readGrid(datafile, variableName, getGridDef(), z);
     }
 
     @Override
