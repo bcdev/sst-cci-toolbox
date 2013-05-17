@@ -18,8 +18,8 @@ public class WriterTest {
         final String startOfPeriod = "20120202";
         final String endOfPeriod = "20120228";
         final String regionName = "GLOBAL";
-        final String sstType = "SST_" + SstDepth.depth_20 + "_regridded";
-        final String productString = "PS";
+        final String sstType = "SST_" + SstDepth.depth_20;
+        final String productString = "regridded0.5";
         final String additionalSegregator = "DM";
         final String toolVersion = "0.1";
         final String fileFormatVersion = "1.1";
@@ -30,7 +30,7 @@ public class WriterTest {
                                                          ProcessingLevel.L3C, sstType, productString,
                                                          additionalSegregator);
 
-        assertEquals("20120202-20120228-GLOBAL-ESACCI-L3C_GHRSST-SST_depth_20_regridded-PS-DM-v0.1-fv1.1.nc", filename);
+        assertEquals("20120202-20120228-GLOBAL-ESACCI-L3C_GHRSST-SST_depth_20-regridded0.5-DM-v0.1-fv1.1.nc", filename);
     }
 
 }

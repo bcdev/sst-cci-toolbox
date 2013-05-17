@@ -102,6 +102,8 @@ final class Writer {
     }
 
     void writeTargetFile(RegriddingTimeStep timeStep) throws IOException {
+        final CellGrid<? extends AggregationCell> targetCellGrid = timeStep.getCellGrid();
+        final GridDef targetGridDef = targetCellGrid.getGridDef();
         final Date startDate = timeStep.getStartDate();
         final Date endDate = timeStep.getEndDate();
         final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
@@ -109,12 +111,12 @@ final class Writer {
                                                         filenameDateFormat.format(endDate),
                                                         regionMask.getName(),
                                                         productType.getProcessingLevel(),
-                                                        "SST_" + sstDepth + "_regridded", "PS", "DM");
+                                                        "SST_" + sstDepth,
+                                                        "regridded" + targetGridDef.getResolution(),
+                                                        "LT"); // TODO - product string and additional segregator
         final File targetFile = new File(targetDir, targetFilename);
         LOGGER.info("Writing target file '" + targetFile + "'...");
 
-        final CellGrid<? extends AggregationCell> targetCellGrid = timeStep.getCellGrid();
-        final GridDef targetGridDef = targetCellGrid.getGridDef();
         final int rowCount = targetGridDef.getHeight();
         final int colCount = targetGridDef.getWidth();
 
