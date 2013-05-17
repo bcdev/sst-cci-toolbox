@@ -33,6 +33,8 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
@@ -63,13 +65,18 @@ class CciL4FileType extends AbstractCciFileType {
     }
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
-                                                                                                                  IOException {
-        context.setSstGrid(NcUtils.readGrid(datafile, "analysed_sst", getGridDef(), 0));
-        context.setRandomUncertaintyGrid(NcUtils.readGrid(datafile, "analysis_error", getGridDef(), 0));
-        context.setSeaIceFractionGrid(NcUtils.readGrid(datafile, "sea_ice_fraction", getGridDef(), 0));
+    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth,
+                                              AggregationContext context) throws IOException {
+        context.setSstGrid(readGrid(datafile, "analysed_sst", 0));
+        context.setRandomUncertaintyGrid(readGrid(datafile, "analysis_error", 0));
+        context.setSeaIceFractionGrid(readGrid(datafile, "sea_ice_fraction", 0));
 
         return context;
+    }
+
+    private Grid readGrid(NetcdfFile datafile, String variableName, int z) throws IOException {
+        // TODO - check if grids need to be flipped
+        return YFlip.create(NcUtils.readGrid(datafile, variableName, getGridDef(), z));
     }
 
     @Override

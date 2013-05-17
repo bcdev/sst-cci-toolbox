@@ -32,7 +32,9 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
@@ -121,23 +123,29 @@ class ArcL3FileType implements FileType {
     }
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
-                                                                                                                  IOException {
+    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth,
+                                              AggregationContext context) throws  IOException {
         switch (sstDepth) {
             case skin:
-                context.setSstGrid(NcUtils.readGrid(datafile, "sst_skin", getGridDef(), 0));
+                context.setSstGrid(readGrid(datafile, "sst_skin", 0));
                 break;
             case depth_20:
-                context.setSstGrid(NcUtils.readGrid(datafile, "sst_depth", getGridDef(), 0));
+                context.setSstGrid(readGrid(datafile, "sst_depth", 0));
                 break;
             case depth_100:
-                context.setSstGrid(NcUtils.readGrid(datafile, "sst_depth", getGridDef(), 1));
+                context.setSstGrid(readGrid(datafile, "sst_depth", 1));
                 break;
             default:
                 throw new IllegalArgumentException(MessageFormat.format("sstDept = {0}", sstDepth));
         }
-        context.setRandomUncertaintyGrid(NcUtils.readGrid(datafile, "uncertainty", getGridDef(), 0));
+        context.setRandomUncertaintyGrid(readGrid(datafile, "uncertainty", 0));
+
         return context;
+    }
+
+    private Grid readGrid(NetcdfFile datafile, String variableName, int z) throws IOException {
+        // TODO - check if these need to be flipped
+        return YFlip.create(NcUtils.readGrid(datafile, variableName, getGridDef(), z));
     }
 
     @Override

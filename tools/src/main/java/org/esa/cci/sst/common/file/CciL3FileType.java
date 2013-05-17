@@ -32,7 +32,9 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
@@ -58,31 +60,33 @@ class CciL3FileType extends AbstractCciFileType {
     final static FileType INSTANCE = new CciL3FileType();
 
     @Override
-    public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
-                                                                                                                  IOException {
-        final GridDef gridDef = getGridDef();
-
+    public AggregationContext readSourceGrids(NetcdfFile datafile,
+                                              SstDepth sstDepth,
+                                              AggregationContext context) throws IOException {
         switch (sstDepth) {
             case depth_20:
             case depth_100:
-                context.setSstGrid(NcUtils.readGrid(datafile, "sea_surface_temperature_depth", gridDef, 0));
+                context.setSstGrid(readGrid(datafile, "sea_surface_temperature_depth", 0));
                 break;
             case skin:
-                context.setSstGrid(NcUtils.readGrid(datafile, "sea_surface_temperature", gridDef, 0));
+                context.setSstGrid(readGrid(datafile, "sea_surface_temperature", 0));
                 break;
             default:
                 throw new IllegalArgumentException(MessageFormat.format("sstDepth = {0}", sstDepth));
         }
-        context.setQualityGrid(NcUtils.readGrid(datafile, "quality_level", gridDef, 0));
-        context.setRandomUncertaintyGrid(NcUtils.readGrid(datafile, "uncorrelated_uncertainty", gridDef, 0));
-        context.setLargeScaleUncertaintyGrid(
-                NcUtils.readGrid(datafile, "large_scale_correlated_uncertainty", gridDef, 0));
-        context.setSynopticUncertaintyGrid(
-                NcUtils.readGrid(datafile, "synoptically_correlated_uncertainty", gridDef, 0));
+        context.setQualityGrid(readGrid(datafile, "quality_level", 0));
+        context.setRandomUncertaintyGrid(readGrid(datafile, "uncorrelated_uncertainty", 0));
+        context.setLargeScaleUncertaintyGrid(readGrid(datafile, "large_scale_correlated_uncertainty", 0));
+        context.setSynopticUncertaintyGrid(readGrid(datafile, "synoptically_correlated_uncertainty", 0));
         if (NcUtils.hasVariable(datafile, "adjustment_uncertainty")) {
-            context.setAdjustmentUncertaintyGrid(NcUtils.readGrid(datafile, "adjustment_uncertainty", gridDef, 0));
+            context.setAdjustmentUncertaintyGrid(readGrid(datafile, "adjustment_uncertainty", 0));
         }
+
         return context;
+    }
+
+    private Grid readGrid(NetcdfFile datafile, String variableName, int z) throws IOException {
+        return YFlip.create(NcUtils.readGrid(datafile, variableName, getGridDef(), z));
     }
 
     @Override
@@ -94,18 +98,20 @@ class CciL3FileType extends AbstractCciFileType {
         sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin", sstDepth)));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT, dims);
+        final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
+                                                            dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(
                 new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
-        coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
+        coverageUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         coverageUncertaintyVar.addAttribute(new Attribute("long_name", "coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable uncorrelatedUncertaintyVar = datafile.addVariable("uncorrelated_uncertainty", DataType.FLOAT, dims);
+        final Variable uncorrelatedUncertaintyVar = datafile.addVariable("uncorrelated_uncertainty", DataType.FLOAT,
+                                                                         dims);
         uncorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         uncorrelatedUncertaintyVar.addAttribute(
                 new Attribute("long_name", "uncorrelated uncertainty in kelvin"));
@@ -119,7 +125,7 @@ class CciL3FileType extends AbstractCciFileType {
         largeScaleUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable synopticUncertaintyVar = datafile.addVariable("synoptically_correlated_uncertainty",
-                                                                         DataType.FLOAT, dims);
+                                                                     DataType.FLOAT, dims);
         synopticUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         synopticUncertaintyVar.addAttribute(
                 new Attribute("long_name", "synoptically correlated uncertainty in kelvin"));
