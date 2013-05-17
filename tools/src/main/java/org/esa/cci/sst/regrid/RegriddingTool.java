@@ -179,10 +179,9 @@ public class RegriddingTool extends Tool {
                                                                          sstDepth,
                                                                          aggregationContext,
                                                                          cuTimeLut,
-                                                                         cuSpaceLut,
-                                                                         writer);
+                                                                         cuSpaceLut);
         try {
-            aggregator.aggregate(startDate, endDate, temporalResolution);
+            aggregator.aggregate(startDate, endDate, temporalResolution, writer);
         } catch (IOException e) {
             throw new ToolException("Re-gridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }

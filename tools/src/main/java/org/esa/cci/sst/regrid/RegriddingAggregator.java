@@ -48,10 +48,11 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * The one and only aggregator for the Regridding Tool.
+ * Aggregator for the Regridding Tool.
  * <p/>
- * {@author Bettina Scholze}
- * Date: 13.09.12 16:29
+ *
+ * @author Bettina Scholze
+ * @author Ralf Quast
  */
 class RegriddingAggregator extends AbstractAggregator {
 
@@ -60,22 +61,25 @@ class RegriddingAggregator extends AbstractAggregator {
     private final AggregationContext aggregationContext;
     private final LUT timeLut;
     private final LUT spaceLut;
-    private final Writer writer;
 
     RegriddingAggregator(FileStore fileStore,
                          Climatology climatology,
                          SstDepth sstDepth, AggregationContext aggregationContext, LUT timeLut,
-                         LUT spaceLut, Writer writer) {
+                         LUT spaceLut) {
         super(fileStore, climatology, sstDepth);
         this.aggregationContext = aggregationContext;
         this.timeLut = timeLut;
         this.spaceLut = spaceLut;
-        this.writer = writer;
     }
 
     @Override
     public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate,
                                               TemporalResolution temporalResolution) throws IOException {
+        return aggregate(startDate, endDate, temporalResolution, null);
+    }
+
+    public List<RegriddingTimeStep> aggregate(Date startDate, Date endDate,
+                                              TemporalResolution temporalResolution, Writer writer) throws IOException {
         final List<RegriddingTimeStep> resultGridList = new ArrayList<RegriddingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
