@@ -114,6 +114,7 @@ class RegriddingAggregator extends AbstractAggregator {
                 case seasonal: {
                     calendar.add(Calendar.MONTH, 3);
                     Date date2 = calendar.getTime();
+                    // TODO - accumulate monthly time steps immediately, do not keep them in memory all
                     final List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
                                                                                 TemporalResolution.monthly);
                     resultGrid = aggregateMultiMonths(monthlyTimeSteps);
@@ -122,6 +123,7 @@ class RegriddingAggregator extends AbstractAggregator {
                 case annual: {
                     calendar.add(Calendar.YEAR, 1);
                     Date date2 = calendar.getTime();
+                    // TODO - accumulate monthly time steps immediately, do not keep them in memory all
                     final List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
                                                                                 TemporalResolution.monthly);
                     resultGrid = aggregateMultiMonths(monthlyTimeSteps);
