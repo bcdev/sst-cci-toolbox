@@ -82,7 +82,7 @@ class RegriddingAggregator extends AbstractAggregator {
                                               TemporalResolution temporalResolution, Writer writer) throws IOException {
         final List<RegriddingTimeStep> resultGridList = new ArrayList<RegriddingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
-
+        // TODO - make dailies
         while (calendar.getTime().before(endDate)) {
             final Date date1 = calendar.getTime();
             CellGrid<? extends AggregationCell> resultGrid;
