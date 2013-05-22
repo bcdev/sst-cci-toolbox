@@ -35,7 +35,7 @@ class DefaultCellAggregationCell extends AbstractAggregationCell implements Cell
 
     DefaultCellAggregationCell(AggregationContext aggregationContext, int x, int y) {
         super(aggregationContext, x, y);
-        // TODO - create accumulator depending on context
+        // TODO - create accumulators depending on grids set in context
         sstAccumulator = new ArithmeticMeanAccumulator();
         sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
         randomUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
