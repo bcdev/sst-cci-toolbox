@@ -104,7 +104,6 @@ class DefaultSpatialAggregationCell extends AbstractAggregationCell implements S
             for (int x = minX; x <= maxX; x++) {
                 final double seaCoverage = seaCoverageGrid.getSampleDouble(x, y);
                 final double sst = sstGrid.getSampleDouble(x, y);
-                // TODO - calculate SST using accumulated anomaly + climatology on target grid
                 if (isValid(x, y, seaCoverage, sst, qualityGrid)) {
                     final double climatologySst = climatologySstGrid.getSampleDouble(x, y);
                     final double randomUncertainty = randomUncertaintyGrid.getSampleDouble(x, y);
