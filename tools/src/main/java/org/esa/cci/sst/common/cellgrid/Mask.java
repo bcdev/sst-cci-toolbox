@@ -45,7 +45,7 @@ public final class Mask implements Grid {
 
     @Override
     public int getSampleInt(int x, int y) {
-        return (sourceGrid.getSampleInt(x, y) & mask) != 0 ? 1 : 0;
+        return (sourceGrid.getSampleInt(x, y) & mask) == mask ? 1 : 0;
     }
 
     @Override
