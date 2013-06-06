@@ -29,6 +29,10 @@ import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -153,6 +157,8 @@ public class Climatology {
         readAnalysedSstGrid(netcdfFile, dayOfYear);
         if (seaCoverageGrid == null) {
             readSeaCoverageGrids(netcdfFile);
+            // TODO - remove
+            writeMaskImage();
         }
     }
 
@@ -198,5 +204,22 @@ public class Climatology {
         final String[] strings = missing.toArray(new String[missing.size()]);
         Arrays.sort(strings);
         return strings;
+    }
+
+    private void writeMaskImage() throws IOException {
+        final IndexColorModel colorModel = new IndexColorModel(8, 2, new byte[]{0, (byte) 255},
+                                                               new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255});
+        final int w = seaCoverageGrid.getGridDef().getWidth();
+        final int h = seaCoverageGrid.getGridDef().getHeight();
+        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_INDEXED, colorModel);
+        final byte[] src = new byte[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                src[y * w + x] = (byte) seaCoverageGrid.getSampleInt(x, y);
+            }
+        }
+        final byte[] dest = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        System.arraycopy(src, 0, dest, 0, image.getWidth() * image.getHeight());
+        ImageIO.write(image, "PNG", new File("sea-coverage-grid.png"));
     }
 }
