@@ -59,7 +59,7 @@ public class Climatology {
     private Grid sstGrid;
     private int dayOfYear;
 
-    private Grid seaCoverageGrid; // 0.1° or 0.5° same as input files
+    private Grid seaCoverageGrid; // 0.1° or 0.05° same as input files
     private Grid seaCoverageCell5Grid;
     private Grid seaCoverageCell90Grid;
 
