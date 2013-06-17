@@ -153,7 +153,6 @@ public class AveragingAggregator extends AbstractAggregator {
     }
 
     private CellGrid<SpatialAggregationCell> aggregateTimeSteps(Date date1, Date date2) throws IOException {
-        // TODO - check if time range is less or equal a month?
         final Climatology climatology = getClimatology();
         final FileType fileType = getFileType();
         final List<File> fileList = getFileStore().getFiles(date1, date2);

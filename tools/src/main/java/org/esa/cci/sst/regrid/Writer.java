@@ -303,11 +303,11 @@ final class Writer {
      *
      * @param startOfPeriod        Start of period = YYYYMMDD
      * @param endOfPeriod          End of period = YYYYMMDD
-     * @param regionName           Region Name or Description
-     * @param processingLevel      Processing Level = L3C, L3U or L4
-     * @param sstType              SST Type
-     * @param productString        Product String (see Table 5 in PSD, e.g. AATSR, OSTIA)
-     * @param additionalSegregator Additional Segregator = LT or DM
+     * @param regionName           Region name or description
+     * @param processingLevel      Processing level = L3C, L3U or L4
+     * @param sstType              SST type
+     * @param productString        Product string (see Table 5 in PSD, e.g. AATSR, OSTIA)
+     * @param additionalSegregator Additional segregator = LT or DM
      *
      * @return The filename.
      */

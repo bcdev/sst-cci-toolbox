@@ -258,10 +258,10 @@ public final class AveragingTool extends Tool {
 
         final PrintWriter textWriter = getTextWriter(writeText);
 
-        DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
+        final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
         for (int regionIndex = 0; regionIndex < regionMaskList.size(); regionIndex++) {
-            RegionMask regionMask = regionMaskList.get(regionIndex);
-            String outputFilename = getOutputFilename(filenameDateFormat.format(startDate),
+            final RegionMask regionMask = regionMaskList.get(regionIndex);
+            final String outputFilename = getOutputFilename(filenameDateFormat.format(startDate),
                                                       filenameDateFormat.format(endDate),
                                                       regionMask.getName(),
                                                       productType.getProcessingLevel(),
@@ -269,7 +269,7 @@ public final class AveragingTool extends Tool {
                                                       "PS",
                                                       "DM"
             );
-            File file = new File(outputDir, outputFilename);
+            final File file = new File(outputDir, outputFilename);
             LOGGER.info("Writing output file '" + file + "'...");
             writeOutputFile(file, textWriter, productType, filenameRegex, sstDepth, startDate, endDate,
                             temporalResolution, regionMask, regionIndex, timeSteps);

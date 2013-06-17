@@ -59,7 +59,6 @@ public abstract class AbstractAggregator {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (regionMask.getSampleBoolean(x, y)) {
-                    // TODO - check if the following statement yields the expected results!!
                     final Rectangle sourceRectangle = sourceGridDef.getGridRectangle(
                             targetGridDef.getLonLatRectangle(x, y));
                     C targetCell = targetGrid.getCell(x, y);

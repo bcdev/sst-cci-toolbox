@@ -141,12 +141,11 @@ public class NcUtils {
             throw new IOException(String.format("Variable '%s' in file '%s': Expected rank 2 or higher, but found %d.",
                     variable.getName(), netcdfFile.getLocation(), rank));
         }
-        final int width = variable.getDimension(rank - 1).getLength();
-        final int height = variable.getDimension(rank - 2).getLength();
-        if (width != expectedGridDef.getWidth() || height != expectedGridDef.getHeight()) {
+        final int w = variable.getDimension(rank - 1).getLength();
+        final int h = variable.getDimension(rank - 2).getLength();
+        if (w != expectedGridDef.getWidth() || h != expectedGridDef.getHeight()) {
             throw new IOException(String.format("Variable '%s' in file '%s': Unexpected grid size.", variable.getName(), netcdfFile.getLocation()));
         }
-        // TODO - check lat/lon fields to make sure they fit to expectedGridDef
-        return new Rectangle(0, 0, width, height);
+        return new Rectangle(0, 0, w, h);
     }
 }
