@@ -43,8 +43,8 @@ class WriterHelper {
         final float[][] data = new float[gridDef.getHeight()][2];
 
         for (int y = 0; y < gridDef.getHeight(); y++) {
-            data[y][0] = (float) (gridDef.getCenterLat(y) - gridDef.getResolution() * 0.5);
             data[y][1] = (float) (gridDef.getCenterLat(y) + gridDef.getResolution() * 0.5);
+            data[y][0] = (float) (gridDef.getCenterLat(y) - gridDef.getResolution() * 0.5);
         }
         return data;
     }
