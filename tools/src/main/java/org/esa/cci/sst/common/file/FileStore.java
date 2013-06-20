@@ -64,19 +64,22 @@ public class FileStore {
     }
 
     /**
-     * Returns a list of files starting with date1 and ending 1 day before date2.
+     * Returns a partitioned list of files starting with date1 and ending 1 day before date2.
+     *
      *
      * @param date1 inclusive
      * @param date2 exclusive
-     * @return a list of files starting with date1 and ending 1 day before date2
+     * @return a partitioned list of files starting with date1 and ending 1 day before date2
      */
-    public List<File> getFiles(Date date1, Date date2) {
-        Calendar calendar = UTC.createCalendar(date1);
-        ArrayList<File> files = new ArrayList<File>();
+    public List<List<File>> getFiles(Date date1, Date date2) {
+        final Calendar calendar = UTC.createCalendar(date1);
+        final List<List<File>> files = new ArrayList<List<File>>();
+
         while (calendar.getTime().before(date2)) {
-            files.addAll(fileTree.get(calendar.getTime()));
+            files.add(fileTree.get(calendar.getTime()));
             calendar.add(Calendar.DATE, 1);
         }
+
         return files;
     }
 

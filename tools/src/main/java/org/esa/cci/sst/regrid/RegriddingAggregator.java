@@ -85,7 +85,7 @@ class RegriddingAggregator extends AbstractAggregator {
         // TODO - make dailies
         while (calendar.getTime().before(endDate)) {
             final Date date1 = calendar.getTime();
-            CellGrid<? extends AggregationCell> resultGrid;
+            final CellGrid<? extends AggregationCell> resultGrid;
             switch (temporalResolution) {
                 case daily: {
                     calendar.add(Calendar.DATE, 1);
@@ -150,8 +150,8 @@ class RegriddingAggregator extends AbstractAggregator {
     }
 
     CellGrid<SpatialAggregationCell> aggregateTimeStep(Date date1, Date date2) throws IOException {
-        final List<File> fileList = getFileStore().getFiles(date1, date2);
-        if (fileList.isEmpty()) {
+        final List<List<File>> allFiles = getFileStore().getFiles(date1, date2);
+        if (allFiles.isEmpty()) {
             LOGGER.warning(MessageFormat.format("No matching files found in {0} for period {1} - {2}",
                                                 Arrays.toString(getFileStore().getInputPaths()),
                                                 SimpleDateFormat.getDateInstance().format(date1),
@@ -160,35 +160,37 @@ class RegriddingAggregator extends AbstractAggregator {
         }
         LOGGER.info(String.format("Aggregating output time step from %s to %s, %d file(s) found.",
                                   UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2),
-                                  fileList.size()));
+                                  allFiles.size()));
 
         final CellGrid<SpatialAggregationCell> targetGrid = createSpatialAggregationCellGrid();
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, date2);
         aggregationContext.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
 
-        for (final File file : fileList) {
-            LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
-            long t0 = System.currentTimeMillis();
-            final NetcdfFile dataFile = NetcdfFile.open(file.getPath());
-            try {
-                final Date date = getFileType().readDate(dataFile);
-                final int dayOfYear = UTC.getDayOfYear(date);
-                LOGGER.fine("Day of year is " + dayOfYear);
-                aggregationContext.setClimatologySstGrid(getClimatology().getSst(dayOfYear));
-                aggregationContext.setSeaCoverageGrid(getClimatology().getSeaCoverage());
-                readSourceGrids(dataFile, aggregationContext);
+        for (final List<File> dailyFiles : allFiles) {
+            for (final File file : dailyFiles) {
+                LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
+                long t0 = System.currentTimeMillis();
+                final NetcdfFile dataFile = NetcdfFile.open(file.getPath());
+                try {
+                    final Date date = getFileType().readDate(dataFile);
+                    final int dayOfYear = UTC.getDayOfYear(date);
+                    LOGGER.fine("Day of year is " + dayOfYear);
+                    aggregationContext.setClimatologySstGrid(getClimatology().getSst(dayOfYear));
+                    aggregationContext.setSeaCoverageGrid(getClimatology().getSeaCoverage());
+                    readSourceGrids(dataFile, aggregationContext);
 
-                LOGGER.fine("Aggregating grid(s)...");
-                long t01 = System.currentTimeMillis();
-                aggregateSourcePixels(aggregationContext, aggregationContext.getTargetRegionMask(), targetGrid);
-                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
-            } catch (IOException e) {
-                LOGGER.warning(e.getMessage());
-            } finally {
-                dataFile.close();
+                    LOGGER.fine("Aggregating grid(s)...");
+                    long t01 = System.currentTimeMillis();
+                    aggregateSourcePixels(aggregationContext, aggregationContext.getTargetRegionMask(), targetGrid);
+                    LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
+                } catch (IOException e) {
+                    LOGGER.warning(e.getMessage());
+                } finally {
+                    dataFile.close();
+                }
+                LOGGER.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
+                                          System.currentTimeMillis() - t0));
             }
-            LOGGER.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
-                                      System.currentTimeMillis() - t0));
         }
 
         return targetGrid;

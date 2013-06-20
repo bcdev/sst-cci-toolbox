@@ -155,10 +155,11 @@ public class AveragingAggregator extends AbstractAggregator {
     private CellGrid<SpatialAggregationCell> aggregateTimeSteps(Date date1, Date date2) throws IOException {
         final Climatology climatology = getClimatology();
         final FileType fileType = getFileType();
-        final List<File> fileList = getFileStore().getFiles(date1, date2);
+        final List<List<File>> allFiles = getFileStore().getFiles(date1, date2);
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                                  UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2), fileList.size()));
+                                  UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2),
+                                  allFiles.size()));
 
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
         context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
@@ -166,32 +167,34 @@ public class AveragingAggregator extends AbstractAggregator {
         final GridDef targetGridDef = GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getResolution());
         final CellGrid<SpatialAggregationCell> targetGrid = CellGrid.create(targetGridDef, targetCellFactory);
 
-        for (final File file : fileList) {
-            LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
+        for (final List<File> dailyFiles : allFiles) {
+            for (final File file : dailyFiles) {
+                LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
 
-            final long t0 = System.currentTimeMillis();
-            final NetcdfFile dataFile = NetcdfFile.open(file.getPath());
+                final long t0 = System.currentTimeMillis();
+                final NetcdfFile dataFile = NetcdfFile.open(file.getPath());
 
-            try {
-                final Date date = fileType.readDate(dataFile);
-                final int dayOfYear = UTC.getDayOfYear(date);
-                LOGGER.fine("Day of year is " + dayOfYear);
-                context.setClimatologySstGrid(climatology.getSst(dayOfYear));
-                context.setSeaCoverageGrid(climatology.getSeaCoverage());
-                readSourceGrids(dataFile, context);
-                LOGGER.fine("Aggregating grid(s)...");
-                final long t1 = System.currentTimeMillis();
+                try {
+                    final Date date = fileType.readDate(dataFile);
+                    final int dayOfYear = UTC.getDayOfYear(date);
+                    LOGGER.fine("Day of year is " + dayOfYear);
+                    context.setClimatologySstGrid(climatology.getSst(dayOfYear));
+                    context.setSeaCoverageGrid(climatology.getSeaCoverage());
+                    readSourceGrids(dataFile, context);
+                    LOGGER.fine("Aggregating grid(s)...");
+                    final long t1 = System.currentTimeMillis();
 
-                aggregateSourcePixels(context, combinedRegionMask, targetGrid);
+                    aggregateSourcePixels(context, combinedRegionMask, targetGrid);
 
-                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
-            } catch (IOException e) {
-                LOGGER.warning(e.getMessage());
-            } finally {
-                dataFile.close();
+                    LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
+                } catch (IOException e) {
+                    LOGGER.warning(e.getMessage());
+                } finally {
+                    dataFile.close();
+                }
+                LOGGER.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
+                                          System.currentTimeMillis() - t0));
             }
-            LOGGER.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
-                                      System.currentTimeMillis() - t0));
         }
 
         return targetGrid;
