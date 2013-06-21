@@ -91,4 +91,9 @@ public abstract class AbstractCciFileType implements FileType {
         return new TemporalAggregationCellFactory();
     }
 
+    @Override
+    public CellFactory<SpatialAggregationCell> getDailyAggregationCellFactory(AggregationContext aggregationContext) {
+        return new DailyAggregationCellFactory(aggregationContext);
+    }
+
 }

@@ -211,6 +211,11 @@ class ArcL3FileType implements FileType {
     }
 
     @Override
+    public CellFactory<SpatialAggregationCell> getDailyAggregationCellFactory(AggregationContext aggregationContext) {
+        return new DailyAggregationCellFactory(aggregationContext);
+    }
+
+    @Override
     public CellFactory<CellAggregationCell<AggregationCell>> getCellFactory90(final AggregationContext context) {
         return new CellFactory<CellAggregationCell<AggregationCell>>() {
             @Override
