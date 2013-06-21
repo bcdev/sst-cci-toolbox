@@ -76,7 +76,10 @@ public class FileStore {
         final List<List<File>> files = new ArrayList<List<File>>();
 
         while (calendar.getTime().before(date2)) {
-            files.add(fileTree.get(calendar.getTime()));
+            final List<File> filesForOneDay = fileTree.get(calendar.getTime());
+            if (!filesForOneDay.isEmpty()) {
+                files.add(filesForOneDay);
+            }
             calendar.add(Calendar.DATE, 1);
         }
 
