@@ -18,6 +18,7 @@ import org.esa.cci.sst.common.cellgrid.CellGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
+import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
@@ -155,7 +156,7 @@ public class AveragingAggregator extends AbstractAggregator {
     private CellGrid<SpatialAggregationCell> aggregateTimeSteps(Date date1, Date date2) throws IOException {
         final Climatology climatology = getClimatology();
         final FileType fileType = getFileType();
-        final List<List<File>> allFiles = getFileStore().getFiles(date1, date2);
+        final List<FileList> allFiles = getFileStore().getFiles(date1, date2);
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
                                   UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2),
@@ -167,8 +168,8 @@ public class AveragingAggregator extends AbstractAggregator {
         final GridDef targetGridDef = GridDef.createGlobal(SpatialResolution.DEGREE_5_00.getResolution());
         final CellGrid<SpatialAggregationCell> targetGrid = CellGrid.create(targetGridDef, targetCellFactory);
 
-        for (final List<File> dailyFiles : allFiles) {
-            for (final File file : dailyFiles) {
+        for (final FileList filesForOneDay : allFiles) {
+            for (final File file : filesForOneDay.getFiles()) {
                 LOGGER.info(String.format("Processing input %s file '%s'", getFileStore().getProductType(), file));
 
                 final long t0 = System.currentTimeMillis();
@@ -178,8 +179,8 @@ public class AveragingAggregator extends AbstractAggregator {
                     final Date date = fileType.readDate(dataFile);
                     final int dayOfYear = UTC.getDayOfYear(date);
                     LOGGER.fine("Day of year is " + dayOfYear);
-                    context.setClimatologySstGrid(climatology.getSst(dayOfYear));
-                    context.setSeaCoverageGrid(climatology.getSeaCoverage());
+                    context.setClimatologySstGrid(climatology.getSstGrid(dayOfYear));
+                    context.setSeaCoverageGrid(climatology.getSeaCoverageGrid());
                     readSourceGrids(dataFile, context);
                     LOGGER.fine("Aggregating grid(s)...");
                     final long t1 = System.currentTimeMillis();

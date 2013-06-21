@@ -111,7 +111,7 @@ public class Climatology {
         }
     }
 
-    public Grid getSst(int dayOfYear) throws IOException {
+    public Grid getSstGrid(int dayOfYear) throws IOException {
         synchronized (this) {
             if (this.dayOfYear != dayOfYear) {
                 readGrids(dayOfYear);
@@ -120,7 +120,7 @@ public class Climatology {
         }
     }
 
-    public Grid getSeaCoverage() {
+    public Grid getSeaCoverageGrid() {
         return seaCoverageGrid;
     }
 
@@ -132,22 +132,21 @@ public class Climatology {
         return seaCoverageCell90Grid;
     }
 
-    private void readGrids(int dayOfYear) throws IOException {
-        if (dayOfYear < 1) {
+    private void readGrids(int doy) throws IOException {
+        if (doy < 1) {
             throw new IllegalArgumentException("dayOfYear < 1");
-        } else if (dayOfYear > 366) {
+        } else if (doy > 366) {
             throw new IllegalArgumentException("dayOfYear > 366");
         }
-        if (dayOfYear > dailyClimatologyFiles.length) {
-            dayOfYear = dailyClimatologyFiles.length;
+        if (doy > dailyClimatologyFiles.length) {
+            doy = dailyClimatologyFiles.length;
         }
-        final File file = dailyClimatologyFiles[dayOfYear - 1];
+        final File file = dailyClimatologyFiles[doy - 1];
         long t0 = System.currentTimeMillis();
-        LOGGER.info(
-                String.format("Processing input climatology file '%s' for day of year %d", file.getPath(), dayOfYear));
+        LOGGER.info(String.format("Processing input climatology file '%s' for day of year %d", file.getPath(), doy));
         final NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace('\\', '/'));
         try {
-            readGrids(netcdfFile, dayOfYear);
+            readGrids(netcdfFile, doy);
         } finally {
             netcdfFile.close();
         }

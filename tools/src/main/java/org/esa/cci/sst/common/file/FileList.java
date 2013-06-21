@@ -14,20 +14,25 @@ package org.esa.cci.sst.common.file;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.cell.CellFactory;
-import org.esa.cci.sst.common.cell.SpatialAggregationCell;
+import java.io.File;
+import java.util.Date;
+import java.util.List;
 
-public class DailyAggregationCellFactory implements CellFactory<SpatialAggregationCell> {
+public final class FileList {
 
-    private final AggregationContext context;
+    private final Date date;
+    private final List<File> files;
 
-    DailyAggregationCellFactory(AggregationContext context) {
-        this.context = context;
+    public FileList(Date date, List<File> files) {
+        this.date = date;
+        this.files = files;
     }
 
-    @Override
-    public SpatialAggregationCell createCell(int cellX, int cellY) {
-        return new DailyAggregationCell(context, cellX, cellY);
+    public Date getDate() {
+        return date;
+    }
+
+    public List<File> getFiles() {
+        return files;
     }
 }

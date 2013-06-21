@@ -24,7 +24,7 @@ import org.esa.cci.sst.common.cellgrid.Grid;
 
 import java.awt.Rectangle;
 
-public class DailyAggregationCell extends AbstractAggregationCell implements SpatialAggregationCell {
+public class SingleDayAggregationCell extends AbstractAggregationCell implements SpatialAggregationCell {
 
     private final NumberAccumulator sstAccumulator;
     private final NumberAccumulator randomUncertaintyAccumulator;
@@ -33,7 +33,7 @@ public class DailyAggregationCell extends AbstractAggregationCell implements Spa
     private final NumberAccumulator synopticUncertaintyAccumulator;
     private final NumberAccumulator seaIceFractionAccumulator;
 
-    DailyAggregationCell(AggregationContext aggregationContext, int x, int y) {
+    SingleDayAggregationCell(AggregationContext aggregationContext, int x, int y) {
         super(aggregationContext, x, y);
 
         sstAccumulator = new ArithmeticMeanAccumulator();

@@ -71,14 +71,14 @@ public class FileStore {
      * @param date2 exclusive
      * @return a partitioned list of files starting with date1 and ending 1 day before date2
      */
-    public List<List<File>> getFiles(Date date1, Date date2) {
+    public List<FileList> getFiles(Date date1, Date date2) {
         final Calendar calendar = UTC.createCalendar(date1);
-        final List<List<File>> files = new ArrayList<List<File>>();
+        final List<FileList> files = new ArrayList<FileList>();
 
         while (calendar.getTime().before(date2)) {
             final List<File> filesForOneDay = fileTree.get(calendar.getTime());
             if (!filesForOneDay.isEmpty()) {
-                files.add(filesForOneDay);
+                files.add(new FileList(calendar.getTime(), filesForOneDay));
             }
             calendar.add(Calendar.DATE, 1);
         }
@@ -129,4 +129,5 @@ public class FileStore {
                     filenamePattern.matcher(file.getName()).matches();
         }
     }
+
 }
