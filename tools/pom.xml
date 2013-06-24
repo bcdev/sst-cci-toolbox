@@ -137,15 +137,6 @@
                 <role>Java Developer</role>
             </roles>
         </developer>
-        <developer>
-            <id>bettina</id>
-            <name>Bettina Scholze</name>
-            <email>bettina.scholze@brockmann-consult.de</email>
-            <organization>Brockmann Consult</organization>
-            <roles>
-                <role>Java Developer</role>
-            </roles>
-        </developer>
     </developers>
 
 </project>
