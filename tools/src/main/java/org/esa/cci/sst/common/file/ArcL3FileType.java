@@ -206,7 +206,7 @@ class ArcL3FileType implements FileType {
     }
 
     @Override
-    public CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory() {
+    public CellFactory<CellAggregationCell<AggregationCell>> getMultiMonthAggregationCellFactory() {
         return new TemporalAggregationCellFactory();
     }
 

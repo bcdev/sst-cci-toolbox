@@ -26,5 +26,5 @@ package org.esa.cci.sst.common.calculator;
  */
 public interface Accumulator {
 
-    long getSampleCount();
+    int getSampleCount();
 }

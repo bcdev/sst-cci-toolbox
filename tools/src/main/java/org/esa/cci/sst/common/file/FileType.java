@@ -75,7 +75,7 @@ public interface FileType {
 
     CellFactory<SpatialAggregationCell> getSpatialAggregationCellFactory(final AggregationContext context);
 
-    CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory();
+    CellFactory<CellAggregationCell<AggregationCell>> getMultiMonthAggregationCellFactory();
 
     CellFactory<SpatialAggregationCell> getSingleDayAggregationCellFactory(AggregationContext aggregationContext);
 }

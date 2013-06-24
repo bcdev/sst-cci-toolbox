@@ -29,10 +29,10 @@ public final class ArithmeticMeanAccumulator extends NumberAccumulator {
 
     private double sumX;
     private double sumW;
-    protected long sampleCount;
+    protected int sampleCount;
 
     @Override
-    public long getSampleCount() {
+    public int getSampleCount() {
         return sampleCount;
     }
 

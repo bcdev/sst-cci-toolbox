@@ -92,67 +92,73 @@ class RegriddingAggregator extends AbstractAggregator {
         while (calendar.getTime().before(endDate)) {
             final Date date1 = calendar.getTime();
             final CellGrid<? extends AggregationCell> resultGrid;
+
             switch (temporalResolution) {
                 case daily: {
                     calendar.add(Calendar.DATE, 1);
-                    Date date2 = calendar.getTime();
+                    final Date date2 = calendar.getTime();
                     resultGrid = aggregateTimeStep(date1, date2);
                     break;
                 }
                 case weekly5d: {
                     calendar.add(Calendar.DATE, 5);
-                    Date date2 = calendar.getTime();
+                    final Date date2 = calendar.getTime();
                     resultGrid = aggregateTimeStep(date1, date2);
                     break;
                 }
                 case weekly7d: {
                     calendar.add(Calendar.DATE, 7);
-                    Date date2 = calendar.getTime();
+                    final Date date2 = calendar.getTime();
                     resultGrid = aggregateTimeStep(date1, date2);
                     break;
                 }
                 case monthly: {
                     calendar.add(Calendar.MONTH, 1);
-                    Date date2 = calendar.getTime();
+                    final Date date2 = calendar.getTime();
                     resultGrid = aggregateTimeStep(date1, date2);
                     break;
                 }
                 case seasonal: {
-                    calendar.add(Calendar.MONTH, 3);
-                    Date date2 = calendar.getTime();
-                    // TODO - accumulate monthly time steps immediately, do not keep them in memory all
-                    final List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
-                                                                                TemporalResolution.monthly);
-                    resultGrid = aggregateMultiMonths(monthlyTimeSteps);
+                    resultGrid = aggregateMonths(calendar, 3);
                     break;
                 }
                 case annual: {
-                    calendar.add(Calendar.YEAR, 1);
-                    Date date2 = calendar.getTime();
-                    // TODO - accumulate monthly time steps immediately, do not keep them in memory all
-                    final List<RegriddingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
-                                                                                TemporalResolution.monthly);
-                    resultGrid = aggregateMultiMonths(monthlyTimeSteps);
+                    resultGrid = aggregateMonths(calendar, 12);
                     break;
                 }
                 default:
                     throw new IllegalArgumentException(
                             String.format("Temporal resolution '%s' is not supported.", temporalResolution.toString()));
             }
-            if (resultGrid != null) {
-                final RegriddingTimeStep timeStep = new RegriddingTimeStep(date1, calendar.getTime(), resultGrid);
-                if (writer != null) {
-                    try {
-                        writer.writeTargetFile(timeStep);
-                    } catch (IOException e) {
-                        LOGGER.warning(e.getMessage());
-                    }
-                } else {
-                    resultGridList.add(timeStep);
+            final RegriddingTimeStep timeStep = new RegriddingTimeStep(date1, calendar.getTime(), resultGrid);
+            if (writer != null) {
+                try {
+                    writer.writeTargetFile(timeStep);
+                } catch (IOException e) {
+                    LOGGER.warning(e.getMessage());
                 }
+            } else {
+                resultGridList.add(timeStep);
             }
         }
         return resultGridList;
+    }
+
+    private CellGrid<? extends AggregationCell> aggregateMonths(Calendar calendar, int monthCount) throws IOException {
+        final CellGrid<? extends AggregationCell> resultGrid;
+        final FileType fileType = getFileType();
+        final CellFactory<CellAggregationCell<AggregationCell>> cellFactory = fileType.getMultiMonthAggregationCellFactory();
+        final CellGrid<CellAggregationCell<AggregationCell>> multiMonthGrid = CellGrid.create(
+                aggregationContext.getTargetGridDef(), cellFactory);
+        for (int i = 0; i < monthCount; i++) {
+            final Date date1 = calendar.getTime();
+            calendar.add(Calendar.MONTH, 1);
+            final Date date2 = calendar.getTime();
+            final CellGrid<SpatialAggregationCell> singleMonthGrid = aggregateTimeStep(date1, date2);
+            aggregateMonth(singleMonthGrid, multiMonthGrid);
+        }
+        resultGrid = multiMonthGrid;
+        return resultGrid;
     }
 
     CellGrid<SpatialAggregationCell> aggregateTimeStep(Date date1, Date date2) throws IOException {
@@ -214,7 +220,8 @@ class RegriddingAggregator extends AbstractAggregator {
         return targetGrid;
     }
 
-    private CellGrid<SpatialAggregationCell> aggregateSingleDay(ProductType productType, List<File> files) throws IOException {
+    private CellGrid<SpatialAggregationCell> aggregateSingleDay(ProductType productType, List<File> files) throws
+                                                                                                           IOException {
         final FileType fileType = productType.getFileType();
         final CellFactory<SpatialAggregationCell> dailyCellFactory = fileType.getSingleDayAggregationCellFactory(
                 aggregationContext);
@@ -243,6 +250,31 @@ class RegriddingAggregator extends AbstractAggregator {
         }
 
         return targetGrid;
+    }
+
+    private CellGrid<CellAggregationCell<AggregationCell>> aggregateMonth(
+            CellGrid<SpatialAggregationCell> singleMonthGrid,
+            CellGrid<CellAggregationCell<AggregationCell>> multiMonthGrid) {
+        final int h = multiMonthGrid.getHeight();
+        final int w = multiMonthGrid.getWidth();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                final AggregationCell sourceCell = singleMonthGrid.getCell(x, y);
+                if (sourceCell != null) {
+                    CellAggregationCell<AggregationCell> targetCell = multiMonthGrid.getCell(x, y);
+                    if (targetCell != null) {
+                        targetCell.accumulate(sourceCell, 1.0);
+                    } else {
+                        targetCell = multiMonthGrid.createCell(x, y);
+                        targetCell.accumulate(sourceCell, 1.0);
+                        if (!targetCell.isEmpty()) {
+                            multiMonthGrid.setCell(targetCell);
+                        }
+                    }
+                }
+            }
+        }
+        return multiMonthGrid;
     }
 
     private static <C extends SpatialAggregationCell> void aggregateSingleDaySourcePixels(AggregationContext context,
@@ -274,37 +306,6 @@ class RegriddingAggregator extends AbstractAggregator {
         final CellFactory<SpatialAggregationCell> cellFactory = fileType.getSpatialAggregationCellFactory(
                 aggregationContext);
         return CellGrid.create(aggregationContext.getTargetGridDef(), cellFactory);
-    }
-
-    CellGrid<? extends AggregationCell> aggregateMultiMonths(List<RegriddingTimeStep> monthlyTimeSteps) {
-        final FileType fileType = getFileType();
-        final CellFactory<CellAggregationCell<AggregationCell>> cellFactory = fileType.getTemporalAggregationCellFactory();
-        final CellGrid<CellAggregationCell<AggregationCell>> targetGrid = CellGrid.create(
-                aggregationContext.getTargetGridDef(), cellFactory);
-
-        final int h = targetGrid.getHeight();
-        final int w = targetGrid.getWidth();
-        for (final RegriddingTimeStep timeStep : monthlyTimeSteps) {
-            final CellGrid<? extends AggregationCell> sourceGrid = timeStep.getCellGrid();
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    final AggregationCell sourceCell = sourceGrid.getCell(x, y);
-                    if (sourceCell != null) {
-                        CellAggregationCell<AggregationCell> targetCell = targetGrid.getCell(x, y);
-                        if (targetCell != null) {
-                            targetCell.accumulate(sourceCell, 1.0);
-                        } else {
-                            targetCell = targetGrid.createCell(x, y);
-                            targetCell.accumulate(sourceCell, 1.0);
-                            if (!targetCell.isEmpty()) {
-                                targetGrid.setCell(targetCell);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return targetGrid;
     }
 
     private CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date1, Date date2) {

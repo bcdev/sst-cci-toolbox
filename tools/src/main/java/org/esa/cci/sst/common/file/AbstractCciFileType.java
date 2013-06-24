@@ -87,7 +87,7 @@ public abstract class AbstractCciFileType implements FileType {
     }
 
     @Override
-    public final CellFactory<CellAggregationCell<AggregationCell>> getTemporalAggregationCellFactory() {
+    public final CellFactory<CellAggregationCell<AggregationCell>> getMultiMonthAggregationCellFactory() {
         return new TemporalAggregationCellFactory();
     }
 

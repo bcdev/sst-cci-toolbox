@@ -36,17 +36,13 @@ public class RegriddingAggregatorTest {
         final ProductType productType = ProductType.ARC_L3U;
         final FileStore fileStore = FileStore.create(productType, productType.getDefaultFilenameRegex());
         final GridDef targetGridDef = GridDef.createGlobal(SpatialResolution.DEGREE_0_50.getResolution());
+        final AggregationContext context = new AggregationContext();
+        context.setTargetGridDef(targetGridDef);
 
-        regriddingAggregator = new RegriddingAggregator(fileStore, null, SstDepth.skin, new AggregationContext(), null,
-                                                        null) {
+        regriddingAggregator = new RegriddingAggregator(fileStore, null, SstDepth.skin, context, null, null) {
 
             @Override
             CellGrid<SpatialAggregationCell> aggregateTimeStep(Date date1, Date date2) throws IOException {
-                return CellGrid.create(targetGridDef, null);
-            }
-
-            @Override
-            CellGrid<? extends AggregationCell> aggregateMultiMonths(List<RegriddingTimeStep> monthlyTimeSteps) {
                 return CellGrid.create(targetGridDef, null);
             }
         };

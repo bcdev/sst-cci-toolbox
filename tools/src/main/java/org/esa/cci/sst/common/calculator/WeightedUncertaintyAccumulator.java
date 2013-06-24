@@ -29,10 +29,10 @@ public final class WeightedUncertaintyAccumulator extends NumberAccumulator {
 
     private double sumXX;
     private double sumW;
-    private long sampleCount;
+    private int sampleCount;
 
     @Override
-    public long getSampleCount() {
+    public int getSampleCount() {
         return sampleCount;
     }
 

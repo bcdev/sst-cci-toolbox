@@ -28,10 +28,10 @@ package org.esa.cci.sst.common.calculator;
 public final class UncertaintyAccumulator extends NumberAccumulator {
 
     private double sumXX;
-    private long sampleCount;
+    private int sampleCount;
 
     @Override
-    public long getSampleCount() {
+    public int getSampleCount() {
         return sampleCount;
     }
 
