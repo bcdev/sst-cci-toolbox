@@ -19,14 +19,14 @@
 
 package org.esa.cci.sst.common.file;
 
+import org.esa.beam.framework.datamodel.PixelGeoCoding2;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 
+import javax.media.jai.JAI;
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.esa.beam.gpf.operators.standard.MosaicOp.Variable;
@@ -40,37 +40,52 @@ import static org.esa.beam.gpf.operators.standard.MosaicOp.Variable;
  */
 class Projector {
 
-    private final GridDef gridDef;
-    private final int rowCount;
+    private static final String MASK_EXPRESSION = "lat >= -90.0 && lat <= 90.0 && lon >= -180.0 && lon <= 180.0";
 
-    Projector(GridDef gridDef, int rowCount) {
+    private final GridDef gridDef;
+
+    static {
+        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(536870912);
+        GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
+    }
+
+    Projector(GridDef gridDef) {
         this.gridDef = gridDef;
-        this.rowCount = rowCount;
     }
 
     Product createProjection(Product sourceProduct, String... bandNames) {
-        final int w = sourceProduct.getSceneRasterWidth();
-        final int h = sourceProduct.getSceneRasterHeight();
-        final List<Product> subsets = new ArrayList<Product>();
+        sourceProduct.getGeoCoding().dispose();
+        sourceProduct.setGeoCoding(null);
+        sourceProduct.setGeoCoding(new PixelGeoCoding2(sourceProduct.getBand("lat"),
+                                                       sourceProduct.getBand("lon"),
+                                                       MASK_EXPRESSION));
 
-        for (int y = 0; y < h; y += rowCount) {
-            final Product subset = createSubset(sourceProduct, new Rectangle(0, y, w, Math.min(rowCount, h - y)));
-            subsets.add(subset);
-        }
-
-        return createMosaic(subsets.toArray(new Product[subsets.size()]), bandNames);
-    }
-
-    Product createMosaic(Product[] sourceProducts, String... bandNames) {
         final HashMap<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("crs", "EPSG:4326");
+        parameters.put("resampling", "Nearest");
+        parameters.put("referencePixelX", 0.0);
+        parameters.put("referencePixelY", 0.0);
+        parameters.put("northing", 90.0);
+        parameters.put("easting", -180.0);
+        parameters.put("pixelSizeX", gridDef.getResolutionX());
+        parameters.put("pixelSizeY", gridDef.getResolutionY());
+        parameters.put("width", gridDef.getWidth());
+        parameters.put("height", gridDef.getHeight());
+
+        return GPF.createProduct("Reproject", parameters, sourceProduct);
+    }
+
+    // AVHRR L2P products are self-overlapping, so there may be the need to create a mosaic of subsets
+    private Product createMosaic(Product[] sourceProducts, String... bandNames) {
+        final HashMap<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("crs", "EPSG:4326");
+        parameters.put("resampling", "Nearest");
         parameters.put("northBound", 90.0);
         parameters.put("southBound", -90.0);
         parameters.put("westBound", -180.0);
         parameters.put("eastBound", 180.0);
         parameters.put("pixelSizeX", gridDef.getResolutionX());
         parameters.put("pixelSizeY", gridDef.getResolutionY());
-        parameters.put("resampling", "Nearest");
         final Variable[] variables = new Variable[bandNames.length];
         for (int i = 0; i < bandNames.length; i++) {
             variables[i] = new Variable(bandNames[i], bandNames[i]);
@@ -80,11 +95,11 @@ class Projector {
         return GPF.createProduct("Mosaic", parameters, sourceProducts);
     }
 
+    // AVHRR L2P products are self-overlapping, so there may be the need to create a mosaic of subsets
     private static Product createSubset(Product sourceProduct, Rectangle rectangle) {
         final Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("region", rectangle);
 
         return GPF.createProduct("Subset", parameters, sourceProduct);
     }
-
 }

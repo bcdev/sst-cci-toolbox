@@ -2,18 +2,15 @@ package org.esa.cci.sst.common.file;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-/**
- * {@author Bettina Scholze}
- * Date: 16.10.12 11:20
- */
 public class CciL2FileTypeTest {
     FileType fileType = CciL2FileType.INSTANCE;
 
     @Test
-    public void testGetFileNameRegex() throws Exception {
-        String exp = "\\d{14}-ESACCI-L2P_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))[-]((ATSR1)|(ATSR2)|(AATSR)|(AMSRE)|(SEVIRI_SST)|(TMI))[-]((LT)|(DM))-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
-        assertEquals(exp, fileType.getFilenameRegex());
+    public void testFilenameRegex_AVHRR() throws Exception {
+        final String filename = "20100701012400-ESACCI-L2P_GHRSST-SSTskin-AVHRR18_G-LT-v02.0-fv01.0.nc";
+
+        assertTrue(filename.matches(fileType.getFilenameRegex()));
     }
 }

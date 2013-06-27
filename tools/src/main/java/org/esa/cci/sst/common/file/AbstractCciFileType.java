@@ -54,7 +54,7 @@ public abstract class AbstractCciFileType implements FileType {
 
     @Override
     public final Date readDate(NetcdfFile datafile) throws IOException {
-        final Variable variable = datafile.findTopVariable("time");
+        final Variable variable = datafile.findVariable("time");
         if (variable == null) {
             throw new IOException("Missing variable 'time' in file '" + datafile.getLocation() + "'");
         }

@@ -46,7 +46,7 @@ import java.util.logging.Logger;
 public class NcUtils {
 
     public static Variable getVariable(NetcdfFile netcdfFile, String variableName) throws IOException {
-        final Variable variable = netcdfFile.findTopVariable(variableName);
+        final Variable variable = netcdfFile.findVariable(variableName);
         if (variable == null) {
             throw new IOException(String.format("Missing variable '%s' in file '%s'.", variableName, netcdfFile.getLocation()));
         }
@@ -54,7 +54,7 @@ public class NcUtils {
     }
 
     public static boolean hasVariable(NetcdfFile netcdfFile, String variableName) {
-        return netcdfFile.findTopVariable(variableName) != null;
+        return netcdfFile.findVariable(variableName) != null;
     }
 
     public static Grid readGrid(NetcdfFile netcdfFile, String variableName, GridDef expectedGridDef) throws IOException {

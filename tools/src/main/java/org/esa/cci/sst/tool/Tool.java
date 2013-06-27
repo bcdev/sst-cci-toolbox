@@ -26,6 +26,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.esa.beam.framework.gpf.GPF;
 
 import java.io.File;
 import java.io.FileReader;

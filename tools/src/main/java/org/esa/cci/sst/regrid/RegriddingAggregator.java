@@ -130,15 +130,17 @@ class RegriddingAggregator extends AbstractAggregator {
                     throw new IllegalArgumentException(
                             String.format("Temporal resolution '%s' is not supported.", temporalResolution.toString()));
             }
-            final RegriddingTimeStep timeStep = new RegriddingTimeStep(date1, calendar.getTime(), resultGrid);
-            if (writer != null) {
-                try {
-                    writer.writeTargetFile(timeStep);
-                } catch (IOException e) {
-                    LOGGER.warning(e.getMessage());
+            if (resultGrid != null) {
+                final RegriddingTimeStep timeStep = new RegriddingTimeStep(date1, calendar.getTime(), resultGrid);
+                if (writer != null) {
+                    try {
+                        writer.writeTargetFile(timeStep);
+                    } catch (IOException e) {
+                        LOGGER.warning(e.getMessage());
+                    }
+                } else {
+                    resultGridList.add(timeStep);
                 }
-            } else {
-                resultGridList.add(timeStep);
             }
         }
         return resultGridList;
@@ -240,7 +242,15 @@ class RegriddingAggregator extends AbstractAggregator {
                 aggregateSingleDaySourcePixels(aggregationContext, targetGrid);
                 LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
             } catch (Exception e) {
-                LOGGER.warning(e.getMessage());
+                if (e.getMessage() != null) {
+                    LOGGER.warning(
+                            String.format("Cannot process input %s file '%s' because of an error: '%s'.", productType,
+                                          file, e.getMessage()));
+                } else {
+                    LOGGER.severe(
+                            String.format("Cannot process input %s file '%s' because of an unknown error.", productType,
+                                          file));
+                }
             } finally {
                 datafile.close();
             }

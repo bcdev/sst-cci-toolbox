@@ -19,9 +19,11 @@
 
 package org.esa.cci.sst.common.file;
 
+import com.bc.ceres.core.ProgressMonitor;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.gpf.internal.OperatorExecutor;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
@@ -30,8 +32,11 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
+import javax.media.jai.PlanarImage;
+import javax.media.jai.TileComputationListener;
+import javax.media.jai.TileRequest;
+import java.awt.Rectangle;
 import java.awt.image.Raster;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,11 +82,19 @@ class CciL2FileType extends CciL3FileType {
             if (NcUtils.hasVariable(datafile, ADJUSTMENT_UNCERTAINTY)) {
                 bandNames.add(ADJUSTMENT_UNCERTAINTY);
             }
-            final Projector projector = new Projector(getGridDef(), 1000);
+            final Projector projector = new Projector(getGridDef());
             final Product targetProduct = projector.createProjection(sourceProduct,
                                                                      bandNames.toArray(
                                                                              new String[bandNames.size()]));
 
+            /* for the purpose of debugging
+            GPF.writeProduct(targetProduct,
+                             new File("out/projected_" + sourceProduct.getFileLocation().getName().replace(".nc", "")),
+                             "BEAM-DIMAP", false, ProgressMonitor.NULL);
+            */
+
+            setGrids(context, targetProduct, bandNames);
+            /*
             context.setSstGrid(createGrid(targetProduct, bandNames.get(0)));
             context.setQualityGrid(createGrid(targetProduct, QUALITY_LEVEL));
             context.setRandomUncertaintyGrid(createGrid(targetProduct, UNCORRELATED_UNCERTAINTY));
@@ -92,26 +105,76 @@ class CciL2FileType extends CciL3FileType {
             if (NcUtils.hasVariable(datafile, ADJUSTMENT_UNCERTAINTY)) {
                 context.setAdjustmentUncertaintyGrid(createGrid(targetProduct, ADJUSTMENT_UNCERTAINTY));
             }
+            */
         } finally {
-            try {
-                sourceProduct.closeIO();
-            } catch (IOException ignored) {
-                // ignore
-            }
+            sourceProduct.dispose();
         }
 
         return context;
     }
 
+    private void setGrids(AggregationContext context, Product targetProduct, List<String> bandNames) {
+        final int bandCount = bandNames.size();
+        final GridDef gridDef = getGridDef();
+        final int w = gridDef.getWidth();
+        final int h = gridDef.getHeight();
+        final float[][] data = new float[bandCount][w * h];
+
+        final PlanarImage[] images = new PlanarImage[bandCount];
+        final TileComputationListener[] listeners = new TileComputationListener[bandCount];
+        for (int i = 0; i < bandCount; i++) {
+            final PlanarImage image = targetProduct.getBand(bandNames.get(i)).getGeophysicalImage();
+            final TileComputationListener listener = new TCL(data[i]);
+            image.addTileComputationListener(listener);
+            images[i] = image;
+            listeners[i] = listener;
+        }
+
+        final OperatorExecutor operatorExecutor = new OperatorExecutor(images,
+                                                                       images[0].getNumXTiles(),
+                                                                       images[0].getNumYTiles());
+        operatorExecutor.execute(OperatorExecutor.ExecutionOrder.SCHEDULE_ROW_COLUMN_BAND, ProgressMonitor.NULL);
+        for (int i = bandCount; --i > 0; ) {
+            images[i].removeTileComputationListener(listeners[i]);
+            images[i].dispose();
+        }
+
+        context.setSstGrid(ArrayGrid.create(gridDef, data[0]));
+        context.setQualityGrid(ArrayGrid.create(gridDef, data[1]));
+        context.setRandomUncertaintyGrid(ArrayGrid.create(gridDef, data[2]));
+        context.setLargeScaleUncertaintyGrid(ArrayGrid.create(gridDef, data[3]));
+        context.setSynopticUncertaintyGrid(ArrayGrid.create(gridDef, data[4]));
+        if (bandCount > 5) {
+            context.setAdjustmentUncertaintyGrid(ArrayGrid.create(gridDef, data[5]));
+        }
+    }
+
     private Grid createGrid(Product product, String bandName) {
         final Band band = product.getBand(bandName);
-        final RenderedImage image = band.getSourceImage().getImage(0);
-        final Raster raster = image.getData();
+        final PlanarImage dataImage = band.getGeophysicalImage();
+        final PlanarImage maskImage = band.getValidMaskImage();
         final GridDef gridDef = getGridDef();
         final int w = gridDef.getWidth();
         final int h = gridDef.getHeight();
         final float[] data = new float[w * h];
-        raster.getDataElements(0, 0, w, h, data);
+
+        for (int tileY = 0; tileY < dataImage.getNumYTiles(); tileY++) {
+            for (int tileX = 0; tileX < dataImage.getNumXTiles(); tileX++) {
+                final Raster dataTile = dataImage.getTile(tileX, tileY);
+                final Raster maskTile = maskImage.getTile(tileX, tileY);
+                for (int i = 0; i < dataTile.getHeight(); i++) {
+                    for (int k = 0; k < dataTile.getWidth(); k++) {
+                        final int x = dataTile.getMinX() + k;
+                        final int y = dataTile.getMinY() + i;
+                        if (maskTile.getSample(x, y, 0) != 0) {
+                            data[x + y * w] = dataTile.getSampleFloat(x, y, 0);
+                        } else {
+                            data[x + y * w] = Float.NaN;
+                        }
+                    }
+                }
+            }
+        }
 
         return ArrayGrid.create(gridDef, data);
     }
@@ -119,7 +182,43 @@ class CciL2FileType extends CciL3FileType {
     @Override
     public String getFilenameRegex() {
         return "\\d{14}-" + getRdac() + "-L2P_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))[-]" +
-               "((ATSR1)|(ATSR2)|(AATSR)|(AMSRE)|(SEVIRI_SST)|(TMI))[-]((LT)|(DM))-" +
+               "((ATSR1)|(ATSR2)|(AATSR)|(AVHRR\\d{2}_G)|(AMSRE)|(SEVIRI_SST)|(TMI))[-]((LT)|(DM))-" +
                "v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
+    }
+
+    private static class TCL implements TileComputationListener {
+
+        private final float[] data;
+
+        public TCL(float[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public void tileComputed(Object o, TileRequest[] tileRequests, PlanarImage planarImage, int tileX, int tileY,
+                                 Raster raster) {
+            final int width = planarImage.getWidth();
+            final Rectangle tileRectangle = planarImage.getTileRect(tileX, tileY);
+            for (int i = 0; i < tileRectangle.getHeight(); i++) {
+                for (int k = 0; k < tileRectangle.getWidth(); k++) {
+                    final int x = tileRectangle.x + k;
+                    final int y = tileRectangle.y + i;
+                    if (true) {
+                        data[x + y * width] = raster.getSampleFloat(x, y, 0);
+                    } else {
+                        data[x + y * width] = Float.NaN;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void tileCancelled(Object o, TileRequest[] tileRequests, PlanarImage planarImage, int tileX, int tileY) {
+        }
+
+        @Override
+        public void tileComputationFailure(Object o, TileRequest[] tileRequests, PlanarImage planarImage,
+                                           int tileX, int tileY, Throwable throwable) {
+        }
     }
 }

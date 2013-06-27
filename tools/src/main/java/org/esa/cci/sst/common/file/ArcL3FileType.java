@@ -106,7 +106,7 @@ class ArcL3FileType implements FileType {
 
     @Override
     public Date readDate(NetcdfFile datafile) throws IOException {
-        final Variable variable = datafile.findTopVariable("time");
+        final Variable variable = datafile.findVariable("time");
         if (variable == null) {
             throw new IOException("Missing variable 'time' in dataFile '" + datafile.getLocation() + "'");
         }
