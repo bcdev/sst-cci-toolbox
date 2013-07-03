@@ -107,17 +107,17 @@ public class RegriddingTool extends Tool {
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV = new Parameter("coverageUncertainty.StdDev",
                                                                                          "FILE",
-                                                                                         "./conf/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc",
+                                                                                         "./config/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc",
                                                                                          "A NetCDF file that provides lookup table 1/3 for coverage uncertainties.");
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME = new Parameter("coverageUncertainty.x0Time",
                                                                                          "FILE",
-                                                                                         "./conf/auxdata/x0_time.txt",
+                                                                                         "./config/auxdata/x0_time.txt",
                                                                                          "A txt file that provides lookup table 2/3 for coverage uncertainties.");
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE = new Parameter("coverageUncertainty.x0Space",
                                                                                           "FILE",
-                                                                                          "./conf/auxdata/x0_space.txt",
+                                                                                          "./config/auxdata/x0_space.txt",
                                                                                           "A txt file that provides lookup table 3/3 for coverage uncertainties.");
 
     private ProductType productType;

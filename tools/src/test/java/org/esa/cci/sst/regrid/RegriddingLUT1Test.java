@@ -30,7 +30,7 @@ public class RegriddingLUT1Test {
 
     @Test
     public void testReadGrid() throws Exception {
-        final File file = getResourceAsFile("20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev_subset.nc");
+        final File file = getResourceAsFile("20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc");
 
         final Grid grid = RegriddingLUT1.readGrid(file);
 
@@ -48,7 +48,7 @@ public class RegriddingLUT1Test {
 
     @Test
     public void testLutGridIsFlipped() throws Exception {
-        final File file = getResourceAsFile("20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev_subset.nc");
+        final File file = getResourceAsFile("20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc");
 
         final LUT lut = RegriddingLUT1.create(file, GridDef.createGlobal(0.05));
 

@@ -109,11 +109,11 @@ public final class AveragingTool extends Tool {
     public static final Parameter PARAM_OUTPUT_DIR = new Parameter("outputDir", "DIR", ".", "The output directory.");
 
     public static final Parameter PARAM_LUT1_FILE = new Parameter("lut1File", "FILE",
-                                                                  "conf/auxdata/coverage_uncertainty_parameters.nc",
+                                                                  "./config/auxdata/coverage_uncertainty_parameters.nc",
                                                                   "A NetCDF file that provides lookup table 1.");
 
     public static final Parameter PARAM_LUT2_FILE = new Parameter("lut2File", "FILE",
-                                                                  "conf/auxdata/RegionalAverage_LUT2.txt",
+                                                                  "./config/auxdata/RegionalAverage_LUT2.txt",
                                                                   "A plain text file that provides lookup table 2.");
 
     public static final Parameter PARAM_WRITE_TEXT = new Parameter("writeText", null, null,

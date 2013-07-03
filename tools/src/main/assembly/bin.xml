@@ -25,8 +25,8 @@
             </includes>
         </fileSet>
         <fileSet>
-            <outputDirectory>conf</outputDirectory>
-            <directory>${project.basedir}/src/main/conf</directory>
+            <outputDirectory>config</outputDirectory>
+            <directory>${project.basedir}/config</directory>
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}/site</directory>

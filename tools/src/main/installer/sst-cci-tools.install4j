@@ -20,14 +20,14 @@
     <mountPoints>
       <mountPoint id="22" root="" location="bin" mode="755" />
       <mountPoint id="23" root="" location="lib" mode="755" />
-      <mountPoint id="73" root="" location="conf" mode="755" />
+      <mountPoint id="73" root="" location="config" mode="755" />
       <mountPoint id="121" root="" location="" mode="755" />
     </mountPoints>
     <entries>
       <dirEntry mountPoint="23" file="../../../target/sst-cci-tools-bin/lib" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="lib" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
-      <dirEntry mountPoint="73" file="../../../target/sst-cci-tools-bin/conf" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="conf" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+      <dirEntry mountPoint="73" file="../../../target/sst-cci-tools-bin/config" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="config" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
       <fileEntry mountPoint="121" file="../../../target/sst-cci-tools-bin/CHANGELOG.md" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />

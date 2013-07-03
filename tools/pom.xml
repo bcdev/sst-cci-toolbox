@@ -137,6 +137,14 @@
                 <role>Java Developer</role>
             </roles>
         </developer>
+        <developer>
+            <id>bettina</id>
+            <name>Bettina Scholze</name>
+            <organization>Brockmann Consult</organization>
+            <roles>
+                <role>Java Developer</role>
+            </roles>
+        </developer>
     </developers>
 
 </project>

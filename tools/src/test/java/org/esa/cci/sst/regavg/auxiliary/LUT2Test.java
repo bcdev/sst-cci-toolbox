@@ -12,7 +12,7 @@ import static junit.framework.Assert.assertEquals;
 public class LUT2Test {
     @Test
     public void testRead() throws Exception {
-        LUT2 lut2 = LUT2.read(new File("./src/main/conf/auxdata/RegionalAverage_LUT2.txt"));
+        LUT2 lut2 = LUT2.read(new File("config/auxdata/RegionalAverage_LUT2.txt"));
         for (int m = 0; m < 12; m++) {
             assertEquals(0.822100, lut2.getMagnitude90(m, 0, 0), 1e-10);
             assertEquals(0.780967, lut2.getMagnitude90(m, 1, 0), 1e-10);

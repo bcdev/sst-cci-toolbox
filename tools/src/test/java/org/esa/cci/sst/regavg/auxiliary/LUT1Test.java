@@ -19,7 +19,7 @@ public class LUT1Test {
 
     @BeforeClass
     public static void read() throws IOException {
-        lut1 = LUT1.read(new File("./src/main/conf/auxdata/coverage_uncertainty_parameters.nc"));
+        lut1 = LUT1.read(new File("config/auxdata/coverage_uncertainty_parameters.nc"));
     }
 
     @Test
