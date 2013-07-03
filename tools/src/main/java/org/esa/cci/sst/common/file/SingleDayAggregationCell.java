@@ -47,13 +47,13 @@ public class SingleDayAggregationCell extends AbstractAggregationCell implements
         }
         final Grid adjustmentUncertaintyGrid = aggregationContext.getAdjustmentUncertaintyGrid();
         if (adjustmentUncertaintyGrid != null) {
-            adjustmentUncertaintyAccumulator = new ArithmeticMeanAccumulator();
+            adjustmentUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
         } else {
             adjustmentUncertaintyAccumulator = null;
         }
         final Grid synopticUncertaintyGrid = aggregationContext.getSynopticUncertaintyGrid();
         if (synopticUncertaintyGrid != null) {
-            synopticUncertaintyAccumulator = new ArithmeticMeanAccumulator();
+            synopticUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
         } else {
             synopticUncertaintyAccumulator = null;
         }
@@ -102,11 +102,11 @@ public class SingleDayAggregationCell extends AbstractAggregationCell implements
                     }
                     if (adjustmentUncertaintyAccumulator != null) {
                         final double sample = adjustmentUncertaintyGrid.getSampleDouble(x, y);
-                        adjustmentUncertaintyAccumulator.accumulate(sample);
+                        adjustmentUncertaintyAccumulator.accumulate(sample, seaCoverage);
                     }
                     if (synopticUncertaintyAccumulator != null) {
                         final double sample = synopticUncertaintyGrid.getSampleDouble(x, y);
-                        synopticUncertaintyAccumulator.accumulate(sample);
+                        synopticUncertaintyAccumulator.accumulate(sample, seaCoverage);
                     }
                 }
                 if (seaIceFractionAccumulator != null) {
