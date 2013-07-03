@@ -26,7 +26,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.esa.beam.framework.gpf.GPF;
+import org.esa.beam.util.logging.BeamLogManager;
 
 import java.io.File;
 import java.io.FileReader;
@@ -55,6 +55,10 @@ public abstract class Tool {
     private Options options;
 
     public static final Logger LOGGER = Logger.getLogger("org.esa.cci.sst");
+
+    static {
+        BeamLogManager.removeRootLoggerHandlers();
+    }
 
     protected Tool() {
     }
