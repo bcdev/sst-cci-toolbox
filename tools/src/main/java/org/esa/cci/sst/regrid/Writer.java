@@ -111,14 +111,16 @@ final class Writer {
         if (processingLevel != ProcessingLevel.L4) {
             sstType = "SST" + sstDepth;
         } else {
-            sstType = "SSTddd";
+            sstType = "SSTxxx";
         }
         final String targetFilename = getTargetFilename(filenameDateFormat.format(startDate),
                                                         filenameDateFormat.format(endDate),
                                                         processingLevel,
                                                         sstType,
-                                                        "ppp_REGRIDDED_" + targetGridDef.getResolution(),
-                                                        regionMask.getName().toUpperCase() + "_ss");
+                                                        "ppp",
+                                                        "ss",
+                                                        regionMask.getName().toUpperCase(),
+                                                        "REGRIDDED_" + targetGridDef.getResolution());
         final File targetFile = new File(targetDir, targetFilename);
         LOGGER.info("Writing target file '" + targetFile + "'...");
 
@@ -306,24 +308,26 @@ final class Writer {
      * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_regridding-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
      * </code>
      *
+     *
      * @param startOfPeriod        Start of period = YYYYMMDD
      * @param endOfPeriod          End of period = YYYYMMDD
      * @param processingLevel      Processing level = L3C, L3U or L4
      * @param sstType              SST type
      * @param productString        Product string (see Table 5 in PSD, e.g. AATSR, OSTIA)
      * @param additionalSegregator Additional segregator = LT or DM
-     *
-     * @return The filename.
+*    @return The filename.
      */
     String getTargetFilename(String startOfPeriod,
                              String endOfPeriod,
                              ProcessingLevel processingLevel,
                              String sstType,
                              String productString,
-                             String additionalSegregator) {
+                             String additionalSegregator,
+                             String region,
+                             String resolution) {
 
         final String rdac = productType.getFileType().getRdac();
-        return String.format("%s-%s-%s-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+        return String.format("%s-%s-%s-%s_GHRSST-%s-%s-%s-v%s-fv%s-%s-%s.nc",
                              startOfPeriod,
                              endOfPeriod,
                              rdac,
@@ -332,6 +336,8 @@ final class Writer {
                              productString,
                              additionalSegregator,
                              toolVersion,
-                             fileFormatVersion);
+                             fileFormatVersion,
+                             region,
+                             resolution);
     }
 }
