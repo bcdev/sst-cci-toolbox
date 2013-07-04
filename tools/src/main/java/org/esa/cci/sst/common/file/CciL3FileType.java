@@ -95,14 +95,14 @@ class CciL3FileType extends AbstractCciFileType {
 
         final Variable sstVar = datafile.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
-        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s in kelvin", sstDepth)));
+        sstVar.addAttribute(new Attribute("long_name", String.format("SST %s", sstDepth)));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
                                                             dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(
-                new Attribute("long_name", String.format("mean of sst %s anomaly in kelvin", sstDepth)));
+                new Attribute("long_name", String.format("SST %s anomaly in kelvin", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
@@ -114,27 +114,27 @@ class CciL3FileType extends AbstractCciFileType {
                                                                          dims);
         uncorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         uncorrelatedUncertaintyVar.addAttribute(
-                new Attribute("long_name", "uncorrelated uncertainty in kelvin"));
+                new Attribute("long_name", "uncorrelated uncertainty"));
         uncorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable largeScaleUncertaintyVar = datafile.addVariable("large_scale_correlated_uncertainty",
                                                                        DataType.FLOAT, dims);
         largeScaleUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         largeScaleUncertaintyVar.addAttribute(
-                new Attribute("long_name", "large scale correlated uncertainty in kelvin"));
+                new Attribute("long_name", "large scale correlated uncertainty"));
         largeScaleUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable synopticUncertaintyVar = datafile.addVariable("synoptically_correlated_uncertainty",
                                                                      DataType.FLOAT, dims);
         synopticUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         synopticUncertaintyVar.addAttribute(
-                new Attribute("long_name", "synoptically correlated uncertainty in kelvin"));
+                new Attribute("long_name", "synoptically correlated uncertainty"));
         synopticUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable adjustmentUncertaintyVar = datafile.addVariable("adjustment_uncertainty", DataType.FLOAT, dims);
         adjustmentUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         adjustmentUncertaintyVar.addAttribute(
-                new Attribute("long_name", "adjustment uncertainty in kelvin"));
+                new Attribute("long_name", "adjustment uncertainty"));
         adjustmentUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         variables[Aggregation.SST] = sstVar;
@@ -190,10 +190,7 @@ class CciL3FileType extends AbstractCciFileType {
 
     @Override
     public String getFilenameRegex() {
-//        return "\\d{14}-" + getRdac() + "-" + "L3[CU]{1}" + "_GHRSST-SST[a-z]{3,7}-[A-Z1-2_]{3,10}-[DMLT]{2}-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
-        return "\\d{14}-" + getRdac() + "-L3[CU]{1}_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))[-]" +
-               "((ATSR1)|(ATSR2)|(AATSR)|(AMSRE)|(SEVIRI_SST)|(TMI))[-]((LT)|(DM))-" +
-               "v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
+        return "\\d{14}-ESACCI-L3[CU]_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))-((ATSR1)|(ATSR2)|(AATSR)|(AMSRE)|(AVHRR_MTA)|(SEVIRI_SST)|(TMI))-((LT)|(DM))-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
     }
 
     private static final class MultiPurposeAggregation extends AbstractAggregation implements RegionalAggregation,

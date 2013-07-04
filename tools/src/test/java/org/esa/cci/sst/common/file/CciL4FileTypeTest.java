@@ -124,37 +124,29 @@ public class CciL4FileTypeTest {
 
         // analysed_sst
         final Grid sstGrid = context.getSstGrid();
-        assertEquals(2000, sstGrid.getSampleInt(0, 0));
-        assertEquals(293.14999344944954, sstGrid.getSampleDouble(0, 0));
-        assertEquals(2000, sstGrid.getSampleInt(1, 0));
-        assertEquals(293.14999344944954, sstGrid.getSampleDouble(1, 0));
+        assertEquals(2000, sstGrid.getSampleInt(0, 3599));
+        assertEquals(293.14999344944954, sstGrid.getSampleDouble(0, 3599));
+        assertEquals(2000, sstGrid.getSampleInt(1, 3599));
+        assertEquals(293.14999344944954, sstGrid.getSampleDouble(1, 3599));
         // analysis_error
         final Grid randomUncertaintyGrid = context.getRandomUncertaintyGrid();
-        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(0, 0));
-        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(0, 0));
-        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(1, 0));
-        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(1, 0));
+        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(0, 3599));
+        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(0, 3599));
+        assertEquals(-32768, randomUncertaintyGrid.getSampleInt(1, 3599));
+        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(1, 3599));
         // sea_ice_fraction
         final Grid seaIceFractionGrid = context.getSeaIceFractionGrid();
-        assertEquals(-128, seaIceFractionGrid.getSampleInt(0, 0));
-        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(0, 0));
+        assertEquals(-128, seaIceFractionGrid.getSampleInt(0, 3599));
+        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(0, 3599));
         assertEquals(-128, seaIceFractionGrid.getSampleInt(1, 0));
-        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(1, 0));
+        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(1, 3599));
     }
 
     @Test
     public void testFileNameRegex() throws Exception {
-        assertFalse("Hallo".matches(FILE_TYPE.getFilenameRegex()));
-        assertFalse("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz".matches(FILE_TYPE.getFilenameRegex()));
-        assertFalse("19950723120045-ESACCI-L3C_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
-        assertFalse("20100701000000-ESACCI-L3U_GHRSST-SSTsubskin-AMSRE-LT-04.1-01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
-
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTskin-AATSR-DM-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTskin-AATSR-LT-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
-        assertTrue("19950723120045-ESACCI-L4_GHRSST-SSTdepth-AATSR-DM-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTfnd-ATSR1-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
-        assertTrue("20121101000000-ESACCI-L4_GHRSST-SSTsubskin-ATSR2-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTsubskin-AMSRE-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
-        assertTrue("20100701000000-ESACCI-L4_GHRSST-SSTsubskin-SEVIRI_SST-LT-v04.1-fv01.1.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20000701120000-ESACCI-L4_GHRSST-SSTdepth-OSTIA-GLOB_LT-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20000701120000-ESACCI-L4_GHRSST-SSTskin-OSTIA-GLOB_LT-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20000701120000-ESACCI-L4_GHRSST-SSTsubskin-OSTIA-GLOB_LT-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
+        assertTrue("20000701120000-ESACCI-L4_GHRSST-SSTfnd-OSTIA-GLOB_LT-v02.0-fv01.0.nc".matches(FILE_TYPE.getFilenameRegex()));
     }
 }

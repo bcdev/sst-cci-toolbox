@@ -152,23 +152,23 @@ class ArcL3FileType implements FileType {
     public Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth) {
         final Variable sstVar = datafile.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
-        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s", sstDepth)));
+        sstVar.addAttribute(new Attribute("long_name", String.format("SST %s", sstDepth)));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
                                                             dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
-        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly", sstDepth)));
+        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("SST %s anomaly", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
-        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
+        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable arcUncertaintyVar = datafile.addVariable("arc_uncertainty", DataType.FLOAT, dims);
         arcUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
-        arcUncertaintyVar.addAttribute(new Attribute("long_name", "mean of ARC uncertainty"));
+        arcUncertaintyVar.addAttribute(new Attribute("long_name", "random uncertainty"));
         arcUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable[] variables = new Variable[8];

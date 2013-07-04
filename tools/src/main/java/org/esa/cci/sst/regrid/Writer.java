@@ -65,7 +65,7 @@ final class Writer {
     private final boolean totalUncertaintyWanted;
     private final double maxTotalUncertainty;
     private final File targetDir;
-    private final String sourceFilenameRegex;
+    private final String filenameRegex;
     private final SstDepth sstDepth;
     private final TemporalResolution temporalResolution;
     private final RegionMask regionMask;
@@ -77,7 +77,7 @@ final class Writer {
            boolean totalUncertaintyWanted,
            double maxTotalUncertainty,
            File targetDir,
-           String sourceFilenameRegex,
+           String filenameRegex,
            SstDepth sstDepth,
            TemporalResolution temporalResolution,
            RegionMask regionMask) {
@@ -88,14 +88,13 @@ final class Writer {
         this.totalUncertaintyWanted = totalUncertaintyWanted;
         this.maxTotalUncertainty = maxTotalUncertainty;
         this.targetDir = targetDir;
-        this.sourceFilenameRegex = sourceFilenameRegex;
+        this.filenameRegex = filenameRegex;
         this.sstDepth = sstDepth;
         this.temporalResolution = temporalResolution;
         this.regionMask = regionMask;
     }
 
     void writeTargetFiles(List<RegriddingTimeStep> timeSteps) throws IOException {
-
         for (final RegriddingTimeStep timeStep : timeSteps) {
             writeTargetFile(timeStep);
         }
@@ -107,13 +106,19 @@ final class Writer {
         final Date startDate = timeStep.getStartDate();
         final Date endDate = timeStep.getEndDate();
         final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
+        final ProcessingLevel processingLevel = productType.getProcessingLevel();
+        final String sstType;
+        if (processingLevel != ProcessingLevel.L4) {
+            sstType = "SST" + sstDepth;
+        } else {
+            sstType = "SSTddd";
+        }
         final String targetFilename = getTargetFilename(filenameDateFormat.format(startDate),
                                                         filenameDateFormat.format(endDate),
-                                                        regionMask.getName(),
-                                                        productType.getProcessingLevel(),
-                                                        "SST_" + sstDepth,
-                                                        "regridded" + targetGridDef.getResolution(),
-                                                        "LT"); // TODO - product string and additional segregator
+                                                        processingLevel,
+                                                        sstType,
+                                                        "ppp_REGRIDDED_" + targetGridDef.getResolution(),
+                                                        regionMask.getName().toUpperCase() + "_ss");
         final File targetFile = new File(targetDir, targetFilename);
         LOGGER.info("Writing target file '" + targetFile + "'...");
 
@@ -138,7 +143,7 @@ final class Writer {
             dataFile.addGlobalAttribute("geospatial_lon_resolution", targetGridDef.getResolutionX());
             dataFile.addGlobalAttribute("geospatial_lat_resolution", targetGridDef.getResolutionY());
             dataFile.addGlobalAttribute("region_name", regionMask.getName());
-            dataFile.addGlobalAttribute("source_filename_regex", sourceFilenameRegex);
+            dataFile.addGlobalAttribute("source_filename_regex", filenameRegex);
 
             // define global dims
             final Dimension latDim = dataFile.addDimension("lat", rowCount);
@@ -303,7 +308,6 @@ final class Writer {
      *
      * @param startOfPeriod        Start of period = YYYYMMDD
      * @param endOfPeriod          End of period = YYYYMMDD
-     * @param regionName           Region name or description
      * @param processingLevel      Processing level = L3C, L3U or L4
      * @param sstType              SST type
      * @param productString        Product string (see Table 5 in PSD, e.g. AATSR, OSTIA)
@@ -313,16 +317,16 @@ final class Writer {
      */
     String getTargetFilename(String startOfPeriod,
                              String endOfPeriod,
-                             String regionName,
                              ProcessingLevel processingLevel,
                              String sstType,
                              String productString,
                              String additionalSegregator) {
+
         final String rdac = productType.getFileType().getRdac();
-        return String.format("%s-%s-%s-" + rdac + "-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
+        return String.format("%s-%s-%s-%s_GHRSST-%s-%s-%s-v%s-fv%s.nc",
                              startOfPeriod,
                              endOfPeriod,
-                             regionName,
+                             rdac,
                              processingLevel,
                              sstType,
                              productString,

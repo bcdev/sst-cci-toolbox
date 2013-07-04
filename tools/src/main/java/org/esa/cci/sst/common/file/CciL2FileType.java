@@ -101,8 +101,6 @@ class CciL2FileType extends CciL3FileType {
 
     @Override
     public String getFilenameRegex() {
-        return "\\d{14}-" + getRdac() + "-L2P_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))[-]" +
-               "((ATSR1)|(ATSR2)|(AATSR)|(AVHRR\\d{2}_G)|(AMSRE)|(SEVIRI_SST)|(TMI))[-]((LT)|(DM))-" +
-               "v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
+        return "\\d{14}-ESACCI-L2P_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))-((ATSR1)|(ATSR2)|(AATSR)|(AVHRR\\d{2}_G)|(AMSRE)|(SEVIRI_SST)|(TMI))-((LT)|(DM))-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
     }
 }

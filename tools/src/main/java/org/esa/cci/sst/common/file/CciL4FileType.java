@@ -60,8 +60,7 @@ class CciL4FileType extends AbstractCciFileType {
 
     @Override
     public String getFilenameRegex() {
-        return "\\d{14}-" + getRdac() + "-" + ProcessingLevel.L4 + "_GHRSST-SST[a-z]{3,7}-[A-Z1-2_]{3,10}-[DMLT]{2}-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
-
+        return "\\d{14}-ESACCI-L4_GHRSST-SST((skin)|(subskin)|(depth)|(fnd))-OSTIA-GLOB_((LT)|(DM))-v\\d{1,2}\\.\\d{1}-fv\\d{1,2}\\.\\d{1}.nc";
     }
 
     @Override
@@ -80,30 +79,29 @@ class CciL4FileType extends AbstractCciFileType {
 
     @Override
     public Variable[] addResultVariables(NetcdfFileWriteable datafile, Dimension[] dims, SstDepth sstDepth) {
-        final Variable sstVar = datafile.addVariable(String.format("sst_%s", sstDepth), DataType.FLOAT, dims);
+        final Variable sstVar = datafile.addVariable("analysed_sst", DataType.FLOAT, dims);
         sstVar.addAttribute(new Attribute("units", "kelvin"));
-        sstVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s", sstDepth)));
+        sstVar.addAttribute(new Attribute("long_name", "analysed SST"));
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
-                                                            dims);
+        final Variable sstAnomalyVar = datafile.addVariable("analysed_sst_anomaly", DataType.FLOAT, dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
-        sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("mean of sst %s anomaly", sstDepth)));
+        sstAnomalyVar.addAttribute(new Attribute("long_name", "analysed SST anomaly"));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable seaIceCoverageVar = datafile.addVariable("sea_ice_fraction", DataType.FLOAT, dims);
         seaIceCoverageVar.addAttribute(new Attribute("units", "1"));
-        seaIceCoverageVar.addAttribute(new Attribute("long_name", "mean of sea ice fraction"));
+        seaIceCoverageVar.addAttribute(new Attribute("long_name", "sea ice fraction"));
         seaIceCoverageVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
         coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
-        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "mean of sampling/coverage uncertainty"));
+        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "coverage uncertainty"));
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable analysisErrorVar = datafile.addVariable("analysis_error", DataType.FLOAT, dims);
         analysisErrorVar.addAttribute(new Attribute("units", "kelvin"));
-        analysisErrorVar.addAttribute(new Attribute("long_name", "mean of analysis_error"));
+        analysisErrorVar.addAttribute(new Attribute("long_name", "analysis error"));
         analysisErrorVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable[] variables = new Variable[8];

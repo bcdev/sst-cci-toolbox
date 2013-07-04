@@ -114,7 +114,6 @@ public class FileTree {
     }
 
     public List<File> get(int year, int month, int day) {
-
         Map<Integer, Map<Integer, List<File>>> monthMaps = yearMaps.get(year);
         if (monthMaps == null) {
             return Collections.emptyList();
