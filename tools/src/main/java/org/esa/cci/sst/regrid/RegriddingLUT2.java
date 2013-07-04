@@ -83,7 +83,7 @@ final class RegriddingLUT2 implements LUT {
         lutGrid = YFlip.create(lutGrid);
 
         final long t1 = System.currentTimeMillis();
-        logger.info(String.format("Ready creating LUT in%d ms", t1 - t0));
+        logger.info(String.format("Ready creating LUT in %d ms", t1 - t0));
 
         return new RegriddingLUT2(lutGrid);
     }
