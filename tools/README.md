@@ -1,4 +1,4 @@
-# ESA SST_cci Toolbox 
+# ESA SST_cci Toolbox
 
 ## Toolbox overview
 
@@ -125,6 +125,11 @@ All parameter options may also be read from a key-value-pair file. The tool will
 default configuration file './regrid.properties'. Optionally, a configuration file may be provided using the -c <FILE>
 option (see above).Command-line options overwrite the settings given by -c, which again overwrite settings in default
 configuration file.
+
+
+## System requirements
+
+Computer running Linux, Windows or Mac OS; 10 GB RAM
 
 ## Contributors
 
