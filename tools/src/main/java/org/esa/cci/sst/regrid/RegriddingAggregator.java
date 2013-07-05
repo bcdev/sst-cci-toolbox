@@ -150,14 +150,19 @@ class RegriddingAggregator extends AbstractAggregator {
         final CellGrid<? extends AggregationCell> resultGrid;
         final FileType fileType = getFileType();
         final CellFactory<CellAggregationCell<AggregationCell>> cellFactory = fileType.getMultiMonthAggregationCellFactory();
-        final CellGrid<CellAggregationCell<AggregationCell>> multiMonthGrid = CellGrid.create(
-                aggregationContext.getTargetGridDef(), cellFactory);
+
+        CellGrid<CellAggregationCell<AggregationCell>> multiMonthGrid = null;
         for (int i = 0; i < monthCount; i++) {
             final Date date1 = calendar.getTime();
             calendar.add(Calendar.MONTH, 1);
             final Date date2 = calendar.getTime();
             final CellGrid<SpatialAggregationCell> singleMonthGrid = aggregateTimeStep(date1, date2);
-            aggregateMonth(singleMonthGrid, multiMonthGrid);
+            if (singleMonthGrid != null) {
+                if (multiMonthGrid == null) {
+                    multiMonthGrid = CellGrid.create(aggregationContext.getTargetGridDef(), cellFactory);
+                }
+                aggregateMonth(singleMonthGrid, multiMonthGrid);
+            }
         }
         resultGrid = multiMonthGrid;
         return resultGrid;
@@ -181,7 +186,7 @@ class RegriddingAggregator extends AbstractAggregator {
         final Climatology climatology = getClimatology();
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, date2);
         aggregationContext.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
-        final CellGrid<SpatialAggregationCell> targetGrid = createSpatialAggregationCellGrid();
+        CellGrid<SpatialAggregationCell> targetGrid = null;
 
         for (final FileList fileList : allFiles) {
             final int doy = UTC.getDayOfYear(fileList.getDate());
@@ -192,23 +197,27 @@ class RegriddingAggregator extends AbstractAggregator {
 
             final CellGrid<SpatialAggregationCell> singleDayGrid = aggregateSingleDay(productType, fileList.getFiles());
 
-            aggregationContext.setSstGrid(
-                    new CellGridAdapter(singleDayGrid, Aggregation.SST));
-            aggregationContext.setRandomUncertaintyGrid(
-                    new CellGridAdapter(singleDayGrid, Aggregation.RANDOM_UNCERTAINTY));
-            aggregationContext.setLargeScaleUncertaintyGrid(
-                    new CellGridAdapter(singleDayGrid, Aggregation.LARGE_SCALE_UNCERTAINTY));
-            aggregationContext.setSynopticUncertaintyGrid(
-                    new CellGridAdapter(singleDayGrid, Aggregation.SYNOPTIC_UNCERTAINTY));
-            aggregationContext.setAdjustmentUncertaintyGrid(
-                    new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
-            aggregationContext.setAdjustmentUncertaintyGrid(
-                    new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
-            aggregationContext.setSeaIceFractionGrid(
-                    new CellGridAdapter(singleDayGrid, Aggregation.SEA_ICE_FRACTION));
-            aggregationContext.setQualityGrid(null);
-
-            aggregateSourcePixels(aggregationContext, aggregationContext.getTargetRegionMask(), targetGrid);
+            if (singleDayGrid != null) {
+                aggregationContext.setSstGrid(
+                        new CellGridAdapter(singleDayGrid, Aggregation.SST));
+                aggregationContext.setRandomUncertaintyGrid(
+                        new CellGridAdapter(singleDayGrid, Aggregation.RANDOM_UNCERTAINTY));
+                aggregationContext.setLargeScaleUncertaintyGrid(
+                        new CellGridAdapter(singleDayGrid, Aggregation.LARGE_SCALE_UNCERTAINTY));
+                aggregationContext.setSynopticUncertaintyGrid(
+                        new CellGridAdapter(singleDayGrid, Aggregation.SYNOPTIC_UNCERTAINTY));
+                aggregationContext.setAdjustmentUncertaintyGrid(
+                        new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
+                aggregationContext.setAdjustmentUncertaintyGrid(
+                        new CellGridAdapter(singleDayGrid, Aggregation.ADJUSTMENT_UNCERTAINTY));
+                aggregationContext.setSeaIceFractionGrid(
+                        new CellGridAdapter(singleDayGrid, Aggregation.SEA_ICE_FRACTION));
+                aggregationContext.setQualityGrid(null);
+                if (targetGrid == null) {
+                    targetGrid = createSpatialAggregationCellGrid();
+                }
+                aggregateSourcePixels(aggregationContext, aggregationContext.getTargetRegionMask(), targetGrid);
+            }
 
             aggregationContext.setSstGrid(null);
             aggregationContext.setRandomUncertaintyGrid(null);
@@ -227,34 +236,42 @@ class RegriddingAggregator extends AbstractAggregator {
         final FileType fileType = productType.getFileType();
         final CellFactory<SpatialAggregationCell> dailyCellFactory = fileType.getSingleDayAggregationCellFactory(
                 aggregationContext);
-        final CellGrid<SpatialAggregationCell> targetGrid = CellGrid.create(fileType.getGridDef(), dailyCellFactory);
+        CellGrid<SpatialAggregationCell> targetGrid = null;
 
         for (final File file : files) {
             LOGGER.info(String.format("Processing input %s file '%s'", productType, file));
-            long t0 = System.currentTimeMillis();
+            final long t0 = System.currentTimeMillis();
 
-            final NetcdfFile datafile = NetcdfFile.open(file.getPath());
+            NetcdfFile datafile = null;
             try {
+                datafile = NetcdfFile.open(file.getPath());
                 readSourceGrids(datafile, aggregationContext);
-
+                if (targetGrid == null) {
+                    targetGrid = CellGrid.create(fileType.getGridDef(), dailyCellFactory);
+                }
                 LOGGER.fine("Aggregating grid(s)...");
-                long t01 = System.currentTimeMillis();
+                final long t1 = System.currentTimeMillis();
                 aggregateSingleDaySourcePixels(aggregationContext, targetGrid);
-                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t01)));
+                LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
             } catch (Exception e) {
-                if (e.getMessage() != null) {
-                    LOGGER.warning(
-                            String.format("Cannot process input %s file '%s' because of an error: '%s'.", productType,
-                                          file, e.getMessage()));
-                } else {
+                if (e.getMessage() == null) {
                     LOGGER.severe(
                             String.format("Cannot process input %s file '%s' because of an unknown error.", productType,
                                           file));
+                } else {
+                    LOGGER.warning(
+                            String.format("Cannot process input %s file '%s' because of an error: '%s'.", productType,
+                                          file, e.getMessage()));
                 }
             } finally {
-                datafile.close();
+                if (datafile != null) {
+                    try {
+                        datafile.close();
+                    } catch (IOException e) {
+                        // ignore
+                    }
+                }
             }
-
             LOGGER.fine(String.format("Processing input %s file took %d ms", productType,
                                       System.currentTimeMillis() - t0));
         }
