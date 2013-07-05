@@ -31,6 +31,7 @@ import org.esa.beam.util.logging.BeamLogManager;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -184,7 +185,9 @@ public abstract class Tool {
                 reader.close();
             }
         } catch (IOException e) {
-            throw new ToolException("Failed to load configuration from '" + configPath + "'", ExitCode.IO_ERROR);
+            throw new ToolException(
+                    MessageFormat.format("Failed to load configuration from ''{0}'': {1}", configPath, e.getMessage()),
+                    ExitCode.IO_ERROR);
         }
     }
 
