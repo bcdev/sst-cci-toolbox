@@ -146,7 +146,7 @@ public abstract class Tool {
         if (defaultConfigFile.exists()) {
             loadConfig(defaultConfigFile.getPath(), properties);
         } else {
-            warn("Missing configuration '" + defaultConfigFile + "'.");
+            info("Default configuration file '" + defaultConfigFile + "' does ot exist.");
         }
 
         // 3. Overwrite from user config file
