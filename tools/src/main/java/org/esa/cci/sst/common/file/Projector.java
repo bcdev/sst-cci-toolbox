@@ -33,11 +33,14 @@ import javax.media.jai.TileRequest;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.Raster;
+import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.esa.beam.gpf.operators.standard.MosaicOp.Variable;
 
@@ -53,6 +56,7 @@ class Projector {
     private static final String MASK_EXPRESSION = "lat >= -90.0 && lat <= 90.0 && lon >= -180.0 && lon <= 180.0";
 
     private final GridDef gridDef;
+    private final Logger logger;
 
     static {
         JAI.getDefaultInstance().getTileCache().setMemoryCapacity(536870912);
@@ -60,8 +64,9 @@ class Projector {
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
     }
 
-    Projector(GridDef gridDef) {
+    Projector(GridDef gridDef, Logger logger) {
         this.gridDef = gridDef;
+        this.logger = logger;
     }
 
     float[][] createProjectedData(Product sourceProduct, List<String> bandNames) {
@@ -82,7 +87,7 @@ class Projector {
         for (int i = 0; i < bandCount; i++) {
             final Band band = targetProduct.getBand(bandNames.get(i));
             final PlanarImage image = band.getGeophysicalImage();
-            final TileComputationListener listener = new TCL(data[i], (float) band.getGeophysicalNoDataValue());
+            final TileComputationListener listener = new TCL(data[i], (float) band.getGeophysicalNoDataValue(), logger);
             image.addTileComputationListener(listener);
             images[i] = image;
         }
@@ -92,24 +97,38 @@ class Projector {
         final List<TileRequest> tileRequests = new ArrayList<TileRequest>();
         for (int tileY = 0; tileY < tileCountY; tileY++) {
             for (int tileX = 0; tileX < tileCountX; tileX++) {
-                // TODO - logging
-                for (final PlanarImage image : images) {
+                for (int i = 0; i < images.length; i++) {
+                    final PlanarImage image = images[i];
                     final Point point = new Point(tileX, tileY);
-                    tileRequests.add(image.queueTiles(new Point[]{point}));
+                    if (logger != null) {
+                        logger.fine(MessageFormat.format("Queueing tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
+                                                         bandNames.get(i)));
+                    }
+                    final TileRequest tileRequest = image.queueTiles(new Point[]{point});
+                    tileRequests.add(tileRequest);
                 }
             }
         }
+        final long startTime = System.currentTimeMillis();
         while (true) {
             boolean completed = true;
             for (final TileRequest tileRequest : tileRequests) {
                 final Point point = tileRequest.getTileIndices()[0];
-                if (tileRequest.getTileStatus(point.x, point.y) != TileRequest.TILE_STATUS_COMPUTED) {
+                final int status = tileRequest.getTileStatus(point.x, point.y);
+                if (status != TileRequest.TILE_STATUS_COMPUTED) {
                     completed = false;
                     break;
                 }
             }
             if (completed) {
                 break;
+            }
+            if (System.currentTimeMillis() - startTime > 3600000) {
+                if (logger != null) {
+                    logger.severe(
+                            MessageFormat.format("Projection of product ''{0}'' could not be completed due to timeout.",
+                                                 sourceProduct.getFileLocation()));
+                }
             }
         }
 
@@ -170,17 +189,20 @@ class Projector {
 
         private final float[] data;
         private final float noDataValue;
+        private final Logger logger;
 
-        public TCL(float[] data, float noDataValue) {
+        public TCL(float[] data, float noDataValue, Logger logger) {
             this.data = data;
             this.noDataValue = noDataValue;
+            this.logger = logger;
         }
 
         @Override
         public void tileComputed(Object o, TileRequest[] tileRequests, PlanarImage planarImage, int tileX, int tileY,
                                  Raster raster) {
-            // TODO - logging
-            System.out.println("Completed " + raster.getBounds());
+            if (logger != null) {
+                logger.info(MessageFormat.format("Completed request for tile ({0}, {1}).", tileX, tileY));
+            }
             final int width = planarImage.getWidth();
             final Rectangle tileRectangle = planarImage.getTileRect(tileX, tileY);
             synchronized (data) {
@@ -206,7 +228,9 @@ class Projector {
         @Override
         public void tileComputationFailure(Object o, TileRequest[] tileRequests, PlanarImage planarImage,
                                            int tileX, int tileY, Throwable throwable) {
-            // TODO - logging
+            if (logger != null) {
+                logger.severe(MessageFormat.format("Failed to compute tile ({0}, {1}).", tileX, tileY));
+            }
         }
     }
 

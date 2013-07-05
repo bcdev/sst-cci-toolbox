@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Represents the SST-CCI L2P file type.
@@ -81,7 +82,7 @@ class CciL2FileType extends CciL3FileType {
                 bandNames.add(ADJUSTMENT_UNCERTAINTY);
             }
             final GridDef gridDef = getGridDef();
-            final Projector projector = new Projector(gridDef);
+            final Projector projector = new Projector(gridDef, Logger.getLogger("org.esa.cci.sst"));
             final float[][] data = projector.createProjectedData(sourceProduct, bandNames);
 
             context.setSstGrid(ArrayGrid.create(gridDef, data[0]));
