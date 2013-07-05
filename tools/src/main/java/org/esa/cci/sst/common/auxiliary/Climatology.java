@@ -80,7 +80,7 @@ public class Climatology {
         final File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.matches(".*\\d\\d\\d.*\\.nc");
+                return name.matches("D\\d\\d\\d.*\\.nc");
             }
         });
         if (files == null) {
