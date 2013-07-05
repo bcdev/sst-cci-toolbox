@@ -253,6 +253,10 @@ class RegriddingAggregator extends AbstractAggregator {
                 final long t1 = System.currentTimeMillis();
                 aggregateSingleDaySourcePixels(aggregationContext, targetGrid);
                 LOGGER.fine(String.format("Aggregating grid(s) took %d ms", (System.currentTimeMillis() - t1)));
+            } catch (IOException e) {
+                LOGGER.warning(
+                        String.format("Cannot process input %s file '%s' because of an I/O error: '%s'.", productType,
+                                      file, e.getMessage()));
             } catch (Exception e) {
                 if (e.getMessage() == null) {
                     LOGGER.severe(
