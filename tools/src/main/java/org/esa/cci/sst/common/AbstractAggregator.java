@@ -59,8 +59,7 @@ public abstract class AbstractAggregator {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (regionMask.getSampleBoolean(x, y)) {
-                    final Rectangle sourceRectangle = sourceGridDef.getGridRectangle(
-                            targetGridDef.getLonLatRectangle(x, y));
+                    final Rectangle sourceRectangle = sourceGridDef.getGridRectangle(x, y, targetGridDef);
                     C targetCell = targetGrid.getCell(x, y);
                     if (targetCell != null) {
                         targetCell.accumulate(context, sourceRectangle);

@@ -194,13 +194,33 @@ public final class GridDef {
      * @return The result rectangle.
      */
     Rectangle getGridRectangle(double minLon, double minLat, double maxLon, double maxLat) {
-        final double eps = 1.0e-10;
+        final int w = (int) Math.round((maxLon - minLon) / resolutionX);
+        final int h = (int) Math.round((maxLat - minLat) / resolutionY);
         final int minX = getGridX(minLon, true);
-        final int maxX = getGridX(maxLon - eps, true);
         final int minY = getGridY(maxLat, true);
-        final int maxY = getGridY(minLat + eps, true);
 
-        return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
+        return new Rectangle(minX, minY, w, h);
+    }
+
+    /**
+     * Creates a grid rectangle that covers the cell in a grid with a coarser resolution than this grid.
+     *
+     * @param x       The cell's x coordinate.
+     * @param y       The cell's y coordinate.
+     * @param gridDef The definition of the coarser resolution grid.
+     *
+     * @return the grid rectangle.
+     */
+    public Rectangle getGridRectangle(int x, int y, GridDef gridDef) {
+        if (gridDef.getResolution() < getResolution()) {
+            throw new IllegalArgumentException("Expected a grid with a coarser resolution than this grid.");
+        }
+        final int ratioX = (int) Math.round(gridDef.getResolutionX() / resolutionX);
+        final int ratioY = (int) Math.round(gridDef.getResolutionY() / resolutionY);
+        final int minX = x * ratioX;
+        final int minY = y * ratioY;
+
+        return new Rectangle(minX, minY, ratioX, ratioY);
     }
 
     private double getLon(double x) {

@@ -174,6 +174,14 @@ public class GridDefTest {
     }
 
     @Test
+    public void testGetGridRectangle3() throws Exception {
+        assertEquals(new Rectangle(0, 0, 100, 100), gridDef05.getGridRectangle(0, 0, gridDef5));
+        assertEquals(new Rectangle(100, 0, 100, 100), gridDef05.getGridRectangle(1, 0, gridDef5));
+        assertEquals(new Rectangle(0, 100, 100, 100), gridDef05.getGridRectangle(0, 1, gridDef5));
+        assertEquals(new Rectangle(100, 100, 100, 100), gridDef05.getGridRectangle(1, 1, gridDef5));
+    }
+
+    @Test
     public void testGetLonLatRectangle() throws Exception {
         assertEquals(new Rectangle2D.Double(-180.0, 89.95, 0.05, 0.05),
                 gridDef05.getLonLatRectangle(0, 0));
