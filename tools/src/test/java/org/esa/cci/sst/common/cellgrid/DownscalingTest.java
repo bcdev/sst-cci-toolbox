@@ -16,7 +16,6 @@ package org.esa.cci.sst.common.cellgrid;/*
 
 import org.junit.Before;
 import org.junit.Test;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -78,7 +77,7 @@ public class DownscalingTest {
         try {
             scaledGrid.getSampleBoolean(0, 0);
             fail();
-        } catch (NotImplementedException expected) {
+        } catch (RuntimeException expected) {
         }
     }
 }

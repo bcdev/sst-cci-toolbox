@@ -14,8 +14,6 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /**
  * Decorator for interpolating an existing grid to higher resolution.
  *
@@ -121,6 +119,6 @@ public final class Interpolation implements Grid {
 
     @Override
     public boolean getSampleBoolean(int x, int y) {
-        throw new NotImplementedException(); // no rule for interpolating boolean grids
+        throw new RuntimeException("Method not implemented."); // no rule for interpolating boolean grids
     }
 }

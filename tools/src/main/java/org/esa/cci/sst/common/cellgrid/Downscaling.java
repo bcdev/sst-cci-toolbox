@@ -104,6 +104,6 @@ public final class Downscaling implements Grid {
 
     @Override
     public boolean getSampleBoolean(int x, int y) {
-        throw new NotImplementedException(); // no rule for downscaling boolean grids
+        throw new RuntimeException("Method not implemented."); // no rule for downscaling boolean grids
     }
 }
