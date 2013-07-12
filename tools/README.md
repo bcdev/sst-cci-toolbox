@@ -129,10 +129,20 @@ configuration file.
 
 ## System requirements
 
-Computer running Linux, Windows or Mac OS; 10 GB RAM
+Computer running Linux, Windows or Mac OS; 10 GB RAM (the tools use up to 8GB RAM)
+
+
+## Limitations
+
+- The re-gridding of SST CCI L2P product files takes considerably more time than that of L3U and L4
+  files. Performance for L2p will be better on machines with multiple CPU cores.
+- The orbits in L2P often overlap themselves, in this case there are two pixels that corresponds to the same
+  geo-location; only one of these pixels is used in the re-gridding.  In addition, some pixels near the edge
+  of the swath may be lost after re-gridding.
+
 
 ## Contributors
 
-* Norman Formferra (forman)
-* Ralf Quast (flar)
-* Bettina Scholze (betsch)
+* Norman Formferra
+* Ralf Quast
+* Bettina Scholze
