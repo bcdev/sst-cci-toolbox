@@ -10,6 +10,7 @@ import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -90,6 +91,10 @@ public class AveragingAggregator extends AbstractAggregator {
     @Override
     public List<AveragingTimeStep> aggregate(Date startDate, Date endDate, TemporalResolution temporalResolution)
             throws IOException {
+        final SynopticUncertaintyProvider synopticUncertaintyProvider = new SynopticUncertaintyProvider(
+                SpatialResolution.DEGREE_5_00, temporalResolution);
+        context.setSynopticUncertaintyProvider(synopticUncertaintyProvider);
+
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
         final Calendar calendar = UTC.createCalendar(startDate);
 
