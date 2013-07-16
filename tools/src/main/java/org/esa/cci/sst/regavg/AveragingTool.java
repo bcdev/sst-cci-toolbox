@@ -299,7 +299,6 @@ public final class AveragingTool extends Tool {
                                         TemporalResolution temporalResolution,
                                         RegionMask regionMask, int regionIndex,
                                         List<AveragingTimeStep> timeSteps) throws IOException {
-
         final NetcdfFileWriteable netcdfFile = NetcdfFileWriteable.createNew(file.getPath());
         try {
             netcdfFile.addGlobalAttribute("title", String.format("%s SST_%s anomalies", productType.toString(),
@@ -318,7 +317,7 @@ public final class AveragingTool extends Tool {
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
             netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
 
-            int numSteps = timeSteps.size();
+            final int numSteps = timeSteps.size();
             Dimension timeDimension = netcdfFile.addDimension("time", numSteps, true, false, false);
             Dimension[] dims = {timeDimension};
 
@@ -332,49 +331,49 @@ public final class AveragingTool extends Tool {
             endTimeVar.addAttribute(new Attribute("long_name",
                                                   "reference end time of averaging period in seconds until 1981-01-01T00:00:00"));
 
-            Variable[] outputVariables = productType.getFileType().addResultVariables(netcdfFile, dims, sstDepth);
-            Array[] outputArrays = new Array[outputVariables.length];
-            for (int i = 0; i < outputVariables.length; i++) {
-                Variable outputVariable = outputVariables[i];
-                outputArrays[i] = Array.factory(outputVariable.getDataType(), new int[]{numSteps});
-            }
-
-            long millisSince1981 = UTC.createCalendar(1981).getTimeInMillis();
-
-            float[] startTime = new float[numSteps];
-            float[] endTime = new float[numSteps];
-            for (int t = 0; t < numSteps; t++) {
-                AveragingTimeStep timeStep = timeSteps.get(t);
-                startTime[t] = (timeStep.getStartDate().getTime() - millisSince1981) / 1000.0F;
-                endTime[t] = (timeStep.getEndDate().getTime() - millisSince1981) / 1000.0F;
-                Number[] results = timeStep.getRegionalAggregationResults(regionIndex);
-                for (int i = 0; i < results.length; i++) {
-                    outputArrays[i].setObject(t, results[i]);
+            final Variable[] variables = productType.getFileType().addResultVariables(netcdfFile, dims, sstDepth);
+            final Array[] variableData = new Array[variables.length];
+            for (int i = 0; i < variables.length; i++) {
+                final Variable variable = variables[i];
+                if (variable != null) {
+                    variableData[i] = Array.factory(variable.getDataType(), new int[]{numSteps});
                 }
             }
 
+            final long millisSince1981 = UTC.createCalendar(1981).getTimeInMillis();
+
+            final float[] startTime = new float[numSteps];
+            final float[] endTime = new float[numSteps];
+
+            for (int t = 0; t < numSteps; t++) {
+                final AveragingTimeStep timeStep = timeSteps.get(t);
+                startTime[t] = (timeStep.getStartDate().getTime() - millisSince1981) / 1000.0F;
+                endTime[t] = (timeStep.getEndDate().getTime() - millisSince1981) / 1000.0F;
+                final Number[] results = timeStep.getRegionalAggregationResults(regionIndex);
+                for (int i = 0; i < results.length; i++) {
+                    if (variableData[i] != null) {
+                        variableData[i].setObject(t, results[i]);
+                    }
+                }
+            }
             netcdfFile.create();
 
             netcdfFile.write(startTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, startTime));
             netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, endTime));
-            for (int i = 0; i < outputVariables.length; i++) {
-                Variable outputVariable = outputVariables[i];
-                netcdfFile.write(outputVariable.getName(), outputArrays[i]);
+            for (int i = 0; i < variables.length; i++) {
+                final Variable variable = variables[i];
+                netcdfFile.write(variable.getName(), variableData[i]);
             }
-
             if (textWriter != null) {
-                outputText(textWriter, getNames(outputVariables), regionMask.getName(), regionIndex, timeSteps);
+                outputText(textWriter, getNames(variables), regionMask.getName(), regionIndex, timeSteps);
             }
-
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
         } catch (Exception e) {
-            //otherwise the exception will not meaningfully logged
             LOGGER.log(Level.SEVERE, "", e);
             throw new IOException(e);
         } finally {
             try {
-                netcdfFile.flush();
                 netcdfFile.close();
             } catch (IOException e) {
                 // ignore
@@ -399,13 +398,14 @@ public final class AveragingTool extends Tool {
     }
 
     private static String cat(Object[] values, String sep) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < values.length; i++) {
-            Object value = values[i];
-            if (i > 0) {
-                sb.append(sep);
+        final StringBuilder sb = new StringBuilder();
+        for (final Object value : values) {
+            if (value != null) {
+                if (sb.length() > 0) {
+                    sb.append(sep);
+                }
+                sb.append(value);
             }
-            sb.append(value);
         }
         return sb.toString();
     }
@@ -418,12 +418,14 @@ public final class AveragingTool extends Tool {
         }
     }
 
-    private static String[] getNames(Variable[] vars) {
-        final String[] names = new String[vars.length];
-        for (int i = 0; i < names.length; i++) {
-            names[i] = vars[i].getName();
+    private static String[] getNames(Variable[] variables) {
+        final List<String> names = new ArrayList<String>(variables.length);
+        for (final Variable v : variables) {
+            if (v != null) {
+                names.add(v.getName());
+            }
         }
-        return names;
+        return names.toArray(new String[names.size()]);
     }
 
     /**
