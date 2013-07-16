@@ -3,6 +3,7 @@ package org.esa.cci.sst.common.file;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
+import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
@@ -11,6 +12,7 @@ import org.esa.cci.sst.common.cellgrid.Grid;
 import java.awt.Rectangle;
 
 final class SynopticCell5 extends AbstractAggregationCell implements SpatialAggregationCell {
+
     private final NumberAccumulator sstAccumulator;
     private final NumberAccumulator sstAnomalyAccumulator;
     private final NumberAccumulator randomUncertaintyAccumulator;
@@ -135,14 +137,19 @@ final class SynopticCell5 extends AbstractAggregationCell implements SpatialAggr
 
     @Override
     public double getCoverageUncertainty() {
-            return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 5.0);
+        return getAggregationContext().getCoverageUncertaintyProvider().calculate(this, 5.0);
     }
 
     @Override
     public double getAdjustmentUncertainty() {
         if (adjustmentUncertaintyAccumulator5 != null) {
             final double result = adjustmentUncertaintyAccumulator5.combine();
-            return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
+            final SynopticUncertaintyProvider provider = getAggregationContext().getSynopticUncertaintyProvider();
+            if (provider == null) {
+                throw new IllegalStateException(
+                        "Cannot compute adjustment uncertainty because 'synopticUncertaintyProvider' has not been set in 'aggregationContext'.");
+            }
+            return provider.calculate(this, result);
         }
         return Double.NaN;
     }
@@ -151,7 +158,12 @@ final class SynopticCell5 extends AbstractAggregationCell implements SpatialAggr
     public double getSynopticUncertainty() {
         if (synopticUncertaintyAccumulator5 != null) {
             final double result = synopticUncertaintyAccumulator5.combine();
-            return getAggregationContext().getSynopticUncertaintyProvider().calculate(this, result);
+            final SynopticUncertaintyProvider provider = getAggregationContext().getSynopticUncertaintyProvider();
+            if (provider == null) {
+                throw new IllegalStateException(
+                        "Cannot compute synoptic uncertainty because 'synopticUncertaintyProvider' has not been set in 'aggregationContext'.");
+            }
+            return provider.calculate(this, result);
         }
         return Double.NaN;
     }
