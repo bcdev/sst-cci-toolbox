@@ -362,7 +362,9 @@ public final class AveragingTool extends Tool {
             netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, endTime));
             for (int i = 0; i < variables.length; i++) {
                 final Variable variable = variables[i];
-                netcdfFile.write(variable.getName(), variableData[i]);
+                if (variable != null) {
+                    netcdfFile.write(variable.getName(), variableData[i]);
+                }
             }
             if (textWriter != null) {
                 outputText(textWriter, getNames(variables), regionMask.getName(), regionIndex, timeSteps);
@@ -370,6 +372,7 @@ public final class AveragingTool extends Tool {
         } catch (InvalidRangeException e) {
             throw new IllegalStateException(e);
         } catch (Exception e) {
+            e.printStackTrace();
             LOGGER.log(Level.SEVERE, "", e);
             throw new IOException(e);
         } finally {
