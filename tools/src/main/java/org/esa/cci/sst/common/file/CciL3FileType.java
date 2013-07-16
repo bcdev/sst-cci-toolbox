@@ -102,7 +102,7 @@ class CciL3FileType extends AbstractCciFileType {
                                                             dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(
-                new Attribute("long_name", String.format("SST %s anomaly in kelvin", sstDepth)));
+                new Attribute("long_name", String.format("SST %s anomaly", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
