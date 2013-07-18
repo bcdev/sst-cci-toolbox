@@ -256,7 +256,7 @@ public final class AveragingTool extends Tool {
                               RegionMaskList regionMaskList,
                               List<AveragingTimeStep> timeSteps) throws IOException {
 
-        final PrintWriter textWriter = getTextWriter(writeText);
+        final PrintWriter textWriter = getTextWriter(outputDir, writeText);
 
         final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
         for (int regionIndex = 0; regionIndex < regionMaskList.size(); regionIndex++) {
@@ -280,12 +280,12 @@ public final class AveragingTool extends Tool {
         }
     }
 
-    private static PrintWriter getTextWriter(boolean writeText) throws IOException {
+    private static PrintWriter getTextWriter(File outputDir, boolean writeText) throws IOException {
         final PrintWriter writer;
         if (writeText) {
             String fileName = String.format("%s-output-%s.txt", TOOL_NAME,
                                             new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
-            writer = new PrintWriter(new FileWriter(fileName));
+            writer = new PrintWriter(new FileWriter(new File(outputDir, fileName)));
         } else {
             writer = null;
         }
