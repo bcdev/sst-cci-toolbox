@@ -59,8 +59,8 @@
       <vmOptionsFile mode="content" overwriteMode="0" fileMode="644">
         <content># Enter one VM parameter per line
 
-# Adjust the maximum memory usage to 8192 MB
--Xmx8192M
+# Adjust the maximum memory usage to 16384 MB
+-Xmx16384M
 
 # To include another Java options file, uncomment the following line:
 # -include-options [path to other .vmoption file]</content>
@@ -98,8 +98,8 @@
       <vmOptionsFile mode="content" overwriteMode="0" fileMode="644">
         <content># Enter one VM parameter per line
 
-# Adjust the maximum memory usage to 8192MB
--Xmx8192M
+# Adjust the maximum memory usage to 16384MB
+-Xmx16384M
 
 # To include another Java options file, uncomment the following line:
 # -include-options [path to other .vmoption file]</content>
