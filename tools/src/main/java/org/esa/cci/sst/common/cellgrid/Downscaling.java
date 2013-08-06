@@ -14,7 +14,6 @@ package org.esa.cci.sst.common.cellgrid;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ucar.ma2.Array;
 
 /**
