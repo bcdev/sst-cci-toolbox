@@ -94,11 +94,6 @@ class CciL4FileType extends AbstractCciFileType {
         seaIceCoverageVar.addAttribute(new Attribute("long_name", "sea ice fraction"));
         seaIceCoverageVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
-        final Variable coverageUncertaintyVar = datafile.addVariable("coverage_uncertainty", DataType.FLOAT, dims);
-        coverageUncertaintyVar.addAttribute(new Attribute("units", "1"));
-        coverageUncertaintyVar.addAttribute(new Attribute("long_name", "coverage uncertainty"));
-        coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
-
         final Variable analysisErrorVar = datafile.addVariable("analysis_error", DataType.FLOAT, dims);
         analysisErrorVar.addAttribute(new Attribute("units", "kelvin"));
         analysisErrorVar.addAttribute(new Attribute("long_name", "analysis error"));
@@ -108,7 +103,6 @@ class CciL4FileType extends AbstractCciFileType {
         variables[Aggregation.SST] = sstVar;
         variables[Aggregation.SST_ANOMALY] = sstAnomalyVar;
         variables[Aggregation.RANDOM_UNCERTAINTY] = analysisErrorVar;
-        variables[Aggregation.COVERAGE_UNCERTAINTY] = coverageUncertaintyVar;
         variables[Aggregation.SEA_ICE_FRACTION] = seaIceCoverageVar;
 
         return variables;
@@ -161,6 +155,7 @@ class CciL4FileType extends AbstractCciFileType {
 
         private final NumberAccumulator sstAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator sstAnomalyAccumulator = new ArithmeticMeanAccumulator();
+        // TODO - check specification if this is needed
         private final NumberAccumulator coverageUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
         private final NumberAccumulator randomUncertaintyAccumulator = new WeightedUncertaintyAccumulator();
         private final NumberAccumulator seaIceFractionAccumulator = new ArithmeticMeanAccumulator();
@@ -191,11 +186,6 @@ class CciL4FileType extends AbstractCciFileType {
         }
 
         @Override
-        public double getCoverageUncertainty() {
-            return coverageUncertaintyAccumulator.combine();
-        }
-
-        @Override
         public double getAdjustmentUncertainty() {
             return Double.NaN;
         }
@@ -214,7 +204,8 @@ class CciL4FileType extends AbstractCciFileType {
         public void accumulate(AggregationCell cell, double seaCoverage) {
             sstAccumulator.accumulate(cell.getSeaSurfaceTemperature(), seaCoverage);
             sstAnomalyAccumulator.accumulate(cell.getSeaSurfaceTemperatureAnomaly(), seaCoverage);
-            coverageUncertaintyAccumulator.accumulate(cell.getCoverageUncertainty(), seaCoverage);
+            // TODO - check specification if this is needed
+            // coverageUncertaintyAccumulator.accumulate(cell.getCoverageUncertainty(), seaCoverage);
             randomUncertaintyAccumulator.accumulate(cell.getRandomUncertainty(), seaCoverage);
             seaIceFractionAccumulator.accumulate(cell.getSeaIceFraction(), 1.0);
         }
@@ -223,7 +214,8 @@ class CciL4FileType extends AbstractCciFileType {
         public void accumulate(RegionalAggregation aggregation) {
             sstAccumulator.accumulate(aggregation.getSeaSurfaceTemperature());
             sstAnomalyAccumulator.accumulate(aggregation.getSeaSurfaceTemperatureAnomaly());
-            coverageUncertaintyAccumulator.accumulate(aggregation.getCoverageUncertainty());
+            // TODO - check specification if this is needed
+            // coverageUncertaintyAccumulator.accumulate(aggregation.getCoverageUncertainty());
             randomUncertaintyAccumulator.accumulate(aggregation.getRandomUncertainty());
             seaIceFractionAccumulator.accumulate(aggregation.getSeaIceFraction());
         }
