@@ -23,7 +23,6 @@ import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.PixelGeoCoding2;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.gpf.GPF;
-import org.esa.beam.util.logging.BeamLogManager;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 
 import javax.media.jai.JAI;
@@ -33,13 +32,11 @@ import javax.media.jai.TileRequest;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.Raster;
-import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.esa.beam.gpf.operators.standard.MosaicOp.Variable;
