@@ -6,9 +6,11 @@ from netCDF4 import MFDataset
 import glob
 import os
 
-mmd_path = "/Users/Ralf/tmp/archive/mmd/v1/2003"
-nwp_path = "/Users/Ralf/tmp/archive/nwp/v1/2003"
-month = "01"
+year = "2003"
+months = ["01", "03", "04", "05", "06"]
+
+mmd_path = "/Users/Ralf/tmp/archive/mmd/v1/" + year
+nwp_path = "/Users/Ralf/tmp/archive/nwp/v1/" + year
 
 # mapping from variable prefix in MMD files to filename prefix of NWP files
 variable_prefix_to_filename_prefix_mapping = {
@@ -69,6 +71,10 @@ variable_name_mapping = {
 }
 
 
+def get_mmd_dataset(month):
+    dataset_path = os.path.join(mmd_path, "mmd-" + year + "-" + month + ".nc")
+    return Dataset(dataset_path)
+
 def get_nwp_dataset(month, prefix):
     month_dir_path = os.path.join(nwp_path, month)
 
@@ -78,63 +84,79 @@ def get_nwp_dataset(month, prefix):
 
     return MFDataset(file_paths, aggdim="matchup")
 
-
-def get_mmd_dataset(month):
-    dataset_path = os.path.join(mmd_path, "mmd-2003-%s.nc" % month)
-    #print(dataset_path)
-    return Dataset(dataset_path)
-
-
-def write_nwp_values(mmd_dataset, mmd_variable_name, mmd_values):
-    # TODO - implement
-    pass
-
+def write_nwp_values(new_mmd_dataset, mmd_variable_name, mmd_values):
+    print("  writing variable " + mmd_variable_name)
+    new_variable = new_mmd_dataset.variables[mmd_variable_name]
+    new_variable[:] = mmd_values
 
 def copy_variable_values(old_mmd_dataset, new_mmd_dataset, mmd_variable_name):
-    # TODO - implement
-    pass
+    print("  copying variable " + mmd_variable_name)
+    old_variable = old_mmd_dataset.variables[mmd_variable_name]
+    new_variable = new_mmd_dataset.variables[mmd_variable_name]
+    new_variable[:] = old_variable[:]
 
+def new_mmd_dataset(old_mmd_dataset):
+    dataset_path = old_mmd_dataset.filepath().replace(".nc", "-corrected.nc")
+    print("creating file " + dataset_path)
+    new_mmd_dataset = Dataset(dataset_path, mode="w", format="NETCDF3_64BIT")
 
-def new_mmd_dataset(month, old_mmd_dataset):
-    # TODO - implement
-    return None
+    for dimension_name in old_mmd_dataset.dimensions:
+        dimension = old_mmd_dataset.dimensions[dimension_name]
+        new_mmd_dataset.createDimension(dimension_name, len(dimension))
+    for variable_name in old_mmd_dataset.variables:
+        print("  creating variable " + variable_name)
+        old_variable = old_mmd_dataset.variables[variable_name]
+        new_variable = new_mmd_dataset.createVariable(variable_name, old_variable.dtype, dimensions=old_variable.dimensions)
+        for attribute_name in old_variable.ncattrs():
+            print("    creating attribute " + attribute_name)
+            attribute_value = old_variable.getncattr(attribute_name)
+            new_variable.setncattr(attribute_name, attribute_value)
+    for attribute_name in old_mmd_dataset.ncattrs():
+        print("  creating global attribute " + attribute_name)
+        attribute_value = old_mmd_dataset.getncattr(attribute_name)
+        new_mmd_dataset.setncattr(attribute_name, attribute_value)
+
+    return new_mmd_dataset
 
 
 if __name__ == "__main__":
-    old_mmd_dataset = get_mmd_dataset(month)
-    new_mmd_dataset = new_mmd_dataset(month, old_mmd_dataset)
-    mmd_matchup_ids = old_mmd_dataset.variables["matchup.id"][:]
+    for month in months:
+        old_mmd_dataset = get_mmd_dataset(month)
+        new_mmd_dataset = new_mmd_dataset(old_mmd_dataset)
+        mmd_matchup_ids = old_mmd_dataset.variables["matchup.id"][:]
 
-    for mmd_variable_name in old_mmd_dataset.variables:
-        pos = mmd_variable_name.rfind(".")
-        if pos != -1:
-            mmd_variable_prefix = mmd_variable_name[0:pos]
-            mmd_variable_short_name = mmd_variable_name[pos + 1:]
-            if mmd_variable_prefix in variable_prefix_to_filename_prefix_mapping:
-                nwp_filename_prefix = variable_prefix_to_filename_prefix_mapping[mmd_variable_prefix]
-                nwp_dataset = get_nwp_dataset(month, nwp_filename_prefix)
-                if nwp_dataset is not None:
-                    nwp_variable_name = variable_prefix_mapping[mmd_variable_prefix] + "." + variable_name_mapping[mmd_variable_short_name]
-                    nwp_values = nwp_dataset.variables[nwp_variable_name][:]
-                    mmd_values = old_mmd_dataset.variables[mmd_variable_name][:]
-                    nwp_matchup_ids = nwp_dataset.variables["matchup.id"][:]
+        for mmd_variable_name in old_mmd_dataset.variables:
+            pos = mmd_variable_name.rfind(".")
+            if pos != -1:
+                mmd_variable_prefix = mmd_variable_name[0:pos]
+                mmd_variable_short_name = mmd_variable_name[pos + 1:]
+                if mmd_variable_prefix in variable_prefix_to_filename_prefix_mapping:
+                    nwp_filename_prefix = variable_prefix_to_filename_prefix_mapping[mmd_variable_prefix]
+                    nwp_dataset = get_nwp_dataset(month, nwp_filename_prefix)
+                    if nwp_dataset is not None:
+                        nwp_variable_name = variable_prefix_mapping[mmd_variable_prefix] + "." + variable_name_mapping[mmd_variable_short_name]
+                        nwp_values = nwp_dataset.variables[nwp_variable_name][:]
+                        mmd_values = old_mmd_dataset.variables[mmd_variable_name][:]
+                        nwp_matchup_ids = nwp_dataset.variables["matchup.id"][:]
 
-                    nwp_matchup_id_record_no_map = {matchup_id: i for i, matchup_id in enumerate(nwp_matchup_ids)}
+                        nwp_matchup_id_record_no_map = {matchup_id: i for i, matchup_id in enumerate(nwp_matchup_ids)}
 
-                    for i, v in enumerate(mmd_values):
-                        matchup_id = mmd_matchup_ids[i]
-                        if matchup_id in nwp_matchup_id_record_no_map:
-                            old_value = v
-                            new_value = nwp_values[nwp_matchup_id_record_no_map[matchup_id]]
-                            mmd_values[i] = new_value
+                        for i, v in enumerate(mmd_values):
+                            matchup_id = mmd_matchup_ids[i]
+                            if matchup_id in nwp_matchup_id_record_no_map:
+                                old_value = v
+                                new_value = nwp_values[nwp_matchup_id_record_no_map[matchup_id]]
+                                mmd_values[i] = new_value
 
-                    write_nwp_values(new_mmd_dataset, mmd_variable_name, mmd_values)
-                    print(mmd_variable_name)
+                        write_nwp_values(new_mmd_dataset, mmd_variable_name, mmd_values)
+                        nwp_dataset.close()
+                    else:
+                        copy_variable_values(old_mmd_dataset, new_mmd_dataset, mmd_variable_name)
                 else:
                     copy_variable_values(old_mmd_dataset, new_mmd_dataset, mmd_variable_name)
-            else:
-                copy_variable_values(old_mmd_dataset, new_mmd_dataset, mmd_variable_name)
 
+        new_mmd_dataset.close()
+        old_mmd_dataset.close()
 
 
 
