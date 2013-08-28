@@ -71,11 +71,35 @@ variable_name_mapping = {
 }
 
 
-def get_mmd_dataset(month):
+def open_mmd_dataset(month):
     dataset_path = os.path.join(mmd_path, "mmd-" + year + "-" + month + ".nc")
+    print("opening file " + dataset_path)
     return Dataset(dataset_path)
 
-def get_nwp_dataset(month, prefix):
+def copy_mmd_dataset_writeable(old_mmd_dataset):
+    dataset_path = old_mmd_dataset.filepath().replace(".nc", "-corrected.nc4")
+    print("creating file " + dataset_path)
+    new_mmd_dataset = Dataset(dataset_path, mode="w")
+
+    for dimension_name in old_mmd_dataset.dimensions:
+        dimension = old_mmd_dataset.dimensions[dimension_name]
+        new_mmd_dataset.createDimension(dimension_name, len(dimension))
+    for variable_name in old_mmd_dataset.variables:
+        print("  creating variable " + variable_name)
+        old_variable = old_mmd_dataset.variables[variable_name]
+        new_variable = new_mmd_dataset.createVariable(variable_name, old_variable.dtype, dimensions=old_variable.dimensions, zlib=True)
+        for attribute_name in old_variable.ncattrs():
+            print("    creating attribute " + attribute_name)
+            attribute_value = old_variable.getncattr(attribute_name)
+            new_variable.setncattr(attribute_name, attribute_value)
+    for attribute_name in old_mmd_dataset.ncattrs():
+        print("  creating global attribute " + attribute_name)
+        attribute_value = old_mmd_dataset.getncattr(attribute_name)
+        new_mmd_dataset.setncattr(attribute_name, attribute_value)
+
+    return new_mmd_dataset
+
+def open_nwp_dataset(month, prefix):
     month_dir_path = os.path.join(nwp_path, month)
 
     file_paths = glob.glob(os.path.join(month_dir_path, prefix + "-*.nc"))
@@ -95,34 +119,10 @@ def copy_variable_values(old_mmd_dataset, new_mmd_dataset, mmd_variable_name):
     new_variable = new_mmd_dataset.variables[mmd_variable_name]
     new_variable[:] = old_variable[:]
 
-def new_mmd_dataset(old_mmd_dataset):
-    dataset_path = old_mmd_dataset.filepath().replace(".nc", "-corrected.nc")
-    print("creating file " + dataset_path)
-    new_mmd_dataset = Dataset(dataset_path, mode="w", format="NETCDF3_64BIT")
-
-    for dimension_name in old_mmd_dataset.dimensions:
-        dimension = old_mmd_dataset.dimensions[dimension_name]
-        new_mmd_dataset.createDimension(dimension_name, len(dimension))
-    for variable_name in old_mmd_dataset.variables:
-        print("  creating variable " + variable_name)
-        old_variable = old_mmd_dataset.variables[variable_name]
-        new_variable = new_mmd_dataset.createVariable(variable_name, old_variable.dtype, dimensions=old_variable.dimensions)
-        for attribute_name in old_variable.ncattrs():
-            print("    creating attribute " + attribute_name)
-            attribute_value = old_variable.getncattr(attribute_name)
-            new_variable.setncattr(attribute_name, attribute_value)
-    for attribute_name in old_mmd_dataset.ncattrs():
-        print("  creating global attribute " + attribute_name)
-        attribute_value = old_mmd_dataset.getncattr(attribute_name)
-        new_mmd_dataset.setncattr(attribute_name, attribute_value)
-
-    return new_mmd_dataset
-
-
 if __name__ == "__main__":
     for month in months:
-        old_mmd_dataset = get_mmd_dataset(month)
-        new_mmd_dataset = new_mmd_dataset(old_mmd_dataset)
+        old_mmd_dataset = open_mmd_dataset(month)
+        new_mmd_dataset = copy_mmd_dataset_writeable(old_mmd_dataset)
         mmd_matchup_ids = old_mmd_dataset.variables["matchup.id"][:]
 
         for mmd_variable_name in old_mmd_dataset.variables:
@@ -132,7 +132,7 @@ if __name__ == "__main__":
                 mmd_variable_short_name = mmd_variable_name[pos + 1:]
                 if mmd_variable_prefix in variable_prefix_to_filename_prefix_mapping:
                     nwp_filename_prefix = variable_prefix_to_filename_prefix_mapping[mmd_variable_prefix]
-                    nwp_dataset = get_nwp_dataset(month, nwp_filename_prefix)
+                    nwp_dataset = open_nwp_dataset(month, nwp_filename_prefix)
                     if nwp_dataset is not None:
                         nwp_variable_name = variable_prefix_mapping[mmd_variable_prefix] + "." + variable_name_mapping[mmd_variable_short_name]
                         nwp_values = nwp_dataset.variables[nwp_variable_name][:]
@@ -155,8 +155,11 @@ if __name__ == "__main__":
                 else:
                     copy_variable_values(old_mmd_dataset, new_mmd_dataset, mmd_variable_name)
 
+        new_mmd_dataset_path = new_mmd_dataset.filepath()
         new_mmd_dataset.close()
         old_mmd_dataset.close()
+
+        os.system("/usr/local/bin/nccopy -k2 " + new_mmd_dataset_path + " " + new_mmd_dataset_path.replace(".nc4", ".nc"))
 
 
 
