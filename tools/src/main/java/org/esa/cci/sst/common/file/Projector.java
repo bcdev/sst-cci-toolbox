@@ -98,6 +98,8 @@ class Projector {
                     final PlanarImage image = images[i];
                     final Point point = new Point(tileX, tileY);
                     if (logger != null) {
+                        logger.info(MessageFormat.format("Tile scheduler parallelism: {0}",
+                                                         JAI.getDefaultInstance().getTileScheduler().getParallelism()));
                         logger.fine(MessageFormat.format("Queueing tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
                                                          bandNames.get(i)));
                     }
