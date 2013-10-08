@@ -56,7 +56,7 @@ class Projector {
     private final Logger logger;
 
     static {
-        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(536870912);
+        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(2147483648L);
         JAI.getDefaultInstance().getTileScheduler().setParallelism(Runtime.getRuntime().availableProcessors());
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
     }
@@ -96,13 +96,13 @@ class Projector {
             logger.info(MessageFormat.format("Tile scheduler parallelism: {0}",
                                              JAI.getDefaultInstance().getTileScheduler().getParallelism()));
         }
-        for (int tileY = 0; tileY < tileCountY; tileY++) {
+        for (int tileX = 0; tileX < tileCountX; tileX++) {
             for (int i = 0; i < images.length; i++) {
                 final PlanarImage image = images[i];
                 final String bandName = bandNames.get(i);
                 final ArrayList<Point> points = new ArrayList<Point>();
 
-                for (int tileX = 0; tileX < tileCountX; tileX++) {
+                for (int tileY = 0; tileY < tileCountY; tileY++) {
                     final Point p = new Point(tileX, tileY);
                     if (logger != null) {
                         logger.fine(MessageFormat.format("Queueing tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
