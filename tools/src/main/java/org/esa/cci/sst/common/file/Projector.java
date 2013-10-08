@@ -92,31 +92,41 @@ class Projector {
         final int tileCountX = images[0].getNumXTiles();
         final int tileCountY = images[0].getNumYTiles();
         final List<TileRequest> tileRequests = new ArrayList<TileRequest>();
-        logger.info(MessageFormat.format("Tile scheduler parallelism: {0}",
-                                         JAI.getDefaultInstance().getTileScheduler().getParallelism()));
-        for (int tileY = 0; tileY < tileCountY; tileY++) {
-            for (int tileX = 0; tileX < tileCountX; tileX++) {
-                for (int i = 0; i < images.length; i++) {
-                    final PlanarImage image = images[i];
-                    final Point point = new Point(tileX, tileY);
+        if (logger != null) {
+            logger.info(MessageFormat.format("Tile scheduler parallelism: {0}",
+                                             JAI.getDefaultInstance().getTileScheduler().getParallelism()));
+        }
+        for (int tileX = 0; tileX < tileCountX; tileX++) {
+            for (int i = 0; i < images.length; i++) {
+                final PlanarImage image = images[i];
+                final String bandName = bandNames.get(i);
+                final ArrayList<Point> points = new ArrayList<Point>();
+
+                for (int tileY = 0; tileY < tileCountY; tileY++) {
+                    final Point p = new Point(tileX, tileY);
                     if (logger != null) {
                         logger.fine(MessageFormat.format("Queueing tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
-                                                         bandNames.get(i)));
+                                                         bandName));
                     }
-                    final TileRequest tileRequest = image.queueTiles(new Point[]{point});
-                    tileRequests.add(tileRequest);
+                    points.add(p);
                 }
+
+                final TileRequest tileRequest = image.queueTiles(points.toArray(new Point[points.size()]));
+                tileRequests.add(tileRequest);
             }
         }
         final long startTime = System.currentTimeMillis();
         while (true) {
             boolean completed = true;
+            search:
             for (final TileRequest tileRequest : tileRequests) {
-                final Point point = tileRequest.getTileIndices()[0];
-                final int status = tileRequest.getTileStatus(point.x, point.y);
-                if (status != TileRequest.TILE_STATUS_COMPUTED) {
-                    completed = false;
-                    break;
+                final Point[] points = tileRequest.getTileIndices();
+                for (final Point p : points) {
+                    final int status = tileRequest.getTileStatus(p.x, p.y);
+                    if (status != TileRequest.TILE_STATUS_COMPUTED) {
+                        completed = false;
+                        break search;
+                    }
                 }
             }
             if (completed) {
