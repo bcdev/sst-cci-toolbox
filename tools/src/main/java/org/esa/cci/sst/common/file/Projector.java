@@ -97,23 +97,19 @@ class Projector {
             logger.info(MessageFormat.format("Tile scheduler parallelism: {0}",
                                              JAI.getDefaultInstance().getTileScheduler().getParallelism()));
         }
-        for (int tileX = 0; tileX < tileCountX; tileX++) {
-            for (int i = 0; i < images.length; i++) {
-                final PlanarImage image = images[i];
-                final String bandName = bandNames.get(i);
-                final ArrayList<Point> points = new ArrayList<Point>();
-
-                for (int tileY = 0; tileY < tileCountY; tileY++) {
-                    final Point p = new Point(tileX, tileY);
+        for (int tileY = 0; tileY < tileCountY; tileY++) {
+            for (int tileX = 0; tileX < tileCountX; tileX++) {
+                for (int i = 0; i < images.length; i++) {
+                    final PlanarImage image = images[i];
+                    final String bandName = bandNames.get(i);
+                    final Point point = new Point(tileX, tileY);
                     if (logger != null) {
                         logger.fine(MessageFormat.format("Queueing tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
                                                          bandName));
                     }
-                    points.add(p);
+                    final TileRequest tileRequest = image.queueTiles(new Point[]{point});
+                    tileRequests.add(tileRequest);
                 }
-
-                final TileRequest tileRequest = image.queueTiles(points.toArray(new Point[points.size()]));
-                tileRequests.add(tileRequest);
             }
         }
         final long startTime = System.currentTimeMillis();
@@ -160,12 +156,11 @@ class Projector {
             for (int tileX = 0; tileX < tileCountX; tileX++) {
                 for (int tileY = 0; tileY < tileCountY; tileY++) {
                     if (logger != null) {
-                        logger.fine(MessageFormat.format("Reading tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
+                        logger.info(MessageFormat.format("Reading tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
                                                          band.getName()));
                     }
                     image.getTile(tileX, tileY);
                 }
-
             }
         }
 
