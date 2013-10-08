@@ -30,14 +30,16 @@ import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.TileComputationListener;
 import javax.media.jai.TileRequest;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.Raster;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static org.esa.beam.gpf.operators.standard.MosaicOp.Variable;
@@ -81,6 +83,32 @@ class Projector {
         final int h = gridDef.getHeight();
         final float[][] data = new float[bandCount][w * h];
 
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+
+        final Band[] bands = new Band[bandCount];
+        final PlanarImage[] images = new PlanarImage[bandCount];
+        for (int i = 0; i < bandCount; i++) {
+            bands[i] = targetProduct.getBand(bandNames.get(i));
+            images[i] = bands[i].getGeophysicalImage();
+        }
+        final int tileCountX = images[0].getNumXTiles();
+        final int tileCountY = images[0].getNumYTiles();
+        for (int tileY = 0; tileY < tileCountY; tileY++) {
+            for (int tileX = 0; tileX < tileCountX; tileX++) {
+                for (int i = 0; i < images.length; i++) {
+                    final TileTask tileTask = new TileTask(images, tileX, tileY, data, (float) bands[i].getGeophysicalNoDataValue());
+                    executorService.submit(tileTask);
+                }
+            }
+        }
+        executorService.shutdown();
+
+        try {
+            final boolean b = executorService.awaitTermination(10, TimeUnit.DAYS);
+        } catch (InterruptedException ignored) {
+        }
+
+        /*
         final PlanarImage[] images = new PlanarImage[bandCount];
         for (int i = 0; i < bandCount; i++) {
             final Band band = targetProduct.getBand(bandNames.get(i));
@@ -137,6 +165,7 @@ class Projector {
                 }
             }
         }
+        */
 
         return data;
     }
@@ -147,22 +176,6 @@ class Projector {
         sourceProduct.setGeoCoding(new PixelGeoCoding2(sourceProduct.getBand("lat"),
                                                        sourceProduct.getBand("lon"),
                                                        MASK_EXPRESSION));
-
-        for (final Band band : sourceProduct.getBands()) {
-            final MultiLevelImage image = band.getGeophysicalImage();
-            final int tileCountX = image.getNumXTiles();
-            final int tileCountY = image.getNumYTiles();
-
-            for (int tileX = 0; tileX < tileCountX; tileX++) {
-                for (int tileY = 0; tileY < tileCountY; tileY++) {
-                    if (logger != null) {
-                        logger.info(MessageFormat.format("Reading tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
-                                                         band.getName()));
-                    }
-                    image.getTile(tileX, tileY);
-                }
-            }
-        }
 
         final HashMap<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("crs", "EPSG:4326");
@@ -256,4 +269,51 @@ class Projector {
         }
     }
 
+    private class TileTask implements Callable<Void> {
+
+        private final PlanarImage[] images;
+        private final int tileX;
+        private final int tileY;
+        private final float[][] data;
+        private final float noDataValue;
+
+        public TileTask(PlanarImage[] images, int tileX, int tileY, float[][] data, float noDataValue) {
+            this.images = images;
+            this.tileX = tileX;
+            this.tileY = tileY;
+            this.data = data;
+            this.noDataValue = noDataValue;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            if (logger != null) {
+                logger.info(MessageFormat.format("Computing projection of tile ({0}, {1}).", tileX, tileY));
+            }
+            for (int i = 0; i < images.length; ++i) {
+                final Raster raster = images[i].getTile(tileX, tileY);
+                final int width = images[i].getWidth();
+                final Rectangle tileRectangle = images[i].getTileRect(tileX, tileY);
+                final float[] floats = data[i];
+
+                for (int m = 0; m < tileRectangle.getHeight(); m++) {
+                    for (int n = 0; n < tileRectangle.getWidth(); n++) {
+                        final int x = tileRectangle.x + n;
+                        final int y = tileRectangle.y + m;
+                        final float sampleValue = raster.getSampleFloat(x, y, 0);
+                        if (sampleValue != noDataValue) {
+                            floats[x + y * width] = sampleValue;
+                        } else {
+                            floats[x + y * width] = Float.NaN;
+                        }
+                    }
+                }
+            }
+            if (logger != null) {
+                logger.info(MessageFormat.format("Computed projection of tile ({0}, {1}).", tileX, tileY));
+            }
+
+            return null;
+        }
+    }
 }
