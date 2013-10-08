@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.common.file;
 
+import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.PixelGeoCoding2;
 import org.esa.beam.framework.datamodel.Product;
@@ -150,6 +151,23 @@ class Projector {
         sourceProduct.setGeoCoding(new PixelGeoCoding2(sourceProduct.getBand("lat"),
                                                        sourceProduct.getBand("lon"),
                                                        MASK_EXPRESSION));
+
+        for (final Band band : sourceProduct.getBands()) {
+            final MultiLevelImage image = band.getGeophysicalImage();
+            final int tileCountX = image.getNumXTiles();
+            final int tileCountY = image.getNumYTiles();
+
+            for (int tileX = 0; tileX < tileCountX; tileX++) {
+                for (int tileY = 0; tileY < tileCountY; tileY++) {
+                    if (logger != null) {
+                        logger.fine(MessageFormat.format("Reading tile ({0}, {1}) of band ''{2}''.", tileX, tileY,
+                                                         band.getName()));
+                    }
+                    image.getTile(tileX, tileY);
+                }
+
+            }
+        }
 
         final HashMap<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("crs", "EPSG:4326");
