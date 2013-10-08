@@ -19,7 +19,6 @@
 
 package org.esa.cci.sst.common.file;
 
-import com.bc.ceres.glevel.MultiLevelImage;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.PixelGeoCoding2;
 import org.esa.beam.framework.datamodel.Product;
@@ -92,13 +91,11 @@ class Projector {
             images[i] = bands[i].getGeophysicalImage();
         }
         final int tileCountX = images[0].getNumXTiles();
-        final int tileCountY = images[0].getNumYTiles();
-        for (int tileY = 0; tileY < tileCountY; tileY++) {
-            for (int tileX = 0; tileX < tileCountX; tileX++) {
-                for (int i = 0; i < images.length; i++) {
-                    final TileTask tileTask = new TileTask(images, tileX, tileY, data, (float) bands[i].getGeophysicalNoDataValue());
-                    executorService.submit(tileTask);
-                }
+        for (int tileX = 0; tileX < tileCountX; tileX++) {
+            for (int i = 0; i < images.length; i++) {
+                final TileTask tileTask = new TileTask(images, tileX, data,
+                                                       (float) bands[i].getGeophysicalNoDataValue());
+                executorService.submit(tileTask);
             }
         }
         executorService.shutdown();
@@ -273,14 +270,12 @@ class Projector {
 
         private final PlanarImage[] images;
         private final int tileX;
-        private final int tileY;
         private final float[][] data;
         private final float noDataValue;
 
-        public TileTask(PlanarImage[] images, int tileX, int tileY, float[][] data, float noDataValue) {
+        public TileTask(PlanarImage[] images, int tileX, float[][] data, float noDataValue) {
             this.images = images;
             this.tileX = tileX;
-            this.tileY = tileY;
             this.data = data;
             this.noDataValue = noDataValue;
         }
@@ -288,29 +283,31 @@ class Projector {
         @Override
         public Void call() throws Exception {
             if (logger != null) {
-                logger.info(MessageFormat.format("Computing projection of tile ({0}, {1}).", tileX, tileY));
+                logger.info(MessageFormat.format("Computing projection of column {0}.", tileX));
             }
             for (int i = 0; i < images.length; ++i) {
-                final Raster raster = images[i].getTile(tileX, tileY);
                 final int width = images[i].getWidth();
-                final Rectangle tileRectangle = images[i].getTileRect(tileX, tileY);
-                final float[] floats = data[i];
+                for (int tileY = 0; tileY < images[i].getMaxTileY(); tileY++) {
+                    final Raster raster = images[i].getTile(tileX, tileY);
+                    final Rectangle tileRectangle = images[i].getTileRect(tileX, tileY);
+                    final float[] floats = data[i];
 
-                for (int m = 0; m < tileRectangle.getHeight(); m++) {
-                    for (int n = 0; n < tileRectangle.getWidth(); n++) {
-                        final int x = tileRectangle.x + n;
-                        final int y = tileRectangle.y + m;
-                        final float sampleValue = raster.getSampleFloat(x, y, 0);
-                        if (sampleValue != noDataValue) {
-                            floats[x + y * width] = sampleValue;
-                        } else {
-                            floats[x + y * width] = Float.NaN;
+                    for (int m = 0; m < tileRectangle.getHeight(); m++) {
+                        for (int n = 0; n < tileRectangle.getWidth(); n++) {
+                            final int x = tileRectangle.x + n;
+                            final int y = tileRectangle.y + m;
+                            final float sampleValue = raster.getSampleFloat(x, y, 0);
+                            if (sampleValue != noDataValue) {
+                                floats[x + y * width] = sampleValue;
+                            } else {
+                                floats[x + y * width] = Float.NaN;
+                            }
                         }
                     }
                 }
             }
             if (logger != null) {
-                logger.info(MessageFormat.format("Computed projection of tile ({0}, {1}).", tileX, tileY));
+                logger.info(MessageFormat.format("Computed projection of column {0}.", tileX));
             }
 
             return null;
