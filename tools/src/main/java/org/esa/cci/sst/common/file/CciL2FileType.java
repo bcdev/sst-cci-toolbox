@@ -19,9 +19,6 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.datamodel.Band;
-import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.common.AggregationContext;
 import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
@@ -29,13 +26,6 @@ import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
-import javax.media.jai.PlanarImage;
-import javax.media.jai.TileComputationListener;
-import javax.media.jai.TileRequest;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.image.Raster;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,39 +52,30 @@ class CciL2FileType extends CciL3FileType {
     @Override
     public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
                                                                                                                   IOException {
-        final File file = new File(datafile.getLocation());
-        final Product sourceProduct = ProductIO.readProduct(file, "NetCDF-CF");
-        if (sourceProduct == null) {
-            throw new IOException("Cannot not find reader for product'" + file.getPath() + "'.");
+        final List<String> variableNames = new ArrayList<String>(8);
+        if (sstDepth == SstDepth.skin) {
+            variableNames.add("sea_surface_temperature");
+        } else {
+            variableNames.add("sea_surface_temperature_depth");
         }
-        try {
-            final List<String> bandNames = new ArrayList<String>(8);
-            if (sstDepth == SstDepth.skin) {
-                bandNames.add("sea_surface_temperature");
-            } else {
-                bandNames.add("sea_surface_temperature_depth");
-            }
-            bandNames.add(QUALITY_LEVEL);
-            bandNames.add(UNCORRELATED_UNCERTAINTY);
-            bandNames.add(LARGE_SCALE_CORRELATED_UNCERTAINTY);
-            bandNames.add(SYNOPTIC_UNCERTAINTY);
-            if (NcUtils.hasVariable(datafile, ADJUSTMENT_UNCERTAINTY)) {
-                bandNames.add(ADJUSTMENT_UNCERTAINTY);
-            }
-            final GridDef gridDef = getGridDef();
-            final Projector projector = new Projector(gridDef, Logger.getLogger("org.esa.cci.sst"));
-            final float[][] data = projector.createProjectedData(sourceProduct, bandNames);
+        variableNames.add(QUALITY_LEVEL);
+        variableNames.add(UNCORRELATED_UNCERTAINTY);
+        variableNames.add(LARGE_SCALE_CORRELATED_UNCERTAINTY);
+        variableNames.add(SYNOPTIC_UNCERTAINTY);
+        if (NcUtils.hasVariable(datafile, ADJUSTMENT_UNCERTAINTY)) {
+            variableNames.add(ADJUSTMENT_UNCERTAINTY);
+        }
+        final GridDef gridDef = getGridDef();
+        final Projector projector = new Projector(gridDef, Logger.getLogger("org.esa.cci.sst"));
+        final float[][] data = projector.createProjectedData(datafile, variableNames);
 
-            context.setSstGrid(ArrayGrid.create(gridDef, data[0]));
-            context.setQualityGrid(ArrayGrid.create(gridDef, data[1]));
-            context.setRandomUncertaintyGrid(ArrayGrid.create(gridDef, data[2]));
-            context.setLargeScaleUncertaintyGrid(ArrayGrid.create(gridDef, data[3]));
-            context.setSynopticUncertaintyGrid(ArrayGrid.create(gridDef, data[4]));
-            if (bandNames.size() > 5) {
-                context.setAdjustmentUncertaintyGrid(ArrayGrid.create(gridDef, data[5]));
-            }
-        } finally {
-            sourceProduct.dispose();
+        context.setSstGrid(ArrayGrid.create(gridDef, data[0]));
+        context.setQualityGrid(ArrayGrid.create(gridDef, data[1]));
+        context.setRandomUncertaintyGrid(ArrayGrid.create(gridDef, data[2]));
+        context.setLargeScaleUncertaintyGrid(ArrayGrid.create(gridDef, data[3]));
+        context.setSynopticUncertaintyGrid(ArrayGrid.create(gridDef, data[4]));
+        if (variableNames.size() > 5) {
+            context.setAdjustmentUncertaintyGrid(ArrayGrid.create(gridDef, data[5]));
         }
 
         return context;

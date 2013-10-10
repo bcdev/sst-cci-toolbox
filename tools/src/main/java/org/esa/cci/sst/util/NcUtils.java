@@ -66,11 +66,11 @@ public class NcUtils {
         return readGrid(netcdfFile, variable, expectedGridDef, z);
     }
 
-    private static double getAddOffset(Variable variable) {
+    public static double getAddOffset(Variable variable) {
         return getNumericAttributeValue(variable, "add_offset", 0.0);
     }
 
-    private static double getScaleFactor(Variable variable) {
+    public static double getScaleFactor(Variable variable) {
         return getNumericAttributeValue(variable, "scale_factor", 1.0);
     }
 
@@ -101,11 +101,11 @@ public class NcUtils {
         if (z > 0) {
             if (rank < 3) {
                 throw new IOException(String.format("NetCDF variable '%s': Expected rank 3 or higher, but found %d.",
-                        variable.getName(), rank));
+                        variable.getFullName(), rank));
             }
         } else if (rank < 2) {
             throw new IOException(String.format("NetCDF variable '%s': Expected rank 2 or higher, but found %d.",
-                    variable.getName(), rank));
+                    variable.getFullName(), rank));
         }
         final int[] origin = new int[rank];
         final int[] shape = new int[rank];
@@ -121,30 +121,31 @@ public class NcUtils {
         try {
             array = variable.read(origin, shape);
         } catch (InvalidRangeException e) {
-            throw new IllegalStateException(e);
+            throw new IOException(e);
         }
         return array.reshapeNoCopy(new int[]{gridRectangle.height, gridRectangle.width});
     }
 
-    private static Grid readGrid(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef, int z) throws IOException {
+    public static Grid readGrid(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef, int z) throws IOException {
         final Rectangle gridRectangle = getGridRectangle(netcdfFile, variable, expectedGridDef);
         final double scaleFactor = getScaleFactor(variable);
         final double addOffset = getAddOffset(variable);
         final Number fillValue = getFillValue(variable);
         final Array data = readRaster(variable, gridRectangle, z);
+
         return new ArrayGrid(expectedGridDef, data, fillValue, scaleFactor, addOffset);
     }
 
     private static Rectangle getGridRectangle(NetcdfFile netcdfFile, Variable variable, GridDef expectedGridDef) throws IOException {
         final int rank = variable.getRank();
         if (rank < 2) {
-            throw new IOException(String.format("Variable '%s' in file '%s': Expected rank 2 or higher, but found %d.",
-                    variable.getName(), netcdfFile.getLocation(), rank));
+            throw new IOException(String.format("Variable '%s' in file '%s': expected rank 2 or higher, but found %d.",
+                    variable.getFullName(), netcdfFile.getLocation(), rank));
         }
         final int w = variable.getDimension(rank - 1).getLength();
         final int h = variable.getDimension(rank - 2).getLength();
         if (w != expectedGridDef.getWidth() || h != expectedGridDef.getHeight()) {
-            throw new IOException(String.format("Variable '%s' in file '%s': Unexpected grid size.", variable.getName(), netcdfFile.getLocation()));
+            throw new IOException(String.format("Variable '%s' in file '%s': unexpected grid size.", variable.getFullName(), netcdfFile.getLocation()));
         }
         return new Rectangle(0, 0, w, h);
     }

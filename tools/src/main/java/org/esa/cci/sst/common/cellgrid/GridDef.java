@@ -50,6 +50,10 @@ public final class GridDef {
         return new GridDef(width, height, -180.0, 90.0, 360.0 / width, 180.0 / height);
     }
 
+    public static GridDef createRaster(int width, int height) {
+        return new GridDef(width, height, 0.0, 0.0, 0.0, 0.0);
+    }
+
     private GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
         this.width = width;
         this.height = height;
