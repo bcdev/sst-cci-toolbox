@@ -207,7 +207,7 @@ class Projector {
                             p.setLocation(Double.NaN, Double.NaN);
                         } else {
                             p.setLocation(x, y);
-                            refinePixelLocation(lon, lat, p);
+                            // refinePixelLocation(lon, lat, p);
                         }
                     }
                 } else {
