@@ -56,8 +56,6 @@ import static org.esa.beam.framework.datamodel.PixelPosEstimator.SampleSource;
  */
 class Projector {
 
-    private static final String MASK_EXPRESSION = "lat >= -90.0 && lat <= 90.0 && lon >= -180.0 && lon <= 180.0";
-
     private final GridDef gridDef;
     private final Logger logger;
 
@@ -97,7 +95,7 @@ class Projector {
         try {
             final boolean completed = executorService.awaitTermination(30, TimeUnit.MINUTES);
             if (!completed) {
-                if (logger != null && logger.isLoggable(Level.INFO)) {
+                if (logger != null && logger.isLoggable(Level.WARNING)) {
                     logger.warning(MessageFormat.format("Projecting file ''{0}'' was not completed in time.",
                                                         datafile.getLocation()));
                 }
@@ -115,7 +113,7 @@ class Projector {
             } catch (InterruptedException ignored) {
                 // ignore, cannot happen
             } catch (ExecutionException e) {
-                if (logger != null && logger.isLoggable(Level.INFO)) {
+                if (logger != null && logger.isLoggable(Level.WARNING)) {
                     logger.warning(
                             MessageFormat.format("An error has occurred while projecting file ''{0}''.",
                                                  datafile.getLocation()));
@@ -140,8 +138,8 @@ class Projector {
 
         @Override
         public float[][] call() throws Exception {
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                logger.finest(MessageFormat.format("Starting computing projection for row {0}.", y));
+            if (logger != null && logger.isLoggable(Level.FINE)) {
+                logger.fine(MessageFormat.format("Starting computing projection for row {0}.", y));
             }
             final float[][] data = new float[sourceGrids.length][gridDef.getWidth()];
 
@@ -161,8 +159,8 @@ class Projector {
                 }
             }
 
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                logger.finest(MessageFormat.format("Finished computing projection for row {0}.", y));
+            if (logger != null && logger.isLoggable(Level.FINE)) {
+                logger.fine(MessageFormat.format("Finished computing projection for row {0}.", y));
             }
 
             return data;
