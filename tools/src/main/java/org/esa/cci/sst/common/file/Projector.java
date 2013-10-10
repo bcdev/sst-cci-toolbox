@@ -24,7 +24,9 @@ import org.esa.beam.framework.datamodel.PixelGeoCoding2;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.Rotator;
 import org.esa.beam.framework.gpf.GPF;
+import org.esa.beam.util.math.DistanceCalculator;
 import org.esa.beam.util.math.MathUtils;
+import org.esa.beam.util.math.SphericalDistanceCalculator;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.util.NcUtils;
@@ -402,7 +404,7 @@ class Projector {
             for (int x = 0; x < gridDef.getWidth(); x++) {
                 final double lon = gridDef.getCenterLon(x);
                 final double lat = gridDef.getCenterLat(y);
-                sourcePixelLocator.getPixel(lon, lat, p);
+                sourcePixelLocator.getPixelLocation(lon, lat, p);
                 if (!Double.isNaN(p.getX()) && !Double.isNaN(p.getY())) {
                     for (int i = 0; i < sourceGrids.length; ++i) {
                         data[i][x] = (float) sourceGrids[i].getSampleDouble((int) p.getX(), (int) p.getY());
@@ -424,13 +426,26 @@ class Projector {
 
     private static class PixelLocator {
 
+        private final int searchCycleCount = 30;
+        private final double pixelDiagonal = Math.toRadians(0.05);
+
+        private final Grid lonGrid;
+        private final Grid latGrid;
         private final Approximation[] approximations;
+        private final int gridW;
+        private final int gridH;
 
         PixelLocator(Grid lonGrid, Grid latGrid) {
+            this.lonGrid = lonGrid;
+            this.latGrid = latGrid;
+
+            gridW = lonGrid.getGridDef().getWidth();
+            gridH = lonGrid.getGridDef().getHeight();
+
             approximations = createApproximations(lonGrid, latGrid, 0.5);
         }
 
-        Point2D getPixel(double lon, double lat, Point2D p) {
+        Point2D getPixelLocation(double lon, double lat, Point2D p) {
             if (approximations != null && lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0) {
                 final Approximation approximation = Approximation.findMostSuitable(approximations, lat, lon);
                 if (approximation != null) {
@@ -449,7 +464,7 @@ class Projector {
                             p.setLocation(Double.NaN, Double.NaN);
                         } else {
                             p.setLocation(x, y);
-                            // pixelFinder.findPixelPos(geoPos, pixelPos);
+                            refinePixelLocation(lon, lat, p);
                         }
                     }
                 } else {
@@ -460,6 +475,105 @@ class Projector {
             }
 
             return p;
+        }
+
+        void refinePixelLocation(final double lon0, final double lat0, Point2D p) {
+            int x0 = (int) Math.floor(p.getX());
+            int y0 = (int) Math.floor(p.getY());
+
+            if (x0 >= 0 && x0 < gridW && y0 >= 0 && y0 < gridH) {
+                final int searchRadius = 2 * searchCycleCount;
+
+                int x1 = Math.max(x0 - searchRadius, 0);
+                int y1 = Math.max(y0 - searchRadius, 0);
+                int x2 = Math.min(x0 + searchRadius, gridW - 1);
+                int y2 = Math.min(y0 + searchRadius, gridH - 1);
+
+                final int rasterMinX = x1;
+                final int rasterMinY = y1;
+                @SuppressWarnings("UnnecessaryLocalVariable")
+                final int rasterMaxX = x2;
+                @SuppressWarnings("UnnecessaryLocalVariable")
+                final int rasterMaxY = y2;
+
+                final DistanceCalculator dc = new SphericalDistanceCalculator(lon0, lat0);
+
+                double minDistance;
+                double lon = lonGrid.getSampleDouble(x0, y0);
+                double lat = latGrid.getSampleDouble(x0, y0);
+
+                if (lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0) {
+                    minDistance = dc.distance(lon, lat);
+                } else {
+                    minDistance = Double.POSITIVE_INFINITY;
+                }
+
+                for (int i = 0; i < searchCycleCount; i++) {
+                    x1 = x0;
+                    y1 = y0;
+
+                    int minX = Math.max(x1 - 2, rasterMinX);
+                    int minY = Math.max(y1 - 2, rasterMinY);
+                    int maxX = Math.min(x1 + 2, rasterMaxX);
+                    int maxY = Math.min(y1 + 2, rasterMaxY);
+
+                    while (minX > rasterMinX) {
+                        if (isValid(minX, y1)) {
+                            break;
+                        }
+                        if (minX > rasterMinX) {
+                            minX--;
+                        }
+                    }
+                    while (maxX < rasterMaxX) {
+                        if (isValid(maxX, y1)) {
+                            break;
+                        }
+                        if (maxX < rasterMaxX) {
+                            maxX++;
+                        }
+                    }
+
+                    for (int y = minY; y <= maxY; y++) {
+                        for (int x = minX; x <= maxX; x++) {
+                            if (y != y0 || x != x0) {
+                                lon = lonGrid.getSampleDouble(x, y);
+                                lat = latGrid.getSampleDouble(x, y);
+                                if (lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0) {
+                                    lon = lonGrid.getSampleDouble(x, y);
+                                    lat = latGrid.getSampleDouble(x, y);
+                                    final double d = dc.distance(lon, lat);
+                                    if (d < minDistance) {
+                                        x1 = x;
+                                        y1 = y;
+                                        minDistance = d;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (x1 == x0 && y1 == y0) {
+                        break;
+                    }
+
+                    x0 = x1;
+                    y0 = y1;
+                }
+                if (minDistance <= pixelDiagonal) {
+                    p.setLocation(x0 + 0.5, y0 + 0.5);
+                } else {
+                    p.setLocation(Double.NaN, Double.NaN);
+                }
+            } else {
+                p.setLocation(Double.NaN, Double.NaN);
+            }
+        }
+
+        private boolean isValid(int x, int y) {
+            final double lon = lonGrid.getSampleDouble(x, y);
+            final double lat = latGrid.getSampleDouble(x, y);
+
+            return lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0;
         }
 
         private static Approximation[] createApproximations(Grid lonGrid,
