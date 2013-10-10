@@ -71,11 +71,11 @@ class CciL2FileType extends CciL3FileType {
         final GridDef gridDef = getGridDef();
         final Projector projector = new Projector(gridDef, logger);
         if (logger != null && logger.isLoggable(Level.INFO)) {
-            logger.info(MessageFormat.format("Starting projection of file '{0}'.", datafile.getLocation()));
+            logger.info(MessageFormat.format("Projecting file ''{0}''.", datafile.getLocation()));
         }
         final float[][] data = projector.createProjectedData(datafile, variableNames);
         if (logger != null && logger.isLoggable(Level.INFO)) {
-            logger.info(MessageFormat.format("Finished projection of file '{0}'.", datafile.getLocation()));
+            logger.info(MessageFormat.format("Finished projecting file ''{0}''.", datafile.getLocation()));
         }
 
         context.setSstGrid(ArrayGrid.create(gridDef, data[0]));

@@ -98,8 +98,8 @@ class Projector {
             final boolean completed = executorService.awaitTermination(30, TimeUnit.MINUTES);
             if (!completed) {
                 if (logger != null && logger.isLoggable(Level.INFO)) {
-                    logger.severe(MessageFormat.format("Could not complete projection of file '{0}'.",
-                                                       datafile.getLocation()));
+                    logger.warning(MessageFormat.format("Projecting file ''{0}'' was not completed in time.",
+                                                        datafile.getLocation()));
                 }
             }
         } catch (InterruptedException ignored) {
@@ -116,8 +116,9 @@ class Projector {
                 // ignore, cannot happen
             } catch (ExecutionException e) {
                 if (logger != null && logger.isLoggable(Level.INFO)) {
-                    logger.severe(MessageFormat.format("An unknown exception occurred while projecting file '{0}'.",
-                                                       datafile.getLocation()));
+                    logger.warning(
+                            MessageFormat.format("An error has occurred while projecting file ''{0}''.",
+                                                 datafile.getLocation()));
                 }
             }
         }
