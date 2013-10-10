@@ -27,8 +27,10 @@ import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -48,6 +50,7 @@ class CciL2FileType extends CciL3FileType {
     private static final String LARGE_SCALE_CORRELATED_UNCERTAINTY = "large_scale_correlated_uncertainty";
     private static final String SYNOPTIC_UNCERTAINTY = "synoptically_correlated_uncertainty";
     private static final String ADJUSTMENT_UNCERTAINTY = "adjustment_uncertainty";
+    private static final Logger logger = Logger.getLogger("org.esa.cci.sst");
 
     @Override
     public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
@@ -66,8 +69,14 @@ class CciL2FileType extends CciL3FileType {
             variableNames.add(ADJUSTMENT_UNCERTAINTY);
         }
         final GridDef gridDef = getGridDef();
-        final Projector projector = new Projector(gridDef, Logger.getLogger("org.esa.cci.sst"));
+        final Projector projector = new Projector(gridDef, logger);
+        if (logger != null && logger.isLoggable(Level.INFO)) {
+            logger.info(MessageFormat.format("Starting projection of file '{0}'.", datafile.getLocation()));
+        }
         final float[][] data = projector.createProjectedData(datafile, variableNames);
+        if (logger != null && logger.isLoggable(Level.INFO)) {
+            logger.info(MessageFormat.format("Finished projection of file '{0}'.", datafile.getLocation()));
+        }
 
         context.setSstGrid(ArrayGrid.create(gridDef, data[0]));
         context.setQualityGrid(ArrayGrid.create(gridDef, data[1]));
