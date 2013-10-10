@@ -188,16 +188,16 @@ class Projector {
             approximations = createApproximations(lonGrid, latGrid, 0.5);
         }
 
-        Point2D getPixelLocation(double lon, double lat, Point2D p) {
-            if (approximations != null && lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0) {
-                final Approximation approximation = Approximation.findMostSuitable(approximations, lat, lon);
+        Point2D getPixelLocation(final double lon0, final double lat0, Point2D p) {
+            if (approximations != null && lon0 >= -180.0 && lon0 <= 180.0 && lat0 >= -90.0 && lat0 <= 90.0) {
+                final Approximation approximation = Approximation.findMostSuitable(approximations, lat0, lon0);
                 if (approximation != null) {
                     final Rectangle range = approximation.getRange();
                     final Rotator rotator = approximation.getRotator();
-                    p.setLocation(lon, lat);
+                    p.setLocation(lon0, lat0);
                     rotator.transform(p);
-                    lon = p.getX();
-                    lat = p.getY();
+                    final double lon = p.getX();
+                    final double lat = p.getY();
                     final double x = approximation.getFX().getValue(lat, lon);
                     if (x < range.getMinX() || x > range.getMaxX()) {
                         p.setLocation(Double.NaN, Double.NaN);
@@ -207,7 +207,7 @@ class Projector {
                             p.setLocation(Double.NaN, Double.NaN);
                         } else {
                             p.setLocation(x, y);
-                            // refinePixelLocation(lon, lat, p);
+                            refinePixelLocation(lon0, lat0, p);
                         }
                     }
                 } else {
