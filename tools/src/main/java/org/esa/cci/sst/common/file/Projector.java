@@ -147,7 +147,8 @@ class Projector {
             for (int x = 0; x < gridDef.getWidth(); x++) {
                 final double lon = gridDef.getCenterLon(x);
                 final double lat = gridDef.getCenterLat(y);
-                pixelLocator.getPixelLocation(lon, lat, p);
+                final double cellRadius = gridDef.getDiagonal(x, y) / 12742.0;
+                pixelLocator.getPixelLocation(lon, lat, p, cellRadius);
                 if (Double.isNaN(p.getX()) || Double.isNaN(p.getY())) {
                     for (int i = 0; i < sourceGrids.length; ++i) {
                         data[i][x] = Float.NaN; // todo - use no-data value?
@@ -170,7 +171,6 @@ class Projector {
     private static class PixelLocator {
 
         private final int searchCycleCount = 30;
-        private final double targetPixelSize = Math.toRadians(0.05);
 
         private final Grid lonGrid;
         private final Grid latGrid;
@@ -188,7 +188,7 @@ class Projector {
             approximations = createApproximations(lonGrid, latGrid, 0.5);
         }
 
-        Point2D getPixelLocation(final double lon0, final double lat0, Point2D p) {
+        Point2D getPixelLocation(final double lon0, final double lat0, Point2D p, double cellRadius) {
             if (approximations != null && lon0 >= -180.0 && lon0 <= 180.0 && lat0 >= -90.0 && lat0 <= 90.0) {
                 final Approximation approximation = Approximation.findMostSuitable(approximations, lat0, lon0);
                 if (approximation != null) {
@@ -207,7 +207,7 @@ class Projector {
                             p.setLocation(Double.NaN, Double.NaN);
                         } else {
                             p.setLocation(x, y);
-                            refinePixelLocation(lon0, lat0, p);
+                            refinePixelLocation(lon0, lat0, p, cellRadius);
                         }
                     }
                 } else {
@@ -220,7 +220,7 @@ class Projector {
             return p;
         }
 
-        private void refinePixelLocation(final double lon0, final double lat0, Point2D p) {
+        private void refinePixelLocation(final double lon0, final double lat0, Point2D p, double cellRadius) {
             int x0 = (int) Math.floor(p.getX());
             int y0 = (int) Math.floor(p.getY());
 
@@ -305,7 +305,7 @@ class Projector {
                     x0 = x1;
                     y0 = y1;
                 }
-                if (minDistance <= targetPixelSize) {
+                if (minDistance <= cellRadius) {
                     p.setLocation(x0 + 0.5, y0 + 0.5);
                 } else {
                     p.setLocation(Double.NaN, Double.NaN);
