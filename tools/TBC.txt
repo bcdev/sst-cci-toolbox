@@ -5,6 +5,8 @@ More questions to Nick / Chris:
    However, the spec doesn't say so, but I thought, it is just consequent since for aggregating from 5 deg to 90 deg
    cells and from aggregating all the 90 deg cells to a single value we do it as well.
    Please confirm that this is wanted for both, SST anomaly and uncertainties.
+   + This was confirmed by Nick
+
 2. From the spec:
    "If required temporal resolution is seasonal or annual (or some other combination of months),
    then aggregate first to monthly averages and monthly uncertainties, before averaging monthly
@@ -14,16 +16,25 @@ More questions to Nick / Chris:
    (b) compute a total uncertainty mean from all monthly sums (not means), thus sigma in 1.1 and 1.2 is a daily
        uncertainty and n is the total number of days?
    If it is (a), should we weight according to the total number of contributions in each month?
+
 3. The monthly, seasonal (3 months), annual (12 months) resolutions are currently implemented as time steps
    based on the Gregorian calendar, starting from the user-given start date.
    Do we have to consider other time steps as well, e.g. 10-day steps, meteorological season?
    If so, how important is that?
+
 4. In the regional average tool specification, the number N_MAX=77500=31*50^2 is actually for ARC only. For CCI products
    we will have N_MAX=31*100^2,  right?
+   + This has been clarified by Nick somehow
+
 5. For the temporal resolution 'daily', ARC N_MAX=50^2 (and CCI N_MAX=100^2). Are the LUTs still appropriate in this
    case?
+   + LUTs are applicable.
+
 6. Since the LUTs are created form ARC SST anomaly SDs, there will be new ones for CCI products?
+   + LUTs are final.
+
 7. Please note that in LUT2, the parameter s is the same for all months.
+
 8. In case we aggregate 90 degree boxes, the 5 degree coverage uncertainty derived from LUT1 is not used at all.
    Instead a new coverage uncertainty is computed from LUT2 and the number of contributing 5 degree boxes.
    Is that correct?
