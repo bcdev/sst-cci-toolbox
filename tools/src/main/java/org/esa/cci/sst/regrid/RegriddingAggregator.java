@@ -188,14 +188,14 @@ class RegriddingAggregator extends AbstractAggregator {
         aggregationContext.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
         CellGrid<SpatialAggregationCell> targetGrid = null;
 
-        for (final FileList fileList : allFiles) {
-            final int doy = UTC.getDayOfYear(fileList.getDate());
+        for (final FileList singleDayFiles : allFiles) {
+            final int doy = UTC.getDayOfYear(singleDayFiles.getDate());
             LOGGER.info("Day of year is " + doy);
 
             aggregationContext.setClimatologySstGrid(climatology.getSstGrid(doy));
             aggregationContext.setSeaCoverageGrid(climatology.getSeaCoverageGrid());
 
-            final CellGrid<SpatialAggregationCell> singleDayGrid = aggregateSingleDay(productType, fileList.getFiles());
+            final CellGrid<SpatialAggregationCell> singleDayGrid = aggregateSingleDay(productType, singleDayFiles.getFiles());
 
             if (singleDayGrid != null) {
                 aggregationContext.setSstGrid(
