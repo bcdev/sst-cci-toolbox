@@ -129,7 +129,7 @@ configuration file.
 
 ## System requirements
 
-Computer running Linux, Windows or Mac OS; 10 GB RAM (the tools use up to 8GB RAM)
+Computer running Linux, Windows or Mac OS; 20 GB RAM (the tools use up to 16 GB RAM)
 
 
 ## Limitations
