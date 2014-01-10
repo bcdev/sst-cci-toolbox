@@ -1,8 +1,8 @@
-# ESA SST_cci Toolbox
+# ESA SST-CCI Tools
 
-## Toolbox overview
+## Tools overview
 
-The toolbox provides the following tools:
+The following tools are provided:
 
 - Regional Averaging
 - Regridding
@@ -141,8 +141,6 @@ Computer running Linux, Windows or Mac OS; 20 GB RAM (the tools use up to 16 GB 
   of the swath may be lost after re-gridding.
 
 
-## Contributors
+## Contact information
 
-* Norman Formferra
-* Ralf Quast
-* Bettina Scholze
+* Ralf Quast (ralf.quast@brockmann-consult.de)
