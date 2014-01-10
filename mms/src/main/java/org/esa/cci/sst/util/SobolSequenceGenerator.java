@@ -68,7 +68,7 @@ class SobolSequenceGenerator {
     /**
      * The resource containing the direction numbers.
      */
-    private static final String RESOURCE_NAME = "new-joe-kuo-6.1000";
+    private static final String RESOURCE_NAME = "new-joe-kuo-6.21201.txt";
 
     /**
      * Character set for file input.

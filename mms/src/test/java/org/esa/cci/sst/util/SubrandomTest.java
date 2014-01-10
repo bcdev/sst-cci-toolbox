@@ -125,7 +125,7 @@ public class SubrandomTest {
                     } catch (InterruptedException e) {
                         // ignore
                     }
-                    if (j % 10 == 0) {
+                    if (false && j % 10 == 0) {
                         final File imageFile = new File("/Users/ralf/tmp/png", String.format("%04d", j) + ".png");
                         ImageIO.write(image, "png", imageFile);
                     }
