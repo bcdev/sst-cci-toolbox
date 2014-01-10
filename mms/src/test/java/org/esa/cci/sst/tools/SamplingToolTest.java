@@ -14,6 +14,7 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
@@ -39,7 +40,7 @@ public class SamplingToolTest {
         tool.setCommandLineArgs(new String[0]);
         tool.initialize();
 
-        final List<SamplingTool.SamplingPoint> sampleList = tool.createSamples();
+        final List<SamplingPoint> sampleList = tool.createSamples();
 
         assertEquals(10000, sampleList.size());
     }
@@ -51,7 +52,7 @@ public class SamplingToolTest {
         tool.setCommandLineArgs(new String[0]);
         tool.initialize();
 
-        final List<SamplingTool.SamplingPoint> sampleList = tool.createSamples();
+        final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
 
         assertEquals(6612, sampleList.size());
@@ -64,7 +65,7 @@ public class SamplingToolTest {
         tool.setCommandLineArgs(new String[0]);
         tool.initialize();
 
-        final List<SamplingTool.SamplingPoint> sampleList = tool.createSamples();
+        final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
 
@@ -78,7 +79,7 @@ public class SamplingToolTest {
         tool.initialize();
 
         System.out.println("Creating samples...");
-        final List<SamplingTool.SamplingPoint> sampleList = tool.createSamples();
+        final List<SamplingPoint> sampleList = tool.createSamples();
         System.out.println("Removing land samples...");
         tool.removeLandSamples(sampleList);
         System.out.println("Reducing clear samples...");
@@ -97,7 +98,7 @@ public class SamplingToolTest {
 
         final Graphics2D graphics = image.createGraphics();
 
-        for (SamplingTool.SamplingPoint p : sampleList) {
+        for (SamplingPoint p : sampleList) {
             final double x = (p.getLon() + 180.0) / 360.0;
             final double y = (90.0 - p.getLat()) / 180.0;
             final int i = (int) (y * h);

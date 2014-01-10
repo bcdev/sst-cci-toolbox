@@ -19,11 +19,11 @@ import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -83,9 +83,9 @@ public class SamplingTool extends BasicTool {
 
     List<SamplingPoint> createSamples() {
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
-        final List<SamplingPoint> sampleList = new ArrayList<>();
+        final List<SamplingPoint> sampleList = new ArrayList<SamplingPoint>();
 
-        for (int i = 0; i < sampleCount; i++) {
+        for (int i  = 0; i < sampleCount; i++) {
             final double[] sample = sequenceGenerator.nextVector();
             final double x = sample[0];
             final double y = sample[1];
@@ -105,8 +105,7 @@ public class SamplingTool extends BasicTool {
     void removeLandSamples(List<SamplingPoint> sampleList) {
         final WatermaskClassifier classifier;
         try {
-            classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_1km,
-                                                 WatermaskClassifier.Mode.GSHHS,
+            classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_1km, WatermaskClassifier.Mode.GSHHS,
                                                  "GSHHS_water_mask_1km.zip");
         } catch (IOException e) {
             throw new ToolException("Unable to create land/water classifier.", e, ToolException.TOOL_IO_ERROR);
@@ -116,7 +115,7 @@ public class SamplingTool extends BasicTool {
             final SamplingPoint point = iterator.next();
 
             try {
-                final boolean water = classifier.isWater((float) point.lat, (float) point.lon);
+                final boolean water = classifier.isWater((float) point.getLat(), (float) point.getLon());
                 if (!water) {
                     iterator.remove();
                 }
@@ -132,7 +131,9 @@ public class SamplingTool extends BasicTool {
         final NetcdfFile file;
         try {
             file = NetcdfFile.openInMemory(getClass().getResource("AATSR_prior_run081222.nc").toURI());
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
+            throw new ToolException("Cannot read cloud priors.", e, ToolException.TOOL_IO_ERROR);
+        } catch (URISyntaxException e) {
             throw new ToolException("Cannot read cloud priors.", e, ToolException.TOOL_IO_ERROR);
         }
 
@@ -142,10 +143,10 @@ public class SamplingTool extends BasicTool {
             for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
                 final SamplingPoint point = iterator.next();
 
-                final int x = gridDef.getGridX(point.lon, true);
-                final int y = gridDef.getGridY(point.lat, true);
+                final int x = gridDef.getGridX(point.getLon(), true);
+                final int y = gridDef.getGridY(point.getLat(), true);
                 final double f = 0.05 / grid.getSampleDouble(x, y);
-                if (point.random > f) {
+                if (point.getRandom() > f) {
                     iterator.remove();
                 }
             }
@@ -159,34 +160,4 @@ public class SamplingTool extends BasicTool {
         }
     }
 
-    class SamplingPoint {
-
-        private final double lon;
-        private final double lat;
-        private final long time;
-        private final double random;
-
-        public SamplingPoint(double lon, double lat, long time, double random) {
-            this.lon = lon;
-            this.lat = lat;
-            this.time = time;
-            this.random = random;
-        }
-
-        public double getLon() {
-            return lon;
-        }
-
-        public double getLat() {
-            return lat;
-        }
-
-        public long getTime() {
-            return time;
-        }
-
-        public double getRandom() {
-            return random;
-        }
-    }
 }
