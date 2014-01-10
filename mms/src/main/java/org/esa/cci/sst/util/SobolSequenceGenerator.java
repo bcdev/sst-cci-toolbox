@@ -48,7 +48,7 @@ import java.util.StringTokenizer;
  * @see <a href="http://web.maths.unsw.edu.au/~fkuo/sobol/">Sobol sequence direction numbers</a>
  * @since 3.3
  */
-class SobolSequenceGenerator {
+public class SobolSequenceGenerator {
 
     /**
      * The number of bits to use.
