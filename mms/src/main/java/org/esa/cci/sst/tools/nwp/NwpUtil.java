@@ -112,7 +112,7 @@ class NwpUtil {
         final Array sourceTimes = findVariable(analysisFile, "time").read();
 
         try {
-            anMmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
+            anMmd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
@@ -136,7 +136,7 @@ class NwpUtil {
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    anMmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
+                    anMmd.write(t.getFullNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
@@ -189,7 +189,7 @@ class NwpUtil {
         final Array sourceTimes = findVariable(forecastFile, "time").read();
 
         try {
-            fcMmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
+            fcMmd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
@@ -213,7 +213,7 @@ class NwpUtil {
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    fcMmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
+                    fcMmd.write(t.getFullNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
@@ -311,7 +311,7 @@ class NwpUtil {
     static Variable findVariable(NetcdfFile file, String... names) throws IOException {
         final StringBuilder expectedNames = new StringBuilder("{ ");
         for (String name : names) {
-            Variable v = file.findVariable(NetcdfFile.escapeName(name));
+            Variable v = file.findVariable(NetcdfFile.makeValidPathName(name));
             if (v != null) {
                 return v;
             }

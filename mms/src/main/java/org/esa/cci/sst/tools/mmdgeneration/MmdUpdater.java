@@ -83,10 +83,10 @@ public class MmdUpdater extends BasicTool {
             }
             //validateFileLocation(fileLocation);
             NetcdfFile ncFile = NetcdfFile.open(fileLocation);
-            Variable matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+            Variable matchupIds = ncFile.findVariable(NetcdfFile.makeValidPathName(Constants.VARIABLE_NAME_MATCHUP_ID));
             // allow for matchup_id instead of matchup.id to support ARC2 output
             if (matchupIds == null) {
-                matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
+                matchupIds = ncFile.findVariable(NetcdfFile.makeValidPathName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
             }
             int noOfRecords = matchupIds.getShape()[0];
             final Array matchupId = matchupIds.read(new int[]{0}, matchupIds.getShape());
@@ -126,7 +126,7 @@ public class MmdUpdater extends BasicTool {
     void parseVariables() {
         final String updateVariables = getConfiguration().getProperty("mms.mmdupdate.variables");
         for (String updateVariable : updateVariables.split(",")) {
-            final Variable variable = mmd.findVariable(NetcdfFile.escapeName(updateVariable));
+            final Variable variable = mmd.findVariable(NetcdfFile.makeValidPathName(updateVariable));
             if (variable == null) {
                 getLogger().warning("Variable '" + updateVariable + "' not found in mmd file.");
             }

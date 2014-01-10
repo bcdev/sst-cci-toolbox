@@ -110,7 +110,7 @@ public class NcAaiProductReaderTest {
         final NetcdfFile file = NetcdfFile.open(testFile);
         float minValue = Float.MAX_VALUE;
         float maxValue = Float.MIN_VALUE;
-        final Variable variable = file.findVariable(NetcdfFile.escapeName("aerosol_absorbing_index"));
+        final Variable variable = file.findVariable(NetcdfFile.makeValidPathName("aerosol_absorbing_index"));
         final Array array = variable.read();
         final IndexIterator iterator = array.getIndexIterator();
         while(iterator.hasNext()) {

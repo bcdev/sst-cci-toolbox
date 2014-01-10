@@ -68,10 +68,10 @@ public class MmdReader implements Reader {
         }
         validateFileLocation(fileLocation);
         ncFile = NetcdfFile.open(fileLocation);
-        matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+        matchupIds = ncFile.findVariable(NetcdfFile.makeValidPathName(Constants.VARIABLE_NAME_MATCHUP_ID));
         // allow for matchup_id instead of matchup.id to support ARC2 output
         if (matchupIds == null) {
-            matchupIds = ncFile.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
+            matchupIds = ncFile.findVariable(NetcdfFile.makeValidPathName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
         }
         final String property = getProperty(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "no");
         if ("yes".equals(property)) {
@@ -172,7 +172,7 @@ public class MmdReader implements Reader {
     }
 
     private int getSingleInt(int[] origin, int[] shape, String varName) throws IOException {
-        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(varName));
+        final Variable variable = ncFile.findVariable(NetcdfFile.makeValidPathName(varName));
         final Array array;
         try {
             array = variable.read(origin, shape);
@@ -184,7 +184,7 @@ public class MmdReader implements Reader {
 
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
-        final Variable variable = ncFile.findVariable(NetcdfFile.escapeName(role));
+        final Variable variable = ncFile.findVariable(NetcdfFile.makeValidPathName(role));
         if (variable == null) {
             throw new ToolException("cannot find variable " + role + " in MMD'", ToolException.TOOL_CONFIGURATION_ERROR);
         }

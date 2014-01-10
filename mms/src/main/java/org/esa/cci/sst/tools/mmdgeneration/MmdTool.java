@@ -384,7 +384,7 @@ public class MmdTool extends BasicTool {
             if (targetArray != null) {
                 final int[] targetStart = new int[variable.getRank()];
                 targetStart[0] = targetRecordNo;
-                mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+                mmd.write(variable.getFullNameEscaped(), targetStart, targetArray);
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
@@ -428,7 +428,7 @@ public class MmdTool extends BasicTool {
 
                 final int[] targetStart = new int[variable.getRank()];
                 targetStart[0] = i;
-                mmd.write(variable.getNameEscaped(), targetStart, targetArray);
+                mmd.write(variable.getFullNameEscaped(), targetStart, targetArray);
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());

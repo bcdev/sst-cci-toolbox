@@ -55,17 +55,17 @@ abstract class AbstractMmdReader implements ObservationReader {
 
     @Override
     public int getNumRecords() {
-        Variable variable = mmd.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_MATCHUP_ID));
+        Variable variable = mmd.findVariable(NetcdfFile.makeValidPathName(Constants.VARIABLE_NAME_MATCHUP_ID));
         // allow for matchup_id instead of matchup.id to support ARC2 output
         if (variable == null) {
-            variable = mmd.findVariable(NetcdfFile.escapeName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
+            variable = mmd.findVariable(NetcdfFile.makeValidPathName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
         }
         return variable.getDimensions().get(0).getLength();
     }
 
     @Override
     public Item getColumn(String role) {
-        final Variable variable = mmd.findVariable(NetcdfFile.escapeName(role));
+        final Variable variable = mmd.findVariable(NetcdfFile.makeValidPathName(role));
         if (variable != null) {
             return createColumn(variable);
         }

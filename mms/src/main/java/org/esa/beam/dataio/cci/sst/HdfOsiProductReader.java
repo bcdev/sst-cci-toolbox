@@ -54,7 +54,7 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
 
     private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_concentration";
     private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
-    private static final String VARIABLE_NAME = "Data/" + NetcdfFile.escapeName("data[00]");
+    private static final String VARIABLE_NAME = "Data/" + NetcdfFile.makeValidPathName("data[00]");
     private static final String DESCRIPTION_SEA_ICE = "A data product containing information about sea ice " +
                                                       "concentration: it indicates the areal fraction of a given grid " +
                                                       "point covered by ice.";

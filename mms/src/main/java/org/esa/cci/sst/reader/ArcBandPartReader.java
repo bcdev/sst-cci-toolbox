@@ -59,7 +59,7 @@ public class ArcBandPartReader extends CfBandPart {
         super.decode(ctx, p);
         p.removeBand(p.getBand(LONGITUDE_BAND_NAME));
         final NetcdfFile file = NetcdfFile.open(locationFile);
-        final Variable variable = file.findVariable(NetcdfFile.escapeName(LONGITUDE_BAND_NAME));
+        final Variable variable = file.findVariable(NetcdfFile.makeValidPathName(LONGITUDE_BAND_NAME));
         final SourcelessOpImage image = createOpImage(file, variable);
         final Band lon = p.addBand(LONGITUDE_BAND_NAME, ProductData.TYPE_FLOAT32);
         final List<Variable> variables = file.getVariables();

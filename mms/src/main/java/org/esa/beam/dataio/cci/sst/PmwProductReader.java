@@ -118,7 +118,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected RenderedImage createSourceImage(Band band) {
-        final Variable variable = getNetcdfFile().findVariable(NetcdfFile.escapeName(band.getName()));
+        final Variable variable = getNetcdfFile().findVariable(NetcdfFile.makeValidPathName(band.getName()));
         final int bufferType = ImageManager.getDataBufferType(band.getDataType());
         final int sourceWidth = band.getSceneRasterWidth();
         final int sourceHeight = band.getSceneRasterHeight();

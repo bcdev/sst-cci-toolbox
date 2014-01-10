@@ -179,7 +179,7 @@ public class NwpToolPrototype {
         final Array targetTimes = findVariable(mmd, SENSOR_NAME + ".time").read();
 
         try {
-            amd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
+            amd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
 
             for (int i = 0; i < matchupCount; i++) {
                 final int[] sourceStart = {0, 0, i * gy, 0};
@@ -223,7 +223,7 @@ public class NwpToolPrototype {
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    amd.write(t.getNameEscaped(), targetStart, slice2.reshape(targetShape));
+                    amd.write(t.getFullNameEscaped(), targetStart, slice2.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
@@ -298,7 +298,7 @@ public class NwpToolPrototype {
         final Array sourceTimes = findVariable(forecastFile, "time").read();
 
         try {
-            fmd.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
+            fmd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
@@ -322,7 +322,7 @@ public class NwpToolPrototype {
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    fmd.write(t.getNameEscaped(), targetStart, sourceData.reshape(targetShape));
+                    fmd.write(t.getFullNameEscaped(), targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
@@ -438,14 +438,14 @@ public class NwpToolPrototype {
                     final int[] sourceStart = new int[v.getRank()];
                     final int[] sourceShape = v.getShape();
                     final int[] targetStart = new int[v.getRank()];
-                    if (sensorMmd.findVariable(v.getNameEscaped()) != null) {
+                    if (sensorMmd.findVariable(v.getFullNameEscaped()) != null) {
                         for (int m = 0, n = 0; m < matchupDimension.getLength(); m++) {
                             if ((sensorPatterns.getInt(m) & SENSOR_PATTERN) == SENSOR_PATTERN) {
                                 sourceStart[0] = m;
                                 sourceShape[0] = 1;
                                 targetStart[0] = n;
                                 final Array data = v.read(sourceStart, sourceShape);
-                                sensorMmd.write(v.getNameEscaped(), targetStart, data);
+                                sensorMmd.write(v.getFullNameEscaped(), targetStart, data);
                                 n++;
                             }
                         }
@@ -580,7 +580,7 @@ public class NwpToolPrototype {
     }
 
     private static Variable findVariable(NetcdfFile file, String name) throws IOException {
-        final Variable v = file.findVariable(NetcdfFile.escapeName(name));
+        final Variable v = file.findVariable(NetcdfFile.makeValidPathName(name));
         if (v == null) {
             throw new IOException(MessageFormat.format("Expected variable ''{0}''.", name));
         }

@@ -344,7 +344,7 @@ class NwpTool {
         final Dimension yDimension = NwpUtil.findDimension(nwpSourceFile, "y");
         final Dimension xDimension = NwpUtil.findDimension(nwpSourceFile, "x");
 
-        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
+        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.makeValidPathName("matchup.sensor_list")).read());
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
@@ -355,7 +355,7 @@ class NwpTool {
         final float targetFillValue = NwpUtil.getAttribute(targetTimesVariable, "_FillValue", Short.MIN_VALUE);
 
         try {
-            mmdNwp.write(NetcdfFile.escapeName("matchup.id"), matchupIds);
+            mmdNwp.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
 
             for (int i = 0; i < matchupCount; i++) {
                 final int[] sourceStart = {0, 0, i * gy, 0};
@@ -404,7 +404,7 @@ class NwpTool {
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    mmdNwp.write(targetVariable.getNameEscaped(), targetStart, slice2.reshape(targetShape));
+                    mmdNwp.write(targetVariable.getFullNameEscaped(), targetStart, slice2.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
@@ -422,7 +422,7 @@ class NwpTool {
         final Dimension xDimension = NwpUtil.findDimension(nwpSourceFile, "x");
         final Dimension levDimension = NwpUtil.findDimension(nwpSourceFile, "lev");
 
-        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
+        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.makeValidPathName("matchup.sensor_list")).read());
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
         final int gz = levDimension.getLength();
@@ -452,7 +452,7 @@ class NwpTool {
 
     private void copySensorVariablesData(NetcdfFile mmd, NetcdfFileWriteable mmdNwp) throws IOException {
         final List<Integer> sensorMatchups = new ArrayList<Integer>(10000);
-        final Array array = mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read();
+        final Array array = mmd.findVariable(NetcdfFile.makeValidPathName("matchup.sensor_list")).read();
         for (int i = 0; i < array.getSize(); i++) {
             if ((array.getInt(i) & sensorPattern) == sensorPattern) {
                 sensorMatchups.add(i);
@@ -460,7 +460,7 @@ class NwpTool {
         }
         try {
             for (Variable targetVariable : mmdNwp.getVariables()) {
-                final Variable sourceVariable = mmd.findVariable(targetVariable.getNameEscaped());
+                final Variable sourceVariable = mmd.findVariable(targetVariable.getFullNameEscaped());
                 if (sourceVariable == null) {
                     continue;
                 }
@@ -472,7 +472,7 @@ class NwpTool {
                     final Array sourceArray = sourceVariable.read(sourceOrigin, shape);
                     int[] targetOrigin = new int[targetVariable.getRank()];
                     targetOrigin[0] = i;
-                    mmdNwp.write(NetcdfFile.escapeName(targetVariable.getName()), targetOrigin, sourceArray);
+                    mmdNwp.write(NetcdfFile.makeValidPathName(targetVariable.getName()), targetOrigin, sourceArray);
                 }
             }
         } catch (InvalidRangeException e) {
@@ -481,7 +481,7 @@ class NwpTool {
     }
 
     private void copySensorVariablesStructure(String sensorName, NetcdfFile mmd, NetcdfFileWriteable mmdNwp) throws IOException {
-        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.escapeName("matchup.sensor_list")).read());
+        final int matchupCount = getMatchupCount(mmd.findVariable(NetcdfFile.makeValidPathName("matchup.sensor_list")).read());
         for (Dimension dimension : mmd.getDimensions()) {
             final String dimensionName = dimension.getName();
             if (dimensionName.startsWith(sensorName.substring(0, sensorName.indexOf('.'))) &&
@@ -550,14 +550,14 @@ class NwpTool {
                     final int[] sourceStart = new int[v.getRank()];
                     final int[] sourceShape = v.getShape();
                     final int[] targetStart = new int[v.getRank()];
-                    if (sensorMmd.findVariable(v.getNameEscaped()) != null) {
+                    if (sensorMmd.findVariable(v.getFullNameEscaped()) != null) {
                         for (int m = 0, n = 0; m < matchupDimension.getLength(); m++) {
                             if ((sensorPatterns.getInt(m) & sensorPattern) == sensorPattern) {
                                 sourceStart[0] = m;
                                 sourceShape[0] = 1;
                                 targetStart[0] = n;
                                 final Array data = v.read(sourceStart, sourceShape);
-                                sensorMmd.write(v.getNameEscaped(), targetStart, data);
+                                sensorMmd.write(v.getFullNameEscaped(), targetStart, data);
                                 n++;
                             }
                         }

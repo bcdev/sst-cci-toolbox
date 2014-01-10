@@ -71,8 +71,8 @@ public class MmdPatcher extends BasicTool {
     }
 
     private void run(String[] args) throws IOException, InvalidRangeException {
-        Variable timeVariable = mmd.findVariable(NetcdfFile.escapeName("atsr.1.time"));
-        Variable detectorTemperatureVariable = mmd.findVariable(NetcdfFile.escapeName("atsr.1.detector_temperature_12"));
+        Variable timeVariable = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.1.time"));
+        Variable detectorTemperatureVariable = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.1.detector_temperature_12"));
         int noOfRecords = timeVariable.getShape()[0];
         final Array timeBuffer = timeVariable.read(new int[]{0}, timeVariable.getShape());
         final Array detectorTemperatureBuffer = detectorTemperatureVariable.read(new int[]{0}, detectorTemperatureVariable.getShape());
@@ -88,17 +88,17 @@ public class MmdPatcher extends BasicTool {
             }
             detectorTemperatureBuffer.setShort(recordNo, temperature);
         }
-        mmd.write(NetcdfFile.escapeName("atsr.1.detector_temperature_12"), new int[] { 0 }, detectorTemperatureBuffer);
+        mmd.write(NetcdfFile.makeValidPathName("atsr.1.detector_temperature_12"), new int[] { 0 }, detectorTemperatureBuffer);
         // set atsr.2.detector_temperature_12 to fill value
-        Variable timeVariable2 = mmd.findVariable(NetcdfFile.escapeName("atsr.2.time"));
-        Variable detectorTemperatureVariable2 = mmd.findVariable(NetcdfFile.escapeName("atsr.2.detector_temperature_12"));
+        Variable timeVariable2 = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.2.time"));
+        Variable detectorTemperatureVariable2 = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.2.detector_temperature_12"));
         int noOfRecords2 = timeVariable2.getShape()[0];
         final Array detectorTemperatureBuffer2 = detectorTemperatureVariable.read(new int[]{0}, detectorTemperatureVariable2.getShape());
         for (int recordNo = 0; recordNo < noOfRecords2; ++recordNo) {
             short temperature = FILL_VALUE;
             detectorTemperatureBuffer2.setShort(recordNo, temperature);
         }
-        mmd.write(NetcdfFile.escapeName("atsr.2.detector_temperature_12"), new int[] { 0 }, detectorTemperatureBuffer2);
+        mmd.write(NetcdfFile.makeValidPathName("atsr.2.detector_temperature_12"), new int[] { 0 }, detectorTemperatureBuffer2);
 
     }
 
