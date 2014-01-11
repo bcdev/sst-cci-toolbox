@@ -35,7 +35,7 @@ public class SamplingToolTest {
 
     private SamplingTool tool;
 
-    @org.junit.Before
+    @Before
     public void setUp() throws Exception {
         tool = new SamplingTool();
 
