@@ -103,7 +103,7 @@ public class SamplingToolTest {
             final double y = (90.0 - p.getLat()) / 180.0;
             final int i = (int) (y * h);
             final int k = (int) (x * w);
-            graphics.draw(new Rectangle(k, i, 1, 1));
+            graphics.fill(new Rectangle(k, i, 1, 1));
             label.repaint();
 
             try {
