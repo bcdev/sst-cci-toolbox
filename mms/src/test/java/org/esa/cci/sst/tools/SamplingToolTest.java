@@ -33,13 +33,18 @@ import static org.junit.Assert.assertEquals;
 
 public class SamplingToolTest {
 
+    private SamplingTool tool;
+
+    @org.junit.Before
+    public void setUp() throws Exception {
+        tool = new SamplingTool();
+
+        tool.setCommandLineArgs(new String[]{"-Dmms.sampling.count=10000"});
+        tool.initialize();
+    }
+
     @Test
     public void testCreateSamples() throws Exception {
-        final SamplingTool tool = new SamplingTool();
-
-        tool.setCommandLineArgs(new String[0]);
-        tool.initialize();
-
         final List<SamplingPoint> sampleList = tool.createSamples();
 
         assertEquals(10000, sampleList.size());
@@ -47,11 +52,6 @@ public class SamplingToolTest {
 
     @Test
     public void testRemoveLandSamples() throws Exception {
-        final SamplingTool tool = new SamplingTool();
-
-        tool.setCommandLineArgs(new String[0]);
-        tool.initialize();
-
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
 
@@ -60,11 +60,6 @@ public class SamplingToolTest {
 
     @Test
     public void testReduceClearSamples() throws Exception {
-        final SamplingTool tool = new SamplingTool();
-
-        tool.setCommandLineArgs(new String[0]);
-        tool.initialize();
-
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
