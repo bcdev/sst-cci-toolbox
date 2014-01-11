@@ -27,6 +27,11 @@
     <version>1</version>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>mms</module>
+        <module>tools</module>
+    </modules>
+
     <organization>
         <name>Brockmann Consult GmbH</name>
         <url>http://www.brockmann-consult.de</url>
