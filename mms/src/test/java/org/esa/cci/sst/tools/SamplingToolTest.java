@@ -65,7 +65,7 @@ public class SamplingToolTest {
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
 
-        assertEquals(2960, sampleList.size());
+        assertEquals(2970, sampleList.size());
     }
 
     public static void main(String[] args) throws IOException {
@@ -83,7 +83,7 @@ public class SamplingToolTest {
 
         final int w = 800;
         final int h = 400;
-        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
         final JLabel label = new JLabel(new ImageIcon(image));
 
         final JFrame frame = new JFrame();
