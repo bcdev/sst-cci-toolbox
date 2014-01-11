@@ -15,6 +15,7 @@ package org.esa.cci.sst.tools;/*
  */
 
 import org.esa.cci.sst.util.SamplingPoint;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
