@@ -25,6 +25,7 @@ import ucar.nc2.NetcdfFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -114,13 +115,14 @@ public class SamplingTool extends BasicTool {
         }
 
         final GridDef gridDef = GridDef.createGlobal(0.01);
+        final Raster waterImageRaster = waterImage.getRaster();
 
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
             final SamplingPoint point = iterator.next();
 
             final int x = gridDef.getGridX(point.getLon(), true);
             final int y = gridDef.getGridY(point.getLat(), true);
-            final int sample = waterImage.getRaster().getSample(x, y, 0);
+            final int sample = waterImageRaster.getSample(x, y, 0);
             if (sample == 0) {
                 iterator.remove();
             }
