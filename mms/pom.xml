@@ -77,17 +77,6 @@
             <artifactId>beam-watermask-operator</artifactId>
             <version>1.2-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>gov.nasa.gsfc.seadas</groupId>
-            <artifactId>seadas-watermask-operator</artifactId>
-            <version>1.2.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.esa.beam</groupId>
-                    <artifactId>beam-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <!--
            PostgreSQL and PostGIS support

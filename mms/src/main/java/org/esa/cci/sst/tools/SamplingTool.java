@@ -14,7 +14,6 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import gov.nasa.gsfc.seadas.watermask.operator.WatermaskClassifier;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
@@ -24,8 +23,11 @@ import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -85,7 +87,7 @@ public class SamplingTool extends BasicTool {
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
         final List<SamplingPoint> sampleList = new ArrayList<SamplingPoint>();
 
-        for (int i  = 0; i < sampleCount; i++) {
+        for (int i = 0; i < sampleCount; i++) {
             final double[] sample = sequenceGenerator.nextVector();
             final double x = sample[0];
             final double y = sample[1];
@@ -103,31 +105,29 @@ public class SamplingTool extends BasicTool {
     }
 
     void removeLandSamples(List<SamplingPoint> sampleList) {
-        final WatermaskClassifier classifier;
+        final BufferedImage waterImage;
         try {
-            classifier = new WatermaskClassifier(WatermaskClassifier.RESOLUTION_1km, WatermaskClassifier.Mode.GSHHS,
-                                                 "GSHHS_water_mask_1km.zip");
+            final URL url = getClass().getResource("water.png");
+            waterImage = ImageIO.read(url);
         } catch (IOException e) {
-            throw new ToolException("Unable to create land/water classifier.", e, ToolException.TOOL_IO_ERROR);
+            throw new ToolException("Unable to read land/water mask image.", e, ToolException.TOOL_IO_ERROR);
         }
+
+        final GridDef gridDef = GridDef.createGlobal(0.01);
 
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
             final SamplingPoint point = iterator.next();
 
-            try {
-                final boolean water = classifier.isWater((float) point.getLat(), (float) point.getLon());
-                if (!water) {
-                    iterator.remove();
-                }
-            } catch (IOException ignored) {
-                // cannot happen
+            final int x = gridDef.getGridX(point.getLon(), true);
+            final int y = gridDef.getGridY(point.getLat(), true);
+            final int sample = waterImage.getRaster().getSample(x, y, 0);
+            if (sample == 0) {
+                iterator.remove();
             }
         }
     }
 
     public void reduceClearSamples(List<SamplingPoint> sampleList) {
-        final GridDef gridDef = GridDef.createGlobal(1.0);
-
         final NetcdfFile file;
         try {
             file = NetcdfFile.openInMemory(getClass().getResource("AATSR_prior_run081222.nc").toURI());
@@ -137,14 +137,18 @@ public class SamplingTool extends BasicTool {
             throw new ToolException("Cannot read cloud priors.", e, ToolException.TOOL_IO_ERROR);
         }
 
+        final GridDef gridDef = GridDef.createGlobal(1.0);
         final Grid grid;
         try {
             grid = YFlip.create(NcUtils.readGrid(file, "clr_prior", gridDef));
             for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
                 final SamplingPoint point = iterator.next();
 
-                final int x = gridDef.getGridX(point.getLon(), true);
-                final int y = gridDef.getGridY(point.getLat(), true);
+                final double lon = point.getLon();
+                final double lat = point.getLat();
+                final int x = gridDef.getGridX(lon, true);
+                final int y = gridDef.getGridY(lat, true);
+                // final double f = Math.abs(lat) < 30.0 ? 1.0 : Math.cos(Math.toRadians(Math.abs(lat) - 30.0));
                 final double f = 0.05 / grid.getSampleDouble(x, y);
                 if (point.getRandom() > f) {
                     iterator.remove();
