@@ -65,7 +65,7 @@ public class SamplingToolTest {
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
 
-        assertEquals(2970, sampleList.size());
+        assertEquals(2973, sampleList.size());
     }
 
     public static void main(String[] args) throws IOException {
