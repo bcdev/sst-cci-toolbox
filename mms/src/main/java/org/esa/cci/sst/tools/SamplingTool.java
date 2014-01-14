@@ -240,9 +240,7 @@ public class SamplingTool extends BasicTool {
             final long time = point.getTime();
 
             // since binding a date to a parameter failed ...
-            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
-                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
-                                                                                        new Date(time)) + "'");
+            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2", "'" + TimeUtil.formatCcsdsUtcFormat(new Date(time)) + "'");
             final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
             query.setParameter(1, "atsr_orb.3");
             //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
@@ -264,19 +262,21 @@ public class SamplingTool extends BasicTool {
     }
 
     private static final String SENSOR_OBSERVATION_QUERY =
-            "select o"
-            + " from ReferenceObservation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= ?2 and o.time < ?3"
-            + " order by o.time, o.id";
+            "select o.id"
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
+                    + " order by o.time, o.id";
 
     public List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
-        Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
-        Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
-        final Query query = getPersistenceManager().createQuery(SENSOR_OBSERVATION_QUERY);
+        //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
+        //Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
+        final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll("\\?3", "'" + stopTimeString + "'");
+        final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
         query.setParameter(1, "atsr_orb.3");
-        query.setParameter(2, startTime);
-        query.setParameter(3, stopTime);
+        //query.setParameter(2, startTime);
+        //query.setParameter(3, stopTime);
         return query.getResultList();
     }
+
 }
