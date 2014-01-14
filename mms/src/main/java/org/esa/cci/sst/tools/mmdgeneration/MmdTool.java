@@ -30,16 +30,15 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
-import org.esa.cci.sst.util.Cache;
 import org.esa.cci.sst.util.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.IoUtil;
+import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -80,9 +79,7 @@ public class MmdTool extends BasicTool {
     private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
     private final List<String> targetColumnNames = new ArrayList<String>(500);
 
-    private Cache<String, Reader> readerCache;
-    private Reader cachedObservationReader;
-
+    private ReaderCache readerCache;
     private int matchupCount;
 
     public MmdTool() {
@@ -111,7 +108,8 @@ public class MmdTool extends BasicTool {
 
             mmd = createMmd();
             mmd = defineMmd(mmd);
-            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(), getPattern());
+            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(),
+                                                                                           getPattern());
             writeMmdShuffled(mmd, mmd.getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
@@ -142,7 +140,7 @@ public class MmdTool extends BasicTool {
      * @param mmd
      * @param mmdVariables
      * @param recordOfMatchup
-     * @param recordOfMatchup  inverted index of matchups and their (foreseen or existing) record numbers in the mmd
+     * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
     void writeMmdShuffled(NetcdfFileWriteable mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
         final String condition = getCondition();
@@ -159,76 +157,77 @@ public class MmdTool extends BasicTool {
             if ("history".equals(sensorName)) {
                 // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
                 queryString = "select u.id from (" +
-                        // matchup (here coincidence) with history observation uses history file
-                        "(select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and c.matchup_id = r.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 " +
-                        "and o.datafile_id = f.id " +
-                        ") union (" +
-                        // matchup without history uses file of reference observation
-                        "select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and f.id = r.datafile_id " +
-                        "and not exists ( select o.id from mm_coincidence c, mm_observation o " +
-                        "where c.matchup_id = m.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 ) " +
-                        ") " +
-                        "order by p, t, id) as u";
+                              // matchup (here coincidence) with history observation uses history file
+                              "(select r.id id, f.path p, r.time t " +
+                              "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                              "where r.time >= ?2 and r.time < ?3 " +
+                              "and m.id = r.id " +
+                              "and c.matchup_id = r.id " +
+                              "and c.observation_id = o.id " +
+                              "and o.sensor = ?1 " +
+                              "and o.datafile_id = f.id " +
+                              ") union (" +
+                              // matchup without history uses file of reference observation
+                              "select r.id id, f.path p, r.time t " +
+                              "from mm_matchup m, mm_observation r, mm_datafile f " +
+                              "where r.time >= ?2 and r.time < ?3 " +
+                              "and m.id = r.id " +
+                              "and f.id = r.datafile_id " +
+                              "and not exists ( select o.id from mm_coincidence c, mm_observation o " +
+                              "where c.matchup_id = m.id " +
+                              "and c.observation_id = o.id " +
+                              "and o.sensor = ?1 ) " +
+                              ") " +
+                              "order by p, t, id) as u";
 
             } else if ("atsr_md".equals(sensorName) || "metop".equals(sensorName) || "avhrr_md".equals(sensorName)) {
                 // second part of union introduced to access data for metop variables via refobs observation if metop is primary
                 queryString = "select u.id from (" +
-                        // matchup with sensor as related observation uses related observation file
-                        "(select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and c.matchup_id = r.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 " +
-                        "and o.datafile_id = f.id " +
-                        ") union (" +
-                        // matchup with sensor as reference uses refobs file
-                        "select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and r.sensor = ?1 " +
-                        "and m.id = r.id " +
-                        "and f.id = r.datafile_id) " +
-                        "order by p, t, id) as u";
+                              // matchup with sensor as related observation uses related observation file
+                              "(select r.id id, f.path p, r.time t " +
+                              "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                              "where r.time >= ?2 and r.time < ?3 " +
+                              "and m.id = r.id " +
+                              "and c.matchup_id = r.id " +
+                              "and c.observation_id = o.id " +
+                              "and o.sensor = ?1 " +
+                              "and o.datafile_id = f.id " +
+                              ") union (" +
+                              // matchup with sensor as reference uses refobs file
+                              "select r.id id, f.path p, r.time t " +
+                              "from mm_matchup m, mm_observation r, mm_datafile f " +
+                              "where r.time >= ?2 and r.time < ?3 " +
+                              "and r.sensor = ?1 " +
+                              "and m.id = r.id " +
+                              "and f.id = r.datafile_id) " +
+                              "order by p, t, id) as u";
 
-           } else if (!"Implicit".equals(sensorName)) {
+            } else if (!"Implicit".equals(sensorName)) {
                 // satellite observations use related observation file
                 queryString = "select r.id " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and c.matchup_id = r.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 " +
-                        "and o.datafile_id = f.id " +
-                        "order by f.path, r.time, r.id";
+                              "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                              "where r.time >= ?2 and r.time < ?3 " +
+                              "and m.id = r.id " +
+                              "and c.matchup_id = r.id " +
+                              "and c.observation_id = o.id " +
+                              "and o.sensor = ?1 " +
+                              "and o.datafile_id = f.id " +
+                              "order by f.path, r.time, r.id";
 
             } else {
                 // implicit rules use reference observation file
                 queryString = "select r.id " +
-                        "from mm_matchup m, mm_observation r, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and f.id = r.datafile_id " +
-                        "order by f.path, r.time, r.id";
+                              "from mm_matchup m, mm_observation r, mm_datafile f " +
+                              "where r.time >= ?2 and r.time < ?3 " +
+                              "and m.id = r.id " +
+                              "and f.id = r.datafile_id " +
+                              "order by f.path, r.time, r.id";
 
             }
             if (condition != null) {
                 if (pattern != 0) {
-                    queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and " + condition + " and r.time");
+                    queryString = queryString.replaceAll("where r.time",
+                                                         "where pattern & ?4 = ?4 and " + condition + " and r.time");
                 } else {
                     queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
                 }
@@ -249,7 +248,8 @@ public class MmdTool extends BasicTool {
                 try {
                     final Integer recordNo = recordOfMatchup.get(matchup.getId());
                     if (recordNo == null) {
-                        getLogger().warning(String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
+                        getLogger().warning(
+                                String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
                         continue;
                     }
                     final int targetRecordNo = recordNo;
@@ -258,14 +258,14 @@ public class MmdTool extends BasicTool {
                     if (observation != null && observation.getDatafile() != null &&
                         !observation.getDatafile().equals(previousDataFile)) {
                         if (previousDataFile != null) {
-                            closeReader(previousDataFile);
+                            readerCache.closeReader(previousDataFile);
                         }
                         previousDataFile = observation.getDatafile();
                     }
                     for (final Variable variable : sensorMap.get(sensorName)) {
                         Reader observationReader = null;
                         if (observation != null) {
-                            observationReader = getReader(observation.getDatafile(), false);
+                            observationReader = readerCache.getReader(observation.getDatafile(), false);
                             if (shouldFilter(referenceObservation, observationReader, observation)) {
                                 continue;
                             }
@@ -273,7 +273,9 @@ public class MmdTool extends BasicTool {
                         final Item targetColumn = columnRegistry.getColumn(variable.getName());
                         final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                         if ("Implicit".equals(sourceColumn.getName())) {
-                            final Reader referenceObservationReader = getReader(referenceObservation.getDatafile(), true);
+                            final Reader referenceObservationReader = readerCache.getReader(
+                                    referenceObservation.getDatafile(),
+                                    true);
                             final Context context = new ContextBuilder()
                                     .matchup(matchup)
                                     .observation(observation)
@@ -362,12 +364,14 @@ public class MmdTool extends BasicTool {
         final PixelPos pixelPos = new PixelPos();
         geoCoding.getPixelPos(geoPos, pixelPos);
         if (pixelPos.x < 0 || pixelPos.y < 0) {
-            final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
+            final String msg = String.format(
+                    "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             getLogger().warning(msg);
             return true;
         }
         if (pixelPos.x >= reader.getElementCount() || pixelPos.y >= reader.getScanLineCount()) {
-            final String msg = String.format("Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
+            final String msg = String.format(
+                    "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             getLogger().warning(msg);
             return true;
         }
@@ -404,7 +408,7 @@ public class MmdTool extends BasicTool {
     private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
-            final Reader reader = getReader(observation.getDatafile(), true);
+            final Reader reader = readerCache.getReader(observation.getDatafile(), true);
             final String role = sourceColumn.getRole();
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
@@ -442,45 +446,6 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private Reader getReader(DataFile datafile, boolean useCache) throws IOException {
-        final String path = datafile.getPath();
-        if(readerCache.contains(path)) {
-            return readerCache.get(path);
-        } else if (cachedObservationReader != null && path.equals(cachedObservationReader.getDatafile().getPath())) {
-            return cachedObservationReader;
-        } else {
-            if(useCache) {
-                final Reader reader;
-                try {
-                    final String message = MessageFormat.format("opening input file {0}", path);
-                    getLogger().info(message);
-                    reader = ReaderFactory.open(datafile, getConfiguration());
-                } catch (Exception e) {
-                    throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
-                }
-                final Reader removedReader = readerCache.add(path, reader);
-                if (removedReader != null) {
-                    removedReader.close();
-                }
-                return reader;
-            } else {
-                if (cachedObservationReader != null) {
-                    cachedObservationReader.close();
-                }
-                final String message = MessageFormat.format("opening input file {0}", path);
-                getLogger().info(message);
-                cachedObservationReader = ReaderFactory.open(datafile, getConfiguration());
-                return cachedObservationReader;
-            }
-        }
-    }
-
-    private void closeReader(DataFile datafile) {
-        if (cachedObservationReader != null && datafile.getPath().equals(cachedObservationReader.getDatafile().getPath())) {
-            cachedObservationReader.close();
-            cachedObservationReader = null;
-        }
-    }
 
     @Override
     public void initialize() {
@@ -502,8 +467,9 @@ public class MmdTool extends BasicTool {
         }
 
         readDimensionConfiguration(dimensionNames);
-        final int readerCacheSize = Integer.parseInt(getConfiguration().getProperty(Constants.PROPERTY_TARGET_READERCACHESIZE, "10"));
-        readerCache = new Cache<String, Reader>(readerCacheSize);
+        final int readerCacheSize = Integer.parseInt(
+                getConfiguration().getProperty(Constants.PROPERTY_TARGET_READERCACHESIZE, "10"));
+        readerCache = new ReaderCache(readerCacheSize, getConfiguration(), getLogger());
     }
 
     private NetcdfFileWriteable createMmd() throws IOException {
