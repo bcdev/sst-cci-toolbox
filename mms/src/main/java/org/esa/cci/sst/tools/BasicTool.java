@@ -39,6 +39,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Formatter;
@@ -106,11 +107,14 @@ public abstract class BasicTool {
     private Date sourceStopTime;
 
     static {
+        Locale.setDefault(Locale.ENGLISH);
+
         System.setProperty("EPSG-HSQL.directory", System.getProperty("user.home", ".") + File.separator + "tmp");
         System.setProperty("beam.imageManager.enableSourceTileCaching", "true");
+
         JAI.enableDefaultTileCache();
-//        JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 1024);
         JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 128);
+
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
     }
 

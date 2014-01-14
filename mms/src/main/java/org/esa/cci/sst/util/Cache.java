@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generic cache.
@@ -36,7 +37,7 @@ public class Cache<K, V> {
     public Cache(int capacity) {
         this.capacity = capacity;
         itemList = new ArrayList<V>(capacity);
-        itemMap = new HashMap<K, V>(capacity);
+        itemMap = new ConcurrentHashMap<>(capacity);
     }
 
     public V add(K key, V item) {
