@@ -14,12 +14,18 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
-import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.esa.cci.sst.util.TimeUtil;
@@ -33,11 +39,14 @@ import java.awt.image.Raster;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class SamplingTool extends BasicTool {
 
@@ -91,7 +100,7 @@ public class SamplingTool extends BasicTool {
 
     List<SamplingPoint> createSamples() {
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
-        final List<SamplingPoint> sampleList = new ArrayList<SamplingPoint>();
+        final List<SamplingPoint> sampleList = new ArrayList<>();
 
         for (int i = 0; i < sampleCount; i++) {
             final double[] sample = sequenceGenerator.nextVector();
@@ -134,13 +143,11 @@ public class SamplingTool extends BasicTool {
         }
     }
 
-    public void reduceClearSamples(List<SamplingPoint> sampleList) {
+    void reduceClearSamples(List<SamplingPoint> sampleList) {
         final NetcdfFile file;
         try {
             file = NetcdfFile.openInMemory(getClass().getResource("AATSR_prior_run081222.nc").toURI());
-        } catch (IOException e) {
-            throw new ToolException("Cannot read cloud priors.", e, ToolException.TOOL_IO_ERROR);
-        } catch (URISyntaxException e) {
+        } catch (IOException | URISyntaxException e) {
             throw new ToolException("Cannot read cloud priors.", e, ToolException.TOOL_IO_ERROR);
         }
 
@@ -167,6 +174,52 @@ public class SamplingTool extends BasicTool {
             try {
                 file.close();
             } catch (IOException ignored) {
+            }
+        }
+    }
+
+    void findSatelliteSubscenes(List<SamplingPoint> sampleList) {
+        final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<Integer, List<SamplingPoint>>();
+        for (final SamplingPoint point : sampleList) {
+            final int id = point.getReference();
+
+            if (!sampleListsByDatafile.containsKey(id)) {
+                sampleListsByDatafile.put(id, new ArrayList<SamplingPoint>());
+            }
+            sampleListsByDatafile.get(id).add(point);
+        }
+
+        final ReaderCache readerCache = new ReaderCache(10, getConfiguration(), getLogger());
+        for (final int id : sampleListsByDatafile.keySet()) {
+            final List<SamplingPoint> points = sampleListsByDatafile.get(id);
+
+            final String queryString = "select o.id"
+                                       + " from mm_observation o"
+                                       + " where o.id = ?1";
+
+            final Query query = getPersistenceManager().createNativeQuery(queryString, RelatedObservation.class);
+            query.setParameter(1, id);
+
+            final Object result = query.getSingleResult();
+            if (result instanceof RelatedObservation) {
+                final RelatedObservation observation = (RelatedObservation) result;
+                final DataFile datafile = observation.getDatafile();
+                try {
+                    final Reader reader = readerCache.getReader(datafile, true);
+                    for (final SamplingPoint point : points) {
+                        final GeoCoding geoCoding = reader.getGeoCoding(0);
+                        final GeoPos geoPos = new GeoPos((float) point.getLat(), (float) point.getLon());
+                        final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
+                        point.setX((int) Math.floor(pixelPos.getX()));
+                        point.setY((int) Math.floor(pixelPos.getY()));
+                    }
+                } catch (IOException e) {
+                    throw new ToolException(
+                            MessageFormat.format("Cannot open data file ''{0}''.", datafile.getPath()), e,
+                            ToolException.TOOL_IO_ERROR);
+                } finally {
+                    readerCache.closeReader(datafile);
+                }
             }
         }
     }
