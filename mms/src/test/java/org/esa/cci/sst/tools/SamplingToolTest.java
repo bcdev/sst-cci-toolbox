@@ -68,7 +68,18 @@ public class SamplingToolTest {
         assertEquals(2973, sampleList.size());
     }
 
-    public static void main(String[] args) throws IOException {
+    @Test
+    public void testFindSatelliteSubscenes() throws Exception {
+        final List<SamplingPoint> sampleList = tool.createSamples();
+        tool.removeLandSamples(sampleList);
+        tool.reduceClearSamples(sampleList);
+        tool.findObservations(sampleList);
+        tool.findSatelliteSubscenes(sampleList);
+
+        assertEquals(2973, sampleList.size());
+    }
+
+    public static void main2(String[] args) throws IOException {
         final SamplingTool tool = new SamplingTool();
 
         tool.setCommandLineArgs(new String[]{"-Dmms.sampling.count=100000"});
