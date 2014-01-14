@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ReaderCache {
@@ -48,8 +49,10 @@ public class ReaderCache {
             if (useCache) {
                 final Reader reader;
                 try {
-                    final String message = MessageFormat.format("opening input file {0}", path);
-                    logger.info(message);
+                    if (logger != null && logger.isLoggable(Level.INFO)) {
+                        final String message = MessageFormat.format("opening input file {0}", path);
+                        logger.info(message);
+                    }
                     reader = ReaderFactory.open(datafile, configuration);
                 } catch (Exception e) {
                     throw new IOException(MessageFormat.format("Unable to open file ''{0}''.", path), e);
@@ -63,8 +66,10 @@ public class ReaderCache {
                 if (cachedReader != null) {
                     cachedReader.close();
                 }
-                final String message = MessageFormat.format("opening input file {0}", path);
-                logger.info(message);
+                if (logger != null && logger.isLoggable(Level.INFO)) {
+                    final String message = MessageFormat.format("opening input file {0}", path);
+                    logger.info(message);
+                }
                 cachedReader = ReaderFactory.open(datafile, configuration);
                 return cachedReader;
             }
