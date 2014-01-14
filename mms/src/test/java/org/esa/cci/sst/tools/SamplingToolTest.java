@@ -75,9 +75,9 @@ public class SamplingToolTest {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-        final String startTimeString = "2010-06-01T00:00:00Z";
-        final String stopTimeString = "2010-06-04T00:00:00Z";
-        final int sampleCount = 100000;
+        final String startTimeString = "2004-06-01T00:00:00Z";
+        final String stopTimeString = "2004-06-07T00:00:00Z";
+        final int sampleCount = 200000;
 
         final SamplingTool tool = new SamplingTool();
         tool.setCommandLineArgs(new String[] {

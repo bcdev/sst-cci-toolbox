@@ -175,7 +175,7 @@ public class SamplingTool extends BasicTool {
         "select o.id"
                 + " from mm_observation o"
                 + " where o.sensor = ?1"
-                + " and o.time >= timestamp ?2 - interval '36:00:00' and o.time < timestamp ?2 + interval '36:00:00'"
+                + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
                 + " and st_intersects(o.location, st_geomfromewkt(?3))"
                 + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
