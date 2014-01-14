@@ -85,8 +85,6 @@ public class SamplingToolTest {
         assertEquals(2973, sampleList.size());
     }
 
-    public static void main(String[] args) throws IOException {
-        final SamplingTool tool = new SamplingTool();
     public static void main(String[] args) throws IOException, ParseException {
         final String startTimeString = "2010-06-01T00:00:00Z";
         final String stopTimeString = "2010-06-04T00:00:00Z";
