@@ -4,8 +4,9 @@ public final class SamplingPoint {
 
     private final double lon;
     private final double lat;
-    private final long time;
+    private long time;
     private final double random;
+    private int reference;
 
     public SamplingPoint(double lon, double lat, long time, double random) {
         this.lon = lon;
@@ -28,5 +29,17 @@ public final class SamplingPoint {
 
     public double getRandom() {
         return random;
+    }
+
+    public void setReference(int reference) {
+        this.reference = reference;
+    }
+
+    public int getReference() {
+        return reference;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
     }
 }

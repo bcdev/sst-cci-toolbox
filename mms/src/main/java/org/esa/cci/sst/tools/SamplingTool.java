@@ -17,6 +17,8 @@ package org.esa.cci.sst.tools;/*
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
@@ -24,6 +26,8 @@ import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;
 
 import javax.imageio.ImageIO;
+import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.IOException;
@@ -31,6 +35,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -61,11 +66,11 @@ public class SamplingTool extends BasicTool {
 
     @Override
     public void initialize() {
-        //super.initialize();
+        super.initialize();
         final String startTimeString = getConfiguration().getProperty("mms.sampling.startTime",
-                                                                      "2003-01-01T00:00:00Z");
+                                                                      "2010-06-01T00:00:00Z");
         final String stopTimeString = getConfiguration().getProperty("mms.sampling.stopTime",
-                                                                     "2003-01-02T00:00:00Z");
+                                                                     "2010-06-04T00:00:00Z");
         final String countString = getConfiguration().getProperty("mms.sampling.count", "10000");
 
         try {
@@ -164,6 +169,60 @@ public class SamplingTool extends BasicTool {
             } catch (IOException ignored) {
             }
         }
+    }
+
+    private static final String COINCIDING_OBSERVATION_QUERY =
+        "select o.id"
+                + " from mm_observation o"
+                + " where o.sensor = ?1"
+                + " and o.time >= timestamp ?2 - interval '36:00:00' and o.time < timestamp ?2 + interval '36:00:00'"
+                + " and st_intersects(o.location, st_geomfromewkt(?3))"
+                + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+
+    public void findObservations(List<SamplingPoint> sampleList) throws PersistenceException {
+        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
+            final SamplingPoint point = iterator.next();
+            final double lon = point.getLon();
+            final double lat = point.getLat();
+            final long time = point.getTime();
+
+            // since binding a date to a parameter failed ...
+            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2", "'" + TimeUtil.formatCcsdsUtcFormat(new Date(time)) + "'");
+            final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
+            query.setParameter(1, "atsr_orb.3");
+            //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
+            query.setParameter(3, String.format("POINT(%.4f %.4f)", lon, lat));
+            query.setMaxResults(1);
+
+            ReferenceObservation nearestCoveringObservation = null;
+            @SuppressWarnings({"unchecked"})
+            final List<? extends ReferenceObservation> observations = query.getResultList();
+            if (observations.isEmpty()) {
+                iterator.remove();
+                continue;
+            }
+            // select temporally nearest common observation
+            nearestCoveringObservation = observations.get(0);
+            point.setReference(nearestCoveringObservation.getId());
+//            point.setTime(nearestCoveringObservation.getTime().getTime());
+        }
+    }
+
+    private static final String SENSOR_OBSERVATION_QUERY =
+            "select o"
+                    + " from ReferenceObservation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= ?2 and o.time < ?3"
+                    + " order by o.time, o.id";
+
+    public List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
+        Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
+        Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
+        final Query query = getPersistenceManager().createQuery(SENSOR_OBSERVATION_QUERY);
+        query.setParameter(1, "atsr_orb.3");
+        query.setParameter(2, startTime);
+        query.setParameter(3, stopTime);
+        return query.getResultList();
     }
 
 }

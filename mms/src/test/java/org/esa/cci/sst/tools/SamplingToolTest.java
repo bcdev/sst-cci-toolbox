@@ -76,10 +76,16 @@ public class SamplingToolTest {
 
         System.out.println("Creating samples...");
         final List<SamplingPoint> sampleList = tool.createSamples();
+        System.out.println("Creating samples... " + sampleList.size());
         System.out.println("Removing land samples...");
         tool.removeLandSamples(sampleList);
+        System.out.println("Removing land samples..." + sampleList.size());
         System.out.println("Reducing clear samples...");
         tool.reduceClearSamples(sampleList);
+        System.out.println("Reducing clear samples..." + sampleList.size());
+        System.out.println("Finding reference observations...");
+        tool.findObservations(sampleList);
+        System.out.println("Finding reference observations..." + sampleList.size());
 
         final int w = 800;
         final int h = 400;

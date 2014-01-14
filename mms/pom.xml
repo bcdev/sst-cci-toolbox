@@ -33,7 +33,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <beam.version>5.0-SNAPSHOT</beam.version>
-        <openjpa.version>2.2.2</openjpa.version>
+        <openjpa.version>2.1.0</openjpa.version>
     </properties>
 
     <dependencies>
@@ -82,9 +82,15 @@
            PostgreSQL and PostGIS support
         -->
         <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.0-801.jdbc4</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.postgis</groupId>
-            <artifactId>postgis-jdbc</artifactId>
-            <version>2.1.0SVN</version> <!-- build from PostGIS 2.1.1 sources -->
+            <artifactId>postgis</artifactId>
+            <version>1.5.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.openjpa</groupId>
