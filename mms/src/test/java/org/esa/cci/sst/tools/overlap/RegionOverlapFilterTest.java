@@ -1,7 +1,6 @@
 package org.esa.cci.sst.tools.overlap;
 
 
-import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class RegionOverlapFilterTest {
     }
 
     @Test
-    public void testFilter_twoPoints_nonOverlapping()    {
+    public void testFilter_twoPoints_nonOverlapping() {
         final List<SamplingPoint> sampleList = new ArrayList<>();
         sampleList.add(new SamplingPoint(19, 83));
         sampleList.add(new SamplingPoint(36, 12));
@@ -56,7 +55,7 @@ public class RegionOverlapFilterTest {
     }
 
     @Test
-    public void testFilter_twoPoints_overlapping()    {
+    public void testFilter_twoPoints_overlapping() {
         final List<SamplingPoint> sampleList = new ArrayList<>();
         sampleList.add(new SamplingPoint(19, 83));
         sampleList.add(new SamplingPoint(21, 86));
@@ -67,7 +66,7 @@ public class RegionOverlapFilterTest {
     }
 
     @Test
-    public void testFilter_threePoints_nonOverlapping()    {
+    public void testFilter_threePoints_nonOverlapping() {
         final List<SamplingPoint> sampleList = new ArrayList<>();
         sampleList.add(new SamplingPoint(19, 83));
         sampleList.add(new SamplingPoint(36, 12));
@@ -77,4 +76,6 @@ public class RegionOverlapFilterTest {
         assertNotNull(filteredList);
         assertEquals(3, filteredList.size());
     }
+
+
 }

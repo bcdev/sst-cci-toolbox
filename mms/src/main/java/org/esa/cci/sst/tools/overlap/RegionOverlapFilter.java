@@ -62,7 +62,8 @@ public class RegionOverlapFilter {
         return intersections;
     }
 
-    private boolean intersect(SamplingPoint p1, SamplingPoint p2) {
-        return Math.abs(p1.getX() - p2.getX()) <= width && Math.abs(p1.getY() - p2.getY()) <= height;
+    // package access for testing only tb 2014-01-15
+    boolean intersect(SamplingPoint p1, SamplingPoint p2) {
+        return Math.abs(p1.getX() - p2.getX()) < width && Math.abs(p1.getY() - p2.getY()) < height;
     }
 }
