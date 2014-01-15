@@ -51,14 +51,14 @@ public final class ReaderCache {
         final String path = datafile.getPath();
         if (readerCache.contains(path)) {
             return readerCache.get(path);
-        } else if (cachedReader != null && path.equals(cachedReader.getDatafile().getPath())) {
+        } else if (cachedReader != null && cachedReader.getDatafile().getPath().equals(path)) {
             return cachedReader;
         } else {
             if (useCache) {
                 final Reader reader;
                 try {
                     if (logger != null && logger.isLoggable(Level.INFO)) {
-                        final String message = MessageFormat.format("opening input file {0}", path);
+                        final String message = MessageFormat.format("Opening input file ''{0}''.", path);
                         logger.info(message);
                     }
                     reader = ReaderFactory.open(datafile, configuration);
@@ -75,7 +75,7 @@ public final class ReaderCache {
                     cachedReader.close();
                 }
                 if (logger != null && logger.isLoggable(Level.INFO)) {
-                    final String message = MessageFormat.format("opening input file {0}", path);
+                    final String message = MessageFormat.format("Opening input file ''{0}''.", path);
                     logger.info(message);
                 }
                 cachedReader = ReaderFactory.open(datafile, configuration);
@@ -85,7 +85,7 @@ public final class ReaderCache {
     }
 
     public void closeReader(DataFile datafile) {
-        if (cachedReader != null && datafile.getPath().equals(cachedReader.getDatafile().getPath())) {
+        if (cachedReader != null && cachedReader.getDatafile().getPath().equals(datafile.getPath())) {
             cachedReader.close();
             cachedReader = null;
         }

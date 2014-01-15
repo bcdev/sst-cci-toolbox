@@ -24,6 +24,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.esa.beam.framework.gpf.GPF;
+import org.esa.beam.util.logging.BeamLogManager;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
@@ -42,6 +43,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -63,23 +65,23 @@ public abstract class BasicTool {
 
         @Override
         public String format(LogRecord record) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append(TimeUtil.formatCcsdsUtcMillisFormat(new Date(record.getMillis())))
-                    .append(" ")
+            final String time = TimeUtil.formatCcsdsUtcMillisFormat(new Date(record.getMillis()));
+            final StringBuilder sb = new StringBuilder(time);
+            sb.append(" ")
                     .append(record.getLevel().getLocalizedName())
                     .append(": ")
                     .append(formatMessage(record))
                     .append(LINE_SEPARATOR);
 
-            if (record.getThrown() != null) {
+            final Throwable thrown = record.getThrown();
+            if (thrown != null) {
                 try {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    record.getThrown().printStackTrace(pw);
+                    final StringWriter sw = new StringWriter();
+                    final PrintWriter pw = new PrintWriter(sw);
+                    thrown.printStackTrace(pw);
                     pw.close();
                     sb.append(sw.toString());
-                } catch (Exception ex) {
+                } catch (Exception ignored) {
                     // ignore
                 }
             }
@@ -116,6 +118,10 @@ public abstract class BasicTool {
         JAI.getDefaultInstance().getTileCache().setMemoryCapacity(1024 * 1024 * 128);
 
         GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis();
+
+        for (Handler handler : BeamLogManager.getSystemLogger().getHandlers()) {
+            BeamLogManager.getSystemLogger().removeHandler(handler);
+        }
     }
 
     protected BasicTool(String name, String version) {
@@ -142,10 +148,11 @@ public abstract class BasicTool {
                 if (logger == null) {
                     logger = Logger.getLogger("org.esa.cci.sst");
                     logger.setLevel(Level.INFO);
-                    final SstLogFormatter formatter = new SstLogFormatter();
-                    for (Handler handler : logger.getHandlers()) {
-                        handler.setFormatter(formatter);
-                    }
+                    final ConsoleHandler consoleHandler = new ConsoleHandler();
+                    final Formatter formatter = new SstLogFormatter();
+                    consoleHandler.setFormatter(formatter);
+                    consoleHandler.setLevel(Level.INFO);
+                    logger.addHandler(consoleHandler);
                 }
             }
         }
