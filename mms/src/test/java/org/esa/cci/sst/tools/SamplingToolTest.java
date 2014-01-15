@@ -82,16 +82,16 @@ public class SamplingToolTest {
         tool.findObservations(sampleList);
         tool.findSatelliteSubscenes(sampleList);
 
-        assertEquals(2973, sampleList.size());
+        assertEquals(85, sampleList.size());
     }
 
     public static void main(String[] args) throws IOException, ParseException {
         final String startTimeString = "2004-06-01T00:00:00Z";
-        final String stopTimeString = "2004-06-07T00:00:00Z";
-        final int sampleCount = 200000;
+        final String stopTimeString = "2004-06-09T00:00:00Z";
+        final int sampleCount = 500000;
 
         final SamplingTool tool = new SamplingTool();
-        tool.setCommandLineArgs(new String[] {
+        tool.setCommandLineArgs(new String[]{
                 "-Dmms.sampling.count=" + sampleCount,
                 "-Dmms.sampling.startTime=" + startTimeString,
                 "-Dmms.sampling.stopTime=" + stopTimeString
@@ -110,28 +110,42 @@ public class SamplingToolTest {
         System.out.println("Finding reference observations...");
         tool.findObservations(sampleList);
         System.out.println("Finding reference observations..." + sampleList.size());
+        System.out.println("Finding satellite sub-scenes...");
+        tool.findSatelliteSubscenes(sampleList);
+        System.out.println("Finding satellite sub-scenes..." + sampleList.size());
+
+        plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
 
         final Date startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
         final Date stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString);
-        plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
 
+        /*
         final List<ReferenceObservation> orbits = tool.findOrbits(startTimeString, stopTimeString);
         int noOrbitsToPlot = 14;
         for (ReferenceObservation orbit : orbits) {
             final int orbitId = orbit.getId();
-            List<SamplingPoint> orbitSamples = filter(sampleList, new Predicate<SamplingPoint>() { public boolean apply(SamplingPoint s) { return s.getReference() == orbitId; }});
+            List<SamplingPoint> orbitSamples = filter(sampleList, new Predicate<SamplingPoint>() {
+                @Override
+                public boolean apply(SamplingPoint s) {
+                    return s.getReference() == orbitId;
+                }
+            });
             plotSamples(orbitSamples, "orbit " + orbit.getDatafile().getPath(), null);
             if (--noOrbitsToPlot <= 0) {
                 break;
             }
         }
+        */
     }
 
-    public interface Predicate<T> { boolean apply(T type); }
+    public interface Predicate<T> {
 
-    public static <T> List<T> filter(Collection <T> target, Predicate<T> predicate) {
+        boolean apply(T type);
+    }
+
+    public static <T> List<T> filter(Collection<T> target, Predicate<T> predicate) {
         List<T> result = new ArrayList<T>();
-        for (T element: target) {
+        for (T element : target) {
             if (predicate.apply(element)) {
                 result.add(element);
             }
@@ -139,7 +153,8 @@ public class SamplingToolTest {
         return result;
     }
 
-    private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws IOException {
+    private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
+                                                                                                            IOException {
         final int w = 800;
         final int h = 400;
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);

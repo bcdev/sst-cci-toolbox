@@ -23,12 +23,14 @@ import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.esa.cci.sst.util.TimeUtil;
+import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
 import javax.imageio.ImageIO;
@@ -205,13 +207,60 @@ public class SamplingTool extends BasicTool {
                 final RelatedObservation observation = (RelatedObservation) result;
                 final DataFile datafile = observation.getDatafile();
                 try {
-                    final Reader reader = readerCache.getReader(datafile, true);
+                    final Reader reader = readerCache.getReader(datafile, false);
                     for (final SamplingPoint point : points) {
+                        final double lat = point.getLat();
+                        final double lon = point.getLon();
                         final GeoCoding geoCoding = reader.getGeoCoding(0);
-                        final GeoPos geoPos = new GeoPos((float) point.getLat(), (float) point.getLon());
+                        final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
                         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
                         point.setX((int) Math.floor(pixelPos.getX()));
                         point.setY((int) Math.floor(pixelPos.getY()));
+
+                        final ExtractDefinition extractDefinition = new ExtractDefinition() {
+                            @Override
+                            public double getLat() {
+                                return lat;
+                            }
+
+                            @Override
+                            public double getLon() {
+                                return lon;
+                            }
+
+                            @Override
+                            public int getRecordNo() {
+                                return 0;
+                            }
+
+                            @Override
+                            public int[] getShape() {
+                                return new int[]{1, 7, 7};
+                            }
+
+                            @Override
+                            public Date getDate() {
+                                return null;
+                            }
+
+                            @Override
+                            public Number getFillValue() {
+                                return null;
+                            }
+                        };
+                        final Array array = reader.read("cloud_flags_nadir", extractDefinition);
+                        int cloudyPixelCount = 0;
+                        for (int y = 0; y < 7; y++) {
+                            for (int x = 0; x < 7; x++) {
+                                final int value = array.getInt(y * 7 + x);
+                                if ((value & 2) != 0) {
+                                    cloudyPixelCount++;
+                                }
+                            }
+                        }
+                        if (cloudyPixelCount > 0) {
+                            sampleList.remove(point);
+                        }
                     }
                 } catch (IOException e) {
                     throw new ToolException(
@@ -225,12 +274,12 @@ public class SamplingTool extends BasicTool {
     }
 
     private static final String COINCIDING_OBSERVATION_QUERY =
-        "select o.id"
-                + " from mm_observation o"
-                + " where o.sensor = ?1"
-                + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
-                + " and st_intersects(o.location, st_geomfromewkt(?3))"
-                + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+            "select o.id"
+            + " from mm_observation o"
+            + " where o.sensor = ?1"
+            + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
+            + " and st_intersects(o.location, st_geomfromewkt(?3))"
+            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     public void findObservations(List<SamplingPoint> sampleList) throws PersistenceException {
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
@@ -240,7 +289,9 @@ public class SamplingTool extends BasicTool {
             final long time = point.getTime();
 
             // since binding a date to a parameter failed ...
-            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2", "'" + TimeUtil.formatCcsdsUtcFormat(new Date(time)) + "'");
+            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
+                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
+                                                                                        new Date(time)) + "'");
             final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
             query.setParameter(1, "atsr_orb.3");
             //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
@@ -263,15 +314,16 @@ public class SamplingTool extends BasicTool {
 
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o.id"
-                    + " from mm_observation o"
-                    + " where o.sensor = ?1"
-                    + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
-                    + " order by o.time, o.id";
+            + " from mm_observation o"
+            + " where o.sensor = ?1"
+            + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
+            + " order by o.time, o.id";
 
     public List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
         //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
         //Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
-        final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll("\\?3", "'" + stopTimeString + "'");
+        final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll(
+                "\\?3", "'" + stopTimeString + "'");
         final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
         query.setParameter(1, "atsr_orb.3");
         //query.setParameter(2, startTime);
