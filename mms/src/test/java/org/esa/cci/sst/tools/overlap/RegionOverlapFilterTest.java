@@ -33,21 +33,19 @@ public class RegionOverlapFilterTest {
     @Test
     public void testFilter_onePoint() {
         final List<SamplingPoint> sampleList = new ArrayList<>();
-        final SamplingPoint samplingPoint = new SamplingPoint(19, 83);
-        sampleList.add(samplingPoint);
+        addSamplePoint(19, 83, sampleList);
 
         final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
         assertNotNull(filteredList);
         assertEquals(1, filteredList.size());
-        assertEquals(19, filteredList.get(0).getX());
-        assertEquals(83, filteredList.get(0).getY());
+        assertSamplePointAt(19, 83, 0, filteredList);
     }
 
     @Test
     public void testFilter_twoPoints_nonOverlapping() {
         final List<SamplingPoint> sampleList = new ArrayList<>();
-        sampleList.add(new SamplingPoint(19, 83));
-        sampleList.add(new SamplingPoint(36, 12));
+        addSamplePoint(19, 83, sampleList);
+        addSamplePoint(36, 12, sampleList);
 
         final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
         assertNotNull(filteredList);
@@ -57,25 +55,48 @@ public class RegionOverlapFilterTest {
     @Test
     public void testFilter_twoPoints_overlapping() {
         final List<SamplingPoint> sampleList = new ArrayList<>();
-        sampleList.add(new SamplingPoint(19, 83));
-        sampleList.add(new SamplingPoint(21, 86));
+        addSamplePoint(19, 83, sampleList);
+        addSamplePoint(21, 86, sampleList);
 
         final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
         assertNotNull(filteredList);
         assertEquals(1, filteredList.size());
+        assertSamplePointAt(21, 86, 0, filteredList);
     }
 
     @Test
     public void testFilter_threePoints_nonOverlapping() {
         final List<SamplingPoint> sampleList = new ArrayList<>();
-        sampleList.add(new SamplingPoint(19, 83));
-        sampleList.add(new SamplingPoint(36, 12));
-        sampleList.add(new SamplingPoint(102, 13));
+        addSamplePoint(19, 83, sampleList);
+        addSamplePoint(36, 12, sampleList);
+        addSamplePoint(102, 13, sampleList);
 
         final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
         assertNotNull(filteredList);
         assertEquals(3, filteredList.size());
     }
 
+    @Test
+    public void testFilter_threePoints_twoOverlapping() {
+        final List<SamplingPoint> sampleList = new ArrayList<>();
+        addSamplePoint(19, 83, sampleList);
+        addSamplePoint(21, 82, sampleList);
+        addSamplePoint(102, 13, sampleList);
 
+        final List<SamplingPoint> filteredList = filter.filterOverlaps(sampleList);
+        assertNotNull(filteredList);
+        assertEquals(2, filteredList.size());
+
+        assertSamplePointAt(21, 82, 0, filteredList);
+        assertSamplePointAt(102, 13, 1, filteredList);
+    }
+
+    private void assertSamplePointAt(int expectedX, int expectedY, int index, List<SamplingPoint> filteredList) {
+        assertEquals(expectedX, filteredList.get(index).getX());
+        assertEquals(expectedY, filteredList.get(index).getY());
+    }
+
+    private void addSamplePoint(int x, int y, List<SamplingPoint> sampleList) {
+        sampleList.add(new SamplingPoint(x, y));
+    }
 }
