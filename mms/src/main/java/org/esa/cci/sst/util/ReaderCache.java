@@ -85,13 +85,22 @@ public final class ReaderCache {
     }
 
     public void closeReader(DataFile datafile) {
-        if (cachedReader != null && cachedReader.getDatafile().getPath().equals(datafile.getPath())) {
+        final String path = datafile.getPath();
+        if (readerCache.contains(path)) {
+            final Reader removedReader = readerCache.remove(path);
+            if (removedReader != null) {
+                removedReader.close();
+            }
+        } else if (cachedReader != null && cachedReader.getDatafile().getPath().equals(path)) {
             cachedReader.close();
             cachedReader = null;
         }
     }
 
-    public Collection<Reader> clear() {
-        return readerCache.clear();
+    public void clear() {
+        final Collection<Reader> removedReaders = readerCache.clear();
+        for (final Reader reader : removedReaders) {
+            reader.close();
+        }
     }
 }

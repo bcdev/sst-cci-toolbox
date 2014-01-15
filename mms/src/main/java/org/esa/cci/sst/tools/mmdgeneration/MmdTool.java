@@ -118,19 +118,12 @@ public class MmdTool extends BasicTool {
         } finally {
             if (mmd != null) {
                 try {
-                    closeReaders();
+                    readerCache.clear();
                     mmd.close();
                 } catch (IOException ignored) {
                 }
             }
             getPersistenceManager().close();
-        }
-    }
-
-    private void closeReaders() {
-        final Collection<Reader> removedReaders = readerCache.clear();
-        for (final Reader reader : removedReaders) {
-            reader.close();
         }
     }
 
