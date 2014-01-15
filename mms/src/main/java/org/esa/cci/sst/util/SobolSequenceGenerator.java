@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
  * its subsequence (x1, ... xN) has a low discrepancy. It can be used to generate pseudo-random
  * points in a space S, which are equi-distributed.
  * <p/>
- * The implementation already comes with support for up to 1000 dimensions with direction numbers
+ * The implementation already comes with support for up to 21201 dimensions with direction numbers
  * calculated from <a href="http://web.maths.unsw.edu.au/~fkuo/sobol/">Stephen Joe and Frances Kuo</a>.
  * <p/>
  * The generator supports two modes:
@@ -43,10 +43,8 @@ import java.util.StringTokenizer;
  * <li>random access to the i-th point in the sequence: {@link #skipTo(int)}</li>
  * </ul>
  *
- * @version $Id: SobolSequenceGenerator.html 885258 2013-11-03 02:46:49Z tn $
  * @see <a href="http://en.wikipedia.org/wiki/Sobol_sequence">Sobol sequence (Wikipedia)</a>
  * @see <a href="http://web.maths.unsw.edu.au/~fkuo/sobol/">Sobol sequence direction numbers</a>
- * @since 3.3
  */
 public class SobolSequenceGenerator {
 
@@ -68,7 +66,7 @@ public class SobolSequenceGenerator {
     /**
      * The resource containing the direction numbers.
      */
-    private static final String RESOURCE_NAME = "new-joe-kuo-6.21201.txt";
+    private static final String DIRECTION_NUMBERS_RESOURCE_NAME = "new-joe-kuo-6.21201.txt";
 
     /**
      * Character set for file input.
@@ -106,7 +104,7 @@ public class SobolSequenceGenerator {
         }
 
         // initialize the other dimensions with direction numbers from a resource
-        final InputStream is = getClass().getResourceAsStream(RESOURCE_NAME);
+        final InputStream is = getClass().getResourceAsStream(DIRECTION_NUMBERS_RESOURCE_NAME);
         if (is == null) {
             throw new IllegalStateException("The internal resource file could not be read.");
         }
@@ -122,10 +120,7 @@ public class SobolSequenceGenerator {
         } catch (IOException e) {
             // the internal resource file could not be read; should not happen
             throw new IllegalStateException("The internal resource file could not be read.");
-        } catch (NoSuchElementException e) {
-            // the internal resource file could not be parsed; should not happen
-            throw new IllegalStateException("The internal resource file could not be parsed.");
-        } catch (NumberFormatException e) {
+        } catch (NoSuchElementException | NumberFormatException e) {
             // the internal resource file could not be parsed; should not happen
             throw new IllegalStateException("The internal resource file could not be parsed.");
         } finally {
@@ -134,53 +129,6 @@ public class SobolSequenceGenerator {
             } catch (IOException e) { // NOPMD
                 // ignore
             }
-        }
-    }
-
-    /**
-     * Construct a new Sobol sequence generator for the given space dimension with
-     * direction vectors loaded from the given stream.
-     * <p/>
-     * The expected format is identical to the files available from
-     * <a href="http://web.maths.unsw.edu.au/~fkuo/sobol/">Stephen Joe and Frances Kuo</a>.
-     * The first line will be ignored as it is assumed to contain only the column headers.
-     * The columns are:
-     * <ul>
-     * <li>d: the dimension</li>
-     * <li>s: the degree of the primitive polynomial</li>
-     * <li>a: the number representing the coefficients</li>
-     * <li>m: the list of initial direction numbers</li>
-     * </ul>
-     * Example:
-     * <pre>
-     * d       s       a       m_i
-     * 2       1       0       1
-     * 3       2       1       1 3
-     * </pre>
-     * <p/>
-     * The input stream <i>must</i> be an ASCII text containing one valid direction vector per line.
-     *
-     * @param dimension the space dimension
-     * @param is        the stream to read the direction vectors from
-     *
-     * @throws java.io.IOException if an error occurs while reading from the input stream
-     */
-    public SobolSequenceGenerator(final int dimension, final InputStream is) throws IOException {
-
-        if (dimension < 1) {
-            throw new IllegalArgumentException("dimension < 1"); // TODO - message
-        }
-
-        this.dimension = dimension;
-
-        // init data structures
-        direction = new long[dimension][BITS + 1];
-        x = new long[dimension];
-
-        // initialize the other dimensions with direction numbers from the stream
-        int lastDimension = initFromStream(is);
-        if (lastDimension < dimension) {
-            throw new IllegalArgumentException("lastDimension < dimension"); // TODO - message
         }
     }
 
@@ -197,17 +145,15 @@ public class SobolSequenceGenerator {
      * @throws java.io.IOException if the stream could not be read
      */
     private int initFromStream(final InputStream is) throws IOException {
-
         // special case: dimension 1 -> use unit initialization
         for (int i = 1; i <= BITS; i++) {
             direction[0][i] = 1l << (BITS - i);
         }
 
         final Charset charset = Charset.forName(FILE_CHARSET);
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(is, charset));
         int dim = -1;
 
-        try {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, charset))) {
             // ignore first line
             reader.readLine();
 
@@ -231,17 +177,12 @@ public class SobolSequenceGenerator {
                     if (dim > dimension) {
                         return dim;
                     }
-                } catch (NoSuchElementException e) {
-                    throw new NoSuchElementException(
-                            "Could not parse line '" + line + "' in line number " + lineNumber);
-                } catch (NumberFormatException e) {
+                } catch (NoSuchElementException | NumberFormatException e) {
                     throw new NoSuchElementException(
                             "Could not parse line '" + line + "' in line number " + lineNumber);
                 }
                 lineNumber++;
             }
-        } finally {
-            reader.close();
         }
 
         return dim;
@@ -337,5 +278,4 @@ public class SobolSequenceGenerator {
     public int getNextIndex() {
         return count;
     }
-
 }
