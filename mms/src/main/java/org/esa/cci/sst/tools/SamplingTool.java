@@ -77,9 +77,9 @@ public class SamplingTool extends BasicTool {
     public void initialize() {
         super.initialize();
         final String startTimeString = getConfiguration().getProperty("mms.sampling.startTime",
-                                                                      "2010-06-01T00:00:00Z");
+                                                                      "2004-06-01T00:00:00Z");
         final String stopTimeString = getConfiguration().getProperty("mms.sampling.stopTime",
-                                                                     "2010-06-04T00:00:00Z");
+                                                                     "2004-06-04T00:00:00Z");
         final String countString = getConfiguration().getProperty("mms.sampling.count", "10000");
 
         try {
