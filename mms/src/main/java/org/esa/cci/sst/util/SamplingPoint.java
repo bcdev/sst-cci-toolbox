@@ -2,8 +2,7 @@ package org.esa.cci.sst.util;
 
 public final class SamplingPoint {
 
-    private final double random;
-
+    private double random;
     private double lon;
     private double lat;
     private long time;
@@ -17,6 +16,11 @@ public final class SamplingPoint {
         this.lon = lon;
         this.lat = lat;
         this.time = time;
+    }
+
+    public SamplingPoint(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 
     public double getLon() {
