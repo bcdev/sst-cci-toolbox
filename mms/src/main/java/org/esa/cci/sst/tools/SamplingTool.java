@@ -225,12 +225,12 @@ public class SamplingTool extends BasicTool {
     }
 
     private static final String COINCIDING_OBSERVATION_QUERY =
-            "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '36:00:00' and o.time < timestamp ?2 + interval '36:00:00'"
-            + " and st_intersects(o.location, st_geomfromewkt(?3))"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+        "select o.id"
+                + " from mm_observation o"
+                + " where o.sensor = ?1"
+                + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
+                + " and st_intersects(o.location, st_geomfromewkt(?3))"
+                + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     public void findObservations(List<SamplingPoint> sampleList) throws PersistenceException {
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
