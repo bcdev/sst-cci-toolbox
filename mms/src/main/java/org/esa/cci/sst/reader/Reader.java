@@ -23,6 +23,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import ucar.ma2.Array;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -31,7 +32,7 @@ import java.io.IOException;
  *
  * @author Martin Boettcher
  */
-public interface Reader {
+public interface Reader extends Closeable {
 
     /**
      * Opens observation file and initialises cache buffer.
@@ -48,6 +49,7 @@ public interface Reader {
     /**
      * Closes observation file
      */
+    @Override
     void close();
 
     /**
