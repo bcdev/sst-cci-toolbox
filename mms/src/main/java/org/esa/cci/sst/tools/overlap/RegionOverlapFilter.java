@@ -4,26 +4,35 @@ import org.esa.cci.sst.util.SamplingPoint;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class RegionOverlapFilter {
 
-    private final int width;
-    private final int height;
+    private final IntersectionCalculator ic;
 
     public RegionOverlapFilter(int width, int height) {
-        this.width = width;
-        this.height = height;
+        ic = new IntersectionCalculator(width, height);
     }
 
     public List<SamplingPoint> filterOverlaps(List<SamplingPoint> sampleList) {
-        final ArrayList<SamplingPoint> filteredList = new ArrayList<>();
+        final List<SamplingPoint> filteredList = new LinkedList<>();
         if (sampleList.size() <= 1) {
             filteredList.addAll(sampleList);
             return filteredList;
         }
 
-        final ArrayList<SamplingPoint> intermediateList = new ArrayList<>(sampleList);
+        // split input into lists of same orbit reference
+        // iterate over all lists
+        filterSingleOrbitOverlaps(sampleList, filteredList);
+
+        // merge filtered lists
+
+        return filteredList;
+    }
+
+    private void filterSingleOrbitOverlaps(List<SamplingPoint> sampleList, List<SamplingPoint> filteredList) {
+        final List<SamplingPoint> intermediateList = new LinkedList<>(sampleList);
         while (intermediateList.size() > 1) {
             final SamplingPoint p0 = intermediateList.get(0);
             intermediateList.remove(0);
@@ -52,8 +61,6 @@ public class RegionOverlapFilter {
         if (!intermediateList.isEmpty()) {
             filteredList.add(intermediateList.get(0));
         }
-
-        return filteredList;
     }
 
     // package access for testing only tb 2014-01-15
@@ -73,7 +80,7 @@ public class RegionOverlapFilter {
             while (sumIntersections > 0) {
                 sumIntersections = 0;
                 for (IntersectionWrapper wrapper : intersectionWrappers) {
-                    final int intersections = getAllThatIntersect(wrapper.getPoint(), clusterList).size() - 1;   // remove self intersection
+                    final int intersections = ic.getAllThatIntersect(wrapper.getPoint(), clusterList).size() - 1;   // remove self intersection
                     wrapper.setNumIntersections(intersections);
                     sumIntersections += intersections;
                 }
@@ -88,15 +95,10 @@ public class RegionOverlapFilter {
     }
 
     // package access for testing only tb 2014-01-15
-    boolean intersect(SamplingPoint p1, SamplingPoint p2) {
-        return Math.abs(p1.getX() - p2.getX()) < width && Math.abs(p1.getY() - p2.getY()) < height;
-    }
-
-    // package access for testing only tb 2014-01-15
     List<SamplingPoint> extractClusterContaining(SamplingPoint samplingPoint, List<SamplingPoint> sampleList) {
-        final ArrayList<SamplingPoint> clusterList = new ArrayList<>();
+        final List<SamplingPoint> clusterList = new LinkedList<>();
 
-        final ArrayList<SamplingPoint> intersecting = getAllThatIntersect(samplingPoint, sampleList);
+        final List<SamplingPoint> intersecting = ic.getAllThatIntersect(samplingPoint, sampleList);
         if (intersecting.size() == 0) {
             return clusterList;
         }
@@ -107,22 +109,10 @@ public class RegionOverlapFilter {
             clusterList.add(intersectPoint);
             sampleList.remove(intersectPoint);
 
-            final ArrayList<SamplingPoint> subIntersecting = getAllThatIntersect(intersectPoint, sampleList);
+            final ArrayList<SamplingPoint> subIntersecting = ic.getAllThatIntersect(intersectPoint, sampleList);
             intersecting.addAll(subIntersecting);
             sampleList.removeAll(subIntersecting);
         }
         return clusterList;
-    }
-
-    private ArrayList<SamplingPoint> getAllThatIntersect(SamplingPoint p0, List<SamplingPoint> intermediateList) {
-        final ArrayList<SamplingPoint> intersections = new ArrayList<>(8);
-
-        for (SamplingPoint p1 : intermediateList) {
-            if (intersect(p0, p1)) {
-                intersections.add(p1);
-            }
-        }
-
-        return intersections;
     }
 }
