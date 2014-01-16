@@ -86,7 +86,7 @@ public class SamplingToolTest {
     public static void main(String[] args) throws IOException, ParseException {
         final String startTimeString = "2004-06-01T00:00:00Z";
         final String stopTimeString = "2004-06-09T00:00:00Z";
-        final int sampleCount = 500000;
+        final int sampleCount = 200000;
 
         final SamplingTool tool = new SamplingTool();
         tool.setCommandLineArgs(new String[]{
@@ -117,7 +117,6 @@ public class SamplingToolTest {
         final Date startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
         final Date stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString);
 
-        /*
         final List<ReferenceObservation> orbits = tool.findOrbits(startTimeString, stopTimeString);
         int noOrbitsToPlot = 14;
         for (ReferenceObservation orbit : orbits) {
@@ -133,7 +132,6 @@ public class SamplingToolTest {
                 break;
             }
         }
-        */
     }
 
     public interface Predicate<T> {
