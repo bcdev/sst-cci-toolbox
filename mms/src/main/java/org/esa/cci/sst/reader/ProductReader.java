@@ -24,9 +24,9 @@ import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.framework.dataio.ProductFlipper;
+import org.esa.beam.framework.datamodel.BasicPixelGeoCoding;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
-import org.esa.beam.framework.datamodel.PixelGeoCoding;
 import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
@@ -68,7 +68,8 @@ class ProductReader extends AbstractProductReader {
     protected final Product readProduct(DataFile dataFile) throws IOException {
         Product product = super.readProduct(dataFile);
         if (product.getProductReader() instanceof EnvisatProductReader) {
-            if (product.getName().startsWith("AT1") || product.getName().startsWith("AT2") || product.getName().startsWith("ATS")) {
+            if (product.getName().startsWith("AT1") || product.getName().startsWith(
+                    "AT2") || product.getName().startsWith("ATS")) {
                 // we need pixels arranged in scan direction, so flip the product horizontally when it is read by the Envisat reader
                 product = createHorizontallyFlippedProduct(product);
             }
@@ -80,8 +81,8 @@ class ProductReader extends AbstractProductReader {
                 product = shiftForwardBands(-1, -2, product);
             }
         }
-        if (product.getGeoCoding() instanceof PixelGeoCoding) {
-            product.setGeoCoding(new PixelGeoCodingWrapper((PixelGeoCoding) product.getGeoCoding()));
+        if (product.getGeoCoding() instanceof BasicPixelGeoCoding) {
+            product.setGeoCoding(new PixelGeoCodingWrapper((BasicPixelGeoCoding) product.getGeoCoding()));
         }
         return product;
     }
@@ -115,9 +116,9 @@ class ProductReader extends AbstractProductReader {
     @Override
     public int getLineSkip() {
         final MetadataElement metadataElement = getProduct().getMetadataRoot().getElement("reader_generated");
-        if(metadataElement != null) {
+        if (metadataElement != null) {
             final MetadataAttribute metadataAttribute = metadataElement.getAttribute("lead_line_skip");
-            if(metadataAttribute != null) {
+            if (metadataAttribute != null) {
                 return metadataAttribute.getData().getElemInt();
             }
         }
