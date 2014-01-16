@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.GlobalObservation;
 import org.esa.cci.sst.data.Item;
@@ -30,6 +31,7 @@ import org.esa.cci.sst.util.PgUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.postgis.Geometry;
 import org.postgis.Point;
 import ucar.ma2.InvalidRangeException;
@@ -44,6 +46,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+@RunWith(IoTestRunner.class)
 public class ProductReaderTest {
 
     private static final String AMSR_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42970.dat-v01.nc.gz";
@@ -147,7 +150,7 @@ public class ProductReaderTest {
     }
 
     private static List<Point> getPoints(Geometry geometry) {
-        final List<Point> pointList = new ArrayList<Point>(geometry.numPoints());
+        final List<Point> pointList = new ArrayList<>(geometry.numPoints());
         for (int i = 0; i < geometry.numPoints(); i++) {
             pointList.add(geometry.getPoint(i));
         }
