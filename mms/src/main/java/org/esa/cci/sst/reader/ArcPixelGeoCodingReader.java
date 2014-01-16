@@ -18,7 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.netcdf.ProfileReadContext;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfGeocodingPart;
-import org.esa.beam.framework.datamodel.PixelGeoCoding;
+import org.esa.beam.framework.datamodel.BasicPixelGeoCoding;
 import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
 
@@ -37,7 +37,7 @@ public class ArcPixelGeoCodingReader extends CfGeocodingPart {
     @Override
     public void decode(final ProfileReadContext ctx, final Product p) throws IOException {
         super.decode(ctx, p);
-        final PixelGeoCoding sourceGeoCoding = (PixelGeoCoding) p.getGeoCoding();
+        final BasicPixelGeoCoding sourceGeoCoding = (BasicPixelGeoCoding) p.getGeoCoding();
         final PixelGeoCodingWrapper geoCoding = new PixelGeoCodingWrapper(sourceGeoCoding);
         p.setGeoCoding(geoCoding);
     }

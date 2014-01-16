@@ -17,7 +17,6 @@
 package org.esa.beam.framework.datamodel;
 
 import org.esa.beam.util.PixelLocator;
-import org.esa.beam.util.QuadTreePixelLocator;
 import org.esa.beam.util.RasterDataNodeSampleSource;
 import org.esa.beam.util.SimplePixelLocator;
 
@@ -32,7 +31,7 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
 
     private final PixelLocator pixelLocator;
 
-    public PixelGeoCodingWrapper(PixelGeoCoding pixelGeoCoding) {
+    public PixelGeoCodingWrapper(BasicPixelGeoCoding pixelGeoCoding) {
         super(pixelGeoCoding);
         final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand());
         final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand());
@@ -45,7 +44,7 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
             geoPos = new GeoPos();
         }
         if (!pixelPos.isValid() || !pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(),
-                                                                new GeoPoint(geoPos))) {
+                new GeoPoint(geoPos))) {
             geoPos.setInvalid();
         }
         return geoPos;

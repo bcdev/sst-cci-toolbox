@@ -14,19 +14,16 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.QueriesTestRunner;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.WindowConstants;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +35,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
+@RunWith(QueriesTestRunner.class)
 public class SamplingToolTest {
 
     private SamplingTool tool;
@@ -154,7 +152,7 @@ public class SamplingToolTest {
     }
 
     private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
-                                                                                                            IOException {
+            IOException {
         final int w = 800;
         final int h = 400;
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);

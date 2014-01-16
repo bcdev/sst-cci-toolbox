@@ -64,6 +64,10 @@
                     <excludes>
                         <exclude>**/*IntegrationTest.java</exclude>
                     </excludes>
+
+                    <!-- at least on Linux, maven has isues with forking a JVM7 tb 2014-01-16-->
+                    <forkCount>0</forkCount>
+
                 </configuration>
             </plugin>
             <plugin>

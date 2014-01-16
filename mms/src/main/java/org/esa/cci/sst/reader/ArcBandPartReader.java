@@ -46,7 +46,7 @@ public class ArcBandPartReader extends CfBandPart {
 
     private static final String LONGITUDE_BAND_NAME = "lon";
     private static final String DIMENSION_NAME_WIDTH = "scan_elem";
-    private static final String DIMENSION_NAME_HEIGHT = "l1b_record";
+    private static final String DIMENSION_NAME_HEIGHT = "scan_line";
     private static final double FILL_VALUE = -1.0E30;
     private final String locationFile;
 
@@ -64,7 +64,7 @@ public class ArcBandPartReader extends CfBandPart {
         final Band lon = p.addBand(LONGITUDE_BAND_NAME, ProductData.TYPE_FLOAT32);
         final List<Variable> variables = file.getVariables();
         for (Variable variable1 : variables) {
-            final Band band = p.getBand(variable1.getName());
+            final Band band = p.getBand(variable1.getShortName());
             final Attribute missingValue = variable1.findAttribute("missing_value");
             if(band != null && missingValue != null) {
                 band.setNoDataValue(missingValue.getNumericValue().doubleValue());

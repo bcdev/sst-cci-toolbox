@@ -37,7 +37,8 @@ public class ElevationToSolzen extends Rule {
         Assert.type(DataType.FLOAT, sourceArray);
         for (int i = 0; i < sourceArray.getSize(); i++) {
             final float oldValue = sourceArray.getFloat(i);
-            if(oldValue != sourceColumn.getFillValue().floatValue()) {
+            final Number fillValue = sourceColumn.getFillValue();
+            if (fillValue == null || oldValue != fillValue.floatValue()) {
                 sourceArray.setFloat(i, 90.0f - oldValue);
             }
         }

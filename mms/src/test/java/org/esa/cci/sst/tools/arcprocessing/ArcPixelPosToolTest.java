@@ -36,7 +36,7 @@ public class ArcPixelPosToolTest {
     @Before
     public void setUp() throws Exception {
         tool = new ArcPixelPosTool();
-        tool.setCommandLineArgs(new String[]{"-csrc/test/config/mms-config.properties"});
+        tool.setCommandLineArgs(new String[]{"-cmms/src/test/config/mms-config.properties"});
     }
 
     @Test
