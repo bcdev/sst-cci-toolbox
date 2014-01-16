@@ -7,8 +7,8 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Norman Fomferra
@@ -19,7 +19,11 @@ public class LUT1Test {
 
     @BeforeClass
     public static void read() throws IOException {
-        lut1 = LUT1.read(new File("config/auxdata/coverage_uncertainty_parameters.nc"));
+        File lutFile = new File("tools/config/auxdata/coverage_uncertainty_parameters.nc");
+        if (!lutFile.isFile()) {
+            lutFile = new File("config/auxdata/coverage_uncertainty_parameters.nc");
+        }
+        lut1 = LUT1.read(lutFile);
     }
 
     @Test
