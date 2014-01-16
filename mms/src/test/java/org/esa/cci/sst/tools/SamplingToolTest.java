@@ -15,6 +15,7 @@ package org.esa.cci.sst.tools;/*
  */
 
 import org.esa.cci.sst.QueriesTestRunner;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
