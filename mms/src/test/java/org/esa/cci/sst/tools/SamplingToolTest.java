@@ -84,6 +84,18 @@ public class SamplingToolTest {
         assertEquals(85, sampleList.size());
     }
 
+    @Test
+    public void testRemoveOverlappingAreas() throws Exception {
+        final List<SamplingPoint> sampleList = tool.createSamples();
+        tool.removeLandSamples(sampleList);
+        tool.reduceClearSamples(sampleList);
+        tool.findObservations(sampleList);
+        tool.findSatelliteSubscenes(sampleList);
+        tool.removeOverlappingSamples(sampleList);
+
+        assertEquals(85, sampleList.size());
+    }
+
     public static void main(String[] args) throws IOException, ParseException {
         final String startTimeString = "2004-06-01T00:00:00Z";
         final String stopTimeString = "2004-06-09T00:00:00Z";
