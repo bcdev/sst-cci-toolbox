@@ -35,7 +35,7 @@ import java.util.Properties;
 
 import static org.junit.Assert.*;
 
-@RunWith(QueriesTestRunner.class)
+@RunWith(DatabaseTestRunner.class)
 public class QueriesTest {
 
     private static final Date START_DATE;

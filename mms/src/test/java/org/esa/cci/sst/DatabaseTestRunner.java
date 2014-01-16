@@ -33,19 +33,24 @@ import java.util.Properties;
  *
  * @author Ralf Quast
  */
-public class QueriesTestRunner extends BlockJUnit4ClassRunner {
+public class DatabaseTestRunner extends BlockJUnit4ClassRunner {
+
+    private static final String PROPERTYNAME_EXECUTE_DB_TESTS = "org.esa.cci.db.tests.execute";
 
     private static boolean canPersist;
+    private final boolean executeDbTests;
 
-    public QueriesTestRunner(Class<?> klass) throws InitializationError {
+    public DatabaseTestRunner(Class<?> klass) throws InitializationError {
         super(klass);
         checkIfPersistenceIsAvailable(klass);
+
+        executeDbTests = Boolean.getBoolean(PROPERTYNAME_EXECUTE_DB_TESTS);
     }
 
 
     @Override
     protected void runChild(FrameworkMethod method, RunNotifier notifier) {
-        if (canPersist) {
+        if (canPersist && executeDbTests) {
             super.runChild(method, notifier);
         } else {
             notifier.fireTestIgnored(describeChild(method));

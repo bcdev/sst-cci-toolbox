@@ -14,7 +14,7 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.QueriesTestRunner;
+import org.esa.cci.sst.DatabaseTestRunner;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
@@ -36,7 +36,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(QueriesTestRunner.class)
+@RunWith(DatabaseTestRunner.class)
 public class SamplingToolTest {
 
     private SamplingTool tool;
@@ -124,6 +124,10 @@ public class SamplingToolTest {
         System.out.println("Finding satellite sub-scenes...");
         tool.findSatelliteSubscenes(sampleList);
         System.out.println("Finding satellite sub-scenes..." + sampleList.size());
+        System.out.println("Removing overlapping areas...");
+        tool.removeOverlappingSamples(sampleList);
+        System.out.println("Removing overlapping areas..." + sampleList.size());
+
 
         plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
 
@@ -153,7 +157,7 @@ public class SamplingToolTest {
     }
 
     public static <T> List<T> filter(Collection<T> target, Predicate<T> predicate) {
-        List<T> result = new ArrayList<T>();
+        List<T> result = new ArrayList<>();
         for (T element : target) {
             if (predicate.apply(element)) {
                 result.add(element);
