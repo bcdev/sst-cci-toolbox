@@ -26,6 +26,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
+import org.junit.Ignore;
 import org.junit.Test;
 import ucar.ma2.Array;
 import ucar.nc2.Variable;
@@ -42,8 +43,9 @@ import static org.junit.Assert.*;
 public class AtsrCalibrationFilenameTest {
 
     @Test
+    @Ignore
     public void testV1cAndG1cFilename() throws Exception {
-
+        // @todo 2 tb/** file is not checked into git - tb 2014-01-16
         final String file = getClass().getResource("atsr_metadata.dim").getFile();
         final Product product = ProductIO.readProduct(file);
 

@@ -80,7 +80,7 @@ public class MmdUpdaterTest {
         final MmdUpdater updater = createUpdater("insitu.sea_surface_temperature");
         updater.parseVariables();
         assertEquals(1, updater.variables.size());
-        assertEquals("insitu.sea_surface_temperature", updater.variables.get(0).getName());
+        assertEquals("insitu.sea_surface_temperature", updater.variables.get(0).getShortName());
     }
 
     @Test
@@ -88,9 +88,9 @@ public class MmdUpdaterTest {
         final MmdUpdater updater = createUpdater("insitu.sea_surface_temperature,matchup.id,avhrr_brightness_temperature_3b");
         updater.parseVariables();
         assertEquals(3, updater.variables.size());
-        assertEquals("insitu.sea_surface_temperature", updater.variables.get(0).getName());
-        assertEquals("matchup.id", updater.variables.get(1).getName());
-        assertEquals("avhrr_brightness_temperature_3b", updater.variables.get(2).getName());
+        assertEquals("insitu.sea_surface_temperature", updater.variables.get(0).getShortName());
+        assertEquals("matchup.id", updater.variables.get(1).getShortName());
+        assertEquals("avhrr_brightness_temperature_3b", updater.variables.get(2).getShortName());
     }
 
     @Test
