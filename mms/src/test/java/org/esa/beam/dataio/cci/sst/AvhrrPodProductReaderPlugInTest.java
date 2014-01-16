@@ -17,9 +17,10 @@
 package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Thomas Storm
@@ -27,7 +28,10 @@ import static org.junit.Assert.*;
 public class AvhrrPodProductReaderPlugInTest {
 
     @Test
+    @Ignore
     public void testGetDecodeQualification() throws Exception {
+
+        // @todo 2 tb/** these test files are not checked in as resources - therefore I switched this test to ignore - tb 2014-01-16
         final AvhrrPodProductReaderPlugIn plugIn = new AvhrrPodProductReaderPlugIn();
         final DecodeQualification decodeQualification91 = plugIn.getDecodeQualification(getClass().getResource("NSS.GHRR.NH.D91246.S0013.E0154.B1514546.GC").getFile());
         final DecodeQualification decodeQualification94 = plugIn.getDecodeQualification(getClass().getResource("NSS.GHRR.ND.D94062.S0103.E0257.B1454446.GC").getFile());

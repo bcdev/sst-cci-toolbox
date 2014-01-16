@@ -42,7 +42,7 @@ import java.util.List;
 abstract class NetcdfReader implements Reader {
 
     private final String sensorName;
-    private final HashMap<String, Variable> variableMap = new HashMap<String, Variable>();
+    private final HashMap<String, Variable> variableMap = new HashMap<>();
 
     private DataFile datafile;
     private NetcdfFile netcdfFile;
@@ -75,7 +75,7 @@ abstract class NetcdfReader implements Reader {
         final List<Variable> variables = netcdfFile.getVariables();
         for (final Variable variable : variables) {
             if (variable.getRank() > 0) {
-                variableMap.put(variable.getName(), variable);
+                variableMap.put(variable.getShortName(), variable);
             }
         }
     }
@@ -91,7 +91,7 @@ abstract class NetcdfReader implements Reader {
 
     @Override
     public final Item[] getColumns() {
-        final ArrayList<Item> columnList = new ArrayList<Item>();
+        final ArrayList<Item> columnList = new ArrayList<>();
         for (final Variable variable : variableMap.values()) {
             final Item column = createColumn(variable);
             columnList.add(column);

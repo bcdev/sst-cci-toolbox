@@ -47,13 +47,10 @@ public class InsituReaderTest {
 
     @Test
     public void testReadObservation() throws Exception {
-        final InsituReader handler = createReader();
         final InsituObservation observation;
 
-        try {
+        try (InsituReader handler = createReader()) {
             observation = handler.readObservation(0);
-        } finally {
-            handler.close();
         }
 
         final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
@@ -71,12 +68,12 @@ public class InsituReaderTest {
         assertTrue(geometry instanceof LineString);
 
         final Point startPoint = geometry.getFirstPoint();
-        assertEquals(88.92, startPoint.getX(), 0.0);
-        assertEquals(9.750, startPoint.getY(), 0.0);
+        assertEquals(88.92, startPoint.getX(), 1e-8);
+        assertEquals(9.750, startPoint.getY(), 1e-8);
 
         final Point endPoint = geometry.getLastPoint();
-        assertEquals(84.82, endPoint.getX(), 0.0);
-        assertEquals(15.60, endPoint.getY(), 0.0);
+        assertEquals(84.82, endPoint.getX(), 1e-8);
+        assertEquals(15.60, endPoint.getY(), 1e-8);
     }
 
     @Test
