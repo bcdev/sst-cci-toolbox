@@ -20,12 +20,14 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
+import org.esa.cci.sst.util.CloudyPixelCounter;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -182,6 +184,26 @@ public class SamplingTool extends BasicTool {
     }
 
     void findSatelliteSubscenes(List<SamplingPoint> sampleList) {
+        // TODO - make parameters from variables below
+        final String cloudFlagsName = "cloud_flags_nadir";
+        final int cloudFlag = 2;
+        final double cloudyPixelFraction = 0.0;
+        final String satelliteName = "atsr_orb.3";
+        final int subSceneSizeX = 7;
+        final int subSceneSizeY = 7;
+
+        final Query columnQuery = getPersistenceManager().createQuery("select c from Column c where c.name = ?1");
+        final String columnName = satelliteName + "." + cloudFlagsName;
+        columnQuery.setParameter(1, columnName);
+
+        final Object columnQueryResult = columnQuery.getSingleResult();
+        if (!(columnQueryResult instanceof Column)) {
+            throw new ToolException("No such column '" + columnName + "'.", ToolException.UNKNOWN_ERROR);
+        }
+        final Column column = (Column) columnQueryResult;
+        final Number fillValue = column.getFillValue();
+        final CloudyPixelCounter cloudyPixelCounter = new CloudyPixelCounter(cloudFlag, fillValue);
+
         final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<Integer, List<SamplingPoint>>();
         for (final SamplingPoint point : sampleList) {
             final int id = point.getReference();
@@ -196,27 +218,31 @@ public class SamplingTool extends BasicTool {
         for (final int id : sampleListsByDatafile.keySet()) {
             final List<SamplingPoint> points = sampleListsByDatafile.get(id);
 
-            final String queryString = "select o.id"
-                                       + " from mm_observation o"
-                                       + " where o.id = ?1";
+            final Query observationQuery = getPersistenceManager().createQuery(
+                    "select o from Observation o where o.id = ?1");
+            observationQuery.setParameter(1, id);
 
-            final Query query = getPersistenceManager().createNativeQuery(queryString, RelatedObservation.class);
-            query.setParameter(1, id);
-
-            final Object result = query.getSingleResult();
-            if (result instanceof RelatedObservation) {
-                final RelatedObservation observation = (RelatedObservation) result;
+            final Object observationQueryResult = observationQuery.getSingleResult();
+            if (observationQueryResult instanceof RelatedObservation) {
+                final RelatedObservation observation = (RelatedObservation) observationQueryResult;
                 final DataFile datafile = observation.getDatafile();
                 try {
-                    final Reader reader = readerCache.getReader(datafile, false);
+                    final Reader reader = readerCache.getReader(datafile, true);
                     for (final SamplingPoint point : points) {
                         final double lat = point.getLat();
                         final double lon = point.getLon();
+
+                        // TODO - think more about this code
                         final GeoCoding geoCoding = reader.getGeoCoding(0);
                         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
                         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
-                        point.setX((int) Math.floor(pixelPos.getX()));
-                        point.setY((int) Math.floor(pixelPos.getY()));
+                        final double pixelX = Math.floor(pixelPos.getX());
+                        final double pixelY = Math.floor(pixelPos.getY());
+                        point.setX((int) pixelX);
+                        point.setY((int) pixelY);
+                        geoCoding.getGeoPos(new PixelPos((float) (pixelX + 0.5), (float) (pixelY + 0.5)), geoPos);
+                        point.setLon(geoPos.getLon());
+                        point.setLat(geoPos.getLat());
 
                         final ExtractDefinition extractDefinition = new ExtractDefinition() {
                             @Override
@@ -236,7 +262,7 @@ public class SamplingTool extends BasicTool {
 
                             @Override
                             public int[] getShape() {
-                                return new int[]{1, 7, 7};
+                                return new int[]{1, subSceneSizeY, subSceneSizeX};
                             }
 
                             @Override
@@ -246,26 +272,18 @@ public class SamplingTool extends BasicTool {
 
                             @Override
                             public Number getFillValue() {
-                                return null;
+                                return fillValue;
                             }
                         };
-                        final Array array = reader.read("cloud_flags_nadir", extractDefinition);
-                        int cloudyPixelCount = 0;
-                        for (int y = 0; y < 7; y++) {
-                            for (int x = 0; x < 7; x++) {
-                                final int value = array.getInt(y * 7 + x);
-                                if ((value & 2) != 0) {
-                                    cloudyPixelCount++;
-                                }
-                            }
-                        }
-                        if (cloudyPixelCount > 0) {
+                        final Array array = reader.read(cloudFlagsName, extractDefinition);
+                        final int cloudyPixelCount = cloudyPixelCounter.count(array);
+                        if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
                             sampleList.remove(point);
                         }
                     }
                 } catch (IOException e) {
                     throw new ToolException(
-                            MessageFormat.format("Cannot open data file ''{0}''.", datafile.getPath()), e,
+                            MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
                             ToolException.TOOL_IO_ERROR);
                 } finally {
                     readerCache.closeReader(datafile);
