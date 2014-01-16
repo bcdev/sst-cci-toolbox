@@ -319,7 +319,7 @@ public class SamplingTool extends BasicTool {
             + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
             + " order by o.time, o.id";
 
-    public List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
+    List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
         //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
         //Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
         final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll(

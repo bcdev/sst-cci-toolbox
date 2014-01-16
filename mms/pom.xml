@@ -62,6 +62,11 @@
         </dependency>
         <dependency>
             <groupId>org.esa.beam</groupId>
+            <artifactId>beam-gpf</artifactId>
+            <version>${beam.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.esa.beam</groupId>
             <artifactId>beam-atsr-reader</artifactId>
             <version>1.0.3.${beam.version}</version>
         </dependency>
@@ -84,6 +89,12 @@
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-watermask-operator</artifactId>
             <version>1.2-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.esa.beam</groupId>
+                    <artifactId>beam-gpf</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!--
