@@ -19,10 +19,10 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.reader.ExtractDefinition;
+import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.util.ExtractDefinitionBuilder;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 

@@ -14,10 +14,9 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.util;
+package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.reader.ExtractDefinition;
 import org.postgis.Point;
 
 import java.util.Date;
@@ -36,6 +35,10 @@ public class ExtractDefinitionBuilder {
 
     private Date date;
     private Number fillValue;
+
+    public ExtractDefinitionBuilder() {
+        shape = new int[]{1};
+    }
 
     public ExtractDefinitionBuilder referenceObservation(ReferenceObservation refObs) {
         final Point point = refObs.getPoint().getGeometry().getFirstPoint();
@@ -57,6 +60,16 @@ public class ExtractDefinitionBuilder {
 
     public ExtractDefinitionBuilder fillValue(Number fillValue) {
         this.fillValue = fillValue;
+        return this;
+    }
+
+    public ExtractDefinitionBuilder lat(double lat) {
+        this.lat = lat;
+        return this;
+    }
+
+    public ExtractDefinitionBuilder lon(double lon) {
+        this.lon = lon;
         return this;
     }
 

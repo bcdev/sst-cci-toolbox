@@ -1,4 +1,4 @@
-package org.esa.cci.sst.reader;
+package org.esa.cci.sst.common;
 
 import java.util.Date;
 

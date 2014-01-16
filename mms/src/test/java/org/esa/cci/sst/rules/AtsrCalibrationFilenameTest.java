@@ -23,7 +23,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.reader.ExtractDefinition;
+import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
 import org.junit.Ignore;

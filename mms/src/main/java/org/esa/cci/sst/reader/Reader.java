@@ -18,6 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
@@ -76,7 +77,7 @@ public interface Reader extends Closeable {
 
     /**
      * Reads actual data from the variable given by <code>role</code>.
-     * An ${@link ExtractDefinition} specifies the section to read.
+     * An ${@link org.esa.cci.sst.common.ExtractDefinition} specifies the section to read.
      *
      * @param role              The name of the variable to read from.
      * @param extractDefinition The extract definition specifying the section from which to read.

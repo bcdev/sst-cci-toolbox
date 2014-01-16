@@ -28,6 +28,7 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.RasterDataNode;
 import org.esa.beam.util.ProductUtils;
+import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
