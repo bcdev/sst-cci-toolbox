@@ -25,6 +25,7 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -331,4 +332,12 @@ public class SamplingTool extends BasicTool {
         return query.getResultList();
     }
 
+    public void removeOverlappingSamples(List<SamplingPoint> sampleList) {
+        // @todo 2 tb/** add width and height as parameters to tool-config tb 2014-01-16
+        final RegionOverlapFilter regionOverlapFilter = new RegionOverlapFilter(7, 7);
+
+        final List<SamplingPoint> filteredList = regionOverlapFilter.filterOverlaps(sampleList);
+        sampleList.clear();
+        sampleList.addAll(filteredList);
+    }
 }
