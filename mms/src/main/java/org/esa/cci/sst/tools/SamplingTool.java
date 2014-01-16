@@ -232,17 +232,15 @@ public class SamplingTool extends BasicTool {
                         final double lat = point.getLat();
                         final double lon = point.getLon();
 
-                        // TODO - think more about this code
+                        // TODO - pixel position here can be different from pixel position used for extracting the subscene
                         final GeoCoding geoCoding = reader.getGeoCoding(0);
                         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
                         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
-                        final double pixelX = Math.floor(pixelPos.getX());
-                        final double pixelY = Math.floor(pixelPos.getY());
-                        point.setX((int) pixelX);
-                        point.setY((int) pixelY);
-                        geoCoding.getGeoPos(new PixelPos((float) (pixelX + 0.5), (float) (pixelY + 0.5)), geoPos);
-                        point.setLon(geoPos.getLon());
-                        point.setLat(geoPos.getLat());
+                        final int pixelX = (int) Math.floor(pixelPos.getX());
+                        final int pixelY = (int) Math.floor(pixelPos.getY());
+                        point.setX(pixelX);
+                        point.setY(pixelY);
+                        point.setTime(reader.getTime(0, pixelY));
 
                         final ExtractDefinition extractDefinition = new ExtractDefinition() {
                             @Override
