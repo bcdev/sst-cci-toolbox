@@ -232,50 +232,58 @@ public class SamplingTool extends BasicTool {
                         final double lat = point.getLat();
                         final double lon = point.getLon();
 
-                        // TODO - pixel position here can be different from pixel position used for extracting the subscene
                         final GeoCoding geoCoding = reader.getGeoCoding(0);
                         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
                         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
-                        final int pixelX = (int) Math.floor(pixelPos.getX());
-                        final int pixelY = (int) Math.floor(pixelPos.getY());
-                        point.setX(pixelX);
-                        point.setY(pixelY);
-                        point.setTime(reader.getTime(0, pixelY));
 
-                        final ExtractDefinition extractDefinition = new ExtractDefinition() {
-                            @Override
-                            public double getLat() {
-                                return lat;
-                            }
+                        if (pixelPos.isValid()) {
+                            final int pixelX = (int) Math.floor(pixelPos.getX());
+                            final int pixelY = (int) Math.floor(pixelPos.getY());
+                            point.setX(pixelX);
+                            point.setY(pixelY);
+                            point.setTime(reader.getTime(0, pixelY));
 
-                            @Override
-                            public double getLon() {
-                                return lon;
-                            }
+                            final ExtractDefinition extractDefinition = new ExtractDefinition() {
+                                @Override
+                                public double getLat() {
+                                    return lat;
+                                }
 
-                            @Override
-                            public int getRecordNo() {
-                                return 0;
-                            }
+                                @Override
+                                public double getLon() {
+                                    return lon;
+                                }
 
-                            @Override
-                            public int[] getShape() {
-                                return new int[]{1, subSceneSizeY, subSceneSizeX};
-                            }
+                                @Override
+                                public int getRecordNo() {
+                                    return 0;
+                                }
 
-                            @Override
-                            public Date getDate() {
-                                return null;
-                            }
+                                @Override
+                                public int[] getShape() {
+                                    return new int[]{1, subSceneSizeY, subSceneSizeX};
+                                }
 
-                            @Override
-                            public Number getFillValue() {
-                                return fillValue;
+                                @Override
+                                public Date getDate() {
+                                    return null;
+                                }
+
+                                @Override
+                                public Number getFillValue() {
+                                    return fillValue;
+                                }
+                            };
+                            final Array array = reader.read(cloudFlagsName, extractDefinition);
+                            final int cloudyPixelCount = cloudyPixelCounter.count(array);
+                            if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
+                                sampleList.remove(point);
                             }
-                        };
-                        final Array array = reader.read(cloudFlagsName, extractDefinition);
-                        final int cloudyPixelCount = cloudyPixelCounter.count(array);
-                        if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
+                        } else {
+                            final String message = MessageFormat.format(
+                                    "Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
+                                    datafile.getPath());
+                            getLogger().fine(message);
                             sampleList.remove(point);
                         }
                     }
