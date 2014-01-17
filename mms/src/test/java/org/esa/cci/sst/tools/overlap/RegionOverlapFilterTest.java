@@ -223,6 +223,103 @@ public class RegionOverlapFilterTest {
         assertEquals(1, thinnedOutList.size());
     }
 
+    @Test
+    public void testSplitByOrbit_emptyList() {
+        final List<SamplingPoint> pointList = new ArrayList<>();
+
+        final List<List<SamplingPoint>> orbitLists = filter.splitByOrbit(pointList);
+        assertNotNull(orbitLists);
+        assertEquals(0, orbitLists.size());
+    }
+
+    @Test
+    public void testSplitByOrbit_onePoint() {
+        final List<SamplingPoint> pointList = new ArrayList<>();
+        addSamplePoint(34, pointList);
+
+        final List<List<SamplingPoint>> orbitLists = filter.splitByOrbit(pointList);
+        assertNotNull(orbitLists);
+        assertEquals(1, orbitLists.size());
+
+        final List<SamplingPoint> orbitPoints = orbitLists.get(0);
+        assertNotNull(orbitPoints);
+        assertEquals(1, orbitPoints.size());
+    }
+
+    @Test
+    public void testSplitByOrbit_twoPoints_sameOrbit() {
+        final List<SamplingPoint> pointList = new ArrayList<>();
+        addSamplePoint(34, pointList);
+        addSamplePoint(34, pointList);
+
+        final List<List<SamplingPoint>> orbitLists = filter.splitByOrbit(pointList);
+        assertNotNull(orbitLists);
+        assertEquals(1, orbitLists.size());
+
+        final List<SamplingPoint> orbitPoints = orbitLists.get(0);
+        assertNotNull(orbitPoints);
+        assertEquals(2, orbitPoints.size());
+    }
+
+    @Test
+    public void testSplitByOrbit_fivePoints_twoOrbits() {
+        final List<SamplingPoint> pointList = new ArrayList<>();
+        addSamplePoint(34, pointList);
+        addSamplePoint(34, pointList);
+        addSamplePoint(34, pointList);
+        addSamplePoint(67, pointList);
+        addSamplePoint(67, pointList);
+
+        final List<List<SamplingPoint>> orbitLists = filter.splitByOrbit(pointList);
+        assertNotNull(orbitLists);
+        assertEquals(2, orbitLists.size());
+
+        List<SamplingPoint> orbitPoints = orbitLists.get(0);
+        assertNotNull(orbitPoints);
+        assertEquals(3, orbitPoints.size());
+
+        orbitPoints = orbitLists.get(1);
+        assertNotNull(orbitPoints);
+        assertEquals(2, orbitPoints.size());
+    }
+
+    @Test
+    public void testSplitByOrbit_twelvePoints_fourOrbits() {
+        final List<SamplingPoint> pointList = new ArrayList<>();
+        addSamplePoint(34, pointList);
+        addSamplePoint(23, pointList);
+        addSamplePoint(34, pointList);
+        addSamplePoint(23, pointList);
+        addSamplePoint(67, pointList);
+        addSamplePoint(83, pointList);
+        addSamplePoint(67, pointList);
+        addSamplePoint(83, pointList);
+        addSamplePoint(67, pointList);
+        addSamplePoint(83, pointList);
+        addSamplePoint(23, pointList);
+        addSamplePoint(34, pointList);
+
+        final List<List<SamplingPoint>> orbitLists = filter.splitByOrbit(pointList);
+        assertNotNull(orbitLists);
+        assertEquals(4, orbitLists.size());
+
+        List<SamplingPoint> orbitPoints = orbitLists.get(0);
+        assertNotNull(orbitPoints);
+        assertEquals(3, orbitPoints.size());
+
+        orbitPoints = orbitLists.get(1);
+        assertNotNull(orbitPoints);
+        assertEquals(3, orbitPoints.size());
+
+        orbitPoints = orbitLists.get(2);
+        assertNotNull(orbitPoints);
+        assertEquals(3, orbitPoints.size());
+
+        orbitPoints = orbitLists.get(3);
+        assertNotNull(orbitPoints);
+        assertEquals(3, orbitPoints.size());
+    }
+
     private void assertSamplePointAt(int expectedX, int expectedY, int index, List<SamplingPoint> filteredList) {
         assertEquals(expectedX, filteredList.get(index).getX());
         assertEquals(expectedY, filteredList.get(index).getY());
@@ -230,5 +327,10 @@ public class RegionOverlapFilterTest {
 
     private void addSamplePoint(int x, int y, List<SamplingPoint> sampleList) {
         sampleList.add(new SamplingPoint(x, y));
+    }
+    private void addSamplePoint(int orbitNo, List<SamplingPoint> sampleList) {
+        final SamplingPoint point = new SamplingPoint(8743, 667);
+        point.setReference(orbitNo);
+        sampleList.add(point);
     }
 }

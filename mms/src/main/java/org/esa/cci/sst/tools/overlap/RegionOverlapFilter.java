@@ -23,10 +23,14 @@ public class RegionOverlapFilter {
         }
 
         // split input into lists of same orbit reference
+        final List<List<SamplingPoint>> orbitLists = splitByOrbit(sampleList);
         // iterate over all lists
-        filterSingleOrbitOverlaps(sampleList, filteredList);
+        for (List<SamplingPoint> orbit : orbitLists) {
+            final List<SamplingPoint> filteredOrbitList = new LinkedList<>();
+            filterSingleOrbitOverlaps(orbit, filteredOrbitList);
 
-        // merge filtered lists
+            filteredList.addAll(filteredOrbitList);
+        }
 
         return filteredList;
     }
@@ -38,7 +42,7 @@ public class RegionOverlapFilter {
             intermediateList.remove(0);
 
             // 1) search for intersections with all points in the first intersection list - to collect all points in a
-            // clustered area - should end up in one area connecting all intersection areas connected to the search point p0
+            // clustered area - should end up in one area connecting all intersection areas belonging to the search point p0
             final List<SamplingPoint> clusterList = extractClusterContaining(p0, intermediateList);
             if (clusterList.size() > 0) {
                 clusterList.add(p0);    // reference point also belongs to cluster
@@ -69,12 +73,8 @@ public class RegionOverlapFilter {
             return clusterList;
         } else {
             // copy to wrapper list
-            final ArrayList<IntersectionWrapper> intersectionWrappers = new ArrayList<>(clusterList.size());
-            for (SamplingPoint aClusterList : clusterList) {
-                final IntersectionWrapper wrapper = new IntersectionWrapper();
-                wrapper.setPoint(aClusterList);
-                intersectionWrappers.add(wrapper);
-            }
+            final ArrayList<IntersectionWrapper> intersectionWrappers = wrapList(clusterList);
+
             // calculate intersection counts
             int sumIntersections = Integer.MAX_VALUE;
             while (sumIntersections > 0) {
@@ -92,6 +92,23 @@ public class RegionOverlapFilter {
             }
         }
         return clusterList;
+    }
+
+    // package access for testing only tb 2014-01-17
+    List<List<SamplingPoint>> splitByOrbit(List<SamplingPoint> pointList) {
+        final ArrayList<List<SamplingPoint>> orbitLists = new ArrayList<>();
+        if (pointList.size() > 0) {
+
+            while (pointList.size() > 0) {
+                final SamplingPoint samplingPoint = pointList.get(0);
+                final List<SamplingPoint> allFromOrbit = getAllFromOrbit(samplingPoint.getReference(), pointList);
+                if (allFromOrbit.size() > 0) {
+                    orbitLists.add(allFromOrbit);
+                    pointList.removeAll(allFromOrbit);
+                }
+            }
+        }
+        return orbitLists;
     }
 
     // package access for testing only tb 2014-01-15
@@ -114,5 +131,27 @@ public class RegionOverlapFilter {
             sampleList.removeAll(subIntersecting);
         }
         return clusterList;
+    }
+
+    private List<SamplingPoint> getAllFromOrbit(int orbitNo, List<SamplingPoint> pointList) {
+        final LinkedList<SamplingPoint> orbitPoints = new LinkedList<>();
+
+        for (SamplingPoint p : pointList) {
+            if (p.getReference() == orbitNo) {
+                orbitPoints.add(p);
+            }
+        }
+
+        return orbitPoints;
+    }
+
+    private ArrayList<IntersectionWrapper> wrapList(List<SamplingPoint> clusterList) {
+        final ArrayList<IntersectionWrapper> intersectionWrappers = new ArrayList<>(clusterList.size());
+        for (SamplingPoint aClusterList : clusterList) {
+            final IntersectionWrapper wrapper = new IntersectionWrapper();
+            wrapper.setPoint(aClusterList);
+            intersectionWrappers.add(wrapper);
+        }
+        return intersectionWrappers;
     }
 }
