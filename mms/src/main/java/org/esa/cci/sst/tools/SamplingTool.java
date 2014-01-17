@@ -27,7 +27,12 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
-import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.util.PixelCounter;
+import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.util.ReaderCache;
+import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SobolSequenceGenerator;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
@@ -41,7 +46,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class SamplingTool extends BasicTool {
 
@@ -176,7 +186,7 @@ public class SamplingTool extends BasicTool {
     void findSatelliteSubscenes(List<SamplingPoint> sampleList) {
         // TODO - make parameters from variables below
         final String cloudFlagsName = "cloud_flags_nadir";
-        final int cloudFlag = 2;
+        final int pixelMask = 7;
         final double cloudyPixelFraction = 0.0;
         final String satelliteName = "atsr_orb.3";
         final int subSceneSizeX = 7;
@@ -192,7 +202,7 @@ public class SamplingTool extends BasicTool {
         }
         final Column column = (Column) columnQueryResult;
         final Number fillValue = column.getFillValue();
-        final CloudyPixelCounter cloudyPixelCounter = new CloudyPixelCounter(cloudFlag, fillValue);
+        final PixelCounter pixelCounter = new PixelCounter(pixelMask, fillValue);
 
         final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<Integer, List<SamplingPoint>>();
         for (final SamplingPoint point : sampleList) {
@@ -236,12 +246,12 @@ public class SamplingTool extends BasicTool {
                             point.setX(pixelX);
                             point.setY(pixelY);
                             point.setTime(reader.getTime(0, pixelY));
-                        builder.lat(lat).lon(lon);
+                            builder.lat(lat).lon(lon);
 
-                        final Array array = reader.read(cloudFlagsName, builder.build());
-                        final int cloudyPixelCount = cloudyPixelCounter.count(array);
-                        if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
-                                   sampleList.remove(point);
+                            final Array array = reader.read(cloudFlagsName, builder.build());
+                            final int cloudyPixelCount = pixelCounter.count(array);
+                            if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
+                                sampleList.remove(point);
                             }
                         } else {
                             final String message = MessageFormat.format(
@@ -264,11 +274,11 @@ public class SamplingTool extends BasicTool {
 
     private static final String COINCIDING_OBSERVATION_QUERY =
             "select o.id"
-                    + " from mm_observation o"
-                    + " where o.sensor = ?1"
-                    + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
-                    + " and st_intersects(o.location, st_geomfromewkt(?3))"
-                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+            + " from mm_observation o"
+            + " where o.sensor = ?1"
+            + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
+            + " and st_intersects(o.location, st_geomfromewkt(?3))"
+            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     public void findObservations(List<SamplingPoint> sampleList) throws PersistenceException {
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
@@ -279,8 +289,8 @@ public class SamplingTool extends BasicTool {
 
             // since binding a date to a parameter failed ...
             final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
-                    "'" + TimeUtil.formatCcsdsUtcFormat(
-                            new Date(time)) + "'");
+                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
+                                                                                        new Date(time)) + "'");
             final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
             query.setParameter(1, "atsr_orb.3");
             //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
@@ -303,10 +313,10 @@ public class SamplingTool extends BasicTool {
 
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o.id"
-                    + " from mm_observation o"
-                    + " where o.sensor = ?1"
-                    + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
-                    + " order by o.time, o.id";
+            + " from mm_observation o"
+            + " where o.sensor = ?1"
+            + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
+            + " order by o.time, o.id";
 
     List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
         //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
