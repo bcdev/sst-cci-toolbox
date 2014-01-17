@@ -17,17 +17,21 @@ package org.esa.cci.sst.util;/*
 import ucar.ma2.Array;
 
 /**
- * For counting cloudy and otherwise unwanted pixels.
+ * For counting cloudy and otherwise irrelevant pixels.
  *
  * @author Ralf Quast
  */
 public class PixelCounter {
 
-    private final int pixelMask;
+    private final int mask;
     private final Number fillValue;
 
-    public PixelCounter(int pixelMask, Number fillValue) {
-        this.pixelMask = pixelMask;
+    public PixelCounter(int mask) {
+        this(mask, null);
+    }
+
+    public PixelCounter(int mask, Number fillValue) {
+        this.mask = mask;
         this.fillValue = fillValue;
     }
 
@@ -37,7 +41,7 @@ public class PixelCounter {
             final int value = flagsArray.getInt(i);
             if (fillValue != null && value == fillValue.intValue()) {
                 count++;
-            } else if ((value & pixelMask) != 0) {
+            } else if ((value & mask) != 0) {
                 count++;
             }
         }

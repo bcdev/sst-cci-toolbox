@@ -81,7 +81,7 @@ public class SamplingToolTest {
         tool.findObservations(sampleList);
         tool.findSatelliteSubscenes(sampleList);
 
-        assertEquals(85, sampleList.size());
+        assertEquals(77, sampleList.size());
     }
 
     @Test
@@ -93,7 +93,7 @@ public class SamplingToolTest {
         tool.findSatelliteSubscenes(sampleList);
         tool.removeOverlappingSamples(sampleList);
 
-        assertEquals(85, sampleList.size());
+        assertEquals(77, sampleList.size());
     }
 
     public static void main(String[] args) throws IOException, ParseException {

@@ -17,6 +17,7 @@ package org.esa.cci.sst.tools;/*
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
@@ -27,8 +28,8 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
-import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
@@ -215,9 +216,8 @@ public class SamplingTool extends BasicTool {
         }
 
         final ReaderCache readerCache = new ReaderCache(10, getConfiguration(), getLogger());
-        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
-        builder.shape(new int[]{1, subSceneSizeY, subSceneSizeX}).
-                fillValue(fillValue);
+        final int[] shape = {1, subSceneSizeY, subSceneSizeX};
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
         for (final int id : sampleListsByDatafile.keySet()) {
             final List<SamplingPoint> points = sampleListsByDatafile.get(id);
@@ -246,9 +246,9 @@ public class SamplingTool extends BasicTool {
                             point.setX(pixelX);
                             point.setY(pixelY);
                             point.setTime(reader.getTime(0, pixelY));
-                            builder.lat(lat).lon(lon);
 
-                            final Array array = reader.read(cloudFlagsName, builder.build());
+                            final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
+                            final Array array = reader.read(cloudFlagsName, extractDefinition);
                             final int cloudyPixelCount = pixelCounter.count(array);
                             if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
                                 sampleList.remove(point);
