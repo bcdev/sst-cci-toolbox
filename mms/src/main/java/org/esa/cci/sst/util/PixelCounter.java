@@ -16,13 +16,18 @@ package org.esa.cci.sst.util;/*
 
 import ucar.ma2.Array;
 
-public class CloudyPixelCounter {
+/**
+ * For counting cloudy (and otherwise invalid) pixels.
+ *
+ * @author Ralf Quast
+ */
+public class PixelCounter {
 
-    private final int cloudFlag;
+    private final int mask;
     private final Number fillValue;
 
-    public CloudyPixelCounter(int cloudFlag, Number fillValue) {
-        this.cloudFlag = cloudFlag;
+    public PixelCounter(int mask, Number fillValue) {
+        this.mask = mask;
         this.fillValue = fillValue;
     }
 
@@ -30,7 +35,9 @@ public class CloudyPixelCounter {
         int count = 0;
         for (int i = 0; i < array.getSize(); i++) {
             final int value = array.getInt(i);
-            if ((fillValue == null || value != fillValue.intValue()) && (value & cloudFlag) == cloudFlag) {
+            if (fillValue != null && value == fillValue.intValue()) {
+                count++;
+            } else if ((value & mask) != 0) {
                 count++;
             }
         }

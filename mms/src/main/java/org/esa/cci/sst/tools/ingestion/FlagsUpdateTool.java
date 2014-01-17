@@ -18,7 +18,6 @@ package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
@@ -27,13 +26,10 @@ import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
-import org.esa.cci.sst.util.ExtractDefinitionBuilder;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 
-import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.Properties;
 
 /**
  * Tool for re-ingesting mmd files with flags to be updated in the database.

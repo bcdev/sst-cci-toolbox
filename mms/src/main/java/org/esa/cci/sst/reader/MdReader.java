@@ -20,6 +20,7 @@ import org.esa.beam.util.PixelLocator;
 import org.esa.beam.util.SampleSource;
 import org.esa.beam.util.SimplePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
+import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;

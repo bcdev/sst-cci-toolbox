@@ -17,6 +17,7 @@ package org.esa.cci.sst.tools;/*
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
@@ -24,15 +25,9 @@ import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.reader.ExtractDefinition;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
-import org.esa.cci.sst.util.CloudyPixelCounter;
-import org.esa.cci.sst.util.NcUtils;
-import org.esa.cci.sst.util.ReaderCache;
-import org.esa.cci.sst.util.SamplingPoint;
-import org.esa.cci.sst.util.SobolSequenceGenerator;
-import org.esa.cci.sst.util.TimeUtil;
+import org.esa.cci.sst.util.*;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
@@ -46,12 +41,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SamplingTool extends BasicTool {
 
@@ -215,6 +205,10 @@ public class SamplingTool extends BasicTool {
         }
 
         final ReaderCache readerCache = new ReaderCache(10, getConfiguration(), getLogger());
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
+        builder.shape(new int[]{1, subSceneSizeY, subSceneSizeX}).
+                fillValue(fillValue);
+
         for (final int id : sampleListsByDatafile.keySet()) {
             final List<SamplingPoint> points = sampleListsByDatafile.get(id);
 
@@ -242,42 +236,12 @@ public class SamplingTool extends BasicTool {
                             point.setX(pixelX);
                             point.setY(pixelY);
                             point.setTime(reader.getTime(0, pixelY));
+                        builder.lat(lat).lon(lon);
 
-                            final ExtractDefinition extractDefinition = new ExtractDefinition() {
-                                @Override
-                                public double getLat() {
-                                    return lat;
-                                }
-
-                                @Override
-                                public double getLon() {
-                                    return lon;
-                                }
-
-                                @Override
-                                public int getRecordNo() {
-                                    return 0;
-                                }
-
-                                @Override
-                                public int[] getShape() {
-                                    return new int[]{1, subSceneSizeY, subSceneSizeX};
-                                }
-
-                                @Override
-                                public Date getDate() {
-                                    return null;
-                                }
-
-                                @Override
-                                public Number getFillValue() {
-                                    return fillValue;
-                                }
-                            };
-                            final Array array = reader.read(cloudFlagsName, extractDefinition);
-                            final int cloudyPixelCount = cloudyPixelCounter.count(array);
-                            if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
-                                sampleList.remove(point);
+                        final Array array = reader.read(cloudFlagsName, builder.build());
+                        final int cloudyPixelCount = cloudyPixelCounter.count(array);
+                        if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
+                                   sampleList.remove(point);
                             }
                         } else {
                             final String message = MessageFormat.format(
@@ -300,11 +264,11 @@ public class SamplingTool extends BasicTool {
 
     private static final String COINCIDING_OBSERVATION_QUERY =
             "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
-            + " and st_intersects(o.location, st_geomfromewkt(?3))"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
+                    + " and st_intersects(o.location, st_geomfromewkt(?3))"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     public void findObservations(List<SamplingPoint> sampleList) throws PersistenceException {
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
@@ -315,8 +279,8 @@ public class SamplingTool extends BasicTool {
 
             // since binding a date to a parameter failed ...
             final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
-                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
-                                                                                        new Date(time)) + "'");
+                    "'" + TimeUtil.formatCcsdsUtcFormat(
+                            new Date(time)) + "'");
             final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
             query.setParameter(1, "atsr_orb.3");
             //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
@@ -339,10 +303,10 @@ public class SamplingTool extends BasicTool {
 
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
-            + " order by o.time, o.id";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
+                    + " order by o.time, o.id";
 
     List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
         //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
