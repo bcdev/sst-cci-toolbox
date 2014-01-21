@@ -64,7 +64,7 @@ In order to automatically start your database on log-in, type
     cp /usr/local/Cellar/postgresql/9.0.4/org.postgresql.postgres.plist ~/Library/LaunchAgents
     launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
 
-Then open `~/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to your database.
+Then open `/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to your database.
 
 ## Installation and database server startup on Eddie VM
 
@@ -75,6 +75,21 @@ mkdir ~/pgdata/mms/logs
 psql -d mms -f /usr/pgsql-9.0/share/contrib/postgis-1.5/postgis.sql
 
 (failed with /usr/pgsql-9.0/lib/postgis-1.5.so: undefined symbol: GEOSHausdorffDistance; new version of GEOS has cured the problem.)
+
+## How to copy data to CEMS?
+
+Edit your .ssh/config file
+
+    Host            cems-login
+    HostName        comm-login1.cems.rl.ac.uk
+    User            <your user name>
+    ForwardX11      no
+    ForwardAgent    yes
+
+Then use e.g. rsync to copy directories of data
+
+    rsync -av -e 'ssh cems-login ssh' <sourceDir> mms1:<targetDir>
+
 
 ## Usage
 
