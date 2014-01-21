@@ -26,6 +26,7 @@ import org.apache.commons.cli.PosixParser;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.util.logging.BeamLogManager;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.TimeUtil;
@@ -265,6 +266,10 @@ public abstract class BasicTool {
         }
 
         return true;
+    }
+
+    public final Observation getObservation(int id) {
+        return (Observation) getPersistenceManager().pick("select o from Observation o where o.id = ?1", id);
     }
 
     public final Sensor getSensor(final String sensorName) {
