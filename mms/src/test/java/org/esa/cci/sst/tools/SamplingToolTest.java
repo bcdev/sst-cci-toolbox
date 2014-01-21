@@ -97,17 +97,23 @@ public class SamplingToolTest {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-        final String startTimeString = "2004-06-01T00:00:00Z";
-        final String stopTimeString = "2004-06-09T00:00:00Z";
-        final int sampleCount = 200000;
+        final String startTimeString = "2004-06-12T00:00:00Z";
+        final String stopTimeString = "2004-06-13T00:00:00Z";
+        final int sampleCount = 1000;
 
         final SamplingTool tool = new SamplingTool();
         tool.setCommandLineArgs(new String[]{
                 "-Dmms.sampling.count=" + sampleCount,
                 "-Dmms.sampling.startTime=" + startTimeString,
-                "-Dmms.sampling.stopTime=" + stopTimeString
+                "-Dmms.sampling.stopTime=" + stopTimeString,
+                "-Dmms.sampling.cleanup=" + true
         });
         tool.initialize();
+        if (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanup"))) {
+            tool.cleanup();
+        } else if  (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
+            tool.cleanupInterval();
+        }
 
         System.out.println("Creating samples...");
         final List<SamplingPoint> sampleList = tool.createSamples();
@@ -127,10 +133,13 @@ public class SamplingToolTest {
         System.out.println("Removing overlapping areas...");
         tool.removeOverlappingSamples(sampleList);
         System.out.println("Removing overlapping areas..." + sampleList.size());
-
+        System.out.println("Creating matchups...");
+        tool.createMatchups(sampleList);
+        System.out.println("Creating matchups..." + sampleList.size());
 
         plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
 
+        /*
         final Date startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
         final Date stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString);
 
@@ -149,6 +158,7 @@ public class SamplingToolTest {
                 break;
             }
         }
+        */
     }
 
     public interface Predicate<T> {

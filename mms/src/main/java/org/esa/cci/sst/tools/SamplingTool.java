@@ -22,10 +22,14 @@ import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.util.NcUtils;
@@ -34,6 +38,8 @@ import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.esa.cci.sst.util.TimeUtil;
+import org.postgis.PGgeometry;
+import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 
@@ -55,6 +61,9 @@ import java.util.List;
 import java.util.Map;
 
 public class SamplingTool extends BasicTool {
+
+    private static final byte DATASET_DUMMY = (byte) 8;
+    private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
 
     private long startTime;
     private long stopTime;
@@ -101,6 +110,11 @@ public class SamplingTool extends BasicTool {
     }
 
     private void run() {
+        if (Boolean.parseBoolean(getConfiguration().getProperty("mms.sampling.cleanup"))) {
+            cleanup();
+        } else if  (Boolean.parseBoolean(getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
+            cleanupInterval();
+        }
         createSamples();
     }
 
@@ -189,12 +203,12 @@ public class SamplingTool extends BasicTool {
         final String cloudFlagsName = "cloud_flags_nadir";
         final int pixelMask = 7;
         final double cloudyPixelFraction = 0.0;
-        final String satelliteName = "atsr_orb.3";
+        final String orbitFileType = "atsr_orb.3";
         final int subSceneSizeX = 7;
         final int subSceneSizeY = 7;
 
         final Query columnQuery = getPersistenceManager().createQuery("select c from Column c where c.name = ?1");
-        final String columnName = satelliteName + "." + cloudFlagsName;
+        final String columnName = orbitFileType + "." + cloudFlagsName;
         columnQuery.setParameter(1, columnName);
 
         final Object columnQueryResult = columnQuery.getSingleResult();
@@ -222,13 +236,8 @@ public class SamplingTool extends BasicTool {
         for (final int id : sampleListsByDatafile.keySet()) {
             final List<SamplingPoint> points = sampleListsByDatafile.get(id);
 
-            final Query observationQuery = getPersistenceManager().createQuery(
-                    "select o from Observation o where o.id = ?1");
-            observationQuery.setParameter(1, id);
-
-            final Object observationQueryResult = observationQuery.getSingleResult();
-            if (observationQueryResult instanceof RelatedObservation) {
-                final RelatedObservation observation = (RelatedObservation) observationQueryResult;
+            final Observation observation = getObservation(id);
+            if (observation != null) {
                 final DataFile datafile = observation.getDatafile();
                 try {
                     final Reader reader = readerCache.getReader(datafile, true);
@@ -240,9 +249,12 @@ public class SamplingTool extends BasicTool {
                         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
                         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
 
-                        if (pixelPos.isValid()) {
-                            final int pixelX = (int) Math.floor(pixelPos.getX());
-                            final int pixelY = (int) Math.floor(pixelPos.getY());
+                        final int numCols = reader.getElementCount();
+                        final int numRows = reader.getScanLineCount();
+                        final int pixelX = (int) Math.floor(pixelPos.getX());
+                        final int pixelY = (int) Math.floor(pixelPos.getY());
+
+                        if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows ) {
                             point.setX(pixelX);
                             point.setY(pixelY);
                             point.setTime(reader.getTime(0, pixelY));
@@ -338,4 +350,104 @@ public class SamplingTool extends BasicTool {
         sampleList.clear();
         sampleList.addAll(filteredList);
     }
+
+    void createMatchups(List<SamplingPoint> sampleList) {
+        final String sensorName = "atsr_orb.3";
+        final long pattern = getSensor(sensorName).getPattern();
+
+        final ArrayList<ReferenceObservation> referenceObservationList = new ArrayList<>();
+        final ArrayList<Matchup> matchupList = new ArrayList<>();
+        final ArrayList<Coincidence> coincidenceList = new ArrayList<>();
+
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        try {
+            persistenceManager.transaction();
+            for (SamplingPoint samplingPoint : sampleList) {
+                final ReferenceObservation referenceObservation = new ReferenceObservation();
+                referenceObservation.setName("0123");
+                referenceObservation.setSensor("sobol");
+                final PGgeometry location = new PGgeometry(new Point(samplingPoint.getLon(), samplingPoint.getLat()));
+                referenceObservation.setLocation(location);
+                referenceObservation.setPoint(location);
+                final Date time = new Date(samplingPoint.getTime());
+                referenceObservation.setTime(time);
+                referenceObservation.setTimeRadius(0.0);
+
+                referenceObservation.setDataset(DATASET_DUMMY);
+                referenceObservation.setReferenceFlag(REFERENCE_FLAG_UNDEFINED);
+
+                referenceObservationList.add(referenceObservation);
+                persistenceManager.persist(referenceObservation);
+            }
+            persistenceManager.commit();
+
+            persistenceManager.transaction();
+            for (int i = 0; i < sampleList.size(); i++) {
+                final SamplingPoint samplingPoint = sampleList.get(i);
+                final ReferenceObservation referenceObservation = referenceObservationList.get(i);
+                final Matchup matchup = new Matchup();
+                matchup.setId(referenceObservation.getId());
+                matchup.setRefObs(referenceObservation);
+                matchup.setPattern(pattern);
+
+                matchupList.add(matchup);
+
+                final Observation observation = getObservation(samplingPoint.getReference());
+                final Coincidence coincidence = new Coincidence();
+                coincidence.setMatchup(matchup);
+                coincidence.setObservation(observation);
+                coincidence.setTimeDifference(0.0);
+
+                coincidenceList.add(coincidence);
+            }
+            persistenceManager.commit();
+
+            persistenceManager.transaction();
+            for (Matchup m : matchupList) {
+                persistenceManager.persist(m);
+            }
+            for (Coincidence c : coincidenceList) {
+                persistenceManager.persist(c);
+            }
+            persistenceManager.commit();
+        } catch (Exception e) {
+            persistenceManager.rollback();
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
+        }
+    }
+
+    void cleanup() {
+        getPersistenceManager().transaction();
+
+        Query delete = getPersistenceManager().createQuery("delete from Coincidence c");
+        delete.executeUpdate();
+        delete = getPersistenceManager().createQuery("delete from Matchup m");
+        delete.executeUpdate();
+        delete = getPersistenceManager().createQuery("delete from Observation o where o.sensor = 'sobol'");
+        delete.executeUpdate();
+
+        getPersistenceManager().commit();
+    }
+
+    void cleanupInterval() {
+        getPersistenceManager().transaction();
+
+        Query delete = getPersistenceManager().createNativeQuery(
+                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
+        delete.setParameter(1, startTime);
+        delete.setParameter(2, stopTime);
+        delete.executeUpdate();
+        delete = getPersistenceManager().createNativeQuery("delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
+        delete.setParameter(1, startTime);
+        delete.setParameter(2, stopTime);
+        delete.executeUpdate();
+        delete = getPersistenceManager().createNativeQuery(
+                "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol'");
+        delete.setParameter(1, startTime);
+        delete.setParameter(2, stopTime);
+        delete.executeUpdate();
+
+        getPersistenceManager().commit();
+    }
+
 }
