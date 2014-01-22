@@ -16,7 +16,10 @@
 
 package org.esa.cci.sst.tools.nwp;
 
+import org.esa.cci.sst.tools.ingestion.MmdIngestionTool;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.*;
 
@@ -30,5 +33,25 @@ public class NwpToolTest {
         assertEquals("avhrr.12", NwpTool.getAlternativeSensorName("avhrr.n12"));
         assertEquals("avhrr.14", NwpTool.getAlternativeSensorName("avhrr.n14"));
         assertEquals("atsr.1", NwpTool.getAlternativeSensorName("atsr.1"));
+    }
+
+    public static void main(String[] _) throws IOException, InterruptedException {
+        // code snippet for creating an NWP file from an MMD file
+        final String sensorName = "atsr.3";
+        final String pattern = "20";
+        final String dimensionProperties = "mmd-dimensions.properties";
+        final String sourceMmd = "mmd.nc";
+        final String nwpArchivePath = "/Users/ralf/scratch/sst-cci-mms/archive/ecmwf-era-interim/v01";
+        final String nwpMmd = "nwp.nc";
+        final String[] args = new String[]{"false",
+                sensorName,
+                pattern,
+                dimensionProperties,
+                sourceMmd,
+                nwpArchivePath,
+                nwpMmd
+        };
+
+        new NwpTool(args).createMergedFile();
     }
 }
