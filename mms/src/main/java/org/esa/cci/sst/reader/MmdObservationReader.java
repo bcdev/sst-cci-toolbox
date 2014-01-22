@@ -18,8 +18,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -48,17 +46,19 @@ class MmdObservationReader extends AbstractMmdReader {
 
     void setObservationTime(final int recordNo, final RelatedObservation observation) throws IOException {
         // todo - mb,ts 28Apr2011 - maybe other variable names
-        final Variable variable = findVariable(Constants.VARIABLE_NAME_OBSERVATION_TIME);
+        final Variable variable = findVariable(observation.getSensor() + ".time");
         if (variable != null) {
-            final Date creationDate = getCreationDate(recordNo, variable);
-            observation.setTime(creationDate);
+            final Date time = readTime(recordNo, variable);
+            observation.setTime(time);
         }
     }
 
-    Date getCreationDate(final int recordNo, Variable variable) throws IOException {
+    private Date readTime(final int recordNo, Variable variable) throws IOException {
         // todo - mb,ts 28Apr2011 - maybe other data types
-        final Double julianDate = (Double) readCenterValue(recordNo, variable);
-        return TimeUtil.julianDateToDate(julianDate);
+        // todo - mb/rq 22Jan2014 - MMD files use a different time format
+        throw new IOException("Cannot read time.");
+        //final Double julianDate = (Double) readCenterValue(recordNo, variable);
+        //return TimeUtil.julianDateToDate(julianDate);
     }
 
 }
