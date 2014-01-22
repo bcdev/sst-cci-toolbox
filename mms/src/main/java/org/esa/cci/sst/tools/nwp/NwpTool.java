@@ -350,7 +350,7 @@ class NwpTool {
 
         final Variable targetTimesVariable = NwpUtil.findVariable(mmdNwp, sensorName + ".time", getAlternativeSensorName(sensorName) + ".time");
         final Array matchupIds = NwpUtil.findVariable(mmdNwp, "matchup.id").read();
-        final Array sourceTimes = NwpUtil.findVariable(nwpSourceFile, "time").read();
+        final Array sourceTimes = NwpUtil.findVariable(nwpSourceFile, "time", "t").read();
         final Array targetTimes = targetTimesVariable.read();
         final float targetFillValue = NwpUtil.getAttribute(targetTimesVariable, "_FillValue", Short.MIN_VALUE);
 
