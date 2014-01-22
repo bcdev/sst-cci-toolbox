@@ -55,7 +55,7 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
         final List<Variable> variables = getNetcdfFile().getVariables();
         for (final Variable variable : variables) {
             if (variable.getDimensionsString().contains("ny nx")) {
-                final Band band = product.addBand(variable.getName(), DataTypeUtils.getRasterDataType(variable));
+                final Band band = product.addBand(variable.getShortName(), DataTypeUtils.getRasterDataType(variable));
                 CfBandPart.readCfBandAttributes(variable, band);
             }
         }

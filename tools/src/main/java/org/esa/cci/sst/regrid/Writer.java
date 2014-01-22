@@ -249,7 +249,7 @@ final class Writer {
                         }
                     }
                 }
-                writeData(dataFile, variable.getName(), array);
+                writeData(dataFile, variable.getFullNameEscaped(), array);
             }
         }
     }
@@ -278,7 +278,7 @@ final class Writer {
                 }
             }
         }
-        writeData(dataFile, totalUncertaintyVariable.getName(), array);
+        writeData(dataFile, totalUncertaintyVariable.getFullNameEscaped(), array);
     }
 
 

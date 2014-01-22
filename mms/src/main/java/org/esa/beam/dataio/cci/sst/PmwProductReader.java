@@ -87,7 +87,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
     protected final void addBands(Product product) {
         for (final Variable variable : getNetcdfFile().getVariables()) {
             if (variable.getDimensionsString().contains("nj ni")) {
-                final Band band = product.addBand(variable.getName(), DataTypeUtils.getRasterDataType(variable));
+                final Band band = product.addBand(variable.getShortName(), DataTypeUtils.getRasterDataType(variable));
                 CfBandPart.readCfBandAttributes(variable, band);
             }
         }

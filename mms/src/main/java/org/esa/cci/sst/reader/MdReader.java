@@ -335,7 +335,7 @@ abstract class MdReader extends NetcdfReader {
     }
 
     protected Array getData(Variable variable, int recordNo) throws IOException {
-        final String role = variable.getName();
+        final String role = variable.getShortName();
         final Array cachedArray = arrayMap.get(role);
         if (cachedArray != null) {
             final Integer cachedRecord = indexMap.get(role);

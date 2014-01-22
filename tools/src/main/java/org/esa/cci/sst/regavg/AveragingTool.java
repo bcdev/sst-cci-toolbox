@@ -358,12 +358,12 @@ public final class AveragingTool extends Tool {
             }
             netcdfFile.create();
 
-            netcdfFile.write(startTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, startTime));
-            netcdfFile.write(endTimeVar.getName(), Array.factory(DataType.FLOAT, new int[]{numSteps}, endTime));
+            netcdfFile.write(startTimeVar.getFullNameEscaped(), Array.factory(DataType.FLOAT, new int[]{numSteps}, startTime));
+            netcdfFile.write(endTimeVar.getFullNameEscaped(), Array.factory(DataType.FLOAT, new int[]{numSteps}, endTime));
             for (int i = 0; i < variables.length; i++) {
                 final Variable variable = variables[i];
                 if (variable != null) {
-                    netcdfFile.write(variable.getName(), variableData[i]);
+                    netcdfFile.write(variable.getFullNameEscaped(), variableData[i]);
                 }
             }
             if (textWriter != null) {
@@ -425,7 +425,7 @@ public final class AveragingTool extends Tool {
         final List<String> names = new ArrayList<String>(variables.length);
         for (final Variable v : variables) {
             if (v != null) {
-                names.add(v.getName());
+                names.add(v.getShortName());
             }
         }
         return names.toArray(new String[names.size()]);

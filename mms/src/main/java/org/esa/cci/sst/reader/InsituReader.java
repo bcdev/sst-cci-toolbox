@@ -267,7 +267,7 @@ class InsituReader extends NetcdfReader {
         final int[] shape = targetVariable.getShape();
         shape[0] = 1;
         shape[1] = subset.getIndexPrivate().getShape(0);
-        targetFile.write(NetcdfFile.makeValidPathName(targetVariable.getName()), origin, subset.reshape(shape));
+        targetFile.write(targetVariable.getFullNameEscaped(), origin, subset.reshape(shape));
     }
 
     private static PGgeometry createLineGeometry(double startLon, double startLat, double endLon, double endLat) {

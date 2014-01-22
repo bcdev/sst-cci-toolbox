@@ -61,7 +61,7 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
         for (final Variable variable : getNetcdfFile().getVariables()) {
             final String dimensionsString = variable.getDimensionsString();
             if (dimensionsString.contains("yc xc")) {
-                final Band band = product.addBand(externalNameOf(variable.getName()), DataTypeUtils.getRasterDataType(variable));
+                final Band band = product.addBand(externalNameOf(variable.getShortName()), DataTypeUtils.getRasterDataType(variable));
                 CfBandPart.readCfBandAttributes(variable, band);
             }
         }

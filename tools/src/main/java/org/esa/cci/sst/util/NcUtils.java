@@ -101,11 +101,11 @@ public class NcUtils {
         if (z > 0) {
             if (rank < 3) {
                 throw new IOException(String.format("NetCDF variable '%s': Expected rank 3 or higher, but found %d.",
-                        variable.getFullName(), rank));
+                        variable.getShortName(), rank));
             }
         } else if (rank < 2) {
             throw new IOException(String.format("NetCDF variable '%s': Expected rank 2 or higher, but found %d.",
-                    variable.getFullName(), rank));
+                    variable.getShortName(), rank));
         }
         final int[] origin = new int[rank];
         final int[] shape = new int[rank];
@@ -140,12 +140,12 @@ public class NcUtils {
         final int rank = variable.getRank();
         if (rank < 2) {
             throw new IOException(String.format("Variable '%s' in file '%s': expected rank 2 or higher, but found %d.",
-                    variable.getFullName(), netcdfFile.getLocation(), rank));
+                    variable.getShortName(), netcdfFile.getLocation(), rank));
         }
         final int w = variable.getDimension(rank - 1).getLength();
         final int h = variable.getDimension(rank - 2).getLength();
         if (w != expectedGridDef.getWidth() || h != expectedGridDef.getHeight()) {
-            throw new IOException(String.format("Variable '%s' in file '%s': unexpected grid size.", variable.getFullName(), netcdfFile.getLocation()));
+            throw new IOException(String.format("Variable '%s' in file '%s': unexpected grid size.", variable.getShortName(), netcdfFile.getLocation()));
         }
         return new Rectangle(0, 0, w, h);
     }

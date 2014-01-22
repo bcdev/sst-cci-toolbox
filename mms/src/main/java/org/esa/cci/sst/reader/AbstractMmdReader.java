@@ -132,7 +132,7 @@ abstract class AbstractMmdReader implements ObservationReader {
     protected Variable findVariable(String... variableNames) {
         for (Variable variable : mmd.getVariables()) {
             for (String name : variableNames) {
-                if (variable.getName().endsWith(name)) {
+                if (variable.getShortName().endsWith(name)) {
                     return variable;
                 }
             }

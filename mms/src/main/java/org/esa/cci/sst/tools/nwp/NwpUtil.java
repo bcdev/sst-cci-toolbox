@@ -83,7 +83,7 @@ class NwpUtil {
         final int gx = xDimension.getLength();
 
         final NetcdfFileWriteable anMmd = NetcdfFileWriteable.createNew(anTargetLocation, true);
-        anMmd.addDimension(matchupDimension.getName(), matchupCount);
+        anMmd.addDimension(matchupDimension.getShortName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
         anMmd.addDimension("matchup.nwp.an.time", timeStepCount);
@@ -91,12 +91,12 @@ class NwpUtil {
         anMmd.addDimension("matchup.nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        anMmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        anMmd.addVariable(matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : analysisFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = anMmd.addVariable("matchup.nwp.an." + s.getName(), s.getDataType(),
+                    final Variable t = anMmd.addVariable("matchup.nwp.an." + s.getShortName(), s.getDataType(),
                                                          "matchup matchup.nwp.an.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
@@ -126,10 +126,10 @@ class NwpUtil {
                 final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
 
                 for (final Variable t : anMmd.getVariables()) {
-                    if ("matchup.id".equals(t.getName())) {
+                    if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
-                    final Variable s = findVariable(analysisFile, t.getName().substring("matchup.nwp.an.".length()));
+                    final Variable s = findVariable(analysisFile, t.getShortName().substring("matchup.nwp.an.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
@@ -160,7 +160,7 @@ class NwpUtil {
         final int gx = xDimension.getLength();
 
         final NetcdfFileWriteable fcMmd = NetcdfFileWriteable.createNew(fcTargetLocation, true);
-        fcMmd.addDimension(matchupDimension.getName(), matchupCount);
+        fcMmd.addDimension(matchupDimension.getShortName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
         fcMmd.addDimension("matchup.nwp.fc.time", timeStepCount);
@@ -168,12 +168,12 @@ class NwpUtil {
         fcMmd.addDimension("matchup.nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        fcMmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        fcMmd.addVariable(matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : forecastFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = fcMmd.addVariable("matchup.nwp.fc." + s.getName(), s.getDataType(),
+                    final Variable t = fcMmd.addVariable("matchup.nwp.fc." + s.getShortName(), s.getDataType(),
                                                          "matchup matchup.nwp.fc.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
@@ -203,10 +203,10 @@ class NwpUtil {
                 final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
 
                 for (final Variable t : fcMmd.getVariables()) {
-                    if ("matchup.id".equals(t.getName())) {
+                    if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
-                    final Variable s = findVariable(forecastFile, t.getName().substring("matchup.nwp.fc.".length()));
+                    final Variable s = findVariable(forecastFile, t.getShortName().substring("matchup.nwp.fc.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
@@ -294,7 +294,7 @@ class NwpUtil {
     }
 
     static void addVariable(NetcdfFileWriteable netcdfFile, Variable s) {
-        final Variable t = netcdfFile.addVariable(s.getName(), s.getDataType(), s.getDimensionsString());
+        final Variable t = netcdfFile.addVariable(s.getShortName(), s.getDataType(), s.getDimensionsString());
         for (final Attribute a : s.getAttributes()) {
             t.addAttribute(a);
         }

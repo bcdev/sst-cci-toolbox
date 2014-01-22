@@ -40,7 +40,7 @@ public class IoUtil {
 
     public static ColumnBuilder createColumnBuilder(final Variable variable, final String sensorName) {
         final ColumnBuilder builder = new ColumnBuilder();
-        builder.name(sensorName + '.' + variable.getName());
+        builder.name(sensorName + '.' + variable.getShortName());
         builder.type(variable.getDataType());
         builder.unsigned(variable.isUnsigned());
         builder.rank(variable.getRank());
@@ -50,7 +50,7 @@ public class IoUtil {
         setFlagMeanings(variable, builder);
         setFlagValues(variable, builder);
         setAttributes(variable, builder);
-        builder.role(variable.getName());
+        builder.role(variable.getShortName());
 
         return builder;
     }
@@ -105,32 +105,32 @@ public class IoUtil {
 
     private static void setAttributes(final Variable variable, final ColumnBuilder builder) {
         for (final Attribute attribute : variable.getAttributes()) {
-            if ("add_offset".equals(attribute.getName())) {
+            if ("add_offset".equals(attribute.getShortName())) {
                 builder.addOffset(attribute.getNumericValue());
             }
-            if ("scale_factor".equals(attribute.getName())) {
+            if ("scale_factor".equals(attribute.getShortName())) {
                 builder.scaleFactor(attribute.getNumericValue());
             }
-            if ("missing_value".equals(attribute.getName())) {
+            if ("missing_value".equals(attribute.getShortName())) {
                 builder.fillValue(attribute.getNumericValue());
             }
-            if ("_FillValue".equals(attribute.getName())) {
+            if ("_FillValue".equals(attribute.getShortName())) {
                 builder.fillValue(attribute.getNumericValue());
             }
-            if ("valid_min".equals(attribute.getName())) {
+            if ("valid_min".equals(attribute.getShortName())) {
                 builder.validMin(attribute.getNumericValue());
             }
-            if ("valid_max".equals(attribute.getName())) {
+            if ("valid_max".equals(attribute.getShortName())) {
                 builder.validMax(attribute.getNumericValue());
             }
-            if ("valid_range".equals(attribute.getName())) {
+            if ("valid_range".equals(attribute.getShortName())) {
                 builder.validMin(attribute.getNumericValue(0));
                 builder.validMax(attribute.getNumericValue(1));
             }
-            if ("long_name".equals(attribute.getName())) {
+            if ("long_name".equals(attribute.getShortName())) {
                 builder.longName(attribute.getStringValue());
             }
-            if ("standard_name".equals(attribute.getName())) {
+            if ("standard_name".equals(attribute.getShortName())) {
                 builder.standardName(attribute.getStringValue());
             }
         }

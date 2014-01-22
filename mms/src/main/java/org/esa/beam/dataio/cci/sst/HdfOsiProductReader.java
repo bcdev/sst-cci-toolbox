@@ -184,7 +184,7 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
             } catch (IOException e) {
                 Debug.trace(e.getMessage());
             }
-            MetadataAttribute attribute = new MetadataAttribute(variable.getName(), productData, true);
+            MetadataAttribute attribute = new MetadataAttribute(variable.getShortName(), productData, true);
             element.addAttribute(attribute);
         }
         return element;

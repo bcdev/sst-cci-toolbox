@@ -87,14 +87,15 @@ public class HdfOsiProductReaderTest {
     public void testGetMetadata() throws Exception {
         final NetcdfFile ncFile = NetcdfFile.open(getIceConcentrationFile().getPath());
         final Variable header = ncFile.findVariable("Header");
-        final MetadataElement metadata = reader.getMetadata((Structure) header);
-        assertNotNull(metadata);
-        assertTrue(metadata.getAttributes() != null && metadata.getAttributes().length > 0);
-        assertEquals(760, metadata.getAttribute("Header.iw").getData().getElemInt());
-        assertEquals(1120, metadata.getAttribute("Header.ih").getData().getElemInt());
-        assertEquals(-3850.0, metadata.getAttribute("Header.Bx").getData().getElemFloat(), 0.0);
-        assertEquals(5850, metadata.getAttribute("Header.By").getData().getElemFloat(), 0.0);
-        assertEquals(HdfOsiProductReader.NORTHERN_HEMISPHERE, metadata.getAttribute("Header.area").getData().getElemString());
+        final MetadataElement headerElement = reader.getMetadata((Structure) header);
+        assertNotNull(headerElement);
+        assertTrue(headerElement.getAttributes() != null && headerElement.getAttributes().length > 0);
+        assertEquals(760, headerElement.getAttribute("iw").getData().getElemInt());
+        assertEquals(1120, headerElement.getAttribute("ih").getData().getElemInt());
+        assertEquals(-3850.0, headerElement.getAttribute("Bx").getData().getElemFloat(), 0.0);
+        assertEquals(5850, headerElement.getAttribute("By").getData().getElemFloat(), 0.0);
+        assertEquals(HdfOsiProductReader.NORTHERN_HEMISPHERE,
+                     headerElement.getAttribute("area").getData().getElemString());
     }
 
     @Test
@@ -144,7 +145,7 @@ public class HdfOsiProductReaderTest {
         return new File(HdfOsiProductReaderPlugInTest.class.getResource(name).toURI());
     }
 
-    public static void main() throws IOException, URISyntaxException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
         final File file = getIceConcentrationFile();
         assertTrue(NetcdfFile.canOpen(file.getPath()));
 
@@ -154,12 +155,12 @@ public class HdfOsiProductReaderTest {
 
             final List<Variable> variableList = netcdfFile.getVariables();
             for (Variable v : variableList) {
-                System.out.println("v.getName() = " + v.getName());
+                System.out.println("v.getName() = " + v.getShortName());
             }
 
             final Structure header = (Structure) netcdfFile.findVariable("Header");
             for (final Variable v : header.getVariables()) {
-                System.out.println("v.getName() = " + v.getName());
+                System.out.println("v.getFullName() = " + v.getFullName());
                 switch (v.getDataType()) {
                     case CHAR:
                         System.out.println("v.value = " + v.readScalarString());
@@ -177,11 +178,11 @@ public class HdfOsiProductReaderTest {
             }
             final List<Attribute> attributeList = header.getAttributes();
             for (Attribute a : attributeList) {
-                System.out.println("a.getName() = " + a.getName());
+                System.out.println("a.getFullName() = " + a.getFullName());
                 System.out.println("a.getValue() = " + a.getValue(0));
             }
             final Variable data = netcdfFile.findVariable("Data/data[00]");
-            System.out.println("data.getName() = " + data.getName());
+            System.out.println("data.getFullName() = " + data.getFullName());
 
             System.out.println(netcdfFile.toString());
         } finally {

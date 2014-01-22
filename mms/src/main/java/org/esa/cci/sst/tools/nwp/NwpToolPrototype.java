@@ -150,21 +150,21 @@ public class NwpToolPrototype {
         final int gx = xDimension.getLength();
 
         final NetcdfFileWriteable amd = NetcdfFileWriteable.createNew(AMD_TARGET_LOCATION, true);
-        amd.addDimension(matchupDimension.getName(), matchupCount);
+        amd.addDimension(matchupDimension.getShortName(), matchupCount);
         amd.addDimension("nwp.nz", findDimension(analysisFile, "lev").getLength());
         amd.addDimension("nwp.ny", gy);
         amd.addDimension("nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        amd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        amd.addVariable(matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : analysisFile.getVariables()) {
             if (s.getRank() == 4) {
                 final Variable t;
                 if (s.getDimension(1).getLength() == 1) {
-                    t = amd.addVariable(s.getName(), s.getDataType(), "matchup nwp.ny nwp.nx");
+                    t = amd.addVariable(s.getShortName(), s.getDataType(), "matchup nwp.ny nwp.nx");
                 } else {
-                    t = amd.addVariable(s.getName(), s.getDataType(), "matchup nwp.nz nwp.ny nwp.nx");
+                    t = amd.addVariable(s.getShortName(), s.getDataType(), "matchup nwp.nz nwp.ny nwp.nx");
                 }
                 for (final Attribute a : s.getAttributes()) {
                     t.addAttribute(a);
@@ -189,10 +189,10 @@ public class NwpToolPrototype {
                 final FracIndex fi = interpolationIndex(sourceTimes, targetTime);
 
                 for (final Variable t : amd.getVariables()) {
-                    if ("matchup.id".equals(t.getName())) {
+                    if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
-                    final Variable s = findVariable(analysisFile, t.getName());
+                    final Variable s = findVariable(analysisFile, t.getShortName());
                     final float fillValue = getAttribute(s, "_FillValue", 2.0E+20F);
                     final float validMin = getAttribute(s, "valid_min", Float.NEGATIVE_INFINITY);
                     final float validMax = getAttribute(s, "valid_max", Float.POSITIVE_INFINITY);
@@ -269,7 +269,7 @@ public class NwpToolPrototype {
         final int gx = xDimension.getLength();
 
         final NetcdfFileWriteable fmd = NetcdfFileWriteable.createNew(FMD_TARGET_LOCATION, true);
-        fmd.addDimension(matchupDimension.getName(), matchupCount);
+        fmd.addDimension(matchupDimension.getShortName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
         fmd.addDimension("nwp.time", timeStepCount);
@@ -277,12 +277,12 @@ public class NwpToolPrototype {
         fmd.addDimension("nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        fmd.addVariable(matchupId.getName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        fmd.addVariable(matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : forecastFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = fmd.addVariable(s.getName(), s.getDataType(),
+                    final Variable t = fmd.addVariable(s.getShortName(), s.getDataType(),
                                                        "matchup nwp.time nwp.ny nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
@@ -312,10 +312,10 @@ public class NwpToolPrototype {
                 final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
 
                 for (final Variable t : fmd.getVariables()) {
-                    if ("matchup.id".equals(t.getName())) {
+                    if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
-                    final Variable s = findVariable(forecastFile, t.getName());
+                    final Variable s = findVariable(forecastFile, t.getShortName());
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
@@ -422,9 +422,9 @@ public class NwpToolPrototype {
             final int ny = nyDimension.getLength();
             final int nx = nxDimension.getLength();
 
-            sensorMmd.addDimension(matchupDimension.getName(), matchupCount);
-            sensorMmd.addDimension(nyDimension.getName(), ny);
-            sensorMmd.addDimension(nxDimension.getName(), nx);
+            sensorMmd.addDimension(matchupDimension.getShortName(), matchupCount);
+            sensorMmd.addDimension(nyDimension.getShortName(), ny);
+            sensorMmd.addDimension(nxDimension.getShortName(), nx);
 
             addVariable(sensorMmd, findVariable(mmd, "matchup.id"));
             addVariable(sensorMmd, findVariable(mmd, SENSOR_NAME + ".latitude"));
@@ -469,7 +469,7 @@ public class NwpToolPrototype {
     }
 
     private static void addVariable(NetcdfFileWriteable netcdfFile, Variable s) {
-        final Variable t = netcdfFile.addVariable(s.getName(), s.getDataType(), s.getDimensionsString());
+        final Variable t = netcdfFile.addVariable(s.getShortName(), s.getDataType(), s.getDimensionsString());
         for (final Attribute a : s.getAttributes()) {
             t.addAttribute(a);
         }
@@ -579,10 +579,10 @@ public class NwpToolPrototype {
         return d;
     }
 
-    private static Variable findVariable(NetcdfFile file, String name) throws IOException {
-        final Variable v = file.findVariable(NetcdfFile.makeValidPathName(name));
+    private static Variable findVariable(NetcdfFile file, String shortName) throws IOException {
+        final Variable v = file.findVariable(NetcdfFile.makeValidPathName(shortName));
         if (v == null) {
-            throw new IOException(MessageFormat.format("Expected variable ''{0}''.", name));
+            throw new IOException(MessageFormat.format("Expected variable ''{0}''.", shortName));
         }
         return v;
     }
