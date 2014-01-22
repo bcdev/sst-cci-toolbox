@@ -44,6 +44,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
@@ -110,6 +111,8 @@ public abstract class BasicTool {
     private Date sourceStopTime;
 
     static {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        Locale.setDefault(Locale.ENGLISH);
         Locale.setDefault(Locale.ENGLISH);
 
         System.setProperty("EPSG-HSQL.directory", System.getProperty("user.home", ".") + File.separator + "tmp");
