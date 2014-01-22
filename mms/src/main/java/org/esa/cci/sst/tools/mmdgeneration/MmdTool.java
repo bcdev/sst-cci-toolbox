@@ -263,12 +263,16 @@ public class MmdTool extends BasicTool {
                                 continue;
                             }
                         }
-                        final Item targetColumn = columnRegistry.getColumn(variable.getName());
+                        final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
                         final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                         if ("Implicit".equals(sourceColumn.getName())) {
-                            final Reader referenceObservationReader = readerCache.getReader(
-                                    referenceObservation.getDatafile(),
-                                    true);
+                            final DataFile datafile = referenceObservation.getDatafile();
+                            final Reader referenceObservationReader;
+                            if (datafile != null) {
+                                referenceObservationReader = readerCache.getReader(datafile, true);
+                            } else {
+                                referenceObservationReader = null;
+                            }
                             final Context context = new ContextBuilder()
                                     .matchup(matchup)
                                     .observation(observation)
@@ -320,7 +324,7 @@ public class MmdTool extends BasicTool {
     private Map<String, List<Variable>> createSensorMap(List<Variable> mmdVariables) {
         Map<String, List<Variable>> sensorMap = new HashMap<String, List<Variable>>();
         for (final Variable variable : mmdVariables) {
-            final Item targetColumn = columnRegistry.getColumn(variable.getName());
+            final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
             final String sensorName = targetColumn.getSensor().getName();
             List<Variable> variables = sensorMap.get(sensorName);
             if (variables == null) {

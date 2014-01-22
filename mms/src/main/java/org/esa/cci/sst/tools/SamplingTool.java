@@ -372,7 +372,9 @@ public class SamplingTool extends BasicTool {
                 final Date time = new Date(samplingPoint.getTime());
                 referenceObservation.setTime(time);
                 referenceObservation.setTimeRadius(0.0);
-
+                final Observation observation = getObservation(samplingPoint.getReference());
+                referenceObservation.setDatafile(observation.getDatafile());
+                referenceObservation.setRecordNo(0);
                 referenceObservation.setDataset(DATASET_DUMMY);
                 referenceObservation.setReferenceFlag(REFERENCE_FLAG_UNDEFINED);
 

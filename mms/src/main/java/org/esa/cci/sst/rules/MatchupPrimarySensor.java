@@ -52,6 +52,8 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
             flag = 2;
         } else if("avhrr_md".equalsIgnoreCase(sensor)) {
             flag = 3;
+        } else if("sobol".equalsIgnoreCase(sensor)) {
+            flag = 4;
         } else {
             throw new RuleException(MessageFormat.format("Unknown primary sensor ''{0}''.", sensor));
         }
