@@ -70,7 +70,8 @@ public class MmdIngestionTool extends BasicTool {
         final String sensorName = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
         final String patternProperty = getConfiguration().getProperty(MMS_REINGESTION_PATTERN_PROPERTY, "0");
         final long pattern = Long.parseLong(patternProperty, 16);
-        final boolean located = "yes".equals(getConfiguration().getProperty("mms.reingestion.located", "no"));
+        final String locatedString = getConfiguration().getProperty("mms.reingestion.located", "false");
+        final boolean located = Boolean.parseBoolean(locatedString) /* for backward compatibility */ || "yes".equals(locatedString);
         final boolean withOverwrite = Boolean.parseBoolean(getConfiguration().getProperty("mms.reingestion.overwrite"));
         String path = getConfiguration().getProperty(Constants.PROPERTY_MMS_REINGESTION_FILENAME);
         final String archiveRootPath = getConfiguration().getProperty(Constants.PROPERTY_ARCHIVE_ROOTDIR);
