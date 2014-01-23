@@ -119,7 +119,7 @@ public class Arc1ProcessingTool extends BasicTool {
         final File archiveRoot = new File(archiveRootPath);
         final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
         final String startTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
-        final String endTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_END_TIME);
+        final String endTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_STOP_TIME);
         final String sensorName = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "avhrr_orb.n18"
         final String configurationPath = getConfiguration().getProperty(Constants.PROPERTY_CONFIGURATION);
         final String condition = getConfiguration().getProperty(Constants.PROPERTY_ARC1x2_CONDITION, null);

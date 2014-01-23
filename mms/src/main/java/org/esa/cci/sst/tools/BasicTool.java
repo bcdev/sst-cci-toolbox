@@ -302,11 +302,11 @@ public abstract class BasicTool {
 
         final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
                                                            "1978-01-01T00:00:00Z");
-        final String endTime = configuration.getProperty(Constants.PROPERTY_SOURCE_END_TIME,
-                                                         "2100-01-01T00:00:00Z");
+        final String stopTime = configuration.getProperty(Constants.PROPERTY_SOURCE_STOP_TIME,
+                                                          "2100-01-01T00:00:00Z");
         try {
             sourceStartTime = TimeUtil.parseCcsdsUtcFormat(startTime);
-            sourceStopTime = TimeUtil.parseCcsdsUtcFormat(endTime);
+            sourceStopTime = TimeUtil.parseCcsdsUtcFormat(stopTime);
         } catch (java.text.ParseException e) {
             throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
         }

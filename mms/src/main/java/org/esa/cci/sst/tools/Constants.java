@@ -46,10 +46,10 @@ public class Constants {
     public static final String PROPERTY_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
 
     public static final String PROPERTY_SOURCE_START_TIME = "mms.source.startTime";
-    public static final String PROPERTY_SOURCE_END_TIME = "mms.source.endTime";
+    public static final String PROPERTY_SOURCE_STOP_TIME = "mms.source.stopTime";
 
     public static final String PROPERTY_OUTPUT_START_TIME = "mms.arc1x2.startTime";
-    public static final String PROPERTY_OUTPUT_END_TIME = "mms.arc1x2.endTime";
+    public static final String PROPERTY_OUTPUT_STOP_TIME = "mms.arc1x2.stopTime";
     public static final String PROPERTY_OUTPUT_TMPDIR = "mms.arc1x2.tmpdir";
     public static final String PROPERTY_OUTPUT_DESTDIR = "mms.arc1x2.destdir";
     public static final String PROPERTY_ARC1x2_CONDITION = "mms.arc1x2.condition";
