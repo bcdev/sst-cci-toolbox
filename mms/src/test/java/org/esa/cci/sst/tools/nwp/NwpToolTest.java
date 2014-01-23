@@ -35,23 +35,41 @@ public class NwpToolTest {
         assertEquals("atsr.1", NwpTool.getAlternativeSensorName("atsr.1"));
     }
 
+    @SuppressWarnings("ConstantIfStatement")
     public static void main(String[] _) throws IOException, InterruptedException {
         // code snippet for creating an NWP file from an MMD file
-        final String sensorName = "atsr.3";
-        final String pattern = "20";
-        final String dimensionProperties = "mmd-dimensions.properties";
-        final String sourceMmd = "mmd.nc";
-        final String nwpArchivePath = "/Users/ralf/scratch/sst-cci-mms/archive/ecmwf-era-interim/v01";
-        final String nwpMmd = "nwp.nc";
-        final String[] args = new String[]{"false",
-                sensorName,
-                pattern,
-                dimensionProperties,
-                sourceMmd,
-                nwpArchivePath,
-                nwpMmd
-        };
+        if (true) {
+            final String sensorName = "atsr.3";
+            final String pattern = "20";
+            final String dimensionProperties = "mmd-dimensions.properties";
+            final String sourceMmd = "archive/mmd.nc";
+            final String nwpArchivePath = "archive/ecmwf-era-interim/v01";
+            final String nwpMmd = "archive/nwp.nc";
+            final String[] args = new String[]{"false",
+                    sensorName,
+                    pattern,
+                    dimensionProperties,
+                    sourceMmd,
+                    nwpArchivePath,
+                    nwpMmd
+            };
 
-        new NwpTool(args).createMergedFile();
+            new NwpTool(args).createMergedFile();
+        }
+        if (true) {
+            final String sourceMmd = "archive/mmd.nc";
+            final String nwpArchivePath = "archive/ecmwf-era-interim/v01";
+            final String anMmd = "archive/nwpan.nc";
+            final String fcMmd = "archive/nwpfc.nc";
+            final String[] args = new String[]{"true",
+                    sourceMmd,
+                    nwpArchivePath,
+                    anMmd,
+                    fcMmd
+            };
+            final NwpTool nwpTool = new NwpTool(args);
+            nwpTool.createMatchupAnFile();
+            nwpTool.createMatchupFcFile();
+        }
     }
 }
