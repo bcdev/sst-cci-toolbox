@@ -109,7 +109,7 @@ class NwpUtil {
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
         final Array targetTimes = findVariable(mmd, "matchup.time").read();
-        final Array sourceTimes = findVariable(analysisFile, "time").read();
+        final Array sourceTimes = findVariable(analysisFile, "time", "t").read();
 
         try {
             anMmd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
@@ -186,7 +186,7 @@ class NwpUtil {
 
         final Array matchupIds = findVariable(mmd, "matchup.id").read();
         final Array targetTimes = findVariable(mmd, "matchup.time").read();
-        final Array sourceTimes = findVariable(forecastFile, "time").read();
+        final Array sourceTimes = findVariable(forecastFile, "time", "t").read();
 
         try {
             fcMmd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
