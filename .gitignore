@@ -4,4 +4,5 @@
 .idea/
 target/
 /mms-config.properties
+/*.nc
 /*.png
