@@ -201,7 +201,7 @@ public class SamplingTool extends BasicTool {
     void findSatelliteSubscenes(List<SamplingPoint> sampleList) {
         // TODO - make parameters from variables below
         final String cloudFlagsName = "cloud_flags_nadir";
-        final int pixelMask = 7;
+        final int pixelMask = 3;
         final double cloudyPixelFraction = 0.0;
         final String orbitFileType = "atsr_orb.3";
         final int subSceneSizeX = 7;
