@@ -64,10 +64,9 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
 
         <fileSet>
             <directory>src/main/config</directory>
-            <includes>
-                <include>*.config</include>
-                <include>*.properties</include>
-            </includes>
+            <excludes>
+                <exclude>phase1</exclude>
+            </excludes>
             <outputDirectory>config</outputDirectory>
             <fileMode>0664</fileMode>
         </fileSet>
@@ -80,9 +79,11 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
                 <include>org.esa.beam:*</include>
                 <include>${project.groupId}:*</include>
             </includes>
+            <!--
             <excludes>
                 <exclude>com.bc.ceres:ceres-launcher</exclude>
             </excludes>
+            -->
             <scope>runtime</scope>
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>false</useTransitiveFiltering>
