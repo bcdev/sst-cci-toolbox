@@ -6,3 +6,5 @@ target/
 /mms-config.properties
 /*.nc
 /*.png
+/archive
+

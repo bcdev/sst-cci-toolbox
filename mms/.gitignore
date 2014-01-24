@@ -1,7 +1,6 @@
 .idea/
 postgres/
 target/
-testdata/
 /config/
 *.iml
 *.iws
