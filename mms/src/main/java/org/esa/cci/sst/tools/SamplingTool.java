@@ -64,6 +64,11 @@ public class SamplingTool extends BasicTool {
 
     private static final byte DATASET_DUMMY = (byte) 8;
     private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
+    private static final String MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
+    private static final String MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
+    private static final String MMS_SAMPLING_COUNT = "mms.sampling.count";
+    private static final String MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
+    private static final String MMS_SAMPLING_CLEANUPINTERVAL = "mms.sampling.cleanupinterval";
 
     private long startTime;
     private long stopTime;
@@ -91,11 +96,11 @@ public class SamplingTool extends BasicTool {
     @Override
     public void initialize() {
         super.initialize();
-        final String startTimeString = getConfiguration().getProperty("mms.sampling.startTime",
+        final String startTimeString = getConfiguration().getProperty(MMS_SAMPLING_START_TIME,
                                                                       "2004-06-01T00:00:00Z");
-        final String stopTimeString = getConfiguration().getProperty("mms.sampling.stopTime",
+        final String stopTimeString = getConfiguration().getProperty(MMS_SAMPLING_STOP_TIME,
                                                                      "2004-06-04T00:00:00Z");
-        final String countString = getConfiguration().getProperty("mms.sampling.count", "10000");
+        final String countString = getConfiguration().getProperty(MMS_SAMPLING_COUNT, "10000");
 
         try {
             startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime();
@@ -110,12 +115,32 @@ public class SamplingTool extends BasicTool {
     }
 
     private void run() {
-        if (Boolean.parseBoolean(getConfiguration().getProperty("mms.sampling.cleanup"))) {
+        if (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUP))) {
             cleanup();
-        } else if  (Boolean.parseBoolean(getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
+        } else if  (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUPINTERVAL))) {
             cleanupInterval();
         }
-        createSamples();
+        getLogger().info("Creating samples...");
+        final List<SamplingPoint> sampleList = createSamples();
+        getLogger().info("Creating samples... " + sampleList.size());
+        getLogger().info("Removing land samples...");
+        removeLandSamples(sampleList);
+        getLogger().info("Removing land samples..." + sampleList.size());
+        getLogger().info("Reducing clear samples...");
+        reduceClearSamples(sampleList);
+        getLogger().info("Reducing clear samples..." + sampleList.size());
+        getLogger().info("Finding reference observations...");
+        findObservations(sampleList);
+        getLogger().info("Finding reference observations..." + sampleList.size());
+        getLogger().info("Finding satellite sub-scenes...");
+        findSatelliteSubscenes(sampleList);
+        getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
+        getLogger().info("Removing overlapping areas...");
+        removeOverlappingSamples(sampleList);
+        getLogger().info("Removing overlapping areas..." + sampleList.size());
+        getLogger().info("Creating matchups...");
+        createMatchups(sampleList);
+        getLogger().info("Creating matchups..." + sampleList.size());
     }
 
     List<SamplingPoint> createSamples() {
