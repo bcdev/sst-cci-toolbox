@@ -96,6 +96,45 @@ public class SamplingToolTest {
         assertEquals(77, sampleList.size());
     }
 
+    @Test
+    public void testTempSamples() throws Exception {
+        final String startTimeString = "2004-06-12T00:00:00Z";
+        final String stopTimeString = "2004-06-13T00:00:00Z";
+        final int sampleCount = 100000;
+
+        final SamplingTool tool = new SamplingTool();
+        tool.setCommandLineArgs(new String[] {
+                "-Dmms.sampling.count=" + sampleCount,
+                "-Dmms.sampling.startTime=" + startTimeString,
+                "-Dmms.sampling.stopTime=" + stopTimeString,
+                "-Dmms.sampling.cleanup=" + false
+        });
+        tool.initialize();
+//        if (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanup"))) {
+//            tool.cleanup();
+//        } else if  (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
+//            tool.cleanupInterval();
+//        }
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples...");
+        final List<SamplingPoint> sampleList = tool.createSamples();
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples... " + sampleList.size());
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Removing land samples...");
+        tool.removeLandSamples(sampleList);
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Removing land samples..." + sampleList.size());
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Reducing clear samples...");
+        tool.reduceClearSamples(sampleList);
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Reducing clear samples..." + sampleList.size());
+//        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Store samples to temp...");
+//        tool.insertSamplesIntoTemp(sampleList);
+//        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Store samples to temp..." + sampleList.size());
+//        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Match with atsr.3...");
+//        tool.determineOrbits();
+//        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Match with atsr.3..." + sampleList.size());
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Finding reference observations...");
+        tool.findObservations2(sampleList);
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Finding reference observations..." + sampleList.size());
+    }
+
     public static void main(String[] args) throws IOException, ParseException {
         final String startTimeString = "2004-06-12T00:00:00Z";
         final String stopTimeString = "2004-06-13T00:00:00Z";

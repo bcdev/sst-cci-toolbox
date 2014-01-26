@@ -19,6 +19,7 @@ package org.esa.cci.sst.data;
 import org.apache.openjpa.persistence.jdbc.Index;
 import org.esa.cci.sst.util.TimeUtil;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -37,6 +38,7 @@ public class GlobalObservation extends Observation implements Timeable {
 
     @Index
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(columnDefinition = "timestamp with time zone")
     @Override
     public Date getTime() {
         return time;
