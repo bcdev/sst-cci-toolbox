@@ -88,11 +88,19 @@
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-watermask-operator</artifactId>
-            <version>1.2-SNAPSHOT</version>
+            <version>1.3.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.esa.beam</groupId>
                     <artifactId>beam-gpf</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.esa.beam</groupId>
+                    <artifactId>beam-netcdf</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.esa.beam</groupId>
+                    <artifactId>beam-visat</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

@@ -34,16 +34,21 @@ public class TimeUtilTest {
 
     @Test
     public void testJulianDateToDate() throws Exception {
-        Date date = TimeUtil.julianDateToDate(2454428.185);
-        Date testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20071123_172624_000");
-        assertEquals(testTime, date);
+        final SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd_HHmmss_SSSzzz", Locale.ENGLISH);
+
+        Date date;
+        Date testTime;
+
+        date = TimeUtil.julianDateToDate(2454428.185);
+        testTime = format.parse("20071123_172624_000CET");
+        assertEquals(testTime.getTime(), date.getTime());
 
         date = TimeUtil.julianDateToDate(2454477.394);
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20080111_222721_599");
+        testTime = format.parse("20080111_222721_599CET");
         assertEquals(testTime.getTime(), date.getTime());
 
         date = TimeUtil.julianDateToDate(2454115.05486);
-        testTime = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").parse("20070114_141859_904");
+        testTime = format.parse("20070114_141859_904CET");
         assertEquals(testTime.getTime(), date.getTime());
     }
 

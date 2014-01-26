@@ -136,9 +136,9 @@ public class SamplingToolTest {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-        final String startTimeString = "2004-06-12T00:00:00Z";
-        final String stopTimeString = "2004-06-13T00:00:00Z";
-        final int sampleCount = 1000;
+        final String startTimeString = "2004-06-17T00:00:00Z";
+        final String stopTimeString = "2004-06-18T00:00:00Z";
+        final int sampleCount = 2000000;
 
         final SamplingTool tool = new SamplingTool();
         tool.setCommandLineArgs(new String[]{
@@ -173,12 +173,11 @@ public class SamplingToolTest {
         tool.removeOverlappingSamples(sampleList);
         System.out.println("Removing overlapping areas..." + sampleList.size());
         System.out.println("Creating matchups...");
-        tool.createMatchups(sampleList);
-        System.out.println("Creating matchups..." + sampleList.size());
+        //tool.createMatchups(sampleList);
+        //System.out.println("Creating matchups..." + sampleList.size());
 
         plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
 
-        /*
         final Date startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
         final Date stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString);
 
@@ -197,7 +196,6 @@ public class SamplingToolTest {
                 break;
             }
         }
-        */
     }
 
     public interface Predicate<T> {
