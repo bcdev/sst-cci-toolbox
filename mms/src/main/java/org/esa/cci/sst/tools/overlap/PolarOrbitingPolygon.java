@@ -114,7 +114,7 @@ public class PolarOrbitingPolygon {
     }
 
     private double normLongitude(double lon) {
-        return (lon + 180.0) % 360.0 - 180.0;
+        return (lon + 180.0 + 720.0) % 360.0 - 180.0;
     }
 
     private double longitudeAtEquator(double lat1, double lon1, double lat2, double lon2) {
