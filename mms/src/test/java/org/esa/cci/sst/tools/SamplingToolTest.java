@@ -100,7 +100,7 @@ public class SamplingToolTest {
     public void testTempSamples() throws Exception {
         final String startTimeString = "2004-06-12T00:00:00Z";
         final String stopTimeString = "2004-06-13T00:00:00Z";
-        final int sampleCount = 100000;
+        final int sampleCount = 1000;
 
         final SamplingTool tool = new SamplingTool();
         tool.setCommandLineArgs(new String[] {
@@ -164,7 +164,7 @@ public class SamplingToolTest {
         tool.reduceClearSamples(sampleList);
         System.out.println("Reducing clear samples..." + sampleList.size());
         System.out.println("Finding reference observations...");
-        tool.findObservations(sampleList);
+        tool.findObservations2(sampleList);
         System.out.println("Finding reference observations..." + sampleList.size());
         System.out.println("Finding satellite sub-scenes...");
         tool.findSatelliteSubscenes(sampleList);
