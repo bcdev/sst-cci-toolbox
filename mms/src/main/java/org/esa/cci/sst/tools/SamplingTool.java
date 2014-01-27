@@ -28,6 +28,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+//import org.esa.cci.sst.data.Sample;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
@@ -54,6 +55,8 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -132,6 +135,12 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Finding reference observations...");
         findObservations(sampleList);
         getLogger().info("Finding reference observations..." + sampleList.size());
+        Collections.sort(sampleList, new Comparator<SamplingPoint>() {
+            @Override
+            public int compare(SamplingPoint o1, SamplingPoint o2) {
+                return Long.compare(o1.getTime(), o2.getTime());
+            }
+        });
         getLogger().info("Finding satellite sub-scenes...");
         findSatelliteSubscenes(sampleList);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
@@ -313,7 +322,7 @@ public class SamplingTool extends BasicTool {
             "select o.id"
             + " from mm_observation o"
             + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
+            + " and o.time >= timestamp ?2 - interval '420:00:00' and o.time < timestamp ?2 + interval '420:00:00'"
             + " and st_intersects(o.location, st_geomfromewkt(?3))"
             + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
@@ -347,6 +356,140 @@ public class SamplingTool extends BasicTool {
 //            point.setTime(nearestCoveringObservation.getTime().getTime());
         }
     }
+
+/*
+    public void insertSamplesIntoTemp(List<SamplingPoint> sampleList) throws PersistenceException {
+        try {
+            getPersistenceManager().transaction();
+            final Query query = getPersistenceManager().createNativeQuery("delete from mm_sample");
+            query.executeUpdate();
+            for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
+                final SamplingPoint point = iterator.next();
+                final Sample sample = new Sample();
+                sample.setTime(new Date(point.getTime()));
+                sample.setPoint(new PGgeometry(new Point(point.getLon(), point.getLat())));
+                getPersistenceManager().persist(sample);
+            }
+        } catch (PersistenceException e) {
+            getPersistenceManager().rollback();
+            throw e;
+        }
+        getPersistenceManager().commit();
+    }
+
+    public void determineOrbits() {
+        final Query query = getPersistenceManager().createNativeQuery("select s.id, o.id from mm_sample s, mm_observation o where o.sensor='atsr_orb.3' and st_intersects(s.point, o.location) order by s.id, (extract(epoch from o.time) - extract(epoch from s.time))", Integer[].class);
+//        for (Object idPair : query.getResultList()) {
+//            System.out.println(((Integer[]) idPair)[0] + " " + ((Integer[]) idPair)[1]);
+//        }
+        System.out.println(query.getResultList().size() + " match candidates found");
+    }
+*/
+
+    public void findObservations2(List<SamplingPoint> sampleList) throws PersistenceException, ParseException {
+        final List<ReferenceObservation> orbits = findOrbits(TimeUtil.formatCcsdsUtcFormat(new Date(startTime-86400*100*175)),
+                                                             TimeUtil.formatCcsdsUtcFormat(new Date(stopTime+86400*100*175)));
+        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
+            final SamplingPoint point = iterator.next();
+            // look for orbit before (i0) and after (i1) point with binary search
+            int i0 = 0;
+            int i1 = orbits.size() - 1;
+            while (i0 + 1 < i1) {
+                int i = (i1 + i0) / 2;
+                if (point.getTime() < orbits.get(i).getTime().getTime()) {
+                    i1 = i;
+                } else {
+                    i0 = i;
+                }
+            }
+            // check orbits closest to point first for spatial overlap
+            while (true) {
+                if (i0 >= 0 && (i1 >= orbits.size() || point.getTime() - orbits.get(i0).getTime().getTime() < orbits.get(i1).getTime().getTime() - point.getTime())) {
+                    if (pointInPolygon(point, orbits.get(i0))) {
+                        point.setReference(orbits.get(i0).getId());
+                        break;
+                    }
+                    --i0;
+                } else if (i1 < orbits.size()) {
+                    if (pointInPolygon(point, orbits.get(i1))) {
+                        point.setReference(orbits.get(i1).getId());
+                        break;
+                    }
+                    ++i1;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    private double normLongitude(double lon) {
+        return (lon + 180.0) % 360.0 - 180.0;
+    }
+
+    private boolean pointInPolygon(SamplingPoint sample, ReferenceObservation referenceObservation) {
+        final int size = referenceObservation.getLocation().getGeometry().numPoints();
+        final Point[] polygon = new Point[size];
+        for (int i=0; i<size; ++i) {
+            polygon[i] = referenceObservation.getLocation().getGeometry().getPoint(i);
+        }
+        final double sampleLat = sample.getLat();
+        final double sampleLon = sample.getLon();
+        final double equatorLat = 0.0;
+        double firstEquatorCrossingLonPlus90 = Double.NaN;
+        double transformedSampleLon = Double.NaN;
+        boolean isInside = false;
+        for (int i = 0; i < size; ++i) {
+            final double lon1 = normLongitude(polygon[i].getX() - sampleLon);
+            final double lat1 = polygon[i].getY();
+            final double lon2 = normLongitude(polygon[(i + 1) % size].getX() - sampleLon);
+            final double lat2 = polygon[(i + 1) % size].getY();
+            if (isEdgeCrossingMeridian(lon1, lon2)) {
+                final double crossingLat = latitudeAtMeridian(lat1, lon1, lat2, lon2);
+                if (isBetween(crossingLat, equatorLat, sampleLat)) {
+                    isInside = ! isInside;
+                }
+            }
+            if (isEdgeCrossingEquator(lat1, lat2)) {
+                final double crossingLon = longitudeAtEquator(lat1, polygon[i].getX(), lat2, polygon[(i + 1) % size].getX());
+                if (Double.isNaN(firstEquatorCrossingLonPlus90)) {
+                    firstEquatorCrossingLonPlus90 = normLongitude(crossingLon + 90);
+                    transformedSampleLon = normLongitude(sampleLon - firstEquatorCrossingLonPlus90);
+                }
+                final double transformedCrossingLon = normLongitude(crossingLon - firstEquatorCrossingLonPlus90);
+                if (isBetween(transformedCrossingLon, 0.0, transformedSampleLon)) {
+                    isInside = ! isInside;
+                }
+            }
+        }
+        return isInside;
+    }
+
+    private double longitudeAtEquator(double lat1, double lon1, double lat2, double lon2) {
+        if (lat2 == lat1) {
+            return lon1;
+        }
+        return lon1 + normLongitude(lon2 - lon1) * (0.0 - lat1) / (lat2 - lat1);
+    }
+
+    private double latitudeAtMeridian(double lat1, double lon1, double lat2, double lon2) {
+        if (lon2 == lon1) {
+            return lat1;
+        }
+        return lat1 + (lat2 - lat1) * (0.0 - lon1) / normLongitude(lon2 - lon1);
+    }
+
+    private boolean isEdgeCrossingMeridian(double lon1, double lon2) {
+        return (lon1 <= 0.0 && lon2 > 0.0 && lon2 - lon1 < 180.0) || (lon1 >= 0.0 && lon2 < 0.0 && lon1 - lon2 < 180.0);
+    }
+    private boolean isEdgeCrossingEquator(double lat1, double lat2) {
+        return (lat1 <= 0.0 && lat2 > 0.0) || (lat1 >= 0.0 && lat2 < 0.0);
+    }
+    private boolean isBetween(double value, double from, double to) {
+        return (value >= from && value < to) || (value <= from && value > to);
+    }
+
+
 
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o.id"
@@ -478,3 +621,4 @@ public class SamplingTool extends BasicTool {
     }
 
 }
+

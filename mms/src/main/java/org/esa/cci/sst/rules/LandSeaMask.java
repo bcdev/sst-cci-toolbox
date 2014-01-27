@@ -99,7 +99,6 @@ class LandSeaMask extends AbstractImplicitRule {
             for (int y = minY; y <= maxY; y++) {
                 if (x >= 0 && y >= 0 && x < observationReader.getElementCount() && y < observationReader.getScanLineCount()) {
                     index.set(0, yi, xi);
-                    // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
                     final byte fraction = classifier.getWaterMaskFraction(geoCoding, x, y);
                     targetArray.setByte(index, fraction);
                 }
@@ -113,7 +112,8 @@ class LandSeaMask extends AbstractImplicitRule {
 
     private WatermaskClassifier createWatermaskClassifier() {
         try {
-            return new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50, WatermaskClassifier.MODE_GC);
+            // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
+            return new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50, WatermaskClassifier.MODE_GC, 11, 11);
         } catch (IOException e) {
             throw new ToolException("Unable to create watermask classifier.", e, ToolException.UNKNOWN_ERROR);
         }
