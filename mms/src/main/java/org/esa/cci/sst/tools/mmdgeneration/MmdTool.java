@@ -256,28 +256,17 @@ public class MmdTool extends BasicTool {
                         previousDataFile = observation.getDatafile();
                     }
                     for (final Variable variable : sensorMap.get(sensorName)) {
-                        Reader observationReader = null;
                         if (observation != null) {
-                            observationReader = readerCache.getReader(observation.getDatafile(), false);
-                            if (shouldFilter(referenceObservation, observationReader, observation)) {
+                            if (testCoincidenceAccurately(referenceObservation, observation)) {
                                 continue;
                             }
                         }
                         final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
                         final Item sourceColumn = columnRegistry.getSourceColumn(targetColumn);
                         if ("Implicit".equals(sourceColumn.getName())) {
-                            final DataFile datafile = referenceObservation.getDatafile();
-                            final Reader referenceObservationReader;
-                            if (datafile != null) {
-                                referenceObservationReader = readerCache.getReader(datafile, true);
-                            } else {
-                                referenceObservationReader = null;
-                            }
-                            final Context context = new ContextBuilder()
+                            final Context context = new ContextBuilder(readerCache)
                                     .matchup(matchup)
                                     .observation(observation)
-                                    .observationReader(observationReader)
-                                    .referenceObservationReader(referenceObservationReader)
                                     .targetVariable(variable)
                                     .dimensionConfiguration(dimensionConfiguration)
                                     .build();
@@ -346,10 +335,11 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private boolean shouldFilter(ReferenceObservation refObs, Reader reader, Observation observation) {
+    private boolean testCoincidenceAccurately(ReferenceObservation refObs, Observation observation) throws IOException {
+        final Reader observationReader = readerCache.getReader(observation.getDatafile(), true);
         final GeoCoding geoCoding;
         try {
-            geoCoding = reader.getGeoCoding(observation.getRecordNo());
+            geoCoding = observationReader.getGeoCoding(observation.getRecordNo());
         } catch (IOException e) {
             throw new ToolException("Unable to get geo coding.", e, ToolException.TOOL_ERROR);
         }
@@ -366,7 +356,7 @@ public class MmdTool extends BasicTool {
             getLogger().warning(msg);
             return true;
         }
-        if (pixelPos.x >= reader.getElementCount() || pixelPos.y >= reader.getScanLineCount()) {
+        if (pixelPos.x >= observationReader.getElementCount() || pixelPos.y >= observationReader.getScanLineCount()) {
             final String msg = String.format(
                     "Observation (id=%d) does not contain reference observation and is ignored.", observation.getId());
             getLogger().warning(msg);
