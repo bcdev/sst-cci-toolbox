@@ -28,9 +28,11 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+//import org.esa.cci.sst.data.Sample;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.PixelCounter;
@@ -54,6 +56,8 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -132,6 +136,12 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Finding reference observations...");
         findObservations(sampleList);
         getLogger().info("Finding reference observations..." + sampleList.size());
+        Collections.sort(sampleList, new Comparator<SamplingPoint>() {
+            @Override
+            public int compare(SamplingPoint o1, SamplingPoint o2) {
+                return Long.compare(o1.getTime(), o2.getTime());
+            }
+        });
         getLogger().info("Finding satellite sub-scenes...");
         findSatelliteSubscenes(sampleList);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
@@ -313,7 +323,7 @@ public class SamplingTool extends BasicTool {
             "select o.id"
             + " from mm_observation o"
             + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '72:00:00' and o.time < timestamp ?2 + interval '72:00:00'"
+            + " and o.time >= timestamp ?2 - interval '420:00:00' and o.time < timestamp ?2 + interval '420:00:00'"
             + " and st_intersects(o.location, st_geomfromewkt(?3))"
             + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
@@ -345,6 +355,50 @@ public class SamplingTool extends BasicTool {
             nearestCoveringObservation = observations.get(0);
             point.setReference(nearestCoveringObservation.getId());
 //            point.setTime(nearestCoveringObservation.getTime().getTime());
+        }
+    }
+
+    public void findObservations2(List<SamplingPoint> sampleList) throws PersistenceException, ParseException {
+        final List<ReferenceObservation> orbitObservations = findOrbits(TimeUtil.formatCcsdsUtcFormat(new Date(startTime-86400*100*175)),
+                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(stopTime+86400*100*175)));
+        final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
+        for (int i=0; i<orbitObservations.size(); ++i) {
+            final ReferenceObservation orbitObservation = orbitObservations.get(i);
+            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(), orbitObservation.getTime().getTime(), orbitObservation.getLocation().getGeometry());
+        }
+        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
+            final SamplingPoint point = iterator.next();
+            // look for orbit temporally before (i0) and after (i1) point with binary search
+            int i0 = 0;
+            int i1 = polygons.length - 1;
+            while (i0 + 1 < i1) {
+                int i = (i1 + i0) / 2;
+                if (point.getTime() < polygons[i].getTime()) {
+                    i1 = i;
+                } else {
+                    i0 = i;
+                }
+            }
+            // check orbitObservations temporally closest to point first for spatial overlap
+            while (true) {
+                if (i0 >= 0 && (i1 >= polygons.length || point.getTime() < polygons[i0].getTime() || point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
+                    if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
+                        point.setReference(polygons[i0].getId());
+                        break;
+                    }
+                    --i0;
+                } else if (i1 < polygons.length) {
+                    if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
+                        point.setReference(polygons[i1].getId());
+                        break;
+                    }
+                    ++i1;
+                } else {
+                    // TODO decide whether this is considered an error
+                    iterator.remove();
+                    break;
+                }
+            }
         }
     }
 
@@ -478,3 +532,4 @@ public class SamplingTool extends BasicTool {
     }
 
 }
+

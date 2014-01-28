@@ -20,74 +20,62 @@ import org.apache.openjpa.persistence.jdbc.Index;
 import org.apache.openjpa.persistence.jdbc.Strategy;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.util.Date;
 
 /**
- * Data item that represents a single observation that is associated with
- * a location and time of observation.
+ * Temporal relation for sample points, used during sample filtering
  *
  * @author Martin Boettcher
  */
 @Entity
-public class RelatedObservation extends Observation implements Timeable {
+@Table(name = "mm_sample")
+public class Sample {
 
+    private int id;
     private Date time;
-    // important: double precision is used to preserve precision
-    private double timeRadius;
-    private PGgeometry location;
+    private PGgeometry point;
+
+    @Id
+    @GeneratedValue
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
 
     @Index
     @Temporal(TemporalType.TIMESTAMP)
     @Column(columnDefinition = "timestamp with time zone")
-    @Override
     public Date getTime() {
         return time;
     }
 
-    @Override
     public void setTime(Date time) {
         this.time = time;
     }
 
-    /**
-     * Returns the time radius (seconds) of this observation.
-     * Half the distance between first and last measurement for in-situ histories.
-     * Distance between in-situ and satellite reference for MD records.
-     *
-     * @return the time radius (seconds).
-     */
-    public double getTimeRadius() {
-        return timeRadius;
+    @Column(columnDefinition = "GEOGRAPHY(POINT,4326)")
+    @Strategy("org.esa.cci.sst.orm.PointValueHandler")
+    public PGgeometry getPoint() {
+        return point;
     }
 
-    /**
-     * Sets the time radius (seconds) of this observation.
-     *
-     * @param timeRadius The time radius (seconds).
-     */
-    public void setTimeRadius(double timeRadius) {
-        this.timeRadius = timeRadius;
-    }
-
-    @Column(columnDefinition = "GEOGRAPHY(GEOMETRY,4326)")
-    @Strategy("org.esa.cci.sst.orm.GeographyValueHandler")
-    public PGgeometry getLocation() {
-        return location;
-    }
-
-    public void setLocation(PGgeometry location) {
-        this.location = location;
+    public void setPoint(PGgeometry point) {
+        this.point = point;
     }
 
     @Override
     public String toString() {
-        return String.format("RelatedObservation(%d,%s,%s,%s,%s,%d)", getId(), getSensor(),
-                             TimeUtil.formatCcsdsUtcFormat(getTime()), getLocation(), getDatafile(), getRecordNo());
+        return String.format("Sample(%d,%s,%s)", getId(),
+                             TimeUtil.formatCcsdsUtcFormat(getTime()), getPoint());
     }
 }
 

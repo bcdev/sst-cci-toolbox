@@ -32,6 +32,7 @@
         <class>org.esa.cci.sst.data.ReferenceObservation</class>
         <class>org.esa.cci.sst.data.RelatedObservation</class>
         <class>org.esa.cci.sst.data.Sensor</class>
+<!--        <class>org.esa.cci.sst.data.Sample</class> -->
 
         <properties>
             <property name="openjpa.ConnectionDriverName" value="org.postgresql.Driver"/>
