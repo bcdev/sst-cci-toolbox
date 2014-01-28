@@ -41,13 +41,14 @@ public class MmdIngestionTool extends BasicTool {
 
     public static void main(String[] args) {
         final MmdIngestionTool tool = new MmdIngestionTool();
-        final boolean performWork = tool.setCommandLineArgs(args);
-        if (!performWork) {
-            return;
+        final boolean ok = tool.setCommandLineArgs(args);
+        if (ok) {
+            tool.initialize();
+            tool.ingest();
+            tool.getPersistenceManager().close();
+        } else {
+            tool.printHelp("");
         }
-        tool.initialize();
-        tool.ingest();
-        tool.getPersistenceManager().close();
     }
 
 
@@ -179,12 +180,12 @@ public class MmdIngestionTool extends BasicTool {
         storeOnce(dataFile, queryString);
     }
 
-    private void storeOnce(final Object data, final String queryString) {
+    private void storeOnce(final DataFile datafile, final String queryString) {
         final PersistenceManager persistenceManager = getPersistenceManager();
         final Query query = persistenceManager.createNativeQuery(queryString, Integer.class);
         int result = (Integer) query.getSingleResult();
         if (result == 0) {
-            persistenceManager.persist(data);
+            persistenceManager.persist(datafile);
         } else {
             throw new IllegalStateException("Trying to ingest duplicate datafile.");
         }
@@ -203,7 +204,8 @@ public class MmdIngestionTool extends BasicTool {
         try {
             decorator.init(dataFile, archiveRoot);
         } catch (IOException e) {
-            throw new ToolException("Error initializing Reader for mmd file.", e, ToolException.TOOL_ERROR);
+            final File filePath = new File(archiveRoot, dataFile.getPath());
+            throw new ToolException("Error initializing Reader for MMD file '" + filePath + "'.", e, ToolException.TOOL_ERROR);
         }
     }
 
