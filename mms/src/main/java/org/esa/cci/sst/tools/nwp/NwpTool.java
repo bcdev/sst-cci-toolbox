@@ -427,9 +427,10 @@ class NwpTool {
         final int gx = xDimension.getLength();
         final int gz = levDimension.getLength();
 
-        mmdNwp.addDimension(sensorName + ".nwp.nx", gx);
-        mmdNwp.addDimension(sensorName + ".nwp.ny", gy);
-        mmdNwp.addDimension(sensorName + ".nwp.nz", gz);
+        final String sensorBasename = sensorName.replaceAll("\\..+", "");
+        mmdNwp.addDimension(sensorBasename + ".nwp.nx", gx);
+        mmdNwp.addDimension(sensorBasename + ".nwp.ny", gy);
+        mmdNwp.addDimension(sensorBasename + ".nwp.nz", gz);
 
         for (final Variable sourceVariable : nwpSourceFile.getVariables()) {
             if (sourceVariable.getRank() == 4) {
@@ -437,11 +438,11 @@ class NwpTool {
                 if (sourceVariable.getDimension(1).getLength() == 1) {
                     targetVariable = mmdNwp.addVariable(
                             sensorName + ".nwp." + sourceVariable.getShortName(), sourceVariable.getDataType(),
-                            String.format("matchup %s.nwp.ny %s.nwp.nx", sensorName, sensorName));
+                            String.format("matchup %s.nwp.ny %s.nwp.nx", sensorBasename, sensorBasename));
                 } else {
                     targetVariable = mmdNwp.addVariable(
                             sensorName + ".nwp." + sourceVariable.getShortName(), sourceVariable.getDataType(),
-                            String.format("matchup %s.nwp.nz %s.nwp.ny %s.nwp.nx", sensorName, sensorName, sensorName));
+                            String.format("matchup %s.nwp.nz %s.nwp.ny %s.nwp.nx", sensorBasename, sensorBasename, sensorBasename));
                 }
                 for (final Attribute attribute : sourceVariable.getAttributes()) {
                     targetVariable.addAttribute(attribute);
@@ -523,8 +524,9 @@ class NwpTool {
 
         try {
             final Dimension matchupDimension = NwpUtil.findDimension(mmd, "matchup");
-            final Dimension nyDimension = NwpUtil.findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".ny");
-            final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".nx");
+            final String sensorBasename = sensorName.replaceAll("\\..+", "");
+            final Dimension nyDimension = NwpUtil.findDimension(mmd, sensorBasename + ".ny");
+            final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorBasename + ".nx");
 
             final Array sensorPatterns = NwpUtil.findVariable(mmd, "matchup.sensor_list").read();
             final int matchupCount = getMatchupCount(sensorPatterns);
@@ -673,8 +675,9 @@ class NwpTool {
     @SuppressWarnings({"ConstantConditions"})
     private void writeSensorGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY) throws IOException {
         final Dimension matchupDimension = NwpUtil.findDimension(mmd, "matchup");
-        final Dimension nyDimension = NwpUtil.findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".ny");
-        final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorName.replaceAll("\\..+", "") + ".nx");
+        final String sensorBasename = sensorName.replaceAll("\\..+", "");
+        final Dimension nyDimension = NwpUtil.findDimension(mmd, sensorBasename + ".ny");
+        final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorBasename + ".nx");
 
         final String location = NwpUtil.createTempFile("geo", ".nc", true).getPath();
         final NetcdfFileWriteable geoFile = NetcdfFileWriteable.createNew(location, true);
