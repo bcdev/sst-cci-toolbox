@@ -15,7 +15,6 @@ package org.esa.cci.sst.tools;/*
  */
 
 import org.esa.cci.sst.DatabaseTestRunner;
-import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
@@ -23,8 +22,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.WindowConstants;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -89,7 +92,7 @@ public class SamplingToolTest {
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
-        tool.findObservations(sampleList);
+        tool.findObservations2(sampleList);
         tool.findSatelliteSubscenes(sampleList);
         tool.removeOverlappingSamples(sampleList);
 
@@ -103,7 +106,7 @@ public class SamplingToolTest {
         final int sampleCount = 1000;
 
         final SamplingTool tool = new SamplingTool();
-        tool.setCommandLineArgs(new String[] {
+        tool.setCommandLineArgs(new String[]{
                 "-Dmms.sampling.count=" + sampleCount,
                 "-Dmms.sampling.startTime=" + startTimeString,
                 "-Dmms.sampling.stopTime=" + stopTimeString,
@@ -117,13 +120,16 @@ public class SamplingToolTest {
 //        }
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples...");
         final List<SamplingPoint> sampleList = tool.createSamples();
-        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples... " + sampleList.size());
+        System.out.println(
+                TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples... " + sampleList.size());
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Removing land samples...");
         tool.removeLandSamples(sampleList);
-        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Removing land samples..." + sampleList.size());
+        System.out.println(
+                TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Removing land samples..." + sampleList.size());
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Reducing clear samples...");
         tool.reduceClearSamples(sampleList);
-        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Reducing clear samples..." + sampleList.size());
+        System.out.println(
+                TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Reducing clear samples..." + sampleList.size());
 //        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Store samples to temp...");
 //        tool.insertSamplesIntoTemp(sampleList);
 //        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Store samples to temp..." + sampleList.size());
@@ -132,13 +138,14 @@ public class SamplingToolTest {
 //        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Match with atsr.3..." + sampleList.size());
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Finding reference observations...");
         tool.findObservations2(sampleList);
-        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Finding reference observations..." + sampleList.size());
+        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(
+                new Date()) + " Finding reference observations..." + sampleList.size());
     }
 
     public static void main(String[] args) throws IOException, ParseException {
         final String startTimeString = "2004-06-17T00:00:00Z";
         final String stopTimeString = "2004-06-18T00:00:00Z";
-        final int sampleCount = 10000;
+        final int sampleCount = 10000000;
 
         final SamplingTool tool = new SamplingTool();
         tool.setCommandLineArgs(new String[]{
@@ -150,7 +157,7 @@ public class SamplingToolTest {
         tool.initialize();
         if (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanup"))) {
             tool.cleanup();
-        } else if  (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
+        } else if (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
             tool.cleanupInterval();
         }
 
@@ -164,20 +171,21 @@ public class SamplingToolTest {
         tool.reduceClearSamples(sampleList);
         System.out.println("Reducing clear samples..." + sampleList.size());
         System.out.println("Finding reference observations...");
-        tool.findObservations2(sampleList);
+        //tool.findObservations2(sampleList);
         System.out.println("Finding reference observations..." + sampleList.size());
         System.out.println("Finding satellite sub-scenes...");
-        tool.findSatelliteSubscenes(sampleList);
+        //tool.findSatelliteSubscenes(sampleList);
         System.out.println("Finding satellite sub-scenes..." + sampleList.size());
         System.out.println("Removing overlapping areas...");
-        tool.removeOverlappingSamples(sampleList);
+        //tool.removeOverlappingSamples(sampleList);
         System.out.println("Removing overlapping areas..." + sampleList.size());
         System.out.println("Creating matchups...");
-        tool.createMatchups(sampleList);
+        //tool.createMatchups(sampleList);
         System.out.println("Creating matchups..." + sampleList.size());
 
-        plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
+        //plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
 
+        /*
         final Date startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
         final Date stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString);
 
@@ -196,6 +204,7 @@ public class SamplingToolTest {
                 break;
             }
         }
+        */
     }
 
     public interface Predicate<T> {
@@ -214,7 +223,7 @@ public class SamplingToolTest {
     }
 
     private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
-            IOException {
+                                                                                                            IOException {
         final int w = 800;
         final int h = 400;
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
