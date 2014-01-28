@@ -6,9 +6,8 @@ import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
 import static java.lang.Double.NaN;
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -22,13 +21,11 @@ public class ArrayGridTest {
             0.3, 999, 0.1, 0.2, 0.3, 0.4, 999, 999,
             999, 0.1, 0.2, 0.3, 0.4, 0.1, 999, 999,
     };
-    private GridDef gridDef;
     private ArrayGrid arrayGrid;
-
 
     @Before
     public void setUp() throws Exception {
-        gridDef = GridDef.createGlobal(8, 4);
+        final GridDef gridDef = GridDef.createGlobal(8, 4);
 
         final int[] shape = {gridDef.getHeight(), gridDef.getWidth()};
         final Array array = Array.factory(DataType.DOUBLE, shape, ARRAY_DATA);
