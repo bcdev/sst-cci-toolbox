@@ -18,10 +18,13 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
+import org.esa.cci.sst.util.ReaderCache;
 import ucar.nc2.Variable;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -33,12 +36,17 @@ import java.util.Map;
 @SuppressWarnings("ReturnOfThis")
 class ContextBuilder {
 
+    private final ReaderCache readerCache;
+
     private Matchup matchup;
-    private Reader observationReader;
-    private Reader referenceObservationReader;
+    private ReferenceObservation referenceObservation;
     private Variable targetVariable;
     private Observation observation;
     private Map<String, Integer> dimensionConfiguration;
+
+    ContextBuilder(ReaderCache readerCache) {
+        this.readerCache = readerCache;
+    }
 
     ContextBuilder matchup(Matchup matchup) {
         this.matchup = matchup;
@@ -47,16 +55,6 @@ class ContextBuilder {
 
     public ContextBuilder targetVariable(Variable targetVariable) {
         this.targetVariable = targetVariable;
-        return this;
-    }
-
-    public ContextBuilder observationReader(Reader observationReader) {
-        this.observationReader = observationReader;
-        return this;
-    }
-
-    public ContextBuilder referenceObservationReader(Reader referenceObservationReader) {
-        this.referenceObservationReader = referenceObservationReader;
         return this;
     }
 
@@ -73,10 +71,9 @@ class ContextBuilder {
     @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
     Context build() {
         final ContextImpl context = new ContextImpl();
+        context.readerCache = readerCache;
         context.matchup = matchup;
         context.observation = observation;
-        context.observationReader = observationReader;
-        context.referenceObservationReader = referenceObservationReader;
         context.targetVariable = targetVariable;
         context.dimensionConfiguration = dimensionConfiguration;
         return context;
@@ -85,11 +82,10 @@ class ContextBuilder {
     private static class ContextImpl implements Context {
 
         private Matchup matchup;
-        private Reader observationReader;
-        private Reader referenceObservationReader;
         private Observation observation;
         private Variable targetVariable;
         private Map<String, Integer> dimensionConfiguration;
+        private ReaderCache readerCache;
 
         @Override
         public Matchup getMatchup() {
@@ -98,12 +94,12 @@ class ContextBuilder {
 
         @Override
         public Reader getObservationReader() {
-            return observationReader;
+            return getReader(getObservation());
         }
 
         @Override
         public Reader getReferenceObservationReader() {
-            return referenceObservationReader;
+            return getReader(getMatchup().getRefObs());
         }
 
         @Override
@@ -119,6 +115,14 @@ class ContextBuilder {
         @Override
         public Map<String, Integer> getDimensionConfiguration() {
             return Collections.unmodifiableMap(dimensionConfiguration);
+        }
+
+        private Reader getReader(Observation observation) {
+            try {
+                return readerCache.getReader(observation.getDatafile(), true);
+            } catch (IOException e) {
+                return null;
+            }
         }
     }
 }
