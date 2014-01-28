@@ -2,10 +2,13 @@ package org.esa.cci.sst.tools.overlap;
 
 
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -320,6 +323,36 @@ public class RegionOverlapFilterTest {
         assertEquals(3, orbitPoints.size());
     }
 
+    @Test
+    @Ignore
+    public void testTheBigList() {
+        final int width = 512;
+        final int height = 40000;
+        final int maxOrbit = 1050;
+        final int count = 1000000;
+        final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
+        final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(3);
+
+        for (int i = 0; i < count; i++) {
+            final double[] rands = sequenceGenerator.nextVector();
+            final int x = (int) (width * rands[0]);
+            final int y = (int) (height * rands[1]);
+            final int orbitRef = (int) (maxOrbit * rands[2]);
+            final SamplingPoint point = new SamplingPoint(x, y);
+            point.setReference(orbitRef);
+            samplingPoints.add(point);
+        }
+        final Timer timer = new Timer();
+        System.out.println("Initial count  = " + samplingPoints.size());
+        timer.start();
+
+        final List<SamplingPoint> filtererList = filter.filterOverlaps(samplingPoints);
+
+        timer.stop();
+        System.out.println("Filtered count = " + filtererList.size());
+        System.out.println("time [s]       = " + timer.deltaTInSecs());
+    }
+
     private void assertSamplePointAt(int expectedX, int expectedY, int index, List<SamplingPoint> filteredList) {
         assertEquals(expectedX, filteredList.get(index).getX());
         assertEquals(expectedY, filteredList.get(index).getY());
@@ -328,9 +361,28 @@ public class RegionOverlapFilterTest {
     private void addSamplePoint(int x, int y, List<SamplingPoint> sampleList) {
         sampleList.add(new SamplingPoint(x, y));
     }
+
     private void addSamplePoint(int orbitNo, List<SamplingPoint> sampleList) {
         final SamplingPoint point = new SamplingPoint(8743, 667);
         point.setReference(orbitNo);
         sampleList.add(point);
+    }
+
+    private class Timer {
+
+        private long startTime;
+        private long stopTime;
+
+        void start() {
+            startTime = System.currentTimeMillis();
+        }
+
+        void stop() {
+            stopTime = System.currentTimeMillis();
+        }
+
+        double deltaTInSecs() {
+            return (stopTime - startTime) / 1000.0;
+        }
     }
 }

@@ -2,10 +2,7 @@ package org.esa.cci.sst.tools.overlap;
 
 import org.esa.cci.sst.util.SamplingPoint;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class RegionOverlapFilter {
 
@@ -101,10 +98,9 @@ public class RegionOverlapFilter {
 
             while (pointList.size() > 0) {
                 final SamplingPoint samplingPoint = pointList.get(0);
-                final List<SamplingPoint> allFromOrbit = getAllFromOrbit(samplingPoint.getReference(), pointList);
+                final List<SamplingPoint> allFromOrbit = extractAllFromOrbit(samplingPoint.getReference(), pointList);
                 if (allFromOrbit.size() > 0) {
                     orbitLists.add(allFromOrbit);
-                    pointList.removeAll(allFromOrbit);
                 }
             }
         }
@@ -133,12 +129,15 @@ public class RegionOverlapFilter {
         return clusterList;
     }
 
-    private List<SamplingPoint> getAllFromOrbit(int orbitNo, List<SamplingPoint> pointList) {
+    private List<SamplingPoint> extractAllFromOrbit(int orbitNo, List<SamplingPoint> pointList) {
         final LinkedList<SamplingPoint> orbitPoints = new LinkedList<>();
 
-        for (SamplingPoint p : pointList) {
-            if (p.getReference() == orbitNo) {
-                orbitPoints.add(p);
+        final Iterator<SamplingPoint> iterator = pointList.iterator();
+        while (iterator.hasNext()) {
+            final SamplingPoint point = iterator.next();
+            if (point.getReference() == orbitNo) {
+                orbitPoints.add(point);
+                iterator.remove();
             }
         }
 
