@@ -76,6 +76,7 @@ class MmdObservationIngester {
     private void persistCoincidence(final MmdReader reader, final int recordNo,
                                     final Observation observation) throws  IOException {
         final int matchupId = reader.getMatchupId(recordNo);
+        // TODO - check: we do have a method for this in BasicTool? (rq-2014-01-28)
         final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
         if(matchup == null) {
             return;

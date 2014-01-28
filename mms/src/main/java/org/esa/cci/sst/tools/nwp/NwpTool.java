@@ -326,6 +326,7 @@ class NwpTool {
     }
 
     private void writeMmdNwpFile(NetcdfFile nwpSourceFile, String sensorName) throws IOException {
+        // TODO - check why this is done. A sensor MMD file is already open! (rq-20140127)
         final NetcdfFile mmd = NetcdfFile.open(mmdSourceLocation);
         final NetcdfFileWriteable mmdNwp = NetcdfFileWriteable.createNew(nwpTargetLocation, true);
 

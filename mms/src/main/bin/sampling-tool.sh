@@ -5,7 +5,7 @@
 
 java \
     -Dmms.home="$MMS_HOME" \
-    -Xmx1024M $MMS_OPTIONS \
+    -Xmx2048M $MMS_OPTIONS \
     -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpa.version}.jar" \
     -Djava.io.tmpdir=$TMPDIR \
     -classpath "$MMS_HOME/lib/*" \

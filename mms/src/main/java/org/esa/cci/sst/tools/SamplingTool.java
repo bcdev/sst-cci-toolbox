@@ -19,40 +19,30 @@ import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
-//import org.esa.cci.sst.data.Sample;
-import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
-import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.util.CloudPriors;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.esa.cci.sst.util.TimeUtil;
+import org.esa.cci.sst.util.Watermask;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
-import ucar.nc2.NetcdfFile;
 
-import javax.imageio.ImageIO;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -63,6 +53,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+//import org.esa.cci.sst.data.Sample;
 
 public class SamplingTool extends BasicTool {
 
@@ -77,6 +69,8 @@ public class SamplingTool extends BasicTool {
     private long startTime;
     private long stopTime;
     private int sampleCount;
+    private Watermask watermask;
+    private CloudPriors cloudPriors;
 
     SamplingTool() {
         super("sampling-tool", "1.0");
@@ -121,7 +115,7 @@ public class SamplingTool extends BasicTool {
     private void run() {
         if (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUP))) {
             cleanup();
-        } else if  (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUPINTERVAL))) {
+        } else if (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUPINTERVAL))) {
             cleanupInterval();
         }
         getLogger().info("Creating samples...");
@@ -155,7 +149,7 @@ public class SamplingTool extends BasicTool {
 
     List<SamplingPoint> createSamples() {
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
-        final List<SamplingPoint> sampleList = new ArrayList<>();
+        final List<SamplingPoint> sampleList = new ArrayList<SamplingPoint>(sampleCount);
 
         for (int i = 0; i < sampleCount; i++) {
             final double[] sample = sequenceGenerator.nextVector();
@@ -175,62 +169,37 @@ public class SamplingTool extends BasicTool {
     }
 
     void removeLandSamples(List<SamplingPoint> sampleList) {
-        final BufferedImage waterImage;
-        try {
-            final URL url = getClass().getResource("water.png");
-            waterImage = ImageIO.read(url);
-        } catch (IOException e) {
-            throw new ToolException("Unable to read land/water mask image.", e, ToolException.TOOL_IO_ERROR);
+        if (watermask == null) {
+            watermask = new Watermask(); // will always be used in a single thread
         }
 
-        final GridDef gridDef = GridDef.createGlobal(0.01);
-        final Raster waterImageRaster = waterImage.getRaster();
-
-        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
-            final SamplingPoint point = iterator.next();
-
-            final int x = gridDef.getGridX(point.getLon(), true);
-            final int y = gridDef.getGridY(point.getLat(), true);
-            final int sample = waterImageRaster.getSample(x, y, 0);
-            if (sample == 0) {
-                iterator.remove();
+        final ArrayList<SamplingPoint> waterSampleList = new ArrayList<>(sampleList.size());
+        for (final SamplingPoint point : sampleList) {
+            if (watermask.isWater(point.getLon(), point.getLat())) {
+                waterSampleList.add(point);
             }
         }
+
+        sampleList.clear();
+        sampleList.addAll(waterSampleList);
     }
 
     void reduceClearSamples(List<SamplingPoint> sampleList) {
-        final NetcdfFile file;
-        try {
-            file = NetcdfFile.openInMemory(getClass().getResource("AATSR_prior_run081222.nc").toURI());
-        } catch (IOException | URISyntaxException e) {
-            throw new ToolException("Cannot read cloud priors.", e, ToolException.TOOL_IO_ERROR);
+        if (cloudPriors == null) {
+            cloudPriors = new CloudPriors();
         }
 
-        final GridDef gridDef = GridDef.createGlobal(1.0);
-        final Grid grid;
-        try {
-            grid = YFlip.create(NcUtils.readGrid(file, "clr_prior", gridDef));
-            for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
-                final SamplingPoint point = iterator.next();
-
-                final double lon = point.getLon();
-                final double lat = point.getLat();
-                final int x = gridDef.getGridX(lon, true);
-                final int y = gridDef.getGridY(lat, true);
-                // final double f = Math.abs(lat) < 30.0 ? 1.0 : Math.cos(Math.toRadians(Math.abs(lat) - 30.0));
-                final double f = 0.05 / grid.getSampleDouble(x, y);
-                if (point.getRandom() > f) {
-                    iterator.remove();
-                }
-            }
-        } catch (IOException e) {
-            throw new ToolException("Cannot read cloud priors.", e, ToolException.TOOL_IO_ERROR);
-        } finally {
-            try {
-                file.close();
-            } catch (IOException ignored) {
+        final ArrayList<SamplingPoint> reducedSampleList = new ArrayList<>(sampleList.size());
+        for (final SamplingPoint point : sampleList) {
+            // final double f = Math.abs(lat) < 30.0 ? 1.0 : Math.cos(Math.toRadians(Math.abs(lat) - 30.0));
+            final double f = 0.05 / cloudPriors.getSample(point.getLon(), point.getLat());
+            if (point.getRandom() <= f) {
+                reducedSampleList.add(point);
             }
         }
+
+        sampleList.clear();
+        sampleList.addAll(reducedSampleList);
     }
 
     void findSatelliteSubscenes(List<SamplingPoint> sampleList) {
@@ -289,7 +258,7 @@ public class SamplingTool extends BasicTool {
                         final int pixelX = (int) Math.floor(pixelPos.getX());
                         final int pixelY = (int) Math.floor(pixelPos.getY());
 
-                        if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows ) {
+                        if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
                             point.setX(pixelX);
                             point.setY(pixelY);
                             point.setTime(reader.getTime(0, pixelY));
@@ -359,12 +328,14 @@ public class SamplingTool extends BasicTool {
     }
 
     public void findObservations2(List<SamplingPoint> sampleList) throws PersistenceException, ParseException {
-        final List<ReferenceObservation> orbitObservations = findOrbits(TimeUtil.formatCcsdsUtcFormat(new Date(startTime-86400*100*175)),
-                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(stopTime+86400*100*175)));
+        final List<ReferenceObservation> orbitObservations = findOrbits(
+                TimeUtil.formatCcsdsUtcFormat(new Date(startTime - 86400 * 100 * 175)),
+                TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + 86400 * 100 * 175)));
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
-        for (int i=0; i<orbitObservations.size(); ++i) {
+        for (int i = 0; i < orbitObservations.size(); ++i) {
             final ReferenceObservation orbitObservation = orbitObservations.get(i);
-            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(), orbitObservation.getTime().getTime(), orbitObservation.getLocation().getGeometry());
+            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(), orbitObservation.getTime().getTime(),
+                                                   orbitObservation.getLocation().getGeometry());
         }
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
             final SamplingPoint point = iterator.next();
@@ -518,7 +489,8 @@ public class SamplingTool extends BasicTool {
         delete.setParameter(1, startTime);
         delete.setParameter(2, stopTime);
         delete.executeUpdate();
-        delete = getPersistenceManager().createNativeQuery("delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
+        delete = getPersistenceManager().createNativeQuery(
+                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
         delete.setParameter(1, startTime);
         delete.setParameter(2, stopTime);
         delete.executeUpdate();
