@@ -63,14 +63,19 @@ public class SamplingTool extends BasicTool {
     private static final String MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
     private static final String MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
     private static final String MMS_SAMPLING_COUNT = "mms.sampling.count";
+    private static final String MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
+    private static final String MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     private static final String MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
     private static final String MMS_SAMPLING_CLEANUPINTERVAL = "mms.sampling.cleanupinterval";
 
     private long startTime;
     private long stopTime;
     private int sampleCount;
-    private Watermask watermask;
-    private CloudPriors cloudPriors;
+    private int subSceneWidth;
+    private int subSceneHeight;
+
+    private transient Watermask watermask;
+    private transient CloudPriors cloudPriors;
 
     SamplingTool() {
         super("sampling-tool", "1.0");
@@ -99,11 +104,15 @@ public class SamplingTool extends BasicTool {
         final String stopTimeString = getConfiguration().getProperty(MMS_SAMPLING_STOP_TIME,
                                                                      "2004-06-04T00:00:00Z");
         final String countString = getConfiguration().getProperty(MMS_SAMPLING_COUNT, "10000");
+        final String subsceneWidthString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_WIDTH, "7");
+        final String subsceneHeightString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_HEIGHT, "7");
 
         try {
             startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime();
             stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime();
             sampleCount = Integer.parseInt(countString);
+            subSceneWidth = Integer.parseInt(subsceneWidthString);
+            subSceneHeight = Integer.parseInt(subsceneHeightString);
         } catch (ParseException e) {
             throw new ToolException("Unable to parse sampling start and stop times.", e,
                                     ToolException.TOOL_CONFIGURATION_ERROR);
@@ -208,8 +217,6 @@ public class SamplingTool extends BasicTool {
         final int pixelMask = 3;
         final double cloudyPixelFraction = 0.0;
         final String orbitFileType = "atsr_orb.3";
-        final int subSceneSizeX = 7;
-        final int subSceneSizeY = 7;
 
         final Query columnQuery = getPersistenceManager().createQuery("select c from Column c where c.name = ?1");
         final String columnName = orbitFileType + "." + cloudFlagsName;
@@ -234,7 +241,7 @@ public class SamplingTool extends BasicTool {
         }
 
         final ReaderCache readerCache = new ReaderCache(10, getConfiguration(), getLogger());
-        final int[] shape = {1, subSceneSizeY, subSceneSizeX};
+        final int[] shape = {1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
         for (final int id : sampleListsByDatafile.keySet()) {
@@ -266,7 +273,7 @@ public class SamplingTool extends BasicTool {
                             final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                             final Array array = reader.read(cloudFlagsName, extractDefinition);
                             final int cloudyPixelCount = pixelCounter.count(array);
-                            if (cloudyPixelCount > (subSceneSizeX * subSceneSizeY) * cloudyPixelFraction) {
+                            if (cloudyPixelCount > (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
                                 sampleList.remove(point);
                             }
                         } else {
@@ -393,9 +400,7 @@ public class SamplingTool extends BasicTool {
     }
 
     public void removeOverlappingSamples(List<SamplingPoint> sampleList) {
-        // @todo 2 tb/** add width and height as parameters to tool-config tb 2014-01-16
-        final RegionOverlapFilter regionOverlapFilter = new RegionOverlapFilter(7, 7);
-
+        final RegionOverlapFilter regionOverlapFilter = new RegionOverlapFilter(subSceneWidth, subSceneHeight);
         final List<SamplingPoint> filteredList = regionOverlapFilter.filterOverlaps(sampleList);
         sampleList.clear();
         sampleList.addAll(filteredList);
