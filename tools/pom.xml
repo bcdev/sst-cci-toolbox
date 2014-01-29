@@ -27,7 +27,6 @@
 
     <name>SST-CCI Aggregation and Re-gridding Tools</name>
     <artifactId>sst-cci-tools</artifactId>
-    <version>3.0-SNAPHOT</version>
 
     <dependencies>
         <dependency>
