@@ -121,7 +121,7 @@ public class SamplingTool extends BasicTool {
         }
     }
 
-    private void run() {
+    private void run() throws ParseException {
         if (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUP))) {
             cleanup();
         } else if (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUPINTERVAL))) {
@@ -137,7 +137,7 @@ public class SamplingTool extends BasicTool {
         reduceClearSamples(sampleList);
         getLogger().info("Reducing clear samples..." + sampleList.size());
         getLogger().info("Finding reference observations...");
-        findObservations(sampleList);
+        findObservations2(sampleList);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -244,6 +244,7 @@ public class SamplingTool extends BasicTool {
         final int[] shape = {1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
+        final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
         for (final int id : sampleListsByDatafile.keySet()) {
             final List<SamplingPoint> points = sampleListsByDatafile.get(id);
 
@@ -273,15 +274,14 @@ public class SamplingTool extends BasicTool {
                             final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                             final Array array = reader.read(cloudFlagsName, extractDefinition);
                             final int cloudyPixelCount = pixelCounter.count(array);
-                            if (cloudyPixelCount > (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
-                                sampleList.remove(point);
+                            if (cloudyPixelCount <= (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
+                                accu.add(point);
                             }
                         } else {
                             final String message = MessageFormat.format(
                                     "Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
                                     datafile.getPath());
                             getLogger().fine(message);
-                            sampleList.remove(point);
                         }
                     }
                 } catch (IOException e) {
@@ -293,6 +293,8 @@ public class SamplingTool extends BasicTool {
                 }
             }
         }
+        sampleList.clear();
+        sampleList.addAll(accu);
     }
 
     private static final String COINCIDING_OBSERVATION_QUERY =
@@ -344,6 +346,7 @@ public class SamplingTool extends BasicTool {
             polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(), orbitObservation.getTime().getTime(),
                                                    orbitObservation.getLocation().getGeometry());
         }
+        final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
             final SamplingPoint point = iterator.next();
             // look for orbit temporally before (i0) and after (i1) point with binary search
@@ -362,22 +365,24 @@ public class SamplingTool extends BasicTool {
                 if (i0 >= 0 && (i1 >= polygons.length || point.getTime() < polygons[i0].getTime() || point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
                     if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
                         point.setReference(polygons[i0].getId());
+                        accu.add(point);
                         break;
                     }
                     --i0;
                 } else if (i1 < polygons.length) {
                     if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
                         point.setReference(polygons[i1].getId());
+                        accu.add(point);
                         break;
                     }
                     ++i1;
                 } else {
-                    // TODO decide whether this is considered an error
-                    iterator.remove();
                     break;
                 }
             }
         }
+        sampleList.clear();
+        sampleList.addAll(accu);
     }
 
     private static final String SENSOR_OBSERVATION_QUERY =
