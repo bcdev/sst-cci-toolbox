@@ -39,10 +39,14 @@ import java.util.List;
 public class MapPlotTool extends BasicTool {
 
     private static final String REFOBS_QUERY =
+//            "select o"
+//                    + " from ReferenceObservation o, Matchup m"
+//                    + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and exists ( select 1 from Observation o2, Coincidence c2 where c2.matchup = m and c2.observation = o2 and o2.sensor = ?1 )"
+//                    + " order by o.time, m.id";
             "select o"
-                    + " from ReferenceObservation o, Matchup m"
-                    + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and exists ( select o2 from Observation o2, Coincidence c2 where c2.matchup = m and c2.observation = o2 and o2.sensor = ?1 )"
-                    + " order by o.time, m.id";
+            + " from ReferenceObservation o, Matchup m, Observation o2, Coincidence c2"
+            + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and c2.matchup = m and c2.observation = o2 and o2.sensor = ?1"
+            + " order by o.time, m.id";
 
     private String samplingSensor;
     private Date startTime;
