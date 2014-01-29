@@ -81,6 +81,12 @@ To be completed.
   </activeProfiles>
 </settings>
 
+## How to build an assembly
+
+1. Change to the project root directory and type 'mvn assembly:assembly'
+2. Type 'mvn clean package install'
+3. Type 'mvn -DskipTests=true -f mms/pom.xml assembly:assembly'
+4. Type 'mvn -DskipTests=true -f tools/pom.xml assembly:assembly'
 
 ## Contact information
 
