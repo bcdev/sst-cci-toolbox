@@ -41,10 +41,10 @@ public class NwpToolTest {
         if (true) {
             final String sensorName = "atsr.3";
             final String pattern = "20";
-            final String dimensionProperties = "mmd-dimensions.properties";
-            final String sourceMmd = "archive/mmd.nc";
+            final String dimensionProperties = "mms/src/main/config/mms-wpr-02/mmd-dimensions.properties";
+            final String sourceMmd = "archive/mmd-2004-06-11.nc";
             final String nwpArchivePath = "archive/ecmwf-era-interim/v01";
-            final String nwpMmd = "archive/nwp.nc";
+            final String nwpMmd = "archive/nwp-2004-06-11.nc";
             final String[] args = new String[]{"false",
                     sensorName,
                     pattern,
@@ -57,10 +57,10 @@ public class NwpToolTest {
             new NwpTool(args).createMergedFile();
         }
         if (true) {
-            final String sourceMmd = "archive/mmd.nc";
+            final String sourceMmd = "archive/mmd-2004-06-11.nc";
             final String nwpArchivePath = "archive/ecmwf-era-interim/v01";
-            final String anMmd = "archive/nwpan.nc";
-            final String fcMmd = "archive/nwpfc.nc";
+            final String anMmd = "archive/nwpan-2004-06-11.nc";
+            final String fcMmd = "archive/nwpfc-2004-06-11.nc";
             final String[] args = new String[]{"true",
                     sourceMmd,
                     nwpArchivePath,
