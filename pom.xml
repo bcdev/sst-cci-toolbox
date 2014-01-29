@@ -24,7 +24,7 @@
     <url>http://www.esa-sst-cci.org</url>
     <groupId>org.esa-sst-cci</groupId>
     <artifactId>sst-cci-toolbox</artifactId>
-    <version>1</version>
+    <version>3.0-SNAPHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -51,6 +51,11 @@
                         <exclude>.gitignore</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.2</version>
             </plugin>
         </plugins>
         <extensions>
@@ -111,6 +116,10 @@
             <url>http://people.apache.org/repo/m2-incubating-repository</url>
         </repository>
     </repositories>
+
+    <scm>
+        <developerConnection>scm:git:git@github.com:bcdev/sst-cci-toolbox.git</developerConnection>
+    </scm>
 
     <developers>
         <developer>
