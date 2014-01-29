@@ -23,6 +23,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.awt.image.Raster;
+import java.io.File;
+import java.net.URL;
 
 import static org.junit.Assert.*;
 
@@ -36,7 +38,9 @@ public class ArcPixelPosToolTest {
     @Before
     public void setUp() throws Exception {
         tool = new ArcPixelPosTool();
-        tool.setCommandLineArgs(new String[]{"-cmms/src/test/config/mms-config.properties"});
+        final URL resource = getClass().getResource("mms-config.properties");
+        final File resourceFile = new File(resource.toURI());
+        tool.setCommandLineArgs(new String[]{"-c" + resourceFile.getPath()});
     }
 
     @Test

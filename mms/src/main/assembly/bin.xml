@@ -21,8 +21,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
     <id>bin</id>
 
     <formats>
-        <format>tar.bz2</format>
-        <!-- <format>dir</format> -->
+        <format>tar.gz</format>
     </formats>
 
     <includeBaseDirectory>true</includeBaseDirectory>
@@ -64,6 +63,9 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
 
         <fileSet>
             <directory>src/main/config</directory>
+            <includes>
+                <include>*.properties</include>
+            </includes>
             <outputDirectory>config</outputDirectory>
             <directoryMode>0774</directoryMode>
             <fileMode>0664</fileMode>
@@ -72,11 +74,13 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
 
     <dependencySets>
         <dependencySet>
+            <!--
             <includes>
                 <include>com.bc.ceres:*</include>
                 <include>org.esa.beam:*</include>
                 <include>${project.groupId}:*</include>
             </includes>
+            -->
             <!--
             <excludes>
                 <exclude>com.bc.ceres:ceres-launcher</exclude>
@@ -108,6 +112,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
         </dependencySet>
         -->
 
+        <!--
         <dependencySet>
             <excludes>
                 <exclude>com.bc.ceres:*</exclude>
@@ -123,6 +128,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             </outputFileNameMapping>
             <fileMode>0664</fileMode>
         </dependencySet>
+        -->
     </dependencySets>
 
 </assembly>
