@@ -27,11 +27,7 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Abstract base class for all netcdf-observation readers. Provides methods to to open the file and access its
@@ -39,7 +35,7 @@ import java.util.List;
  *
  * @author Thomas Storm
  */
-abstract class NetcdfReader implements Reader {
+abstract public class NetcdfReader implements Reader {
 
     private final String sensorName;
     private final HashMap<String, Variable> variableMap = new HashMap<>();
@@ -56,7 +52,6 @@ abstract class NetcdfReader implements Reader {
      * variables.
      *
      * @param datafile data file entry to be referenced in each observation created by reader
-     *
      * @throws IOException if file access fails.
      */
     @Override
@@ -152,6 +147,17 @@ abstract class NetcdfReader implements Reader {
             return defaultValue;
         }
         return attribute.getNumericValue();
+    }
+
+    protected String getGlobalAttribute(String attributeName) {
+        final List<Attribute> globalAttributes = netcdfFile.getGlobalAttributes();
+        for (Attribute globalAttribute : globalAttributes) {
+            if (attributeName.equals(globalAttribute.getShortName())) {
+                return globalAttribute.getStringValue();
+            }
+        }
+
+        return null;
     }
 
     private Item createColumn(final Variable variable) {

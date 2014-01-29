@@ -32,11 +32,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -46,41 +42,51 @@ import static org.junit.Assert.*;
 public class InsituReaderTest {
 
     @Test
-    public void testReadObservation() throws Exception {
+    public void testReadSST_CCI_V1_Data() throws Exception {
         final InsituObservation observation;
 
-        try (InsituReader handler = createReader()) {
+        try (InsituReader handler = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
             observation = handler.readObservation(0);
+
+            final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+            calendar.setTimeInMillis(observation.getTime().getTime());
+            assertEquals(2007, calendar.get(Calendar.YEAR));
+            assertEquals(11, calendar.get(Calendar.MONTH));
+            assertEquals(18, calendar.get(Calendar.DATE));
+
+            assertEquals(2125828.8, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertTrue(geometry instanceof LineString);
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(88.92, startPoint.getX(), 1e-8);
+            assertEquals(9.750, startPoint.getY(), 1e-8);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(84.82, endPoint.getX(), 1e-8);
+            assertEquals(15.60, endPoint.getY(), 1e-8);
         }
-
-        final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
-        calendar.setTimeInMillis(observation.getTime().getTime());
-        assertEquals(2007, calendar.get(Calendar.YEAR));
-        assertEquals(11, calendar.get(Calendar.MONTH));
-        assertEquals(18, calendar.get(Calendar.DATE));
-
-        assertEquals(2125828.8, observation.getTimeRadius(), 0.0);
-
-        final PGgeometry location = observation.getLocation();
-        assertNotNull(location);
-
-        final Geometry geometry = location.getGeometry();
-        assertTrue(geometry instanceof LineString);
-
-        final Point startPoint = geometry.getFirstPoint();
-        assertEquals(88.92, startPoint.getX(), 1e-8);
-        assertEquals(9.750, startPoint.getY(), 1e-8);
-
-        final Point endPoint = geometry.getLastPoint();
-        assertEquals(84.82, endPoint.getX(), 1e-8);
-        assertEquals(15.60, endPoint.getY(), 1e-8);
     }
+
+    // @todo 1 tb/tb continue here 2014-01-29
+//    @Test
+//    public void testReadSST_CCI_V2_Argo_Data() throws Exception {
+//        final InsituObservation observation;
+//
+//        try (InsituReader handler = createReader("SSTCCI2_refdata_200002_argo_sample.nc")) {
+//
+//        }
+//    }
 
     @Test
     public void testFindRange_ForReferenceTimeInHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455090.56;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, referenceTime);
 
         assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - 0.5);
         assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - 0.5);
@@ -92,7 +98,7 @@ public class InsituReaderTest {
     public void testFindRange_ForReferenceTimeAtStartOfHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2454939.446;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, referenceTime);
 
         assertTrue(historyTimes.getDouble(range.first()) == referenceTime);
         assertTrue(historyTimes.getDouble(range.last()) <= referenceTime + 0.5);
@@ -103,7 +109,7 @@ public class InsituReaderTest {
     public void testFindRange_ForReferenceTimeAtEndOfHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455097.774;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, referenceTime);
 
         assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - 0.5);
         assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - 0.5);
@@ -114,7 +120,7 @@ public class InsituReaderTest {
     public void testFindRange_ForReferenceTimeAtLowerLimit() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2454939.446 - 0.5;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, referenceTime);
 
         assertNotSame(Range.EMPTY, range);
         assertTrue(range.first() == range.last());
@@ -125,7 +131,7 @@ public class InsituReaderTest {
     public void testFindRange_ForReferenceTimeAtUpperLimit() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455097.774 + 0.5;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, referenceTime);
 
         assertNotSame(Range.EMPTY, range);
         assertTrue(range.first() == range.last());
@@ -136,7 +142,7 @@ public class InsituReaderTest {
     public void testFindRange_ForReferenceTimeBeforeHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2454939.446 - 1.0;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, referenceTime);
 
         assertSame(Range.EMPTY, range);
     }
@@ -145,7 +151,7 @@ public class InsituReaderTest {
     public void testFindRange_ForReferenceTimeAfterHistory() {
         final Array historyTimes = createHistoryTimeArray();
         final double referenceTime = 2455097.774 + 1.0;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, referenceTime);
 
         assertSame(Range.EMPTY, range);
     }
@@ -153,7 +159,7 @@ public class InsituReaderTest {
     @Test
     public void testCreateSubsampling() {
         final Array historyTimes = createHistoryTimeArray();
-        final Range r = InsituReader.findRange(historyTimes, 2455090.56);
+        final Range r = Insitu_CCI_1_Accessor.findRange(historyTimes, 2455090.56);
         final List<Range> s = InsituReader.createSubsampling(historyTimes, r, 10);
 
         assertEquals(10, s.size());
@@ -166,7 +172,7 @@ public class InsituReaderTest {
     @Test
     public void testCreateSubset_1D() throws InvalidRangeException {
         final Array historyTimes = createHistoryTimeArray();
-        final Range range = InsituReader.findRange(historyTimes, 2455090.56);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, 2455090.56);
         final List<Range> s = InsituReader.createSubsampling(historyTimes, range, 10);
         final Array subset = Array.factory(historyTimes.getElementType(), new int[]{1, 10});
         InsituReader.extractSubset(historyTimes, subset, s);
@@ -181,7 +187,7 @@ public class InsituReaderTest {
     public void testCreateSubset_2D() throws InvalidRangeException {
         final Array historyTimes = createHistoryTimeArray();
         final int historyLength = historyTimes.getIndexPrivate().getShape(0);
-        final Range range = InsituReader.findRange(historyTimes, 2455090.56);
+        final Range range = Insitu_CCI_1_Accessor.findRange(historyTimes, 2455090.56);
         final List<Range> s = InsituReader.createSubsampling(historyTimes, range, 10);
 
         final Array array = Array.factory(DataType.INT, new int[]{historyLength, 2});
@@ -191,6 +197,25 @@ public class InsituReaderTest {
         assertEquals(3, subset.getRank());
         assertEquals(10, subset.getIndexPrivate().getShape(1));
         assertEquals(2, subset.getIndexPrivate().getShape(2));
+    }
+
+    @Test
+    public void testNormalizeLon() {
+        assertEquals(26.0, InsituReader.normalizeLon(26.0), 1e-8);
+        assertEquals(-107.0, InsituReader.normalizeLon(-107.0), 1e-8);
+
+        assertEquals(-0.1, InsituReader.normalizeLon(359.9), 1e-8);
+        assertEquals(0.1, InsituReader.normalizeLon(-359.9), 1e-8);
+
+        assertEquals(-19.0, InsituReader.normalizeLon(-379.0), 1e-8);
+        assertEquals(3.0, InsituReader.normalizeLon(363.0), 1e-8);
+    }
+
+    @Test
+    public void testGetNumRecords() {
+        final InsituReader reader = new InsituReader("whatever");
+
+        assertEquals(1, reader.getNumRecords());
     }
 
     private static Array createHistoryTimeArray() {
@@ -928,9 +953,9 @@ public class InsituReaderTest {
         });
     }
 
-    private static InsituReader createReader() throws Exception {
+    private static InsituReader createReader(String resourceName) throws Exception {
         final DataFile dataFile = new DataFile();
-        final String path = getResourceAsFile("insitu_WMOID_11851_20071123_20080111.nc").getPath();
+        final String path = getResourceAsFile(resourceName).getPath();
         dataFile.setPath(path);
 
         final InsituReader reader = new InsituReader("history");

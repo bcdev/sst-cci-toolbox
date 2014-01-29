@@ -18,7 +18,8 @@ package org.esa.cci.sst.reader;
 
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 
 /**
  * @author Thomas Storm
@@ -60,6 +61,8 @@ public class ReaderFactoryTest {
         assertNotNull(handler);
         assertTrue(handler instanceof AvhrrMdReader);
 
+        handler = ReaderFactory.createReader("InsituReader", "");
+        assertNotNull(handler);
+        assertTrue(handler instanceof InsituReader);
     }
-
 }

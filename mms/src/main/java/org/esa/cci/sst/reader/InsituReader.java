@@ -28,20 +28,13 @@ import ucar.ma2.Array;
 import ucar.ma2.IndexIterator;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Range;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Allows reading of observations from the in-history situ data.
@@ -51,7 +44,9 @@ import java.util.TimeZone;
 class InsituReader extends NetcdfReader {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
+
     private Array historyTimes;
+    private InsituAccessor insituAccessor;
 
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -64,6 +59,19 @@ class InsituReader extends NetcdfReader {
     @Override
     public void init(DataFile datafile, File archiveRoot) throws IOException {
         super.init(datafile, archiveRoot);
+
+        final String title = getGlobalAttribute("title");
+        if (title == null) {
+            throw new IOException("Illegal file format");
+        }
+        if (title.contains("SST CCI Phase II")) {
+            insituAccessor = new Insitu_CCI_2_Accessor(this);
+        } else {
+            insituAccessor = new Insitu_CCI_1_Accessor(this);
+        }
+
+        insituAccessor.readHistoryTimes();
+
         historyTimes = readHistoryTimes();
     }
 
@@ -87,9 +95,8 @@ class InsituReader extends NetcdfReader {
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 
-        final Date startTime = TimeUtil.julianDateToDate(historyTimes.getDouble(0));
-        final Date endTime = TimeUtil.julianDateToDate(
-                historyTimes.getDouble(historyTimes.getIndexPrivate().getShape(0) - 1));
+        final Date startTime = insituAccessor.getHistoryStart();
+        final Date endTime = insituAccessor.getHistoryEnd();
         observation.setTime(TimeUtil.centerTime(startTime, endTime));
         observation.setTimeRadius(TimeUtil.timeRadius(startTime, endTime));
 
@@ -112,7 +119,7 @@ class InsituReader extends NetcdfReader {
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable sourceVariable = getVariable(role);
         final Date refTime = extractDefinition.getDate();
-        final Range range = findRange(historyTimes, TimeUtil.toJulianDate(refTime));
+        final Range range = insituAccessor.find12HoursRange(refTime);
         final Array source = sourceVariable.read();
         final Array target = Array.factory(source.getElementType(), extractDefinition.getShape());
         final Number fillValue = getAttribute(sourceVariable, "_FillValue", Short.MIN_VALUE);
@@ -168,53 +175,7 @@ class InsituReader extends NetcdfReader {
         return getVariable("insitu.time").read();
     }
 
-    /**
-     * Returns the range of the in-situ history time data that falls within ±12 hours of a
-     * given reference time.
-     *
-     * @param historyTimes  The in-situ history time data (JD). The array must be of rank 1 and
-     *                      its elements must be sorted in ascending order.
-     * @param referenceTime The reference time (JD).
-     *
-     * @return the range of the in-situ history time data that falls within ±12 hours of the
-     *         given reference time.
-     *
-     * @throws IllegalArgumentException when {@code historyTimes.getRank() != 1}.
-     */
-    static Range findRange(Array historyTimes, double referenceTime) {
-        if (historyTimes.getRank() != 1) {
-            throw new IllegalArgumentException("history.getRank() != 1");
-        }
-        if (referenceTime + 0.5 < historyTimes.getDouble(0)) {
-            return Range.EMPTY;
-        }
-        final int historyLength = historyTimes.getIndexPrivate().getShape(0);
-        if (referenceTime - 0.5 > historyTimes.getDouble(historyLength - 1)) {
-            return Range.EMPTY;
-        }
-        int startIndex = -1;
-        int endIndex = -1;
-        for (int i = 0; i < historyLength; i++) {
-            final double time = historyTimes.getDouble(i);
-            if (startIndex == -1) {
-                if (time >= referenceTime - 0.5) {
-                    startIndex = i;
-                    endIndex = startIndex;
-                }
-            } else {
-                if (time <= referenceTime + 0.5) {
-                    endIndex = i;
-                } else {
-                    break;
-                }
-            }
-        }
-        try {
-            return new Range(startIndex, endIndex);
-        } catch (InvalidRangeException e) {
-            return Range.EMPTY;
-        }
-    }
+
 
     static List<Range> createSubsampling(Array historyTimes, Range range, int maxLength) {
         try {
@@ -260,16 +221,6 @@ class InsituReader extends NetcdfReader {
         }
     }
 
-    private static void writeSubset(NetcdfFileWriteable targetFile, Variable targetVariable, int matchupIndex,
-                                    Array subset) throws Exception {
-        final int[] origin = new int[targetVariable.getRank()];
-        origin[0] = matchupIndex;
-        final int[] shape = targetVariable.getShape();
-        shape[0] = 1;
-        shape[1] = subset.getIndexPrivate().getShape(0);
-        targetFile.write(targetVariable.getFullNameEscaped(), origin, subset.reshape(shape));
-    }
-
     private static PGgeometry createLineGeometry(double startLon, double startLat, double endLon, double endLat) {
         double startLon1 = normalizeLon(startLon);
         double endLon1 = normalizeLon(endLon);
@@ -278,7 +229,8 @@ class InsituReader extends NetcdfReader {
     }
 
     // this is a copy of {@code GeoPos.normalizeLon()} using {@code double} instead of {@code float} as argument
-    private static double normalizeLon(double lon) {
+    // package access for testing only tb 2014-01-29
+    static double normalizeLon(double lon) {
         double lon1 = lon;
         if (lon1 < -360.0 || lon1 > 360.0) {
             lon1 %= 360.0;

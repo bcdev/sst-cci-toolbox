@@ -33,7 +33,9 @@ import java.util.Properties;
 public class ReaderFactory {
 
     public static final String DEFAULT_READER_SPEC = "GunzipDecorator,ProductReader";
-    private static final String PACKAGE_NAME = ReaderFactory.class.getPackage().getName();
+
+    private static final String READER_PACKAGE_NAME = ReaderFactory.class.getPackage().getName();
+
 
     private ReaderFactory() {
     }
@@ -44,10 +46,8 @@ public class ReaderFactory {
      *
      * @param datafile      The data file.
      * @param configuration The tool configuration.
-     *
      * @return a new {@link Reader} instance, which is initialized with the data file
-     *         supplied as argument.
-     *
+     * supplied as argument.
      * @throws IOException if the {@link Reader} could not be initialized.
      */
     public static Reader open(DataFile datafile, Properties configuration) throws IOException {
@@ -68,9 +68,7 @@ public class ReaderFactory {
      * @param readerSpec The reader specification, in the form <code>Reader2,Reader1</code>,
      *                   where <code>Reader1</code> is constructor argument for <code>Reader2</code>.
      * @param sensorName The sensor name.
-     *
      * @return a new instance of <code>Reader</code>.
-     *
      * @throws IllegalArgumentException when the reader specification is incorrect.
      */
     @SuppressWarnings({"unchecked"})
@@ -81,21 +79,16 @@ public class ReaderFactory {
         Reader reader = null;
         try {
             for (int i = readerClassNames.length - 1; i >= 0; i--) {
-                final Class<? extends Reader> readerClass =
-                        (Class<? extends Reader>) Class.forName(PACKAGE_NAME + '.' + readerClassNames[i]);
+                final Class<? extends Reader> readerClass = (Class<? extends Reader>) Class.forName(READER_PACKAGE_NAME + '.' + readerClassNames[i]);
                 if (reader == null) {
-                    final Constructor<? extends Reader> constructor =
-                            readerClass.getDeclaredConstructor(String.class);
+                    final Constructor<? extends Reader> constructor = readerClass.getDeclaredConstructor(String.class);
                     reader = constructor.newInstance(sensorName);
                 } else {
-                    final Constructor<? extends Reader> constructor =
-                            readerClass.getDeclaredConstructor(Reader.class);
+                    final Constructor<? extends Reader> constructor = readerClass.getDeclaredConstructor(Reader.class);
                     reader = constructor.newInstance(reader);
                 }
             }
         } catch (ClassCastException e) {
-            throw new IllegalArgumentException(e);
-        } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException(e);
         } catch (NoSuchMethodException e) {
             throw new IllegalStateException(e);
@@ -104,6 +97,8 @@ public class ReaderFactory {
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(e);
         } catch (InvocationTargetException e) {
+            throw new IllegalStateException(e);
+        } catch (ClassNotFoundException e) {
             throw new IllegalStateException(e);
         }
 
