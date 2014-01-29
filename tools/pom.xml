@@ -21,7 +21,7 @@
 
     <parent>
         <groupId>org.esa-sst-cci</groupId>
-        <artifactId>sst-cci-parent</artifactId>
+        <artifactId>sst-cci-toolbox</artifactId>
         <version>1</version>
     </parent>
 
