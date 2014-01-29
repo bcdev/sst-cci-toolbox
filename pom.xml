@@ -24,7 +24,7 @@
     <url>http://www.esa-sst-cci.org</url>
     <groupId>org.esa-sst-cci</groupId>
     <artifactId>sst-cci-toolbox</artifactId>
-    <version>3.0-SNAPHOT</version>
+    <version>1</version>
     <packaging>pom</packaging>
 
     <modules>
