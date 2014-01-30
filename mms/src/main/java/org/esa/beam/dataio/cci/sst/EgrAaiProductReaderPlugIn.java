@@ -17,6 +17,7 @@
 package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.dataio.DecodeQualification;
+import org.esa.beam.framework.dataio.ProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.util.io.BeamFileFilter;
 
@@ -28,7 +29,7 @@ public class EgrAaiProductReaderPlugIn implements ProductReaderPlugIn {
     public static final String FORMAT_NAME = "AAI-EGR";
 
     @Override
-    public EgrAaiProductReader createReaderInstance() {
+    public ProductReader createReaderInstance() {
         return new EgrAaiProductReader(this);
     }
 
