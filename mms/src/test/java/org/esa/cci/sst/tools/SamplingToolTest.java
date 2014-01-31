@@ -132,7 +132,7 @@ public class SamplingToolTest {
             p.setReference(orbitObservationId);
         }
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating matchups...");
-        tool.createMatchups(sampleList, samplingSensor, samplingSensor2);
+        tool.createMatchups(sampleList, "atsr_orb.3", null);
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating matchups..." + sampleList.size());
     }
 
