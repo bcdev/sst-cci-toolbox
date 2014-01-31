@@ -2,6 +2,8 @@ import glob
 import os
 import sys
 import threading
+from time import sleep
+import time
 import threadpool
 import subprocess
 
@@ -65,22 +67,25 @@ class PMonitor:
     _counts = dict([])
     _hostConstraints = []
     _typeConstraints = []
+    _weightConstraints = []
     _swd = None
     _logdir = '.'
     _cache = None
     _mutex = threading.Lock()
     _request = None
+    _delay = None
     _simulation = False
 
-    def __init__(self, inputs, request='', hosts=[('localhost',4)], types=[], swd=None, cache=None, logdir='.', simulation=False):
+    def __init__(self, inputs, request='', hosts=[('localhost',4)], types=[], weights=[], swd=None, cache=None, logdir='.', simulation=False, delay=None):
         """
         Initiates monitor, marks inputs, reads report, creates thread pool
         """
         try:
-            os.system('mkdir -p ' + logdir)     
+            os.system('mkdir -p ' + logdir)
             self._mutex.acquire()
             self._hostConstraints = self._constraints_of(hosts)
             self._typeConstraints = self._constraints_of(types)
+            self._weightConstraints = self._constraints_of(weights)
             self._swd = swd
             self._logdir = logdir
             self._cache = cache
@@ -90,40 +95,59 @@ class PMonitor:
             concurrency = sum(map(lambda host:host[1], hosts))
             self._pool = threadpool.ThreadPool(concurrency)
             self._request = request
+            self._delay = delay
             self._simulation = simulation
         finally:
             self._mutex.release()
 
-    def execute(self, call, inputs, outputs, parameters=[], priority=1, collating=True):
+    def execute(self, call, inputs, outputs, parameters=[], priority=1, collating=True, logprefix=None):
         """
         Schedules task `call parameters inputs outputs`, either a single collating call or one call per input
         """
         try:
             self._mutex.acquire()
-            if self._all_inputs_available(inputs) and self._type_constraints_fulfilled(call):
+            if logprefix is None:
+                logprefix = call[call.rfind('/')+1:]
+                if logprefix.endswith('.sh'):
+                    logprefix = logprefix[:-3]
+            self._created += 1
+            request = threadpool.WorkRequest(None, [call, self._created, parameters, None, outputs, None, logprefix], priority=priority, requestID=self._created)
+            if outputs[0] in self._counts:
+                self._counts[outputs[0]] += 1
+            else:
+                self._counts[outputs[0]] = 1
+            
+            if self._all_inputs_available(inputs) and self._constraints_fulfilled(request):
                 inputPaths = self._paths_of(inputs)
                 if collating:
-                    self._created += 1
-                    request = threadpool.WorkRequest(self._process_step, [call, self._created, parameters, inputPaths, outputs], priority=priority)
+                    request.callable = self._process_step
+                    request.args[3] = inputPaths
                     self._pool.putRequest(request)
+                    if self._delay is not None:
+                        time.sleep(self._delay)
                 else:
-                    self._counts[outputs[0]] = len(inputPaths)
                     for i in range(len(inputPaths)):
-                        if i == 0 or self._type_constraints_fulfilled(call):
-                            self._created += 1
-                            request = threadpool.WorkRequest(self._process_noncollating_step, [call, self._created, parameters, inputPaths[i:i+1], outputs], priority=priority)
-                            self._pool.putRequest(request)
+                        if i == 0:
+                            request.callable = self._process_step
+                            request.args[3] = inputPaths[0:1]
                         else:
                             self._created += 1
-                            request = threadpool.WorkRequest(self._process_noncollating_step, [call, self._created, parameters, inputs[i:i+1], outputs], priority=priority)
+                            request = threadpool.WorkRequest(self._process_step,
+                                                             [call, self._created, parameters, inputPaths[i:i+1], outputs, None, logprefix],
+                                                             priority=priority, requestID=self._created)
+                            self._counts[outputs[0]] += 1
+                        if i == 0 or self._constraints_fulfilled(request):
+                            self._pool.putRequest(request)
+                            if self._delay is not None:
+                                time.sleep(self._delay)
+                        else:
                             self._backlog.append(request)
             else:
                 if collating:
-                    handler = self._process_step
+                    request.callable = self._translate_step
                 else:
-                    handler = self._process_noncollating_step
-                self._created += 1
-                request = threadpool.WorkRequest(handler, [call, self._created, parameters, inputs, outputs], priority=priority)
+                    request.callable = self._expand_step
+                request.args[3] = inputs
                 self._backlog.append(request)
         finally:
             self._mutex.release()
@@ -175,9 +199,9 @@ class PMonitor:
 
     def _write_status(self, withBacklog=False):
         self._status.seek(0)
-        pending = len(self._pool.workRequests) - len(self._running)
-        self._status.write('{0} created, {1} running, {2} pending, {3} backlog, {4} processed, {5} failed\n'.\
-        format(self._created, len(self._running), pending, len(self._backlog), self._processed, len(self._failed)))
+        #pending = len(self._pool.workRequests) - len(self._running)
+        self._status.write('{0} created, {1} running, {2} backlog, {3} processed, {4} failed\n'.\
+        format(self._created, len(self._running), len(self._backlog), self._processed, len(self._failed)))
         for l in self._failed:
             self._status.write('f {0}\n'.format(l))
         for l in self._running:
@@ -188,39 +212,45 @@ class PMonitor:
         self._status.truncate()
         self._status.flush()
 
-    def _process_noncollating_step(self, call, taskId, parameters, inputs, outputs):
+    def _expand_step(self, call, taskId, parameters, inputs, outputs, host, logprefix):
         """
-        Callable for tasks, marker for non-collating tasks, same implementation as _process_step
+        Marker for non-collating tasks, formal callable
         """
-        self._process_step(call, taskId, parameters, inputs, outputs)
+        raise NotImplementedError('must never be called')
 
-    def _process_step(self, call, taskId, parameters, inputs, outputs):
+    def _translate_step(self, call, taskId, parameters, inputs, outputs, host, logprefix):
+        """
+        Marker for tasks that require input path translation, formal callable
+        """
+        raise NotImplementedError('must never be called')
+
+    def _process_step(self, call, taskId, parameters, inputs, outputs, host, logprefix):
         """
         Callable for tasks, marker for simple or collating tasks.
         looks up call in commands from report, maybe skips execution
         executes call by os call, scans process stdout for `output=...`
-        updates report, maintains products, and schedule mature tasks
+        updates report, maintains products, and schedules mature tasks
         """
         command = '{0} {1} {2} {3}'.format(self._path_of_call(call), ' '.join(parameters), ' '.join(inputs), ' '.join(outputs))
         if command in self._commands:
-            self._skip_step(call, command, outputs)
+            self._skip_step(call, command, outputs, host)
         else:
-            host = self._prepare_step(command)
+            self._prepare_step(command)
             outputPaths = []
             if not self._simulation:
-                code = self._run_step(taskId, host, command, outputPaths)
+                code = self._run_step(taskId, host, command, outputPaths, logprefix)
             else:
                 code = 1
             self._finalise_step(call, code, command, host, outputPaths, outputs)
 
-    def _skip_step(self, call, command, outputs):
+    def _skip_step(self, call, command, outputs, host):
         """
         Marks outputs of step and schedules mature tasks
         """
         try:
             self._mutex.acquire()
             sys.__stdout__.write('skipping {0}\n'.format(command))
-            self._release_type(call)
+            self._release_constraint(call, host)
             self._mark_outputs(outputs)
             self._check_for_mature_tasks()
             self._processed += 1
@@ -235,17 +265,16 @@ class PMonitor:
             self._mutex.acquire()
             self._running.append(command)
             self._write_status()
-            return self._select_host()
         finally:
             self._mutex.release()
 
-    def _run_step(self, taskId, host, command, outputPaths):
+    def _run_step(self, taskId, host, command, outputPaths, logprefix):
         """
         Executes command on host, collects output paths if any, returns exit code
         """
         wd = self._prepare_working_dir(taskId)
         process = self._start_processor(command, host, wd)
-        self._trace_processor_output(outputPaths, process, taskId, wd)
+        self._trace_processor_output(outputPaths, process, taskId, wd, logprefix)
         process.stdout.close()
         code = process.wait()
         if code == 0 and self._cache != None and 'cache' in wd:
@@ -258,8 +287,7 @@ class PMonitor:
         """
         try:
             self._mutex.acquire()
-            self._release_host(host)
-            self._release_type(call)
+            self._release_constraint(call, host)
             self._running.remove(command)
             if code == 0:
                 self._report.write(command + '\n')
@@ -276,7 +304,7 @@ class PMonitor:
 
     def _prepare_working_dir(self, taskId):
         """Creates working directory in .../cache/request-id/task-id"""
-        if self._cache == None:
+        if self._cache is None:
             wd = '.'
         else:
             wd = self._cache + '/' + self._request + '/' + '{0:04d}'.format(taskId)
@@ -288,20 +316,18 @@ class PMonitor:
         """starts subprocess either locally or via ssh, returns process handle"""
         if host == 'localhost':
             cmd = command
-            sys.__stdout__.write('executing {0}'.format(cmd + '\n'))
-            process = subprocess.Popen(cmd, shell=True, bufsize=1, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         else:
             cmd = 'ssh ' + host + " 'mkdir -p " + wd + ';' + " cd " + wd + ';' + command + "'"
-            sys.__stdout__.write('executing {0}'.format(cmd + '\n'))
-            process = subprocess.Popen(cmd, shell=True, bufsize=1, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        sys.__stdout__.write('executing {0}'.format(cmd + '\n'))
+        process = subprocess.Popen(cmd, shell=True, bufsize=1, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         return process
 
-    def _trace_processor_output(self, outputPaths, process, taskId, wd):
+    def _trace_processor_output(self, outputPaths, process, taskId, wd, logprefix):
         """traces processor output, recognises 'output=' lines, writes all lines to trace file in working dir"""
-        if self._cache == None:
-            trace = open(self._logdir + '/' + self._request + '-' + '{0:04d}'.format(taskId) + '.stdout', 'w')
+        if self._cache is None or self._logdir != '.':
+            trace = open('{0}/{1}-{2:04d}.out'.format(self._logdir, logprefix, taskId), 'w')
         else:
-            trace = open(wd + '/' + self._request + '-' + '{0:04d}'.format(taskId) + '.stdout', 'w')
+            trace = open('{0}/{1}-{2:04d}.out'.format(wd, logprefix, taskId), 'w')
         for line in process.stdout:
             if line.startswith('output='):
                 outputPaths.append(line[7:].strip())
@@ -313,76 +339,98 @@ class PMonitor:
         """
         Checks tasks in backlog whether inputs are (now) all bound in products map
         adds these mature tasks to thread pool, removes them from backlog
-        distinguishes collocating and non-collocating asks by the callable used
-        generates one task per input for non-collocating tasks
+        distinguishes collating and non-collating tasks by the callable used
+        generates one task per input for non-collating tasks
         """
         matureTasks = []
         for task in self._backlog:
-            if self._all_inputs_available(task.args[3]) and self._type_constraints_fulfilled(task.args[0]):
-                inputPaths = self._paths_of(task.args[3])
-                if task.callable == self._process_step:
-                    task.args[3] = inputPaths
-                    self._pool.putRequest(task)
+            if (task.callable == self._process_step or self._all_inputs_available(task.args[3])):
+                if self._constraints_fulfilled(task):
                     matureTasks.append(task)
+                    if task.callable == self._process_step:
+                        inputPaths = task.args[3]
+                    else:
+                        inputPaths = self._paths_of(task.args[3])
+                    if task.callable == self._translate_step or task.callable == self._process_step:
+                        task.callable = self._process_step
+                        task.args[3] = inputPaths
+                        self._pool.putRequest(task)
+                        if self._delay is not None:
+                            time.sleep(self._delay)
+                    else:
+                        newTasks = []
+                        pos = self._backlog.index(task)
+                        for i in range(len(inputPaths)):
+                            if i == 0:
+                                task.callable = self._process_step
+                                task.args[3] = inputPaths[0:1]
+                            else:
+                                self._created += 1
+                                task = threadpool.WorkRequest(self._process_step, \
+                                    [task.args[0], self._created, task.args[2], inputPaths[i:i+1], task.args[4], None, task.args[6]], \
+                                                              priority=task.priority, requestID=self._created)
+                                self._counts[task.args[4][0]] += 1
+                            if i == 0 or self._constraints_fulfilled(task):
+                                self._pool.putRequest(task)
+                                if self._delay is not None:
+                                    time.sleep(self._delay)
+                            else:
+                                newTasks.insert(0, task)
+                        if len(newTasks) > 0:
+                            for newTask in newTasks:
+                                self._backlog.insert(pos+1, newTask)
+                            # be fair!
+                            break
                 else:
-                    self._counts[task.args[4][0]] = len(inputPaths)
-                    for i in range(len(task.args[3])):
-                        if i == 0 or self._type_constraints_fulfilled(task.args[0]):
-                            self._created += 1
-                            request = threadpool.WorkRequest(self._process_noncollating_step,\
-                                [task.args[0], self._created, task.args[2], inputPaths[i:i+1], task.args[4]],\
-                                                             priority=task.priority)
-                            self._pool.putRequest(request)
-                        else:
-                            self._created += 1
-                            request = threadpool.WorkRequest(self._process_noncollating_step,\
-                                [task.args[0], self._created, task.args[2], task.args[3][i:i+1], task.args[4]],\
-                                                             priority=task.priority)
-                            self._backlog.append(request)
-                    matureTasks.append(task)
+                    # be fair!
+                    break
         for task in matureTasks:
             self._backlog.remove(task)
 
-
-
-    def _select_host(self):
-        """returns host with idle capacity and lowest load"""
-        try:
-            for host in self._hostConstraints:
-                if host.load < host.capacity:
-                    host.load += 1
-                    return host.name
-            self._hostConstraints[0].load += 1
-            return self._hostConstraints[0].name
-        finally:
-            self._hostConstraints.sort()
-
-    def _release_host(self, usedHost):
-        """decrements load of host just released"""
-        try:
-            for host in self._hostConstraints:
-                if host.name == usedHost:
-                    host.load -= 1
-                    return
-            raise Exception('cannot find ' + usedHost + ' in ' + str(self._hostConstraints))
-        finally:
-            self._hostConstraints.sort()
-
-    def _type_constraints_fulfilled(self, name):
-        for i in self._typeConstraints:
-            if i.name == name:
-                if i.load < i.capacity:
-                    i.load += 1
-                    return i
+    def _constraints_fulfilled(self, request):
+        """looks for host with sufficient capacity and updates host load, type load, and request host"""
+        call = request.args[0]
+        typeConstraint = None
+        for type in self._typeConstraints:
+            if type.name == call:
+                if type.load < type.capacity:
+                    typeConstraint = type
+                    break
                 else:
                     return False
-        return True
-
-    def _release_type(self, name):
-        for i in self._typeConstraints:
-            if i.name == name:
-                i.load -= 1
+        weight = 1
+        for type in self._weightConstraints:
+            if type.name == call:
+                weight = type.capacity
                 break
+        for host in self._hostConstraints:
+            if host.load + weight <= host.capacity:
+                host.load += weight
+                request.args[5] = host.name
+                self._hostConstraints.sort()
+                if typeConstraint:
+                    typeConstraint.load += 1
+                return True
+        return False
+
+    def _release_constraint(self, call, hostname):
+        """updates host load"""
+        weight = 1
+        for type in self._weightConstraints:
+            if type.name == call:
+                weight = type.capacity
+                break
+        for type in self._typeConstraints:
+            if type.name == call:
+                type.load -= 1
+                break
+        for host in self._hostConstraints:
+            if host.name == hostname:
+                host.load -= weight
+                self._hostConstraints.sort()
+                return
+        raise Exception('cannot find ' + hostname + ' in ' + str(self._hostConstraints))
+
 
     def _all_inputs_available(self, inputs):
         """
@@ -444,7 +492,7 @@ class PMonitor:
         """
         Bind output name to paths or extend existing output name by paths
         """
-        if name not in self._paths or self._paths[name] == None:
+        if name not in self._paths or self._paths[name] is None:
             self._paths[name] = paths
         else:
             self._paths[name].extend(paths)
@@ -463,13 +511,13 @@ class PMonitor:
         Returns paths a product is bound to, or a single entry list with the product name if the product bound to its own name
         """
         paths = self._paths[product]
-        if paths == None:
+        if paths is None:
             return [product]
         else:
             return paths
 
     def _path_of_call(self, call):
-        if self._swd != None and call[0] != '/':
+        if self._swd is not None and call[0] != '/':
             return self._swd + '/' + call
         else:
             return call
