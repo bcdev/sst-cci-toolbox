@@ -6,6 +6,6 @@
 java \
     -Dmms.home="$MMS_HOME" \
     -Xmx4096M $MMS_OPTIONS \
-    -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpa.version}.jar" \
+    -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpaversion}.jar" \
     -classpath "$MMS_HOME/lib/*" \
     org.esa.cci.sst.tools.MatchupTool "$@"

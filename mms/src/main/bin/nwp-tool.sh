@@ -15,6 +15,6 @@ java \
     -Dmms.home="$MMS_HOME" \
     -Djava.io.tmpdir=`pwd` \
     -Xmx512M $MMS_OPTIONS \
-    -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpa.version}.jar" \
+    -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpaversion}.jar" \
     -classpath "$MMS_HOME/lib/*" \
     org.esa.cci.sst.tools.nwp.Nwp $@
