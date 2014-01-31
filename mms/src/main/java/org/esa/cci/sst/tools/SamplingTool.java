@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -68,6 +69,8 @@ public class SamplingTool extends BasicTool {
     private static final String MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     private static final String MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
     private static final String MMS_SAMPLING_CLEANUPINTERVAL = "mms.sampling.cleanupinterval";
+    private static final String MMS_SAMPLING_SENSOR2 = "mms.sampling.sensor2";
+    private static final String MMS_SAMPLING_MATCHUPDISTANCE = "mms.sampling.matchupdistance";
 
     private long startTime;
     private long stopTime;
@@ -78,6 +81,8 @@ public class SamplingTool extends BasicTool {
     private int subSceneHeight;
     private transient Watermask watermask;
     private transient CloudPriors cloudPriors;
+    private String samplingSensor2;
+    private int matchupDistanceSeconds;
 
     SamplingTool() {
         super("sampling-tool", "1.0");
@@ -106,14 +111,17 @@ public class SamplingTool extends BasicTool {
         final String stopTimeString = getConfiguration().getProperty(MMS_SAMPLING_STOP_TIME,
                                                                      "2004-06-04T00:00:00Z");
         final String countString = getConfiguration().getProperty(MMS_SAMPLING_COUNT, "10000");
+        final String matchupDistanceSecondsString = getConfiguration().getProperty(MMS_SAMPLING_MATCHUPDISTANCE, "90000");
         final String subsceneWidthString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_WIDTH, "7");
         final String subsceneHeightString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_HEIGHT, "7");
         samplingSensor = getConfiguration().getProperty(MMS_SAMPLING_SENSOR, "atsr_orb.3");
+        samplingSensor2 = getConfiguration().getProperty(MMS_SAMPLING_SENSOR2, null);
 
         try {
             startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime();
             stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime();
             sampleCount = Integer.parseInt(countString);
+            matchupDistanceSeconds = Integer.parseInt(matchupDistanceSecondsString);
             subSceneWidth = Integer.parseInt(subsceneWidthString);
             subSceneHeight = Integer.parseInt(subsceneHeightString);
         } catch (ParseException e) {
@@ -140,7 +148,7 @@ public class SamplingTool extends BasicTool {
         reduceClearSamples(sampleList);
         getLogger().info("Reducing clear samples..." + sampleList.size());
         getLogger().info("Finding reference observations...");
-        findObservations2(sampleList, samplingSensor);
+        findObservations2(sampleList, samplingSensor, false, 86400 * 100 * 175);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -151,11 +159,19 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Finding satellite sub-scenes...");
         findSatelliteSubscenes(sampleList, samplingSensor);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
+        if (samplingSensor2 != null) {
+            getLogger().info("Finding " + samplingSensor2 + " observations...");
+            findObservations2(sampleList, samplingSensor2, true, matchupDistanceSeconds);
+            getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
+            getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
+            findSatelliteSubscenes(sampleList, samplingSensor2);
+            getLogger().info("Finding " + samplingSensor2 + " sub-scenes..." + sampleList.size());
+        }
         getLogger().info("Removing overlapping areas...");
         removeOverlappingSamples(sampleList);
         getLogger().info("Removing overlapping areas..." + sampleList.size());
         getLogger().info("Creating matchups...");
-        createMatchups(sampleList);
+        createMatchups(sampleList, samplingSensor, samplingSensor2);
         getLogger().info("Creating matchups..." + sampleList.size());
     }
 
@@ -253,10 +269,10 @@ public class SamplingTool extends BasicTool {
         }
     }
 
-    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor) throws PersistenceException, ParseException {
+    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean secondSensor, int searchRadiusSeconds) throws PersistenceException, ParseException {
         final List<ReferenceObservation> orbitObservations = findOrbits(samplingSensor,
-                TimeUtil.formatCcsdsUtcFormat(new Date(startTime - 86400 * 100 * 175)),
-                TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + 86400 * 100 * 175)));
+                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(startTime - searchRadiusSeconds)),
+                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + searchRadiusSeconds)));
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
         for (int i = 0; i < orbitObservations.size(); ++i) {
             final ReferenceObservation orbitObservation = orbitObservations.get(i);
@@ -281,14 +297,22 @@ public class SamplingTool extends BasicTool {
             while (true) {
                 if (i0 >= 0 && (i1 >= polygons.length || point.getTime() < polygons[i0].getTime() || point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
                     if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                        point.setReference(polygons[i0].getId());
+                        if (! secondSensor) {
+                            point.setReference(polygons[i0].getId());
+                        } else {
+                            point.setReference2(polygons[i0].getId());
+                        }
                         accu.add(point);
                         break;
                     }
                     --i0;
                 } else if (i1 < polygons.length) {
                     if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                        point.setReference(polygons[i1].getId());
+                        if (! secondSensor) {
+                            point.setReference(polygons[i1].getId());
+                        } else {
+                            point.setReference2(polygons[i1].getId());
+                        }
                         accu.add(point);
                         break;
                     }
@@ -354,7 +378,9 @@ public class SamplingTool extends BasicTool {
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
         final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
-        for (final int id : sampleListsByDatafile.keySet()) {
+        final Integer[] datafileIds = sampleListsByDatafile.keySet().toArray(new Integer[sampleListsByDatafile.keySet().size()]);
+        Arrays.sort(datafileIds);
+        for (final int id : datafileIds) {
             final List<SamplingPoint> points = sampleListsByDatafile.get(id);
 
             final Observation observation = getObservation(id);
@@ -413,8 +439,11 @@ public class SamplingTool extends BasicTool {
         sampleList.addAll(filteredList);
     }
 
-    void createMatchups(List<SamplingPoint> sampleList) {
-        final long pattern = getSensor(samplingSensor).getPattern();
+    void createMatchups(List<SamplingPoint> sampleList, String samplingSensor, String samplingSensor2) {
+        long pattern = getSensor(samplingSensor).getPattern();
+        if (samplingSensor2 != null) {
+            pattern |= getSensor(samplingSensor2).getPattern();
+        }
 
         final ArrayList<ReferenceObservation> referenceObservationList = new ArrayList<>();
         final ArrayList<Matchup> matchupList = new ArrayList<>();
@@ -466,8 +495,18 @@ public class SamplingTool extends BasicTool {
                 coincidence.setMatchup(matchup);
                 coincidence.setObservation(observation);
                 coincidence.setTimeDifference(0.0);
-
+                // TODO handle pattern
                 coincidenceList.add(coincidence);
+
+                if (samplingSensor2 != null) {
+                    final Observation observation2 = getObservation(samplingPoint.getReference2());
+                    final Coincidence coincidence2 = new Coincidence();
+                    coincidence.setMatchup(matchup);
+                    coincidence.setObservation(observation2);
+                    coincidence.setTimeDifference(TimeUtil.timeDifferenceInSeconds(matchup, ((ReferenceObservation)observation2)));
+
+                    coincidenceList.add(coincidence2);
+                }
             }
             persistenceManager.commit();
 

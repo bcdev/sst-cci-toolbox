@@ -93,7 +93,7 @@ public class SamplingToolTest {
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
-        tool.findObservations2(sampleList, "atsr_orb.3");
+        tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 100 * 175);
         tool.findSatelliteSubscenes(sampleList, "atsr_orb.3");
         tool.removeOverlappingSamples(sampleList);
 
@@ -132,7 +132,7 @@ public class SamplingToolTest {
             p.setReference(orbitObservationId);
         }
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating matchups...");
-        tool.createMatchups(sampleList);
+        tool.createMatchups(sampleList, samplingSensor, samplingSensor2);
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating matchups..." + sampleList.size());
     }
 
