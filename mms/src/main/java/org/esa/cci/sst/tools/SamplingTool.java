@@ -421,6 +421,7 @@ public class SamplingTool extends BasicTool {
 
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
+            int j = 200;
             persistenceManager.transaction();
             for (SamplingPoint samplingPoint : sampleList) {
                 final ReferenceObservation referenceObservation = new ReferenceObservation();
@@ -440,6 +441,11 @@ public class SamplingTool extends BasicTool {
 
                 referenceObservationList.add(referenceObservation);
                 persistenceManager.persist(referenceObservation);
+                if (--j == 0) {
+                    persistenceManager.commit();
+                    persistenceManager.transaction();
+                    j = 200;
+                }
             }
             persistenceManager.commit();
 
@@ -496,18 +502,18 @@ public class SamplingTool extends BasicTool {
 
         Query delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
-        delete.setParameter(1, startTime);
-        delete.setParameter(2, stopTime);
+        delete.setParameter(1, new Date(startTime));
+        delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
-        delete.setParameter(1, startTime);
-        delete.setParameter(2, stopTime);
+        delete.setParameter(1, new Date(startTime));
+        delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol'");
-        delete.setParameter(1, startTime);
-        delete.setParameter(2, stopTime);
+        delete.setParameter(1, new Date(startTime));
+        delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
 
         getPersistenceManager().commit();
