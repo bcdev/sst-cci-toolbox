@@ -82,8 +82,8 @@ public class SamplingToolTest {
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
-        tool.findObservations(sampleList);
-        tool.findSatelliteSubscenes(sampleList);
+        tool.findObservations(sampleList, "atsr_orb.3");
+        tool.findSatelliteSubscenes(sampleList, "atsr_orb.3");
 
         assertEquals(77, sampleList.size());
     }
@@ -93,8 +93,8 @@ public class SamplingToolTest {
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
-        tool.findObservations2(sampleList);
-        tool.findSatelliteSubscenes(sampleList);
+        tool.findObservations2(sampleList, "atsr_orb.3");
+        tool.findSatelliteSubscenes(sampleList, "atsr_orb.3");
         tool.removeOverlappingSamples(sampleList);
 
         assertEquals(77, sampleList.size());
@@ -124,7 +124,7 @@ public class SamplingToolTest {
         final List<SamplingPoint> sampleList = tool.createSamples();
         System.out.println(
                 TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples... " + sampleList.size());
-        final List<ReferenceObservation> orbitObservations = tool.findOrbits(
+        final List<ReferenceObservation> orbitObservations = tool.findOrbits("atsr_orb.3",
                 TimeUtil.formatCcsdsUtcFormat(TimeUtil.parseCcsdsUtcFormat("2004-06-12T00:00:00Z")),
                 TimeUtil.formatCcsdsUtcFormat(TimeUtil.parseCcsdsUtcFormat("2004-06-13T00:00:00Z")));
         final int orbitObservationId = orbitObservations.get(0).getId();
@@ -165,10 +165,10 @@ public class SamplingToolTest {
         tool.reduceClearSamples(sampleList);
         System.out.println("Reducing clear samples..." + sampleList.size());
         System.out.println("Finding reference observations...");
-        //tool.findObservations2(sampleList);
+        //tool.findObservations2(sampleList, "atsr_orb.3");
         System.out.println("Finding reference observations..." + sampleList.size());
         System.out.println("Finding satellite sub-scenes...");
-        //tool.findSatelliteSubscenes(sampleList);
+        //tool.findSatelliteSubscenes(sampleList, "atsr_orb.3");
         System.out.println("Finding satellite sub-scenes..." + sampleList.size());
         System.out.println("Removing overlapping areas...");
         //tool.removeOverlappingSamples(sampleList);

@@ -39,14 +39,10 @@ import java.util.List;
 public class MapPlotTool extends BasicTool {
 
     private static final String REFOBS_QUERY =
-//            "select o"
-//                    + " from ReferenceObservation o, Matchup m"
-//                    + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and exists ( select 1 from Observation o2, Coincidence c2 where c2.matchup = m and c2.observation = o2 and o2.sensor = ?1 )"
-//                    + " order by o.time, m.id";
             "select o"
-            + " from ReferenceObservation o, Matchup m, Observation o2, Coincidence c2"
-            + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and c2.matchup = m and c2.observation = o2 and o2.sensor = ?1"
-            + " order by o.time, m.id";
+                    + " from ReferenceObservation o, Matchup m, Observation o2, Coincidence c2"
+                    + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and c2.matchup = m and c2.observation = o2 and o2.sensor = ?1"
+                    + " order by o.time, m.id";
 
     private String samplingSensor;
     private Date startTime;
@@ -103,7 +99,7 @@ public class MapPlotTool extends BasicTool {
             query.setParameter(3, stopTime);
             final List<ReferenceObservation> refobsList = query.getResultList();
             final String imageName = "sobol-" + samplingSensor + "-" + TimeUtil.formatCompactUtcFormat(startTime) + ".png";
-            plotSamples(refobsList, imageName, showMapsFlag ? imageName : null);
+            plotSamples(refobsList, imageName, imageName, showMapsFlag);
 
             final List<ReferenceObservation> orbits = findOrbits(TimeUtil.formatCcsdsUtcFormat(startTime), TimeUtil.formatCcsdsUtcFormat(stopTime));
             int noOrbitsToPlot = 14;
@@ -116,7 +112,7 @@ public class MapPlotTool extends BasicTool {
                     }
                 });
                 final String orbitImageName = "sobol-" + orbitDataFile.getPath().substring(orbitDataFile.getPath().lastIndexOf(File.separator) + 1) + "-" + TimeUtil.formatCompactUtcFormat(startTime) + ".png";
-                plotSamples(orbitSamples, orbitImageName, showMapsFlag ? orbitImageName : null);
+                plotSamples(orbitSamples, orbitImageName, orbitImageName, showMapsFlag);
                 if (--noOrbitsToPlot <= 0) {
                     break;
                 }
@@ -127,19 +123,22 @@ public class MapPlotTool extends BasicTool {
 
     }
 
-    private static void plotSamples(List<ReferenceObservation> samples, String title, String imagePath)
+    private static void plotSamples(List<ReferenceObservation> samples, String title, String imagePath, boolean showPlotFlag)
             throws IOException {
         final int w = 800;
         final int h = 400;
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
-        final JLabel label = new JLabel(new ImageIcon(image));
+        JLabel label = null;
 
-        final JFrame frame = new JFrame();
-        frame.setTitle(title);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.getContentPane().add(label);
-        frame.setSize(w, h);
-        frame.setVisible(true);
+        if (showPlotFlag) {
+            label = new JLabel(new ImageIcon(image));
+            final JFrame frame = new JFrame();
+            frame.setTitle(title);
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            frame.getContentPane().add(label);
+            frame.setSize(w, h);
+            frame.setVisible(true);
+        }
 
         final Graphics2D graphics = image.createGraphics();
 
@@ -149,12 +148,13 @@ public class MapPlotTool extends BasicTool {
             final int i = (int) (y * h);
             final int k = (int) (x * w);
             graphics.fill(new Rectangle(k, i, 1, 1));
-            label.repaint();
-
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored) {
-                // ignore
+            if (showPlotFlag) {
+                label.repaint();
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ignored) {
+                    // ignore
+                }
             }
         }
 
