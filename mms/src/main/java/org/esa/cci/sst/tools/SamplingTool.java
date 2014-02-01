@@ -157,14 +157,14 @@ public class SamplingTool extends BasicTool {
             }
         });
         getLogger().info("Finding satellite sub-scenes...");
-        findSatelliteSubscenes(sampleList, samplingSensor);
+        findSatelliteSubscenes(sampleList, samplingSensor, false);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
         if (samplingSensor2 != null) {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
             findObservations2(sampleList, samplingSensor2, true, matchupDistanceSeconds);
             getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
-            findSatelliteSubscenes(sampleList, samplingSensor2);
+            findSatelliteSubscenes(sampleList, samplingSensor2, true);
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes..." + sampleList.size());
         }
         getLogger().info("Removing overlapping areas...");
@@ -269,7 +269,7 @@ public class SamplingTool extends BasicTool {
         }
     }
 
-    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean secondSensor, int searchRadiusSeconds) throws PersistenceException, ParseException {
+    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor, int searchRadiusSeconds) throws PersistenceException, ParseException {
         final List<ReferenceObservation> orbitObservations = findOrbits(samplingSensor,
                                                                         TimeUtil.formatCcsdsUtcFormat(new Date(startTime - searchRadiusSeconds)),
                                                                         TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + searchRadiusSeconds)));
@@ -297,7 +297,7 @@ public class SamplingTool extends BasicTool {
             while (true) {
                 if (i0 >= 0 && (i1 >= polygons.length || point.getTime() < polygons[i0].getTime() || point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
                     if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                        if (! secondSensor) {
+                        if (! isSecondSensor) {
                             point.setReference(polygons[i0].getId());
                         } else {
                             point.setReference2(polygons[i0].getId());
@@ -308,7 +308,7 @@ public class SamplingTool extends BasicTool {
                     --i0;
                 } else if (i1 < polygons.length) {
                     if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                        if (! secondSensor) {
+                        if (! isSecondSensor) {
                             point.setReference(polygons[i1].getId());
                         } else {
                             point.setReference2(polygons[i1].getId());
@@ -345,7 +345,7 @@ public class SamplingTool extends BasicTool {
         return query.getResultList();
     }
 
-    void findSatelliteSubscenes(List<SamplingPoint> sampleList, String sensor) {
+    void findSatelliteSubscenes(List<SamplingPoint> sampleList, String sensor, boolean isSecondSensor) {
         // TODO - make parameters from variables below
         final String cloudFlagsName = "cloud_flags_nadir";
         final int pixelMask = 3;
@@ -365,7 +365,7 @@ public class SamplingTool extends BasicTool {
 
         final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<Integer, List<SamplingPoint>>();
         for (final SamplingPoint point : sampleList) {
-            final int id = point.getReference();
+            final int id = isSecondSensor ? point.getReference2() : point.getReference();
 
             if (!sampleListsByDatafile.containsKey(id)) {
                 sampleListsByDatafile.put(id, new ArrayList<SamplingPoint>());
@@ -402,9 +402,11 @@ public class SamplingTool extends BasicTool {
                         final int pixelY = (int) Math.floor(pixelPos.getY());
 
                         if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
-                            point.setX(pixelX);
-                            point.setY(pixelY);
-                            point.setTime(reader.getTime(0, pixelY));
+                            if (! isSecondSensor) {
+                                point.setX(pixelX);
+                                point.setY(pixelY);
+                                point.setTime(reader.getTime(0, pixelY));
+                            }
 
                             final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                             final Array array = reader.read(cloudFlagsName, extractDefinition);

@@ -83,7 +83,7 @@ public class SamplingToolTest {
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
         tool.findObservations(sampleList, "atsr_orb.3");
-        tool.findSatelliteSubscenes(sampleList, "atsr_orb.3");
+        tool.findSatelliteSubscenes(sampleList, "atsr_orb.3", false);
 
         assertEquals(77, sampleList.size());
     }
@@ -94,7 +94,7 @@ public class SamplingToolTest {
         tool.removeLandSamples(sampleList);
         tool.reduceClearSamples(sampleList);
         tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 100 * 175);
-        tool.findSatelliteSubscenes(sampleList, "atsr_orb.3");
+        tool.findSatelliteSubscenes(sampleList, "atsr_orb.3", false);
         tool.removeOverlappingSamples(sampleList);
 
         assertEquals(77, sampleList.size());
