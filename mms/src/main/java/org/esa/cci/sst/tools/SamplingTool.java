@@ -503,9 +503,9 @@ public class SamplingTool extends BasicTool {
                 if (samplingSensor2 != null) {
                     final Observation observation2 = getObservation(samplingPoint.getReference2());
                     final Coincidence coincidence2 = new Coincidence();
-                    coincidence.setMatchup(matchup);
-                    coincidence.setObservation(observation2);
-                    coincidence.setTimeDifference(TimeUtil.timeDifferenceInSeconds(matchup, ((ReferenceObservation)observation2)));
+                    coincidence2.setMatchup(matchup);
+                    coincidence2.setObservation(observation2);
+                    coincidence2.setTimeDifference(TimeUtil.timeDifferenceInSeconds(matchup, ((ReferenceObservation)observation2)));
 
                     coincidenceList.add(coincidence2);
                 }
