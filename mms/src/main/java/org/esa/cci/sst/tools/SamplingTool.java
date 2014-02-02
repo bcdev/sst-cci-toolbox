@@ -276,7 +276,8 @@ public class SamplingTool extends BasicTool {
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
         for (int i = 0; i < orbitObservations.size(); ++i) {
             final ReferenceObservation orbitObservation = orbitObservations.get(i);
-            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(), orbitObservation.getTime().getTime(),
+            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
+                                                   orbitObservation.getTime().getTime(),
                                                    orbitObservation.getLocation().getGeometry());
         }
         final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
@@ -295,7 +296,12 @@ public class SamplingTool extends BasicTool {
             }
             // check orbitObservations temporally closest to point first for spatial overlap
             while (true) {
-                if (i0 >= 0 && (i1 >= polygons.length || point.getTime() < polygons[i0].getTime() || point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
+                // the next polygon in the past is closer to the sample than the next polygon in the future
+                if (i0 >= 0 &&
+                    Math.abs(point.getTime() - polygons[i0].getTime()) <= matchupDistanceSeconds &&
+                    ( i1 >= polygons.length ||
+                      point.getTime() < polygons[i0].getTime() ||
+                      point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime() )) {
                     if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
                         if (! isSecondSensor) {
                             point.setReference(polygons[i0].getId());
@@ -306,7 +312,10 @@ public class SamplingTool extends BasicTool {
                         break;
                     }
                     --i0;
-                } else if (i1 < polygons.length) {
+                } else
+                // the next polygon in the future is closer than the next polygon in the past
+                if (i1 < polygons.length &&
+                    Math.abs(point.getTime() - polygons[i1].getTime()) <= matchupDistanceSeconds) {
                     if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
                         if (! isSecondSensor) {
                             point.setReference(polygons[i1].getId());
@@ -317,7 +326,9 @@ public class SamplingTool extends BasicTool {
                         break;
                     }
                     ++i1;
-                } else {
+                } else
+                // there is no next polygon in the past and no next polygon in the future
+                {
                     break;
                 }
             }
