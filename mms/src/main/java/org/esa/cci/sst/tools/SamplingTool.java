@@ -298,7 +298,7 @@ public class SamplingTool extends BasicTool {
             while (true) {
                 // the next polygon in the past is closer to the sample than the next polygon in the future
                 if (i0 >= 0 &&
-                    Math.abs(point.getTime() - polygons[i0].getTime()) <= matchupDistanceSeconds &&
+                    Math.abs(point.getTime() - polygons[i0].getTime()) <= searchRadiusSeconds &&
                     ( i1 >= polygons.length ||
                       point.getTime() < polygons[i0].getTime() ||
                       point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime() )) {
@@ -315,7 +315,7 @@ public class SamplingTool extends BasicTool {
                 } else
                 // the next polygon in the future is closer than the next polygon in the past
                 if (i1 < polygons.length &&
-                    Math.abs(point.getTime() - polygons[i1].getTime()) <= matchupDistanceSeconds) {
+                    Math.abs(point.getTime() - polygons[i1].getTime()) <= searchRadiusSeconds * 1000) {
                     if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
                         if (! isSecondSensor) {
                             point.setReference(polygons[i1].getId());
