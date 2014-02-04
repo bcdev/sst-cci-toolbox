@@ -90,13 +90,13 @@ public class PolarOrbitingPolygon {
             final double lon2 = normalizeLongitude(ring.get(i + 1).getLon() - sampleLon);
             final double lat2 = ring.get(i + 1).getLat();
             if (isEdgeCrossingMeridian(lon1, lon2)) {
-                final double crossingLat = latitudeAtMeridian(lat1, lon1, lat2, lon2);
+                final double crossingLat = getLatitudeAtMeridian(lat1, lon1, lat2, lon2);
                 if (isBetween(crossingLat, equatorLat, sampleLat)) {
                     isInside = !isInside;
                 }
             }
             if (isEdgeCrossingEquator(lat1, lat2)) {
-                final double crossingLon = longitudeAtEquator(lat1, ring.get(i).getLon(), lat2, ring.get(i + 1).getLon());
+                final double crossingLon = getLongitudeAtEquator(lat1, ring.get(i).getLon(), lat2, ring.get(i + 1).getLon());
                 if (Double.isNaN(firstEquatorCrossingLonPlus90)) {
                     firstEquatorCrossingLonPlus90 = normalizeLongitude(crossingLon + 90);
                     transformedSampleLon = normalizeLongitude(sampleLon - firstEquatorCrossingLonPlus90);
@@ -115,14 +115,16 @@ public class PolarOrbitingPolygon {
         return (lon + 180.0 + 720.0) % 360.0 - 180.0;
     }
 
-    private double longitudeAtEquator(double lat1, double lon1, double lat2, double lon2) {
+    // package access for testing only tb 2014-02-04
+    static double getLongitudeAtEquator(double lat1, double lon1, double lat2, double lon2) {
         if (lat2 == lat1) {
             return lon1;
         }
         return lon1 + normalizeLongitude(lon2 - lon1) * (0.0 - lat1) / (lat2 - lat1);
     }
 
-    private double latitudeAtMeridian(double lat1, double lon1, double lat2, double lon2) {
+    // package access for testing only tb 2014-02-04
+    static double getLatitudeAtMeridian(double lat1, double lon1, double lat2, double lon2) {
         if (lon2 == lon1) {
             return lat1;
         }
