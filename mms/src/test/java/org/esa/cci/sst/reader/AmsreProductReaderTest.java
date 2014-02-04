@@ -47,7 +47,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 @RunWith(IoTestRunner.class)
-public class ProductReaderTest {
+public class AmsreProductReaderTest {
 
     private static final String AMSR_RESOURCE_NAME = "20100601-AMSRE-REMSS-L2P-amsr_l2b_v05_r42970.dat-v01.nc.gz";
 
@@ -57,7 +57,7 @@ public class ProductReaderTest {
 
     @BeforeClass
     public static void init() throws IOException, URISyntaxException {
-        final URL url = ProductReaderTest.class.getResource(AMSR_RESOURCE_NAME);
+        final URL url = AmsreProductReaderTest.class.getResource(AMSR_RESOURCE_NAME);
         final URI uri = url.toURI();
         final File file = new File(uri);
 
