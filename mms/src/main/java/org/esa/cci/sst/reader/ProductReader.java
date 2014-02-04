@@ -52,7 +52,6 @@ class ProductReader extends AbstractProductReader {
     ProductReader(String sensorName) {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
-              AtsrConstants.ATSR_FORMAT_NAME,
               HdfOsiProductReaderPlugIn.FORMAT_NAME,
               NcOsiProductReaderPlugIn.FORMAT_NAME,
               PmwProductReaderPlugIn.FORMAT_NAME,

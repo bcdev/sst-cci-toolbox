@@ -67,11 +67,6 @@
         </dependency>
         <dependency>
             <groupId>org.esa.beam</groupId>
-            <artifactId>beam-atsr-reader</artifactId>
-            <version>1.0.3.${beam.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.esa.beam</groupId>
             <artifactId>beam-envisat-reader</artifactId>
             <version>1.5.2.${beam.version}</version>
         </dependency>
