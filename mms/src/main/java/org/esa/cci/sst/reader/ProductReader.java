@@ -29,15 +29,11 @@ import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
-import org.esa.beam.framework.gpf.GPF;
-import org.esa.beam.framework.gpf.OperatorSpi;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.BoundaryCalculator;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A product IO handler that produces {@link RelatedObservation}s. This handler
