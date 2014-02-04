@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.overlap;
 
-import org.esa.beam.util.math.SphericalDistanceCalculator;
+import org.esa.beam.util.math.SphericalDistance;
 import org.postgis.Geometry;
 
 import java.util.ArrayList;
@@ -109,6 +109,7 @@ public class PolarOrbitingPolygon {
                     transformedSampleLon = normalizeLongitude(sampleLon - firstEquatorCrossingLonPlus90);
                 }
                 final double transformedCrossingLon = normalizeLongitude(crossingLon - firstEquatorCrossingLonPlus90);
+                // TODO - why is isBetween() but not isEdgeCrossingMeridian() used here?
                 if (isBetween(transformedCrossingLon, 0.0, transformedSampleLon)) {
                     isInside = !isInside;
                 }
@@ -150,7 +151,7 @@ public class PolarOrbitingPolygon {
 
     int findCorrespondingPoint(Geometry geometry, int middle1, int middle2) {
         final org.postgis.Point middle1Point = geometry.getPoint(middle1);
-        final SphericalDistanceCalculator middle1DistanceCalculator = new SphericalDistanceCalculator(middle1Point.getX(), middle1Point.getY());
+        final SphericalDistance middle1DistanceCalculator = new SphericalDistance(middle1Point.getX(), middle1Point.getY());
         org.postgis.Point point2 = geometry.getPoint(middle2);
         double distance = middle1DistanceCalculator.distance(point2.getX(), point2.getY());
         while (middle2 + 2 < geometry.numPoints()) {
