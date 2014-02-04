@@ -72,21 +72,12 @@ public class InsituReaderTest {
         }
     }
 
-    // @todo 1 tb/tb continue test
-//    @Test
-//    public void testReadSST_CCI_V2_Drifter_Data() throws Exception {
-//        final InsituObservation observation;
-//
-//        try (InsituReader handler = createReader("insitu_0_WMOID_71569_20030117_20030131.nc")) {
-//
-//        }
-//    }
-//
+    // @todo 1 tb/tb continue here 2014-01-29
 //    @Test
 //    public void testReadSST_CCI_V2_Argo_Data() throws Exception {
 //        final InsituObservation observation;
 //
-//        try (InsituReader handler = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
+//        try (InsituReader handler = createReader("SSTCCI2_refdata_200002_argo_sample.nc")) {
 //
 //        }
 //    }

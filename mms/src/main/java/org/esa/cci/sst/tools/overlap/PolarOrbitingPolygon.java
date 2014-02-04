@@ -56,6 +56,10 @@ public class PolarOrbitingPolygon {
         return time;
     }
 
+    List<List<Point>> getRings() {
+        return rings;
+    }
+
     public PolarOrbitingPolygon(int id, long time, Geometry geometry) {
         this.id = id;
         this.time = time;
@@ -78,17 +82,20 @@ public class PolarOrbitingPolygon {
         return false;
     }
 
+    double shiftIfZero(double degree) {
+        return degree == 0.0 ? 1e-8 : degree;
+    }
 
-    private boolean isPointInRing(double sampleLat, double sampleLon, List<Point> ring) {
+    boolean isPointInRing(double sampleLat, double sampleLon, List<Point> ring) {
         final double equatorLat = 0.0;
         double firstEquatorCrossingLonPlus90 = Double.NaN;
         double transformedSampleLon = Double.NaN;
         boolean isInside = false;
         for (int i = 0; i < ring.size() - 1; ++i) {
-            final double lon1 = normalizeLongitude(ring.get(i).getLon() - sampleLon);
-            final double lat1 = ring.get(i).getLat();
-            final double lon2 = normalizeLongitude(ring.get(i + 1).getLon() - sampleLon);
-            final double lat2 = ring.get(i + 1).getLat();
+            final double lon1 = shiftIfZero(normalizeLongitude(ring.get(i).getLon() - sampleLon));
+            final double lat1 = shiftIfZero(ring.get(i).getLat());
+            final double lon2 = shiftIfZero(normalizeLongitude(ring.get(i + 1).getLon() - sampleLon));
+            final double lat2 = shiftIfZero(ring.get(i + 1).getLat());
             if (isEdgeCrossingMeridian(lon1, lon2)) {
                 final double crossingLat = getLatitudeAtMeridian(lat1, lon1, lat2, lon2);
                 if (isBetween(crossingLat, equatorLat, sampleLat)) {
@@ -98,7 +105,7 @@ public class PolarOrbitingPolygon {
             if (isEdgeCrossingEquator(lat1, lat2)) {
                 final double crossingLon = getLongitudeAtEquator(lat1, ring.get(i).getLon(), lat2, ring.get(i + 1).getLon());
                 if (Double.isNaN(firstEquatorCrossingLonPlus90)) {
-                    firstEquatorCrossingLonPlus90 = normalizeLongitude(crossingLon + 90);
+                    firstEquatorCrossingLonPlus90 = normalizeLongitude(crossingLon + 90.0);
                     transformedSampleLon = normalizeLongitude(sampleLon - firstEquatorCrossingLonPlus90);
                 }
                 final double transformedCrossingLon = normalizeLongitude(crossingLon - firstEquatorCrossingLonPlus90);
@@ -115,7 +122,6 @@ public class PolarOrbitingPolygon {
         return (lon + 180.0 + 720.0) % 360.0 - 180.0;
     }
 
-    // package access for testing only tb 2014-02-04
     static double getLongitudeAtEquator(double lat1, double lon1, double lat2, double lon2) {
         if (lat2 == lat1) {
             return lon1;
@@ -123,7 +129,6 @@ public class PolarOrbitingPolygon {
         return lon1 + normalizeLongitude(lon2 - lon1) * (0.0 - lat1) / (lat2 - lat1);
     }
 
-    // package access for testing only tb 2014-02-04
     static double getLatitudeAtMeridian(double lat1, double lon1, double lat2, double lon2) {
         if (lon2 == lon1) {
             return lat1;
@@ -131,15 +136,19 @@ public class PolarOrbitingPolygon {
         return lat1 + (lat2 - lat1) * (0.0 - lon1) / normalizeLongitude(lon2 - lon1);
     }
 
-    private boolean isEdgeCrossingMeridian(double lon1, double lon2) {
+    static boolean isEdgeCrossingMeridian(double lon1, double lon2) {
         return (lon1 <= 0.0 && lon2 > 0.0 && lon2 - lon1 < 180.0) || (lon1 >= 0.0 && lon2 < 0.0 && lon1 - lon2 < 180.0);
     }
 
-    private boolean isBetween(double value, double from, double to) {
+    static boolean isEdgeCrossingEquator(double lat1, double lat2) {
+        return (lat1 <= 0.0 && lat2 > 0.0) || (lat1 >= 0.0 && lat2 < 0.0);
+    }
+
+    static boolean isBetween(double value, double from, double to) {
         return (value >= from && value < to) || (value <= from && value > to);
     }
 
-    private int findCorrespondingPoint(Geometry geometry, int middle1, int middle2) {
+    int findCorrespondingPoint(Geometry geometry, int middle1, int middle2) {
         final org.postgis.Point middle1Point = geometry.getPoint(middle1);
         final SphericalDistanceCalculator middle1DistanceCalculator = new SphericalDistanceCalculator(middle1Point.getX(), middle1Point.getY());
         org.postgis.Point point2 = geometry.getPoint(middle2);
@@ -184,10 +193,5 @@ public class PolarOrbitingPolygon {
         }
         ring2.add(ring2.get(0));
         return ring2;
-    }
-
-    // package access for testing only tb 2014-02-03
-    static boolean isEdgeCrossingEquator(double lat1, double lat2) {
-        return (lat1 <= 0.0 && lat2 > 0.0) || (lat1 >= 0.0 && lat2 < 0.0);
     }
 }

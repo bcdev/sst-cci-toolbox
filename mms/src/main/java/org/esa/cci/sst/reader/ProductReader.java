@@ -30,11 +30,15 @@ import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.gpf.GPF;
+import org.esa.beam.framework.gpf.OperatorSpi;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.BoundaryCalculator;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A product IO handler that produces {@link RelatedObservation}s. This handler
@@ -68,11 +72,27 @@ class ProductReader extends AbstractProductReader {
                 // we need pixels arranged in scan direction, so flip the product horizontally when it is read by the Envisat reader
                 product = createHorizontallyFlippedProduct(product);
             }
+            if (product.getName().startsWith("AT1")) {
+                product = shiftForwardBands(3, 0, product);
+            } else if (product.getName().startsWith("AT2")) {
+                product = shiftForwardBands(1, -1, product);
+            } else if (product.getName().startsWith("ATS")) {
+                product = shiftForwardBands(-1, -2, product);
+            }
         }
         if (product.getGeoCoding() instanceof BasicPixelGeoCoding) {
             product.setGeoCoding(new PixelGeoCodingWrapper((BasicPixelGeoCoding) product.getGeoCoding()));
         }
         return product;
+    }
+
+    private Product shiftForwardBands(int xi, int yi, Product product) {
+        final Map<String, Object> params = new HashMap<String, Object>();
+        params.put("shiftX", xi);
+        params.put("shiftY", yi);
+        params.put("bandNamesPattern", ".*_fward_.*");
+        params.put("fillValue", product.getBand("btemp_fward_1200").getNoDataValue());
+        return GPF.createProduct(OperatorSpi.getOperatorAlias(ShiftOp.class), params, product);
     }
 
     @Override
