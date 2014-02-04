@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.dataio.atsr.AtsrConstants;
 import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.HdfOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
@@ -72,27 +71,11 @@ class ProductReader extends AbstractProductReader {
                 // we need pixels arranged in scan direction, so flip the product horizontally when it is read by the Envisat reader
                 product = createHorizontallyFlippedProduct(product);
             }
-            if (product.getName().startsWith("AT1")) {
-                product = shiftForwardBands(3, 0, product);
-            } else if (product.getName().startsWith("AT2")) {
-                product = shiftForwardBands(1, -1, product);
-            } else if (product.getName().startsWith("ATS")) {
-                product = shiftForwardBands(-1, -2, product);
-            }
         }
         if (product.getGeoCoding() instanceof BasicPixelGeoCoding) {
             product.setGeoCoding(new PixelGeoCodingWrapper((BasicPixelGeoCoding) product.getGeoCoding()));
         }
         return product;
-    }
-
-    private Product shiftForwardBands(int xi, int yi, Product product) {
-        final Map<String, Object> params = new HashMap<String, Object>();
-        params.put("shiftX", xi);
-        params.put("shiftY", yi);
-        params.put("bandNamesPattern", ".*_fward_.*");
-        params.put("fillValue", product.getBand("btemp_fward_1200").getNoDataValue());
-        return GPF.createProduct(OperatorSpi.getOperatorAlias(ShiftOp.class), params, product);
     }
 
     @Override
