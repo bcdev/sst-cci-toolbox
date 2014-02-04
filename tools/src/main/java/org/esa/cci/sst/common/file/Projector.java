@@ -20,9 +20,8 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.beam.framework.datamodel.Rotator;
-import org.esa.beam.util.math.DistanceCalculator;
 import org.esa.beam.util.math.MathUtils;
-import org.esa.beam.util.math.SphericalDistanceCalculator;
+import org.esa.beam.util.math.SphericalDistance;
 import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.util.NcUtils;
@@ -239,7 +238,7 @@ class Projector {
                 @SuppressWarnings("UnnecessaryLocalVariable")
                 final int rasterMaxY = y2;
 
-                final DistanceCalculator dc = new SphericalDistanceCalculator(lon0, lat0);
+                final SphericalDistance dc = new SphericalDistance(lon0, lat0);
 
                 double minDistance;
                 double lon = lonGrid.getSampleDouble(x0, y0);
