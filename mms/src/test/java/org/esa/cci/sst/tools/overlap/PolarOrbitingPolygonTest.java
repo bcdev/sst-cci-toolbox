@@ -5,6 +5,7 @@ import org.postgis.Geometry;
 import org.postgis.LinearRing;
 import org.postgis.Point;
 import org.postgis.Polygon;
+import java.sql.SQLException;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -154,7 +155,7 @@ public class PolarOrbitingPolygonTest {
     }
 
     @Test
-    public void testNormLongitude() {
+    public void testNormalizeLongitude() {
         assertEquals(0.0, PolarOrbitingPolygon.normalizeLongitude(0.0), 1e-8);
         assertEquals(-23.0, PolarOrbitingPolygon.normalizeLongitude(-23.0), 1e-8);
         assertEquals(-179.9, PolarOrbitingPolygon.normalizeLongitude(-179.9), 1e-8);
@@ -180,15 +181,13 @@ public class PolarOrbitingPolygonTest {
         assertFalse("isEdgeCrossingMeridian", PolarOrbitingPolygon.isEdgeCrossingMeridian(-160.0, 160.0));
         assertTrue("isEdgeCrossingEquator", PolarOrbitingPolygon.isEdgeCrossingEquator(-10.0, 10.0));
         assertFalse("isEdgeCrossingEquator", PolarOrbitingPolygon.isEdgeCrossingEquator(-60.0, -30.0));
-        assertTrue("isBetween", PolarOrbitingPolygon.isBetween(13.0, 10.0, 20.0));
-        assertTrue("isBetween", PolarOrbitingPolygon.isBetween(13.0, 20.0, 10.0));
-        assertFalse("isBetween", PolarOrbitingPolygon.isBetween(13.0, 10.0, -14.0));
-    }
-    public void testIsEdgeCrossingEquator() {
         assertTrue(PolarOrbitingPolygon.isEdgeCrossingEquator(-1.0, 1.0));
         assertTrue(PolarOrbitingPolygon.isEdgeCrossingEquator(1.0, -1.0));
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(1.0, 1.0));
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(-1.0, -1.0));
+        assertTrue("isBetween", PolarOrbitingPolygon.isBetween(13.0, 10.0, 20.0));
+        assertTrue("isBetween", PolarOrbitingPolygon.isBetween(13.0, 20.0, 10.0));
+        assertFalse("isBetween", PolarOrbitingPolygon.isBetween(13.0, 10.0, -14.0));
     }
 
     @Test
@@ -220,8 +219,6 @@ public class PolarOrbitingPolygonTest {
         for (Point point : points) {
             point.setX(PolarOrbitingPolygon.normalizeLongitude(point.getX() + skip));
         }
-        assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(1.0, 1.0));
-        assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(-1.0, -1.0));
     }
 
     @Test
@@ -267,7 +264,7 @@ public class PolarOrbitingPolygonTest {
     }
 
     @Test
-    public void testGetId() {
+    public void testGetId() throws SQLException {
         final Polygon polygon = new Polygon("POLYGON((10 30, 10.5 30, 11 30, 11.5 30, 12 30, 12 30.5, 12 31, 12 31.5, 12 32, 11.5 32, 11 32, 10.5 32, 10 32, 10 31.5, 10 31, 10 30.5, 10 30))");
         final PolarOrbitingPolygon polarOrbitingPolygon = new PolarOrbitingPolygon(83, 14, polygon);
 
@@ -275,7 +272,7 @@ public class PolarOrbitingPolygonTest {
     }
 
     @Test
-    public void testGetTime() {
+    public void testGetTime() throws SQLException {
         final Polygon polygon = new Polygon("POLYGON((10 30, 10.5 30, 11 30, 11.5 30, 12 30, 12 30.5, 12 31, 12 31.5, 12 32, 11.5 32, 11 32, 10.5 32, 10 32, 10 31.5, 10 31, 10 30.5, 10 30))");
         final PolarOrbitingPolygon polarOrbitingPolygon = new PolarOrbitingPolygon(30, 1983, polygon);
 

@@ -110,6 +110,7 @@ public class PolarOrbitingPolygon {
                 }
                 final double transformedCrossingLon = normalizeLongitude(crossingLon - firstEquatorCrossingLonPlus90);
                 // TODO - why is isBetween() but not isEdgeCrossingMeridian() used here?
+                // see class comment for an explanation (the question here is whether the equator crossing is between the sample projected to the equator and the new 90 degree point)
                 if (isBetween(transformedCrossingLon, 0.0, transformedSampleLon)) {
                     isInside = !isInside;
                 }
@@ -118,7 +119,6 @@ public class PolarOrbitingPolygon {
         return isInside;
     }
 
-    // package access for testing only tb 2014-01-27
     static double normalizeLongitude(double lon) {
         return (lon + 180.0 + 720.0) % 360.0 - 180.0;
     }
