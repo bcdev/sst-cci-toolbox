@@ -129,7 +129,7 @@ public class PolarOrbitingPolygonTest {
         assertEquals("lat of first point of first ring", 58.0, polygon.getRings().get(0).get(0).getLat(), 1.0e-8);
     }
 
-    //@Test
+    @Test
     public void testIsPointInPolygon() {
         final Geometry geometry = new Polygon(new LinearRing[]{new LinearRing(TEST_POLYGON)});
         final PolarOrbitingPolygon polygon = new PolarOrbitingPolygon(1, System.currentTimeMillis(), geometry);

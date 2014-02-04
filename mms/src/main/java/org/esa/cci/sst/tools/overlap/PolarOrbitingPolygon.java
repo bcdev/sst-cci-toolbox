@@ -82,6 +82,9 @@ public class PolarOrbitingPolygon {
         return false;
     }
 
+    double shiftIfZero(double degree) {
+        return degree == 0.0 ? 1e-8 : degree;
+    }
 
     boolean isPointInRing(double sampleLat, double sampleLon, List<Point> ring) {
         final double equatorLat = 0.0;
@@ -89,10 +92,10 @@ public class PolarOrbitingPolygon {
         double transformedSampleLon = Double.NaN;
         boolean isInside = false;
         for (int i = 0; i < ring.size() - 1; ++i) {
-            final double lon1 = normLongitude(ring.get(i).getLon() - sampleLon);
-            final double lat1 = ring.get(i).getLat();
-            final double lon2 = normLongitude(ring.get(i + 1).getLon() - sampleLon);
-            final double lat2 = ring.get(i + 1).getLat();
+            final double lon1 = shiftIfZero(normLongitude(ring.get(i).getLon() - sampleLon));
+            final double lat1 = shiftIfZero(ring.get(i).getLat());
+            final double lon2 = shiftIfZero(normLongitude(ring.get(i + 1).getLon() - sampleLon));
+            final double lat2 = shiftIfZero(ring.get(i + 1).getLat());
             if (isEdgeCrossingMeridian(lon1, lon2)) {
                 final double crossingLat = latitudeAtMeridian(lat1, lon1, lat2, lon2);
                 if (isBetween(crossingLat, equatorLat, sampleLat)) {
@@ -102,7 +105,7 @@ public class PolarOrbitingPolygon {
             if (isEdgeCrossingEquator(lat1, lat2)) {
                 final double crossingLon = longitudeAtEquator(lat1, ring.get(i).getLon(), lat2, ring.get(i + 1).getLon());
                 if (Double.isNaN(firstEquatorCrossingLonPlus90)) {
-                    firstEquatorCrossingLonPlus90 = normLongitude(crossingLon + 90);
+                    firstEquatorCrossingLonPlus90 = normLongitude(crossingLon + 90.0);
                     transformedSampleLon = normLongitude(sampleLon - firstEquatorCrossingLonPlus90);
                 }
                 final double transformedCrossingLon = normLongitude(crossingLon - firstEquatorCrossingLonPlus90);
