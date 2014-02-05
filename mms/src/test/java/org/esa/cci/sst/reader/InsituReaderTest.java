@@ -18,7 +18,6 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.LineString;
@@ -114,7 +113,7 @@ public class InsituReaderTest {
     @Test
     public void testFindRange_ForReferenceTimeInHistory_SECS_1978() {
         final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 698311680;
+        final double referenceTime = 790904339;
         final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
 
         assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - HALF_DAY_SECS);
@@ -137,7 +136,7 @@ public class InsituReaderTest {
     @Test
     public void testFindRange_ForReferenceTimeAtStartOfHistory_SECS_1978() {
         final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 697156338;
+        final double referenceTime = 790323660;
         final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
 
         assertTrue(historyTimes.getDouble(range.first()) == referenceTime);
@@ -157,11 +156,9 @@ public class InsituReaderTest {
     }
 
     @Test
-    @Ignore
     public void testFindRange_ForReferenceTimeAtEndOfHistory_SECS_1978() {
-        // @todo 1 tb/tb continue here 2014-01-30
         final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 699322610;
+        final double referenceTime = 791596007;
         final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
 
         assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - HALF_DAY_SECS);
@@ -170,41 +167,81 @@ public class InsituReaderTest {
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeAtLowerLimit() {
+    public void testFindRange_ForReferenceTimeAtLowerLimit_MJD() {
         final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2454939.446 - 0.5;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, 0.5);
+        final double referenceTime = 2454939.446 - HALF_DAY_MJD;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
 
         assertNotSame(Range.EMPTY, range);
         assertTrue(range.first() == range.last());
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime + 0.5);
+        assertTrue(historyTimes.getDouble(range.first()) == referenceTime + HALF_DAY_MJD);
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeAtUpperLimit() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2455097.774 + 0.5;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, 0.5);
+    public void testFindRange_ForReferenceTimeAtLowerLimit_SECS_1978() {
+        final Array historyTimes = createHistoryTimeArray_SECS_1978();
+        final double referenceTime = 790323660 - HALF_DAY_SECS;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
 
         assertNotSame(Range.EMPTY, range);
         assertTrue(range.first() == range.last());
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime - 0.5);
+        assertTrue(historyTimes.getDouble(range.first()) == referenceTime + HALF_DAY_SECS);
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeBeforeHistory() {
+    public void testFindRange_ForReferenceTimeAtUpperLimit_MJD() {
         final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2454939.446 - 1.0;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, 0.5);
+        final double referenceTime = 2455097.774 + HALF_DAY_MJD;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
+
+        assertNotSame(Range.EMPTY, range);
+        assertTrue(range.first() == range.last());
+        assertTrue(historyTimes.getDouble(range.first()) == referenceTime - HALF_DAY_MJD);
+    }
+
+    @Test
+    public void testFindRange_ForReferenceTimeAtUpperLimit_SECS_1978() {
+        final Array historyTimes = createHistoryTimeArray_SECS_1978();
+        final double referenceTime = 791596007 + HALF_DAY_SECS;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
+
+        assertNotSame(Range.EMPTY, range);
+        assertTrue(range.first() == range.last());
+        assertTrue(historyTimes.getDouble(range.first()) == referenceTime - HALF_DAY_SECS);
+    }
+
+    @Test
+    public void testFindRange_ForReferenceTimeBeforeHistory_MJD() {
+        final Array historyTimes = createHistoryTimeArray_MJD();
+        final double referenceTime = 2454939.446 - 2 * HALF_DAY_MJD;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
 
         assertSame(Range.EMPTY, range);
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeAfterHistory() {
+    public void testFindRange_ForReferenceTimeBeforeHistory_SECS_1978() {
+        final Array historyTimes = createHistoryTimeArray_SECS_1978();
+        final double referenceTime = 790323660 - 2 * HALF_DAY_SECS;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
+
+        assertSame(Range.EMPTY, range);
+    }
+
+    @Test
+    public void testFindRange_ForReferenceTimeAfterHistory_MJD() {
         final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2455097.774 + 1.0;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, 0.5);
+        final double referenceTime = 2455097.774 + 2 * HALF_DAY_MJD;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
+
+        assertSame(Range.EMPTY, range);
+    }
+
+    @Test
+    public void testFindRange_ForReferenceTimeAfterHistory_SECS_1978() {
+        final Array historyTimes = createHistoryTimeArray_MJD();
+        final double referenceTime = 791596007 + 2 * HALF_DAY_SECS;
+        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
 
         assertSame(Range.EMPTY, range);
     }
@@ -334,7 +371,7 @@ public class InsituReaderTest {
     }
 
     private static Array createHistoryTimeArray_SECS_1978() {
-        return Array.factory(InsituData.SECS_1978_TIMES);
+        return Array.factory(InsituData.SECS_1978_TIMES_DRIFTER);
     }
 
     private static InsituReader createReader(String resourceName) throws Exception {
