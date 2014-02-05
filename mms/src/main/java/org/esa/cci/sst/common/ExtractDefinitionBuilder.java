@@ -81,7 +81,7 @@ public class ExtractDefinitionBuilder {
         final Number fillValue = this.fillValue;
 
         final int[] shape = this.shape;
-        shape[0] = 1;
+        shape[0] = 1;   // @todo 2 tb/rq why? tb 2014-02-05
 
         return new ExtractDefinition() {
 
