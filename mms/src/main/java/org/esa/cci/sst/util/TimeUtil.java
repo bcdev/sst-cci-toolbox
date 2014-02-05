@@ -58,8 +58,6 @@ public final class TimeUtil {
             "yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat COMPACT_UTC_FORMAT = new SimpleDateFormat(
             "yyyyMMddHHmmss");
-    private static final SimpleDateFormat CCSDS_LOCAL_WITHOUT_T_FORMAT = new SimpleDateFormat(
-            "yyyy-MM-dd HH:mm:ss,SSS");
     private static final SimpleDateFormat DAY_UTC_FORMAT = new SimpleDateFormat(
             "yyyy-MM-dd");
 
@@ -120,6 +118,10 @@ public final class TimeUtil {
 
     public static Date secondsSince1981ToDate(double secondsSince1981) {
         return new Date(MILLIS_1981 + (long) (secondsSince1981 * 1000.0));
+    }
+
+    public static long toSecondsSince1978(Date time) {
+        return (time.getTime() - MILLIS_1978) / 1000;
     }
 
     public static Date secondsSince1978ToDate(double secondsSince1978) {

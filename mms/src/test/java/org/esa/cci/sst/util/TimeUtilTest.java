@@ -77,6 +77,21 @@ public class TimeUtilTest {
         assertEquals((3 * 365 + 1) * TimeUtil.SECONDS_PER_DAY, seconds, 0.0);
     }
 
+    @Test
+    public void testToSecondsSince1978() {
+        Calendar calendar = createCalendar(1978, 0, 1, 0, 0, 0);
+        assertEquals(0, TimeUtil.toSecondsSince1978(calendar.getTime()));
+
+        calendar = createCalendar(1978, 0, 1, 0, 0, 10);
+        assertEquals(10, TimeUtil.toSecondsSince1978(calendar.getTime()));
+
+        calendar = createCalendar(1978, 0, 1, 0, 5, 10);
+        assertEquals(310, TimeUtil.toSecondsSince1978(calendar.getTime()));
+
+        calendar = createCalendar(1978, 5, 3, 0, 5, 22);
+        assertEquals(13219522, TimeUtil.toSecondsSince1978(calendar.getTime()));
+    }
+
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
         final GregorianCalendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
         c.clear();

@@ -10,6 +10,7 @@ import java.util.Date;
 
 class Insitu_CCI_1_Accessor implements InsituAccessor {
 
+    public static final double HALF_JULIAN_DAY = 0.5;
     private final NetcdfReader netcdfReader;
     private Array historyTimes;
 
@@ -38,6 +39,6 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
     @Override
     public Range find12HoursRange(Date refTime) {
         final double refJulianTime = TimeUtil.toJulianDate(refTime);
-        return InsituReader.findRange(historyTimes, refJulianTime, 0.5);
+        return InsituReader.findRange(historyTimes, refJulianTime, HALF_JULIAN_DAY);
     }
 }

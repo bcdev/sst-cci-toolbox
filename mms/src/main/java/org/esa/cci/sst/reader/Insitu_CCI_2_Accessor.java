@@ -10,6 +10,8 @@ import java.util.Date;
 
 class Insitu_CCI_2_Accessor implements InsituAccessor {
 
+    private static final int HALF_DAY_SECS_1978 = 43200;
+
     private final NetcdfReader netcdfReader;
     private Array historyTimes;
 
@@ -36,7 +38,8 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
     }
 
     @Override
-    public Range find12HoursRange(Date date) {
-        return null;
+    public Range find12HoursRange(Date refTime) {
+        final double refTimeSecsSince1978 = TimeUtil.toSecondsSince1978(refTime);
+        return InsituReader.findRange(historyTimes, refTimeSecsSince1978, HALF_DAY_SECS_1978);
     }
 }
