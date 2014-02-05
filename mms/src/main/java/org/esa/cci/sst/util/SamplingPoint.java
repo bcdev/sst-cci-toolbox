@@ -7,6 +7,8 @@ public final class SamplingPoint {
     private double lat;
     private long time;
     private int reference;
+
+    private int reference2 = -1;
     private int x;
     private int y;
 
@@ -57,6 +59,14 @@ public final class SamplingPoint {
 
     public void setReference(int reference) {
         this.reference = reference;
+    }
+
+    public int getReference2() {
+        return reference2;
+    }
+
+    public void setReference2(int reference2) {
+        this.reference2 = reference2;
     }
 
     public int getX() {

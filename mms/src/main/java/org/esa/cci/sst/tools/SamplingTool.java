@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -63,19 +64,25 @@ public class SamplingTool extends BasicTool {
     private static final String MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
     private static final String MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
     private static final String MMS_SAMPLING_COUNT = "mms.sampling.count";
+    private static final String MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
     private static final String MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
     private static final String MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     private static final String MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
     private static final String MMS_SAMPLING_CLEANUPINTERVAL = "mms.sampling.cleanupinterval";
+    private static final String MMS_SAMPLING_SENSOR2 = "mms.sampling.sensor2";
+    private static final String MMS_SAMPLING_MATCHUPDISTANCE = "mms.sampling.matchupdistance";
 
     private long startTime;
     private long stopTime;
     private int sampleCount;
     private int subSceneWidth;
-    private int subSceneHeight;
+    private String samplingSensor;
 
+    private int subSceneHeight;
     private transient Watermask watermask;
     private transient CloudPriors cloudPriors;
+    private String samplingSensor2;
+    private int matchupDistanceSeconds;
 
     SamplingTool() {
         super("sampling-tool", "1.0");
@@ -104,13 +111,17 @@ public class SamplingTool extends BasicTool {
         final String stopTimeString = getConfiguration().getProperty(MMS_SAMPLING_STOP_TIME,
                                                                      "2004-06-04T00:00:00Z");
         final String countString = getConfiguration().getProperty(MMS_SAMPLING_COUNT, "10000");
+        final String matchupDistanceSecondsString = getConfiguration().getProperty(MMS_SAMPLING_MATCHUPDISTANCE, "90000");
         final String subsceneWidthString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_WIDTH, "7");
         final String subsceneHeightString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_HEIGHT, "7");
+        samplingSensor = getConfiguration().getProperty(MMS_SAMPLING_SENSOR, "atsr_orb.3");
+        samplingSensor2 = getConfiguration().getProperty(MMS_SAMPLING_SENSOR2, null);
 
         try {
             startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime();
             stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime();
             sampleCount = Integer.parseInt(countString);
+            matchupDistanceSeconds = Integer.parseInt(matchupDistanceSecondsString);
             subSceneWidth = Integer.parseInt(subsceneWidthString);
             subSceneHeight = Integer.parseInt(subsceneHeightString);
         } catch (ParseException e) {
@@ -137,7 +148,7 @@ public class SamplingTool extends BasicTool {
         reduceClearSamples(sampleList);
         getLogger().info("Reducing clear samples..." + sampleList.size());
         getLogger().info("Finding reference observations...");
-        findObservations2(sampleList);
+        findObservations2(sampleList, samplingSensor, false, 86400 * 100 * 175);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -146,13 +157,21 @@ public class SamplingTool extends BasicTool {
             }
         });
         getLogger().info("Finding satellite sub-scenes...");
-        findSatelliteSubscenes(sampleList);
+        findSatelliteSubscenes(sampleList, samplingSensor, false);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
+        if (samplingSensor2 != null) {
+            getLogger().info("Finding " + samplingSensor2 + " observations...");
+            findObservations2(sampleList, samplingSensor2, true, matchupDistanceSeconds);
+            getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
+            getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
+            findSatelliteSubscenes(sampleList, samplingSensor2, true);
+            getLogger().info("Finding " + samplingSensor2 + " sub-scenes..." + sampleList.size());
+        }
         getLogger().info("Removing overlapping areas...");
         removeOverlappingSamples(sampleList);
         getLogger().info("Removing overlapping areas..." + sampleList.size());
         getLogger().info("Creating matchups...");
-        createMatchups(sampleList);
+        createMatchups(sampleList, samplingSensor, samplingSensor2);
         getLogger().info("Creating matchups..." + sampleList.size());
     }
 
@@ -211,15 +230,140 @@ public class SamplingTool extends BasicTool {
         sampleList.addAll(reducedSampleList);
     }
 
-    void findSatelliteSubscenes(List<SamplingPoint> sampleList) {
+    private static final String COINCIDING_OBSERVATION_QUERY =
+            "select o.id"
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '420:00:00' and o.time < timestamp ?2 + interval '420:00:00'"
+                    + " and st_intersects(o.location, st_geomfromewkt(?3))"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+
+    public void findObservations(List<SamplingPoint> sampleList, String sensor) throws PersistenceException {
+        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
+            final SamplingPoint point = iterator.next();
+            final double lon = point.getLon();
+            final double lat = point.getLat();
+            final long time = point.getTime();
+
+            // since binding a date to a parameter failed ...
+            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
+                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
+                                                                                        new Date(time)) + "'");
+            final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
+            query.setParameter(1, sensor);
+            //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
+            query.setParameter(3, String.format("POINT(%.4f %.4f)", lon, lat));
+            query.setMaxResults(1);
+
+            ReferenceObservation nearestCoveringObservation = null;
+            @SuppressWarnings({"unchecked"})
+            final List<? extends ReferenceObservation> observations = query.getResultList();
+            if (observations.isEmpty()) {
+                iterator.remove();
+                continue;
+            }
+            // select temporally nearest common observation
+            nearestCoveringObservation = observations.get(0);
+            point.setReference(nearestCoveringObservation.getId());
+//            point.setTime(nearestCoveringObservation.getTime().getTime());
+        }
+    }
+
+    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor, int searchRadiusSeconds) throws PersistenceException, ParseException {
+        final List<ReferenceObservation> orbitObservations = findOrbits(samplingSensor,
+                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(startTime - searchRadiusSeconds)),
+                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + searchRadiusSeconds)));
+        final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
+        for (int i = 0; i < orbitObservations.size(); ++i) {
+            final ReferenceObservation orbitObservation = orbitObservations.get(i);
+            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
+                                                   orbitObservation.getTime().getTime(),
+                                                   orbitObservation.getLocation().getGeometry());
+        }
+        final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
+        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
+            final SamplingPoint point = iterator.next();
+            // look for orbit temporally before (i0) and after (i1) point with binary search
+            int i0 = 0;
+            int i1 = polygons.length - 1;
+            while (i0 + 1 < i1) {
+                int i = (i1 + i0) / 2;
+                if (point.getTime() < polygons[i].getTime()) {
+                    i1 = i;
+                } else {
+                    i0 = i;
+                }
+            }
+            // check orbitObservations temporally closest to point first for spatial overlap
+            while (true) {
+                // the next polygon in the past is closer to the sample than the next polygon in the future
+                if (i0 >= 0 &&
+                    Math.abs(point.getTime() - polygons[i0].getTime()) <= searchRadiusSeconds &&
+                    ( i1 >= polygons.length ||
+                      point.getTime() < polygons[i0].getTime() ||
+                      point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime() )) {
+                    if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
+                        if (! isSecondSensor) {
+                            point.setReference(polygons[i0].getId());
+                        } else {
+                            point.setReference2(polygons[i0].getId());
+                        }
+                        accu.add(point);
+                        break;
+                    }
+                    --i0;
+                } else
+                // the next polygon in the future is closer than the next polygon in the past
+                if (i1 < polygons.length &&
+                    Math.abs(point.getTime() - polygons[i1].getTime()) <= searchRadiusSeconds * 1000) {
+                    if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
+                        if (! isSecondSensor) {
+                            point.setReference(polygons[i1].getId());
+                        } else {
+                            point.setReference2(polygons[i1].getId());
+                        }
+                        accu.add(point);
+                        break;
+                    }
+                    ++i1;
+                } else
+                // there is no next polygon in the past and no next polygon in the future
+                {
+                    break;
+                }
+            }
+        }
+        sampleList.clear();
+        sampleList.addAll(accu);
+    }
+
+    private static final String SENSOR_OBSERVATION_QUERY =
+            "select o.id"
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
+                    + " order by o.time, o.id";
+
+    List<ReferenceObservation> findOrbits(String sensor, String startTimeString, String stopTimeString) throws ParseException {
+        //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
+        //Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
+        final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll(
+                "\\?3", "'" + stopTimeString + "'");
+        final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
+        query.setParameter(1, sensor);
+        //query.setParameter(2, startTime);
+        //query.setParameter(3, stopTime);
+        return query.getResultList();
+    }
+
+    void findSatelliteSubscenes(List<SamplingPoint> sampleList, String sensor, boolean isSecondSensor) {
         // TODO - make parameters from variables below
         final String cloudFlagsName = "cloud_flags_nadir";
         final int pixelMask = 3;
         final double cloudyPixelFraction = 0.0;
-        final String orbitFileType = "atsr_orb.3";
 
         final Query columnQuery = getPersistenceManager().createQuery("select c from Column c where c.name = ?1");
-        final String columnName = orbitFileType + "." + cloudFlagsName;
+        final String columnName = sensor + "." + cloudFlagsName;
         columnQuery.setParameter(1, columnName);
 
         final Object columnQueryResult = columnQuery.getSingleResult();
@@ -232,7 +376,7 @@ public class SamplingTool extends BasicTool {
 
         final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<Integer, List<SamplingPoint>>();
         for (final SamplingPoint point : sampleList) {
-            final int id = point.getReference();
+            final int id = isSecondSensor ? point.getReference2() : point.getReference();
 
             if (!sampleListsByDatafile.containsKey(id)) {
                 sampleListsByDatafile.put(id, new ArrayList<SamplingPoint>());
@@ -245,7 +389,9 @@ public class SamplingTool extends BasicTool {
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
         final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
-        for (final int id : sampleListsByDatafile.keySet()) {
+        final Integer[] datafileIds = sampleListsByDatafile.keySet().toArray(new Integer[sampleListsByDatafile.keySet().size()]);
+        Arrays.sort(datafileIds);
+        for (final int id : datafileIds) {
             final List<SamplingPoint> points = sampleListsByDatafile.get(id);
 
             final Observation observation = getObservation(id);
@@ -267,9 +413,11 @@ public class SamplingTool extends BasicTool {
                         final int pixelY = (int) Math.floor(pixelPos.getY());
 
                         if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
-                            point.setX(pixelX);
-                            point.setY(pixelY);
-                            point.setTime(reader.getTime(0, pixelY));
+                            if (! isSecondSensor) {
+                                point.setX(pixelX);
+                                point.setY(pixelY);
+                                point.setTime(reader.getTime(0, pixelY));
+                            }
 
                             final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                             final Array array = reader.read(cloudFlagsName, extractDefinition);
@@ -297,113 +445,6 @@ public class SamplingTool extends BasicTool {
         sampleList.addAll(accu);
     }
 
-    private static final String COINCIDING_OBSERVATION_QUERY =
-            "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '420:00:00' and o.time < timestamp ?2 + interval '420:00:00'"
-            + " and st_intersects(o.location, st_geomfromewkt(?3))"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
-
-    public void findObservations(List<SamplingPoint> sampleList) throws PersistenceException {
-        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
-            final SamplingPoint point = iterator.next();
-            final double lon = point.getLon();
-            final double lat = point.getLat();
-            final long time = point.getTime();
-
-            // since binding a date to a parameter failed ...
-            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
-                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
-                                                                                        new Date(time)) + "'");
-            final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
-            query.setParameter(1, "atsr_orb.3");
-            //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
-            query.setParameter(3, String.format("POINT(%.4f %.4f)", lon, lat));
-            query.setMaxResults(1);
-
-            ReferenceObservation nearestCoveringObservation = null;
-            @SuppressWarnings({"unchecked"})
-            final List<? extends ReferenceObservation> observations = query.getResultList();
-            if (observations.isEmpty()) {
-                iterator.remove();
-                continue;
-            }
-            // select temporally nearest common observation
-            nearestCoveringObservation = observations.get(0);
-            point.setReference(nearestCoveringObservation.getId());
-//            point.setTime(nearestCoveringObservation.getTime().getTime());
-        }
-    }
-
-    public void findObservations2(List<SamplingPoint> sampleList) throws PersistenceException, ParseException {
-        final List<ReferenceObservation> orbitObservations = findOrbits(
-                TimeUtil.formatCcsdsUtcFormat(new Date(startTime - 86400 * 100 * 175)),
-                TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + 86400 * 100 * 175)));
-        final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
-        for (int i = 0; i < orbitObservations.size(); ++i) {
-            final ReferenceObservation orbitObservation = orbitObservations.get(i);
-            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(), orbitObservation.getTime().getTime(),
-                                                   orbitObservation.getLocation().getGeometry());
-        }
-        final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
-        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
-            final SamplingPoint point = iterator.next();
-            // look for orbit temporally before (i0) and after (i1) point with binary search
-            int i0 = 0;
-            int i1 = polygons.length - 1;
-            while (i0 + 1 < i1) {
-                int i = (i1 + i0) / 2;
-                if (point.getTime() < polygons[i].getTime()) {
-                    i1 = i;
-                } else {
-                    i0 = i;
-                }
-            }
-            // check orbitObservations temporally closest to point first for spatial overlap
-            while (true) {
-                if (i0 >= 0 && (i1 >= polygons.length || point.getTime() < polygons[i0].getTime() || point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
-                    if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                        point.setReference(polygons[i0].getId());
-                        accu.add(point);
-                        break;
-                    }
-                    --i0;
-                } else if (i1 < polygons.length) {
-                    if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                        point.setReference(polygons[i1].getId());
-                        accu.add(point);
-                        break;
-                    }
-                    ++i1;
-                } else {
-                    break;
-                }
-            }
-        }
-        sampleList.clear();
-        sampleList.addAll(accu);
-    }
-
-    private static final String SENSOR_OBSERVATION_QUERY =
-            "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
-            + " order by o.time, o.id";
-
-    List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
-        //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
-        //Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
-        final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll(
-                "\\?3", "'" + stopTimeString + "'");
-        final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
-        query.setParameter(1, "atsr_orb.3");
-        //query.setParameter(2, startTime);
-        //query.setParameter(3, stopTime);
-        return query.getResultList();
-    }
-
     public void removeOverlappingSamples(List<SamplingPoint> sampleList) {
         final RegionOverlapFilter regionOverlapFilter = new RegionOverlapFilter(subSceneWidth, subSceneHeight);
         final List<SamplingPoint> filteredList = regionOverlapFilter.filterOverlaps(sampleList);
@@ -411,9 +452,11 @@ public class SamplingTool extends BasicTool {
         sampleList.addAll(filteredList);
     }
 
-    void createMatchups(List<SamplingPoint> sampleList) {
-        final String sensorName = "atsr_orb.3";
-        final long pattern = getSensor(sensorName).getPattern();
+    void createMatchups(List<SamplingPoint> sampleList, String samplingSensor, String samplingSensor2) {
+        long pattern = getSensor(samplingSensor).getPattern();
+        if (samplingSensor2 != null) {
+            pattern |= getSensor(samplingSensor2).getPattern();
+        }
 
         final ArrayList<ReferenceObservation> referenceObservationList = new ArrayList<>();
         final ArrayList<Matchup> matchupList = new ArrayList<>();
@@ -421,6 +464,7 @@ public class SamplingTool extends BasicTool {
 
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
+            int j = 200;
             persistenceManager.transaction();
             for (SamplingPoint samplingPoint : sampleList) {
                 final ReferenceObservation referenceObservation = new ReferenceObservation();
@@ -440,6 +484,11 @@ public class SamplingTool extends BasicTool {
 
                 referenceObservationList.add(referenceObservation);
                 persistenceManager.persist(referenceObservation);
+                if (--j == 0) {
+                    persistenceManager.commit();
+                    persistenceManager.transaction();
+                    j = 200;
+                }
             }
             persistenceManager.commit();
 
@@ -459,8 +508,18 @@ public class SamplingTool extends BasicTool {
                 coincidence.setMatchup(matchup);
                 coincidence.setObservation(observation);
                 coincidence.setTimeDifference(0.0);
-
+                // TODO handle pattern
                 coincidenceList.add(coincidence);
+
+                if (samplingSensor2 != null) {
+                    final Observation observation2 = getObservation(samplingPoint.getReference2());
+                    final Coincidence coincidence2 = new Coincidence();
+                    coincidence2.setMatchup(matchup);
+                    coincidence2.setObservation(observation2);
+                    coincidence2.setTimeDifference(TimeUtil.timeDifferenceInSeconds(matchup, ((ReferenceObservation)observation2)));
+
+                    coincidenceList.add(coincidence2);
+                }
             }
             persistenceManager.commit();
 
@@ -496,18 +555,18 @@ public class SamplingTool extends BasicTool {
 
         Query delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
-        delete.setParameter(1, startTime);
-        delete.setParameter(2, stopTime);
+        delete.setParameter(1, new Date(startTime));
+        delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
-        delete.setParameter(1, startTime);
-        delete.setParameter(2, stopTime);
+        delete.setParameter(1, new Date(startTime));
+        delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol'");
-        delete.setParameter(1, startTime);
-        delete.setParameter(2, stopTime);
+        delete.setParameter(1, new Date(startTime));
+        delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
 
         getPersistenceManager().commit();
