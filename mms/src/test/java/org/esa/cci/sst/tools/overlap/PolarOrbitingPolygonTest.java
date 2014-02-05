@@ -8,9 +8,8 @@ import org.postgis.Polygon;
 
 import java.sql.SQLException;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.*;
 
 public class PolarOrbitingPolygonTest {
 
@@ -82,50 +81,50 @@ public class PolarOrbitingPolygonTest {
             new Point(-73.2396621704102, -0.54239547252655)
     };
 
-    static final Point[] TEST_POLYGON = new Point[] {
-            new Point(10,40),
+    static final Point[] TEST_POLYGON = new Point[]{
+            new Point(10, 40),
 
-            new Point(12,39.6),
-            new Point(13,39.3),
-            new Point(14,39),
-            new Point(15,38.7),
-            new Point(16,38.4),
+            new Point(12, 39.6),
+            new Point(13, 39.3),
+            new Point(14, 39),
+            new Point(15, 38.7),
+            new Point(16, 38.4),
 
-            new Point(18,38),
-            new Point(20,48),
-            new Point(22,58),
-            new Point(24,68),
-            new Point(26,78),
+            new Point(18, 38),
+            new Point(20, 48),
+            new Point(22, 58),
+            new Point(24, 68),
+            new Point(26, 78),
 
-            new Point(24,78.4),
-            new Point(23,78.7),
-            new Point(22,79),
-            new Point(21,79.3),
-            new Point(20,79.6),
+            new Point(24, 78.4),
+            new Point(23, 78.7),
+            new Point(22, 79),
+            new Point(21, 79.3),
+            new Point(20, 79.6),
 
-            new Point(18,80),
-            new Point(16,70),
-            new Point(14,60),
-            new Point(12,50),
-            new Point(10,40)
+            new Point(18, 80),
+            new Point(16, 70),
+            new Point(14, 60),
+            new Point(12, 50),
+            new Point(10, 40)
     };
-    static final Point[] TEST_POINTS_INSIDE = new Point[] {
-            new Point(14,40),
-            new Point(14,50),
-            new Point(22,60)
+    static final Point[] TEST_POINTS_INSIDE = new Point[]{
+            new Point(14, 40),
+            new Point(14, 50),
+            new Point(22, 60)
     };
-    static final Point[] TEST_POINTS_OUTSIDE = new Point[] {
-            new Point(22,80),
-            new Point(5,55),
-            new Point(25,55),
-            new Point(15,5),
-            new Point(-5,-10),
-            new Point(15,-5)
+    static final Point[] TEST_POINTS_OUTSIDE = new Point[]{
+            new Point(22, 80),
+            new Point(5, 55),
+            new Point(25, 55),
+            new Point(15, 5),
+            new Point(-5, -10),
+            new Point(15, -5)
     };
 
     @Test
     public void testConstructor() {
-        final Geometry geometry = new Polygon(new LinearRing[] {new LinearRing(TEST_POLYGON)});
+        final Geometry geometry = new Polygon(new LinearRing[]{new LinearRing(TEST_POLYGON)});
         final PolarOrbitingPolygon polygon = new PolarOrbitingPolygon(1, System.currentTimeMillis(), geometry);
         assertEquals("number of rings", 2, polygon.getRings().size());
         assertEquals("number of points in first ring", 12, polygon.getRings().get(0).size());
@@ -172,19 +171,11 @@ public class PolarOrbitingPolygonTest {
     }
 
     @Test
-    public void testInterpolations() {
-        assertEquals("getLongitudeAtEquator", 10.0, PolarOrbitingPolygon.getLongitudeAtEquator(-20.0, 5.0, 40.0, 20.0), 1e-8);
-        assertEquals("getLongitudeAtEquator", 170.0, PolarOrbitingPolygon.getLongitudeAtEquator(20.0, 175.0, 60.0, -175), 1e-8);
-        assertEquals("getLatitudeAtMeridian", 40.0, PolarOrbitingPolygon.getLatitudeAtMeridian(50.0, -40.0, 35.0, 20.0), 1e-8);
-        assertEquals("getLatitudeAtMeridian", 40.0, PolarOrbitingPolygon.getLatitudeAtMeridian(50.0, -40.0, 45.0, -20.0), 1e-8);
-        assertTrue("isEdgeCrossingMeridian", PolarOrbitingPolygon.isEdgeCrossingMeridian(-10.0, 10.0));
-        assertTrue("isEdgeCrossingMeridian", PolarOrbitingPolygon.isEdgeCrossingMeridian(10.0, -10.0));
-        assertFalse("isEdgeCrossingMeridian", PolarOrbitingPolygon.isEdgeCrossingMeridian(-160.0, 160.0));
-        assertTrue("isEdgeCrossingEquator", PolarOrbitingPolygon.isEdgeCrossingEquator(-10.0, 10.0));
-        assertFalse("isEdgeCrossingEquator", PolarOrbitingPolygon.isEdgeCrossingEquator(-60.0, -30.0));
-        assertTrue("isBetween", PolarOrbitingPolygon.isBetween(13.0, 10.0, 20.0));
-        assertTrue("isBetween", PolarOrbitingPolygon.isBetween(13.0, 20.0, 10.0));
-        assertFalse("isBetween", PolarOrbitingPolygon.isBetween(13.0, 10.0, -14.0));
+    public void testIsBetween() {
+        assertTrue(PolarOrbitingPolygon.isBetween(13.0, 10.0, 20.0));
+        assertTrue(PolarOrbitingPolygon.isBetween(13.0, 20.0, 10.0));
+
+        assertFalse(PolarOrbitingPolygon.isBetween(13.0, 10.0, -14.0));
     }
 
     @Test
@@ -193,6 +184,9 @@ public class PolarOrbitingPolygonTest {
         assertTrue(PolarOrbitingPolygon.isEdgeCrossingEquator(1.0, -1.0));
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(1.0, 1.0));
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(-1.0, -1.0));
+
+        assertTrue(PolarOrbitingPolygon.isEdgeCrossingEquator(-10.0, 10.0));
+        assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(-60.0, -30.0));
     }
 
     @Test
@@ -204,12 +198,12 @@ public class PolarOrbitingPolygonTest {
             final Geometry geometry = new Polygon(new LinearRing[]{new LinearRing(ATSR2_POINTS)});
             final PolarOrbitingPolygon polygon = new PolarOrbitingPolygon(1, System.currentTimeMillis(), geometry);
             int orbitMatches = 0;
-            for (double lat = -90.0+skip; lat <= 90.0; lat += skip) {
-                int lineMatches = 0;
-                for (double lon = -180.0+skip; lon <= 180.0; lon += skip) {
+            for (double lat = -90.0 + skip; lat <= 90.0; lat += skip) {
+                //int lineMatches = 0;
+                for (double lon = -180.0 + skip; lon <= 180.0; lon += skip) {
                     if (polygon.isPointInPolygon(lat, lon)) {
                         //System.out.print(lon + ", ");
-                        ++lineMatches;
+                        //      ++lineMatches;
                         ++orbitMatches;
                     }
                 }
@@ -218,7 +212,7 @@ public class PolarOrbitingPolygonTest {
             assertEquals("orbitMatches", expectedMatches, orbitMatches);
             rotate(ATSR2_POINTS, skip);
         }
-}
+    }
 
     private void rotate(Point[] points, double skip) {
         for (Point point : points) {
@@ -247,6 +241,9 @@ public class PolarOrbitingPolygonTest {
 
         longitudeAtEquator = PolarOrbitingPolygon.getLongitudeAtEquator(0.0, 1.0, 2.0, 3.0);
         assertEquals(1.0, longitudeAtEquator, 1e-8);
+
+        assertEquals(10.0, PolarOrbitingPolygon.getLongitudeAtEquator(-20.0, 5.0, 40.0, 20.0), 1e-8);
+        assertEquals(170.0, PolarOrbitingPolygon.getLongitudeAtEquator(20.0, 175.0, 60.0, -175), 1e-8);
     }
 
     @Test
@@ -268,6 +265,9 @@ public class PolarOrbitingPolygonTest {
 
         latitudeAtMeridian = PolarOrbitingPolygon.getLatitudeAtMeridian(1.0, 2.0, 3.0, 4.0);
         assertEquals(-1.0, latitudeAtMeridian, 1e-8);
+
+        assertEquals(40.0, PolarOrbitingPolygon.getLatitudeAtMeridian(50.0, -40.0, 35.0, 20.0), 1e-8);
+        assertEquals(40.0, PolarOrbitingPolygon.getLatitudeAtMeridian(50.0, -40.0, 45.0, -20.0), 1e-8);
     }
 
     @Test
@@ -281,6 +281,10 @@ public class PolarOrbitingPolygonTest {
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingMeridian(1.0, 1.0));
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingMeridian(-0.1, 182.0));
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingMeridian(182.0, -0.1));
+
+        assertTrue(PolarOrbitingPolygon.isEdgeCrossingMeridian(-10.0, 10.0));
+        assertTrue(PolarOrbitingPolygon.isEdgeCrossingMeridian(10.0, -10.0));
+        assertFalse(PolarOrbitingPolygon.isEdgeCrossingMeridian(-160.0, 160.0));
     }
 
     @Test
@@ -339,7 +343,7 @@ public class PolarOrbitingPolygonTest {
         final Polygon polygon = new Polygon("POLYGON((10 -50, 10.5 -50, 11 -50, 11.5 -50, 12 -50, 12 -50.5, 12 -51, 12 -51.5, 12 -52, 11.5 -52, 11 -52, 10.5 -52, 10 -52, 10 -51.5, 10 -51, 10 -50.5, 10 -50))");
         final PolarOrbitingPolygon polarOrbitingPolygon = new PolarOrbitingPolygon(12, 14, polygon);
 
-//        // center
+        // center
         assertTrue(polarOrbitingPolygon.isPointInPolygon(-51, 11));
 
         // lower left
@@ -365,5 +369,39 @@ public class PolarOrbitingPolygonTest {
         assertFalse(polarOrbitingPolygon.isPointInPolygon(-52.001, 11.999));
         assertFalse(polarOrbitingPolygon.isPointInPolygon(-51.999, 12.001));
         assertFalse(polarOrbitingPolygon.isPointInPolygon(-52.001, 12.001));
+    }
+
+    @Test
+    public void testRhomboidOnEquator() throws SQLException {
+        // remember: WKT is (lon/lat) tb 2014-02-05
+        final Polygon polygon = new Polygon("POLYGON((-8 -2, -7.75 -1, -7.5 0, -7.25 1, -7 2, -6 2, -5 2, -4 2, -3 2, -3.25 1, -3.5 0, -3.75 -1, -4 -2, -5 -2, -6 -2, -7 -2, -8 -2))");
+        final PolarOrbitingPolygon polarOrbitingPolygon = new PolarOrbitingPolygon(12, 14, polygon);
+
+        // center
+        assertTrue(polarOrbitingPolygon.isPointInPolygon(0, -5.5));
+
+        // lower left
+        assertTrue(polarOrbitingPolygon.isPointInPolygon(-1.95, -7.95));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(-2.05, -7.95));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(-1.95, -8.05));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(-2.05, -8.05));
+
+        // upper left
+        assertTrue(polarOrbitingPolygon.isPointInPolygon(1.95, -6.95));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(2.05, -6.95));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(1.95, -7.05));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(2.05, -7.05));
+
+        // upper right
+        assertTrue(polarOrbitingPolygon.isPointInPolygon(1.95, -3.05));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(2.05, -3.05));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(1.95, -2.95));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(2.05, -2.95));
+
+        // lower right
+        assertTrue(polarOrbitingPolygon.isPointInPolygon(-1.95, -4.05));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(-2.05, -4.05));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(-1.95, -3.95));
+        assertFalse(polarOrbitingPolygon.isPointInPolygon(-2.05, -3.95));
     }
 }
