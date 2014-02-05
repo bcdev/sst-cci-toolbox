@@ -148,7 +148,7 @@ public class SamplingTool extends BasicTool {
         reduceClearSamples(sampleList);
         getLogger().info("Reducing clear samples..." + sampleList.size());
         getLogger().info("Finding reference observations...");
-        findObservations2(sampleList, samplingSensor, false, 86400 * 100 * 175);
+        findObservations2(sampleList, samplingSensor, false, 86400 * 175 / 10);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -270,15 +270,20 @@ public class SamplingTool extends BasicTool {
     }
 
     public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor, int searchRadiusSeconds) throws PersistenceException, ParseException {
-        final List<ReferenceObservation> orbitObservations = findOrbits(samplingSensor,
-                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(startTime - searchRadiusSeconds)),
-                                                                        TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + searchRadiusSeconds)));
-        final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
-        for (int i = 0; i < orbitObservations.size(); ++i) {
-            final ReferenceObservation orbitObservation = orbitObservations.get(i);
-            polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
-                                                   orbitObservation.getTime().getTime(),
-                                                   orbitObservation.getLocation().getGeometry());
+        findObservations2(sampleList, samplingSensor, isSecondSensor, searchRadiusSeconds, null);
+    }
+    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor, int searchRadiusSeconds, PolarOrbitingPolygon[] polygons) throws PersistenceException, ParseException {
+        if (polygons == null) {
+            final List<ReferenceObservation> orbitObservations = findOrbits(samplingSensor,
+                                                                            TimeUtil.formatCcsdsUtcFormat(new Date(startTime - searchRadiusSeconds * 1000)),
+                                                                            TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + searchRadiusSeconds * 1000)));
+            polygons = new PolarOrbitingPolygon[orbitObservations.size()];
+            for (int i = 0; i < orbitObservations.size(); ++i) {
+                final ReferenceObservation orbitObservation = orbitObservations.get(i);
+                polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
+                                                       orbitObservation.getTime().getTime(),
+                                                       orbitObservation.getLocation().getGeometry());
+            }
         }
         final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
         for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
@@ -298,7 +303,7 @@ public class SamplingTool extends BasicTool {
             while (true) {
                 // the next polygon in the past is closer to the sample than the next polygon in the future
                 if (i0 >= 0 &&
-                    Math.abs(point.getTime() - polygons[i0].getTime()) <= searchRadiusSeconds &&
+                    Math.abs(point.getTime() - polygons[i0].getTime()) <= searchRadiusSeconds * 1000 &&
                     ( i1 >= polygons.length ||
                       point.getTime() < polygons[i0].getTime() ||
                       point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime() )) {
