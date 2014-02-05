@@ -167,6 +167,52 @@ class InsituReader extends NetcdfReader {
         throw new IllegalStateException("Not implemented");
     }
 
+    /**
+     * Returns the range of the in-situ history time data that falls within ±12 hours of a
+     * given reference time.
+     *
+     * @param historyTimes  The in-situ history time data (JD). The array must be of rank 1 and
+     *                      its elements must be sorted in ascending order.
+     * @param referenceTime The reference time (JD).
+     * @return the range of the in-situ history time data that falls within ±12 hours of the
+     * given reference time.
+     * @throws IllegalArgumentException when {@code historyTimes.getRank() != 1}.
+     */
+    static Range findRange(Array historyTimes, double referenceTime, double timeDelta) {
+        if (historyTimes.getRank() != 1) {
+            throw new IllegalArgumentException("history.getRank() != 1");
+        }
+        if (referenceTime + timeDelta < historyTimes.getDouble(0)) {
+            return Range.EMPTY;
+        }
+        final int historyLength = historyTimes.getIndexPrivate().getShape(0);
+        if (referenceTime - timeDelta > historyTimes.getDouble(historyLength - 1)) {
+            return Range.EMPTY;
+        }
+        int startIndex = -1;
+        int endIndex = -1;
+        for (int i = 0; i < historyLength; i++) {
+            final double time = historyTimes.getDouble(i);
+            if (startIndex == -1) {
+                if (time >= referenceTime - timeDelta) {
+                    startIndex = i;
+                    endIndex = startIndex;
+                }
+            } else {
+                if (time <= referenceTime + timeDelta) {
+                    endIndex = i;
+                } else {
+                    break;
+                }
+            }
+        }
+        try {
+            return new Range(startIndex, endIndex);
+        } catch (InvalidRangeException e) {
+            return Range.EMPTY;
+        }
+    }
+
     private double parseDouble(String attributeName) throws ParseException {
         return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
     }
@@ -175,11 +221,9 @@ class InsituReader extends NetcdfReader {
         return getVariable("insitu.time").read();
     }
 
-
-
     static List<Range> createSubsampling(Array historyTimes, Range range, int maxLength) {
         try {
-            final List<Range> subsampling = new ArrayList<Range>();
+            final List<Range> subsampling = new ArrayList<>();
             if (range.length() > maxLength) {
                 subsampling.add(new Range(range.first(), range.first()));
                 // get maxLength-2 entries from the history
@@ -205,7 +249,7 @@ class InsituReader extends NetcdfReader {
 
     static void extractSubset(Array source, Array subset, List<Range> subsetRanges) throws InvalidRangeException {
         // setup ranges for copying
-        final List<Range> sourceRanges = new ArrayList<Range>(source.getRank());
+        final List<Range> sourceRanges = new ArrayList<>(source.getRank());
         for (int i = 0; i < source.getRank(); i++) {
             sourceRanges.add(null);
         }

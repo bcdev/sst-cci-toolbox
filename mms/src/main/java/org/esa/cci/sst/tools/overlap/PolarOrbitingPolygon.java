@@ -123,6 +123,7 @@ public class PolarOrbitingPolygon {
         return (lon + 180.0 + 720.0) % 360.0 - 180.0;
     }
 
+    // package access for testing only tb 2014-02-04
     static double getLongitudeAtEquator(double lat1, double lon1, double lat2, double lon2) {
         if (lat2 == lat1) {
             return lon1;
@@ -130,6 +131,7 @@ public class PolarOrbitingPolygon {
         return lon1 + normalizeLongitude(lon2 - lon1) * (0.0 - lat1) / (lat2 - lat1);
     }
 
+    // package access for testing only tb 2014-02-04
     static double getLatitudeAtMeridian(double lat1, double lon1, double lat2, double lon2) {
         if (lon2 == lon1) {
             return lat1;
@@ -141,15 +143,11 @@ public class PolarOrbitingPolygon {
         return (lon1 <= 0.0 && lon2 > 0.0 && lon2 - lon1 < 180.0) || (lon1 >= 0.0 && lon2 < 0.0 && lon1 - lon2 < 180.0);
     }
 
-    static boolean isEdgeCrossingEquator(double lat1, double lat2) {
-        return (lat1 <= 0.0 && lat2 > 0.0) || (lat1 >= 0.0 && lat2 < 0.0);
-    }
-
     static boolean isBetween(double value, double from, double to) {
         return (value >= from && value < to) || (value <= from && value > to);
     }
 
-    int findCorrespondingPoint(Geometry geometry, int middle1, int middle2) {
+    private int findCorrespondingPoint(Geometry geometry, int middle1, int middle2) {
         final org.postgis.Point middle1Point = geometry.getPoint(middle1);
         final SphericalDistance middle1DistanceCalculator = new SphericalDistance(middle1Point.getX(), middle1Point.getY());
         org.postgis.Point point2 = geometry.getPoint(middle2);
@@ -194,5 +192,10 @@ public class PolarOrbitingPolygon {
         }
         ring2.add(ring2.get(0));
         return ring2;
+    }
+
+    // package access for testing only tb 2014-02-03
+    static boolean isEdgeCrossingEquator(double lat1, double lat2) {
+        return (lat1 <= 0.0 && lat2 > 0.0) || (lat1 >= 0.0 && lat2 < 0.0);
     }
 }
