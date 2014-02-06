@@ -41,11 +41,11 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
     @Override
     public Range find12HoursRange(Date refTime) {
         final double refTimeSecsSince1978 = TimeUtil.toSecondsSince1978(refTime);
-        return InsituReader.findRange(historyTimes, refTimeSecsSince1978, HALF_DAY_SECS_1978);
+        return InsituReaderHelper.findRange(historyTimes, refTimeSecsSince1978, HALF_DAY_SECS_1978);
     }
 
     @Override
     public List<Range> createSubsampling(Range range, int maxLength) {
-        return InsituReader.createSubsampling(historyTimes, range, maxLength);
+        return InsituReaderHelper.createSubsampling(historyTimes, range, maxLength);
     }
 }

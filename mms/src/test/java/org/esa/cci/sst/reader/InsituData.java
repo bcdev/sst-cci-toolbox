@@ -1,5 +1,7 @@
 package org.esa.cci.sst.reader;
 
+import ucar.ma2.Array;
+
 class InsituData {
 
     // time data from file 'insitu_WMOID_41932_20090417_20100831.nc'
@@ -959,4 +961,12 @@ class InsituData {
             791593128,
             791596007
     };
+
+    static Array createHistoryTimeArray_MJD() {
+        return Array.factory(MJD_TIMES);
+    }
+
+    static Array createHistoryTimeArray_SECS_1978() {
+        return Array.factory(SECS_1978_TIMES_DRIFTER);
+    }
 }
