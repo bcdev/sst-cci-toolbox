@@ -7,6 +7,7 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 class Insitu_CCI_1_Accessor implements InsituAccessor {
 
@@ -40,5 +41,10 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
     public Range find12HoursRange(Date refTime) {
         final double refJulianTime = TimeUtil.toJulianDate(refTime);
         return InsituReader.findRange(historyTimes, refJulianTime, HALF_JULIAN_DAY);
+    }
+
+    @Override
+    public List<Range> createSubsampling(Range range, int maxLength) {
+        return InsituReader.createSubsampling(historyTimes, range, maxLength);
     }
 }

@@ -45,7 +45,6 @@ class InsituReader extends NetcdfReader {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
 
-    private Array historyTimes;
     private InsituAccessor insituAccessor;
 
     static {
@@ -71,14 +70,11 @@ class InsituReader extends NetcdfReader {
         }
 
         insituAccessor.readHistoryTimes();
-
-        historyTimes = readHistoryTimes();
     }
 
     @Override
     public void close() {
         super.close();
-        historyTimes = null;
     }
 
     @Override
@@ -127,7 +123,7 @@ class InsituReader extends NetcdfReader {
             target.setObject(i, fillValue);
         }
         if (range != Range.EMPTY) {
-            final List<Range> subsampling = createSubsampling(historyTimes, range, extractDefinition.getShape()[1]);
+            final List<Range> subsampling = insituAccessor.createSubsampling(range, extractDefinition.getShape()[1]);
             try {
                 extractSubset(source, target, subsampling);
             } catch (InvalidRangeException e) {
@@ -215,10 +211,6 @@ class InsituReader extends NetcdfReader {
 
     private double parseDouble(String attributeName) throws ParseException {
         return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
-    }
-
-    private Array readHistoryTimes() throws IOException {
-        return getVariable("insitu.time").read();
     }
 
     static List<Range> createSubsampling(Array historyTimes, Range range, int maxLength) {

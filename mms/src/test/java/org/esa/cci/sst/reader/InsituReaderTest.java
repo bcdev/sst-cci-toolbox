@@ -247,9 +247,22 @@ public class InsituReaderTest {
     }
 
     @Test
-    public void testCreateSubsampling() {
+    public void testCreateSubsampling_MJD() {
         final Array historyTimes = createHistoryTimeArray_MJD();
-        final Range r = InsituReader.findRange(historyTimes, 2455090.56, 0.5);
+        final Range r = InsituReader.findRange(historyTimes, 2455090.56, HALF_DAY_MJD);
+        final List<Range> s = InsituReader.createSubsampling(historyTimes, r, 10);
+
+        assertEquals(10, s.size());
+        assertEquals(r.first(), s.get(0).first());
+        assertEquals(r.first(), s.get(0).last());
+        assertEquals(r.last(), s.get(9).first());
+        assertEquals(r.last(), s.get(9).last());
+    }
+
+    @Test
+    public void testCreateSubsampling_SECS_1978() {
+        final Array historyTimes = createHistoryTimeArray_SECS_1978();
+        final Range r = InsituReader.findRange(historyTimes, 790918847, HALF_DAY_SECS);
         final List<Range> s = InsituReader.createSubsampling(historyTimes, r, 10);
 
         assertEquals(10, s.size());
