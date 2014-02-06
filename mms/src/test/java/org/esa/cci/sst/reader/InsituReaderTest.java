@@ -16,8 +16,11 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.common.ExtractDefinition;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.LineString;
@@ -43,7 +46,7 @@ import static org.junit.Assert.*;
 public class InsituReaderTest {
 
     @Test
-    public void testReadSST_CCI_V1_Data() throws Exception {
+    public void testReadObservation_SST_CCI_V1_Data() throws Exception {
         final InsituObservation observation;
 
         try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
@@ -75,7 +78,35 @@ public class InsituReaderTest {
     }
 
     @Test
-    public void testReadSST_CCI_V2_Drifter_Data() throws Exception {
+    public void testRead_SST_CCI_V1_Data() throws Exception {
+        final Calendar calendar = createUtcCalendar();
+        calendar.set(Calendar.YEAR, 2007);
+        calendar.set(Calendar.MONTH, 11);
+        calendar.set(Calendar.DAY_OF_MONTH, 18);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        refObs.setTime(calendar.getTime());
+        builder.referenceObservation(refObs);
+        builder.shape(new int[]{1, 14});
+        final ExtractDefinition extractDefinition = builder.build();
+
+        try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
+            final Array array = reader.read("insitu.sea_surface_temperature", extractDefinition);
+            assertNotNull(array);
+            assertEquals(14, array.getSize());
+
+            assertEquals(300.31, array.getDouble(0), 1e-5);
+            assertEquals(300.31, array.getDouble(7), 1e-5);
+            assertEquals(300.22998046875, array.getDouble(13), 1e-5);
+        }
+    }
+
+    @Test
+    public void testReadObservation_SST_CCI_V2_Drifter_Data() throws Exception {
         final InsituObservation observation;
 
         try (InsituReader reader = createReader("insitu_0_WMOID_71569_20030117_20030131.nc")) {
@@ -107,7 +138,39 @@ public class InsituReaderTest {
     }
 
     @Test
-    public void testReadSST_CCI_V2_Argo_Data() throws Exception {
+    public void testRead_SST_CCI_V2_Drifter_Data() throws Exception {
+        final Calendar calendar = createUtcCalendar();
+        calendar.set(Calendar.YEAR, 2003);
+        calendar.set(Calendar.MONTH, 0);
+        calendar.set(Calendar.DAY_OF_MONTH, 25);
+
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        refObs.setTime(calendar.getTime());
+        builder.referenceObservation(refObs);
+        builder.shape(new int[]{1, 12});
+        final ExtractDefinition extractDefinition = builder.build();
+
+        try (InsituReader reader = createReader("insitu_0_WMOID_71569_20030117_20030131.nc")) {
+            final Array array = reader.read("sst", extractDefinition);
+            assertNotNull(array);
+            assertEquals(12, array.getSize());
+
+            assertEquals(2.2, array.getDouble(0), 1e-6);
+            assertEquals(2.3, array.getDouble(5), 1e-6);
+            assertEquals(2.3, array.getDouble(11), 1e-6);
+        }
+    }
+//
+//    @Test
+//    public void testDeleteMe() {
+//        System.out.println(TimeUtil.secondsSince1978ToDate(791003771));
+//        System.out.println(TimeUtil.secondsSince1978ToDate(791009748));
+//        System.out.println(TimeUtil.secondsSince1978ToDate(791087760));
+//    }
+
+    @Test
+    public void testReadObservation_SST_CCI_V2_Argo_Data() throws Exception {
         final InsituObservation observation;
 
         try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {

@@ -17,6 +17,7 @@
 package org.esa.cci.sst.common;
 
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.postgis.PGgeometry;
 import org.postgis.Point;
 
 import java.util.Date;
@@ -41,9 +42,15 @@ public class ExtractDefinitionBuilder {
     }
 
     public ExtractDefinitionBuilder referenceObservation(ReferenceObservation refObs) {
-        final Point point = refObs.getPoint().getGeometry().getFirstPoint();
-        lon = point.getX();
-        lat = point.getY();
+        final PGgeometry refObsPoint = refObs.getPoint();
+        if (refObsPoint != null) {
+            final Point point = refObsPoint.getGeometry().getFirstPoint();
+            lon = point.getX();
+            lat = point.getY();
+        } else {
+            lon = Double.NaN;
+            lat = Double.NaN;
+        }
         date = refObs.getTime();
         return this;
     }
