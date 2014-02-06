@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools.overlap;
 
 import org.esa.beam.util.math.SphericalDistance;
+import org.esa.cci.sst.util.GeometryUtil;
 import org.postgis.Geometry;
 
 import java.util.ArrayList;
@@ -92,9 +93,9 @@ public class PolarOrbitingPolygon {
         double transformedSampleLon = Double.NaN;
         boolean isInside = false;
         for (int i = 0; i < ring.size() - 1; ++i) {
-            final double lon1 = shiftIfZero(normalizeLongitude(ring.get(i).getLon() - sampleLon));
+            final double lon1 = shiftIfZero(GeometryUtil.normalizeLongitude(ring.get(i).getLon() - sampleLon));
             final double lat1 = shiftIfZero(ring.get(i).getLat());
-            final double lon2 = shiftIfZero(normalizeLongitude(ring.get(i + 1).getLon() - sampleLon));
+            final double lon2 = shiftIfZero(GeometryUtil.normalizeLongitude(ring.get(i + 1).getLon() - sampleLon));
             final double lat2 = shiftIfZero(ring.get(i + 1).getLat());
             if (isEdgeCrossingMeridian(lon1, lon2)) {
                 final double crossingLat = getLatitudeAtMeridian(lat1, lon1, lat2, lon2);
@@ -105,10 +106,10 @@ public class PolarOrbitingPolygon {
             if (isEdgeCrossingEquator(lat1, lat2)) {
                 final double crossingLon = getLongitudeAtEquator(lat1, ring.get(i).getLon(), lat2, ring.get(i + 1).getLon());
                 if (Double.isNaN(firstEquatorCrossingLonPlus90)) {
-                    firstEquatorCrossingLonPlus90 = normalizeLongitude(crossingLon + 90.0);
-                    transformedSampleLon = normalizeLongitude(sampleLon - firstEquatorCrossingLonPlus90);
+                    firstEquatorCrossingLonPlus90 = GeometryUtil.normalizeLongitude(crossingLon + 90.0);
+                    transformedSampleLon = GeometryUtil.normalizeLongitude(sampleLon - firstEquatorCrossingLonPlus90);
                 }
-                final double transformedCrossingLon = normalizeLongitude(crossingLon - firstEquatorCrossingLonPlus90);
+                final double transformedCrossingLon = GeometryUtil.normalizeLongitude(crossingLon - firstEquatorCrossingLonPlus90);
                 // TODO - why is isBetween() but not isEdgeCrossingMeridian() used here?
                 // see class comment for an explanation (the question here is whether the equator crossing is between the sample projected to the equator and the new 90 degree point)
                 if (isBetween(transformedCrossingLon, 0.0, transformedSampleLon)) {
@@ -119,16 +120,12 @@ public class PolarOrbitingPolygon {
         return isInside;
     }
 
-    static double normalizeLongitude(double lon) {
-        return (lon + 180.0 + 720.0) % 360.0 - 180.0;
-    }
-
     // package access for testing only tb 2014-02-04
     static double getLongitudeAtEquator(double lat1, double lon1, double lat2, double lon2) {
         if (lat2 == lat1) {
             return lon1;
         }
-        return lon1 + normalizeLongitude(lon2 - lon1) * (0.0 - lat1) / (lat2 - lat1);
+        return lon1 + GeometryUtil.normalizeLongitude(lon2 - lon1) * (0.0 - lat1) / (lat2 - lat1);
     }
 
     // package access for testing only tb 2014-02-04
@@ -136,7 +133,7 @@ public class PolarOrbitingPolygon {
         if (lon2 == lon1) {
             return lat1;
         }
-        return lat1 + (lat2 - lat1) * (0.0 - lon1) / normalizeLongitude(lon2 - lon1);
+        return lat1 + (lat2 - lat1) * (0.0 - lon1) / GeometryUtil.normalizeLongitude(lon2 - lon1);
     }
 
     static boolean isEdgeCrossingMeridian(double lon1, double lon2) {

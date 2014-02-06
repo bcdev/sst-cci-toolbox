@@ -20,6 +20,7 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.util.GeometryUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
@@ -95,9 +96,9 @@ class InsituReader extends NetcdfReader {
         observation.setTime(TimeUtil.centerTime(startTime, endTime));
         observation.setTimeRadius(TimeUtil.timeRadius(startTime, endTime));
 
-        final double startLon = (insituAccessor.getStartLon() + 180.0) % 360.0 - 180.0;
+        final double startLon = GeometryUtil.normalizeLongitude(insituAccessor.getStartLon());
         final double startLat = insituAccessor.getStartLat();
-        final double endLon = (insituAccessor.getEndLon() + 180.0) % 360.0 - 180.0;
+        final double endLon = GeometryUtil.normalizeLongitude(insituAccessor.getEndLon());
         final double endLat = insituAccessor.getEndLat();
         if (isNotOnPlanet(startLat, endLat)) {
             throw new IOException(String.format("latitude attributes (%g .. %g) out of range (-90.0 .. 90.0)", startLat, endLat));

@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools.overlap;
 
+import org.esa.cci.sst.util.GeometryUtil;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.LinearRing;
@@ -155,22 +156,6 @@ public class PolarOrbitingPolygonTest {
     }
 
     @Test
-    public void testNormalizeLongitude() {
-        assertEquals(0.0, PolarOrbitingPolygon.normalizeLongitude(0.0), 1e-8);
-        assertEquals(-23.0, PolarOrbitingPolygon.normalizeLongitude(-23.0), 1e-8);
-        assertEquals(-179.9, PolarOrbitingPolygon.normalizeLongitude(-179.9), 1e-8);
-
-        assertEquals(179.9, PolarOrbitingPolygon.normalizeLongitude(-180.1), 1e-8);
-        assertEquals(0.1, PolarOrbitingPolygon.normalizeLongitude(-359.9), 1e-8);
-        assertEquals(-0.1, PolarOrbitingPolygon.normalizeLongitude(-360.1), 1e-8);
-
-        assertEquals(179.9, PolarOrbitingPolygon.normalizeLongitude(-540.1), 1e-8);
-
-        assertEquals(179.9, PolarOrbitingPolygon.normalizeLongitude(179.9), 1e-8);
-        assertEquals(-179.9, PolarOrbitingPolygon.normalizeLongitude(180.1), 1e-8);
-    }
-
-    @Test
     public void testIsBetween() {
         assertTrue(PolarOrbitingPolygon.isBetween(13.0, 10.0, 20.0));
         assertTrue(PolarOrbitingPolygon.isBetween(13.0, 20.0, 10.0));
@@ -216,7 +201,7 @@ public class PolarOrbitingPolygonTest {
 
     private void rotate(Point[] points, double skip) {
         for (Point point : points) {
-            point.setX(PolarOrbitingPolygon.normalizeLongitude(point.getX() + skip));
+            point.setX(GeometryUtil.normalizeLongitude(point.getX() + skip));
         }
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(1.0, 1.0));
         assertFalse(PolarOrbitingPolygon.isEdgeCrossingEquator(-1.0, -1.0));
