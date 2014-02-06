@@ -46,10 +46,11 @@ public class InsituReaderTest {
     public void testReadSST_CCI_V1_Data() throws Exception {
         final InsituObservation observation;
 
-        try (InsituReader handler = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
-            observation = handler.readObservation(0);
+        try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
 
-            final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+            final Calendar calendar = createUtcCalendar();
             calendar.setTimeInMillis(observation.getTime().getTime());
             assertEquals(2007, calendar.get(Calendar.YEAR));
             assertEquals(11, calendar.get(Calendar.MONTH));
@@ -73,17 +74,69 @@ public class InsituReaderTest {
         }
     }
 
-    // @todo 1 tb/tb continue here 2014-01-29
-//    @Test
-//    public void testReadSST_CCI_V2_Argo_Data() throws Exception {
-//        final InsituObservation observation;
-//
-//        try (InsituReader handler = createReader("SSTCCI2_refdata_200002_argo_sample.nc")) {
-//
-//        }
-//    }
+    @Test
+    public void testReadSST_CCI_V2_Drifter_Data() throws Exception {
+        final InsituObservation observation;
 
+        try (InsituReader reader = createReader("insitu_0_WMOID_71569_20030117_20030131.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
 
+            final Calendar calendar = createUtcCalendar();
+            calendar.setTimeInMillis(observation.getTime().getTime());
+            assertEquals(2003, calendar.get(Calendar.YEAR));
+            assertEquals(0, calendar.get(Calendar.MONTH));
+            assertEquals(24, calendar.get(Calendar.DATE));
+
+            assertEquals(636173.5, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertTrue(geometry instanceof LineString);
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(-56.04999923706055, startPoint.getX(), 1e-8);
+            assertEquals(-60.0, startPoint.getY(), 1e-8);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(-56.77000045776367, endPoint.getX(), 1e-8);
+            assertEquals(-60.77000045776367, endPoint.getY(), 1e-8);
+        }
+    }
+
+    @Test
+    public void testReadSST_CCI_V2_Argo_Data() throws Exception {
+        final InsituObservation observation;
+
+        try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
+
+            final Calendar calendar = createUtcCalendar();
+            calendar.setTimeInMillis(observation.getTime().getTime());
+            assertEquals(2003, calendar.get(Calendar.YEAR));
+            assertEquals(0, calendar.get(Calendar.MONTH));
+            assertEquals(20, calendar.get(Calendar.DATE));
+
+            assertEquals(859463.0, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertTrue(geometry instanceof LineString);
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(4.541999816894531, startPoint.getX(), 1e-8);
+            assertEquals(-62.78499984741211, startPoint.getY(), 1e-8);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(3.2060000896453857, endPoint.getX(), 1e-8);
+            assertEquals(-62.749000549316406, endPoint.getY(), 1e-8);
+        }
+    }
 
     @Test
     public void testCreateSubset_1D() throws InvalidRangeException {
@@ -192,6 +245,18 @@ public class InsituReaderTest {
         }
     }
 
+    @Test
+    public void testIsNotOnPlanet() {
+        assertFalse(InsituReader.isNotOnPlanet(0.0, 0.0));
+        assertFalse(InsituReader.isNotOnPlanet(-17.0, 56.0));
+        assertFalse(InsituReader.isNotOnPlanet(38.0, -36.0));
+
+        assertTrue(InsituReader.isNotOnPlanet(90.1, -36.0));
+        assertTrue(InsituReader.isNotOnPlanet(-90.1, -36.0));
+        assertTrue(InsituReader.isNotOnPlanet(18.3, -180.1));
+        assertTrue(InsituReader.isNotOnPlanet(18.3, 180.1));
+    }
+
     private static InsituReader createReader(String resourceName) throws Exception {
         final DataFile dataFile = new DataFile();
         final String path = getResourceAsFile(resourceName).getPath();
@@ -208,5 +273,9 @@ public class InsituReaderTest {
         final URI uri = url.toURI();
 
         return new File(uri);
+    }
+
+    private Calendar createUtcCalendar() {
+        return new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
     }
 }

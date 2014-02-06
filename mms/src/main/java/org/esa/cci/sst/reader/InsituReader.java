@@ -32,7 +32,6 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -87,7 +86,7 @@ class InsituReader extends NetcdfReader {
         final InsituObservation observation = new InsituObservation();
         final DataFile dataFile = getDatafile();
         observation.setDatafile(dataFile);
-        observation.setName(getNetcdfFile().findGlobalAttribute("wmo_id").getStringValue());
+        observation.setName(insituAccessor.getObservationName());
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 
@@ -96,18 +95,14 @@ class InsituReader extends NetcdfReader {
         observation.setTime(TimeUtil.centerTime(startTime, endTime));
         observation.setTimeRadius(TimeUtil.timeRadius(startTime, endTime));
 
-        try {
-            final double startLon = (parseDouble("start_lon") + 180.0) % 360.0 - 180.0;
-            final double startLat = parseDouble("start_lat");
-            final double endLon = (parseDouble("end_lon") + 180.0) % 360.0 - 180.0;
-            final double endLat = parseDouble("end_lat");
-            if (startLat < -90.0 || startLat > 90.0 || endLat < -90.0 || endLat > 90.0) {
-                throw new IOException(String.format("latitude attributes (%g .. %g) out of range (-90.0 .. 90.0)", startLat, endLat));
-            }
-            observation.setLocation(createLineGeometry(startLon, startLat, endLon, endLat));
-        } catch (ParseException e) {
-            throw new IOException("Unable to set location.", e);
+        final double startLon = (insituAccessor.getStartLon() + 180.0) % 360.0 - 180.0;
+        final double startLat = insituAccessor.getStartLat();
+        final double endLon = (insituAccessor.getEndLon() + 180.0) % 360.0 - 180.0;
+        final double endLat = insituAccessor.getEndLat();
+        if (isNotOnPlanet(startLat, endLat)) {
+            throw new IOException(String.format("latitude attributes (%g .. %g) out of range (-90.0 .. 90.0)", startLat, endLat));
         }
+        observation.setLocation(createLineGeometry(startLon, startLat, endLon, endLat));
         return observation;
     }
 
@@ -163,8 +158,9 @@ class InsituReader extends NetcdfReader {
         throw new IllegalStateException("Not implemented");
     }
 
-    private double parseDouble(String attributeName) throws ParseException {
-        return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
+    // package access for testing only tb 2014-02-06
+    static boolean isNotOnPlanet(double startLat, double endLat) {
+        return startLat < -90.0 || startLat > 90.0 || endLat < -90.0 || endLat > 90.0;
     }
 
     static void extractSubset(Array source, Array subset, List<Range> subsetRanges) throws InvalidRangeException {
