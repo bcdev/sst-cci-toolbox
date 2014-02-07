@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
-import javax.persistence.EntityExistsException;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
@@ -26,11 +25,11 @@ import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 
+import javax.persistence.EntityExistsException;
 import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Properties;
 
 /**
  * Tool responsible for re-ingesting mmd files.
@@ -47,7 +46,7 @@ public class MmdIngestionTool extends BasicTool {
             tool.ingest();
             tool.getPersistenceManager().close();
         } else {
-            tool.printHelp("");
+            tool.printHelp();
         }
     }
 
@@ -55,8 +54,8 @@ public class MmdIngestionTool extends BasicTool {
     private static final String MMS_REINGESTION_SENSOR_PROPERTY = "mms.reingestion.sensor";
     private static final String MMS_REINGESTION_PATTERN_PROPERTY = "mms.reingestion.pattern";
     private static final String DATAFILE_ALREADY_INGESTED = "SELECT COUNT(*) " +
-                                                            "FROM mm_datafile " +
-                                                            "WHERE path = '%s'";
+            "FROM mm_datafile " +
+            "WHERE path = '%s'";
 
     private MmdReader reader;
     private Ingester ingester;
@@ -135,22 +134,22 @@ public class MmdIngestionTool extends BasicTool {
 //                                                              "( select f from DataFile f, Observation o " +
 //                                                              "  where f.path = ?1 and o.dataFile = f and c.observation = o )");
         Query query = getPersistenceManager().createNativeQuery("delete from mm_coincidence c " +
-                                                                "where exists ( select f.id from mm_datafile f, mm_observation o " +
-                                                                "where f.path = ?1 and o.datafile_id = f.id and c.observation_id = o.id )");
+                "where exists ( select f.id from mm_datafile f, mm_observation o " +
+                "where f.path = ?1 and o.datafile_id = f.id and c.observation_id = o.id )");
         query.setParameter(1, dataFile.getPath());
         long time = System.currentTimeMillis();
         query.executeUpdate();
         getLogger().info(MessageFormat.format("{0} coincidences dropped in {1} ms.", dataFile.getPath(),
-                                              System.currentTimeMillis() - time));
+                System.currentTimeMillis() - time));
 
         query = getPersistenceManager().createNativeQuery("delete from mm_observation o " +
-                                                          "where exists ( select f.id from mm_datafile f " +
-                                                          "where f.path = ?1 and o.datafile_id = f.id )");
+                "where exists ( select f.id from mm_datafile f " +
+                "where f.path = ?1 and o.datafile_id = f.id )");
         query.setParameter(1, dataFile.getPath());
         time = System.currentTimeMillis();
         query.executeUpdate();
         getLogger().info(MessageFormat.format("{0} observations dropped in {1} ms.", dataFile.getPath(),
-                                              System.currentTimeMillis() - time));
+                System.currentTimeMillis() - time));
     }
 
     private void ingestObservations(long pattern) {
@@ -189,12 +188,6 @@ public class MmdIngestionTool extends BasicTool {
         } else {
             throw new IllegalStateException("Trying to ingest duplicate datafile.");
         }
-    }
-
-    private File getMmdFile() {
-        final Properties configuration = getConfiguration();
-        final String filename = configuration.getProperty(Constants.PROPERTY_MMS_REINGESTION_FILENAME);
-        return new File(filename);
     }
 
     private void initReader(final DataFile dataFile, File archiveRoot) {

@@ -79,13 +79,7 @@ public class InsituReaderTest {
 
     @Test
     public void testRead_SST_CCI_V1_Data() throws Exception {
-        final Calendar calendar = createUtcCalendar();
-        calendar.set(Calendar.YEAR, 2007);
-        calendar.set(Calendar.MONTH, 11);
-        calendar.set(Calendar.DAY_OF_MONTH, 18);
-        calendar.set(Calendar.HOUR_OF_DAY, 12);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        final Calendar calendar = creatUtcCalendar(2007, 11, 18);
 
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
         final ReferenceObservation refObs = new ReferenceObservation();
@@ -139,13 +133,7 @@ public class InsituReaderTest {
 
     @Test
     public void testRead_SST_CCI_V2_Drifter_Data() throws Exception {
-        final Calendar calendar = createUtcCalendar();
-        calendar.set(Calendar.YEAR, 2003);
-        calendar.set(Calendar.MONTH, 0);
-        calendar.set(Calendar.DAY_OF_MONTH, 25);
-        calendar.set(Calendar.HOUR_OF_DAY, 12);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        final Calendar calendar = creatUtcCalendar(2003, 0, 25);
 
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
         final ReferenceObservation refObs = new ReferenceObservation();
@@ -199,13 +187,7 @@ public class InsituReaderTest {
 
     @Test
     public void testRead_SST_CCI_V2_Argo_Data() throws Exception {
-        final Calendar calendar = createUtcCalendar();
-        calendar.set(Calendar.YEAR, 2003);
-        calendar.set(Calendar.MONTH, 0);
-        calendar.set(Calendar.DAY_OF_MONTH, 20);
-        calendar.set(Calendar.HOUR_OF_DAY, 12);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        final Calendar calendar = creatUtcCalendar(2003, 0, 20);
 
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
         final ReferenceObservation refObs = new ReferenceObservation();
@@ -364,5 +346,16 @@ public class InsituReaderTest {
 
     private Calendar createUtcCalendar() {
         return new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+    }
+
+    private Calendar creatUtcCalendar(int year, int month, int day) {
+        final Calendar calendar = createUtcCalendar();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        return calendar;
     }
 }
