@@ -143,6 +143,9 @@ public class InsituReaderTest {
         calendar.set(Calendar.YEAR, 2003);
         calendar.set(Calendar.MONTH, 0);
         calendar.set(Calendar.DAY_OF_MONTH, 25);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
 
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
         final ReferenceObservation refObs = new ReferenceObservation();
@@ -157,17 +160,10 @@ public class InsituReaderTest {
             assertEquals(12, array.getSize());
 
             assertEquals(2.2, array.getDouble(0), 1e-6);
-            assertEquals(2.3, array.getDouble(5), 1e-6);
+            assertEquals(2.2, array.getDouble(5), 1e-6);
             assertEquals(2.3, array.getDouble(11), 1e-6);
         }
     }
-//
-//    @Test
-//    public void testDeleteMe() {
-//        System.out.println(TimeUtil.secondsSince1978ToDate(791003771));
-//        System.out.println(TimeUtil.secondsSince1978ToDate(791009748));
-//        System.out.println(TimeUtil.secondsSince1978ToDate(791087760));
-//    }
 
     @Test
     public void testReadObservation_SST_CCI_V2_Argo_Data() throws Exception {
@@ -198,6 +194,34 @@ public class InsituReaderTest {
             final Point endPoint = geometry.getLastPoint();
             assertEquals(3.2060000896453857, endPoint.getX(), 1e-8);
             assertEquals(-62.749000549316406, endPoint.getY(), 1e-8);
+        }
+    }
+
+    @Test
+    public void testRead_SST_CCI_V2_Argo_Data() throws Exception {
+        final Calendar calendar = createUtcCalendar();
+        calendar.set(Calendar.YEAR, 2003);
+        calendar.set(Calendar.MONTH, 0);
+        calendar.set(Calendar.DAY_OF_MONTH, 20);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        refObs.setTime(calendar.getTime());
+        builder.referenceObservation(refObs);
+        builder.shape(new int[]{1, 3});
+        final ExtractDefinition extractDefinition = builder.build();
+
+        try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
+            final Array array = reader.read("sst", extractDefinition);
+            assertNotNull(array);
+            assertEquals(3, array.getSize());
+
+            assertEquals(0.621, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(-32768.0, array.getDouble(2), 1e-6);
         }
     }
 
