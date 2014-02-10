@@ -1,5 +1,5 @@
 #!/bin/bash
-# ingestion-run2.sh 2003 01 mms2
+# ingestion-run2.sh 2003 01 mms-wpr-02
 year=$1
 month=$2
 usecase=$3
