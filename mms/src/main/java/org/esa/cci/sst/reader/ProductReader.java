@@ -23,12 +23,7 @@ import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.framework.dataio.ProductFlipper;
-import org.esa.beam.framework.datamodel.BasicPixelGeoCoding;
-import org.esa.beam.framework.datamodel.MetadataAttribute;
-import org.esa.beam.framework.datamodel.MetadataElement;
-import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
-import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.datamodel.*;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.BoundaryCalculator;
@@ -50,11 +45,11 @@ class ProductReader extends AbstractProductReader {
 
     ProductReader(String sensorName) {
         super(sensorName,
-              EnvisatConstants.ENVISAT_FORMAT_NAME,
-              HdfOsiProductReaderPlugIn.FORMAT_NAME,
-              NcOsiProductReaderPlugIn.FORMAT_NAME,
-              PmwProductReaderPlugIn.FORMAT_NAME,
-              AvhrrReaderPlugIn.FORMAT_NAME);
+                EnvisatConstants.ENVISAT_FORMAT_NAME,
+                HdfOsiProductReaderPlugIn.FORMAT_NAME,
+                NcOsiProductReaderPlugIn.FORMAT_NAME,
+                PmwProductReaderPlugIn.FORMAT_NAME,
+                AvhrrReaderPlugIn.FORMAT_NAME);
         this.bc = new BoundaryCalculator();
     }
 
@@ -107,10 +102,10 @@ class ProductReader extends AbstractProductReader {
         final ProductData.UTC startTime = product.getStartTime();
         final ProductData.UTC endTime = product.getEndTime();
         product = ProductFlipper.createFlippedProduct(product,
-                                                      true,
-                                                      ProductFlipper.FLIP_HORIZONTAL,
-                                                      product.getName(),
-                                                      product.getDescription());
+                true,
+                ProductFlipper.FLIP_HORIZONTAL,
+                product.getName(),
+                product.getDescription());
         product.setStartTime(startTime);
         product.setEndTime(endTime);
         return product;

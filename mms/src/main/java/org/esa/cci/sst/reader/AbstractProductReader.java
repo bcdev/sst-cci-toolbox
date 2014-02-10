@@ -19,14 +19,7 @@ package org.esa.cci.sst.reader;
 import com.bc.ceres.core.Assert;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.datamodel.Band;
-import org.esa.beam.framework.datamodel.FlagCoding;
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.ProductData;
-import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.beam.framework.datamodel.*;
 import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.ColumnBuilder;
@@ -34,9 +27,10 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
@@ -141,6 +135,11 @@ abstract class AbstractProductReader implements Reader {
     }
 
     @Override
+    public List<SamplingPoint> readSamplingPoints() {
+        return new ArrayList<>();
+    }
+
+    @Override
     public Item getColumn(String role) {
         Assert.state(product != null, "product == null");
         final RasterDataNode node = product.getRasterDataNode(role);
@@ -153,7 +152,7 @@ abstract class AbstractProductReader implements Reader {
     @Override
     public final Item[] getColumns() {
         Assert.state(product != null, "product == null");
-        final List<Item> columnList = new ArrayList<Item>();
+        final List<Item> columnList = new ArrayList<>();
         for (final RasterDataNode node : product.getTiePointGrids()) {
             final Item column = createColumn(node);
             columnList.add(column);
@@ -288,9 +287,9 @@ abstract class AbstractProductReader implements Reader {
         if (!pixelPos.isValid()) {
             final Logger logger = Logger.getLogger("org.esa.cci.sst");
             final String message = MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
-                                                        geoPos.getLon(),
-                                                        geoPos.getLat(),
-                                                        product.getName());
+                    geoPos.getLon(),
+                    geoPos.getLat(),
+                    product.getName());
             logger.fine(message);
         }
         return pixelPos;
@@ -323,7 +322,7 @@ abstract class AbstractProductReader implements Reader {
             final Raster raster = sourceImage.getData(validRectangle);
             if (validRectangle.equals(rectangle)) {
                 raster.getDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height,
-                                       targetArray.getStorage());
+                        targetArray.getStorage());
             } else {
                 final int maxX = minX + sourceImage.getWidth() - 1;
                 final int maxY = minY + sourceImage.getHeight() - 1;

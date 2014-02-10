@@ -26,6 +26,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
@@ -34,11 +35,7 @@ import ucar.nc2.Variable;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Reader for reading from an mmd file.
@@ -92,6 +89,11 @@ public class MmdReader implements Reader {
     public Observation readObservation(final int recordNo) throws IOException {
         validateDelegate(delegateReader);
         return delegateReader.readObservation(recordNo);
+    }
+
+    @Override
+    public List<SamplingPoint> readSamplingPoints() {
+        return new ArrayList<>();
     }
 
     @Override

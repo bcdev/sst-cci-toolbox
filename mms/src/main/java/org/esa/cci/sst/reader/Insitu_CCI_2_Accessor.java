@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.Range;
@@ -8,6 +9,7 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 class Insitu_CCI_2_Accessor implements InsituAccessor {
@@ -85,6 +87,24 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
     @Override
     public List<Range> createSubsampling(Range range, int maxLength) {
         return InsituReaderHelper.createSubsampling(historyTimes, range, maxLength);
+    }
+
+    @Override
+    public List<SamplingPoint> readSamplingPoints() throws IOException {
+        ensureLat();
+        ensureLon();
+
+        final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
+        final int numRecords = historyTimes.getIndexPrivate().getShape(0);
+        for (int i = 0; i < numRecords; i++) {
+            final double secsSince1978 = historyTimes.getDouble(i);
+            final Date date = TimeUtil.secondsSince1978ToDate(secsSince1978);
+            final SamplingPoint samplingPoint = new SamplingPoint(lon.getDouble(i), lat.getDouble(i), date.getTime(), Double.NaN);
+            final String observationName = getObservationName();
+            samplingPoint.setReference(Integer.parseInt(observationName));
+            samplingPoints.add(samplingPoint);
+        }
+        return samplingPoints;
     }
 
     // package access for testing only tb 2014-02-06

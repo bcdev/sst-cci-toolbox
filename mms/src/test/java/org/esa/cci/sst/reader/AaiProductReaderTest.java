@@ -23,6 +23,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -85,5 +87,12 @@ public class AaiProductReaderTest {
         final Item[] columns = reader.getColumns();
 
         assertEquals(1, columns.length);
+    }
+
+    @Test
+    public void testGetSamplingPoints() {
+        final List<SamplingPoint> samplingPoints = reader.readSamplingPoints();
+        assertNotNull(samplingPoints);
+        assertEquals(0, samplingPoints.size());
     }
 }

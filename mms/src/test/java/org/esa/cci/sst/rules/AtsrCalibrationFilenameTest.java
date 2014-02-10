@@ -26,6 +26,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Ignore;
 import org.junit.Test;
 import ucar.ma2.Array;
@@ -33,6 +34,7 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -80,6 +82,11 @@ public class AtsrCalibrationFilenameTest {
 
                     @Override
                     public Array read(String role, ExtractDefinition extractDefinition) throws IOException {
+                        return null;
+                    }
+
+                    @Override
+                    public List<SamplingPoint> readSamplingPoints() {
                         return null;
                     }
 

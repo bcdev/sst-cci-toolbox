@@ -21,6 +21,7 @@ import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.PgUtil;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -110,6 +111,11 @@ class MetopReader extends MdReader implements InsituSource {
     }
 
     @Override
+    public List<SamplingPoint> readSamplingPoints() {
+        return new ArrayList<>();
+    }
+
+    @Override
     public long getTime(int recordNo, int scanLine) throws IOException {
         final double time = getDouble("msr_time", recordNo);
         final double dtime = getDTime(recordNo, scanLine);
@@ -153,7 +159,7 @@ class MetopReader extends MdReader implements InsituSource {
     }
 
     private Point[] getPoints(int recordNo) throws IOException {
-        final List<Point> pointList = new ArrayList<Point>(9);
+        final List<Point> pointList = new ArrayList<>(9);
 
         int lon = getLon(recordNo, 0, 0);
         int lat = getLat(recordNo, 0, 0);

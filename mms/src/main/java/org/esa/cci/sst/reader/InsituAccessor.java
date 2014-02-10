@@ -1,6 +1,7 @@
 package org.esa.cci.sst.reader;
 
 
+import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Range;
 
 import java.io.IOException;
@@ -28,4 +29,6 @@ interface InsituAccessor {
     Range find12HoursRange(Date date);
 
     List<Range> createSubsampling(Range range, int maxLength);
+
+    List<SamplingPoint> readSamplingPoints() throws IOException;
 }

@@ -20,6 +20,7 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
 import org.postgis.PGgeometry;
@@ -31,6 +32,8 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Reads records from an SEVIRI MD NetCDF input file and creates Observations.
@@ -115,8 +118,9 @@ class SeviriReader extends MdReader implements InsituSource {
         return observation;
     }
 
-    private static float coordinateOf(int intCoordinate) {
-        return intCoordinate * 0.0001f;
+    @Override
+    public List<SamplingPoint> readSamplingPoints() {
+        return new ArrayList<>();
     }
 
     @Override
@@ -180,5 +184,9 @@ class SeviriReader extends MdReader implements InsituSource {
     @Override
     public final double readInsituSst(int recordNo) throws IOException {
         return getNumberScaled("msr_sst", recordNo).doubleValue();
+    }
+
+    private static float coordinateOf(int intCoordinate) {
+        return intCoordinate * 0.0001f;
     }
 }
