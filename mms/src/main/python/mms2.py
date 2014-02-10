@@ -1,6 +1,6 @@
-import glob
-import os
 from pmonitor import PMonitor
+
+usecase='mms-wpr-02'
 
 years = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000',
          '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
@@ -81,7 +81,7 @@ for year in years:
     for month in months:
         for sensor, _, __ in sensors:
             inputs.append('/inp/' + sensor + '/' + year + '/' + month)
-for sensor, sensorstart, sensorstop in sensors:
+for (sensor, sensorstart, sensorstop) in sensors:
     if years[0] + '-' + months[0] >= sensorstart:
         prev_month_year, prev_month = prev_year_month_of(years[0], months[0])
     else:
@@ -104,7 +104,7 @@ types = [('ingestion-run2.sh', 12),
          ('reingestion-run2.sh', 12)]
 
 pm = PMonitor(inputs,
-              request='mms2',
+              request=usecase,
               logdir='log',
               hosts=hosts,
               types=types)
@@ -112,7 +112,7 @@ pm = PMonitor(inputs,
 for year in years:
     for month in months:
         pm.execute('ingestion-run2.sh', ['/inp/' + year + '/' + month], ['/obs/' + year + '/' + month],
-                   parameters=[year, month, 'mms2'])
+                   parameters=[year, month, usecase])
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
                 continue
@@ -124,26 +124,26 @@ for year in years:
                        ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
                         '/smp/' + sensor + '/' + year + '/' + month,
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
-                       parameters=[year, month, sensor, samplespermonth, 'mms2'])
+                       parameters=[year, month, sensor, samplespermonth, usecase])
             pm.execute('clearsky-run2.sh', ['/smp/' + sensor + '/' + year + '/' + month],
-                       ['/clr/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mms2'])
+                       ['/clr/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             pm.execute('mmd-run2.sh', ['/clr/' + sensor + '/' + year + '/' + month],
-                       ['/sub/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', 'mms2'])
+                       ['/sub/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', usecase])
             pm.execute('coincidence-run2.sh', ['/clr/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mms2'])
+                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             pm.execute('nwp-run2.sh', ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/nwp/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mms2'])
+                       ['/nwp/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             pm.execute('nwpmatchup-run2.sh', ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/nwp/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mms2'])
+                       ['/nwp/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             pm.execute('arc-run2.sh', ['/nwp/' + sensor + '/' + year + '/' + month],
-                       ['/arc/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mms2'])
+                       ['/arc/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             pm.execute('reingestion-run2.sh', ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', 'mms2'])
+                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', usecase])
             pm.execute('reingestion-run2.sh', ['/nwp/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'nwp', 'mms2'])
+                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'nwp', usecase])
             pm.execute('reingestion-run2.sh', ['/arc/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'arc', 'mms2'])
+                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'arc', usecase])
             pm.execute('mmd-run2.sh', ['/con/' + sensor + '/' + year + '/' + month],
-                       ['/mmd/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mmd2', 'mms2'])
+                       ['/mmd/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mmd2', usecase])
 
 pm.wait_for_completion()
