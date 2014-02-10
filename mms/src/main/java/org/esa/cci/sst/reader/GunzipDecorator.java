@@ -22,6 +22,7 @@ import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 
 import java.io.BufferedOutputStream;
@@ -31,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -114,6 +116,11 @@ public class GunzipDecorator implements Reader {
     @Override
     public final Observation readObservation(int recordNo) throws IOException {
         return delegate.readObservation(recordNo);
+    }
+
+    @Override
+    public List<SamplingPoint> readSamplingPoints() throws IOException {
+        return delegate.readSamplingPoints();
     }
 
     @Override

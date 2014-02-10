@@ -22,11 +22,13 @@ import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Creates Observations and reads actual data from input files.
@@ -111,6 +113,13 @@ public interface Reader extends Closeable {
      * @return the data file.
      */
     DataFile getDatafile();
+
+    /**
+     * Retrieves the list of sampling points contained in the file. i.e. all observations in terms of
+     * location and time.
+     * @return the list of sampling points or empty list - never null.
+     */
+    List<SamplingPoint> readSamplingPoints() throws IOException;
 
     /**
      * Returns a geo-coding for the record given by the record number.

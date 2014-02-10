@@ -1,5 +1,6 @@
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.Range;
@@ -8,6 +9,7 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 class Insitu_CCI_1_Accessor implements InsituAccessor {
@@ -15,6 +17,8 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
     public static final double HALF_JULIAN_DAY = 0.5;
     private final NetcdfReader netcdfReader;
     private Array historyTimes;
+    private Array lon;
+    private Array lat;
 
     Insitu_CCI_1_Accessor(NetcdfReader netcdfReader) {
         this.netcdfReader = netcdfReader;
@@ -80,5 +84,37 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
     @Override
     public List<Range> createSubsampling(Range range, int maxLength) {
         return InsituReaderHelper.createSubsampling(historyTimes, range, maxLength);
+    }
+
+    @Override
+    public List<SamplingPoint> readSamplingPoints() throws IOException {
+        ensureLon();
+        ensureLat();
+        final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
+
+        final int numRecords = historyTimes.getIndexPrivate().getShape(0);
+        for (int i = 0; i < numRecords; i++) {
+            final double mjd = historyTimes.getDouble(i);
+            final Date date = TimeUtil.julianDateToDate(mjd);
+            final SamplingPoint samplingPoint = new SamplingPoint(lon.getDouble(i), lat.getDouble(i), date.getTime(), Double.NaN);
+            final String wmoId = getObservationName();
+            samplingPoint.setReference(Integer.parseInt(wmoId));
+            samplingPoints.add(samplingPoint);
+        }
+        return samplingPoints;
+    }
+
+    private void ensureLon() throws IOException {
+        if (lon == null) {
+            final Variable lonVariable = netcdfReader.getVariable("insitu.longitude");
+            lon = lonVariable.read();
+        }
+    }
+
+    private void ensureLat() throws IOException {
+        if (lat == null) {
+            final Variable latVariable = netcdfReader.getVariable("insitu.latitude");
+            lat = latVariable.read();
+        }
     }
 }

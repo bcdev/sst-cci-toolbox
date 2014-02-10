@@ -19,12 +19,15 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Reader for AVHRR-based matchup datasets.
@@ -74,6 +77,11 @@ class AvhrrMdReader extends MdReader implements InsituSource {
     @Override
     public InsituSource getInsituSource() {
         return this;
+    }
+
+    @Override
+    public List<SamplingPoint> readSamplingPoints() {
+        return new ArrayList<>();
     }
 
     @Override

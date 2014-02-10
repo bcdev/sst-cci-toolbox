@@ -21,6 +21,7 @@ import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.util.GeometryUtil;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
@@ -105,6 +106,12 @@ class InsituReader extends NetcdfReader {
         }
         observation.setLocation(createLineGeometry(startLon, startLat, endLon, endLat));
         return observation;
+    }
+
+
+    @Override
+    public List<SamplingPoint> readSamplingPoints() throws IOException {
+        return insituAccessor.readSamplingPoints();
     }
 
     @Override
