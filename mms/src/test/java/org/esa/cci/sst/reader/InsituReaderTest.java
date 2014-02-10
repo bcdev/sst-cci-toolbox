@@ -16,8 +16,11 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.common.ExtractDefinition;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.LineString;
@@ -42,17 +45,15 @@ import static org.junit.Assert.*;
  */
 public class InsituReaderTest {
 
-    private static final double HALF_DAY_MJD = 0.5;
-    private static final int HALF_DAY_SECS = 43200;
-
     @Test
-    public void testReadSST_CCI_V1_Data() throws Exception {
+    public void testReadObservation_SST_CCI_V1_Data() throws Exception {
         final InsituObservation observation;
 
-        try (InsituReader handler = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
-            observation = handler.readObservation(0);
+        try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
 
-            final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+            final Calendar calendar = createUtcCalendar();
             calendar.setTimeInMillis(observation.getTime().getTime());
             assertEquals(2007, calendar.get(Calendar.YEAR));
             assertEquals(11, calendar.get(Calendar.MONTH));
@@ -76,194 +77,141 @@ public class InsituReaderTest {
         }
     }
 
-    // @todo 1 tb/tb continue here 2014-01-29
-//    @Test
-//    public void testReadSST_CCI_V2_Argo_Data() throws Exception {
-//        final InsituObservation observation;
-//
-//        try (InsituReader handler = createReader("SSTCCI2_refdata_200002_argo_sample.nc")) {
-//
-//        }
-//    }
-
     @Test
-    public void testFindRange_illegalRank() {
-        final double[][] twoDims = {{1.0, 2.0}, {3.0, 4.0}};
-        final Array historyTimes = Array.factory(twoDims);
+    public void testRead_SST_CCI_V1_Data() throws Exception {
+        final Calendar calendar = creatUtcCalendar(2007, 11, 18);
 
-        try {
-            InsituReader.findRange(historyTimes, 12, HALF_DAY_MJD);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException expected) {
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        refObs.setTime(calendar.getTime());
+        builder.referenceObservation(refObs);
+        builder.shape(new int[]{1, 14});
+        final ExtractDefinition extractDefinition = builder.build();
+
+        try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
+            final Array array = reader.read("insitu.sea_surface_temperature", extractDefinition);
+            assertNotNull(array);
+            assertEquals(14, array.getSize());
+
+            assertEquals(300.31, array.getDouble(0), 1e-5);
+            assertEquals(300.31, array.getDouble(7), 1e-5);
+            assertEquals(300.22998046875, array.getDouble(13), 1e-5);
         }
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeInHistory_MJD() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2455090.56;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
+    public void testReadObservation_SST_CCI_V2_Drifter_Data() throws Exception {
+        final InsituObservation observation;
 
-        assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - HALF_DAY_MJD);
-        assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - HALF_DAY_MJD);
-        assertTrue(historyTimes.getDouble(range.last()) <= referenceTime + HALF_DAY_MJD);
-        assertTrue(historyTimes.getDouble(range.last() + 1) > referenceTime + HALF_DAY_MJD);
+        try (InsituReader reader = createReader("insitu_0_WMOID_71569_20030117_20030131.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
+
+            final Calendar calendar = createUtcCalendar();
+            calendar.setTimeInMillis(observation.getTime().getTime());
+            assertEquals(2003, calendar.get(Calendar.YEAR));
+            assertEquals(0, calendar.get(Calendar.MONTH));
+            assertEquals(24, calendar.get(Calendar.DATE));
+
+            assertEquals(636173.5, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertTrue(geometry instanceof LineString);
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(-56.04999923706055, startPoint.getX(), 1e-8);
+            assertEquals(-60.0, startPoint.getY(), 1e-8);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(-56.77000045776367, endPoint.getX(), 1e-8);
+            assertEquals(-60.77000045776367, endPoint.getY(), 1e-8);
+        }
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeInHistory_SECS_1978() {
-        final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 790904339;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
+    public void testRead_SST_CCI_V2_Drifter_Data() throws Exception {
+        final Calendar calendar = creatUtcCalendar(2003, 0, 25);
 
-        assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - HALF_DAY_SECS);
-        assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - HALF_DAY_SECS);
-        assertTrue(historyTimes.getDouble(range.last()) <= referenceTime + HALF_DAY_SECS);
-        assertTrue(historyTimes.getDouble(range.last() + 1) > referenceTime + HALF_DAY_SECS);
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        refObs.setTime(calendar.getTime());
+        builder.referenceObservation(refObs);
+        builder.shape(new int[]{1, 12});
+        final ExtractDefinition extractDefinition = builder.build();
+
+        try (InsituReader reader = createReader("insitu_0_WMOID_71569_20030117_20030131.nc")) {
+            final Array array = reader.read("sst", extractDefinition);
+            assertNotNull(array);
+            assertEquals(12, array.getSize());
+
+            assertEquals(2.2, array.getDouble(0), 1e-6);
+            assertEquals(2.2, array.getDouble(5), 1e-6);
+            assertEquals(2.3, array.getDouble(11), 1e-6);
+        }
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeAtStartOfHistory_MJD() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2454939.446;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
+    public void testReadObservation_SST_CCI_V2_Argo_Data() throws Exception {
+        final InsituObservation observation;
 
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime);
-        assertTrue(historyTimes.getDouble(range.last()) <= referenceTime + HALF_DAY_MJD);
-        assertTrue(historyTimes.getDouble(range.last() + 1) > referenceTime + HALF_DAY_MJD);
+        try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
+
+            final Calendar calendar = createUtcCalendar();
+            calendar.setTimeInMillis(observation.getTime().getTime());
+            assertEquals(2003, calendar.get(Calendar.YEAR));
+            assertEquals(0, calendar.get(Calendar.MONTH));
+            assertEquals(20, calendar.get(Calendar.DATE));
+
+            assertEquals(859463.0, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertTrue(geometry instanceof LineString);
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(4.541999816894531, startPoint.getX(), 1e-8);
+            assertEquals(-62.78499984741211, startPoint.getY(), 1e-8);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(3.2060000896453857, endPoint.getX(), 1e-8);
+            assertEquals(-62.749000549316406, endPoint.getY(), 1e-8);
+        }
     }
 
     @Test
-    public void testFindRange_ForReferenceTimeAtStartOfHistory_SECS_1978() {
-        final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 790323660;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
+    public void testRead_SST_CCI_V2_Argo_Data() throws Exception {
+        final Calendar calendar = creatUtcCalendar(2003, 0, 20);
 
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime);
-        assertTrue(historyTimes.getDouble(range.last()) <= referenceTime + HALF_DAY_SECS);
-        assertTrue(historyTimes.getDouble(range.last() + 1) > referenceTime + HALF_DAY_SECS);
-    }
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder();
+        final ReferenceObservation refObs = new ReferenceObservation();
+        refObs.setTime(calendar.getTime());
+        builder.referenceObservation(refObs);
+        builder.shape(new int[]{1, 3});
+        final ExtractDefinition extractDefinition = builder.build();
 
-    @Test
-    public void testFindRange_ForReferenceTimeAtEndOfHistory_MJD() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2455097.774;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
+        try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
+            final Array array = reader.read("sst", extractDefinition);
+            assertNotNull(array);
+            assertEquals(3, array.getSize());
 
-        assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - HALF_DAY_MJD);
-        assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - HALF_DAY_MJD);
-        assertTrue(historyTimes.getDouble(range.last()) == referenceTime);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeAtEndOfHistory_SECS_1978() {
-        final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 791596007;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
-
-        assertTrue(historyTimes.getDouble(range.first() - 1) < referenceTime - HALF_DAY_SECS);
-        assertTrue(historyTimes.getDouble(range.first()) >= referenceTime - HALF_DAY_SECS);
-        assertEquals(referenceTime, historyTimes.getDouble(range.last()), 1e-8);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeAtLowerLimit_MJD() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2454939.446 - HALF_DAY_MJD;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
-
-        assertNotSame(Range.EMPTY, range);
-        assertTrue(range.first() == range.last());
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime + HALF_DAY_MJD);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeAtLowerLimit_SECS_1978() {
-        final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 790323660 - HALF_DAY_SECS;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
-
-        assertNotSame(Range.EMPTY, range);
-        assertTrue(range.first() == range.last());
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime + HALF_DAY_SECS);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeAtUpperLimit_MJD() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2455097.774 + HALF_DAY_MJD;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
-
-        assertNotSame(Range.EMPTY, range);
-        assertTrue(range.first() == range.last());
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime - HALF_DAY_MJD);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeAtUpperLimit_SECS_1978() {
-        final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 791596007 + HALF_DAY_SECS;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
-
-        assertNotSame(Range.EMPTY, range);
-        assertTrue(range.first() == range.last());
-        assertTrue(historyTimes.getDouble(range.first()) == referenceTime - HALF_DAY_SECS);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeBeforeHistory_MJD() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2454939.446 - 2 * HALF_DAY_MJD;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
-
-        assertSame(Range.EMPTY, range);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeBeforeHistory_SECS_1978() {
-        final Array historyTimes = createHistoryTimeArray_SECS_1978();
-        final double referenceTime = 790323660 - 2 * HALF_DAY_SECS;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
-
-        assertSame(Range.EMPTY, range);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeAfterHistory_MJD() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 2455097.774 + 2 * HALF_DAY_MJD;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_MJD);
-
-        assertSame(Range.EMPTY, range);
-    }
-
-    @Test
-    public void testFindRange_ForReferenceTimeAfterHistory_SECS_1978() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final double referenceTime = 791596007 + 2 * HALF_DAY_SECS;
-        final Range range = InsituReader.findRange(historyTimes, referenceTime, HALF_DAY_SECS);
-
-        assertSame(Range.EMPTY, range);
-    }
-
-    @Test
-    public void testCreateSubsampling() {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final Range r = InsituReader.findRange(historyTimes, 2455090.56, 0.5);
-        final List<Range> s = InsituReader.createSubsampling(historyTimes, r, 10);
-
-        assertEquals(10, s.size());
-        assertEquals(r.first(), s.get(0).first());
-        assertEquals(r.first(), s.get(0).last());
-        assertEquals(r.last(), s.get(9).first());
-        assertEquals(r.last(), s.get(9).last());
+            assertEquals(0.621, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(-32768.0, array.getDouble(2), 1e-6);
+        }
     }
 
     @Test
     public void testCreateSubset_1D() throws InvalidRangeException {
-        final Array historyTimes = createHistoryTimeArray_MJD();
-        final Range range = InsituReader.findRange(historyTimes, 2455090.56, 0.5);
-        final List<Range> s = InsituReader.createSubsampling(historyTimes, range, 10);
+        final Array historyTimes = InsituData.createHistoryTimeArray_MJD();
+        final Range range = InsituReaderHelper.findRange(historyTimes, 2455090.56, 0.5);
+        final List<Range> s = InsituReaderHelper.createSubsampling(historyTimes, range, 10);
         final Array subset = Array.factory(historyTimes.getElementType(), new int[]{1, 10});
         InsituReader.extractSubset(historyTimes, subset, s);
 
@@ -275,10 +223,10 @@ public class InsituReaderTest {
 
     @Test
     public void testCreateSubset_2D() throws InvalidRangeException {
-        final Array historyTimes = createHistoryTimeArray_MJD();
+        final Array historyTimes = InsituData.createHistoryTimeArray_MJD();
         final int historyLength = historyTimes.getIndexPrivate().getShape(0);
-        final Range range = InsituReader.findRange(historyTimes, 2455090.56, 0.5);
-        final List<Range> s = InsituReader.createSubsampling(historyTimes, range, 10);
+        final Range range = InsituReaderHelper.findRange(historyTimes, 2455090.56, 0.5);
+        final List<Range> s = InsituReaderHelper.createSubsampling(historyTimes, range, 10);
 
         final Array array = Array.factory(DataType.INT, new int[]{historyLength, 2});
         final Array subset = Array.factory(array.getElementType(), new int[]{1, 10, 2});
@@ -366,12 +314,16 @@ public class InsituReaderTest {
         }
     }
 
-    private static Array createHistoryTimeArray_MJD() {
-        return Array.factory(InsituData.MJD_TIMES);
-    }
+    @Test
+    public void testIsNotOnPlanet() {
+        assertFalse(InsituReader.isNotOnPlanet(0.0, 0.0));
+        assertFalse(InsituReader.isNotOnPlanet(-17.0, 56.0));
+        assertFalse(InsituReader.isNotOnPlanet(38.0, -36.0));
 
-    private static Array createHistoryTimeArray_SECS_1978() {
-        return Array.factory(InsituData.SECS_1978_TIMES_DRIFTER);
+        assertTrue(InsituReader.isNotOnPlanet(90.1, -36.0));
+        assertTrue(InsituReader.isNotOnPlanet(-90.1, -36.0));
+        assertTrue(InsituReader.isNotOnPlanet(18.3, -180.1));
+        assertTrue(InsituReader.isNotOnPlanet(18.3, 180.1));
     }
 
     private static InsituReader createReader(String resourceName) throws Exception {
@@ -390,5 +342,20 @@ public class InsituReaderTest {
         final URI uri = url.toURI();
 
         return new File(uri);
+    }
+
+    private Calendar createUtcCalendar() {
+        return new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+    }
+
+    private Calendar creatUtcCalendar(int year, int month, int day) {
+        final Calendar calendar = createUtcCalendar();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        return calendar;
     }
 }

@@ -141,6 +141,10 @@ abstract public class NetcdfReader implements Reader {
         return variableMap.get(name);
     }
 
+    public double getGlobalAttributeDouble(String attributeName) {
+        return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
+    }
+
     protected static Number getAttribute(Variable variable, String attributeName, Number defaultValue) {
         final Attribute attribute = variable.findAttribute(attributeName);
         if (attribute == null) {

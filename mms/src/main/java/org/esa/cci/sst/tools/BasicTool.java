@@ -239,7 +239,7 @@ public abstract class BasicTool {
                 return false;
             }
             if (commandLine.hasOption("help")) {
-                printHelp("");
+                printHelp();
                 return false;
             }
             File configurationFile = (File) commandLine.getParsedOptionValue(CONFIG_FILE_OPTION_NAME);
@@ -320,8 +320,8 @@ public abstract class BasicTool {
     protected void setAdditionalCommandLineArgs(CommandLine commandLine) {
     }
 
-    protected void printHelp(String footer) {
-        new HelpFormatter().printHelp(getCommandLineSyntax(), "Valid options are", getOptions(), footer, true);
+    protected void printHelp() {
+        new HelpFormatter().printHelp(getCommandLineSyntax(), "Valid options are", getOptions(), "", true);
     }
 
     private void addConfigurationProperties(File configurationFile) {

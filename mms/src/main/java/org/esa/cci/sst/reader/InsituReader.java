@@ -20,6 +20,7 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.util.GeometryUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LineString;
 import org.postgis.PGgeometry;
@@ -32,7 +33,6 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -45,7 +45,6 @@ class InsituReader extends NetcdfReader {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
 
-    private Array historyTimes;
     private InsituAccessor insituAccessor;
 
     static {
@@ -71,14 +70,11 @@ class InsituReader extends NetcdfReader {
         }
 
         insituAccessor.readHistoryTimes();
-
-        historyTimes = readHistoryTimes();
     }
 
     @Override
     public void close() {
         super.close();
-        historyTimes = null;
     }
 
     @Override
@@ -91,7 +87,7 @@ class InsituReader extends NetcdfReader {
         final InsituObservation observation = new InsituObservation();
         final DataFile dataFile = getDatafile();
         observation.setDatafile(dataFile);
-        observation.setName(getNetcdfFile().findGlobalAttribute("wmo_id").getStringValue());
+        observation.setName(insituAccessor.getObservationName());
         observation.setRecordNo(0);
         observation.setSensor(getSensorName());
 
@@ -100,18 +96,14 @@ class InsituReader extends NetcdfReader {
         observation.setTime(TimeUtil.centerTime(startTime, endTime));
         observation.setTimeRadius(TimeUtil.timeRadius(startTime, endTime));
 
-        try {
-            final double startLon = (parseDouble("start_lon") + 180.0) % 360.0 - 180.0;
-            final double startLat = parseDouble("start_lat");
-            final double endLon = (parseDouble("end_lon") + 180.0) % 360.0 - 180.0;
-            final double endLat = parseDouble("end_lat");
-            if (startLat < -90.0 || startLat > 90.0 || endLat < -90.0 || endLat > 90.0) {
-                throw new IOException(String.format("latitude attributes (%g .. %g) out of range (-90.0 .. 90.0)", startLat, endLat));
-            }
-            observation.setLocation(createLineGeometry(startLon, startLat, endLon, endLat));
-        } catch (ParseException e) {
-            throw new IOException("Unable to set location.", e);
+        final double startLon = GeometryUtil.normalizeLongitude(insituAccessor.getStartLon());
+        final double startLat = insituAccessor.getStartLat();
+        final double endLon = GeometryUtil.normalizeLongitude(insituAccessor.getEndLon());
+        final double endLat = insituAccessor.getEndLat();
+        if (isNotOnPlanet(startLat, endLat)) {
+            throw new IOException(String.format("latitude attributes (%g .. %g) out of range (-90.0 .. 90.0)", startLat, endLat));
         }
+        observation.setLocation(createLineGeometry(startLon, startLat, endLon, endLat));
         return observation;
     }
 
@@ -127,7 +119,7 @@ class InsituReader extends NetcdfReader {
             target.setObject(i, fillValue);
         }
         if (range != Range.EMPTY) {
-            final List<Range> subsampling = createSubsampling(historyTimes, range, extractDefinition.getShape()[1]);
+            final List<Range> subsampling = insituAccessor.createSubsampling(range, extractDefinition.getShape()[1]);
             try {
                 extractSubset(source, target, subsampling);
             } catch (InvalidRangeException e) {
@@ -167,84 +159,9 @@ class InsituReader extends NetcdfReader {
         throw new IllegalStateException("Not implemented");
     }
 
-    /**
-     * Returns the range of the in-situ history time data that falls within ±12 hours of a
-     * given reference time.
-     *
-     * @param historyTimes  The in-situ history time data (JD). The array must be of rank 1 and
-     *                      its elements must be sorted in ascending order.
-     * @param referenceTime The reference time (JD).
-     * @return the range of the in-situ history time data that falls within ±12 hours of the
-     * given reference time.
-     * @throws IllegalArgumentException when {@code historyTimes.getRank() != 1}.
-     */
-    static Range findRange(Array historyTimes, double referenceTime, double timeDelta) {
-        if (historyTimes.getRank() != 1) {
-            throw new IllegalArgumentException("history.getRank() != 1");
-        }
-        if (referenceTime + timeDelta < historyTimes.getDouble(0)) {
-            return Range.EMPTY;
-        }
-        final int historyLength = historyTimes.getIndexPrivate().getShape(0);
-        if (referenceTime - timeDelta > historyTimes.getDouble(historyLength - 1)) {
-            return Range.EMPTY;
-        }
-        int startIndex = -1;
-        int endIndex = -1;
-        for (int i = 0; i < historyLength; i++) {
-            final double time = historyTimes.getDouble(i);
-            if (startIndex == -1) {
-                if (time >= referenceTime - timeDelta) {
-                    startIndex = i;
-                    endIndex = startIndex;
-                }
-            } else {
-                if (time <= referenceTime + timeDelta) {
-                    endIndex = i;
-                } else {
-                    break;
-                }
-            }
-        }
-        try {
-            return new Range(startIndex, endIndex);
-        } catch (InvalidRangeException e) {
-            return Range.EMPTY;
-        }
-    }
-
-    private double parseDouble(String attributeName) throws ParseException {
-        return Double.parseDouble(getNetcdfFile().findGlobalAttribute(attributeName).getStringValue());
-    }
-
-    private Array readHistoryTimes() throws IOException {
-        return getVariable("insitu.time").read();
-    }
-
-    static List<Range> createSubsampling(Array historyTimes, Range range, int maxLength) {
-        try {
-            final List<Range> subsampling = new ArrayList<>();
-            if (range.length() > maxLength) {
-                subsampling.add(new Range(range.first(), range.first()));
-                // get maxLength-2 entries from the history
-                final double startTime = historyTimes.getDouble(range.first());
-                final double endTime = historyTimes.getDouble(range.last());
-                final double timeStep = (endTime - startTime) / (maxLength - 1);
-                for (int i = range.first() + 1; i < range.last(); i++) {
-                    if (historyTimes.getDouble(i) >= startTime + subsampling.size() * timeStep) {
-                        if (subsampling.size() < maxLength - 1) {
-                            subsampling.add(new Range(i, i));
-                        }
-                    }
-                }
-                subsampling.add(new Range(range.last(), range.last()));
-            } else { // no subset needed
-                subsampling.add(range);
-            }
-            return subsampling;
-        } catch (InvalidRangeException e) {
-            return Collections.emptyList();
-        }
+    // package access for testing only tb 2014-02-06
+    static boolean isNotOnPlanet(double startLat, double endLat) {
+        return startLat < -90.0 || startLat > 90.0 || endLat < -90.0 || endLat > 90.0;
     }
 
     static void extractSubset(Array source, Array subset, List<Range> subsetRanges) throws InvalidRangeException {

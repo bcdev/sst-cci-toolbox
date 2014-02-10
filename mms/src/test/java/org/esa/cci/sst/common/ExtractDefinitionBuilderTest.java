@@ -66,6 +66,22 @@ public class ExtractDefinitionBuilderTest {
     }
 
     @Test
+    public void testBuild_referenceObservation_withoutLocation() throws SQLException {
+        final Date time = new Date(100000000);
+        final ReferenceObservation referenceObservation = new ReferenceObservation();
+        referenceObservation.setTime(time);
+
+        builder.referenceObservation(referenceObservation);
+
+        final ExtractDefinition ed = builder.build();
+        assertNotNull(ed);
+
+        assertEquals(Double.NaN, ed.getLon(), 1e-8);
+        assertEquals(Double.NaN, ed.getLat(), 1e-8);
+        assertEquals(time.getTime(), ed.getDate().getTime());
+    }
+
+    @Test
     public void testBuild_recordNo() {
         builder.recordNo(85);
 
