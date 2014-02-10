@@ -1,6 +1,7 @@
 from pmonitor import PMonitor
 
-usecase = 'mms-wpr-02'
+# usecase = 'mms-wpr-02' - no, short names simplify operations
+usecase = 'mms2'
 
 # TODO for testing only, remove this line when producing
 years = ['2002', '2003']
@@ -8,8 +9,9 @@ years = ['2002', '2003']
 #         '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
 #         '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-# TODO replace dates with exact dates of start and end of mission
-sensors = {('atsr.1', '1991-01-17', '1998-07-15'), ('atsr.2', '1998-02', '2003-03'), ('atsr.3', '2002-04', '2012-04')}
+# dates replaced with exact dates of start and end of mission, Ralf, please delete this comment after reading
+sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'), ('atsr.3', '2002-05-20', '2012-04-08')}
+# 300000 leads to about 2500 surviving samples per month
 samplespermonth = 300000
 
 # archiving rules
@@ -81,6 +83,7 @@ for year in years:
     for month in months:
         for sensor, _, __ in sensors:
             inputs.append('/inp/' + sensor + '/' + year + '/' + month)
+# add fulfilled preconditions for temporal boundary around mission start and end
 for (sensor, sensorstart, sensorstop) in sensors:
     if years[0] + '-' + months[0] >= sensorstart:
         prev_month_year, prev_month = prev_year_month_of(years[0], months[0])
@@ -122,7 +125,7 @@ for year in years:
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
             # 2. Generate sampling points per month and sensor
-            # TODO - inputs for months before and after sensorstart and sensorstop will never be available
+            # inputs for months before and after sensorstart and sensorstop had been added as fulfilled preconditions initially
             pm.execute('sampling-run2.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,
                         '/obs/' + year + '/' + month,
@@ -134,8 +137,8 @@ for year in years:
             # 3. Remove cloudy sub-scenes
             pm.execute('clearsky-run2.sh', ['/smp/' + sensor + '/' + year + '/' + month],
                        ['/clr/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
-            # 4. Create matchup entries in database
-            # TODO - wrong script is used here
+            # 4. Create MMD with subscenes
+            # Wrong script is used here? - No, the 'sub' selects a variable config to extract subscenes
             pm.execute('mmd-run2.sh', ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', usecase])
             # 5. Add coincidences from Sea Ice and Aerosol data
