@@ -1,12 +1,14 @@
 from pmonitor import PMonitor
 
-usecase='mms-wpr-02'
+usecase = 'mms-wpr-02'
 
-years = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000',
-         '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
-         '2011', '2012']
+# TODO for testing only, remove this line when producing
 years = ['2002', '2003']
+#years = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000',
+#         '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
+#         '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+# TODO replace dates with exact dates of start and end of mission
 sensors = {('atsr.1', '1991-01-17', '1998-07-15'), ('atsr.2', '1998-02', '2003-03'), ('atsr.3', '2002-04', '2012-04')}
 samplespermonth = 300000
 
@@ -19,8 +21,6 @@ samplespermonth = 300000
 # mms/archive/mms2/nwp/atsr.3/2003/atsr.3-nwpFc-2003-01.nc
 # mms/archive/mms2/arc/atsr.3/2003/atsr.3-arc-2003-01.nc
 # mms/archive/mms2/mmd/atsr.3/2003/atsr.3-mmd-2003-01.nc
-
-# TODO consider exact dates of start and end of mission for sampling
 
 def prev_year_month_of(year, month):
     if month == '02':
@@ -111,20 +111,27 @@ pm = PMonitor(inputs,
 
 for year in years:
     for month in months:
-        pm.execute('ingestion-run2.sh', ['/inp/' + year + '/' + month], ['/obs/' + year + '/' + month],
+        # 1. Ingestion of all sensor data required for month
+        pm.execute('ingestion-run2.sh',
+                   ['/inp/' + year + '/' + month],
+                   ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
                 continue
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
+            # 2. Generate sampling points per month and sensor
+            # TODO - inputs for months before and after sensorstart and sensorstop will never be available
             pm.execute('sampling-run2.sh',
-                       ['/obs/' + prev_month_year + '/' + prev_month, '/obs/' + year + '/' + month,
+                       ['/obs/' + prev_month_year + '/' + prev_month,
+                        '/obs/' + year + '/' + month,
                         '/obs/' + next_month_year + '/' + next_month],
                        ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
                         '/smp/' + sensor + '/' + year + '/' + month,
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        parameters=[year, month, sensor, samplespermonth, usecase])
+            # 3. Remove cloudy sub-scenes
             pm.execute('clearsky-run2.sh', ['/smp/' + sensor + '/' + year + '/' + month],
                        ['/clr/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             pm.execute('mmd-run2.sh', ['/clr/' + sensor + '/' + year + '/' + month],
