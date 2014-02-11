@@ -28,7 +28,8 @@ public class Nwp {
     @SuppressWarnings({"ConstantConditions"})
     public static void main(String[] args) throws IOException, InterruptedException {
         final NwpTool nwpTool = new NwpTool(args);
-        if (nwpTool.computeMatchups()) {
+        final boolean forMatchupPoints = nwpTool.extractNwpForMatchupPoints();
+        if (forMatchupPoints) {
             nwpTool.createMatchupAnFile();
             nwpTool.createMatchupFcFile();
         } else {
