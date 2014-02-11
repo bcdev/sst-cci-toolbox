@@ -14,7 +14,6 @@ package org.esa.cci.sst.util;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
@@ -23,7 +22,6 @@ import org.esa.cci.sst.tools.Configuration;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +35,6 @@ public final class ReaderCache {
 
 
     public ReaderCache(int capacity, Configuration configuration, Logger logger) {
-
         this.readerCache = new Cache<>(capacity);
         this.configuration = configuration;
         this.logger = logger;
