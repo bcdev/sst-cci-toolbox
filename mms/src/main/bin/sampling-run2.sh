@@ -14,7 +14,7 @@ let d1="d + 32 * 86400"
 starttime=$year-$month-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @$d1`-01T00:00:00Z
 
-sampling-tool.sh -c $usecase-config.xml \
+sampling-tool.sh -c $usecase-config.properties \
 -Dmms.sampling.startTime=${starttime} \
 -Dmms.sampling.stopTime=${stoptime} \
 -Dmms.sampling.sensor=${sensor} \
