@@ -38,6 +38,7 @@ wait_for_task_jobs_completion() {
         sleep 120
         
         echo "`date -u +%Y%m%d-%H%M%S` inquiring jobs $jobs for $step $year/$month"
+        # TODO - replace 'qstat' with 'bjobs'?
         if qstat | egrep -q "$jobs"
         then
             continue
