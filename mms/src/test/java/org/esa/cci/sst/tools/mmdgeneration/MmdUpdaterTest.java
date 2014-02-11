@@ -16,8 +16,10 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.tools.Configuration;
 import org.junit.Before;
 import org.junit.Test;
+import sun.security.krb5.Config;
 import ucar.ma2.DataType;
 import ucar.nc2.NetcdfFileWriteable;
 
@@ -43,10 +45,10 @@ public class MmdUpdaterTest {
     public MmdUpdater createUpdater(final String variableList) throws IOException {
         MmdUpdater updater = new MmdUpdater() {
             @Override
-            public Properties getConfiguration() {
-                final Properties properties = new Properties();
-                properties.setProperty("mms.mmdupdate.variables", variableList);
-                properties.setProperty("mms.mmdupdate.mmd", fileLocation);
+            public Configuration getConfig() {
+                final Configuration properties = new Configuration();
+                properties.put("mms.mmdupdate.variables", variableList);
+                properties.put("mms.mmdupdate.mmd", fileLocation);
                 return properties;
             }
 

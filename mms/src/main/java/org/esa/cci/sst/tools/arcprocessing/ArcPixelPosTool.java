@@ -27,17 +27,12 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.reader.ArcBandPartReader;
 import org.esa.cci.sst.reader.ArcPixelGeoCodingReader;
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,10 +65,11 @@ public class ArcPixelPosTool extends BasicTool {
     }
 
     void createPixelPositions() throws IOException {
-        final Properties configuration = getConfiguration();
-        final String latlonFile = configuration.getProperty(Constants.PROPERTY_LATLONFILE);
-        final String locationFile = configuration.getProperty(Constants.PROPERTY_LOCATIONFILE);
+        final Configuration config = getConfig();
+        final String latlonFile = config.getStringValue(Constants.PROPERTY_LATLONFILE);
+        final String locationFile = config.getStringValue(Constants.PROPERTY_LOCATIONFILE);
         validateInput(locationFile, latlonFile);
+
         final Product product = readProduct(locationFile);
         final GeoCoding geoCoding = product.getGeoCoding();
         final BufferedReader reader = new BufferedReader(new FileReader(latlonFile));
@@ -129,7 +125,9 @@ public class ArcPixelPosTool extends BasicTool {
     }
 
     private void createPixelPosFile() throws IOException {
-        final String latlonFilename = getConfiguration().getProperty(Constants.PROPERTY_LATLONFILE);
+        final Configuration config = getConfig();
+        final String latlonFilename = config.getStringValue(Constants.PROPERTY_LATLONFILE);
+
         final String pixelposFilename;
         if (latlonFilename.endsWith(Arc1ProcessingTool.LATLON_FILE_EXTENSION)) {
             final int length = latlonFilename.length() - Arc1ProcessingTool.LATLON_FILE_EXTENSION.length();
@@ -152,9 +150,9 @@ public class ArcPixelPosTool extends BasicTool {
 
     private void validateInput(final String locationFile, final String latlonFile) {
         Assert.notNull(locationFile,
-                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.PROPERTY_LOCATIONFILE));
+                MessageFormat.format("Property ''{0}'' must not be null.", Constants.PROPERTY_LOCATIONFILE));
         Assert.notNull(latlonFile,
-                       MessageFormat.format("Property ''{0}'' must not be null.", Constants.PROPERTY_LOCATIONFILE));
+                MessageFormat.format("Property ''{0}'' must not be null.", Constants.PROPERTY_LOCATIONFILE));
     }
 
     private void initBuffer(final String firstLine) {

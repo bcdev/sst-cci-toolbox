@@ -137,7 +137,7 @@ for year in years:
             pm.execute('clearsky-run2.sh', ['/smp/' + sensor + '/' + year + '/' + month],
                        ['/clr/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             # 4. Create MMD with subscenes
-            # Wrong script is used here? - No, the 'sub' selects a variable config to extract subscenes
+            # Wrong script is used here? - No, the 'sub' selects a variable configuration to extract subscenes
             pm.execute('mmd-run2.sh', ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', usecase])
             # 5. Add coincidences from Sea Ice and Aerosol data

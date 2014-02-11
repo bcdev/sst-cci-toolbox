@@ -68,7 +68,7 @@ public class MmdUpdater extends BasicTool {
         final MmdTool mmdTool = new MmdTool();
         mmdTool.setCommandLineArgs(args);
         mmdTool.initialize();
-        final String mmdLocation = getConfiguration().getProperty("mms.mmdupdate.mmd");
+        final String mmdLocation = getConfig().getStringValue("mms.mmdupdate.mmd");
         final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(mmdLocation, null);
         mmdTool.writeMmdShuffled(mmd, variables, recordOfMatchupMap);
     }
@@ -111,7 +111,7 @@ public class MmdUpdater extends BasicTool {
     }
 
     void openMmd() {
-        final String mmdLocation = getConfiguration().getProperty("mms.mmdupdate.mmd");
+        final String mmdLocation = getConfig().getStringValue("mms.mmdupdate.mmd");
         try {
             final boolean canOpen = NetcdfFileWriteable.canOpen(mmdLocation);
             if(!canOpen) {
@@ -124,7 +124,7 @@ public class MmdUpdater extends BasicTool {
     }
 
     void parseVariables() {
-        final String updateVariables = getConfiguration().getProperty("mms.mmdupdate.variables");
+        final String updateVariables = getConfig().getStringValue("mms.mmdupdate.variables");
         for (String updateVariable : updateVariables.split(",")) {
             final Variable variable = mmd.findVariable(NetcdfFile.makeValidPathName(updateVariable));
             if (variable == null) {

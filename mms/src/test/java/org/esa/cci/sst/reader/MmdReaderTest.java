@@ -17,6 +17,8 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.Constants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,9 +27,9 @@ import ucar.nc2.NetcdfFile;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Thomas Storm
@@ -40,10 +42,10 @@ public class MmdReaderTest {
 
     @Before
     public void setUp() throws Exception {
-        final Properties configuration = new Properties();
-        configuration.setProperty("mms.reingestion.sensor", "avhrr.n15");
-        configuration.setProperty("mms.reingestion.pattern", "10000");
-        configuration.setProperty("mms.reingestion.located", "yes");
+        final Configuration configuration = new Configuration();
+        configuration.put("mms.reingestion.sensor", "avhrr.n15");
+        configuration.put("mms.reingestion.pattern", "10000");
+        configuration.put(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "yes");
 
         mmdReader = new MmdReader("avhrr.n15");
         mmdReader.setConfiguration(configuration);
@@ -81,7 +83,7 @@ public class MmdReaderTest {
         assertNotNull(mmdObj);
         final String location = mmdObj.getLocation();
         int index = location.lastIndexOf('/');
-        if(index == -1) {
+        if (index == -1) {
             index = location.lastIndexOf('\\');
         }
         assertEquals(TEST_WITH_ACTUAL_DATA, location.substring(index + 1, location.length()));

@@ -16,13 +16,7 @@
 
 package org.esa.cci.sst.tools;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.util.logging.BeamLogManager;
 import org.esa.cci.sst.data.DataFile;
@@ -33,24 +27,13 @@ import org.esa.cci.sst.util.TimeUtil;
 
 import javax.media.jai.JAI;
 import javax.persistence.Query;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * The base class for all MMS command line tools.
@@ -98,7 +81,7 @@ public abstract class BasicTool {
 
     private final String name;
     private final String version;
-    private final Properties configuration;
+    private final Configuration config;
     private final Options options;
 
     private Logger logger;
@@ -112,7 +95,6 @@ public abstract class BasicTool {
 
     static {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        Locale.setDefault(Locale.ENGLISH);
         Locale.setDefault(Locale.ENGLISH);
 
         System.setProperty("EPSG-HSQL.directory", System.getProperty("user.home", ".") + File.separator + "tmp");
@@ -132,14 +114,10 @@ public abstract class BasicTool {
         this.name = name;
         this.version = version;
 
-        configuration = new Properties();
         options = createCommandLineOptions();
 
-        for (final Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
-            if (entry.getKey().toString().startsWith("mms.")) {
-                configuration.put(entry.getKey(), entry.getValue());
-            }
-        }
+        config = new Configuration();
+        config.add(System.getProperties(), "mms.");
     }
 
     public final String getName() {
@@ -196,8 +174,8 @@ public abstract class BasicTool {
         return errorHandler;
     }
 
-    public Properties getConfiguration() {
-        return configuration;
+    public Configuration getConfig() {
+        return config;
     }
 
     private void setDebug(boolean debug) {
@@ -247,23 +225,20 @@ public abstract class BasicTool {
                 configurationFile = new File(DEFAULT_CONFIGURATION_FILE_NAME);
                 if (configurationFile.exists()) {
                     addConfigurationProperties(configurationFile);
-                    configuration.put(Constants.PROPERTY_CONFIGURATION, configurationFile.getPath());
+                    config.put(Configuration.KEY_CONFIGURATION, configurationFile.getPath());
                 }
             } else {
                 addConfigurationProperties(configurationFile);
-                configuration.put(Constants.PROPERTY_CONFIGURATION, configurationFile.getPath());
+                config.put(Configuration.KEY_CONFIGURATION, configurationFile.getPath());
             }
 
             final Properties optionProperties = commandLine.getOptionProperties("D");
-            if (optionProperties.size() > 0) {
-                addConfigurationProperties(optionProperties);
-            }
+            config.add(optionProperties);
+
             // set java.io.tmpdir system property for file io of compressed files
             final String systemTmpDir = System.getProperty("java.io.tmpdir", "/tmp");
             final String tmpDir = commandLine.getOptionValue("tmp", systemTmpDir);
             System.getProperties().put("java.io.tmpdir", tmpDir);
-
-            setAdditionalCommandLineArgs(commandLine);
         } catch (ParseException e) {
             throw new ToolException(e.getMessage(), e, ToolException.COMMAND_LINE_ARGUMENTS_PARSE_ERROR);
         }
@@ -287,9 +262,9 @@ public abstract class BasicTool {
         if (initialised) {
             return;
         }
-        getLogger().info("connecting to database " + getConfiguration().get("openjpa.ConnectionURL"));
-        persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, getConfiguration());
-        if (Boolean.parseBoolean((String) getConfiguration().get("mms.db.useindex"))) {
+        getLogger().info("connecting to database " + config.getStringValue("openjpa.ConnectionURL"));
+        persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, config.getAsProperties());
+        if (config.getBooleanValue("mms.db.useindex")) {
             try {
                 persistenceManager.transaction();
                 final Query setSeqScanOff = persistenceManager.createNativeQuery("set enable_seqscan to off");
@@ -300,24 +275,14 @@ public abstract class BasicTool {
             }
         }
 
-        final String startTime = configuration.getProperty(Constants.PROPERTY_SOURCE_START_TIME,
-                                                           "1978-01-01T00:00:00Z");
-        final String stopTime = configuration.getProperty(Constants.PROPERTY_SOURCE_STOP_TIME,
-                                                          "2100-01-01T00:00:00Z");
-        try {
-            sourceStartTime = TimeUtil.parseCcsdsUtcFormat(startTime);
-            sourceStopTime = TimeUtil.parseCcsdsUtcFormat(stopTime);
-        } catch (java.text.ParseException e) {
-            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
+        sourceStartTime = config.getDateValue(Configuration.KEY_SOURCE_START_TIME, "1978-01-01T00:00:00Z");
+        sourceStopTime = config.getDateValue(Configuration.KEY_SOURCE_STOP_TIME, "2100-01-01T00:00:00Z");
+
         initialised = true;
     }
 
     protected String getCommandLineSyntax() {
         return getName();
-    }
-
-    protected void setAdditionalCommandLineArgs(CommandLine commandLine) {
     }
 
     protected void printHelp() {
@@ -328,15 +293,13 @@ public abstract class BasicTool {
         FileReader reader = null;
         try {
             reader = new FileReader(configurationFile);
-            Properties configuration = new Properties();
-            configuration.load(reader);
-            addConfigurationProperties(configuration);
+            config.load(reader);
         } catch (FileNotFoundException e) {
             throw new ToolException(MessageFormat.format("File not found: {0}", configurationFile), e,
-                                    ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
+                    ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
         } catch (IOException e) {
             throw new ToolException(MessageFormat.format("Failed to read from {0}.", configurationFile), e,
-                                    ToolException.CONFIGURATION_FILE_IO_ERROR);
+                    ToolException.CONFIGURATION_FILE_IO_ERROR);
         } finally {
             if (reader != null) {
                 try {
@@ -345,12 +308,6 @@ public abstract class BasicTool {
                     // ignore
                 }
             }
-        }
-    }
-
-    private void addConfigurationProperties(Properties properties) {
-        for (final Map.Entry entry : properties.entrySet()) {
-            configuration.put(entry.getKey(), entry.getValue());
         }
     }
 

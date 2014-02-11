@@ -18,6 +18,7 @@ import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
+import org.esa.cci.sst.tools.Configuration;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -29,18 +30,13 @@ import java.util.logging.Logger;
 public final class ReaderCache {
 
     private final Cache<String, Reader> readerCache;
-    private final Properties configuration;
+    private final Configuration configuration;
     private final Logger logger;
 
     private Reader cachedReader;
 
 
-    public ReaderCache(int capacity) {
-        this(capacity, new Properties(), null);
-    }
-
-    public ReaderCache(int capacity, Properties configuration, Logger logger) {
-        Assert.notNull(configuration, "configuration == null");
+    public ReaderCache(int capacity, Configuration configuration, Logger logger) {
 
         this.readerCache = new Cache<>(capacity);
         this.configuration = configuration;

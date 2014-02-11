@@ -23,6 +23,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
 
 import javax.persistence.Query;
@@ -34,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Tool to ingest new input files containing records of observations into the MMS database.
@@ -56,7 +56,8 @@ public class IngestionTool extends BasicTool {
                 return;
             }
             tool.initialize();
-            final boolean doCleanup = Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.initialcleanup"));
+            final Configuration config = tool.getConfig();
+            final boolean doCleanup = config.getBooleanValue("mms.initialcleanup");
             if (doCleanup) {
                 tool.cleanup();
             }
@@ -120,7 +121,7 @@ public class IngestionTool extends BasicTool {
             // make changes in database
             persistenceManager.commit();
             getLogger().info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
-                                                  recordsInTimeInterval));
+                    recordsInTimeInterval));
         } catch (Exception e) {
             // do not make any change in case of errors
             try {
@@ -151,35 +152,42 @@ public class IngestionTool extends BasicTool {
      */
     private void ingest() {
         ingester = new Ingester(this);
-        final Properties configuration = getConfiguration();
-        final String archiveRootPath = configuration.getProperty("mms.archive.rootdir");
+        final Configuration config = getConfig();
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
         final File archiveRoot = new File(archiveRootPath);
+
         int directoryCount = 0;
         for (int i = 0; i < 100; i++) {
-            final String inputDirPath = configuration.getProperty(
-                    String.format("mms.source.%d.inputDirectory", i));
-            final String sensor = configuration.getProperty(
-                    String.format("mms.source.%d.sensor", i));
-            final String readerSpec = configuration.getProperty(
-                    String.format("mms.reader.%s", sensor), ReaderFactory.DEFAULT_READER_SPEC);
-            final String patternString = configuration.getProperty(
-                    String.format("mms.pattern.%s", sensor), "0");
-            final String observationType = configuration.getProperty(
-                    String.format("mms.observationType.%s", sensor), "RelatedObservation");
+            final String inputDirKey = String.format("mms.source.%d.inputDirectory", i);
+            final String inputDirPath = config.getStringValue(inputDirKey);
+
+            final String sensorKey = String.format("mms.source.%d.sensor", i);
+            final String sensor = config.getStringValue(sensorKey);
+
+            final String readerSpecKey = String.format("mms.reader.%s", sensor);
+            final String readerSpec = config.getStringValue(readerSpecKey, ReaderFactory.DEFAULT_READER_SPEC);
+
+            final String patternKey = String.format("mms.pattern.%s", sensor);
+            final String patternString = config.getStringValue(patternKey, "0");
+
+            final String observationTypeKey = String.format("mms.observationType.%s", sensor);
+            final String observationType = config.getStringValue(observationTypeKey, "RelatedObservation");
+
             final long pattern = Long.parseLong(patternString, 16);
             if (readerSpec == null || inputDirPath == null || sensor == null) {
                 continue;
             }
             getLogger().fine("Looking for " + sensor + " files");
-            final String filenamePattern = configuration.getProperty(
-                    String.format("mms.source.%d.filenamePattern", i), ".*");
+
+            final String filenamePatternKey = String.format("mms.source.%d.filenamePattern", i);
+            final String filenamePattern = config.getStringValue(filenamePatternKey, ".*");
             final File inputDir = new File(archiveRoot, inputDirPath);
             List<File> inputFileList = getInputFiles(filenamePattern, inputDir);
             if (inputFileList.isEmpty()) {
                 inputFileList = getInputFiles(filenamePattern + "\\.gz", inputDir);
                 if (inputFileList.isEmpty()) {
                     getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}/{1}''.",
-                                                             archiveRootPath, inputDirPath));
+                            archiveRootPath, inputDirPath));
                 }
             }
             for (final File inputFile : inputFileList) {
@@ -221,7 +229,7 @@ public class IngestionTool extends BasicTool {
             } catch (Exception e) {
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",
-                                                           recordNo, e.getMessage()));
+                        recordNo, e.getMessage()));
                 for (StackTraceElement stackTraceElement : e.getStackTrace()) {
                     messageBuilder.append(stackTraceElement.toString());
                     messageBuilder.append('\n');
@@ -271,12 +279,12 @@ public class IngestionTool extends BasicTool {
     private void validateInputSet(final int directoryCount) {
         if (directoryCount == 0) {
             throw new ToolException("No input sets given.\n" +
-                                    "Input sets are specified as configuration properties as follows:\n" +
-                                    "\tmms.source.<i>.inputDirectory = <inputDirectory>\n" +
-                                    "\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)" +
-                                    "\tmms.source.<i>.sensor = <sensor>\n" +
-                                    "\tmms.source.<i>.reader = <ReaderClass>",
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
+                    "Input sets are specified as configuration properties as follows:\n" +
+                    "\tmms.source.<i>.inputDirectory = <inputDirectory>\n" +
+                    "\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)" +
+                    "\tmms.source.<i>.sensor = <sensor>\n" +
+                    "\tmms.source.<i>.reader = <ReaderClass>",
+                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 

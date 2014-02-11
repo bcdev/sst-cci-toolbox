@@ -19,23 +19,12 @@ import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.Column;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
-import org.esa.cci.sst.util.CloudPriors;
-import org.esa.cci.sst.util.PixelCounter;
-import org.esa.cci.sst.util.ReaderCache;
-import org.esa.cci.sst.util.SamplingPoint;
-import org.esa.cci.sst.util.SobolSequenceGenerator;
-import org.esa.cci.sst.util.TimeUtil;
-import org.esa.cci.sst.util.Watermask;
+import org.esa.cci.sst.util.*;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 import ucar.ma2.Array;
@@ -45,26 +34,14 @@ import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-//import org.esa.cci.sst.data.Sample;
+import java.util.*;
 
 public class SamplingTool extends BasicTool {
 
     private static final byte DATASET_DUMMY = (byte) 8;
     private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
-    private static final String MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
-    private static final String MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
+
     private static final String MMS_SAMPLING_COUNT = "mms.sampling.count";
-    private static final String MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
     private static final String MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
     private static final String MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     private static final String MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
@@ -106,36 +83,24 @@ public class SamplingTool extends BasicTool {
     @Override
     public void initialize() {
         super.initialize();
-        final String startTimeString = getConfiguration().getProperty(MMS_SAMPLING_START_TIME,
-                                                                      "2004-06-01T00:00:00Z");
-        final String stopTimeString = getConfiguration().getProperty(MMS_SAMPLING_STOP_TIME,
-                                                                     "2004-06-04T00:00:00Z");
-        final String countString = getConfiguration().getProperty(MMS_SAMPLING_COUNT, "10000");
-        final String matchupDistanceSecondsString = getConfiguration().getProperty(MMS_SAMPLING_MATCHUPDISTANCE, "90000");
-        final String subsceneWidthString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_WIDTH, "7");
-        final String subsceneHeightString = getConfiguration().getProperty(MMS_SAMPLING_SUBSCENE_HEIGHT, "7");
-        samplingSensor = getConfiguration().getProperty(MMS_SAMPLING_SENSOR, "atsr_orb.3");
-        samplingSensor2 = getConfiguration().getProperty(MMS_SAMPLING_SENSOR2, null);
 
-        try {
-            startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime();
-            stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime();
-            sampleCount = Integer.parseInt(countString);
-            matchupDistanceSeconds = Integer.parseInt(matchupDistanceSecondsString);
-            subSceneWidth = Integer.parseInt(subsceneWidthString);
-            subSceneHeight = Integer.parseInt(subsceneHeightString);
-        } catch (ParseException e) {
-            throw new ToolException("Unable to parse sampling start and stop times.", e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
-        } catch (NumberFormatException e) {
-            throw new ToolException("Unable to parse sample counts.", e, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
+        final Configuration config = getConfig();
+        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME, "2004-06-01T00:00:00Z").getTime();
+        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2004-06-04T00:00:00Z").getTime();
+        sampleCount = config.getIntValue(MMS_SAMPLING_COUNT, 10000);
+        matchupDistanceSeconds = config.getIntValue(MMS_SAMPLING_MATCHUPDISTANCE, 90000);
+        subSceneWidth = config.getIntValue(MMS_SAMPLING_SUBSCENE_WIDTH, 7);
+        subSceneHeight = config.getIntValue(MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
+
+        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR, "atsr_orb.3");
+        samplingSensor2 = config.getStringValue(MMS_SAMPLING_SENSOR2);
     }
 
     private void run() throws ParseException {
-        if (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUP))) {
+        final Configuration config = getConfig();
+        if (config.getBooleanValue(MMS_SAMPLING_CLEANUP)) {
             cleanup();
-        } else if (Boolean.parseBoolean(getConfiguration().getProperty(MMS_SAMPLING_CLEANUPINTERVAL))) {
+        } else if (config.getBooleanValue(MMS_SAMPLING_CLEANUPINTERVAL)) {
             cleanupInterval();
         }
         getLogger().info("Creating samples...");
@@ -247,8 +212,8 @@ public class SamplingTool extends BasicTool {
 
             // since binding a date to a parameter failed ...
             final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
-                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
-                                                                                        new Date(time)) + "'");
+                    "'" + TimeUtil.formatCcsdsUtcFormat(
+                            new Date(time)) + "'");
             final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
             query.setParameter(1, sensor);
             //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
@@ -272,17 +237,18 @@ public class SamplingTool extends BasicTool {
     public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor, int searchRadiusSeconds) throws PersistenceException, ParseException {
         findObservations2(sampleList, samplingSensor, isSecondSensor, searchRadiusSeconds, null);
     }
+
     public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor, int searchRadiusSeconds, PolarOrbitingPolygon[] polygons) throws PersistenceException, ParseException {
         if (polygons == null) {
             final List<ReferenceObservation> orbitObservations = findOrbits(samplingSensor,
-                                                                            TimeUtil.formatCcsdsUtcFormat(new Date(startTime - searchRadiusSeconds * 1000)),
-                                                                            TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + searchRadiusSeconds * 1000)));
+                    TimeUtil.formatCcsdsUtcFormat(new Date(startTime - searchRadiusSeconds * 1000)),
+                    TimeUtil.formatCcsdsUtcFormat(new Date(stopTime + searchRadiusSeconds * 1000)));
             polygons = new PolarOrbitingPolygon[orbitObservations.size()];
             for (int i = 0; i < orbitObservations.size(); ++i) {
                 final ReferenceObservation orbitObservation = orbitObservations.get(i);
                 polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
-                                                       orbitObservation.getTime().getTime(),
-                                                       orbitObservation.getLocation().getGeometry());
+                        orbitObservation.getTime().getTime(),
+                        orbitObservation.getLocation().getGeometry());
             }
         }
         final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
@@ -303,12 +269,12 @@ public class SamplingTool extends BasicTool {
             while (true) {
                 // the next polygon in the past is closer to the sample than the next polygon in the future
                 if (i0 >= 0 &&
-                    Math.abs(point.getTime() - polygons[i0].getTime()) <= searchRadiusSeconds * 1000 &&
-                    ( i1 >= polygons.length ||
-                      point.getTime() < polygons[i0].getTime() ||
-                      point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime() )) {
+                        Math.abs(point.getTime() - polygons[i0].getTime()) <= searchRadiusSeconds * 1000 &&
+                        (i1 >= polygons.length ||
+                                point.getTime() < polygons[i0].getTime() ||
+                                point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
                     if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                        if (! isSecondSensor) {
+                        if (!isSecondSensor) {
                             point.setReference(polygons[i0].getId());
                         } else {
                             point.setReference2(polygons[i0].getId());
@@ -318,24 +284,24 @@ public class SamplingTool extends BasicTool {
                     }
                     --i0;
                 } else
-                // the next polygon in the future is closer than the next polygon in the past
-                if (i1 < polygons.length &&
-                    Math.abs(point.getTime() - polygons[i1].getTime()) <= searchRadiusSeconds * 1000) {
-                    if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                        if (! isSecondSensor) {
-                            point.setReference(polygons[i1].getId());
-                        } else {
-                            point.setReference2(polygons[i1].getId());
+                    // the next polygon in the future is closer than the next polygon in the past
+                    if (i1 < polygons.length &&
+                            Math.abs(point.getTime() - polygons[i1].getTime()) <= searchRadiusSeconds * 1000) {
+                        if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
+                            if (!isSecondSensor) {
+                                point.setReference(polygons[i1].getId());
+                            } else {
+                                point.setReference2(polygons[i1].getId());
+                            }
+                            accu.add(point);
+                            break;
                         }
-                        accu.add(point);
+                        ++i1;
+                    } else
+                    // there is no next polygon in the past and no next polygon in the future
+                    {
                         break;
                     }
-                    ++i1;
-                } else
-                // there is no next polygon in the past and no next polygon in the future
-                {
-                    break;
-                }
             }
         }
         sampleList.clear();
@@ -389,7 +355,7 @@ public class SamplingTool extends BasicTool {
             sampleListsByDatafile.get(id).add(point);
         }
 
-        final ReaderCache readerCache = new ReaderCache(10, getConfiguration(), getLogger());
+        final ReaderCache readerCache = new ReaderCache(10, getConfig(), getLogger());
         final int[] shape = {1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
@@ -418,7 +384,7 @@ public class SamplingTool extends BasicTool {
                         final int pixelY = (int) Math.floor(pixelPos.getY());
 
                         if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
-                            if (! isSecondSensor) {
+                            if (!isSecondSensor) {
                                 point.setX(pixelX);
                                 point.setY(pixelY);
                                 point.setTime(reader.getTime(0, pixelY));
@@ -521,7 +487,7 @@ public class SamplingTool extends BasicTool {
                     final Coincidence coincidence2 = new Coincidence();
                     coincidence2.setMatchup(matchup);
                     coincidence2.setObservation(observation2);
-                    coincidence2.setTimeDifference(TimeUtil.timeDifferenceInSeconds(matchup, ((ReferenceObservation)observation2)));
+                    coincidence2.setTimeDifference(TimeUtil.timeDifferenceInSeconds(matchup, ((ReferenceObservation) observation2)));
 
                     coincidenceList.add(coincidence2);
                 }

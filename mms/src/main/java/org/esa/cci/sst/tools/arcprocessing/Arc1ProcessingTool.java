@@ -18,6 +18,7 @@ package org.esa.cci.sst.tools.arcprocessing;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
@@ -114,15 +115,18 @@ public class Arc1ProcessingTool extends BasicTool {
     }
 
     private void run() throws IOException {
-        final String destPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
-        final String archiveRootPath = getConfiguration().getProperty(Constants.PROPERTY_ARCHIVE_ROOTDIR, ".");
+        final Configuration config = getConfig();
+        final String destPath = config.getStringValue(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
         final File archiveRoot = new File(archiveRootPath);
-        final String tmpPath = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
-        final String startTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_START_TIME);
-        final String endTimeProperty = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_STOP_TIME);
-        final String sensorName = getConfiguration().getProperty(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "avhrr_orb.n18"
-        final String configurationPath = getConfiguration().getProperty(Constants.PROPERTY_CONFIGURATION);
-        final String condition = getConfiguration().getProperty(Constants.PROPERTY_ARC1x2_CONDITION, null);
+        final String tmpPath = config.getStringValue(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
+
+        final String startTimeProperty = config.getStringValue(Constants.PROPERTY_OUTPUT_START_TIME);
+        final String endTimeProperty = config.getStringValue(Constants.PROPERTY_OUTPUT_STOP_TIME);
+        final String sensorName = config.getStringValue(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "avhrr_orb.n18"
+        final String configurationPath = config.getStringValue(Configuration.KEY_CONFIGURATION);
+        final String condition = config.getStringValue(Constants.PROPERTY_ARC1x2_CONDITION);
+
         final Date startTime = TimeUtil.getConfiguredTimeOf(startTimeProperty);
         final Date endTime = TimeUtil.getConfiguredTimeOf(endTimeProperty);
 

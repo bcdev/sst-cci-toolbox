@@ -18,12 +18,12 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.tools.Configuration;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Properties;
 
 /**
  * Factory providing a static method for getting the correct io reader, according to given schema name.
@@ -50,10 +50,10 @@ public class ReaderFactory {
      * supplied as argument.
      * @throws IOException if the {@link Reader} could not be initialized.
      */
-    public static Reader open(DataFile datafile, Properties configuration) throws IOException {
+    public static Reader open(DataFile datafile, Configuration configuration) throws IOException {
         final String sensorName = datafile.getSensor().getName();
-        final String readerSpec = configuration.getProperty("mms.reader." + sensorName, DEFAULT_READER_SPEC);
-        final String archiveRootPath = configuration.getProperty("mms.archive.rootdir", ".");
+        final String readerSpec = configuration.getStringValue("mms.reader." + sensorName, DEFAULT_READER_SPEC);
+        final String archiveRootPath = configuration.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
         final File archiveRoot = new File(archiveRootPath);
 
         final Reader reader = createReader(readerSpec, sensorName);
