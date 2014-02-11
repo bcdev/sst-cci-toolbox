@@ -90,13 +90,37 @@ public class InsituReaderTest {
         final ExtractDefinition extractDefinition = builder.build();
 
         try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
-            final Array array = reader.read("insitu.sea_surface_temperature", extractDefinition);
+            Array array = reader.read("sst", extractDefinition);
             assertNotNull(array);
             assertEquals(14, array.getSize());
 
             assertEquals(300.31, array.getDouble(0), 1e-5);
             assertEquals(300.31, array.getDouble(7), 1e-5);
             assertEquals(300.22998046875, array.getDouble(13), 1e-5);
+
+            array = reader.read("lon", extractDefinition);
+            assertNotNull(array);
+            assertEquals(14, array.getSize());
+
+            assertEquals(85.5140076, array.getDouble(0), 1e-5);
+            assertEquals(85.4431534, array.getDouble(7), 1e-5);
+            assertEquals(85.3783264, array.getDouble(13), 1e-5);
+
+            array = reader.read("lat", extractDefinition);
+            assertNotNull(array);
+            assertEquals(14, array.getSize());
+
+            assertEquals(14.2022161, array.getDouble(0), 1e-5);
+            assertEquals(14.1622972, array.getDouble(7), 1e-5);
+            assertEquals(14.107686, array.getDouble(13), 1e-5);
+
+            array = reader.read("time", extractDefinition);
+            assertNotNull(array);
+            assertEquals(14, array.getSize());
+
+            assertEquals(2454452.519, array.getDouble(0), 1e-5);
+            assertEquals(2454453.060, array.getDouble(7), 1e-5);
+            assertEquals(2454453.477, array.getDouble(13), 1e-5);
         }
     }
 
@@ -161,13 +185,37 @@ public class InsituReaderTest {
         final ExtractDefinition extractDefinition = builder.build();
 
         try (InsituReader reader = createReader("insitu_0_WMOID_71569_20030117_20030131.nc")) {
-            final Array array = reader.read("sst", extractDefinition);
+            Array array = reader.read("sst", extractDefinition);
             assertNotNull(array);
             assertEquals(12, array.getSize());
 
             assertEquals(2.2, array.getDouble(0), 1e-6);
             assertEquals(2.2, array.getDouble(5), 1e-6);
             assertEquals(2.3, array.getDouble(11), 1e-6);
+
+            array = reader.read("lon", extractDefinition);
+            assertNotNull(array);
+            assertEquals(12, array.getSize());
+
+            assertEquals(-59.009998, array.getDouble(0), 1e-6);
+            assertEquals(-58.860001, array.getDouble(5), 1e-6);
+            assertEquals(-58.540001, array.getDouble(11), 1e-6);
+
+            array = reader.read("lat", extractDefinition);
+            assertNotNull(array);
+            assertEquals(12, array.getSize());
+
+            assertEquals(-60.369999, array.getDouble(0), 1e-6);
+            assertEquals(-60.450001, array.getDouble(5), 1e-6);
+            assertEquals(-60.540001, array.getDouble(11), 1e-6);
+
+            array = reader.read("time", extractDefinition);
+            assertNotNull(array);
+            assertEquals(12, array.getSize());
+
+            assertEquals(790992179, array.getDouble(0), 1e-6);
+            assertEquals(791033112, array.getDouble(5), 1e-6);
+            assertEquals(791077212, array.getDouble(11), 1e-6);
         }
     }
 
@@ -232,11 +280,35 @@ public class InsituReaderTest {
         final ExtractDefinition extractDefinition = builder.build();
 
         try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
-            final Array array = reader.read("sst", extractDefinition);
+            Array array = reader.read("sst", extractDefinition);
             assertNotNull(array);
             assertEquals(3, array.getSize());
 
             assertEquals(0.621, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(-32768.0, array.getDouble(2), 1e-6);
+
+            array = reader.read("lon", extractDefinition);
+            assertNotNull(array);
+            assertEquals(3, array.getSize());
+
+            assertEquals(3.8989999, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(-32768.0, array.getDouble(2), 1e-6);
+
+            array = reader.read("lat", extractDefinition);
+            assertNotNull(array);
+            assertEquals(3, array.getSize());
+
+            assertEquals(-62.625, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(-32768.0, array.getDouble(2), 1e-6);
+
+            array = reader.read("time", extractDefinition);
+            assertNotNull(array);
+            assertEquals(3, array.getSize());
+
+            assertEquals(790590428, array.getDouble(0), 1e-6);
             assertEquals(-32768.0, array.getDouble(1), 1e-6);
             assertEquals(-32768.0, array.getDouble(2), 1e-6);
         }

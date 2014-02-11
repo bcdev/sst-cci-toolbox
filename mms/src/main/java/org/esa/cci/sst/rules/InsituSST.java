@@ -58,7 +58,7 @@ class InsituSST extends AbstractImplicitRule {
                         .shape(SHAPE)
                         .referenceObservation(referenceObservation)
                         .build();
-                return observationReader.read("insitu.sea_surface_temperature", extractDefinition);
+                return observationReader.read("sst", extractDefinition);
             } else {
                 final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
                 final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();

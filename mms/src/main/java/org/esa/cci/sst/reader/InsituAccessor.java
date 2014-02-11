@@ -3,6 +3,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Range;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Date;
@@ -31,4 +32,6 @@ interface InsituAccessor {
     List<Range> createSubsampling(Range range, int maxLength);
 
     List<SamplingPoint> readSamplingPoints() throws IOException;
+
+    Variable getVariable(String role);
 }

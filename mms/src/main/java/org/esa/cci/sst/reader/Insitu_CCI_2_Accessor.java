@@ -107,6 +107,11 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
         return samplingPoints;
     }
 
+    @Override
+    public Variable getVariable(String role) {
+        return netcdfReader.getVariable(role);
+    }
+
     // package access for testing only tb 2014-02-06
     static String extractWMOID(DataFile dataFile) {
         final String path = dataFile.getPath();

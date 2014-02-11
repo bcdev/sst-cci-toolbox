@@ -116,7 +116,7 @@ class InsituReader extends NetcdfReader {
 
     @Override
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
-        final Variable sourceVariable = getVariable(role);
+        final Variable sourceVariable = insituAccessor.getVariable(role);
         final Date refTime = extractDefinition.getDate();
         final Range range = insituAccessor.find12HoursRange(refTime);
         final Array source = sourceVariable.read();

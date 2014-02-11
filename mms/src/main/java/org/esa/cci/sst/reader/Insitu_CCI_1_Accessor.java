@@ -9,19 +9,27 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 class Insitu_CCI_1_Accessor implements InsituAccessor {
 
-    public static final double HALF_JULIAN_DAY = 0.5;
+    private static final double HALF_JULIAN_DAY = 0.5;
+
     private final NetcdfReader netcdfReader;
+    private final HashMap<String, String> variableNamesMap;
     private Array historyTimes;
     private Array lon;
     private Array lat;
 
     Insitu_CCI_1_Accessor(NetcdfReader netcdfReader) {
         this.netcdfReader = netcdfReader;
+        variableNamesMap = new HashMap<>();
+        variableNamesMap.put("sst", "insitu.sea_surface_temperature");
+        variableNamesMap.put("lon", "insitu.longitude");
+        variableNamesMap.put("lat", "insitu.latitude");
+        variableNamesMap.put("time", "insitu.time");
     }
 
     @Override
@@ -102,6 +110,12 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
             samplingPoints.add(samplingPoint);
         }
         return samplingPoints;
+    }
+
+    @Override
+    public Variable getVariable(String role) {
+        final String variableName = variableNamesMap.get(role);
+        return netcdfReader.getVariable(variableName);
     }
 
     private void ensureLon() throws IOException {

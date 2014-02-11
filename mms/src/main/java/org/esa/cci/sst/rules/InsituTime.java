@@ -64,7 +64,7 @@ class InsituTime extends AbstractImplicitRule {
                         .shape(SHAPE)
                         .referenceObservation(refObs)
                         .build();
-                final Array insituTimes = observationReader.read("insitu.time", extractDefinition);
+                final Array insituTimes = observationReader.read("time", extractDefinition);
                 for (int i = 0; i < insituTimes.getSize(); i++) {
                     final double insituTime = insituTimes.getDouble(i);
                     insituTimes.setDouble(i, TimeUtil.julianDateToSecondsSinceEpoch(insituTime) - refTime);
