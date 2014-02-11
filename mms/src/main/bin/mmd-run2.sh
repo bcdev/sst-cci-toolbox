@@ -16,7 +16,7 @@ stoptime=`date +%Y-%m -u -d @$d1`-01T00:00:00Z
 
 mkdir -p $MMS_ARCHIVE/${usecase}/$mmdtype/$sensor/$year
 
-mmd-tool.sh -c $usecase-config.xml \
+mmd-tool.sh -c $usecase-config.properties \
 -Dmms.target.startTime=$starttime \
 -Dmms.target.stopTime=$stoptime \
 -Dmms.db.useindex=false \

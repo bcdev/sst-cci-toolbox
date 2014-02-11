@@ -16,7 +16,7 @@ stoptime=`date +%Y-%m -u -d @$d1`-01T00:00:00Z
 
 pattern=`cat $MMS_HOME/config/$usecase-config.xml | awk "/mms.pattern.$sensor/ { print \\$3 }"`
 
-nwp-tool.sh -c $usecase-config.xml \
+nwp-tool.sh -c $usecase-config.properties \
 false \
 $sensor \
 $pattern \
