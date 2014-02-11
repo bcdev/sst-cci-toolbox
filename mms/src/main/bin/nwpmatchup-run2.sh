@@ -9,14 +9,10 @@ month=$2
 sensor=$3
 usecase=$4
 
-pattern=`cat $MMS_HOME/config/$usecase-config.xml | awk "/mms.pattern.$sensor/ { print \\$3 }"`
-
 # TODO - adapt path of NWP archive
 nwp-tool.sh -c $usecase-config.properties \
-false \
-$sensor \
-$pattern \
-$MMS_HOME/config/mmd-dimensions.properties \
+true \
 $MMS_ARCHIVE/$usecase/sub/$sensor/$year/$sensor-sub-$year-$month.nc \
 $MMS_ARCHIVE/ecmwf-era-interim/v01 \
-$MMS_ARCHIVE/$usecase/nwp/$sensor/$year/$sensor-nwp-$year-$month.nc
+$MMS_ARCHIVE/$usecase/nwp/$sensor/$year/$sensor-nwpan-$year-$month.nc \
+$MMS_ARCHIVE/$usecase/nwp/$sensor/$year/$sensor-nwpfc-$year-$month.nc

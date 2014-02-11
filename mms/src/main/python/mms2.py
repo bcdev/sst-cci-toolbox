@@ -10,7 +10,8 @@ years = ['2002', '2003']
 #         '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 # dates replaced with exact dates of start and end of mission, Ralf, please delete this comment after reading
-sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'), ('atsr.3', '2002-05-20', '2012-04-08')}
+sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'),
+           ('atsr.3', '2002-05-20', '2012-04-08')}
 # 300000 leads to about 2500 surviving samples per month
 samplespermonth = 300000
 
@@ -83,7 +84,7 @@ for year in years:
     for month in months:
         for sensor, _, __ in sensors:
             inputs.append('/inp/' + sensor + '/' + year + '/' + month)
-# Add fulfilled preconditions for temporal boundary around mission start and end
+# Add preconditions for temporal boundary around mission start and end. These are always satisfied.
 for (sensor, sensorstart, sensorstop) in sensors:
     if years[0] + '-' + months[0] >= sensorstart:
         prev_month_year, prev_month = prev_year_month_of(years[0], months[0])
@@ -133,20 +134,32 @@ for year in years:
                         '/smp/' + sensor + '/' + year + '/' + month,
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        parameters=[year, month, sensor, samplespermonth, usecase])
-            # 3. Remove cloudy sub-scenes
-            pm.execute('clearsky-run2.sh', ['/smp/' + sensor + '/' + year + '/' + month],
-                       ['/clr/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
+            # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
+            pm.execute('clearsky-run2.sh',
+                       ['/smp/' + sensor + '/' + year + '/' + month],
+                       ['/clr/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, usecase])
             # 4. Create MMD with subscenes
-            # Wrong script is used here? - No, the 'sub' selects a variable config to extract subscenes
-            pm.execute('mmd-run2.sh', ['/clr/' + sensor + '/' + year + '/' + month],
-                       ['/sub/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', usecase])
+            pm.execute('mmd-run2.sh',
+                       ['/clr/' + sensor + '/' + year + '/' + month],
+                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'sub', usecase])
             # 5. Add coincidences from Sea Ice and Aerosol data
-            pm.execute('coincidence-run2.sh', ['/clr/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
-            pm.execute('nwp-run2.sh', ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/nwp/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
-            pm.execute('nwpmatchup-run2.sh', ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/nwp/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
+            pm.execute('coincidence-run2.sh',
+                       ['/clr/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, usecase])
+            # 6. Extract NWP data for sub-scenes
+            pm.execute('nwp-run2.sh',
+                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       ['/nwp/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, usecase])
+            # 7. Extract NWP data for matchup point
+            pm.execute('nwpmatchup-run2.sh',
+                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       ['/nwpan/' + sensor + '/' + year + '/' + month,
+                        '/nwpfc/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, usecase])
             pm.execute('arc-run2.sh', ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
             pm.execute('reingestion-run2.sh', ['/sub/' + sensor + '/' + year + '/' + month],
