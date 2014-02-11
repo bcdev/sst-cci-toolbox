@@ -37,16 +37,9 @@ public class Constants {
 
     public static final String VARIABLE_NAME_MATCHUP_ID = "matchup.id";
     public static final String VARIABLE_NAME_ARC2_MATCHUP_ID = "matchup_id";
-    public static final String VARIABLE_NAME_OBSERVATION_TIME = "observation_time";
 
     public static final String PROPERTY_LOCATIONFILE = "mms.pixelpos.locationfile";
     public static final String PROPERTY_LATLONFILE = "mms.pixelpos.latlonfile";
-
-    public static final String PROPERTY_MATCHUP_START_TIME = "mms.matchup.startTime";
-    public static final String PROPERTY_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
-
-    public static final String PROPERTY_SOURCE_START_TIME = "mms.source.startTime";
-    public static final String PROPERTY_SOURCE_STOP_TIME = "mms.source.stopTime";
 
     public static final String PROPERTY_OUTPUT_START_TIME = "mms.arc1x2.startTime";
     public static final String PROPERTY_OUTPUT_STOP_TIME = "mms.arc1x2.stopTime";
@@ -55,12 +48,8 @@ public class Constants {
     public static final String PROPERTY_ARC1x2_CONDITION = "mms.arc1x2.condition";
 
     public static final String PROPERTY_OUTPUT_SENSOR = "mms.arc1x2.sensor";
-    public static final String PROPERTY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
     public static final String PROPERTY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
     public static final String PROPERTY_NWP_ARC3_TMPDIR = "mms.nwp_arc3.tmpdir";
-    public static final String PROPERTY_NWP_DESTDIR = "mms.nwp.destdir";
-    public static final String PROPERTY_ARC3_DESTDIR = "mms.arc3.destdir";
-    public static final String PROPERTY_MMS_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN = "mms.nwp_arc3.pattern";
 
     public static final String PROPERTY_MMS_NWP_PATTERN = "mms.nwp.pattern";
@@ -72,8 +61,7 @@ public class Constants {
     public static final String PROPERTY_TARGET_START_TIME = "mms.target.startTime";
     public static final String PROPERTY_TARGET_STOP_TIME = "mms.target.stopTime";
     public static final String PROPERTY_TARGET_READERCACHESIZE = "mms.target.readercachesize";
-    public static final String PROPERTY_ARCHIVE_ROOTDIR = "mms.archive.rootdir";
-    public static final String PROPERTY_CONFIGURATION = "mms.configuration";
+
     public static final String PROPERTY_NWP_ARC3_START_TIME = "mms.nwp_arc3.startTime";
     public static final String PROPERTY_NWP_ARC3_STOP_TIME = "mms.nwp_arc3.stopTime";
 

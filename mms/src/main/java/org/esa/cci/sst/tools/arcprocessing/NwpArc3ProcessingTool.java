@@ -17,19 +17,15 @@
 package org.esa.cci.sst.tools.arcprocessing;
 
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Properties;
 
 /**
  * Tool responsible for generating calls of the ARC3 processor.
@@ -55,10 +51,10 @@ public class NwpArc3ProcessingTool extends BasicTool {
 
     private static final String SHEBANG = "#!/bin/bash\n\n";
     private static final String SET_MMS_HOME = "if [ ! -d \"$CCI_SST_HOME\" ]\n" +
-                                               "then\n" +
-                                               "    PRGDIR=`dirname $0`\n" +
-                                               "    export CCI_SST_HOME=`cd \"$PRGDIR/..\" ; pwd`\n" +
-                                               "fi\n";
+            "then\n" +
+            "    PRGDIR=`dirname $0`\n" +
+            "    export CCI_SST_HOME=`cd \"$PRGDIR/..\" ; pwd`\n" +
+            "fi\n";
     private PrintWriter arc3CallWriter;
     private PrintWriter reingestionCallWriter;
     private PrintWriter cleanupCallWriter;
@@ -89,9 +85,8 @@ public class NwpArc3ProcessingTool extends BasicTool {
     }
 
     private void writeCalls() throws IOException, ParseException {
-        final Properties configuration = getConfiguration();
-        final NwpArc3Caller nwpArc3Caller = new UniqueNwpArc3Caller(configuration);
-//        final NwpArc3Caller nwpArc3Caller = new SplittedNwpArc3Caller(configuration);
+        final Configuration config = getConfig();
+        final NwpArc3Caller nwpArc3Caller = new UniqueNwpArc3Caller(config);
         final String arc3Call = nwpArc3Caller.createNwpArc3Call();
         final String reingestionCall = nwpArc3Caller.createReingestionCall();
         final String cleanupCall = nwpArc3Caller.createCleanupCall(arc3CallScript, reingestionCallScript, cleanupScript);
@@ -102,13 +97,14 @@ public class NwpArc3ProcessingTool extends BasicTool {
     }
 
     private void setupWriters() throws IOException {
-        final Properties configuration = getConfiguration();
-        final String sensorName = configuration.getProperty(Constants.PROPERTY_MMS_NWP_ARC3_SENSOR);
-        final String nwpDestPath = configuration.getProperty(Constants.PROPERTY_NWP_DESTDIR, ".");
-        final String arc3DestPath = configuration.getProperty(Constants.PROPERTY_ARC3_DESTDIR, ".");
+        final Configuration config = getConfig();
+        final String sensorName = config.getStringValue(Configuration.KEY_NWP_ARC3_SENSOR);
+        final String nwpDestPath = config.getStringValue(Configuration.KEY_NWP_DESTDIR, ".");
+        final String arc3DestPath = config.getStringValue(Configuration.KEY_ARC3_DESTDIR, ".");
         final File nwpDestDir = new File(nwpDestPath);
         final File arc3DestDir = new File(arc3DestPath);
-        final String tmpPath = configuration.getProperty(Constants.PROPERTY_NWP_ARC3_TMPDIR, ".");
+
+        final String tmpPath = config.getStringValue(Constants.PROPERTY_NWP_ARC3_TMPDIR, ".");
         final File tmpDir = new File(tmpPath);
         createDirectory(nwpDestDir);
         createDirectory(arc3DestDir);

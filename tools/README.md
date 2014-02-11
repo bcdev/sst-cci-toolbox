@@ -15,7 +15,7 @@ The regavg tool is used to generate regional average time-series from ARC (L2P, 
 files given a time interval and a list of regions. An output NetCDF file will be written for each region.
 OPTIONS may be one or more of the following:
     --ARC_L3U.dir <DIR>                Directory that hosts the products of type 'ARC_L3U'.
- -c,--config <FILE>                    Reads a configuration (key-value pairs) from given FILE.
+ -c,--configuration <FILE>                    Reads a configuration (key-value pairs) from given FILE.
     --CCI_L2P.dir <DIR>                Directory that hosts the products of type 'CCI_L2P'.
     --CCI_L3C.dir <DIR>                Directory that hosts the products of type 'CCI_L3C'.
     --CCI_L3U.dir <DIR>                Directory that hosts the products of type 'CCI_L3U'.
@@ -35,9 +35,9 @@ OPTIONS may be one or more of the following:
  -l,--logLevel <LEVEL>                 sets the logging level. Must be one of [OFF, ERROR, WARNING, INFO, ALL]. Use
                                        level 'ALL' to also output diagnostics. The default value is 'INFO'.
     --lut1File <FILE>                  A NetCDF file that provides lookup table 1. The default value is
-                                       './config/auxdata/coverage_uncertainty_parameters.nc'.
+                                       './configuration/auxdata/coverage_uncertainty_parameters.nc'.
     --lut2File <FILE>                  A plain text file that provides lookup table 2. The default value is
-                                       './config/auxdata/RegionalAverage_LUT2.txt'.
+                                       './configuration/auxdata/RegionalAverage_LUT2.txt'.
     --outputDir <DIR>                  The output directory. The default value is '.'.
     --productType <NAME>               The product type. Must be one of [ARC_L3U, CCI_L2P, CCI_L3U, CCI_L3C, CCI_L4].
     --regionList <NAME=REGION[;...]>   A semicolon-separated list of NAME=REGION pairs. REGION may be given as
@@ -71,7 +71,7 @@ The regrid tool is used to read in the SST CCI L3U, L3C, and L4 products at dail
 resolution and output on other spatio-temporal resolutions, which are a multipleof this and divide neatly into 180
 degrees. Output are SSTs and their uncertainties.
     --ARC_L3U.dir <DIR>                    Directory that hosts the products of type 'ARC_L3U'.
- -c,--config <FILE>                        Reads a configuration (key-value pairs) from given FILE.
+ -c,--configuration <FILE>                        Reads a configuration (key-value pairs) from given FILE.
     --CCI_L2P.dir <DIR>                    Directory that hosts the products of type 'CCI_L2P'.
     --CCI_L3C.dir <DIR>                    Directory that hosts the products of type 'CCI_L3C'.
     --CCI_L3U.dir <DIR>                    Directory that hosts the products of type 'CCI_L3U'.
@@ -80,11 +80,11 @@ degrees. Output are SSTs and their uncertainties.
                                            './climatology'.
     --coverageUncertainty.StdDev <FILE>    A NetCDF file that provides lookup table 1/3 for coverage uncertainties. The
                                            default value is
-                                           './config/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc'.
+                                           './configuration/auxdata/20070321-UKMO-L4HRfnd-GLOB-v01-fv02-OSTIARANanom_stdev.nc'.
     --coverageUncertainty.x0Space <FILE>   A txt file that provides lookup table 3/3 for coverage uncertainties. The
-                                           default value is './config/auxdata/x0_space.txt'.
+                                           default value is './configuration/auxdata/x0_space.txt'.
     --coverageUncertainty.x0Time <FILE>    A txt file that provides lookup table 2/3 for coverage uncertainties. The
-                                           default value is './config/auxdata/x0_time.txt'.
+                                           default value is './configuration/auxdata/x0_time.txt'.
  -e,--errors                               Dumps a full error stack trace.
     --endDate <DATE>                       The end date for the analysis given in the format YYYY-MM-DD. The default
                                            value is '2020-12-31'.

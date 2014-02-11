@@ -21,12 +21,8 @@ import org.esa.cci.sst.util.TimeUtil;
 
 import javax.imageio.ImageIO;
 import javax.persistence.Query;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.WindowConstants;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -71,22 +67,12 @@ public class MapPlotTool extends BasicTool {
     @Override
     public void initialize() {
         super.initialize();
-        samplingSensor = getConfiguration().getProperty("mms.sampling.sensor",
-                                                        "atsr_orb.3");
-        final String startTimeString = getConfiguration().getProperty("mms.sampling.startTime",
-                                                                      "2004-06-12T00:00:00Z");
-        final String stopTimeString = getConfiguration().getProperty("mms.sampling.stopTime",
-                                                                     "2004-06-14T00:00:00Z");
-        final String showMapsString = getConfiguration().getProperty("mms.sampling.showmaps",
-                                                                     "true");
-        try {
-            startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
-            stopTime = TimeUtil.parseCcsdsUtcFormat(stopTimeString);
-            showMapsFlag = Boolean.valueOf(showMapsString);
-        } catch (ParseException e) {
-            throw new ToolException("Unable to parse sampling start and stop times.", e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
-        }
+
+        final Configuration config = getConfig();
+        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR, "atsr_orb.3");
+        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME, "2004-06-12T00:00:00Z");
+        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2004-06-14T00:00:00Z");
+        showMapsFlag = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_SHOW_MAPS);
     }
 
     private void run() throws IOException, ParseException {

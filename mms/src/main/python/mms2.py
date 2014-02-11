@@ -10,8 +10,7 @@ years = ['2002', '2003']
 #         '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 # dates replaced with exact dates of start and end of mission, Ralf, please delete this comment after reading
-sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'),
-           ('atsr.3', '2002-05-20', '2012-04-08')}
+sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'), ('atsr.3', '2002-05-20', '2012-04-08')}
 # 300000 leads to about 2500 surviving samples per month
 samplespermonth = 300000
 
@@ -84,7 +83,7 @@ for year in years:
     for month in months:
         for sensor, _, __ in sensors:
             inputs.append('/inp/' + sensor + '/' + year + '/' + month)
-# Add preconditions for temporal boundary around mission start and end. These are always satisfied.
+# Add fulfilled preconditions for temporal boundary around mission start and end
 for (sensor, sensorstart, sensorstop) in sensors:
     if years[0] + '-' + months[0] >= sensorstart:
         prev_month_year, prev_month = prev_year_month_of(years[0], months[0])

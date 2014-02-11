@@ -51,14 +51,14 @@ public class MmdPatcher extends BasicTool {
             return;
         }
         mmdPatcher.initialize();
-        mmdPatcher.run(args);
+        mmdPatcher.run();
         mmdPatcher.close();
     }
 
     @Override
     public void initialize() {
         super.initialize();
-        final String mmdLocation = getConfiguration().getProperty("mms.mmdpatch.mmd");
+        final String mmdLocation = getConfig().getStringValue("mms.mmdpatch.mmd");
         try {
             final boolean canOpen = NetcdfFileWriteable.canOpen(mmdLocation);
             if(!canOpen) {
@@ -70,7 +70,7 @@ public class MmdPatcher extends BasicTool {
         }
     }
 
-    private void run(String[] args) throws IOException, InvalidRangeException {
+    private void run() throws IOException, InvalidRangeException {
         Variable timeVariable = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.1.time"));
         Variable detectorTemperatureVariable = mmd.findVariable(NetcdfFile.makeValidPathName("atsr.1.detector_temperature_12"));
         int noOfRecords = timeVariable.getShape()[0];

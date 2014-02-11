@@ -16,17 +16,13 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.SensorBuilder;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
-import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
-import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,8 +62,9 @@ public class FlagsUpdateTool extends BasicTool {
 
     private void run() throws IOException {
         // create reader for MMD'
-        final String mmdFilename = getConfiguration().getProperty(Constants.PROPERTY_MMS_REINGESTION_FILENAME);
-        final String archiveRootPath = getConfiguration().getProperty("mms.archive.rootdir", ".");
+        final Configuration config = getConfig();
+        final String mmdFilename = config.getStringValue(Configuration.KEY_MMS_REINGESTION_FILENAME);
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
         final MmdReader reader = createReader(mmdFilename, archiveRootPath);
         // determine MMD' variables
         final Item referenceFlagColumn = reader.getColumn("matchup.reference_flag");
@@ -80,7 +77,7 @@ public class FlagsUpdateTool extends BasicTool {
         for (int recordNo = 0; recordNo < numRecords; ++recordNo) {
             // look up observation
             final int matchupId = reader.getMatchupId(recordNo);
-            final ReferenceObservation observation = (ReferenceObservation) getPersistenceManager().pick("select o from ReferenceObservation o where o.id = ?1", new Integer(matchupId));
+            final ReferenceObservation observation = (ReferenceObservation) getPersistenceManager().pick("select o from ReferenceObservation o where o.id = ?1", matchupId);
             if (observation == null) {
                 getLogger().warning(String.format("matchup %d of record %d not found - skipped", matchupId, recordNo));
                 continue;
@@ -106,7 +103,7 @@ public class FlagsUpdateTool extends BasicTool {
         final Sensor dummySensor = new SensorBuilder().build();
         final DataFile dataFile = new DataFile(mmdFile, dummySensor);
         final MmdReader reader = new MmdReader(dummySensor.getName());
-        reader.setConfiguration(getConfiguration());
+        reader.setConfiguration(getConfig());
         reader.init(dataFile, archiveRoot);
         return reader;
     }

@@ -32,16 +32,16 @@ public class IngestionToolTest {
         IngestionTool noArgs = new IngestionTool();
         assertTrue(noArgs.setCommandLineArgs(new String[]{}));
         if (new File(BasicTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
-            assertNotNull(noArgs.getConfiguration().getProperty("openjpa.ConnectionURL"));
+            assertNotNull(noArgs.getConfig().getStringValue("openjpa.ConnectionURL"));
         }
 
         IngestionTool configOnly = new IngestionTool();
         final URL url = IngestionToolTest.class.getResource("ingestionToolTest.properties");
         final File configFile = new File(url.toURI());
         assertTrue(configOnly.setCommandLineArgs(new String[]{"-c", configFile.getPath()}));
-        assertEquals("value1", configOnly.getConfiguration().getProperty("mms.name1"));
+        assertEquals("value1", configOnly.getConfig().getStringValue("mms.name1"));
         if (new File(BasicTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
-            assertNull(configOnly.getConfiguration().getProperty("openjpa.ConnectionURL"));
+            assertNull(configOnly.getConfig().getStringValue("openjpa.ConnectionURL"));
         }
 
         IngestionTool printHelp = new IngestionTool();
@@ -51,7 +51,12 @@ public class IngestionToolTest {
     @Test
     public void testConfiguration() {
         System.setProperty("mms.someParam", "someValue");
-        IngestionTool ingestionTool = new IngestionTool();
-        assertEquals("someValue", ingestionTool.getConfiguration().getProperty("mms.someParam"));
+
+        try {
+            IngestionTool ingestionTool = new IngestionTool();
+            assertEquals("someValue", ingestionTool.getConfig().getStringValue("mms.someParam"));
+        } finally {
+            System.clearProperty("mms.someParam");
+        }
     }
 }

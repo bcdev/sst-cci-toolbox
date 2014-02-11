@@ -16,12 +16,12 @@
 
 package org.esa.cci.sst.tools.arcprocessing;
 
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.text.ParseException;
-import java.util.Properties;
 
 /**
  * Creates an ARC3 call which does everything in the submit call and produces an empty reingestion call.
@@ -30,32 +30,32 @@ import java.util.Properties;
  */
 public class UniqueNwpArc3Caller implements NwpArc3Caller {
 
-    private final Properties configuration;
+    private final Configuration configuration;
 
-    UniqueNwpArc3Caller(Properties configuration) {
-        this.configuration = new Properties(configuration);
+    UniqueNwpArc3Caller(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
     public String createNwpArc3Call() throws ParseException {
-        final String sensorName = configuration.getProperty(Constants.PROPERTY_MMS_NWP_ARC3_SENSOR);
-        final String startTime = configuration.getProperty(Constants.PROPERTY_NWP_ARC3_START_TIME);
-        final String stopTime = configuration.getProperty(Constants.PROPERTY_NWP_ARC3_STOP_TIME);
-        final String archiveRootPath = configuration.getProperty(Constants.PROPERTY_ARCHIVE_ROOTDIR);
-        String configurationFilePath = configuration.getProperty(Constants.PROPERTY_CONFIGURATION);
-        final String sensorPattern = configuration.getProperty(Constants.PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN);
-        final String nwpSourceDir = configuration.getProperty(Constants.PROPERTY_MMS_NWP_SOURCEDIR);
+        final String sensorName = configuration.getStringValue(Configuration.KEY_NWP_ARC3_SENSOR);
+        final String startTime = configuration.getStringValue(Constants.PROPERTY_NWP_ARC3_START_TIME);
+        final String stopTime = configuration.getStringValue(Constants.PROPERTY_NWP_ARC3_STOP_TIME);
+        final String archiveRootPath = configuration.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        String configurationFilePath = configuration.getStringValue(Configuration.KEY_CONFIGURATION);
+        final String sensorPattern = configuration.getStringValue(Constants.PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN);
+        final String nwpSourceDir = configuration.getStringValue(Constants.PROPERTY_MMS_NWP_SOURCEDIR);
         final String nwpSourceFile = createOutputFilename(sensorName, "sub", startTime, stopTime);
         final String nwpOutput = createOutputFilename(sensorName, "nwp", startTime, stopTime);
         final String anOutput = createOutputFilename(sensorName, "nwpAn", startTime, stopTime);
         final String fcOutput = createOutputFilename(sensorName, "nwpFc", startTime, stopTime);
         final String arc3Output = createOutputFilename(sensorName, "arc3", startTime, stopTime);
-        final String arc3home = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_HOME);
-        final String arc3ConfigurationFile = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_CONFIG_FILE, "MMD_AATSR.inp");
-        String nwpDestDir = configuration.getProperty(Constants.PROPERTY_NWP_DESTDIR, ".");
-        String arc3DestDir = configuration.getProperty(Constants.PROPERTY_ARC3_DESTDIR, ".");
-        final String arc3Pattern = configuration.getProperty(Constants.PROPERTY_MMS_ARC3_PATTERN, "0");
-        final String nwpPattern = configuration.getProperty(Constants.PROPERTY_MMS_NWP_PATTERN, "0");
+        final String arc3home = configuration.getStringValue(Constants.PROPERTY_MMS_ARC3_HOME);
+        final String arc3ConfigurationFile = configuration.getStringValue(Constants.PROPERTY_MMS_ARC3_CONFIG_FILE, "MMD_AATSR.inp");
+        String nwpDestDir = configuration.getStringValue(Configuration.KEY_NWP_DESTDIR, ".");
+        String arc3DestDir = configuration.getStringValue(Configuration.KEY_ARC3_DESTDIR, ".");
+        final String arc3Pattern = configuration.getStringValue(Constants.PROPERTY_MMS_ARC3_PATTERN, "0");
+        final String nwpPattern = configuration.getStringValue(Constants.PROPERTY_MMS_NWP_PATTERN, "0");
         final String mmdVariablesPath = String.format("config/mmd-variables_%s.config", sensorName);
 
         if (!arc3DestDir.startsWith(File.separator)) {
@@ -70,17 +70,17 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         nwpArc3Call.append(SETUP);
         final String mmdCall = String.format(
                 "$MMS_HOME/bin/mmsmmd.sh -c %s -Dmms.target.filename=%s -Dmms.target.variables=$MMS_HOME/%s " +
-                "-Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties " +
-                "-Dmms.target.startTime=%s -Dmms.target.stopTime=%s -verbose\n\n",
+                        "-Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties " +
+                        "-Dmms.target.startTime=%s -Dmms.target.stopTime=%s -verbose\n\n",
                 configurationFilePath, nwpSourceFile, mmdVariablesPath, startTime, stopTime);
         final String nwpCall = String.format(
                 "java \\\n" +
-                "    -Dmms.home=\"$MMS_HOME\" \\\n" +
-                "    -Djava.io.tmpdir=\"/home/tstorm/tmp\" \\\n" +
-                "    -javaagent:\"$MMS_HOME/lib/openjpa-all-2.1.0.jar\" \\\n" +
-                "    -Xmx1024M $MMS_OPTIONS \\\n" +
-                "    -classpath \"$MMS_HOME/lib/*\" \\\n" +
-                "    org.esa.cci.sst.tools.nwp.Nwp \"%s\" \"%s\" \"true\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \n\n",
+                        "    -Dmms.home=\"$MMS_HOME\" \\\n" +
+                        "    -Djava.io.tmpdir=\"/home/tstorm/tmp\" \\\n" +
+                        "    -javaagent:\"$MMS_HOME/lib/openjpa-all-2.1.0.jar\" \\\n" +
+                        "    -Xmx1024M $MMS_OPTIONS \\\n" +
+                        "    -classpath \"$MMS_HOME/lib/*\" \\\n" +
+                        "    org.esa.cci.sst.tools.nwp.Nwp \"%s\" \"%s\" \"true\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \n\n",
                 sensorName, sensorPattern, nwpSourceFile, nwpSourceDir, nwpOutput, anOutput, fcOutput);
         final String copyNwpOutputToArc3Home = String.format("cp %s %s/%s\n\n", nwpOutput, arc3home, nwpOutput);
         final String goToArc3Home = String.format("cd %s\n\n", arc3home);
@@ -88,37 +88,37 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
 
         final String copyArc3OutputToDestDir = String.format("cp %s/%s %s/%s\n\n", arc3home, arc3Output, arc3DestDir, arc3Output);
         final String reingestArc3Output = String.format("$MMS_HOME/bin/mmsreingestmmd.sh \\\n" +
-                                                        " -Dmms.reingestion.filename=%s/%s \\\n" +
-                                                        " -Dmms.reingestion.located=no \\\n" +
-                                                        " -Dmms.reingestion.sensor=arc3 \\\n" +
-                                                        " -Dmms.reingestion.pattern=%s \\\n" +
-                                                        " -c %s\\\n" +
-                                                        " -verbose\n\n", arc3DestDir, arc3Output, arc3Pattern, configurationFilePath);
+                " -Dmms.reingestion.filename=%s/%s \\\n" +
+                " -Dmms.reingestion.located=no \\\n" +
+                " -Dmms.reingestion.sensor=arc3 \\\n" +
+                " -Dmms.reingestion.pattern=%s \\\n" +
+                " -c %s\\\n" +
+                " -verbose\n\n", arc3DestDir, arc3Output, arc3Pattern, configurationFilePath);
 
         final String copyNwpOutputToDestDir = String.format("cp %s %s/%s\n\n", nwpOutput, nwpDestDir, nwpOutput) +
-                                              String.format("cp %s %s/%s\n\n", anOutput, nwpDestDir, anOutput) +
-                                              String.format("cp %s %s/%s\n\n", fcOutput, nwpDestDir, fcOutput);
+                String.format("cp %s %s/%s\n\n", anOutput, nwpDestDir, anOutput) +
+                String.format("cp %s %s/%s\n\n", fcOutput, nwpDestDir, fcOutput);
         final String reingestNwpOutput = String.format("$MMS_HOME/bin/mmsreingestmmd.sh \\\n" +
-                                                       " -Dmms.reingestion.filename=%s/%s \\\n" +
-                                                       " -Dmms.reingestion.located=no \\\n" +
-                                                       " -Dmms.reingestion.sensor=nwp \\\n" +
-                                                       " -Dmms.reingestion.pattern=%s \\\n" +
-                                                       " -c %s\\\n" +
-                                                       " -verbose\n\n", nwpDestDir, nwpOutput, nwpPattern, configurationFilePath) +
-                                         String.format("$MMS_HOME/bin/mmsreingestmmd.sh \\\n" +
-                                                       " -Dmms.reingestion.filename=%s/%s \\\n" +
-                                                       " -Dmms.reingestion.located=no \\\n" +
-                                                       " -Dmms.reingestion.sensor=nwp \\\n" +
-                                                       " -Dmms.reingestion.pattern=%s \\\n" +
-                                                       " -c %s\\\n" +
-                                                       " -verbose\n\n", nwpDestDir, anOutput, nwpPattern, configurationFilePath) +
-                                         String.format("$MMS_HOME/bin/mmsreingestmmd.sh \\\n" +
-                                                       " -Dmms.reingestion.filename=%s/%s \\\n" +
-                                                       " -Dmms.reingestion.located=no \\\n" +
-                                                       " -Dmms.reingestion.sensor=nwp \\\n" +
-                                                       " -Dmms.reingestion.pattern=%s \\\n" +
-                                                       " -c %s\\\n" +
-                                                       " -verbose", nwpDestDir, fcOutput, nwpPattern, configurationFilePath);
+                " -Dmms.reingestion.filename=%s/%s \\\n" +
+                " -Dmms.reingestion.located=no \\\n" +
+                " -Dmms.reingestion.sensor=nwp \\\n" +
+                " -Dmms.reingestion.pattern=%s \\\n" +
+                " -c %s\\\n" +
+                " -verbose\n\n", nwpDestDir, nwpOutput, nwpPattern, configurationFilePath) +
+                String.format("$MMS_HOME/bin/mmsreingestmmd.sh \\\n" +
+                        " -Dmms.reingestion.filename=%s/%s \\\n" +
+                        " -Dmms.reingestion.located=no \\\n" +
+                        " -Dmms.reingestion.sensor=nwp \\\n" +
+                        " -Dmms.reingestion.pattern=%s \\\n" +
+                        " -c %s\\\n" +
+                        " -verbose\n\n", nwpDestDir, anOutput, nwpPattern, configurationFilePath) +
+                String.format("$MMS_HOME/bin/mmsreingestmmd.sh \\\n" +
+                        " -Dmms.reingestion.filename=%s/%s \\\n" +
+                        " -Dmms.reingestion.located=no \\\n" +
+                        " -Dmms.reingestion.sensor=nwp \\\n" +
+                        " -Dmms.reingestion.pattern=%s \\\n" +
+                        " -c %s\\\n" +
+                        " -verbose", nwpDestDir, fcOutput, nwpPattern, configurationFilePath);
 
 
         nwpArc3Call.append(mmdCall);

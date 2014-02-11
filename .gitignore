@@ -3,7 +3,7 @@
 *.iws
 .idea/
 target/
-/mms-config.properties
+/mms-configuration.properties
 /*.nc
 /*.png
 /archive

@@ -47,8 +47,8 @@ $MMS_HOME/bin/mmd2-tool.sh -c $MMS_CONFIG \
     -Dmms.target.startTime=$year-$month-01T00:00:00Z \
     -Dmms.target.stopTime=$stopyear-$stopmonth-01T00:00:00Z \
     -Dmms.db.useindex=false \
-    -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \
-    -Dmms.target.variables=$MMS_HOME/config/mmd-variables.config \
+    -Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions.properties \
+    -Dmms.target.variables=$MMS_HOME/configuration/mmd-variables.configuration \
     -Dmms.target.dir=$MMS_ARCHIVE/mmd/v1/$year \
     -Dmms.target.filename=mmd-$year-$month.nc
 

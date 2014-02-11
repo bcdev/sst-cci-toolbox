@@ -19,7 +19,6 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.postgis.Geometry;
@@ -28,12 +27,8 @@ import org.postgis.Point;
 import org.postgis.Polygon;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.WindowConstants;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -257,7 +252,7 @@ public class SamplingToolTest {
 //        if (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanup"))) {
 //            tool.cleanup();
 //        } else
-        if  (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
+        if (tool.getConfig().getBooleanValue("mms.sampling.cleanupinterval")) {
             tool.cleanupInterval();
         }
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples...");
@@ -299,14 +294,14 @@ public class SamplingToolTest {
         final PolarOrbitingPolygon polygon3 = new PolarOrbitingPolygon(1, TimeUtil.parseCcsdsUtcFormat("2003-01-01T01:26:51Z").getTime(), geometry3);
 
         System.out.println("Finding reference observations...");
-        tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 175 / 10, new PolarOrbitingPolygon[] { polygon3 });
+        tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 175 / 10, new PolarOrbitingPolygon[]{polygon3});
         System.out.println("Finding reference observations..." + sampleList.size());
 
         final Geometry geometry2 = new Polygon(new LinearRing[]{new LinearRing(ATSR2_POINTS)});
         final PolarOrbitingPolygon polygon2 = new PolarOrbitingPolygon(1, TimeUtil.parseCcsdsUtcFormat("2003-01-01T01:57:44Z").getTime(), geometry2);
 
         System.out.println("Finding atsr.2 observations...");
-        tool.findObservations2(sampleList, "atsr_orb.2", true, 90000, new PolarOrbitingPolygon[] { polygon2 });
+        tool.findObservations2(sampleList, "atsr_orb.2", true, 90000, new PolarOrbitingPolygon[]{polygon2});
         System.out.println("Finding atsr.2 observations..." + sampleList.size());
     }
 
@@ -323,9 +318,10 @@ public class SamplingToolTest {
                 "-Dmms.sampling.cleanup=" + true
         });
         tool.initialize();
-        if (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanup"))) {
+        final Configuration config = tool.getConfig();
+        if (config.getBooleanValue("mms.sampling.cleanup")) {
             tool.cleanup();
-        } else if (Boolean.parseBoolean(tool.getConfiguration().getProperty("mms.sampling.cleanupinterval"))) {
+        } else if (config.getBooleanValue("mms.sampling.cleanupinterval")) {
             tool.cleanupInterval();
         }
 
@@ -391,7 +387,7 @@ public class SamplingToolTest {
     }
 
     private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
-                                                                                                            IOException {
+            IOException {
         final int w = 800;
         final int h = 400;
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);

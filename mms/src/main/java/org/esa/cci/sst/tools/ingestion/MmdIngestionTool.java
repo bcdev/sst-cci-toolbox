@@ -22,6 +22,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.GunzipDecorator;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 
@@ -68,13 +69,16 @@ public class MmdIngestionTool extends BasicTool {
     void ingest() {
         ingester = new Ingester(this);
         final String sensorName = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
-        final String patternProperty = getConfiguration().getProperty(MMS_REINGESTION_PATTERN_PROPERTY, "0");
+
+        final Configuration config = getConfig();
+        final String patternProperty = config.getStringValue(MMS_REINGESTION_PATTERN_PROPERTY, "0");
         final long pattern = Long.parseLong(patternProperty, 16);
-        final String locatedString = getConfiguration().getProperty("mms.reingestion.located", "false");
+        final String locatedString = config.getStringValue(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "false");
         final boolean located = Boolean.parseBoolean(locatedString) /* for backward compatibility */ || "yes".equals(locatedString);
-        final boolean withOverwrite = Boolean.parseBoolean(getConfiguration().getProperty("mms.reingestion.overwrite"));
-        String path = getConfiguration().getProperty(Constants.PROPERTY_MMS_REINGESTION_FILENAME);
-        final String archiveRootPath = getConfiguration().getProperty(Constants.PROPERTY_ARCHIVE_ROOTDIR);
+
+        final boolean withOverwrite = config.getBooleanValue("mms.reingestion.overwrite");
+        String path = config.getStringValue(Configuration.KEY_MMS_REINGESTION_FILENAME);
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
         final File archiveRoot = new File(archiveRootPath);
         if (path.startsWith(archiveRootPath + File.separator)) {
             path = path.substring(archiveRootPath.length() + 1);
@@ -193,7 +197,7 @@ public class MmdIngestionTool extends BasicTool {
     private void initReader(final DataFile dataFile, File archiveRoot) {
         reader = new MmdReader(dataFile.getSensor().getName());
         GunzipDecorator decorator = new GunzipDecorator(reader);
-        reader.setConfiguration(getConfiguration());
+        reader.setConfiguration(getConfig());
         try {
             decorator.init(dataFile, archiveRoot);
         } catch (IOException e) {
@@ -203,10 +207,9 @@ public class MmdIngestionTool extends BasicTool {
     }
 
     private String getProperty(String key) {
-        final String property = getConfiguration().getProperty(key);
+        final String property = getConfig().getStringValue(key);
         if (property == null) {
-            throw new IllegalStateException(
-                    MessageFormat.format("Property ''{0}'' not specified in config file.", key));
+            throw new IllegalStateException(MessageFormat.format("Property ''{0}'' not specified in config file.", key));
         }
         return property;
     }

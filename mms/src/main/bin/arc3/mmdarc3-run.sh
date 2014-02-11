@@ -67,8 +67,8 @@ echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Djava.io.tmpdir=$wd \
 -Dmms.db.useindex=true \
 -Dmms.target.pattern=$pattern \
--Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
--Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \
+-Dmms.target.variables=$MMS_HOME/configuration/mmd-variables_$sensor.configuration \
+-Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions.properties \
 -Dmms.target.filename=$sensor-sub-$startTimeCompact-$stopTimeCompact.nc"
 
 $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
@@ -77,8 +77,8 @@ $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Djava.io.tmpdir=$wd \
 -Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
--Dmms.target.variables=$MMS_HOME/config/mmd-variables_$sensor.config \
--Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \
+-Dmms.target.variables=$MMS_HOME/configuration/mmd-variables_$sensor.configuration \
+-Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions.properties \
 -Dmms.target.filename=$sensor-sub-$startTimeCompact-$stopTimeCompact.nc
 
 # to check the job wasn't terminated by being over the job time limit

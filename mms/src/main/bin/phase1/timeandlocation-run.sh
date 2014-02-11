@@ -47,8 +47,8 @@ mkdir -p $MMS_ARCHIVE/timeandlocation/v1/$year
 $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
     -Dmms.target.startTime=$year-$month-01T00:00:00Z \
     -Dmms.target.stopTime=$stopyear-$stopmonth-01T00:00:00Z \
-    -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \
-    -Dmms.target.variables=$MMS_HOME/config/mmd-variables-timeandlocation.config \
+    -Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions.properties \
+    -Dmms.target.variables=$MMS_HOME/configuration/mmd-variables-timeandlocation.configuration \
     -Dmms.target.dir=$MMS_ARCHIVE/timeandlocation/v1/$year \
     -Dmms.target.filename=timeandlocation-mmd-$year-$month-v$now.nc
 

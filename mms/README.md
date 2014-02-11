@@ -78,7 +78,7 @@ psql -d mms -f /usr/pgsql-9.0/share/contrib/postgis-1.5/postgis.sql
 
 ## How to copy data to CEMS?
 
-Edit your .ssh/config file
+Edit your .ssh/configuration file
 
     Host            cems-login
     HostName        comm-login1.cems.rl.ac.uk

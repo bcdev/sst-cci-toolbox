@@ -24,6 +24,7 @@ import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -48,7 +49,7 @@ public class MmdReader implements Reader {
     private Variable matchupIds;
     private ObservationReader delegateReader;
     private DataFile dataFile;
-    private Properties configuration;
+    private Configuration configuration;
     private final String sensorName;
 
     public MmdReader(String sensorName) {
@@ -276,7 +277,7 @@ public class MmdReader implements Reader {
         if (configuration == null) {
             return defaultValue;
         }
-        return configuration.getProperty(key, defaultValue);
+        return configuration.getStringValue(key, defaultValue);
     }
 
     private void validateFileLocation(final String fileLocation) throws IOException {
@@ -291,7 +292,7 @@ public class MmdReader implements Reader {
         }
     }
 
-    public void setConfiguration(Properties configuration) {
+    public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }
 }
