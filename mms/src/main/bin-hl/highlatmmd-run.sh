@@ -47,8 +47,8 @@ $MMS_HOME/bin/mmd2-tool.sh -c $MMS_CONFIG \
     -Dmms.target.startTime=$year-$month-01T00:00:00Z \
     -Dmms.target.stopTime=$stopyear-$stopmonth-01T00:00:00Z \
     -Dmms.db.useindex=false \
-    -Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions-highlat.properties \
-    -Dmms.target.variables=$MMS_HOME/configuration/mmd-variables-highlat.configuration \
+    -Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-highlat.properties \
+    -Dmms.target.variables=$MMS_HOME/config/mmd-variables-highlat.config \
     -Dmms.target.condition='r.dataset = 6' \
     -Dmms.target.dir=$MMS_ARCHIVE/mmd/v1/$year \
     -Dmms.target.filename=mmd-highlat-$year-$month.nc

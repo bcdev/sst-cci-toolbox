@@ -63,11 +63,11 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
         </fileSet>
 
         <fileSet>
-            <directory>src/main/configuration</directory>
+            <directory>src/main/config</directory>
             <includes>
                 <include>*.properties</include>
             </includes>
-            <outputDirectory>configuration</outputDirectory>
+            <outputDirectory>config</outputDirectory>
             <directoryMode>0774</directoryMode>
             <fileMode>0664</fileMode>
         </fileSet>

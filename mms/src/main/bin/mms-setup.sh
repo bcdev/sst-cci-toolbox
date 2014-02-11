@@ -10,7 +10,7 @@ mkdir -p $instdir
 MMS_INST=`cd $instdir;pwd`
 
 mkdir -p $MMS_INST/{log,tasks,trash}
-for f in $MMS_HOME/{bin,configuration,python}/template-*
+for f in $MMS_HOME/{bin,config,python}/template-*
 do
     n=`basename $f`
     n=${n#template-}

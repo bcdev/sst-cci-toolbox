@@ -65,12 +65,12 @@ pattern=`cat $MMS_CONFIG | awk "/mms.pattern.$sensor/ { print \\$3 }"`
 # generate NWP files for previously generated sensor MMD
 
 echo "$MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
-        $MMS_HOME/configuration/mmd-dimensions.properties \
+        $MMS_HOME/config/mmd-dimensions.properties \
         $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
         $MMS_ARCHIVE/ecmwf-era-interim/v01 \
         $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc"
 if ! $MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
-        $MMS_HOME/configuration/mmd-dimensions.properties \
+        $MMS_HOME/config/mmd-dimensions.properties \
         $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
         $MMS_ARCHIVE/ecmwf-era-interim/v01 \
         $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc

@@ -96,8 +96,8 @@ echo "$MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Djava.io.tmpdir=$wd \
 -Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
--Dmms.target.variables=$MMS_HOME/configuration/mmd-variables_$highlatsensor.configuration \
--Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions-highlat.properties \
+-Dmms.target.variables=$MMS_HOME/config/mmd-variables_$highlatsensor.config \
+-Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-highlat.properties \
 -Dmms.target.filename=$sensor-sub-$startTimeCompact-$stopTimeCompact.nc"
 
 $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
@@ -107,20 +107,20 @@ $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Djava.io.tmpdir=$wd \
 -Dmms.db.useindex=false \
 -Dmms.target.pattern=$pattern \
--Dmms.target.variables=$MMS_HOME/configuration/mmd-variables_$highlatsensor.configuration \
--Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions-highlat.properties \
+-Dmms.target.variables=$MMS_HOME/config/mmd-variables_$highlatsensor.config \
+-Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions-highlat.properties \
 -Dmms.target.filename=$sensor-sub-$startTimeCompact-$stopTimeCompact.nc
 
 # generate NWP files
 
 echo "$MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
-        $MMS_HOME/configuration/mmd-dimensions-highlat.properties \
+        $MMS_HOME/config/mmd-dimensions-highlat.properties \
         $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
         $MMS_ARCHIVE/ecmwf-era-interim/v01 \
         $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc"
 
 if ! $MMS_HOME/bin/nwp-tool.sh false $sensor $pattern \
-        $MMS_HOME/configuration/mmd-dimensions-highlat.properties \
+        $MMS_HOME/config/mmd-dimensions-highlat.properties \
         $sensor-sub-$startTimeCompact-$stopTimeCompact.nc \
         $MMS_ARCHIVE/ecmwf-era-interim/v01 \
         $sensor-nwp-$startTimeCompact-$stopTimeCompact.nc

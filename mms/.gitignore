@@ -1,11 +1,11 @@
 .idea/
 postgres/
 target/
-/configuration/
+/config/
 *.iml
 *.iws
 *.ipr
-/*.configuration
+/*.config
 /*.log
 /*.nc
 /*.properties

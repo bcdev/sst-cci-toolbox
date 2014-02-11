@@ -89,8 +89,8 @@ $MMS_HOME/bin/mmd-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.target.startTime=$startTime \
 -Dmms.target.stopTime=$stopTime \
 -Djava.io.tmpdir=$wd \
--Dmms.target.variables=$MMS_HOME/configuration/mmd-variables-nwpmatchup.configuration \
--Dmms.target.dimensions=$MMS_HOME/configuration/mmd-dimensions.properties \
+-Dmms.target.variables=$MMS_HOME/config/mmd-variables-nwpmatchup.config \
+-Dmms.target.dimensions=$MMS_HOME/config/mmd-dimensions.properties \
 -Dmms.target.filename=matchup-sub-$startTimeCompact-$stopTimeCompact.nc
 
 # generate NWP files
