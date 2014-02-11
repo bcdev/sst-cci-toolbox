@@ -142,7 +142,7 @@ public class SamplingTool extends BasicTool {
 
     List<SamplingPoint> createSamples() {
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
-        final List<SamplingPoint> sampleList = new ArrayList<SamplingPoint>(sampleCount);
+        final List<SamplingPoint> sampleList = new ArrayList<>(sampleCount);
 
         for (int i = 0; i < sampleCount; i++) {
             final double[] sample = sequenceGenerator.nextVector();
@@ -220,7 +220,7 @@ public class SamplingTool extends BasicTool {
             query.setParameter(3, String.format("POINT(%.4f %.4f)", lon, lat));
             query.setMaxResults(1);
 
-            ReferenceObservation nearestCoveringObservation = null;
+            ReferenceObservation nearestCoveringObservation;
             @SuppressWarnings({"unchecked"})
             final List<? extends ReferenceObservation> observations = query.getResultList();
             if (observations.isEmpty()) {
@@ -251,9 +251,8 @@ public class SamplingTool extends BasicTool {
                         orbitObservation.getLocation().getGeometry());
             }
         }
-        final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
-        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
-            final SamplingPoint point = iterator.next();
+        final List<SamplingPoint> accu = new ArrayList<>(sampleList.size());
+        for (final SamplingPoint point : sampleList) {
             // look for orbit temporally before (i0) and after (i1) point with binary search
             int i0 = 0;
             int i1 = polygons.length - 1;
@@ -324,6 +323,7 @@ public class SamplingTool extends BasicTool {
         query.setParameter(1, sensor);
         //query.setParameter(2, startTime);
         //query.setParameter(3, stopTime);
+        //noinspection unchecked
         return query.getResultList();
     }
 
@@ -345,7 +345,7 @@ public class SamplingTool extends BasicTool {
         final Number fillValue = column.getFillValue();
         final PixelCounter pixelCounter = new PixelCounter(pixelMask, fillValue);
 
-        final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<Integer, List<SamplingPoint>>();
+        final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<>();
         for (final SamplingPoint point : sampleList) {
             final int id = isSecondSensor ? point.getReference2() : point.getReference();
 
@@ -359,7 +359,7 @@ public class SamplingTool extends BasicTool {
         final int[] shape = {1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
-        final List<SamplingPoint> accu = new ArrayList<SamplingPoint>(sampleList.size());
+        final List<SamplingPoint> accu = new ArrayList<>(sampleList.size());
         final Integer[] datafileIds = sampleListsByDatafile.keySet().toArray(new Integer[sampleListsByDatafile.keySet().size()]);
         Arrays.sort(datafileIds);
         for (final int id : datafileIds) {
