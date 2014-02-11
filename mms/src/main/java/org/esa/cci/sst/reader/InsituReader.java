@@ -120,11 +120,13 @@ class InsituReader extends NetcdfReader {
         final Date refTime = extractDefinition.getDate();
         final Range range = insituAccessor.find12HoursRange(refTime);
         final Array source = sourceVariable.read();
+
         final Array target = Array.factory(source.getElementType(), extractDefinition.getShape());
         final Number fillValue = getAttribute(sourceVariable, "_FillValue", Short.MIN_VALUE);
         for (int i = 0; i < target.getSize(); i++) {
             target.setObject(i, fillValue);
         }
+
         if (range != Range.EMPTY) {
             final List<Range> subsampling = insituAccessor.createSubsampling(range, extractDefinition.getShape()[1]);
             try {
@@ -132,6 +134,9 @@ class InsituReader extends NetcdfReader {
             } catch (InvalidRangeException e) {
                 throw new IOException("Unable to create target.", e);
             }
+        }
+        if (role.equals("time")) {
+            insituAccessor.scaleTime(target);
         }
         return target;
     }

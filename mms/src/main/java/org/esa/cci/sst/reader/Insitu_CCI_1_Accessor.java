@@ -118,6 +118,15 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
         return netcdfReader.getVariable(variableName);
     }
 
+    @Override
+    public void scaleTime(Array timeArray) {
+        final long size = timeArray.getSize();
+        for (int i = 0; i < size; i++) {
+            final double mjd = timeArray.getDouble(i);
+            timeArray.setDouble(i, TimeUtil.julianDateToSecondsSinceEpoch(mjd));
+        }
+    }
+
     private void ensureLon() throws IOException {
         if (lon == null) {
             final Variable lonVariable = netcdfReader.getVariable("insitu.longitude");

@@ -16,14 +16,14 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.common.ExtractDefinition;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -45,7 +45,7 @@ class InsituTime extends AbstractImplicitRule {
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
-                                                                                                     RuleException {
+            RuleException {
         targetColumnBuilder
                 .type(DATA_TYPE)
                 .fillValue(FILL_VALUE)
@@ -67,7 +67,7 @@ class InsituTime extends AbstractImplicitRule {
                 final Array insituTimes = observationReader.read("time", extractDefinition);
                 for (int i = 0; i < insituTimes.getSize(); i++) {
                     final double insituTime = insituTimes.getDouble(i);
-                    insituTimes.setDouble(i, TimeUtil.julianDateToSecondsSinceEpoch(insituTime) - refTime);
+                    insituTimes.setDouble(i, insituTime - refTime);
                 }
                 return insituTimes;
             } else {

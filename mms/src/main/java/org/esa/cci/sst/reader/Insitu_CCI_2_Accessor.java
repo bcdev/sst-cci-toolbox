@@ -112,6 +112,11 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
         return netcdfReader.getVariable(role);
     }
 
+    @Override
+    public void scaleTime(Array timeArray) {
+        // nothing to scale here
+    }
+
     // package access for testing only tb 2014-02-06
     static String extractWMOID(DataFile dataFile) {
         final String path = dataFile.getPath();

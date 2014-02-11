@@ -22,6 +22,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 import org.postgis.Geometry;
 import org.postgis.LineString;
@@ -118,9 +119,9 @@ public class InsituReaderTest {
             assertNotNull(array);
             assertEquals(14, array.getSize());
 
-            assertEquals(2454452.519, array.getDouble(0), 1e-5);
-            assertEquals(2454453.060, array.getDouble(7), 1e-5);
-            assertEquals(2454453.477, array.getDouble(13), 1e-5);
+            assertEquals(TimeUtil.julianDateToSecondsSinceEpoch(2454452.519), array.getDouble(0), 1e-3);
+            assertEquals(TimeUtil.julianDateToSecondsSinceEpoch(2454453.060), array.getDouble(7), 1e-3);
+            assertEquals(TimeUtil.julianDateToSecondsSinceEpoch(2454453.477), array.getDouble(13), 1e-3);
         }
     }
 

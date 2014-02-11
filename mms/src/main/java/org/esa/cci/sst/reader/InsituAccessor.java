@@ -2,6 +2,7 @@ package org.esa.cci.sst.reader;
 
 
 import org.esa.cci.sst.util.SamplingPoint;
+import ucar.ma2.Array;
 import ucar.ma2.Range;
 import ucar.nc2.Variable;
 
@@ -34,4 +35,6 @@ interface InsituAccessor {
     List<SamplingPoint> readSamplingPoints() throws IOException;
 
     Variable getVariable(String role);
+
+    void scaleTime(Array timeArray);
 }
