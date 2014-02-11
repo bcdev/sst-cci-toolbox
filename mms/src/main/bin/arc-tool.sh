@@ -3,8 +3,8 @@
 . mymms
 . $MMS_HOME/bin/mms-env.sh
 
-# call pattern: arc3-run.sh <year> <month> <sensor>
-# call example: arc3-run.sh 2010 12 avhrr.n18
+# call pattern: arc-tool.sh <year> <month> <sensor>
+# call example: arc-tool.sh 2010 12 avhrr.n18
 
 year=$1
 month=$2

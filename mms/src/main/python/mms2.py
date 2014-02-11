@@ -139,12 +139,13 @@ for year in years:
                        ['/smp/' + sensor + '/' + year + '/' + month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            # 4. Create MMD with subscenes
+            # 4. Create single-sensor MMD with subscenes
             pm.execute('mmd-run2.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
             # 5. Add coincidences from Sea Ice and Aerosol data
+            # TODO - why do not extract and ingest those?
             pm.execute('coincidence-run2.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
@@ -154,21 +155,38 @@ for year in years:
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            # 7. Extract NWP data for matchup point
+            # 7. Extract NWP analysis (an) and forecast (fc) data for matchup point
+            # TODO - why do I do this? Will these be ingested later?
             pm.execute('nwpmatchup-run2.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwpan/' + sensor + '/' + year + '/' + month,
                         '/nwpfc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            pm.execute('arc-run2.sh', ['/nwp/' + sensor + '/' + year + '/' + month],
-                       ['/arc/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, usecase])
-            pm.execute('reingestion-run2.sh', ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'sub', usecase])
-            pm.execute('reingestion-run2.sh', ['/nwp/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'nwp', usecase])
-            pm.execute('reingestion-run2.sh', ['/arc/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'arc', usecase])
-            pm.execute('mmd-run2.sh', ['/con/' + sensor + '/' + year + '/' + month],
-                       ['/mmd/' + sensor + '/' + year + '/' + month], parameters=[year, month, sensor, 'mmd2', usecase])
+            # 8. Conduct ARC processing
+            pm.execute('arc-run2.sh',
+                       ['/nwp/' + sensor + '/' + year + '/' + month],
+                       ['/arc/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, usecase])
+            # 9. Re-ingest sensor sub-scenes into database
+            pm.execute('reingestion-run2.sh',
+                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'sub', usecase])
+            # 10. Ingest sensor sub-scene NWP data into database
+            # TODO - why don't I ingest NWP analysis and forecast data?
+            pm.execute('reingestion-run2.sh',
+                       ['/nwp/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'nwp', usecase])
+            # 11. Ingest sensor sub-scene ARC results into database
+            pm.execute('reingestion-run2.sh',
+                       ['/arc/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'arc', usecase])
+            # 12. Produce final single-sensor MMD file
+            pm.execute('mmd-run2.sh',
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       ['/mmd/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'mmd2', usecase])
 
 pm.wait_for_completion()
