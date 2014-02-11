@@ -62,6 +62,18 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testPutAndGetDateValue_withDefaultValue_unparseable() {
+        configuration.put("date.key", "1978-01-01T00:00:00Z");
+
+        try {
+            configuration.getDateValue("invalid.date.key", "easter");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("Cannot parse start or stop date.", expected.getMessage());
+        }
+    }
+
+    @Test
     public void testPutAndGetBooleanValue() {
         configuration.put("true_bool_key", "true");
         configuration.put("false_bool_key", "false");

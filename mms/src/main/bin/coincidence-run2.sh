@@ -11,7 +11,7 @@ let d1="d + 32 * 86400"
 starttime=$year-$month-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @$d1`-01T00:00:00Z
 
-matchup2-tool.sh -c $usecase-config.properties \
+matchup2-tool.sh -c $usecase-configuration.xml \
 -Dmms.matchup.startTime=${starttime} \
 -Dmms.matchup.stopTime=${stoptime} \
 -Dmms.matchup.primarysensor=${sensor}
