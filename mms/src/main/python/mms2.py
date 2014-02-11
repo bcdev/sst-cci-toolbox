@@ -83,7 +83,7 @@ for year in years:
     for month in months:
         for sensor, _, __ in sensors:
             inputs.append('/inp/' + sensor + '/' + year + '/' + month)
-# add fulfilled preconditions for temporal boundary around mission start and end
+# Add fulfilled preconditions for temporal boundary around mission start and end
 for (sensor, sensorstart, sensorstop) in sensors:
     if years[0] + '-' + months[0] >= sensorstart:
         prev_month_year, prev_month = prev_year_month_of(years[0], months[0])
@@ -125,7 +125,6 @@ for year in years:
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
             # 2. Generate sampling points per month and sensor
-            # inputs for months before and after sensorstart and sensorstop had been added as fulfilled preconditions initially
             pm.execute('sampling-run2.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,
                         '/obs/' + year + '/' + month,
