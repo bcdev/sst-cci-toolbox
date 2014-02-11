@@ -107,22 +107,13 @@ public class InsituReaderTest {
             assertEquals(1285, samplingPoints.size());
 
             SamplingPoint samplingPoint = samplingPoints.get(0);
-            assertEquals(9.753368, samplingPoint.getLat(), 1e-6);
-            assertEquals(88.9182129, samplingPoint.getLon(), 1e-6);
-            assertEquals(1195835184000L, samplingPoint.getTime());
-            assertEquals(11851, samplingPoint.getReference());
+            assertCorrectSamplingPoint(9.753368, 88.9182129, 1195835184000L, 11851, samplingPoint);
 
             samplingPoint = samplingPoints.get(619);
-            assertEquals(14.048774, samplingPoint.getLat(), 1e-6);
-            assertEquals(85.6864777, samplingPoint.getLon(), 1e-6);
-            assertEquals(1197883641600L, samplingPoint.getTime());
-            assertEquals(11851, samplingPoint.getReference());
+            assertCorrectSamplingPoint(14.048774, 85.6864777, 1197883641600L, 11851, samplingPoint);
 
             samplingPoint = samplingPoints.get(1284);
-            assertEquals(15.607534, samplingPoint.getLat(), 1e-6);
-            assertEquals(84.8221817, samplingPoint.getLon(), 1e-6);
-            assertEquals(1200086841600L, samplingPoint.getTime());
-            assertEquals(11851, samplingPoint.getReference());
+            assertCorrectSamplingPoint(15.607534, 84.8221817, 1200086841600L, 11851, samplingPoint);
         }
     }
 
@@ -187,22 +178,13 @@ public class InsituReaderTest {
             assertEquals(223, samplingPoints.size());
 
             SamplingPoint samplingPoint = samplingPoints.get(0);
-            assertEquals(-60.0, samplingPoint.getLat(), 1e-6);
-            assertEquals(-56.05, samplingPoint.getLon(), 1e-6);
-            assertEquals(1042784460000L, samplingPoint.getTime());
-            assertEquals(71569, samplingPoint.getReference());
+            assertCorrectSamplingPoint(-60.0, -56.05, 1042784460000L, 71569, samplingPoint);
 
             samplingPoint = samplingPoints.get(107);
-            assertEquals(-60.27, samplingPoint.getLat(), 1e-6);
-            assertEquals(-59.14, samplingPoint.getLon(), 1e-6);
-            assertEquals(1043403372000L, samplingPoint.getTime());
-            assertEquals(71569, samplingPoint.getReference());
+            assertCorrectSamplingPoint(-60.27, -59.14, 1043403372000L, 71569, samplingPoint);
 
             samplingPoint = samplingPoints.get(222);
-            assertEquals(-60.77, samplingPoint.getLat(), 1e-6);
-            assertEquals(-56.77, samplingPoint.getLon(), 1e-6);
-            assertEquals(1044056807000L, samplingPoint.getTime());
-            assertEquals(71569, samplingPoint.getReference());
+            assertCorrectSamplingPoint(-60.77, -56.77, 1044056807000L, 71569, samplingPoint);
         }
     }
 
@@ -267,22 +249,13 @@ public class InsituReaderTest {
             assertEquals(3, samplingPoints.size());
 
             SamplingPoint samplingPoint = samplingPoints.get(0);
-            assertEquals(-62.785, samplingPoint.getLat(), 1e-6);
-            assertEquals(4.542, samplingPoint.getLon(), 1e-6);
-            assertEquals(1042188973000L, samplingPoint.getTime());
-            assertEquals(7900016, samplingPoint.getReference());
+            assertCorrectSamplingPoint(-62.785, 4.542, 1042188973000L, 7900016, samplingPoint);
 
             samplingPoint = samplingPoints.get(1);
-            assertEquals(-62.625, samplingPoint.getLat(), 1e-6);
-            assertEquals(3.899, samplingPoint.getLon(), 1e-6);
-            assertEquals(1043051228000L, samplingPoint.getTime());
-            assertEquals(7900016, samplingPoint.getReference());
+            assertCorrectSamplingPoint(-62.625, 3.899, 1043051228000L, 7900016, samplingPoint);
 
             samplingPoint = samplingPoints.get(2);
-            assertEquals(-62.749, samplingPoint.getLat(), 1e-6);
-            assertEquals(3.206, samplingPoint.getLon(), 1e-6);
-            assertEquals(1043907899000L, samplingPoint.getTime());
-            assertEquals(7900016, samplingPoint.getReference());
+            assertCorrectSamplingPoint(-62.749, 3.206, 1043907899000L, 7900016, samplingPoint);
         }
     }
 
@@ -423,11 +396,11 @@ public class InsituReaderTest {
         return new File(uri);
     }
 
-    private Calendar createUtcCalendar() {
+    private static Calendar createUtcCalendar() {
         return new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
     }
 
-    private Calendar creatUtcCalendar(int year, int month, int day) {
+    private static Calendar creatUtcCalendar(int year, int month, int day) {
         final Calendar calendar = createUtcCalendar();
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, month);
@@ -436,5 +409,12 @@ public class InsituReaderTest {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         return calendar;
+    }
+
+    private static void assertCorrectSamplingPoint(double lat, double lon, long time, int reference, SamplingPoint samplingPoint) {
+        assertEquals(lat, samplingPoint.getLat(), 1e-6);
+        assertEquals(lon, samplingPoint.getLon(), 1e-6);
+        assertEquals(time, samplingPoint.getTime());
+        assertEquals(reference, samplingPoint.getReference());
     }
 }
