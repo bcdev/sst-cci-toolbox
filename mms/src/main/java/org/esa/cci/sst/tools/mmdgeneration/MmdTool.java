@@ -59,9 +59,9 @@ public class MmdTool extends BasicTool {
 
     private final ColumnRegistry columnRegistry = new ColumnRegistry();
 
-    private final Set<String> dimensionNames = new TreeSet<String>();
-    private final Map<String, Integer> dimensionConfiguration = new HashMap<String, Integer>(50);
-    private final List<String> targetColumnNames = new ArrayList<String>(500);
+    private final Set<String> dimensionNames = new TreeSet<>();
+    private final Map<String, Integer> dimensionConfiguration = new HashMap<>(50);
+    private final List<String> targetColumnNames = new ArrayList<>(500);
 
     private ReaderCache readerCache;
     private int matchupCount;

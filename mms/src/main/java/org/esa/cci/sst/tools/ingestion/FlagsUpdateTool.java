@@ -77,7 +77,7 @@ public class FlagsUpdateTool extends BasicTool {
         for (int recordNo = 0; recordNo < numRecords; ++recordNo) {
             // look up observation
             final int matchupId = reader.getMatchupId(recordNo);
-            final ReferenceObservation observation = (ReferenceObservation) getPersistenceManager().pick("select o from ReferenceObservation o where o.id = ?1", new Integer(matchupId));
+            final ReferenceObservation observation = (ReferenceObservation) getPersistenceManager().pick("select o from ReferenceObservation o where o.id = ?1", matchupId);
             if (observation == null) {
                 getLogger().warning(String.format("matchup %d of record %d not found - skipped", matchupId, recordNo));
                 continue;

@@ -98,8 +98,8 @@ public class IngestionTool extends BasicTool {
     private void ingest(String path, File archiveRoot, String readerSpec, String sensorName, String observationType, long pattern) {
         getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", path));
         final PersistenceManager persistenceManager = getPersistenceManager();
-        final Reader reader = getReader(readerSpec, sensorName);
-        try {
+
+        try (Reader reader = getReader(readerSpec, sensorName)) {
             // open database
             persistenceManager.transaction();
 
@@ -130,8 +130,6 @@ public class IngestionTool extends BasicTool {
                 // ignored, because surrounding exception is propagated
             }
             getErrorHandler().warn(e, MessageFormat.format("Failed to ingest file ''{0}''.", path));
-        } finally {
-            reader.close();
         }
     }
 
@@ -289,7 +287,7 @@ public class IngestionTool extends BasicTool {
     }
 
     private List<File> getInputFiles(final String filenamePattern, final File inputDir) {
-        final List<File> inputFileList = new ArrayList<File>(0);
+        final List<File> inputFileList = new ArrayList<>(0);
         collectInputFiles(inputDir, filenamePattern, inputFileList);
         return inputFileList;
     }
