@@ -12,11 +12,13 @@ public class SamplePointGenerator extends BasicTool{
 
     private long startTime;
     private long stopTime;
+    private int searchTimeDelta;
     private int sampleCount;
     private int sampleSkip;
+    private String sensor;
 
     public SamplePointGenerator() {
-        super("sampling-point-generator", ".0");
+        super("sampling-point-generator", "1.0");
     }
 
     public static void main(String[] args) {
@@ -41,8 +43,10 @@ public class SamplePointGenerator extends BasicTool{
         final Configuration config = getConfig();
         startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
+        searchTimeDelta = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_DELTA, 0);
         sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT, 0);
         sampleSkip = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SKIP, 0);
+        sensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
     }
 
     private void run() {
@@ -55,7 +59,10 @@ public class SamplePointGenerator extends BasicTool{
         final ClearSkyPointRemover clearSkyPointRemover = createClearSkyPointRemover();
         clearSkyPointRemover.removeSamples(samples);
 
-        // TODO - continue here rq-20140212
+        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
+        observationFinder.findObservations(samples, sensor, false, startTime, stopTime, searchTimeDelta);
+
+        // TODO - continue here, incorporate secondary sensors rq-20140212
     }
 
     private ClearSkyPointRemover createClearSkyPointRemover() {
