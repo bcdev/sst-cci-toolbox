@@ -139,9 +139,7 @@ public class SobolSequenceGenerator {
      * valid direction vector per line.
      *
      * @param is the input stream to read the direction vector from
-     *
      * @return the last dimension that has been read from the input stream
-     *
      * @throws java.io.IOException if the stream could not be read
      */
     private int initFromStream(final InputStream is) throws IOException {
@@ -240,7 +238,6 @@ public class SobolSequenceGenerator {
      * This operation can be performed in O(1).
      *
      * @param index the index in the sequence to skip to
-     *
      * @return the i-th point in the Sobol sequence
      */
     public double[] skipTo(final int index) {
@@ -267,6 +264,10 @@ public class SobolSequenceGenerator {
         }
         count = index;
         return nextVector();
+    }
+
+    public void skip(final int index) {
+        skipTo(index - 1);
     }
 
     /**
