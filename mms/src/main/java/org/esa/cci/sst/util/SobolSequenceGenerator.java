@@ -240,7 +240,7 @@ public class SobolSequenceGenerator {
      * @param index the index in the sequence to skip to
      * @return the i-th point in the Sobol sequence
      */
-    public double[] skipTo(final int index) {
+    private double[] skipTo(final int index) {
         if (index == 0) {
             // reset x vector
             Arrays.fill(x, 0);
@@ -266,8 +266,15 @@ public class SobolSequenceGenerator {
         return nextVector();
     }
 
-    public void skip(final int index) {
-        skipTo(index - 1);
+    /**
+     * Skips the first n points in the Sobol sequence.
+     * <p/>
+     * This operation can be performed in O(1).
+     *
+     * @param n the number of points to skip
+     */
+    public void skip(final int n) {
+        skipTo(n - 1);
     }
 
     /**
@@ -276,7 +283,7 @@ public class SobolSequenceGenerator {
      *
      * @return the index of the next point
      */
-    public int getNextIndex() {
+    int getNextIndex() {
         return count;
     }
 }

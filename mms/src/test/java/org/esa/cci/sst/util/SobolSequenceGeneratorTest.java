@@ -1,5 +1,6 @@
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;

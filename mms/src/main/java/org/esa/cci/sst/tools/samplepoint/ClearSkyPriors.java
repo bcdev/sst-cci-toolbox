@@ -1,4 +1,4 @@
-package org.esa.cci.sst.util;/*
+package org.esa.cci.sst.tools.samplepoint;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,44 +14,56 @@ package org.esa.cci.sst.util;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.cci.sst.common.cellgrid.Grid;
 import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.util.NcUtils;
+import ucar.nc2.NetcdfFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 
-public class Watermask {
+class ClearSkyPriors {
 
-    private static final String RESOURCE_NAME = "water.png";
+    private static final String RESOURCE_NAME = "AATSR_prior_run081222.nc";
 
     private final GridDef gridDef;
-    private final Raster imageRaster;
+    private Grid grid;
 
-    public Watermask() {
-        final BufferedImage waterImage;
+    ClearSkyPriors() {
+        final NetcdfFile file;
         try {
             final URL url = getClass().getResource(RESOURCE_NAME);
-            if (url != null) {
-                waterImage = ImageIO.read(url);
-            } else {
+            if (url == null) {
                 throw new IllegalStateException(MessageFormat.format(
-                        "Cannot find resource for water mask image ''{0}''.", RESOURCE_NAME));
+                        "Cannot find resource data for cloud priors ''{0}''..", RESOURCE_NAME));
             }
+            file = NetcdfFile.openInMemory(url.toURI());
+        } catch (IOException | URISyntaxException e) {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Cannot open resource data for cloud priors ''{0}''..", RESOURCE_NAME), e);
+        }
+
+        gridDef = GridDef.createGlobal(1.0);
+        try {
+            grid = YFlip.create(NcUtils.readGrid(file, "clr_prior", gridDef));
         } catch (IOException e) {
             throw new IllegalStateException(MessageFormat.format(
-                    "Cannot read resource for water mask image ''{0}''.", RESOURCE_NAME), e);
+                    "Cannot read resource data for cloud priors ''{0}''..", RESOURCE_NAME), e);
+        } finally {
+            try {
+                file.close();
+            } catch (IOException ignored) {
+            }
         }
-        imageRaster = waterImage.getRaster();
-        gridDef = GridDef.createGlobal(0.01);
     }
 
-    public boolean isWater(double lon, double lat) {
+    double getSample(double lon, double lat) {
         final int x = gridDef.getGridX(lon, true);
         final int y = gridDef.getGridY(lat, true);
 
-        return imageRaster.getSample(x, y, 0) != 0;
+        return grid.getSampleDouble(x, y);
     }
 }

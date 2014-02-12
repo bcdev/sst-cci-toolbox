@@ -26,13 +26,16 @@ public class Configuration {
     public static final String KEY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
 
     public static final String KEY_SOURCE_START_TIME = "mms.source.startTime";
-
     public static final String KEY_SOURCE_STOP_TIME = "mms.source.stopTime";
+
     public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
     public static final String KEY_MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
     public static final String KEY_MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
-
     public static final String KEY_MMS_SAMPLING_SHOW_MAPS = "mms.sampling.showmaps";
+    public static final String KEY_MMS_SAMPLING_COUNT = "mms.sampling.count";
+    public static final String KEY_MMS_SAMPLING_SKIP = "mms.sampling.skip";
+    public static final String KEY_MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
+    public static final String KEY_MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
 
     private final Properties properties;
 

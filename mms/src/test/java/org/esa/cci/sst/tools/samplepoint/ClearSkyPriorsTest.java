@@ -1,4 +1,4 @@
-package org.esa.cci.sst.util;/*
+package org.esa.cci.sst.tools.samplepoint;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -14,30 +14,29 @@ package org.esa.cci.sst.util;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Random;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class WatermaskTest {
+public class ClearSkyPriorsTest {
 
     @Test
-    public void testWatermask() throws Exception {
+    public void testCloudPriors() throws Exception {
 
-        final Watermask watermask = new Watermask();
+        final ClearSkyPriors clearSkyPriors = new ClearSkyPriors();
 
-        assertTrue(watermask.isWater(0.0, 0.0));
-        assertFalse(watermask.isWater(20.0, 0.0));
+        assertEquals(0.185, clearSkyPriors.getSample(0.0, 0.0), 0.001);
+        assertEquals(0.084, clearSkyPriors.getSample(20.0, 0.0), 0.001);
     }
 
     // for testing performance
     public static void main(String[] args) {
-        final Watermask watermask = new Watermask();
+        final ClearSkyPriors clearSkyPriors = new ClearSkyPriors();
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
 
         final long t0 = System.currentTimeMillis();
@@ -51,7 +50,7 @@ public class WatermaskTest {
             final double lon = x * 360.0 - 180.0;
             final double lat = 90.0 - y * 180.0;
 
-            watermask.isWater(lon, lat);
+            clearSkyPriors.getSample(lon, lat);
         }
         final long t1 = System.currentTimeMillis();
         System.out.println("Stop time  = " + new Date(t1));
