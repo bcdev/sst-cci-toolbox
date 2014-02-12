@@ -12,6 +12,9 @@ public final class SamplingPoint {
     private int x;
     private int y;
 
+    public SamplingPoint() {
+    }
+
     public SamplingPoint(double lon, double lat, long time, double random) {
         this.random = random;
 
