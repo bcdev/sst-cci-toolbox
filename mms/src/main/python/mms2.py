@@ -128,9 +128,7 @@ for year in years:
                        ['/obs/' + prev_month_year + '/' + prev_month,
                         '/obs/' + year + '/' + month,
                         '/obs/' + next_month_year + '/' + next_month],
-                       ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
-                        '/smp/' + sensor + '/' + year + '/' + month,
-                        '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
+                       ['/smp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, samplespermonth, usecase])
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-run2.sh',
