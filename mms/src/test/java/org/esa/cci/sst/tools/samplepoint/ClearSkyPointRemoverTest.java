@@ -22,7 +22,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class ClearSkyPointRemooverTest {
+public class ClearSkyPointRemoverTest {
     private List<SamplingPoint> samples;
 
     @Before
