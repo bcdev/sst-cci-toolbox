@@ -24,7 +24,9 @@ public class SamplePointGenerator extends BasicTool{
     public static void main(String[] args) {
         final SamplePointGenerator tool = new SamplePointGenerator();
         try {
-            if (!tool.setCommandLineArgs(args)) {
+            boolean ok = tool.setCommandLineArgs(args);
+            if (!ok) {
+                tool.printHelp();
                 return;
             }
             tool.initialize();
