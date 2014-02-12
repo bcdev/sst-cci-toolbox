@@ -17,6 +17,7 @@ package org.esa.cci.sst.tools;/*
 import org.esa.cci.sst.DatabaseTestRunner;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
+import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
@@ -28,8 +29,12 @@ import org.postgis.Point;
 import org.postgis.Polygon;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.WindowConstants;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +44,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 @RunWith(DatabaseTestRunner.class)
 public class SamplingToolTest {
@@ -190,42 +195,12 @@ public class SamplingToolTest {
     }
 
     @Test
-    public void testCreateSamples() throws Exception {
-        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
-        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
-        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
-
-        assertEquals(10000, sampleList.size());
-    }
-
-    @Test
-    public void testRemoveLandSamples() throws Exception {
-        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
-        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
-        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
-        tool.removeLandSamples(sampleList);
-
-        assertEquals(6612, sampleList.size());
-    }
-
-    @Test
-    public void testReduceClearSamples() throws Exception {
-        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
-        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
-        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
-        tool.removeLandSamples(sampleList);
-        tool.reduceByClearSkyStatistic(sampleList);
-
-        assertEquals(2973, sampleList.size());
-    }
-
-    @Test
     public void testFindSatelliteSubscenes() throws Exception {
         final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
         final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
         final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
-        tool.removeLandSamples(sampleList);
-        tool.reduceByClearSkyStatistic(sampleList);
+        SamplingTool.removeLandSamples(sampleList);
+        SamplingTool.reduceByClearSkyStatistic(sampleList);
         tool.findObservations(sampleList, "atsr_orb.3");
         tool.findSatelliteSubscenes(sampleList, "atsr_orb.3", false);
 
@@ -237,9 +212,10 @@ public class SamplingToolTest {
         final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
         final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
         final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
-        tool.removeLandSamples(sampleList);
-        tool.reduceByClearSkyStatistic(sampleList);
-        tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 175 / 10);
+        SamplingTool.removeLandSamples(sampleList);
+        SamplingTool.reduceByClearSkyStatistic(sampleList);
+        SamplingTool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 175 / 10, tool.getPersistenceManager(),
+                                       tool.getStartTime(), tool.getStopTime());
         tool.findSatelliteSubscenes(sampleList, "atsr_orb.3", false);
         tool.removeOverlappingSamples(sampleList);
 
@@ -270,16 +246,19 @@ public class SamplingToolTest {
         final List<SamplingPoint> sampleList = tool.createSamples(10000, 0, 0, 1);
         System.out.println(
                 TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples... " + sampleList.size());
-        final List<ReferenceObservation> orbitObservations = tool.findOrbits("atsr_orb.3",
-                TimeUtil.formatCcsdsUtcFormat(TimeUtil.parseCcsdsUtcFormat("2004-06-12T00:00:00Z")),
-                TimeUtil.formatCcsdsUtcFormat(TimeUtil.parseCcsdsUtcFormat("2004-06-13T00:00:00Z")));
+        ObservationFinder observationFinder = new ObservationFinder(tool.getPersistenceManager());
+        final List<ReferenceObservation> orbitObservations =
+                observationFinder.findOrbits("atsr_orb.3",
+                                             TimeUtil.parseCcsdsUtcFormat("2004-06-12T00:00:00Z"),
+                                             TimeUtil.parseCcsdsUtcFormat("2004-06-13T00:00:00Z"));
         final int orbitObservationId = orbitObservations.get(0).getId();
         for (SamplingPoint p : sampleList) {
             p.setReference(orbitObservationId);
         }
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating matchups...");
         tool.createMatchups(sampleList, "atsr_orb.3", null);
-        System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating matchups..." + sampleList.size());
+        System.out.println(
+                TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating matchups..." + sampleList.size());
     }
 
     @Test
@@ -302,17 +281,24 @@ public class SamplingToolTest {
         System.out.println("Creating samples... " + sampleList.size());
 
         final Geometry geometry3 = new Polygon(new LinearRing[]{new LinearRing(ATSR3_POINTS)});
-        final PolarOrbitingPolygon polygon3 = new PolarOrbitingPolygon(1, TimeUtil.parseCcsdsUtcFormat("2003-01-01T01:26:51Z").getTime(), geometry3);
+        final PolarOrbitingPolygon polygon3 = new PolarOrbitingPolygon(1, TimeUtil.parseCcsdsUtcFormat(
+                "2003-01-01T01:26:51Z").getTime(), geometry3);
 
         System.out.println("Finding reference observations...");
-        tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 175 / 10, new PolarOrbitingPolygon[]{polygon3});
+        ObservationFinder.findObservations(sampleList, false,
+                                           86400 * 175 / 10 * 1000,
+                                           new PolarOrbitingPolygon[]{polygon3}
+        );
         System.out.println("Finding reference observations..." + sampleList.size());
 
         final Geometry geometry2 = new Polygon(new LinearRing[]{new LinearRing(ATSR2_POINTS)});
-        final PolarOrbitingPolygon polygon2 = new PolarOrbitingPolygon(1, TimeUtil.parseCcsdsUtcFormat("2003-01-01T01:57:44Z").getTime(), geometry2);
+        final PolarOrbitingPolygon polygon2 = new PolarOrbitingPolygon(1, TimeUtil.parseCcsdsUtcFormat(
+                "2003-01-01T01:57:44Z").getTime(), geometry2);
 
         System.out.println("Finding atsr.2 observations...");
-        tool.findObservations2(sampleList, "atsr_orb.2", true, 90000, new PolarOrbitingPolygon[]{polygon2});
+        ObservationFinder.findObservations(sampleList, true,
+                                           90000 * 1000, new PolarOrbitingPolygon[]{polygon2}
+        );
         System.out.println("Finding atsr.2 observations..." + sampleList.size());
     }
 
@@ -399,7 +385,7 @@ public class SamplingToolTest {
     }
 
     private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
-            IOException {
+                                                                                                            IOException {
         final int w = 800;
         final int h = 400;
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);

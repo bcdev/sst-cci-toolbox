@@ -2,6 +2,7 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
 import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
+import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
 import org.esa.cci.sst.util.SamplingPoint;
 

@@ -27,10 +27,10 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
 import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
+import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.ReaderCache;
@@ -134,7 +134,8 @@ public class SamplingTool extends BasicTool {
 
         getLogger().info("Finding reference observations...");
         final int halfRepeatCycleInSeconds = 86400 * 175 / 10;
-        findObservations2(sampleList, samplingSensor, false, halfRepeatCycleInSeconds);
+        findObservations2(sampleList, samplingSensor, false, halfRepeatCycleInSeconds, getPersistenceManager(),
+                          startTime, stopTime);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -152,7 +153,8 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
         if (samplingSensor2 != null) {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
-            findObservations2(sampleList, samplingSensor2, true, matchupDistanceSeconds);
+            findObservations2(sampleList, samplingSensor2, true, matchupDistanceSeconds, getPersistenceManager(),
+                              startTime, stopTime);
             getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
 
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
@@ -177,7 +179,7 @@ public class SamplingTool extends BasicTool {
         new LandPointRemover().removeSamples(sampleList);
     }
 
-    void reduceByClearSkyStatistic(List<SamplingPoint> sampleList) {
+    static void reduceByClearSkyStatistic(List<SamplingPoint> sampleList) {
         new ClearSkyPointRemover().removeSamples(sampleList);
     }
 
@@ -220,103 +222,11 @@ public class SamplingTool extends BasicTool {
         }
     }
 
-    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor,
-                                  int searchRadiusSeconds) throws PersistenceException, ParseException {
-        findObservations2(sampleList, samplingSensor, isSecondSensor, searchRadiusSeconds, null);
-    }
-
-    public void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor,
-                                  int searchRadiusSeconds, PolarOrbitingPolygon[] polygons) throws PersistenceException,
-                                                                                                   ParseException {
-        if (polygons == null) {
-            final List<ReferenceObservation> orbitObservations = findOrbits(samplingSensor,
-                                                                            TimeUtil.formatCcsdsUtcFormat(new Date(
-                                                                                    startTime - searchRadiusSeconds * 1000)),
-                                                                            TimeUtil.formatCcsdsUtcFormat(new Date(
-                                                                                    stopTime + searchRadiusSeconds * 1000)));
-            polygons = new PolarOrbitingPolygon[orbitObservations.size()];
-            for (int i = 0; i < orbitObservations.size(); ++i) {
-                final ReferenceObservation orbitObservation = orbitObservations.get(i);
-                polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
-                                                       orbitObservation.getTime().getTime(),
-                                                       orbitObservation.getLocation().getGeometry());
-            }
-        }
-        final List<SamplingPoint> accu = new ArrayList<>(sampleList.size());
-        for (final SamplingPoint point : sampleList) {
-            // look for orbit temporally before (i0) and after (i1) point with binary search
-            int i0 = 0;
-            int i1 = polygons.length - 1;
-            while (i0 + 1 < i1) {
-                int i = (i1 + i0) / 2;
-                if (point.getTime() < polygons[i].getTime()) {
-                    i1 = i;
-                } else {
-                    i0 = i;
-                }
-            }
-            // check orbitObservations temporally closest to point first for spatial overlap
-            while (true) {
-                // the next polygon in the past is closer to the sample than the next polygon in the future
-                if (i0 >= 0 &&
-                    Math.abs(point.getTime() - polygons[i0].getTime()) <= searchRadiusSeconds * 1000 &&
-                    (i1 >= polygons.length ||
-                     point.getTime() < polygons[i0].getTime() ||
-                     point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
-                    if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                        if (!isSecondSensor) {
-                            point.setReference(polygons[i0].getId());
-                        } else {
-                            point.setReference2(polygons[i0].getId());
-                        }
-                        accu.add(point);
-                        break;
-                    }
-                    --i0;
-                } else
-                    // the next polygon in the future is closer than the next polygon in the past
-                    if (i1 < polygons.length &&
-                        Math.abs(point.getTime() - polygons[i1].getTime()) <= searchRadiusSeconds * 1000) {
-                        if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                            if (!isSecondSensor) {
-                                point.setReference(polygons[i1].getId());
-                            } else {
-                                point.setReference2(polygons[i1].getId());
-                            }
-                            accu.add(point);
-                            break;
-                        }
-                        ++i1;
-                    } else
-                    // there is no next polygon in the past and no next polygon in the future
-                    {
-                        break;
-                    }
-            }
-        }
-        sampleList.clear();
-        sampleList.addAll(accu);
-    }
-
-    private static final String SENSOR_OBSERVATION_QUERY =
-            "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
-            + " order by o.time, o.id";
-
-    List<ReferenceObservation> findOrbits(String sensor, String startTimeString, String stopTimeString) throws
-                                                                                                        ParseException {
-        //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
-        //Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
-        final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll(
-                "\\?3", "'" + stopTimeString + "'");
-        final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
-        query.setParameter(1, sensor);
-        //query.setParameter(2, startTime);
-        //query.setParameter(3, stopTime);
-        //noinspection unchecked
-        return query.getResultList();
+    public static void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor,
+                                         int searchRadiusSeconds, PersistenceManager persistenceManager,
+                                         long startTime, long stopTime) throws PersistenceException, ParseException {
+        new ObservationFinder(persistenceManager).findObservations(sampleList, samplingSensor, isSecondSensor,
+                                                                   startTime, stopTime, searchRadiusSeconds);
     }
 
     void findSatelliteSubscenes(List<SamplingPoint> sampleList, String sensor, boolean isSecondSensor) {
@@ -546,5 +456,12 @@ public class SamplingTool extends BasicTool {
         getPersistenceManager().commit();
     }
 
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getStopTime() {
+        return stopTime;
+    }
 }
 
