@@ -103,17 +103,22 @@ public class SamplingTool extends BasicTool {
         } else if (config.getBooleanValue(MMS_SAMPLING_CLEANUPINTERVAL)) {
             cleanupInterval();
         }
+
         getLogger().info("Creating samples...");
         final List<SamplingPoint> sampleList = createSamples();
         getLogger().info("Creating samples... " + sampleList.size());
+
         getLogger().info("Removing land samples...");
         removeLandSamples(sampleList);
         getLogger().info("Removing land samples..." + sampleList.size());
+
         getLogger().info("Reducing clear samples...");
-        reduceClearSamples(sampleList);
+        reduceByClearSkyStatistic(sampleList);
         getLogger().info("Reducing clear samples..." + sampleList.size());
+
         getLogger().info("Finding reference observations...");
-        findObservations2(sampleList, samplingSensor, false, 86400 * 175 / 10);
+        final int halfRepeatCycleInSeconds = 86400 * 175 / 10;
+        findObservations2(sampleList, samplingSensor, false, halfRepeatCycleInSeconds);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -121,6 +126,7 @@ public class SamplingTool extends BasicTool {
                 return Long.compare(o1.getTime(), o2.getTime());
             }
         });
+
         getLogger().info("Finding satellite sub-scenes...");
         findSatelliteSubscenes(sampleList, samplingSensor, false);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
@@ -128,13 +134,16 @@ public class SamplingTool extends BasicTool {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
             findObservations2(sampleList, samplingSensor2, true, matchupDistanceSeconds);
             getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
+
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
             findSatelliteSubscenes(sampleList, samplingSensor2, true);
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes..." + sampleList.size());
         }
+
         getLogger().info("Removing overlapping areas...");
         removeOverlappingSamples(sampleList);
         getLogger().info("Removing overlapping areas..." + sampleList.size());
+
         getLogger().info("Creating matchups...");
         createMatchups(sampleList, samplingSensor, samplingSensor2);
         getLogger().info("Creating matchups..." + sampleList.size());
@@ -177,7 +186,7 @@ public class SamplingTool extends BasicTool {
         sampleList.addAll(waterSampleList);
     }
 
-    void reduceClearSamples(List<SamplingPoint> sampleList) {
+    void reduceByClearSkyStatistic(List<SamplingPoint> sampleList) {
         if (cloudPriors == null) {
             cloudPriors = new CloudPriors();
         }
@@ -387,6 +396,7 @@ public class SamplingTool extends BasicTool {
                             if (!isSecondSensor) {
                                 point.setX(pixelX);
                                 point.setY(pixelY);
+                                // @todo 2 tb/** check what the consequences are if we use in-situ data here
                                 point.setTime(reader.getTime(0, pixelY));
                             }
 
@@ -439,14 +449,20 @@ public class SamplingTool extends BasicTool {
             persistenceManager.transaction();
             for (SamplingPoint samplingPoint : sampleList) {
                 final ReferenceObservation referenceObservation = new ReferenceObservation();
+                // @todo 2 tb/** make this configurable tb 2014-02-12
                 referenceObservation.setName("0123");
                 referenceObservation.setSensor("sobol");
+
                 final PGgeometry location = new PGgeometry(new Point(samplingPoint.getLon(), samplingPoint.getLat()));
                 referenceObservation.setLocation(location);
                 referenceObservation.setPoint(location);
+
+                // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
                 final Date time = new Date(samplingPoint.getTime());
                 referenceObservation.setTime(time);
                 referenceObservation.setTimeRadius(0.0);
+
+                // @todo 1 tb/** we need to keep the fileId of insitu-file, orbit-file and eventually second orbit-file tb 2014-02-12
                 final Observation observation = getObservation(samplingPoint.getReference());
                 referenceObservation.setDatafile(observation.getDatafile());
                 referenceObservation.setRecordNo(0);
@@ -470,6 +486,7 @@ public class SamplingTool extends BasicTool {
                 final Matchup matchup = new Matchup();
                 matchup.setId(referenceObservation.getId());
                 matchup.setRefObs(referenceObservation);
+                // @todo 2 tb/** check pattern when using with insitu data - we may have to add a "| historyPattern" here   tb 2014-02-12
                 matchup.setPattern(pattern);
 
                 matchupList.add(matchup);
@@ -478,6 +495,7 @@ public class SamplingTool extends BasicTool {
                 final Coincidence coincidence = new Coincidence();
                 coincidence.setMatchup(matchup);
                 coincidence.setObservation(observation);
+                // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
                 coincidence.setTimeDifference(0.0);
                 // TODO handle pattern
                 coincidenceList.add(coincidence);

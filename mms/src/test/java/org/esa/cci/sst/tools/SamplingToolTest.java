@@ -26,11 +26,6 @@ import org.postgis.LinearRing;
 import org.postgis.Point;
 import org.postgis.Polygon;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -207,7 +202,7 @@ public class SamplingToolTest {
     public void testReduceClearSamples() throws Exception {
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
-        tool.reduceClearSamples(sampleList);
+        tool.reduceByClearSkyStatistic(sampleList);
 
         assertEquals(2973, sampleList.size());
     }
@@ -216,7 +211,7 @@ public class SamplingToolTest {
     public void testFindSatelliteSubscenes() throws Exception {
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
-        tool.reduceClearSamples(sampleList);
+        tool.reduceByClearSkyStatistic(sampleList);
         tool.findObservations(sampleList, "atsr_orb.3");
         tool.findSatelliteSubscenes(sampleList, "atsr_orb.3", false);
 
@@ -227,7 +222,7 @@ public class SamplingToolTest {
     public void testRemoveOverlappingAreas() throws Exception {
         final List<SamplingPoint> sampleList = tool.createSamples();
         tool.removeLandSamples(sampleList);
-        tool.reduceClearSamples(sampleList);
+        tool.reduceByClearSkyStatistic(sampleList);
         tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 175 / 10);
         tool.findSatelliteSubscenes(sampleList, "atsr_orb.3", false);
         tool.removeOverlappingSamples(sampleList);
@@ -332,7 +327,7 @@ public class SamplingToolTest {
         tool.removeLandSamples(sampleList);
         System.out.println("Removing land samples..." + sampleList.size());
         System.out.println("Reducing clear samples...");
-        tool.reduceClearSamples(sampleList);
+        tool.reduceByClearSkyStatistic(sampleList);
         System.out.println("Reducing clear samples..." + sampleList.size());
         System.out.println("Finding reference observations...");
         //tool.findObservations2(sampleList, "atsr_orb.3");
@@ -384,41 +379,5 @@ public class SamplingToolTest {
             }
         }
         return result;
-    }
-
-    private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
-            IOException {
-        final int w = 800;
-        final int h = 400;
-        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
-        final JLabel label = new JLabel(new ImageIcon(image));
-
-        final JFrame frame = new JFrame();
-        frame.setTitle(title);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.getContentPane().add(label);
-        frame.setSize(w, h);
-        frame.setVisible(true);
-
-        final Graphics2D graphics = image.createGraphics();
-
-        for (SamplingPoint p : sampleList) {
-            final double x = (p.getLon() + 180.0) / 360.0;
-            final double y = (90.0 - p.getLat()) / 180.0;
-            final int i = (int) (y * h);
-            final int k = (int) (x * w);
-            graphics.fill(new Rectangle(k, i, 1, 1));
-            label.repaint();
-
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored) {
-                // ignore
-            }
-        }
-
-        if (imageFilePathname != null) {
-            ImageIO.write(image, "png", new File(imageFilePathname));
-        }
     }
 }
