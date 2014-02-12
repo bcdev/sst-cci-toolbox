@@ -42,6 +42,7 @@ public class SamplingTool extends BasicTool {
     private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
 
     private static final String MMS_SAMPLING_COUNT = "mms.sampling.count";
+    private static final String MMS_SAMPLING_SKIP = "mms.sampling.skip";
     private static final String MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
     private static final String MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     private static final String MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
@@ -52,6 +53,7 @@ public class SamplingTool extends BasicTool {
     private long startTime;
     private long stopTime;
     private int sampleCount;
+    private int sampleSkip;
     private int subSceneWidth;
     private String samplingSensor;
 
@@ -88,6 +90,7 @@ public class SamplingTool extends BasicTool {
         startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME, "2004-06-01T00:00:00Z").getTime();
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2004-06-04T00:00:00Z").getTime();
         sampleCount = config.getIntValue(MMS_SAMPLING_COUNT, 10000);
+        sampleSkip = config.getIntValue(MMS_SAMPLING_SKIP, 0);
         matchupDistanceSeconds = config.getIntValue(MMS_SAMPLING_MATCHUPDISTANCE, 90000);
         subSceneWidth = config.getIntValue(MMS_SAMPLING_SUBSCENE_WIDTH, 7);
         subSceneHeight = config.getIntValue(MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
@@ -105,7 +108,7 @@ public class SamplingTool extends BasicTool {
         }
 
         getLogger().info("Creating samples...");
-        final List<SamplingPoint> sampleList = createSamples();
+        final List<SamplingPoint> sampleList = createSamples(sampleCount, sampleSkip, startTime, stopTime);
         getLogger().info("Creating samples... " + sampleList.size());
 
         getLogger().info("Removing land samples...");
@@ -126,6 +129,10 @@ public class SamplingTool extends BasicTool {
                 return Long.compare(o1.getTime(), o2.getTime());
             }
         });
+
+        // SNIP ---------------------------------
+        // - list of points - done - json file
+        // - sampling sensor cmdLineParam
 
         getLogger().info("Finding satellite sub-scenes...");
         findSatelliteSubscenes(sampleList, samplingSensor, false);
@@ -149,8 +156,9 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Creating matchups..." + sampleList.size());
     }
 
-    List<SamplingPoint> createSamples() {
+    static List<SamplingPoint> createSamples(int sampleCount, int sampleSkip, long startTime, long stopTime) {
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
+        sequenceGenerator.skip(sampleSkip);
         final List<SamplingPoint> sampleList = new ArrayList<>(sampleCount);
 
         for (int i = 0; i < sampleCount; i++) {

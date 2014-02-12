@@ -19,4 +19,17 @@ public class SobolSequenceGeneratorTest {
         final double[] skippedOutput = generator.nextVector();
         assertArrayEquals(secondOutput, skippedOutput, 0.0);
     }
+
+    @Test
+    public void testSkipZero() {
+        SobolSequenceGenerator generator = new SobolSequenceGenerator(1);
+
+        final double[] firstOutput = generator.nextVector();
+
+        generator = new SobolSequenceGenerator(1);
+        generator.skip(0);
+
+        final double[] skippedOutput = generator.nextVector();
+        assertArrayEquals(firstOutput, skippedOutput, 0.0);
+    }
 }

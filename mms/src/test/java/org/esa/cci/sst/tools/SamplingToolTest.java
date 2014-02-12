@@ -19,6 +19,7 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.postgis.Geometry;
@@ -26,6 +27,11 @@ import org.postgis.LinearRing;
 import org.postgis.Point;
 import org.postgis.Polygon;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -175,7 +181,7 @@ public class SamplingToolTest {
 
     private SamplingTool tool;
 
-    //@Before
+    @Before
     public void setUp() throws Exception {
         tool = new SamplingTool();
 
@@ -185,14 +191,18 @@ public class SamplingToolTest {
 
     @Test
     public void testCreateSamples() throws Exception {
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
+        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
+        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
 
         assertEquals(10000, sampleList.size());
     }
 
     @Test
     public void testRemoveLandSamples() throws Exception {
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
+        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
+        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
         tool.removeLandSamples(sampleList);
 
         assertEquals(6612, sampleList.size());
@@ -200,7 +210,9 @@ public class SamplingToolTest {
 
     @Test
     public void testReduceClearSamples() throws Exception {
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
+        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
+        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
         tool.removeLandSamples(sampleList);
         tool.reduceByClearSkyStatistic(sampleList);
 
@@ -209,7 +221,9 @@ public class SamplingToolTest {
 
     @Test
     public void testFindSatelliteSubscenes() throws Exception {
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
+        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
+        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
         tool.removeLandSamples(sampleList);
         tool.reduceByClearSkyStatistic(sampleList);
         tool.findObservations(sampleList, "atsr_orb.3");
@@ -220,7 +234,9 @@ public class SamplingToolTest {
 
     @Test
     public void testRemoveOverlappingAreas() throws Exception {
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final long startTime = TimeUtil.parseCcsdsUtcFormat("2004-06-01T00:00:00Z").getTime();
+        final long stopTime = TimeUtil.parseCcsdsUtcFormat("2004-06-04T00:00:00Z").getTime();
+        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
         tool.removeLandSamples(sampleList);
         tool.reduceByClearSkyStatistic(sampleList);
         tool.findObservations2(sampleList, "atsr_orb.3", false, 86400 * 175 / 10);
@@ -251,7 +267,7 @@ public class SamplingToolTest {
             tool.cleanupInterval();
         }
         System.out.println(TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples...");
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final List<SamplingPoint> sampleList = tool.createSamples(10000, 0, 0, 1);
         System.out.println(
                 TimeUtil.formatCcsdsUtcMillisFormat(new Date()) + " Creating samples... " + sampleList.size());
         final List<ReferenceObservation> orbitObservations = tool.findOrbits("atsr_orb.3",
@@ -282,7 +298,7 @@ public class SamplingToolTest {
         // tool.initialised = true;
         tool.initialize();
         System.out.println("Creating samples...");
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final List<SamplingPoint> sampleList = tool.createSamples(10000, 0, 0, 1);
         System.out.println("Creating samples... " + sampleList.size());
 
         final Geometry geometry3 = new Polygon(new LinearRing[]{new LinearRing(ATSR3_POINTS)});
@@ -303,11 +319,12 @@ public class SamplingToolTest {
     public static void main(String[] args) throws IOException, ParseException {
         final String startTimeString = "2004-06-17T00:00:00Z";
         final String stopTimeString = "2004-06-18T00:00:00Z";
-        final int sampleCount = 10000000;
+        final int sampleCount = 10000;
 
         final SamplingTool tool = new SamplingTool();
         tool.setCommandLineArgs(new String[]{
                 "-Dmms.sampling.count=" + sampleCount,
+                "-Dmms.sampling.skip=" + 0,
                 "-Dmms.sampling.startTime=" + startTimeString,
                 "-Dmms.sampling.stopTime=" + stopTimeString,
                 "-Dmms.sampling.cleanup=" + true
@@ -321,13 +338,13 @@ public class SamplingToolTest {
         }
 
         System.out.println("Creating samples...");
-        final List<SamplingPoint> sampleList = tool.createSamples();
+        final List<SamplingPoint> sampleList = tool.createSamples(10000, 0, 0, 1);
         System.out.println("Creating samples... " + sampleList.size());
         System.out.println("Removing land samples...");
-        tool.removeLandSamples(sampleList);
+        //tool.removeLandSamples(sampleList);
         System.out.println("Removing land samples..." + sampleList.size());
         System.out.println("Reducing clear samples...");
-        tool.reduceByClearSkyStatistic(sampleList);
+        //tool.reduceByClearSkyStatistic(sampleList);
         System.out.println("Reducing clear samples..." + sampleList.size());
         System.out.println("Finding reference observations...");
         //tool.findObservations2(sampleList, "atsr_orb.3");
@@ -342,7 +359,7 @@ public class SamplingToolTest {
         //tool.createMatchups(sampleList);
         System.out.println("Creating matchups..." + sampleList.size());
 
-        //plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
+        plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
 
         /*
         final Date startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
@@ -379,5 +396,41 @@ public class SamplingToolTest {
             }
         }
         return result;
+    }
+
+    private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
+            IOException {
+        final int w = 800;
+        final int h = 400;
+        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
+        final JLabel label = new JLabel(new ImageIcon(image));
+
+        final JFrame frame = new JFrame();
+        frame.setTitle(title);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.getContentPane().add(label);
+        frame.setSize(w, h);
+        frame.setVisible(true);
+
+        final Graphics2D graphics = image.createGraphics();
+
+        for (SamplingPoint p : sampleList) {
+            final double x = (p.getLon() + 180.0) / 360.0;
+            final double y = (90.0 - p.getLat()) / 180.0;
+            final int i = (int) (y * h);
+            final int k = (int) (x * w);
+            graphics.fill(new Rectangle(k, i, 1, 1));
+            label.repaint();
+
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException ignored) {
+                // ignore
+            }
+        }
+
+        if (imageFilePathname != null) {
+            ImageIO.write(image, "png", new File(imageFilePathname));
+        }
     }
 }

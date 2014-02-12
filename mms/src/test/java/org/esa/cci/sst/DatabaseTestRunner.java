@@ -18,6 +18,7 @@ package org.esa.cci.sst;
 
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
+import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -45,6 +46,9 @@ public class DatabaseTestRunner extends BlockJUnit4ClassRunner {
         checkIfPersistenceIsAvailable(klass);
 
         executeDbTests = Boolean.getBoolean(PROPERTYNAME_EXECUTE_DB_TESTS);
+        if (!executeDbTests) {
+            System.out.println("DBTests disabled. Set VM param -D" + PROPERTYNAME_EXECUTE_DB_TESTS + "=true to enable.");
+        }
     }
 
 
