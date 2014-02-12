@@ -36,6 +36,7 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_SKIP = "mms.sampling.skip";
     public static final String KEY_MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
     public static final String KEY_MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
+    public static final String KEY_MMS_SAMPLING_SEARCH_TIME_DELTA = "mms.sampling.searchtimedelta";
 
     private final Properties properties;
 
@@ -97,7 +98,7 @@ public class Configuration {
 
     public void add(Properties toAdd) {
         for (final Map.Entry entry : toAdd.entrySet()) {
-            this.properties.put(entry.getKey(), entry.getValue());
+            properties.put(entry.getKey(), entry.getValue());
         }
     }
 
@@ -105,7 +106,7 @@ public class Configuration {
         for (final Map.Entry entry : toAdd.entrySet()) {
             final String key = (String) entry.getKey();
             if (key.startsWith(keyPrefix)) {
-                this.properties.put(key, entry.getValue());
+                properties.put(key, entry.getValue());
             }
         }
     }
