@@ -4,7 +4,7 @@ from pmonitor import PMonitor
 usecase = 'mms-wpr-02'
 
 # TODO for testing only, remove this line when producing
-years = ['2002', '2003']
+years = ['2003']
 #years = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000',
 #         '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
 #         '2011', '2012']
@@ -119,6 +119,8 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
+        continue
+
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
                 continue

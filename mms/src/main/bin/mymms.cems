@@ -10,18 +10,19 @@ export PGPORT=5423
 export PGHOST=mms1.cems.rl.ac.uk
 export PGDATA=/data/mboettcher/mms/db/mmdb
 
-export PATH=/usr/java/jdk1.7.0_51/bin:$PATH
-export PATH=/data/mboettcher/mms/software/bin:$PATH
-export LD_LIBRARY_PATH=/data/mboettcher/mms/software/lib:$LD_LIBRARY_PATH
+export PATH=/group_workspaces/cems/esacci_sst/mms/software/jdk1.7.0_51/bin:$PATH
+export PATH=/group_workspaces/cems/esacci_sst/mms/software/bin:$PATH
+export LD_LIBRARY_PATH=/group_workspaces/cems/esacci_sst/mms/software/lib:$LD_LIBRARY_PATH
 
-export MMS_HOME=/data/mboettcher/mms/software/sst-cci-mms-assembly
-export MMS_INST=/data/mboettcher/mms/inst
-export MMS_ARCHIVE=/data/mboettcher/mms/archive
+export MMS_HOME=/group_workspaces/cems/esacci_sst/mms/software/sst-cci-mms-assembly
+export MMS_INST=/group_workspaces/cems/esacci_sst/mms/inst
+export MMS_ARCHIVE=/group_workspaces/cems/esacci_sst/mms/archive
 #export MMS_TEMP=/exports/work/geos_gc_sst_cci/temparea
 #export MMS_NAS=/exports/nas/exports/cse/geos/scratch/gc/sst-cci/archive
 #export MMS_GBCS=/exports/work/geos_gc_sst_cci/avhrr/GBCS
 #export MMS_CDO=/exports/work/geos_gc_sst_cci/mms
 #export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3-20111024
+export openjpaversion=2.2.2
 
 export MMS_CONFIG=$MMS_INST/mms-config.properties
 export MMS_TASKS=$MMS_INST/tasks

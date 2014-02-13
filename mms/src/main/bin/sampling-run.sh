@@ -22,13 +22,15 @@ echo $MMS_HOME/bin/sampling-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.sampling.startTime=${starttime} \
 -Dmms.sampling.stopTime=${stoptime} \
 -Dmms.sampling.sensor=atsr_orb.3 \
--Dmms.sampling.count=10000000 \
+-Dmms.sampling.sensor2=atsr_orb.2 \
+-Dmms.sampling.count=20000000 \
 -Dmms.sampling.cleanupinterval=true
 $MMS_HOME/bin/sampling-tool.sh -c $MMS_CONFIG -debug \
 -Dmms.sampling.startTime=${starttime} \
 -Dmms.sampling.stopTime=${stoptime} \
 -Dmms.sampling.sensor=atsr_orb.3 \
--Dmms.sampling.count=10000000 \
+-Dmms.sampling.sensor2=atsr_orb.2 \
+-Dmms.sampling.count=20000000 \
 -Dmms.sampling.cleanupinterval=true
 
 echo "`date -u +%Y%m%d-%H%M%S` sampling $year/$month ... done"
