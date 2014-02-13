@@ -124,7 +124,8 @@ public class MapPlotTool extends BasicTool {
         new SamplingPointPlotter()
                 .samples(samplingPoints)
                 .show(showPlot)
-                .windowTitle(showPlot ? title : null)
+                .live(showPlot)
+                .windowTitle(title)
                 .filePath(path)
                 .plot();
     }
