@@ -42,7 +42,7 @@ wait_for_task_jobs_completion() {
         # JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
         # 7948    mboettc RUN   lotus      lotus.jc.rl host045.jc. *g-2003-01 Feb 13 13:13
 
-        if bjobs | egrep -q "^$jobs\\>"
+        if ssh lotus.jc.rl.ac.uk bjobs | egrep -q "^$jobs\\>"
         then
             continue
         fi

@@ -9,8 +9,9 @@ years = ['2003']
 #         '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
 #         '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'),
-           ('atsr.3', '2002-05-20', '2012-04-08')}
+sensors = [ ('atsr.1', '1991-08-01', '1997-12-17'), 
+            ('atsr.2', '1995-06-01', '2003-06-22'),
+            ('atsr.3', '2002-05-20', '2012-04-08') ]
 # 300000 leads to about 2500 surviving samples per month
 samplespermonth = 300000
 
@@ -81,8 +82,7 @@ def next_year_month_of(year, month):
 inputs = []
 for year in years:
     for month in months:
-        for sensor, _, __ in sensors:
-            inputs.append('/inp/' + sensor + '/' + year + '/' + month)
+        inputs.append('/inp/' + year + '/' + month)
 # Add fulfilled preconditions for temporal boundary around mission start and end
 for (sensor, sensorstart, sensorstop) in sensors:
     if years[0] + '-' + months[0] >= sensorstart:
@@ -96,8 +96,8 @@ for (sensor, sensorstart, sensorstop) in sensors:
         next_month_year, next_month = next_year_month_of(sensorstop[0:4], sensorstop[5:7])
     inputs.append('/obs/' + next_month_year + '/' + next_month)
 
-hosts = [('localhost', 1)]
-types = [('ingestion-run2.sh', 12),
+hosts = [('localhost', 2)]
+types = [('ingestion-start.sh', 12),
          ('sampling-run2.sh', 12),
          ('clearsky-run2.sh', 12),
          ('mmd-run2.sh', 12),
@@ -107,7 +107,7 @@ types = [('ingestion-run2.sh', 12),
          ('reingestion-run2.sh', 12)]
 
 pm = PMonitor(inputs,
-              request=usecase,
+              request='mms2',
               logdir='trace',
               hosts=hosts,
               types=types)
@@ -115,7 +115,7 @@ pm = PMonitor(inputs,
 for year in years:
     for month in months:
         # 1. Ingestion of all sensor data required for month
-        pm.execute('ingestion-run2.sh',
+        pm.execute('ingestion-start.sh',
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
