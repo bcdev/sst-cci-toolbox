@@ -17,13 +17,12 @@ package org.esa.cci.sst.tools;/*
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SamplingPointPlotter;
 import org.esa.cci.sst.util.TimeUtil;
+import org.postgis.Point;
 
-import javax.imageio.ImageIO;
 import javax.persistence.Query;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -36,14 +35,14 @@ public class MapPlotTool extends BasicTool {
 
     private static final String REFOBS_QUERY =
             "select o"
-                    + " from ReferenceObservation o, Matchup m, Observation o2, Coincidence c2"
-                    + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and c2.matchup = m and c2.observation = o2 and o2.sensor = ?1"
-                    + " order by o.time, m.id";
+            + " from ReferenceObservation o, Matchup m, Observation o2, Coincidence c2"
+            + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and c2.matchup = m and c2.observation = o2 and o2.sensor = ?1"
+            + " order by o.time, m.id";
 
     private String samplingSensor;
     private Date startTime;
     private Date stopTime;
-    private boolean showMapsFlag;
+    private boolean showMaps;
 
     MapPlotTool() {
         super("mapplot-tool", "1.0");
@@ -52,7 +51,9 @@ public class MapPlotTool extends BasicTool {
     public static void main(String[] args) {
         final MapPlotTool tool = new MapPlotTool();
         try {
-            if (!tool.setCommandLineArgs(args)) {
+            boolean ok = tool.setCommandLineArgs(args);
+            if (!ok) {
+                tool.printHelp();
                 return;
             }
             tool.initialize();
@@ -69,10 +70,10 @@ public class MapPlotTool extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR, "atsr_orb.3");
-        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME, "2004-06-12T00:00:00Z");
-        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2004-06-14T00:00:00Z");
-        showMapsFlag = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_SHOW_MAPS);
+        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
+        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME);
+        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME);
+        showMaps = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_SHOW_MAPS);
     }
 
     private void run() throws IOException, ParseException {
@@ -84,10 +85,12 @@ public class MapPlotTool extends BasicTool {
             query.setParameter(2, startTime);
             query.setParameter(3, stopTime);
             final List<ReferenceObservation> refobsList = query.getResultList();
-            final String imageName = "sobol-" + samplingSensor + "-" + TimeUtil.formatCompactUtcFormat(startTime) + ".png";
-            plotSamples(refobsList, imageName, imageName, showMapsFlag);
+            final String imageName = "sobol-" + samplingSensor + "-" + TimeUtil.formatCompactUtcFormat(
+                    startTime) + ".png";
+            plotSamples(refobsList, imageName, imageName, showMaps);
 
-            final List<ReferenceObservation> orbits = findOrbits(TimeUtil.formatCcsdsUtcFormat(startTime), TimeUtil.formatCcsdsUtcFormat(stopTime));
+            final List<ReferenceObservation> orbits = findOrbits(TimeUtil.formatCcsdsUtcFormat(startTime),
+                                                                 TimeUtil.formatCcsdsUtcFormat(stopTime));
             int noOrbitsToPlot = 14;
             for (ReferenceObservation orbit : orbits) {
                 final DataFile orbitDataFile = orbit.getDatafile();
@@ -97,8 +100,10 @@ public class MapPlotTool extends BasicTool {
                         return s.getDatafile() == orbitDataFile;
                     }
                 });
-                final String orbitImageName = "sobol-" + orbitDataFile.getPath().substring(orbitDataFile.getPath().lastIndexOf(File.separator) + 1) + "-" + TimeUtil.formatCompactUtcFormat(startTime) + ".png";
-                plotSamples(orbitSamples, orbitImageName, orbitImageName, showMapsFlag);
+                final String orbitImageName = "sobol-" + orbitDataFile.getPath().substring(
+                        orbitDataFile.getPath().lastIndexOf(
+                                File.separator) + 1) + "-" + TimeUtil.formatCompactUtcFormat(startTime) + ".png";
+                plotSamples(orbitSamples, orbitImageName, orbitImageName, showMaps);
                 if (--noOrbitsToPlot <= 0) {
                     break;
                 }
@@ -109,52 +114,27 @@ public class MapPlotTool extends BasicTool {
 
     }
 
-    private static void plotSamples(List<ReferenceObservation> samples, String title, String imagePath, boolean showPlotFlag)
+    private static void plotSamples(List<ReferenceObservation> samples, String title, String path, boolean showPlot)
             throws IOException {
-        final int w = 800;
-        final int h = 400;
-        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
-        JLabel label = null;
-
-        if (showPlotFlag) {
-            label = new JLabel(new ImageIcon(image));
-            final JFrame frame = new JFrame();
-            frame.setTitle(title);
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.getContentPane().add(label);
-            frame.setSize(w, h);
-            frame.setVisible(true);
+        final List<SamplingPoint> samplingPoints = new ArrayList<>(samples.size());
+        for (final ReferenceObservation s : samples) {
+            final Point p = s.getPoint().getGeometry().getPoint(0);
+            samplingPoints.add(new SamplingPoint(p.getX(), p.getY(), 0, 0.0));
         }
-
-        final Graphics2D graphics = image.createGraphics();
-
-        for (ReferenceObservation p : samples) {
-            final double x = (p.getLocation().getGeometry().getFirstPoint().getX() + 180.0) / 360.0;
-            final double y = (90.0 - p.getLocation().getGeometry().getFirstPoint().getY()) / 180.0;
-            final int i = (int) (y * h);
-            final int k = (int) (x * w);
-            graphics.fill(new Rectangle(k, i, 1, 1));
-            if (showPlotFlag) {
-                label.repaint();
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ignored) {
-                    // ignore
-                }
-            }
-        }
-
-        if (imagePath != null) {
-            ImageIO.write(image, "png", new File(imagePath));
-        }
+        new SamplingPointPlotter()
+                .samples(samplingPoints)
+                .show(showPlot)
+                .windowTitle(showPlot ? title : null)
+                .filePath(path)
+                .plot();
     }
 
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o.id"
-                    + " from mm_observation o"
-                    + " where o.sensor = ?1"
-                    + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
-                    + " order by o.time, o.id";
+            + " from mm_observation o"
+            + " where o.sensor = ?1"
+            + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
+            + " order by o.time, o.id";
 
     List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
         //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());

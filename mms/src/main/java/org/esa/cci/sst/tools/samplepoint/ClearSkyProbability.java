@@ -25,25 +25,25 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 
-class ClearSkyPriors {
+final class ClearSkyProbability {
 
     private static final String RESOURCE_NAME = "AATSR_prior_run081222.nc";
 
     private final GridDef gridDef;
     private Grid grid;
 
-    ClearSkyPriors() {
+    ClearSkyProbability() {
         final NetcdfFile file;
         try {
             final URL url = getClass().getResource(RESOURCE_NAME);
             if (url == null) {
                 throw new IllegalStateException(MessageFormat.format(
-                        "Cannot find resource data for cloud priors ''{0}''..", RESOURCE_NAME));
+                        "Cannot find resource data for clear-sky probabilities ''{0}''..", RESOURCE_NAME));
             }
             file = NetcdfFile.openInMemory(url.toURI());
         } catch (IOException | URISyntaxException e) {
             throw new IllegalStateException(MessageFormat.format(
-                    "Cannot open resource data for cloud priors ''{0}''..", RESOURCE_NAME), e);
+                    "Cannot open resource data for clear-sky probabilities ''{0}''..", RESOURCE_NAME), e);
         }
 
         gridDef = GridDef.createGlobal(1.0);
@@ -51,7 +51,7 @@ class ClearSkyPriors {
             grid = YFlip.create(NcUtils.readGrid(file, "clr_prior", gridDef));
         } catch (IOException e) {
             throw new IllegalStateException(MessageFormat.format(
-                    "Cannot read resource data for cloud priors ''{0}''..", RESOURCE_NAME), e);
+                    "Cannot read resource data for clear-sky probabilities ''{0}''..", RESOURCE_NAME), e);
         } finally {
             try {
                 file.close();

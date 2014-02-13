@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 
-class Watermask {
+final class Watermask {
 
     private static final String RESOURCE_NAME = "water.png";
 

@@ -23,20 +23,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class ClearSkyPriorsTest {
+public class ClearSkyProbabilityTest {
 
     @Test
     public void testCloudPriors() throws Exception {
 
-        final ClearSkyPriors clearSkyPriors = new ClearSkyPriors();
+        final ClearSkyProbability clearSkyProbability = new ClearSkyProbability();
 
-        assertEquals(0.185, clearSkyPriors.getSample(0.0, 0.0), 0.001);
-        assertEquals(0.084, clearSkyPriors.getSample(20.0, 0.0), 0.001);
+        assertEquals(0.185, clearSkyProbability.getSample(0.0, 0.0), 0.001);
+        assertEquals(0.084, clearSkyProbability.getSample(20.0, 0.0), 0.001);
     }
 
     // for testing performance
     public static void main(String[] args) {
-        final ClearSkyPriors clearSkyPriors = new ClearSkyPriors();
+        final ClearSkyProbability clearSkyProbability = new ClearSkyProbability();
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(4);
 
         final long t0 = System.currentTimeMillis();
@@ -50,7 +50,7 @@ public class ClearSkyPriorsTest {
             final double lon = x * 360.0 - 180.0;
             final double lat = 90.0 - y * 180.0;
 
-            clearSkyPriors.getSample(lon, lat);
+            clearSkyProbability.getSample(lon, lat);
         }
         final long t1 = System.currentTimeMillis();
         System.out.println("Stop time  = " + new Date(t1));

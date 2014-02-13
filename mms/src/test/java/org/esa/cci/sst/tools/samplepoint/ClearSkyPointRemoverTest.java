@@ -15,14 +15,16 @@ package org.esa.cci.sst.tools.samplepoint;/*
  */
 
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SamplingPointPlotter;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class ClearSkyPointRemoverTest {
+
     private List<SamplingPoint> samples;
 
     @Before
@@ -37,6 +39,17 @@ public class ClearSkyPointRemoverTest {
 
         // roughly 50 percent of points shall remain
         assertEquals(533, samples.size());
+    }
+
+    public static void main(String[] args) throws Exception {
+        final List<SamplingPoint> samples = new SobolSamplePointGenerator().createSamples(100000, 0, 0, 1000);
+        new LandPointRemover().removeSamples(samples);
+        new ClearSkyPointRemover().removeSamples(samples);
+
+        new SamplingPointPlotter()
+                .samples(samples)
+                .windowTitle(ClearSkyPointRemoverTest.class.getCanonicalName())
+                .plot();
     }
 
 }

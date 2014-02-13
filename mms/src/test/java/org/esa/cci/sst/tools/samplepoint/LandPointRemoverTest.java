@@ -15,12 +15,13 @@ package org.esa.cci.sst.tools.samplepoint;/*
  */
 
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SamplingPointPlotter;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class LandPointRemoverTest {
 
@@ -39,4 +40,16 @@ public class LandPointRemoverTest {
         // one thirds of the Earth are covered by land, so two thirds of the samples shall remain
         assertEquals(657, samples.size());
     }
+
+    public static void main(String[] args) throws Exception {
+        final List<SamplingPoint> samples = new SobolSamplePointGenerator().createSamples(10000, 0, 0, 1000);
+        final LandPointRemover remover = new LandPointRemover();
+        remover.removeSamples(samples);
+
+        new SamplingPointPlotter()
+                .samples(samples)
+                .windowTitle(LandPointRemoverTest.class.getCanonicalName())
+                .plot();
+    }
+
 }

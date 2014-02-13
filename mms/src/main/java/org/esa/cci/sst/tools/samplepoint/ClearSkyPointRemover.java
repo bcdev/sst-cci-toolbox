@@ -21,11 +21,13 @@ import java.util.List;
 
 public class ClearSkyPointRemover {
 
+    private double minimumClearSkyProbability = 0.05;
+
     public void removeSamples(List<SamplingPoint> samples) {
         final ArrayList<SamplingPoint> remainingSamples = new ArrayList<>(samples.size());
-        final ClearSkyPriors clearSkyPriors = Container.CLEAR_SKY_PRIORS;
+        final ClearSkyProbability clearSkyProbability = Container.CLEAR_SKY_PROBABILITY;
         for (final SamplingPoint point : samples) {
-            final double f = 0.05 / clearSkyPriors.getSample(point.getLon(), point.getLat());
+            final double f = minimumClearSkyProbability / clearSkyProbability.getSample(point.getLon(), point.getLat());
             if (point.getRandom() <= f) {
                 remainingSamples.add(point);
             }
@@ -37,6 +39,6 @@ public class ClearSkyPointRemover {
 
     private static class Container {
 
-        private static final ClearSkyPriors CLEAR_SKY_PRIORS = new ClearSkyPriors();
+        private static final ClearSkyProbability CLEAR_SKY_PROBABILITY = new ClearSkyProbability();
     }
 }

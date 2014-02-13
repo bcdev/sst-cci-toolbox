@@ -19,6 +19,7 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SamplingPointPlotter;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,15 +29,6 @@ import org.postgis.LinearRing;
 import org.postgis.Point;
 import org.postgis.Polygon;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.WindowConstants;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -345,7 +337,11 @@ public class SamplingToolTest {
         //tool.createMatchups(sampleList);
         System.out.println("Creating matchups..." + sampleList.size());
 
-        plotSamples(sampleList, "n days with (nearly) global revisit of AATSR", "sampling.png");
+        new SamplingPointPlotter()
+                .samples(sampleList)
+                .windowTitle("n days with (nearly) global revisit of AATSR")
+                .filePath("sampling.png")
+                .plot();
 
         /*
         final Date startTime = TimeUtil.parseCcsdsUtcFormat(startTimeString);
@@ -361,7 +357,7 @@ public class SamplingToolTest {
                     return s.getReference() == orbitId;
                 }
             });
-            plotSamples(orbitSamples, "orbit " + orbit.getDatafile().getPath(), null);
+            showSamples(orbitSamples, "orbit " + orbit.getDatafile().getPath(), null);
             if (--noOrbitsToPlot <= 0) {
                 break;
             }
@@ -384,39 +380,4 @@ public class SamplingToolTest {
         return result;
     }
 
-    private static void plotSamples(List<SamplingPoint> sampleList, String title, String imageFilePathname) throws
-                                                                                                            IOException {
-        final int w = 800;
-        final int h = 400;
-        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
-        final JLabel label = new JLabel(new ImageIcon(image));
-
-        final JFrame frame = new JFrame();
-        frame.setTitle(title);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.getContentPane().add(label);
-        frame.setSize(w, h);
-        frame.setVisible(true);
-
-        final Graphics2D graphics = image.createGraphics();
-
-        for (SamplingPoint p : sampleList) {
-            final double x = (p.getLon() + 180.0) / 360.0;
-            final double y = (90.0 - p.getLat()) / 180.0;
-            final int i = (int) (y * h);
-            final int k = (int) (x * w);
-            graphics.fill(new Rectangle(k, i, 1, 1));
-            label.repaint();
-
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored) {
-                // ignore
-            }
-        }
-
-        if (imageFilePathname != null) {
-            ImageIO.write(image, "png", new File(imageFilePathname));
-        }
-    }
 }
