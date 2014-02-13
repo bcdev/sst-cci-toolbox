@@ -106,6 +106,7 @@ abstract public class NetcdfReader implements Reader {
             } catch (IOException ignore) {
                 // ok
             }
+            netcdfFile = null;
         }
         datafile = null;
     }
