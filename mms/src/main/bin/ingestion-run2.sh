@@ -10,5 +10,3 @@ ingestion-tool.sh -c $MMS_HOME/config/$usecase-config.properties \
 -Dmms.source.13.inputDirectory=atsr.3/v2.1/$year/$month \
 -Dmms.source.43.inputDirectory=aerosol-aai/v01/$year/$month \
 -Dmms.source.44.inputDirectory=sea-ice/v01/$year/$month
-
-
