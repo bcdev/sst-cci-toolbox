@@ -28,12 +28,12 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * @author Thomas Storm
+ * @author Thomas Storms
  */
 public class NcAaiProductReaderTest {
 
@@ -113,20 +113,20 @@ public class NcAaiProductReaderTest {
         final Variable variable = file.findVariable(NetcdfFile.makeValidPathName("aerosol_absorbing_index"));
         final Array array = variable.read();
         final IndexIterator iterator = array.getIndexIterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             final float currentValue = iterator.getFloatNext();
-            if(currentValue == (Float) variable.findAttribute("_FillValue").getValue(0)) {
+            if (currentValue == (Float) variable.findAttribute("_FillValue").getValue(0)) {
                 continue;
             }
-            if(currentValue < minValue) {
+            if (currentValue < minValue) {
                 minValue = currentValue;
             }
-            if(currentValue > maxValue) {
+            if (currentValue > maxValue) {
                 maxValue = currentValue;
             }
         }
 
-        System.out.println(MessageFormat.format("minValue = {0}", minValue));
-        System.out.println(MessageFormat.format("maxValue = {0}", maxValue));
+        assertEquals(-5.6, minValue, 1e-6);
+        assertEquals(4.2, maxValue, 1e-6);
     }
 }

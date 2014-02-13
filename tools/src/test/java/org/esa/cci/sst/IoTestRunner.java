@@ -28,6 +28,7 @@ public class IoTestRunner extends BlockJUnit4ClassRunner {
     @Override
     public void run(RunNotifier runNotifier) {
         if (executeIoTests) {
+            System.out.println("Executing IOTests in class " + clazz);
             super.run(runNotifier);
         } else {
             final Description description = Description.createTestDescription(clazz, "allMethods. SST-CCI IO tests disabled. " +
