@@ -23,11 +23,7 @@ import org.esa.cci.sst.tools.ToolException;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 public final class TimeUtil {
 
@@ -52,20 +48,18 @@ public final class TimeUtil {
      */
     public static final double SECONDS_PER_DAY = 86400.0;
 
-    private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat(
-            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat(
-            "yyyy-MM-dd'T'HH:mm:ss'Z'");
-    private static final SimpleDateFormat COMPACT_UTC_FORMAT = new SimpleDateFormat(
-            "yyyyMMddHHmmss");
-    private static final SimpleDateFormat DAY_UTC_FORMAT = new SimpleDateFormat(
-            "yyyy-MM-dd");
+    private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final SimpleDateFormat COMPACT_UTC_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+    private static final SimpleDateFormat DAY_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat INSITU_FILE_NAME_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
     static {
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         CCSDS_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         COMPACT_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         DAY_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        INSITU_FILE_NAME_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     private TimeUtil() {
@@ -98,6 +92,10 @@ public final class TimeUtil {
             return CCSDS_UTC_FORMAT.parse(timeString);
         }
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString);
+    }
+
+    public static Date parseInsituFileNameDateFormat(String timeString) throws ParseException {
+        return INSITU_FILE_NAME_DATE_FORMAT.parse(timeString);
     }
 
     public static Date julianDateToDate(double julianDate) {
@@ -148,14 +146,13 @@ public final class TimeUtil {
      * @param start     The start of the time interval.
      * @param end       The end of the time interval.
      * @param timeDelta The tolerance (seconds).
-     *
      * @return {@code true} if the objective time falls within the time interval (taking into
-     *         account the tolerance), {@code false} otherwise.
+     * account the tolerance), {@code false} otherwise.
      */
     public static boolean checkTimeOverlap(Date time, Date start, Date end, double timeDelta) {
         final double deltaInMillis = timeDelta * 1000.0;
         return time.getTime() + deltaInMillis >= start.getTime() &&
-               time.getTime() - deltaInMillis < end.getTime();
+                time.getTime() - deltaInMillis < end.getTime();
     }
 
     public static double timeDifferenceInSeconds(Matchup m, Timeable t) {
@@ -192,25 +189,31 @@ public final class TimeUtil {
         return date;
     }
 
-    @Deprecated
-    public static int secondsSince1981ToSecondsSince1978(int startTime) {
-        return (int) secondsSince1981ToSecondsSinceEpoch(startTime);
-    }
-
-    public static String dateOf(Date time) {
-        if (time == null) {
-            return "";
-        }
-        return DAY_UTC_FORMAT.format(time);
-    }
-
-    public static GregorianCalendar calendarDayOf(Date time) {
-        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        public static GregorianCalendar calendarDayOf(Date time) {
+        final GregorianCalendar calendar = createUtcCalendar();
         calendar.setTime(time);
         calendar.set(Calendar.MILLISECOND, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         return calendar;
+    }
+
+    public static Date getBeginningOfDay(Date day) {
+        return calendarDayOf(day).getTime();
+    }
+
+    public static Date getEndOfDay(Date day) {
+        final GregorianCalendar calendar = createUtcCalendar();
+        calendar.setTime(day);
+        calendar.set(Calendar.MILLISECOND, 0);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        return calendar.getTime();
+    }
+
+    public static GregorianCalendar createUtcCalendar() {
+        return new GregorianCalendar(TimeZone.getTimeZone("UTC"));
     }
 }

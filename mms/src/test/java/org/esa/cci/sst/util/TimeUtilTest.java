@@ -18,6 +18,7 @@ package org.esa.cci.sst.util;
 
 import org.junit.Test;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Thomas Storm
@@ -92,10 +94,53 @@ public class TimeUtilTest {
         assertEquals(13219522, TimeUtil.toSecondsSince1978(calendar.getTime()));
     }
 
+    @Test
+    public void testParseInsituFileNameDateFormat() throws ParseException {
+        Date date = TimeUtil.parseInsituFileNameDateFormat("20060321");
+        assertEquals(1142899200000L, date.getTime());
+
+        date = TimeUtil.parseInsituFileNameDateFormat("20060322");
+        assertEquals(1142985600000L, date.getTime());
+    }
+
+    @Test
+    public void testToBeginningOfDay() {
+        final Calendar calendar = createCalendar(2001, 5, 3, 6, 11, 22);
+        final Date time = calendar.getTime();
+
+        final Date beginning = TimeUtil.getBeginningOfDay(time);
+        assertNotNull(beginning);
+
+        calendar.setTime(beginning);
+        assertEquals(0, calendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(0, calendar.get(Calendar.MINUTE));
+        assertEquals(0, calendar.get(Calendar.SECOND));
+        assertEquals(0, calendar.get(Calendar.MILLISECOND));
+    }
+
+    @Test
+    public void testToEndOfDay() {
+        final Calendar calendar = createCalendar(2012, 11, 22, 18, 24, 53);
+        final Date time = calendar.getTime();
+
+        final Date end = TimeUtil.getEndOfDay(time);
+        assertNotNull(end);
+
+        calendar.setTime(end);
+        assertEquals(23, calendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(59, calendar.get(Calendar.MINUTE));
+        assertEquals(59, calendar.get(Calendar.SECOND));
+        assertEquals(0, calendar.get(Calendar.MILLISECOND));
+    }
+
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
-        final GregorianCalendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+        final GregorianCalendar c = createUtcCalendar();
         c.clear();
         c.set(year, month, date, hour, minute, second);
         return c;
+    }
+
+    private static GregorianCalendar createUtcCalendar() {
+        return new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
     }
 }
