@@ -18,6 +18,7 @@ package org.esa.cci.sst.util;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.WindowConstants;
@@ -36,6 +37,7 @@ public final class SamplingPointPlotter {
     private List<SamplingPoint> samples;
     private String filePath;
     private boolean show = true;
+    private boolean live = false;
     private String windowTitle;
 
     public SamplingPointPlotter() {
@@ -51,6 +53,11 @@ public final class SamplingPointPlotter {
         return this;
     }
 
+    public SamplingPointPlotter live(boolean live) {
+        this.live = live;
+        return this;
+    }
+
     public SamplingPointPlotter show(boolean show) {
         this.show = show;
         return this;
@@ -62,38 +69,52 @@ public final class SamplingPointPlotter {
     }
 
     public BufferedImage plot() throws IOException {
-        final BufferedImage image = drawImage(samples);
-        if (show) {
-            showImage(image, windowTitle);
+        final BufferedImage image = drawImage();
+        if (!live && show) {
+            showImage(image);
         }
         if (filePath != null) {
-            writeImage(image, filePath);
+            writeImage(image);
         }
 
         return image;
     }
 
-    static BufferedImage drawImage(List<SamplingPoint> samples) {
+    private BufferedImage drawImage() {
         final int w = 800;
         final int h = 400;
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
+        final JComponent component;
+        if (live) {
+            component = showImage(image);
+        } else {
+            component = null;
+        }
         final Graphics2D graphics = image.createGraphics();
 
-        if (samples != null) {
-            for (final SamplingPoint p : samples) {
-                final double x = (p.getLon() + 180.0) / 360.0;
-                final double y = (90.0 - p.getLat()) / 180.0;
-                final int i = (int) (y * h);
-                final int k = (int) (x * w);
-                graphics.fill(new Rectangle(k, i, 1, 1));
+        for (final SamplingPoint p : samples) {
+            final double x = (p.getLon() + 180.0) / 360.0;
+            final double y = (90.0 - p.getLat()) / 180.0;
+            final int i = (int) (y * h);
+            final int k = (int) (x * w);
+
+            graphics.fill(new Rectangle(k, i, 1, 1));
+
+            if (component != null) {
+                component.repaint();
+
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ignored) {
+                    // ignore
+                }
             }
         }
         return image;
     }
 
-    static BufferedImage showImage(BufferedImage image, String windowTitle) {
+    private JComponent showImage(BufferedImage image) {
         final JLabel label = new JLabel(new ImageIcon(image));
-
         final JFrame frame = new JFrame();
         frame.setTitle(windowTitle);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -101,10 +122,10 @@ public final class SamplingPointPlotter {
         frame.setSize(image.getWidth(), image.getHeight());
         frame.setVisible(true);
 
-        return image;
+        return label;
     }
 
-    private static void writeImage(BufferedImage image, String filePath) throws IOException {
+    void writeImage(BufferedImage image) throws IOException {
         ImageIO.write(image, "png", new File(filePath));
     }
 
