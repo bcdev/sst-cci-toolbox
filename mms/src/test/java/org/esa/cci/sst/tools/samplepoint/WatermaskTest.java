@@ -14,18 +14,19 @@ package org.esa.cci.sst.tools.samplepoint;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Date;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+@RunWith(IoTestRunner.class)
 public class WatermaskTest {
 
-    @Ignore
     @Test
     public void testWatermask() throws Exception {
         final Watermask watermask = new Watermask();

@@ -14,15 +14,18 @@ package org.esa.cci.sst.tools.samplepoint;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointPlotter;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.List;
 
 import static org.junit.Assert.*;
 
+@RunWith(IoTestRunner.class)
 public class LandPointRemoverTest {
 
     private List<SamplingPoint> samples;
