@@ -21,12 +21,14 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -98,7 +100,15 @@ public final class SamplingPointPlotter {
             final int i = (int) (y * h);
             final int k = (int) (x * w);
 
-            graphics.fill(new Rectangle(k, i, 1, 1));
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
+                    public void run() {
+                        graphics.fill(new Rectangle(k, i, 1, 1));
+                    }
+                });
+            } catch (InterruptedException | InvocationTargetException ignored) {
+            }
 
             if (component != null) {
                 component.repaint();
@@ -106,7 +116,6 @@ public final class SamplingPointPlotter {
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException ignored) {
-                    // ignore
                 }
             }
         }
@@ -120,7 +129,13 @@ public final class SamplingPointPlotter {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.getContentPane().add(label);
         frame.setSize(image.getWidth(), image.getHeight());
-        frame.setVisible(true);
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                frame.setVisible(true);
+            }
+        });
 
         return label;
     }
