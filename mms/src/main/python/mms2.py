@@ -108,7 +108,7 @@ types = [('ingestion-run2.sh', 12),
 
 pm = PMonitor(inputs,
               request=usecase,
-              logdir='log',
+              logdir='trace',
               hosts=hosts,
               types=types)
 
