@@ -9,7 +9,8 @@ years = ['2002', '2003']
 #         '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
 #         '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'), ('atsr.3', '2002-05-20', '2012-04-08')}
+sensors = {('atsr.1', '1991-08-01', '1997-12-17'), ('atsr.2', '1995-06-01', '2003-06-22'),
+           ('atsr.3', '2002-05-20', '2012-04-08')}
 # 300000 leads to about 2500 surviving samples per month
 samplespermonth = 300000
 
@@ -128,11 +129,15 @@ for year in years:
                        ['/obs/' + prev_month_year + '/' + prev_month,
                         '/obs/' + year + '/' + month,
                         '/obs/' + next_month_year + '/' + next_month],
-                       ['/smp/' + sensor + '/' + year + '/' + month],
+                       ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
+                        '/smp/' + sensor + '/' + year + '/' + month,
+                        '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        parameters=[year, month, sensor, samplespermonth, usecase])
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-run2.sh',
-                       ['/smp/' + sensor + '/' + year + '/' + month],
+                       ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
+                        '/smp/' + sensor + '/' + year + '/' + month,
+                        '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
             # 4. Create single-sensor MMD with subscenes
@@ -155,8 +160,8 @@ for year in years:
             # TODO - why do I do this? Will these be ingested later?
             pm.execute('nwpmatchup-run2.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/nwpan/' + sensor + '/' + year + '/' + month,
-                        '/nwpfc/' + sensor + '/' + year + '/' + month],
+                       ['/nwp/' + sensor + '/' + year + '/' + month,
+                        '/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
             # 8. Conduct ARC processing
             pm.execute('arc-run2.sh',
