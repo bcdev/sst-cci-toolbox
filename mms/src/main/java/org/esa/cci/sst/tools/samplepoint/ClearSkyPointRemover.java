@@ -1,4 +1,6 @@
-package org.esa.cci.sst.tools.samplepoint;/*
+package org.esa.cci.sst.tools.samplepoint;
+
+/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it

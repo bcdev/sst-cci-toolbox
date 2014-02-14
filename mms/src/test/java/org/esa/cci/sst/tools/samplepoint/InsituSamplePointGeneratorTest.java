@@ -70,7 +70,7 @@ public class InsituSamplePointGeneratorTest {
         assertNotNull(inSituPoints);
         assertEquals(1285, inSituPoints.size());
 
-        assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class InsituSamplePointGeneratorTest {
         assertNotNull(inSituPoints);
         assertEquals(218, inSituPoints.size());
 
-        assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
 
     @Test
@@ -94,7 +94,7 @@ public class InsituSamplePointGeneratorTest {
         assertNotNull(inSituPoints);
         assertEquals(1, inSituPoints.size());
 
-        assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
 
     @Test
@@ -106,7 +106,7 @@ public class InsituSamplePointGeneratorTest {
         assertNotNull(inSituPoints);
         assertEquals(223 + 3 + 1285, inSituPoints.size());
 
-        assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
 
     @Test
@@ -155,13 +155,6 @@ public class InsituSamplePointGeneratorTest {
             InsituSamplePointGenerator.extractTimeRange("insitu.measurement_20120227.nc");
             fail("ParseException expected");
         } catch (ParseException expected) {
-        }
-    }
-
-    private void assertPointsInTimeRange(Date startDate, Date stopDate, List<SamplingPoint> inSituPoints) {
-        final TimeRange timeRange = new TimeRange(startDate, stopDate);
-        for (SamplingPoint next : inSituPoints) {
-            assertTrue(timeRange.isWithin(new Date(next.getTime())));
         }
     }
 
