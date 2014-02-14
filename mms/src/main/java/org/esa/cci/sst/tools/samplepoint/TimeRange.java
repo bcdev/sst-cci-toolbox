@@ -24,4 +24,8 @@ class TimeRange {
     public boolean isWithin(Date date) {
         return (!startDate.after(date)) && (!stopDate.before(date));
     }
+
+    public boolean hasIntersectWith(TimeRange other) {
+        return isWithin(other.getStartDate()) || isWithin(other.getStopDate());
+    }
 }

@@ -37,38 +37,45 @@ public class InsituSamplePointGenerator {
         final ArrayList<SamplingPoint> samplingPoints = new ArrayList<>();
         final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
 
+        final LinkedList<File> filesInRange = findFilesInTimeRange(timeRange);
+        for (File insituFile : filesInRange) {
+            extractPointsInTimeRange(samplingPoints, timeRange, insituFile);
+        }
+        return samplingPoints;
+    }
+
+    private void extractPointsInTimeRange(ArrayList<SamplingPoint> samplingPoints, TimeRange timeRange, File insituFile) {
+        final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
+
+        try {
+            reader.init(dataFile, archiveDir);
+            final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
+            for (final SamplingPoint samplingPoint : pointsInFile) {
+                if (timeRange.isWithin(new Date(samplingPoint.getTime()))) {
+                    samplingPoints.add(samplingPoint);
+                }
+            }
+        } catch (IOException e) {
+            logError(e.getMessage());
+        } finally {
+            reader.close();
+        }
+    }
+
+    private LinkedList<File> findFilesInTimeRange(TimeRange timeRange) {
         final LinkedList<File> filesInRange = new LinkedList<>();
         final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"}, true);
         for (final File file : insituFiles) {
             try {
                 final TimeRange fileTimeRange = extractTimeRange(file.getName());
-                // @todo 3 tb/tb move functionality to timeRange class tb 2014-02-13
-                if (timeRange.isWithin(fileTimeRange.getStartDate()) || timeRange.isWithin(fileTimeRange.getStopDate())) {
+                if (timeRange.hasIntersectWith(fileTimeRange)) {
                     filesInRange.add(file);
                 }
             } catch (ParseException e) {
                 logError(e.getMessage());
             }
         }
-
-        for (File insituFile : filesInRange) {
-            final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
-
-            try {
-                reader.init(dataFile, archiveDir);
-                final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
-                for (final SamplingPoint samplingPoint : pointsInFile) {
-                    if (timeRange.isWithin(new Date(samplingPoint.getTime()))) {
-                        samplingPoints.add(samplingPoint);
-                    }
-                }
-            } catch (IOException e) {
-                logError(e.getMessage());
-            } finally {
-                reader.close();
-            }
-        }
-        return samplingPoints;
+        return filesInRange;
     }
 
     private void logError(String message) {
