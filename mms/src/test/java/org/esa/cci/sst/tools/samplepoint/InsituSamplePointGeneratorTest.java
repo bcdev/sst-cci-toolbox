@@ -112,6 +112,33 @@ public class InsituSamplePointGeneratorTest {
         assertEquals(TimeUtil.parseCcsdsUtcFormat("2003-01-31T23:59:59Z").getTime(), timeRange.getStopDate().getTime());
     }
 
+    @Test
+    public void testExtractTimeRangeFromFileName_unparseableDate() throws ParseException {
+        try {
+            InsituSamplePointGenerator.extractTimeRange("insitu_0_WMOID_71569_20030117_christmas.nc");
+            fail("ParseException expected");
+        } catch (ParseException expected) {
+        }
+    }
+
+    @Test
+    public void testExtractTimeRangeFromFileName_wrongFileNamePattern() throws ParseException {
+        try {
+            InsituSamplePointGenerator.extractTimeRange("insitu.measurement.we.did.on.sunday.nc");
+            fail("ParseException expected");
+        } catch (ParseException expected) {
+        }
+    }
+
+    @Test
+    public void testExtractTimeRangeFromFileName_notEnoughUnderscores() throws ParseException {
+        try {
+            InsituSamplePointGenerator.extractTimeRange("insitu.measurement_20120227.nc");
+            fail("ParseException expected");
+        } catch (ParseException expected) {
+        }
+    }
+
     private void assertPointsInTimeRange(Date startDate, Date stopDate, List<SamplingPoint> inSituPoints) {
         final TimeRange timeRange = new TimeRange(startDate, stopDate);
         for (SamplingPoint next : inSituPoints) {

@@ -72,6 +72,9 @@ public class InsituSamplePointGenerator {
     static TimeRange extractTimeRange(String fileName) throws ParseException {
         final String withoutExtension = org.esa.beam.util.io.FileUtils.getFilenameWithoutExtension(fileName);
         final String[] split = StringUtils.split(withoutExtension, new char[]{'_'}, true);
+        if (split.length < 2) {
+            throw new ParseException("File name not matching pattern", 0);
+        }
         final int endDateIndex = split.length - 1;
         final int startDateIndex = split.length - 2;
 
