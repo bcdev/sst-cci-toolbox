@@ -1,6 +1,8 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 
+import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
@@ -14,12 +16,14 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
 public class InsituSamplePointGeneratorTest {
 
     private static File archiveDir;
+    private static Sensor sensor;
     private InsituSamplePointGenerator generator;
 
     @BeforeClass
@@ -28,11 +32,13 @@ public class InsituSamplePointGeneratorTest {
         final URI uri = testArchiveUrl.toURI();
         archiveDir = new File(uri).getParentFile();
         assertTrue(archiveDir.isDirectory());
+
+        sensor = new SensorBuilder().name("history").pattern(4000000000000000L).build();
     }
 
     @Before
     public void setUp() {
-        generator = new InsituSamplePointGenerator(archiveDir);
+        generator = new InsituSamplePointGenerator(archiveDir, sensor);
     }
 
     @Test
@@ -104,6 +110,19 @@ public class InsituSamplePointGeneratorTest {
     }
 
     @Test
+    public void testLogging() throws ParseException {
+        final TestLogger testLogger = new TestLogger();
+
+        generator.setLogger(testLogger);
+
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("1998-01-01T00:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2012-01-12T00:00:00Z");
+        generator.generate(startDate.getTime(), stopDate.getTime());
+
+        assertEquals("Unparseable date: \"actual\"", testLogger.getWarning());
+    }
+
+    @Test
     public void testExtractTimeRangeFromFileName() throws ParseException {
         final TimeRange timeRange = InsituSamplePointGenerator.extractTimeRange("insitu_0_WMOID_71569_20030117_20030131.nc");
         assertNotNull(timeRange);
@@ -143,6 +162,24 @@ public class InsituSamplePointGeneratorTest {
         final TimeRange timeRange = new TimeRange(startDate, stopDate);
         for (SamplingPoint next : inSituPoints) {
             assertTrue(timeRange.isWithin(new Date(next.getTime())));
+        }
+    }
+
+    private final class TestLogger extends Logger {
+
+        private String warning;
+
+        private TestLogger() {
+            super("we", null);
+        }
+
+        @Override
+        public void warning(String msg) {
+            warning = msg;
+        }
+
+        String getWarning() {
+            return warning;
         }
     }
 }

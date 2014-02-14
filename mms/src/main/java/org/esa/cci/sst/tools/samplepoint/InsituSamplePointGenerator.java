@@ -4,7 +4,6 @@ import org.apache.commons.io.FileUtils;
 import org.esa.beam.util.StringUtils;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -14,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class InsituSamplePointGenerator {
 
@@ -21,11 +21,16 @@ public class InsituSamplePointGenerator {
     private final Reader reader;
     private final Sensor sensor;
 
-    public InsituSamplePointGenerator(File archiveDir) {
+    private Logger logger;
+
+    public InsituSamplePointGenerator(File archiveDir, Sensor sensor) {
         this.archiveDir = archiveDir;
         reader = ReaderFactory.createReader("InsituReader", "");
-        // @todo 1 tb/tb get from config tb 2014-02-12
-        sensor = new SensorBuilder().name("history").pattern(4000000000000000L).build();
+        this.sensor = sensor;
+    }
+
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 
     public List<SamplingPoint> generate(long startTime, long stopTime) throws ParseException {
@@ -42,8 +47,7 @@ public class InsituSamplePointGenerator {
                     filesInRange.add(file);
                 }
             } catch (ParseException e) {
-                // @todo 2 tb/tb add logging of errors tb 2014-02-13
-                System.out.println("e.getMessage() = " + e.getMessage());
+                logError(e.getMessage());
             }
         }
 
@@ -59,13 +63,18 @@ public class InsituSamplePointGenerator {
                     }
                 }
             } catch (IOException e) {
-                // @todo 2 tb/tb add logging of errors tb 2014-02-12
-                System.out.println("e.getMessage() = " + e.getMessage());
+                logError(e.getMessage());
             } finally {
                 reader.close();
             }
         }
         return samplingPoints;
+    }
+
+    private void logError(String message) {
+        if (logger != null) {
+            logger.warning(message);
+        }
     }
 
     // package access for testing only tb 2014-02-13
