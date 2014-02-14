@@ -115,7 +115,8 @@ pm = PMonitor(inputs,
 for year in years:
     for month in months:
         # 1. Ingestion of all sensor data required for month
-        pm.execute('ingestion-start.sh',
+#        pm.execute('ingestion-start.sh',  # for parallel executon on lotus
+        pm.execute('ingestion-run2.sh',
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
