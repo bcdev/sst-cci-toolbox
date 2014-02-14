@@ -28,28 +28,6 @@ public class InsituSamplePointGenerator {
         sensor = new SensorBuilder().name("history").pattern(4000000000000000L).build();
     }
 
-    public List<SamplingPoint> generate() {
-        final ArrayList<SamplingPoint> samplingPoints = new ArrayList<>();
-
-        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"}, true);
-        for (final File insituFile : insituFiles) {
-            final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
-
-            try {
-                reader.init(dataFile, archiveDir);
-                final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
-                samplingPoints.addAll(pointsInFile);
-            } catch (IOException e) {
-                // @todo 2 tb/tb add logging of errors tb 2014-02-12
-                System.out.println("e.getMessage() = " + e.getMessage());
-            } finally {
-                reader.close();
-            }
-        }
-
-        return samplingPoints;
-    }
-
     public List<SamplingPoint> generate(long startTime, long stopTime) throws ParseException {
         final ArrayList<SamplingPoint> samplingPoints = new ArrayList<>();
         final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
@@ -75,7 +53,11 @@ public class InsituSamplePointGenerator {
             try {
                 reader.init(dataFile, archiveDir);
                 final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
-                samplingPoints.addAll(pointsInFile);
+                for (final SamplingPoint samplingPoint : pointsInFile) {
+                    if (timeRange.isWithin(new Date(samplingPoint.getTime()))) {
+                        samplingPoints.add(samplingPoint);
+                    }
+                }
             } catch (IOException e) {
                 // @todo 2 tb/tb add logging of errors tb 2014-02-12
                 System.out.println("e.getMessage() = " + e.getMessage());
