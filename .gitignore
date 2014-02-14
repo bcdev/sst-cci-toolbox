@@ -1,6 +1,7 @@
 *.iml
 *.ipr
 *.iws
+*.pyc
 .idea/
 target/
 /mms-config.properties
