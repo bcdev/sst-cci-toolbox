@@ -344,7 +344,7 @@ public class SamplingTool extends BasicTool {
             for (SamplingPoint samplingPoint : sampleList) {
                 final ReferenceObservation referenceObservation = new ReferenceObservation();
                 // @todo 2 tb/** make this configurable tb 2014-02-12
-                referenceObservation.setName("0123");
+                referenceObservation.setName(String.valueOf(samplingPoint.getIndex()));
                 referenceObservation.setSensor("sobol");
 
                 final PGgeometry location = new PGgeometry(new Point(samplingPoint.getLon(), samplingPoint.getLat()));

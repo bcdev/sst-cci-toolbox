@@ -283,7 +283,7 @@ public class SobolSequenceGenerator {
      *
      * @return the index of the next point
      */
-    int getNextIndex() {
+    public int getNextIndex() {
         return count;
     }
 }

@@ -14,6 +14,7 @@ public class SobolSamplePointGenerator {
         final List<SamplingPoint> sampleList = new ArrayList<>(sampleCount);
 
         for (int i = 0; i < sampleCount; i++) {
+            final int index = sequenceGenerator.getNextIndex();
             final double[] sample = sequenceGenerator.nextVector();
             final double x = sample[0];
             final double y = sample[1];
@@ -24,7 +25,9 @@ public class SobolSamplePointGenerator {
             final double lat = 90.0 - y * 180.0;
             final long time = (long) (t * (stopTime - startTime)) + startTime;
 
-            sampleList.add(new SamplingPoint(lon, lat, time, random));
+            final SamplingPoint p = new SamplingPoint(lon, lat, time, random);
+            p.setIndex(index);
+            sampleList.add(p);
         }
 
         return sampleList;

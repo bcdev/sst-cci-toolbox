@@ -127,6 +127,7 @@ for year in years:
                 continue
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
+            # TODO - implement skipping of Sobol points rq-20140214
             # 2. Generate sampling points per month and sensor
             pm.execute('sampling-run2.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,
