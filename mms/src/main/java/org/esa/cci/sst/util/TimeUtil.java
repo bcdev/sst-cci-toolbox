@@ -189,7 +189,7 @@ public final class TimeUtil {
         return date;
     }
 
-        public static GregorianCalendar calendarDayOf(Date time) {
+    public static GregorianCalendar calendarDayOf(Date time) {
         final GregorianCalendar calendar = createUtcCalendar();
         calendar.setTime(time);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -215,5 +215,17 @@ public final class TimeUtil {
 
     public static GregorianCalendar createUtcCalendar() {
         return new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    }
+
+    public static int getYear(Date date) {
+        final GregorianCalendar utcCalendar = createUtcCalendar();
+        utcCalendar.setTime(date);
+        return utcCalendar.get(Calendar.YEAR);
+    }
+
+    public static int getMonth(Date date) {
+        final GregorianCalendar utcCalendar = createUtcCalendar();
+        utcCalendar.setTime(date);
+        return utcCalendar.get(Calendar.MONTH) + 1;
     }
 }

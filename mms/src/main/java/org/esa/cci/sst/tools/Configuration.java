@@ -18,6 +18,7 @@ public class Configuration {
     public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";
 
     public static final String KEY_ARCHIVE_ROOTDIR = "mms.archive.rootdir";
+    public static final String KEY_ARCHIVE_USECASE = "mms.archive.usecase";
 
     public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";

@@ -7,12 +7,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-class TimeRange {
+public class TimeRange {
 
     private Date startDate;
     private Date stopDate;
 
-    TimeRange(Date startDate, Date stopDate) {
+    public TimeRange(Date startDate, Date stopDate) {
         this.startDate = startDate;
         this.stopDate = stopDate;
     }
