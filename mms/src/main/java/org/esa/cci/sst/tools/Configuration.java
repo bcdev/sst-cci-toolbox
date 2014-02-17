@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 
 public class Configuration {
 
@@ -96,7 +98,7 @@ public class Configuration {
             throw new ToolException("No value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         try {
-            return Integer.parseInt(doubleString);
+            return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse double value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
@@ -108,7 +110,7 @@ public class Configuration {
             return defaultValue;
         }
         try {
-            return Integer.parseInt(doubleString);
+            return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse double value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
