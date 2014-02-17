@@ -36,18 +36,44 @@ public class ObservationFinder {
         this.persistenceManager = persistenceManager;
     }
 
+    /**
+     * Finds related observations for each sampling point in a list of samples. On return any
+     * sampling points, which could not be associated with a related observations are removed
+     * from the list of samples.
+     * <p/>
+     * To be used for single-sensor and dual-sensor matchups.
+     *
+     * @param samples                The list of sampling points.
+     * @param sensor                 The sensor name.
+     * @param startTime              The start time.
+     * @param stopTime               The stop time.
+     * @param searchTimeDeltaSeconds The tolerable time difference (seconds).
+     */
     public void findPrimarySensorObservations(List<SamplingPoint> samples, String sensor,
                                               long startTime, long stopTime, int searchTimeDeltaSeconds) {
         findObservations(samples, sensor, startTime, stopTime, searchTimeDeltaSeconds, true);
     }
 
+    /**
+     * Finds related observations for each sampling point in a list of samples. On return any
+     * sampling points, which could not be associated with a related observations are removed
+     * from the list of samples.
+     * <p/>
+     * To be used for dual-sensor matchups only.
+     *
+     * @param samples                The list of sampling points.
+     * @param sensor                 The sensor name.
+     * @param startTime              The start time.
+     * @param stopTime               The stop time.
+     * @param searchTimeDeltaSeconds The tolerable time difference (seconds).
+     */
     public void findSecondarySensorObservations(List<SamplingPoint> samples, String sensor,
                                                 long startTime, long stopTime, int searchTimeDeltaSeconds) {
         findObservations(samples, sensor, startTime, stopTime, searchTimeDeltaSeconds, false);
     }
 
     public void findObservations(List<SamplingPoint> samples, String sensor,
-                                  long startTime, long stopTime, int searchTimeDeltaSeconds, boolean primarySensor) {
+                                 long startTime, long stopTime, int searchTimeDeltaSeconds, boolean primarySensor) {
         final long searchTimeDeltaMillis = searchTimeDeltaSeconds * 1000;
         final Date startDate = new Date(startTime - searchTimeDeltaMillis);
         final Date stopDate = new Date(stopTime + searchTimeDeltaMillis);
