@@ -67,15 +67,15 @@ public class SamplePointGenerator extends BasicTool{
         // TODO - continue here, incorporate secondary sensors rq-20140212
     }
 
-    private ClearSkyPointRemover createClearSkyPointRemover() {
-        return new ClearSkyPointRemover();
-    }
-
     private SobolSamplePointGenerator createSamplePointGenerator() {
         return new SobolSamplePointGenerator();
     }
 
     private LandPointRemover createLandPointRemover() {
         return new LandPointRemover();
+    }
+
+    private ClearSkyPointRemover createClearSkyPointRemover() {
+        return new ClearSkyPointRemover();
     }
 }
