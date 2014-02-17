@@ -1,16 +1,20 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 
+import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 
+import java.io.File;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class SamplePointExporterTest {
 
@@ -63,12 +67,44 @@ public class SamplePointExporterTest {
     public void testCreateOutputPath() {
          final String archiveRoot = "/archive";
 
-        // # mms/archive/mms2/smp/atsr.3/2003/atsr.3-smp-2003-01-b.txt
+        // # mms/archive/mms2/smp/atsr.3/2003/atsr.3-smp-2003-01-b.json
         String path = SamplePointExporter.createOutputPath(archiveRoot, "atsr.2", 2008, 5, 'a');
         assertEquals("/archive/smp/atsr.2/2008/atsr.2-smp-2008-05-a.json", path);
 
         path = SamplePointExporter.createOutputPath(archiveRoot, "atsr.3", 2010, 11, 'b');
         assertEquals("/archive/smp/atsr.3/2010/atsr.3-smp-2010-11-b.json", path);
+    }
+
+    @Test
+    public void testGetArchiveRootPath() {
+        final Configuration config = new Configuration();
+        config.put(Configuration.KEY_ARCHIVE_ROOTDIR, "/archive");
+        config.put(Configuration.KEY_ARCHIVE_USECASE, "mms2");
+
+        final String path = SamplePointExporter.getArchiveRootPath(config);
+        assertNotNull(path);
+        assertEquals("/archive" + File.separatorChar + "mms2", path);
+    }
+
+    @Test
+    public void testGetArchiveRootPath_missingUseCase() {
+        final Configuration config = new Configuration();
+        config.put(Configuration.KEY_ARCHIVE_ROOTDIR, "/archive");
+
+        final String path = SamplePointExporter.getArchiveRootPath(config);
+        assertNotNull(path);
+        assertEquals("/archive", path);
+    }
+
+    @Test
+    public void testGetArchiveRootPath_missingRoot() {
+        final Configuration config = new Configuration();
+
+        try {
+            SamplePointExporter.getArchiveRootPath(config);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
     }
 
     private List<SamplingPoint> createSamplingPoints() throws ParseException {

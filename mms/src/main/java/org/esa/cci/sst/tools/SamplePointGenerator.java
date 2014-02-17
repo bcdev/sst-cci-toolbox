@@ -3,6 +3,7 @@ package org.esa.cci.sst.tools;
 import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class SamplePointGenerator extends BasicTool {
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
     }
 
-    private void run() {
+    private void run() throws IOException {
         final SobolSamplePointGenerator generator = createSamplePointGenerator();
         final List<SamplingPoint> samples = generator.createSamples(sampleCount, sampleSkip, startTime, stopTime);
 
@@ -62,7 +63,7 @@ public class SamplePointGenerator extends BasicTool {
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
         observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, searchTimeDelta);
 
-        final SamplePointExporter samplePointExporter = new SamplePointExporter();
+        final SamplePointExporter samplePointExporter = new SamplePointExporter(getConfig());
         samplePointExporter.export(samples, new TimeRange(new Date(startTime), new Date(stopTime)));
     }
 

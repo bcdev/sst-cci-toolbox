@@ -1,8 +1,16 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 
+import org.apache.commons.lang.StringUtils;
+import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SamplingPointIO;
+import org.esa.cci.sst.util.TimeUtil;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -13,18 +21,53 @@ public class SamplePointExporter {
 
     private static final DecimalFormat monthFormat = new DecimalFormat("00");
 
-    public void export(List<SamplingPoint> samplingPoints, TimeRange samplingInterval) {
+    private final Configuration config;
+
+    public SamplePointExporter(Configuration config) {
+        this.config = config;
+    }
+
+    public void export(List<SamplingPoint> samplingPoints, TimeRange samplingInterval) throws IOException {
         final TimeRange monthBefore = samplingInterval.getMonthBefore();
         final TimeRange centerMonth = samplingInterval.getCenterMonth();
         final TimeRange monthAfter = samplingInterval.getMonthAfter();
 
-        final List<SamplingPoint> pointMonthBefore = extractSamples(samplingPoints, monthBefore);
+        final List<SamplingPoint> pointsMonthBefore = extractSamples(samplingPoints, monthBefore);
         final List<SamplingPoint> pointsCenterMonth = extractSamples(samplingPoints, centerMonth);
-        final List<SamplingPoint> pointMonthAfter = extractSamples(samplingPoints, monthAfter);
+        final List<SamplingPoint> pointsMonthAfter = extractSamples(samplingPoints, monthAfter);
 
         if (!samplingPoints.isEmpty()) {
             // @todo 1 tb/tb add logging entry that we still have remaining point - which should not be! tb 2014-02-17
         }
+
+        final String archiveRootPath = getArchiveRootPath(config);
+        final String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
+
+        writeSamplingPoints(pointsMonthBefore, monthBefore, archiveRootPath, sensorName, 'a');
+        writeSamplingPoints(pointsCenterMonth, centerMonth, archiveRootPath, sensorName, 'b');
+        writeSamplingPoints(pointsMonthAfter, monthAfter, archiveRootPath, sensorName, 'c');
+    }
+
+    private void writeSamplingPoints(List<SamplingPoint> points, TimeRange timeRange, String archiveRootPath, String sensorName, char key) throws IOException {
+        final int year = TimeUtil.getYear(timeRange.getStartDate());
+        final int month = TimeUtil.getMonth(timeRange.getStartDate());
+
+        final String targetPath = createOutputPath(archiveRootPath, sensorName, year, month, key);
+        final File targetFile = new File(targetPath);
+        final File targetDir = targetFile.getParentFile();
+        if (!targetDir.isDirectory()) {
+            if (!targetDir.mkdirs()) {
+                throw new ToolException("Unable to create target directory: " + targetDir.getAbsolutePath(), -1);
+            }
+        }
+
+        if (!targetFile.createNewFile()) {
+            throw new ToolException("Unable to create target file: " + targetFile.getAbsolutePath(), -1);
+        }
+
+        final FileOutputStream outputStream = new FileOutputStream(targetFile);
+        SamplingPointIO.write(points, outputStream);
+        outputStream.close();
     }
 
 
@@ -61,5 +104,20 @@ public class SamplePointExporter {
         builder.append(key);
         builder.append(".json");
         return builder.toString();
+    }
+
+    // package access for testing only tb 2014-02-17
+    static String getArchiveRootPath(Configuration config) {
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        if (StringUtils.isEmpty(archiveRootPath)) {
+            throw new ToolException("Missing archive root in config.", -1);
+        }
+
+        final String useCase = config.getStringValue(Configuration.KEY_ARCHIVE_USECASE);
+        if (StringUtils.isEmpty(useCase)) {
+            return archiveRootPath;
+        }
+
+        return archiveRootPath + File.separatorChar + useCase;
     }
 }

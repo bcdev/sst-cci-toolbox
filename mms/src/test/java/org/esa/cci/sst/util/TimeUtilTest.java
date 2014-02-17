@@ -20,11 +20,7 @@ import org.junit.Test;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -131,6 +127,32 @@ public class TimeUtilTest {
         assertEquals(59, calendar.get(Calendar.MINUTE));
         assertEquals(59, calendar.get(Calendar.SECOND));
         assertEquals(0, calendar.get(Calendar.MILLISECOND));
+    }
+
+    @Test
+    public void testGetYear() {
+        Calendar calendar = createCalendar(2012, 11, 22, 18, 24, 53);
+        Date date = calendar.getTime();
+
+        assertEquals(2012, TimeUtil.getYear(date));
+
+        calendar = createCalendar(1998, 4, 9, 11, 17, 38);
+        date = calendar.getTime();
+
+        assertEquals(1998, TimeUtil.getYear(date));
+    }
+
+    @Test
+    public void testGetMonth() {
+        Calendar calendar = createCalendar(2011, 8, 19, 18, 24, 53);
+        Date date = calendar.getTime();
+
+        assertEquals(9, TimeUtil.getMonth(date));
+
+        calendar = createCalendar(1999, 5, 12, 11, 17, 38);
+        date = calendar.getTime();
+
+        assertEquals(6, TimeUtil.getMonth(date));
     }
 
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
