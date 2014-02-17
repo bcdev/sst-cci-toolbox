@@ -1,7 +1,11 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 
+import org.esa.cci.sst.util.TimeUtil;
+
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 class TimeRange {
 
@@ -21,11 +25,60 @@ class TimeRange {
         return stopDate;
     }
 
-    public boolean isWithin(Date date) { // rq-20140217: suggestion - rename to 'includes'?
+    public boolean includes(Date date) {
         return (!startDate.after(date)) && (!stopDate.before(date));
     }
 
-    public boolean hasIntersectWith(TimeRange other) { // rq-20140217: suggestion - rename to 'intersectsWith'?
-        return isWithin(other.getStartDate()) || isWithin(other.getStopDate());
+    public boolean intersectsWith(TimeRange other) {
+        return includes(other.getStartDate()) || includes(other.getStopDate());
+    }
+
+    public TimeRange getCenterMonth() {
+        final GregorianCalendar utcCalendar = getCalendarAtCenter();
+
+        final Date beginningOfMonth = getBeginningOfMonth(utcCalendar);
+        final Date endOfMonth = getEndOfMonth(utcCalendar);
+
+        return new TimeRange(beginningOfMonth, endOfMonth);
+    }
+
+    public TimeRange getMonthBefore() {
+        final GregorianCalendar utcCalendar = getCalendarAtCenter();
+        utcCalendar.add(Calendar.MONTH, -1);
+
+        final Date beginningOfMonth = getBeginningOfMonth(utcCalendar);
+        final Date endOfMonth = getEndOfMonth(utcCalendar);
+
+        return new TimeRange(beginningOfMonth, endOfMonth);
+    }
+
+    public TimeRange getMonthAfter() {
+        final GregorianCalendar utcCalendar = getCalendarAtCenter();
+        utcCalendar.add(Calendar.MONTH, 1);
+
+        final Date beginningOfMonth = getBeginningOfMonth(utcCalendar);
+        final Date endOfMonth = getEndOfMonth(utcCalendar);
+
+        return new TimeRange(beginningOfMonth, endOfMonth);
+    }
+
+    private static Date getEndOfMonth(GregorianCalendar utcCalendar) {
+        final int maxDayInMonth = utcCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        utcCalendar.set(Calendar.DAY_OF_MONTH, maxDayInMonth);
+        final Date lastOfMonth = utcCalendar.getTime();
+        return TimeUtil.getEndOfDay(lastOfMonth);
+    }
+
+    private static Date getBeginningOfMonth(GregorianCalendar utcCalendar) {
+        utcCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        final Date firstOfMonth = utcCalendar.getTime();
+        return TimeUtil.getBeginningOfDay(firstOfMonth);
+    }
+
+    private GregorianCalendar getCalendarAtCenter() {
+        final Date centerDate = TimeUtil.centerTime(startDate, stopDate);
+        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
+        utcCalendar.setTime(centerDate);
+        return utcCalendar;
     }
 }
