@@ -7,8 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class TimeRangeTest {
 
@@ -73,6 +72,42 @@ public class TimeRangeTest {
         TimeRange contained = new TimeRange(compareStart, compareStop);
 
         assertTrue(timeRange.intersectsWith(contained));
+    }
+
+    @Test
+    public void testGetCenterMonth() {
+        final Date startDate = createDate(2010, 3, 13, 0, 0, 0);
+        final Date endDate = createDate(2010, 5, 17, 23, 59, 59);
+        final TimeRange timeRange = new TimeRange(startDate, endDate);
+
+        final TimeRange centerMonth = timeRange.getCenterMonth();
+        assertNotNull(centerMonth);
+        assertEquals(createDate(2010, 4, 1, 0, 0, 0).getTime(), centerMonth.getStartDate().getTime());
+        assertEquals(createDate(2010, 4, 31, 23, 59, 59).getTime(), centerMonth.getStopDate().getTime());
+    }
+
+    @Test
+    public void testGetMonthBefore() {
+        final Date startDate = createDate(2010, 3, 13, 0, 0, 0);
+        final Date endDate = createDate(2010, 5, 17, 23, 59, 59);
+        final TimeRange timeRange = new TimeRange(startDate, endDate);
+
+        final TimeRange centerMonth = timeRange.getMonthBefore();
+        assertNotNull(centerMonth);
+        assertEquals(createDate(2010, 3, 1, 0, 0, 0).getTime(), centerMonth.getStartDate().getTime());
+        assertEquals(createDate(2010, 3, 30, 23, 59, 59).getTime(), centerMonth.getStopDate().getTime());
+    }
+
+    @Test
+    public void testGetMonthAfter() {
+        final Date startDate = createDate(2010, 3, 13, 0, 0, 0);
+        final Date endDate = createDate(2010, 5, 17, 23, 59, 59);
+        final TimeRange timeRange = new TimeRange(startDate, endDate);
+
+        final TimeRange centerMonth = timeRange.getMonthAfter();
+        assertNotNull(centerMonth);
+        assertEquals(createDate(2010, 5, 1, 0, 0, 0).getTime(), centerMonth.getStartDate().getTime());
+        assertEquals(createDate(2010, 5, 30, 23, 59, 59).getTime(), centerMonth.getStopDate().getTime());
     }
 
     private Date createDate(int year, int month, int day, int hour, int minute, int second) {
