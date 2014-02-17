@@ -62,7 +62,7 @@ public class SamplePointGenerator extends BasicTool{
         clearSkyPointRemover.removeSamples(samples);
 
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
-        observationFinder.findObservations(samples, sensorName, false, startTime, stopTime, searchTimeDelta);
+        observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, searchTimeDelta);
 
         // TODO - continue here, incorporate secondary sensors rq-20140212
     }

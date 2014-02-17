@@ -134,8 +134,9 @@ public class SamplingTool extends BasicTool {
 
         getLogger().info("Finding reference observations...");
         final int halfRepeatCycleInSeconds = 86400 * 175 / 10;
-        findObservations2(sampleList, samplingSensor, false, halfRepeatCycleInSeconds, getPersistenceManager(),
-                          startTime, stopTime);
+        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
+        observationFinder.findPrimarySensorObservations(sampleList, samplingSensor,
+                                                        startTime, stopTime, halfRepeatCycleInSeconds);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -153,8 +154,8 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
         if (samplingSensor2 != null) {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
-            findObservations2(sampleList, samplingSensor2, true, matchupDistanceSeconds, getPersistenceManager(),
-                              startTime, stopTime);
+            observationFinder.findSecondarySensorObservations(sampleList, samplingSensor2,
+                                                              startTime, stopTime, matchupDistanceSeconds);
             getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
 
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
@@ -181,52 +182,6 @@ public class SamplingTool extends BasicTool {
 
     static void reduceByClearSkyStatistic(List<SamplingPoint> sampleList) {
         new ClearSkyPointRemover().removeSamples(sampleList);
-    }
-
-    private static final String COINCIDING_OBSERVATION_QUERY =
-            "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '420:00:00' and o.time < timestamp ?2 + interval '420:00:00'"
-            + " and st_intersects(o.location, st_geomfromewkt(?3))"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
-
-    public void findObservations(List<SamplingPoint> sampleList, String sensor) throws PersistenceException {
-        for (Iterator<SamplingPoint> iterator = sampleList.iterator(); iterator.hasNext(); ) {
-            final SamplingPoint point = iterator.next();
-            final double lon = point.getLon();
-            final double lat = point.getLat();
-            final long time = point.getTime();
-
-            // since binding a date to a parameter failed ...
-            final String queryString2 = COINCIDING_OBSERVATION_QUERY.replaceAll("\\?2",
-                                                                                "'" + TimeUtil.formatCcsdsUtcFormat(
-                                                                                        new Date(time)) + "'");
-            final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
-            query.setParameter(1, sensor);
-            //query.setParameter("time", new Date(time), TemporalType.TIMESTAMP);
-            query.setParameter(3, String.format("POINT(%.4f %.4f)", lon, lat));
-            query.setMaxResults(1);
-
-            ReferenceObservation nearestCoveringObservation;
-            @SuppressWarnings({"unchecked"})
-            final List<? extends ReferenceObservation> observations = query.getResultList();
-            if (observations.isEmpty()) {
-                iterator.remove();
-                continue;
-            }
-            // select temporally nearest common observation
-            nearestCoveringObservation = observations.get(0);
-            point.setReference(nearestCoveringObservation.getId());
-//            point.setTime(nearestCoveringObservation.getTime().getTime());
-        }
-    }
-
-    public static void findObservations2(List<SamplingPoint> sampleList, String samplingSensor, boolean isSecondSensor,
-                                         int searchRadiusSeconds, PersistenceManager persistenceManager,
-                                         long startTime, long stopTime) throws PersistenceException, ParseException {
-        new ObservationFinder(persistenceManager).findObservations(sampleList, samplingSensor, isSecondSensor,
-                                                                   startTime, stopTime, searchRadiusSeconds);
     }
 
     void findSatelliteSubscenes(List<SamplingPoint> sampleList, String sensor, boolean isSecondSensor) {
