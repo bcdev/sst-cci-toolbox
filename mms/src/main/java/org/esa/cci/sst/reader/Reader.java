@@ -47,7 +47,7 @@ public interface Reader extends Closeable {
      *
      * @throws java.io.IOException when an error has occurred.
      */
-    void init(DataFile dataFile, File archiveRoot) throws IOException;
+    void init(DataFile dataFile, File archiveRoot) throws IOException;  // @todo 3 tb/** rename to "open" tb 2014-02-17
 
     /**
      * Closes observation file

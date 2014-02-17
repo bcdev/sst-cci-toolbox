@@ -10,6 +10,7 @@ import java.util.List;
 
 public class SamplePointExporter {
 
+
     // package access for testing only tb 2014-02-14
     static List<SamplingPoint> extractSamples(List<SamplingPoint> samples, TimeRange extractRange) {
         final LinkedList<SamplingPoint> extracted = new LinkedList<>();
@@ -17,7 +18,7 @@ public class SamplePointExporter {
         final Iterator<SamplingPoint> iterator = samples.iterator();
         while (iterator.hasNext()) {
             final SamplingPoint point = iterator.next();
-            if (extractRange.isWithin(new Date(point.getTime()))) {
+            if (extractRange.includes(new Date(point.getTime()))) {
                 extracted.add(point);
                 iterator.remove();
             }

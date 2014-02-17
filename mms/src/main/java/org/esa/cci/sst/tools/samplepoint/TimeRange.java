@@ -21,11 +21,11 @@ class TimeRange {
         return stopDate;
     }
 
-    public boolean isWithin(Date date) { // rq-20140217: suggestion - rename to 'includes'?
+    public boolean includes(Date date) {
         return (!startDate.after(date)) && (!stopDate.before(date));
     }
 
-    public boolean hasIntersectWith(TimeRange other) { // rq-20140217: suggestion - rename to 'intersectsWith'?
-        return isWithin(other.getStartDate()) || isWithin(other.getStopDate());
+    public boolean intersectsWith(TimeRange other) {
+        return includes(other.getStartDate()) || includes(other.getStopDate());
     }
 }
