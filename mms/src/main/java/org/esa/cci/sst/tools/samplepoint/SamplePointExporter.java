@@ -16,15 +16,21 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class SamplePointExporter {
 
     private static final DecimalFormat monthFormat = new DecimalFormat("00");
 
     private final Configuration config;
+    private Logger logger;
 
     public SamplePointExporter(Configuration config) {
         this.config = config;
+    }
+
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 
     public void export(List<SamplingPoint> samplingPoints, TimeRange samplingInterval) throws IOException {
@@ -37,7 +43,9 @@ public class SamplePointExporter {
         final List<SamplingPoint> pointsMonthAfter = extractSamples(samplingPoints, monthAfter);
 
         if (!samplingPoints.isEmpty()) {
-            // @todo 1 tb/tb add logging entry that we still have remaining point - which should not be! tb 2014-02-17
+            if (logger != null) {
+                logger.warning("List of sampling points still contains points out of expected time range: " + samplingPoints.size());
+            }
         }
 
         final String archiveRootPath = getArchiveRootPath(config);
@@ -65,9 +73,9 @@ public class SamplePointExporter {
             throw new ToolException("Unable to create target file: " + targetFile.getAbsolutePath(), -1);
         }
 
-        final FileOutputStream outputStream = new FileOutputStream(targetFile);
-        SamplingPointIO.write(points, outputStream);
-        outputStream.close();
+        try (FileOutputStream outputStream = new FileOutputStream(targetFile)) {
+            SamplingPointIO.write(points, outputStream);
+        }
     }
 
 

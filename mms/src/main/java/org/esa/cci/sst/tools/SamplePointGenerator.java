@@ -63,8 +63,10 @@ public class SamplePointGenerator extends BasicTool {
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
         observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, searchTimeDelta);
 
+        final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
         final SamplePointExporter samplePointExporter = new SamplePointExporter(getConfig());
-        samplePointExporter.export(samples, new TimeRange(new Date(startTime), new Date(stopTime)));
+        samplePointExporter.setLogger(getLogger());
+        samplePointExporter.export(samples, timeRange);
     }
 
     private SobolSamplePointGenerator createSamplePointGenerator() {
