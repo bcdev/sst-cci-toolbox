@@ -60,7 +60,7 @@ public class SamplePointGenerator extends BasicTool {
         clearSkyPointRemover.removeSamples(samples);
 
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
-        observationFinder.findObservations(samples, sensorName, false, startTime, stopTime, searchTimeDelta);
+        observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, searchTimeDelta);
 
         final SamplePointExporter samplePointExporter = new SamplePointExporter();
         samplePointExporter.export(samples, new TimeRange(new Date(startTime), new Date(stopTime)));

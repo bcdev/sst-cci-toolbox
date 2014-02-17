@@ -1,7 +1,7 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 
-import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -13,6 +13,15 @@ import java.util.Date;
 import java.util.List;
 
 public class ObservationFinder {
+
+    // rq-20140217 - do not delete, might be useful later
+    private static final String COINCIDING_OBSERVATION_QUERY_TEMPLATE_STRING =
+            "select o.id"
+            + " from mm_observation o"
+            + " where o.sensor = ?1"
+            + " and o.time >= timestamp ?2 - interval '420:00:00' and o.time < timestamp ?2 + interval '420:00:00'"
+            + " and st_intersects(o.location, st_geomfromewkt(?3))"
+            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     private static final String SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING =
             "select o.id"
@@ -27,25 +36,60 @@ public class ObservationFinder {
         this.persistenceManager = persistenceManager;
     }
 
-    public void findObservations(List<SamplingPoint> samples, String sensor, boolean secondSensor,
-                                 long startTime, long stopTime, int searchTimeDeltaSeconds) {
+    /**
+     * Finds related observations for each sampling point in a list of samples. On return any
+     * sampling points, which could not be associated with a related observations are removed
+     * from the list of samples.
+     * <p/>
+     * To be used for single-sensor and dual-sensor matchups.
+     *
+     * @param samples                The list of sampling points.
+     * @param sensor                 The sensor name.
+     * @param startTime              The start time.
+     * @param stopTime               The stop time.
+     * @param searchTimeDeltaSeconds The tolerable time difference (seconds).
+     */
+    public void findPrimarySensorObservations(List<SamplingPoint> samples, String sensor,
+                                              long startTime, long stopTime, int searchTimeDeltaSeconds) {
+        findObservations(samples, sensor, startTime, stopTime, searchTimeDeltaSeconds, true);
+    }
 
+    /**
+     * Finds related observations for each sampling point in a list of samples. On return any
+     * sampling points, which could not be associated with a related observations are removed
+     * from the list of samples.
+     * <p/>
+     * To be used for dual-sensor matchups only.
+     *
+     * @param samples                The list of sampling points.
+     * @param sensor                 The sensor name.
+     * @param startTime              The start time.
+     * @param stopTime               The stop time.
+     * @param searchTimeDeltaSeconds The tolerable time difference (seconds).
+     */
+    public void findSecondarySensorObservations(List<SamplingPoint> samples, String sensor,
+                                                long startTime, long stopTime, int searchTimeDeltaSeconds) {
+        findObservations(samples, sensor, startTime, stopTime, searchTimeDeltaSeconds, false);
+    }
+
+    public void findObservations(List<SamplingPoint> samples, String sensor,
+                                 long startTime, long stopTime, int searchTimeDeltaSeconds, boolean primarySensor) {
         final long searchTimeDeltaMillis = searchTimeDeltaSeconds * 1000;
         final Date startDate = new Date(startTime - searchTimeDeltaMillis);
         final Date stopDate = new Date(stopTime + searchTimeDeltaMillis);
-        final List<ReferenceObservation> orbitObservations = findOrbits(sensor, startDate, stopDate);
+        final List<RelatedObservation> orbitObservations = findOrbitObservations(sensor, startDate, stopDate);
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
         for (int i = 0; i < orbitObservations.size(); ++i) {
-            final ReferenceObservation orbitObservation = orbitObservations.get(i);
+            final RelatedObservation orbitObservation = orbitObservations.get(i);
             polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
                                                    orbitObservation.getTime().getTime(),
                                                    orbitObservation.getLocation().getGeometry());
         }
-        findObservations(samples, secondSensor, searchTimeDeltaMillis, polygons);
+        findObservations(samples, searchTimeDeltaMillis, primarySensor, polygons);
     }
 
-    public static void findObservations(List<SamplingPoint> samples, boolean secondSensor, long searchTimeDelta,
-                                 PolarOrbitingPolygon[] polygons) {
+    public static void findObservations(List<SamplingPoint> samples, long searchTimeDelta, boolean primarySensor,
+                                        PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
         for (final SamplingPoint point : samples) {
             // look for orbit temporally before (i0) and after (i1) point with binary search
@@ -68,7 +112,7 @@ public class ObservationFinder {
                      point.getTime() < polygons[i0].getTime() ||
                      point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
                     if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                        if (!secondSensor) {
+                        if (primarySensor) {
                             point.setReference(polygons[i0].getId());
                         } else {
                             point.setReference2(polygons[i0].getId());
@@ -82,7 +126,7 @@ public class ObservationFinder {
                     if (i1 < polygons.length &&
                         Math.abs(point.getTime() - polygons[i1].getTime()) <= searchTimeDelta) {
                         if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                            if (!secondSensor) {
+                            if (primarySensor) {
                                 point.setReference(polygons[i1].getId());
                             } else {
                                 point.setReference2(polygons[i1].getId());
@@ -102,13 +146,13 @@ public class ObservationFinder {
         samples.addAll(accu);
     }
 
-    public List<ReferenceObservation> findOrbits(String sensor, Date startDate, Date stopDate) {
+    private List<RelatedObservation> findOrbitObservations(String sensor, Date startDate, Date stopDate) {
         final String s1 = TimeUtil.formatCcsdsUtcFormat(startDate);
         final String s2 = TimeUtil.formatCcsdsUtcFormat(stopDate);
         final String queryString = SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING
                 .replaceAll("\\?2", "'" + s1 + "'")
                 .replaceAll("\\?3", "'" + s2 + "'");
-        final Query query = persistenceManager.createNativeQuery(queryString, ReferenceObservation.class);
+        final Query query = persistenceManager.createNativeQuery(queryString, RelatedObservation.class);
         query.setParameter(1, sensor);
 
         //noinspection unchecked
