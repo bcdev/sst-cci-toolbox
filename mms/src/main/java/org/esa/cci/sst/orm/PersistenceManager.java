@@ -87,7 +87,7 @@ public class PersistenceManager {
             return result.get(0);
         } else {
             throw new NonUniqueResultException(
-                    "single result instead of " + result.size() + " expected for query " + query.toString());
+                    "Single result instead of " + result.size() + " expected for query '" + query.toString() + "'.");
         }
     }
 

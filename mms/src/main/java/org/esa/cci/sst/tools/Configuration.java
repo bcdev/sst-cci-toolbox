@@ -37,6 +37,12 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
     public static final String KEY_MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     public static final String KEY_MMS_SAMPLING_SEARCH_TIME_DELTA = "mms.sampling.searchtimedelta";
+    public static final String KEY_MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
+    public static final String KEY_MMS_SAMPLING_CLEANUPINTERVAL = "mms.sampling.cleanupinterval";
+    public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME = "mms.sampling.cloudflags.variable";
+    public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
+    public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
+    public static final String KEY_MMS_SAMPLING_DUAL_SENSOR_MATCHING = "mms.sampling.dualsensormatching";
 
     private final Properties properties;
 
@@ -82,6 +88,42 @@ public class Configuration {
     public boolean getBooleanValue(String key) {
         final String boolString = (String) properties.get(key);
         return Boolean.parseBoolean(boolString);
+    }
+
+    public double getDoubleValue(String key) {
+        final String doubleString = properties.getProperty(key);
+        if (doubleString == null){
+            throw new ToolException("No value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        try {
+            return Integer.parseInt(doubleString);
+        } catch (NumberFormatException e) {
+            throw new ToolException("Cannot parse double value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
+    public double getDoubleValue(String key, double defaultValue) {
+        final String doubleString = properties.getProperty(key);
+        if (doubleString == null){
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(doubleString);
+        } catch (NumberFormatException e) {
+            throw new ToolException("Cannot parse double value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
+    public int getIntValue(String key) {
+        final String intString = properties.getProperty(key);
+        if (intString == null){
+            throw new ToolException("No value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        try {
+            return Integer.parseInt(intString);
+        } catch (NumberFormatException e) {
+            throw new ToolException("Cannot parse integer value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
     }
 
     public int getIntValue(String key, int defaultValue) {

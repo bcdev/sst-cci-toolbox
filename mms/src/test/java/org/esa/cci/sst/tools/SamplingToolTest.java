@@ -15,6 +15,7 @@ package org.esa.cci.sst.tools;/*
  */
 
 import org.esa.cci.sst.DatabaseTestRunner;
+import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointPlotter;
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(DatabaseTestRunner.class)
 public class SamplingToolTest {
@@ -55,7 +56,9 @@ public class SamplingToolTest {
         observationFinder.findPrimarySensorObservations(sampleList, "atsr_orb.3",
                                                         tool.getStartTime(), tool.getStopTime(),
                                                         86400 * 175 / 10);
-        tool.findSatelliteSubscenes(sampleList, "atsr_orb.3", false);
+
+        CloudySubsceneRemover.removeSamples(sampleList, "atsr_orb.3", true, 7, 7, tool.getConfig(),
+                                            tool.getStorage(), tool.getLogger(), "cloud_flags_nadir", 3, 0.0);
         tool.removeOverlappingSamples(sampleList);
 
         assertEquals(77, sampleList.size());

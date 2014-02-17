@@ -9,7 +9,12 @@ import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ConfigurationTest {
 
@@ -83,6 +88,26 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testPutAndGetDoubleValue_withDefault() {
+        configuration.put("a_key", "94.7");
+
+        assertEquals(94.7, configuration.getDoubleValue("a_key", 107.3), 0.0);
+        assertEquals(107.3, configuration.getDoubleValue("no_key", 107.3), 0.0);
+    }
+
+    @Test
+    public void testPutAndGetDoubleValue_withoutDefault() {
+        configuration.put("a_key", "94.7");
+
+        assertEquals(94.7, configuration.getDoubleValue("a_key"), 0.0);
+        try {
+            assertEquals(107.3, configuration.getDoubleValue("no_key"), 0.0);
+            fail();
+        } catch (Exception expected) {
+        }
+    }
+
+    @Test
     public void testPutAndGetIntValue_withDefault() {
         configuration.put("a_key", "94");
 
@@ -104,8 +129,8 @@ public class ConfigurationTest {
     @Test
     public void testLoad() throws IOException {
         final String configFileContent = "key.1 = value.1\n" +
-                "date.key = 1979-01-01T00:00:00Z\n" +
-                "key.2 = value.2";
+                                         "date.key = 1979-01-01T00:00:00Z\n" +
+                                         "key.2 = value.2";
 
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(configFileContent.getBytes());
         final InputStreamReader reader = new InputStreamReader(inputStream);

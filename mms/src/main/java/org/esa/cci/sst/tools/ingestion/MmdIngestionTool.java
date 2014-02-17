@@ -99,7 +99,7 @@ public class MmdIngestionTool extends BasicTool {
 
             if (withOverwrite) {
                 getPersistenceManager().transaction();
-                dataFile = getDataFile(path);
+                dataFile = getDatafile(path);
                 if (dataFile != null) {
                     dropObservationsAndCoincidencesOf(dataFile);
                 }

@@ -14,54 +14,35 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.cci.sst.common.ExtractDefinition;
-import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.Column;
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
+import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
 import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
-import org.esa.cci.sst.util.PixelCounter;
-import org.esa.cci.sst.util.ReaderCache;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
-import ucar.ma2.Array;
 
-import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import java.io.IOException;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class SamplingTool extends BasicTool {
 
     private static final byte DATASET_DUMMY = (byte) 8;
     private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
 
-    private static final String MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
-    private static final String MMS_SAMPLING_CLEANUPINTERVAL = "mms.sampling.cleanupinterval";
     private static final String MMS_SAMPLING_SENSOR2 = "mms.sampling.sensor2";
     private static final String MMS_SAMPLING_MATCHUPDISTANCE = "mms.sampling.matchupdistance";
 
@@ -114,9 +95,9 @@ public class SamplingTool extends BasicTool {
 
     private void run() throws ParseException {
         final Configuration config = getConfig();
-        if (config.getBooleanValue(MMS_SAMPLING_CLEANUP)) {
+        if (config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_CLEANUP)) {
             cleanup();
-        } else if (config.getBooleanValue(MMS_SAMPLING_CLEANUPINTERVAL)) {
+        } else if (config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_CLEANUPINTERVAL)) {
             cleanupInterval();
         }
 
@@ -150,7 +131,9 @@ public class SamplingTool extends BasicTool {
         // - sampling sensor cmdLineParam
 
         getLogger().info("Finding satellite sub-scenes...");
-        findSatelliteSubscenes(sampleList, samplingSensor, false);
+        CloudySubsceneRemover.removeSamples(sampleList, samplingSensor, true, subSceneWidth, subSceneHeight,
+                                            getConfig(),
+                                            getStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
         if (samplingSensor2 != null) {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
@@ -159,7 +142,9 @@ public class SamplingTool extends BasicTool {
             getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
 
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
-            findSatelliteSubscenes(sampleList, samplingSensor2, true);
+            CloudySubsceneRemover.removeSamples(sampleList, samplingSensor2, false, subSceneWidth, subSceneHeight,
+                                                getConfig(),
+                                                getStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes..." + sampleList.size());
         }
 
@@ -182,97 +167,6 @@ public class SamplingTool extends BasicTool {
 
     static void reduceByClearSkyStatistic(List<SamplingPoint> sampleList) {
         new ClearSkyPointRemover().removeSamples(sampleList);
-    }
-
-    void findSatelliteSubscenes(List<SamplingPoint> sampleList, String sensor, boolean isSecondSensor) {
-        // TODO - make parameters from variables below
-        final String cloudFlagsName = "cloud_flags_nadir";
-        final int pixelMask = 3;
-        final double cloudyPixelFraction = 0.0;
-
-        final Query columnQuery = getPersistenceManager().createQuery("select c from Column c where c.name = ?1");
-        final String columnName = sensor + "." + cloudFlagsName;
-        columnQuery.setParameter(1, columnName);
-
-        final Object columnQueryResult = columnQuery.getSingleResult();
-        if (!(columnQueryResult instanceof Column)) {
-            throw new ToolException("No such column '" + columnName + "'.", ToolException.UNKNOWN_ERROR);
-        }
-        final Column column = (Column) columnQueryResult;
-        final Number fillValue = column.getFillValue();
-        final PixelCounter pixelCounter = new PixelCounter(pixelMask, fillValue);
-
-        final Map<Integer, List<SamplingPoint>> sampleListsByDatafile = new HashMap<>();
-        for (final SamplingPoint point : sampleList) {
-            final int id = isSecondSensor ? point.getReference2() : point.getReference();
-
-            if (!sampleListsByDatafile.containsKey(id)) {
-                sampleListsByDatafile.put(id, new ArrayList<SamplingPoint>());
-            }
-            sampleListsByDatafile.get(id).add(point);
-        }
-
-        final ReaderCache readerCache = new ReaderCache(10, getConfig(), getLogger());
-        final int[] shape = {1, subSceneHeight, subSceneWidth};
-        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
-
-        final List<SamplingPoint> accu = new ArrayList<>(sampleList.size());
-        final Integer[] datafileIds = sampleListsByDatafile.keySet().toArray(
-                new Integer[sampleListsByDatafile.keySet().size()]);
-        Arrays.sort(datafileIds);
-        for (final int id : datafileIds) {
-            final List<SamplingPoint> points = sampleListsByDatafile.get(id);
-
-            final Observation observation = getObservation(id);
-            if (observation != null) {
-                final DataFile datafile = observation.getDatafile();
-                try {
-                    final Reader reader = readerCache.getReader(datafile, true);
-                    for (final SamplingPoint point : points) {
-                        final double lat = point.getLat();
-                        final double lon = point.getLon();
-
-                        final GeoCoding geoCoding = reader.getGeoCoding(0);
-                        final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
-                        final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
-
-                        final int numCols = reader.getElementCount();
-                        final int numRows = reader.getScanLineCount();
-                        final int pixelX = (int) Math.floor(pixelPos.getX());
-                        final int pixelY = (int) Math.floor(pixelPos.getY());
-
-                        if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
-                            if (!isSecondSensor) {
-                                point.setX(pixelX);
-                                point.setY(pixelY);
-                                // @todo 2 tb/** check what the consequences are if we use in-situ data here
-                                point.setTime(reader.getTime(0, pixelY));
-                            }
-
-                            final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
-                            final Array array = reader.read(cloudFlagsName, extractDefinition);
-                            final int cloudyPixelCount = pixelCounter.count(array);
-                            if (cloudyPixelCount <= (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
-                                accu.add(point);
-                            }
-                        } else {
-                            final String message = MessageFormat.format(
-                                    "Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
-                                    datafile.getPath());
-                            getLogger().fine(message);
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new ToolException(
-                            MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
-                            ToolException.TOOL_IO_ERROR);
-                } finally {
-                    readerCache.closeReader(datafile);
-                }
-            }
-        }
-        sampleList.clear();
-        sampleList.addAll(accu);
     }
 
     public void removeOverlappingSamples(List<SamplingPoint> sampleList) {

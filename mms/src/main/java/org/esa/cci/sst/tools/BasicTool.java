@@ -16,9 +16,16 @@
 
 package org.esa.cci.sst.tools;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.util.logging.BeamLogManager;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
@@ -27,13 +34,23 @@ import org.esa.cci.sst.util.TimeUtil;
 
 import javax.media.jai.JAI;
 import javax.persistence.Query;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * The base class for all MMS command line tools.
@@ -43,6 +60,8 @@ import java.util.logging.*;
  * @author Ralf Quast
  */
 public abstract class BasicTool {
+
+    private ToolStorage toolStorage;
 
     static class SstLogFormatter extends Formatter {
 
@@ -246,16 +265,23 @@ public abstract class BasicTool {
         return true;
     }
 
+    public Storage getStorage() {
+        return toolStorage;
+    }
+
+    @Deprecated
     public final Observation getObservation(int id) {
-        return (Observation) getPersistenceManager().pick("select o from Observation o where o.id = ?1", id);
+        return getStorage().getObservation(id);
     }
 
+    @Deprecated
     public final Sensor getSensor(final String sensorName) {
-        return (Sensor) getPersistenceManager().pick("select s from Sensor s where s.name = ?1", sensorName);
+        return getStorage().getSensor(sensorName);
     }
 
-    public final DataFile getDataFile(final String path) {
-        return (DataFile) getPersistenceManager().pick("select f from DataFile f where f.path = ?1", path);
+    @Deprecated
+    public final DataFile getDatafile(final String path) {
+        return getStorage().getDatafile(path);
     }
 
     public void initialize() {
@@ -274,7 +300,7 @@ public abstract class BasicTool {
                 getLogger().warning("failed setting seqscan to off: " + e.getMessage());
             }
         }
-
+        toolStorage = new ToolStorage(persistenceManager);
         sourceStartTime = config.getDateValue(Configuration.KEY_SOURCE_START_TIME, "1978-01-01T00:00:00Z");
         sourceStopTime = config.getDateValue(Configuration.KEY_SOURCE_STOP_TIME, "2100-01-01T00:00:00Z");
 
@@ -296,10 +322,10 @@ public abstract class BasicTool {
             config.load(reader);
         } catch (FileNotFoundException e) {
             throw new ToolException(MessageFormat.format("File not found: {0}", configurationFile), e,
-                    ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
+                                    ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
         } catch (IOException e) {
             throw new ToolException(MessageFormat.format("Failed to read from {0}.", configurationFile), e,
-                    ToolException.CONFIGURATION_FILE_IO_ERROR);
+                                    ToolException.CONFIGURATION_FILE_IO_ERROR);
         } finally {
             if (reader != null) {
                 try {
@@ -343,5 +369,34 @@ public abstract class BasicTool {
         options.addOption(tmpDirOpt);
 
         return options;
+    }
+
+    private class ToolStorage implements Storage {
+
+        private final PersistenceManager persistenceManager;
+
+        public ToolStorage(PersistenceManager persistenceManager) {
+            this.persistenceManager = persistenceManager;
+        }
+
+        @Override
+        public Column getColumn(String columnName) {
+            return (Column) persistenceManager.pick("select c from Column c where c.name = ?1", columnName);
+        }
+
+        @Override
+        public final DataFile getDatafile(final String path) {
+            return (DataFile) persistenceManager.pick("select f from DataFile f where f.path = ?1", path);
+        }
+
+        @Override
+        public Observation getObservation(int id) {
+            return (Observation) persistenceManager.pick("select o from Observation o where o.id = ?1", id);
+        }
+
+        @Override
+        public final Sensor getSensor(final String sensorName) {
+            return (Sensor) persistenceManager.pick("select s from Sensor s where s.name = ?1", sensorName);
+        }
     }
 }
