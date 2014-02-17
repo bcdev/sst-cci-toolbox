@@ -59,6 +59,18 @@ public class SamplePointExporterTest {
         TestHelper.assertPointsInTimeRange(extractStart, extractStop, septemberSamples);
     }
 
+    @Test
+    public void testCreateOutputPath() {
+         final String archiveRoot = "/archive";
+
+        // # mms/archive/mms2/smp/atsr.3/2003/atsr.3-smp-2003-01-b.txt
+        String path = SamplePointExporter.createOutputPath(archiveRoot, "atsr.2", 2008, 5, 'a');
+        assertEquals("/archive/smp/atsr.2/2008/atsr.2-smp-2008-05-a.json", path);
+
+        path = SamplePointExporter.createOutputPath(archiveRoot, "atsr.3", 2010, 11, 'b');
+        assertEquals("/archive/smp/atsr.3/2010/atsr.3-smp-2010-11-b.json", path);
+    }
+
     private List<SamplingPoint> createSamplingPoints() throws ParseException {
         final long intervalStart = TimeUtil.parseCcsdsUtcFormat("2003-07-17T00:00:00Z").getTime();
         final long intervalStop = TimeUtil.parseCcsdsUtcFormat("2003-09-15T23:59:59Z").getTime();

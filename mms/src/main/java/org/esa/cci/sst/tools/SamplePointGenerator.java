@@ -1,14 +1,12 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
-import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
-import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
-import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
+import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
 
+import java.util.Date;
 import java.util.List;
 
-public class SamplePointGenerator extends BasicTool{
+public class SamplePointGenerator extends BasicTool {
 
     private long startTime;
     private long stopTime;
@@ -64,7 +62,8 @@ public class SamplePointGenerator extends BasicTool{
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
         observationFinder.findObservations(samples, sensorName, false, startTime, stopTime, searchTimeDelta);
 
-        // TODO - continue here, incorporate secondary sensors rq-20140212
+        final SamplePointExporter samplePointExporter = new SamplePointExporter();
+        samplePointExporter.export(samples, new TimeRange(new Date(startTime), new Date(stopTime)));
     }
 
     private SobolSamplePointGenerator createSamplePointGenerator() {
