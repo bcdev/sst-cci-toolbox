@@ -25,7 +25,7 @@ public class InsituSamplePointGenerator {
 
     public InsituSamplePointGenerator(File archiveDir, Sensor sensor) {
         this.archiveDir = archiveDir;
-        reader = ReaderFactory.createReader("InsituReader", "");
+        this.reader = ReaderFactory.createReader("InsituReader", "");
         this.sensor = sensor;
     }
 
@@ -48,8 +48,8 @@ public class InsituSamplePointGenerator {
         final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
 
         try {
-            reader.init(dataFile, archiveDir);
-            final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
+            reader.init(dataFile, archiveDir); // rq-20140217 - could we rename 'reader.init()' into 'reader.open()'? It always confused me that an init method already opens the file...
+            final List<SamplingPoint> pointsInFile = reader.readSamplingPoints(); // rq-20140217 - you chose a linked list for performance?
             for (final SamplingPoint samplingPoint : pointsInFile) {
                 if (timeRange.isWithin(new Date(samplingPoint.getTime()))) {
                     samplingPoints.add(samplingPoint);
@@ -64,9 +64,10 @@ public class InsituSamplePointGenerator {
 
     private LinkedList<File> findFilesInTimeRange(TimeRange timeRange) {
         final LinkedList<File> filesInRange = new LinkedList<>();
-        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"}, true);
+        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"}, true); // rq-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
         for (final File file : insituFiles) {
             try {
+                // rq-20140217 - wouldn't using a file filter be even more beautiful here?
                 final TimeRange fileTimeRange = extractTimeRange(file.getName());
                 if (timeRange.hasIntersectWith(fileTimeRange)) {
                     filesInRange.add(file);
