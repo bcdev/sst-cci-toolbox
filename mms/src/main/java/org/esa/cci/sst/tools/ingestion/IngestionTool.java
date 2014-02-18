@@ -165,13 +165,10 @@ public class IngestionTool extends BasicTool {
             final String readerSpecKey = String.format("mms.reader.%s", sensor);
             final String readerSpec = config.getStringValue(readerSpecKey, ReaderFactory.DEFAULT_READER_SPEC);
 
-            final String patternKey = String.format("mms.pattern.%s", sensor);
-            final String patternString = config.getStringValue(patternKey, "0");
-
             final String observationTypeKey = String.format("mms.observationType.%s", sensor);
             final String observationType = config.getStringValue(observationTypeKey, "RelatedObservation");
 
-            final long pattern = Long.parseLong(patternString, 16);
+            final long pattern = config.getPattern(sensor);
             if (readerSpec == null || inputDirPath == null || sensor == null) {
                 continue;
             }
