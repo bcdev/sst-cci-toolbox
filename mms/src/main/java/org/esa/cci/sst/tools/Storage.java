@@ -17,6 +17,7 @@ package org.esa.cci.sst.tools;/*
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
 
 public interface Storage {
@@ -26,6 +27,8 @@ public interface Storage {
     Column getColumn(String columnName);
 
     Observation getObservation(int id);
+
+    RelatedObservation getRelatedObservation(int id);
 
     Sensor getSensor(String sensorName);
 }

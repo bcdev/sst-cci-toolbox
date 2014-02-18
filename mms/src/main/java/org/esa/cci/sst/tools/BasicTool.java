@@ -28,6 +28,7 @@ import org.esa.beam.util.logging.BeamLogManager;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.TimeUtil;
@@ -392,6 +393,11 @@ public abstract class BasicTool {
         @Override
         public Observation getObservation(int id) {
             return (Observation) persistenceManager.pick("select o from Observation o where o.id = ?1", id);
+        }
+
+        @Override
+        public RelatedObservation getRelatedObservation(int id) {
+            return (RelatedObservation) persistenceManager.pick("select o from Observation o where o.id = ?1", id);
         }
 
         @Override
