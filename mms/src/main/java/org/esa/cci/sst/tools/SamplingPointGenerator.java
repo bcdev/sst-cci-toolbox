@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-public class SamplePointGenerator extends BasicTool {
+public class SamplingPointGenerator extends BasicTool {
 
     private long startTime;
     private long stopTime;
@@ -16,12 +16,12 @@ public class SamplePointGenerator extends BasicTool {
     private int sampleSkip;
     private String sensorName;
 
-    public SamplePointGenerator() {
+    public SamplingPointGenerator() {
         super("sampling-point-generator", "1.0");
     }
 
     public static void main(String[] args) {
-        final SamplePointGenerator tool = new SamplePointGenerator();
+        final SamplingPointGenerator tool = new SamplingPointGenerator();
         try {
             final boolean ok = tool.setCommandLineArgs(args);
             if (!ok) {

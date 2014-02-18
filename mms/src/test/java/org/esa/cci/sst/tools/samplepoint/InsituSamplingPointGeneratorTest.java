@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
-public class InsituSamplePointGeneratorTest {
+public class InsituSamplingPointGeneratorTest {
 
     private static File archiveDir;
     private static Sensor sensor;
@@ -28,7 +28,7 @@ public class InsituSamplePointGeneratorTest {
 
     @BeforeClass
     public static void beforeClass() throws URISyntaxException {
-        final URL testArchiveUrl = InsituSamplePointGeneratorTest.class.getResource("../../reader/insitu_0_WMOID_71569_20030117_20030131.nc");
+        final URL testArchiveUrl = InsituSamplingPointGeneratorTest.class.getResource("../../reader/insitu_0_WMOID_71569_20030117_20030131.nc");
         final URI uri = testArchiveUrl.toURI();
         archiveDir = new File(uri).getParentFile();
         assertTrue(archiveDir.isDirectory());
