@@ -12,6 +12,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -95,6 +96,34 @@ public class SamplePointExporterIntegrationTest {
         final File februaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-02-c.json");
         assertTrue(februaryFile.isFile());
         assertEquals(6998, februaryFile.length());
+    }
+
+    @Test
+    public void testExportPointLists_writesEmptyFiles() throws ParseException, IOException {
+        final Configuration config = createConfig();
+
+        final Date pointDate = TimeUtil.parseCcsdsUtcFormat("2008-09-16T00:00:00Z");
+        final SamplingPoint samplingPoint = new SamplingPoint(-29.4, 11.8, pointDate.getTime(), 0.56);
+        final List<SamplingPoint> samples = new ArrayList<>();
+        samples.add(samplingPoint);
+
+        final SamplePointExporter exporter = new SamplePointExporter(config);
+        exporter.export(samples, new TimeRange(pointDate, pointDate));
+
+        final File targetDir = new File(test_archive, "useCase/smp/schnickschnack.4/2008");
+        assertTrue(targetDir.isDirectory());
+
+        final File augustFile = new File(targetDir, "schnickschnack.4-smp-2008-08-a.json");
+        assertTrue(augustFile.isFile());
+        assertEquals(21, augustFile.length());
+
+        final File septemberFile = new File(targetDir, "schnickschnack.4-smp-2008-09-b.json");
+        assertTrue(septemberFile.isFile());
+        assertEquals(132, septemberFile.length());
+
+        final File octoberFile = new File(targetDir, "schnickschnack.4-smp-2008-10-c.json");
+        assertTrue(octoberFile.isFile());
+        assertEquals(21, octoberFile.length());
     }
 
     private Configuration createConfig() {

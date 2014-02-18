@@ -10,6 +10,7 @@ import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
+import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -17,7 +18,7 @@ import org.postgis.Point;
 
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Stack;
@@ -37,6 +38,7 @@ public class MatchupGenerator extends BasicTool {
     private String cloudFlagsVariableName;
     private int cloudFlagsMask;
     private double cloudyPixelFraction;
+    private boolean dualSensorMatching;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -75,11 +77,11 @@ public class MatchupGenerator extends BasicTool {
         cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
     }
 
-    private void run() {
+    private void run() throws IOException {
         cleanupIfRequested();
 
-        // todo - read input
-        final List<SamplingPoint> samples = new ArrayList<>();
+        final SamplePointImporter samplePointImporter = new SamplePointImporter(getConfig());
+        final List<SamplingPoint> samples = samplePointImporter.load();
 
         final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
         subsceneRemover.sensorName(sensorName1)
