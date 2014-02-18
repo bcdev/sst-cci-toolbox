@@ -81,7 +81,7 @@ class Ingester {
         final SensorBuilder builder = new SensorBuilder();
         builder.name(sensorName);
         builder.observationType(observationType);
-        builder.pattern(pattern).build();
+        builder.pattern(pattern);
         final Sensor sensor = builder.build();
         tool.getPersistenceManager().persist(sensor);
         return sensor;
