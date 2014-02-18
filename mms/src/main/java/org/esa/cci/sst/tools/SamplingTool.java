@@ -14,11 +14,6 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
@@ -26,22 +21,15 @@ import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
 import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
 import org.esa.cci.sst.util.SamplingPoint;
-import org.esa.cci.sst.util.TimeUtil;
-import org.postgis.PGgeometry;
-import org.postgis.Point;
 
 import javax.persistence.Query;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
 public class SamplingTool extends BasicTool {
-
-    private static final byte DATASET_DUMMY = (byte) 8;
-    private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
 
     private static final String MMS_SAMPLING_SENSOR2 = "mms.sampling.sensor2";
     private static final String MMS_SAMPLING_MATCHUPDISTANCE = "mms.sampling.matchupdistance";
@@ -153,7 +141,8 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Removing overlapping areas..." + sampleList.size());
 
         getLogger().info("Creating matchups...");
-        createMatchups(sampleList, samplingSensor, samplingSensor2);
+        MatchupGenerator.createMatchups(sampleList, getStorage(), getPersistenceManager(), "sobol", samplingSensor, samplingSensor2,
+                                        getConfig().getPattern("mms.pattern.sobol"));
         getLogger().info("Creating matchups..." + sampleList.size());
     }
 
@@ -174,100 +163,6 @@ public class SamplingTool extends BasicTool {
         final List<SamplingPoint> filteredList = regionOverlapFilter.filterOverlaps(sampleList);
         sampleList.clear();
         sampleList.addAll(filteredList);
-    }
-
-    void createMatchups(List<SamplingPoint> sampleList, String samplingSensor, String samplingSensor2) {
-        long pattern = getSensor(samplingSensor).getPattern();
-        if (samplingSensor2 != null) {
-            pattern |= getSensor(samplingSensor2).getPattern();
-        }
-
-        final ArrayList<ReferenceObservation> referenceObservationList = new ArrayList<>();
-        final ArrayList<Matchup> matchupList = new ArrayList<>();
-        final ArrayList<Coincidence> coincidenceList = new ArrayList<>();
-
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        try {
-            int j = 200;
-            persistenceManager.transaction();
-            for (SamplingPoint samplingPoint : sampleList) {
-                final ReferenceObservation referenceObservation = new ReferenceObservation();
-                // @todo 2 tb/** make this configurable tb 2014-02-12
-                referenceObservation.setName(String.valueOf(samplingPoint.getIndex()));
-                referenceObservation.setSensor("sobol");
-
-                final PGgeometry location = new PGgeometry(new Point(samplingPoint.getLon(), samplingPoint.getLat()));
-                referenceObservation.setLocation(location);
-                referenceObservation.setPoint(location);
-
-                // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
-                final Date time = new Date(samplingPoint.getTime());
-                referenceObservation.setTime(time);
-                referenceObservation.setTimeRadius(0.0);
-
-                // @todo 1 tb/** we need to keep the fileId of insitu-file, orbit-file and eventually second orbit-file tb 2014-02-12
-                final Observation observation = getObservation(samplingPoint.getReference());
-                referenceObservation.setDatafile(observation.getDatafile());
-                referenceObservation.setRecordNo(0);
-                referenceObservation.setDataset(DATASET_DUMMY);
-                referenceObservation.setReferenceFlag(REFERENCE_FLAG_UNDEFINED);
-
-                referenceObservationList.add(referenceObservation);
-                persistenceManager.persist(referenceObservation);
-                if (--j == 0) {
-                    persistenceManager.commit();
-                    persistenceManager.transaction();
-                    j = 200;
-                }
-            }
-            persistenceManager.commit();
-
-            persistenceManager.transaction();
-            for (int i = 0; i < sampleList.size(); i++) {
-                final SamplingPoint samplingPoint = sampleList.get(i);
-                final ReferenceObservation referenceObservation = referenceObservationList.get(i);
-                final Matchup matchup = new Matchup();
-                matchup.setId(referenceObservation.getId());
-                matchup.setRefObs(referenceObservation);
-                // @todo 2 tb/** check pattern when using with insitu data - we may have to add a "| historyPattern" here   tb 2014-02-12
-                matchup.setPattern(pattern);
-
-                matchupList.add(matchup);
-
-                final Observation observation = getObservation(samplingPoint.getReference());
-                final Coincidence coincidence = new Coincidence();
-                coincidence.setMatchup(matchup);
-                coincidence.setObservation(observation);
-                // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
-                coincidence.setTimeDifference(0.0);
-                // TODO handle pattern
-                coincidenceList.add(coincidence);
-
-                if (samplingSensor2 != null) {
-                    final Observation observation2 = getObservation(samplingPoint.getReference2());
-                    final Coincidence coincidence2 = new Coincidence();
-                    coincidence2.setMatchup(matchup);
-                    coincidence2.setObservation(observation2);
-                    coincidence2.setTimeDifference(
-                            TimeUtil.timeDifferenceInSeconds(matchup, ((ReferenceObservation) observation2)));
-
-                    coincidenceList.add(coincidence2);
-                }
-            }
-            persistenceManager.commit();
-
-            persistenceManager.transaction();
-            for (Matchup m : matchupList) {
-                persistenceManager.persist(m);
-            }
-            for (Coincidence c : coincidenceList) {
-                persistenceManager.persist(c);
-            }
-            persistenceManager.commit();
-        } catch (Exception e) {
-            persistenceManager.rollback();
-            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
-        }
     }
 
     void cleanup() {
