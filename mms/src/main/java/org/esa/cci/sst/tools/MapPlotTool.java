@@ -70,7 +70,7 @@ public class MapPlotTool extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
+        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_1);
         startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME);
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME);
         showMaps = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_SHOW_MAPS);
