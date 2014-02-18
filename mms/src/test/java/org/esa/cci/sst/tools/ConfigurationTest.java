@@ -194,13 +194,29 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testGetSensorPattern() throws Exception {
-        assertEquals(0, configuration.getPattern("mysensor"));
+    public void testGetSensorPattern_withoutDefaultValue() throws Exception {
+        try {
+            configuration.getPattern("mysensor");
+            fail();
+        } catch (Exception expected) {
+        }
 
-        configuration.put("test", "100");
-        assertEquals(0, configuration.getPattern("mysensor"));
+        configuration.put("mysensor", "100");
+        try {
+            configuration.getPattern("mysensor");
+            fail();
+        } catch (Exception expected) {
+        }
 
         configuration.put("mms.pattern.mysensor", "100");
         assertEquals(256, configuration.getPattern("mysensor"));
+    }
+
+    @Test
+    public void testGetSensorPattern_withDefaultValue() throws Exception {
+        assertEquals(8L, configuration.getPattern("mysensor", 8L));
+
+        configuration.put("mms.pattern.mysensor", "100");
+        assertEquals(256, configuration.getPattern("mysensor", 8L));
     }
 }

@@ -162,15 +162,29 @@ public class Configuration {
         final String key = "mms.pattern." + sensorName;
         final String value = getStringValue(key);
         if (value == null) {
-            return 0;
+            throw new ToolException("No value for key: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
         }
+
+        return parsePattern(key, value);
+    }
+
+    public long getPattern(String sensorName, long defaultValue) {
+        final String key = "mms.pattern." + sensorName;
+        final String value = getStringValue(key);
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return parsePattern(key, value);
+    }
+
+    private long parsePattern(String key, String value) {
         final long pattern;
         try {
             pattern = Long.parseLong(value, 16);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse long value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse pattern: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
-
         return pattern;
     }
 }
