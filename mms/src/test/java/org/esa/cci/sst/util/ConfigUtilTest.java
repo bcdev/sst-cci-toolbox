@@ -14,32 +14,32 @@ import static org.junit.Assert.fail;
 public class ConfigUtilTest {
 
     @Test
-    public void testGetArchiveRootPath() {
+    public void testGetUsecaseRootPath() {
         final Configuration config = new Configuration();
         config.put(Configuration.KEY_ARCHIVE_ROOTDIR, "/archive");
-        config.put(Configuration.KEY_ARCHIVE_USECASE, "mms2");
+        config.put(Configuration.KEY_USECASE, "mms2");
 
-        final String path = ConfigUtil.getArchiveRootPath(config);
+        final String path = ConfigUtil.getUsecaseRootPath(config);
         assertNotNull(path);
         assertEquals("/archive" + File.separatorChar + "mms2", path);
     }
 
     @Test
-    public void testGetArchiveRootPath_missingUseCase() {
+    public void testGetUsecaseRootPath_missingUseCase() {
         final Configuration config = new Configuration();
         config.put(Configuration.KEY_ARCHIVE_ROOTDIR, "/archive");
 
-        final String path = ConfigUtil.getArchiveRootPath(config);
+        final String path = ConfigUtil.getUsecaseRootPath(config);
         assertNotNull(path);
         assertEquals("/archive", path);
     }
 
     @Test
-    public void testGetArchiveRootPath_missingRoot() {
+    public void testGetUsecaseRootPath_missingRoot() {
         final Configuration config = new Configuration();
 
         try {
-            ConfigUtil.getArchiveRootPath(config);
+            ConfigUtil.getUsecaseRootPath(config);
             fail("ToolException expected");
         } catch (ToolException expected) {
         }

@@ -45,7 +45,7 @@ public class SamplePointExporter {
             }
         }
 
-        final String archiveRootPath = ConfigUtil.getArchiveRootPath(config);
+        final String archiveRootPath = ConfigUtil.getUsecaseRootPath(config);
         final String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
 
         writeSamplingPoints(pointsMonthBefore, monthBefore, archiveRootPath, sensorName, 'a');

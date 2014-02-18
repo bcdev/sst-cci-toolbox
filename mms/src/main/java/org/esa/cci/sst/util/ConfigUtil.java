@@ -9,17 +9,17 @@ import java.io.File;
 
 public class ConfigUtil {
 
-    public static String getArchiveRootPath(Configuration config) {
+    public static String getUsecaseRootPath(Configuration config) {
         final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
         if (StringUtils.isEmpty(archiveRootPath)) {
             throw new ToolException("Missing archive root in config.", -1);
         }
 
-        final String useCase = config.getStringValue(Configuration.KEY_ARCHIVE_USECASE);
-        if (StringUtils.isEmpty(useCase)) {
+        final String usecase = config.getStringValue(Configuration.KEY_USECASE);
+        if (StringUtils.isEmpty(usecase)) {
             return archiveRootPath;
         }
 
-        return archiveRootPath + File.separatorChar + useCase;
+        return archiveRootPath + File.separatorChar + usecase;
     }
 }

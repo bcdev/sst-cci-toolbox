@@ -16,13 +16,13 @@ import java.util.List;
 
 public class SamplePointImporter {
 
-    private final String archiveRootPath;
+    private final String usecaseRootPath;
     private final String sensorName;
     private final int year;
     private final int month;
 
     public SamplePointImporter(Configuration config) {
-        archiveRootPath = ConfigUtil.getArchiveRootPath(config);
+        usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
 
         final Date startDate = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME);
@@ -54,7 +54,7 @@ public class SamplePointImporter {
     }
 
     private File getInputFile(char key) {
-        final String pathA = SamplingPointUtil.createPath(archiveRootPath, sensorName, year, month, key);
+        final String pathA = SamplingPointUtil.createPath(usecaseRootPath, sensorName, year, month, key);
         final File fileA = new File(pathA);
         if (!fileA.isFile()) {
             throw new ToolException("Missing input file: sensor.5-smp-2007-01-a.json", -1);
