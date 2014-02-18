@@ -107,10 +107,6 @@ public class MatchupGenerator extends BasicTool {
     static void createMatchups(List<SamplingPoint> samples, Storage storage, PersistenceManager pm,
                                String referenceSensorName, String primarySensorName, String secondarySensorName,
                                long referenceSensorPattern) {
-        final ArrayList<ReferenceObservation> referenceObservations = new ArrayList<>(samples.size());
-        final ArrayList<Matchup> matchups = new ArrayList<>(samples.size());
-        final ArrayList<Coincidence> coincidences = new ArrayList<>(samples.size());
-
         final Stack<EntityTransaction> transactions = new Stack<>();
         try {
             // 1. create reference sensor, if not already present
@@ -127,29 +123,9 @@ public class MatchupGenerator extends BasicTool {
 
             // 2. create reference observations
             transactions.push(pm.transaction());
-            for (final SamplingPoint p : samples) {
-                final ReferenceObservation r = new ReferenceObservation();
-                r.setName(String.valueOf(p.getIndex()));
-                r.setSensor(referenceSensorName);
-
-                final PGgeometry location = new PGgeometry(new Point(p.getLon(), p.getLat()));
-                r.setLocation(location);
-                r.setPoint(location);
-
-                // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
-                final Date time = new Date(p.getTime());
-                r.setTime(time);
-                r.setTimeRadius(0.0);
-
-                // @todo 1 tb/** we need to keep the fileId of insitu-file, orbit-file and eventually second orbit-file tb 2014-02-12
-                final Observation o = storage.getObservation(p.getReference());
-                r.setDatafile(o.getDatafile());
-                r.setRecordNo(0);
-                r.setDataset(DATASET_DUMMY);
-                r.setReferenceFlag(REFERENCE_FLAG_UNDEFINED);
-
-                referenceObservations.add(r);
-            }
+            final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
+                                                                                                 referenceSensorName,
+                                                                                                 storage);
             pm.commit();
 
             // 3. persist reference observations, because we need the ID
@@ -173,6 +149,8 @@ public class MatchupGenerator extends BasicTool {
 
             // 5. create matchups and coincidences
             transactions.push(pm.transaction());
+            final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
+            final List<Coincidence> coincidences = new ArrayList<>(samples.size());
             for (int i = 0; i < samples.size(); i++) {
                 final SamplingPoint p = samples.get(i);
                 final ReferenceObservation r = referenceObservations.get(i);
@@ -182,7 +160,6 @@ public class MatchupGenerator extends BasicTool {
                 // @todo 2 tb/** check pattern when using with insitu data - we may have to add a "| historyPattern" here   tb 2014-02-12
                 m.setPattern(matchupPattern);
                 matchups.add(m);
-
                 final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
                 final Coincidence c1 = new Coincidence();
                 c1.setMatchup(m);
@@ -190,7 +167,6 @@ public class MatchupGenerator extends BasicTool {
                 // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
                 c1.setTimeDifference(0.0);
                 coincidences.add(c1);
-
                 if (secondarySensorName != null) {
                     final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
                     final Coincidence c2 = new Coincidence();
@@ -218,6 +194,36 @@ public class MatchupGenerator extends BasicTool {
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
+    }
+
+    private static List<ReferenceObservation> createReferenceObservations(List<SamplingPoint> samples,
+                                                                          String referenceSensorName,
+                                                                          Storage storage) {
+        final List<ReferenceObservation> referenceObservations = new ArrayList<>(samples.size());
+        for (final SamplingPoint p : samples) {
+            final ReferenceObservation r = new ReferenceObservation();
+            r.setName(String.valueOf(p.getIndex()));
+            r.setSensor(referenceSensorName);
+
+            final PGgeometry location = new PGgeometry(new Point(p.getLon(), p.getLat()));
+            r.setLocation(location);
+            r.setPoint(location);
+
+            // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
+            final Date time = new Date(p.getTime());
+            r.setTime(time);
+            r.setTimeRadius(0.0);
+
+            // @todo 1 tb/** we need to keep the fileId of insitu-file, orbit-file and eventually second orbit-file tb 2014-02-12
+            final Observation o = storage.getObservation(p.getReference());
+            r.setDatafile(o.getDatafile());
+            r.setRecordNo(0);
+            r.setDataset(DATASET_DUMMY);
+            r.setReferenceFlag(REFERENCE_FLAG_UNDEFINED);
+
+            referenceObservations.add(r);
+        }
+        return referenceObservations;
     }
 
     private OverlapRemover createOverlapRemover() {
