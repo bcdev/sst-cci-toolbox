@@ -1,12 +1,12 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
+import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import javax.persistence.Query;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -61,11 +61,11 @@ public class MatchupGenerator extends BasicTool {
         dualSensorMatching = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_DUAL_SENSOR_MATCHING);
     }
 
-    private void run() {
+    private void run() throws IOException {
         cleanupIfRequested();
 
-        // todo - read input
-        final List<SamplingPoint> samples = new ArrayList<>();
+        final SamplePointImporter samplePointImporter = new SamplePointImporter(getConfig());
+        final List<SamplingPoint> samples = samplePointImporter.load();
 
         final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
         subsceneRemover.sensorName(sensorName)
