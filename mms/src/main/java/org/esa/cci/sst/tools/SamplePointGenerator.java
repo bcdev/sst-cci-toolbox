@@ -44,7 +44,7 @@ public class SamplePointGenerator extends BasicTool {
         final Configuration config = getConfig();
         startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
-        searchTimeDelta = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_DELTA, 0);
+        searchTimeDelta = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_DELTA);
         sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT, 0);
         sampleSkip = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SKIP, 0);
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
