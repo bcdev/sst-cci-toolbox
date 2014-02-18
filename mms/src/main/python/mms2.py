@@ -1,7 +1,7 @@
 from pmonitor import PMonitor
 
 # usecase = 'mms-wpr-02' - no, short names simplify operations
-usecase = 'mms-wpr-02'
+usecase = 'mms2'
 
 # TODO for testing only, remove this line when producing
 #years = ['2003']
@@ -9,11 +9,12 @@ years = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999',
          '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
          '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-sensors = [('atsr.1', '1991-08-01', '1997-12-17'),
-           ('atsr.2', '1995-06-01', '2003-06-22'),
-           ('atsr.3', '2002-05-20', '2012-04-08')]
+sensors = [('atsr_orb.1', '1991-08-01', '1997-12-17'),
+           ('atsr_orb.2', '1995-06-01', '2003-06-22'),
+           ('atsr_orb.3', '2002-05-20', '2012-04-08')]
 # 300000 leads to about 2500 surviving samples per month
 samplespermonth = 300000
+skip = 0
 
 # archiving rules
 # mms/archive/atsr.3/v2.1/2003/01/17/ATS_TOA_1P...N1
@@ -120,7 +121,6 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
-        continue
 
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
@@ -136,7 +136,10 @@ for year in years:
                        ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
                         '/smp/' + sensor + '/' + year + '/' + month,
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
-                       parameters=[year, month, sensor, samplespermonth, usecase])
+                       parameters=[year, month, sensor, samplespermonth, skip, usecase])
+            skip += samplespermonth
+            continue
+
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-run2.sh',
                        ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
