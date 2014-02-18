@@ -43,15 +43,15 @@ public class ObservationFinder {
      * <p/>
      * To be used for single-sensor and dual-sensor matchups.
      *
-     * @param samples                The list of sampling points.
-     * @param sensor                 The sensor name.
-     * @param startTime              The start time.
-     * @param stopTime               The stop time.
-     * @param searchTimeDeltaSeconds The tolerable time difference (seconds).
+     * @param samples         The list of sampling points.
+     * @param sensor          The sensor name.
+     * @param startTime       The start time.
+     * @param stopTime        The stop time.
+     * @param halfRevisitTime Half the sensor revisit time (seconds).
      */
     public void findPrimarySensorObservations(List<SamplingPoint> samples, String sensor,
-                                              long startTime, long stopTime, int searchTimeDeltaSeconds) {
-        findObservations(samples, sensor, startTime, stopTime, searchTimeDeltaSeconds, true);
+                                              long startTime, long stopTime, int halfRevisitTime) {
+        findObservations(samples, sensor, startTime, stopTime, halfRevisitTime, true);
     }
 
     /**
@@ -62,22 +62,22 @@ public class ObservationFinder {
      * To be used for dual-sensor matchups only.
      *
      * @param samples                The list of sampling points.
-     * @param sensor                 The sensor name.
+     * @param sensorName             The sensor name.
      * @param startTime              The start time.
      * @param stopTime               The stop time.
      * @param searchTimeDeltaSeconds The tolerable time difference (seconds).
      */
-    public void findSecondarySensorObservations(List<SamplingPoint> samples, String sensor,
+    public void findSecondarySensorObservations(List<SamplingPoint> samples, String sensorName,
                                                 long startTime, long stopTime, int searchTimeDeltaSeconds) {
-        findObservations(samples, sensor, startTime, stopTime, searchTimeDeltaSeconds, false);
+        findObservations(samples, sensorName, startTime, stopTime, searchTimeDeltaSeconds, false);
     }
 
-    public void findObservations(List<SamplingPoint> samples, String sensor,
-                                 long startTime, long stopTime, int searchTimeDeltaSeconds, boolean primarySensor) {
-        final long searchTimeDeltaMillis = searchTimeDeltaSeconds * 1000;
-        final Date startDate = new Date(startTime - searchTimeDeltaMillis);
-        final Date stopDate = new Date(stopTime + searchTimeDeltaMillis);
-        final List<RelatedObservation> orbitObservations = findOrbitObservations(sensor, startDate, stopDate);
+    public void findObservations(List<SamplingPoint> samples, String sensorName,
+                                 long startTime, long stopTime, int halfRevisitTime, boolean primarySensor) {
+        final long halfRevisitTimeMillis = halfRevisitTime * 1000;
+        final Date startDate = new Date(startTime - halfRevisitTimeMillis);
+        final Date stopDate = new Date(stopTime + halfRevisitTimeMillis);
+        final List<RelatedObservation> orbitObservations = findOrbitObservations(sensorName, startDate, stopDate);
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
         for (int i = 0; i < orbitObservations.size(); ++i) {
             final RelatedObservation orbitObservation = orbitObservations.get(i);
@@ -85,10 +85,10 @@ public class ObservationFinder {
                                                    orbitObservation.getTime().getTime(),
                                                    orbitObservation.getLocation().getGeometry());
         }
-        findObservations(samples, searchTimeDeltaMillis, primarySensor, polygons);
+        findObservations(samples, halfRevisitTimeMillis, primarySensor, polygons);
     }
 
-    public static void findObservations(List<SamplingPoint> samples, long searchTimeDelta, boolean primarySensor,
+    public static void findObservations(List<SamplingPoint> samples, long halfRevisitTimeMillis, boolean primarySensor,
                                         PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
         for (final SamplingPoint point : samples) {
@@ -107,7 +107,7 @@ public class ObservationFinder {
             while (true) {
                 // the next polygon in the past is closer to the sample than the next polygon in the future
                 if (i0 >= 0 &&
-                    Math.abs(point.getTime() - polygons[i0].getTime()) <= searchTimeDelta &&
+                    Math.abs(point.getTime() - polygons[i0].getTime()) <= halfRevisitTimeMillis &&
                     (i1 >= polygons.length ||
                      point.getTime() < polygons[i0].getTime() ||
                      point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
@@ -124,7 +124,7 @@ public class ObservationFinder {
                 } else
                     // the next polygon in the future is closer than the next polygon in the past
                     if (i1 < polygons.length &&
-                        Math.abs(point.getTime() - polygons[i1].getTime()) <= searchTimeDelta) {
+                        Math.abs(point.getTime() - polygons[i1].getTime()) <= halfRevisitTimeMillis) {
                         if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
                             if (primarySensor) {
                                 point.setReference(polygons[i1].getId());

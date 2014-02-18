@@ -11,7 +11,7 @@ public class SamplingPointGenerator extends BasicTool {
 
     private long startTime;
     private long stopTime;
-    private int searchTimeDelta;
+    private int halfRevisitTime;
     private int sampleCount;
     private int sampleSkip;
     private String sensorName;
@@ -44,8 +44,8 @@ public class SamplingPointGenerator extends BasicTool {
         final Configuration config = getConfig();
         startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
-        searchTimeDelta = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_DELTA);
-        sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT, 0);
+        halfRevisitTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_HALF_REVISIT_TIME);
+        sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
         sampleSkip = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SKIP, 0);
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
     }
@@ -61,7 +61,7 @@ public class SamplingPointGenerator extends BasicTool {
         clearSkyPointRemover.removeSamples(samples);
 
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
-        observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, searchTimeDelta);
+        observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, halfRevisitTime);
 
         final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
         final SamplePointExporter samplePointExporter = new SamplePointExporter(getConfig());

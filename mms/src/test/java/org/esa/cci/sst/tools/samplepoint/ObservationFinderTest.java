@@ -93,8 +93,8 @@ public class ObservationFinderTest {
                 new Point(-56.0327072143555, 6.09133005142212),
                 new Point(-52.6307830810547, -9.38224411010742)
         });
-        final int seventeenDaysTwelveHoursInSeconds = 86400 * 175 / 10 * 1000;
-        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInSeconds, true, orbitPolygonAatsr);
+        final int seventeenDaysTwelveHoursInMillis = 86400 * 175 / 10 * 1000;
+        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillis, true, orbitPolygonAatsr);
 
         assertEquals(518, samples.size());
 
@@ -167,8 +167,8 @@ public class ObservationFinderTest {
                 new Point(-54.5425491333008, -0.572052896022797)
         });
 
-        final int twentyfiveHoursInSeconds = 90000 * 1000;
-        ObservationFinder.findObservations(samples, twentyfiveHoursInSeconds, false, orbitPolygonAtsr2);
+        final int twentyfiveHoursInMillis = 90000 * 1000;
+        ObservationFinder.findObservations(samples, twentyfiveHoursInMillis, false, orbitPolygonAtsr2);
 
         assertEquals(471, samples.size());
     }
