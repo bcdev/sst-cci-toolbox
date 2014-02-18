@@ -19,6 +19,7 @@ import org.postgis.Point;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Stack;
@@ -38,7 +39,6 @@ public class MatchupGenerator extends BasicTool {
     private String cloudFlagsVariableName;
     private int cloudFlagsMask;
     private double cloudyPixelFraction;
-    private boolean dualSensorMatching;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
