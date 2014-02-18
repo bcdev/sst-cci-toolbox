@@ -101,7 +101,7 @@ public class SamplePointExporterIntegrationTest {
         final Configuration config = new Configuration();
         config.put(Configuration.KEY_ARCHIVE_ROOTDIR, test_archive.getAbsolutePath());
         config.put(Configuration.KEY_ARCHIVE_USECASE, "useCase");
-        config.put(Configuration.KEY_MMS_SAMPLING_SENSOR_1, "schnickschnack.4");
+        config.put(Configuration.KEY_MMS_SAMPLING_SENSOR, "schnickschnack.4");
         return config;
     }
 }
