@@ -6,10 +6,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TimeZone;
 
 public class Configuration {
 
@@ -95,7 +93,7 @@ public class Configuration {
 
     public double getDoubleValue(String key) {
         final String doubleString = properties.getProperty(key);
-        if (doubleString == null){
+        if (doubleString == null) {
             throw new ToolException("No value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         try {
@@ -107,7 +105,7 @@ public class Configuration {
 
     public double getDoubleValue(String key, double defaultValue) {
         final String doubleString = properties.getProperty(key);
-        if (doubleString == null){
+        if (doubleString == null) {
             return defaultValue;
         }
         try {
@@ -119,7 +117,7 @@ public class Configuration {
 
     public int getIntValue(String key) {
         final String intString = properties.getProperty(key);
-        if (intString == null){
+        if (intString == null) {
             throw new ToolException("No value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         try {
@@ -131,7 +129,7 @@ public class Configuration {
 
     public int getIntValue(String key, int defaultValue) {
         final String intString = properties.getProperty(key);
-        if (intString == null){
+        if (intString == null) {
             return defaultValue;
         }
         try {
@@ -158,5 +156,21 @@ public class Configuration {
 
     public Properties getAsProperties() {
         return properties;
+    }
+
+    public long getPattern(String sensorName) {
+        final String key = "mms.pattern." + sensorName;
+        final String value = getStringValue(key);
+        if (value == null) {
+            return 0;
+        }
+        final long pattern;
+        try {
+            pattern = Long.parseLong(value, 16);
+        } catch (NumberFormatException e) {
+            throw new ToolException("Cannot parse long value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+
+        return pattern;
     }
 }

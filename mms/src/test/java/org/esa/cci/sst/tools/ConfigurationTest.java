@@ -192,4 +192,15 @@ public class ConfigurationTest {
         assertNotNull(asProperties);
         assertEquals("value", asProperties.getProperty("key"));
     }
+
+    @Test
+    public void testGetSensorPattern() throws Exception {
+        assertEquals(0, configuration.getPattern("mysensor"));
+
+        configuration.put("test", "100");
+        assertEquals(0, configuration.getPattern("mysensor"));
+
+        configuration.put("mms.pattern.mysensor", "100");
+        assertEquals(256, configuration.getPattern("mysensor"));
+    }
 }
