@@ -18,6 +18,7 @@ package org.esa.cci.sst.orm;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
@@ -46,8 +47,10 @@ public class PersistenceManager {
         }
     }
 
-    public void transaction() {
-        entityManager.getTransaction().begin();
+    public EntityTransaction transaction() {
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        return transaction;
     }
 
     public void commit() {
