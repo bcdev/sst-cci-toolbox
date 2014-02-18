@@ -9,4 +9,4 @@ java \
     -javaagent:"$MMS_HOME/lib/openjpa-all-2.2.2.jar" \
     -Djava.io.tmpdir=$TMPDIR \
     -classpath "$MMS_HOME/lib/*" \
-    org.esa.cci.sst.tools.SamplingTool "$@"
+    org.esa.cci.sst.tools.SamplingPointGenerator "$@"
