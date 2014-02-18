@@ -29,7 +29,8 @@ public class Configuration {
     public static final String KEY_SOURCE_START_TIME = "mms.source.startTime";
     public static final String KEY_SOURCE_STOP_TIME = "mms.source.stopTime";
 
-    public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
+    public static final String KEY_MMS_SAMPLING_SENSOR_1 = "mms.sampling.sensor.1";
+    public static final String KEY_MMS_SAMPLING_SENSOR_2 = "mms.sampling.sensor.2";
     public static final String KEY_MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
     public static final String KEY_MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
     public static final String KEY_MMS_SAMPLING_SHOW_MAPS = "mms.sampling.showmaps";
@@ -43,7 +44,6 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME = "mms.sampling.cloudflags.variable";
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
     public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
-    public static final String KEY_MMS_SAMPLING_DUAL_SENSOR_MATCHING = "mms.sampling.dualsensormatching";
 
     private final Properties properties;
 
