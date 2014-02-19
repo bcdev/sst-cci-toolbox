@@ -21,7 +21,6 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
     <id>bin</id>
 
     <formats>
-        <format>zip</format>
         <format>dir</format>
     </formats>
 
@@ -31,9 +30,10 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
         <fileSet>
             <directory>src/main/bin</directory>
             <includes>
+                <include>*.cems</include>
                 <include>*.sh</include>
                 <include>pg*</include>
-                <include>template-*</include>
+                <include>pm*</include>
             </includes>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0774</fileMode>
