@@ -81,6 +81,7 @@ public class MatchupGenerator extends BasicTool {
         cleanupIfRequested();
 
         final SamplePointImporter samplePointImporter = new SamplePointImporter(getConfig());
+        samplePointImporter.setLogger(getLogger());
         final List<SamplingPoint> samples = samplePointImporter.load();
 
         final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
