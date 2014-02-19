@@ -95,7 +95,8 @@ public class IngestionTool extends BasicTool {
      * @param observationType The observation type (simple name of observation class)
      * @param pattern         The sensor pattern.
      */
-    private void ingest(String path, File archiveRoot, String readerSpec, String sensorName, String observationType, long pattern) {
+    private void ingest(String path, File archiveRoot, String readerSpec, String sensorName, String observationType,
+                        long pattern) {
         getLogger().info(MessageFormat.format("Ingesting file ''{0}''.", path));
         final PersistenceManager persistenceManager = getPersistenceManager();
 
@@ -121,7 +122,7 @@ public class IngestionTool extends BasicTool {
             // make changes in database
             persistenceManager.commit();
             getLogger().info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
-                    recordsInTimeInterval));
+                                                  recordsInTimeInterval));
         } catch (Exception e) {
             // do not make any change in case of errors
             try {
@@ -182,7 +183,7 @@ public class IngestionTool extends BasicTool {
                 inputFileList = getInputFiles(filenamePattern + "\\.gz", inputDir);
                 if (inputFileList.isEmpty()) {
                     getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}/{1}''.",
-                            archiveRootPath, inputDirPath));
+                                                             archiveRootPath, inputDirPath));
                 }
             }
             for (final File inputFile : inputFileList) {
@@ -197,7 +198,15 @@ public class IngestionTool extends BasicTool {
                 directoryCount++;
             }
         }
-        validateInputSet(directoryCount);
+        if (directoryCount == 0) {
+            final String message = new StringBuilder("No input sets given.\n")
+                    .append("Input sets are specified as configuration properties as follows:\n")
+                    .append("\tmms.source.<i>.inputDirectory = <inputDirectory>\n")
+                    .append("\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)")
+                    .append("\tmms.source.<i>.sensor = <sensor>\n")
+                    .append("\tmms.source.<i>.reader = <ReaderClass>").toString();
+            getLogger().warning(message);
+        }
         getLogger().info(MessageFormat.format("{0} input set(s) ingested.", directoryCount));
     }
 
@@ -224,7 +233,7 @@ public class IngestionTool extends BasicTool {
             } catch (Exception e) {
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",
-                        recordNo, e.getMessage()));
+                                                           recordNo, e.getMessage()));
                 for (StackTraceElement stackTraceElement : e.getStackTrace()) {
                     messageBuilder.append(stackTraceElement.toString());
                     messageBuilder.append('\n');
@@ -274,12 +283,12 @@ public class IngestionTool extends BasicTool {
     private void validateInputSet(final int directoryCount) {
         if (directoryCount == 0) {
             throw new ToolException("No input sets given.\n" +
-                    "Input sets are specified as configuration properties as follows:\n" +
-                    "\tmms.source.<i>.inputDirectory = <inputDirectory>\n" +
-                    "\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)" +
-                    "\tmms.source.<i>.sensor = <sensor>\n" +
-                    "\tmms.source.<i>.reader = <ReaderClass>",
-                    ToolException.TOOL_CONFIGURATION_ERROR);
+                                    "Input sets are specified as configuration properties as follows:\n" +
+                                    "\tmms.source.<i>.inputDirectory = <inputDirectory>\n" +
+                                    "\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)" +
+                                    "\tmms.source.<i>.sensor = <sensor>\n" +
+                                    "\tmms.source.<i>.reader = <ReaderClass>",
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
