@@ -114,6 +114,7 @@ public class ObservationFinder {
                     if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
                         if (primarySensor) {
                             point.setReference(polygons[i0].getId());
+                            point.setTime(polygons[i0].getTime());
                         } else {
                             point.setReference2(polygons[i0].getId());
                         }
@@ -128,6 +129,7 @@ public class ObservationFinder {
                         if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
                             if (primarySensor) {
                                 point.setReference(polygons[i1].getId());
+                                point.setTime(polygons[i1].getTime());
                             } else {
                                 point.setReference2(polygons[i1].getId());
                             }
