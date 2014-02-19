@@ -23,5 +23,4 @@ sampling-tool.sh -c $MMS_HOME/config/$usecase-config.properties \
 -Dmms.sampling.stopTime=${stoptime} \
 -Dmms.sampling.sensor=${sensor} \
 -Dmms.sampling.count=${count} \
--Dmms.sampling.skip=${skip} \
--Dmms.sampling.cleanupinterval=true
+-Dmms.sampling.skip=${skip}
