@@ -23,7 +23,7 @@ import org.esa.beam.framework.datamodel.ProductData;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.junit.Test;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
@@ -45,7 +45,8 @@ public class EgrAaiProductReaderTest {
 
     @Test
     public void testReferenceTime() throws URISyntaxException, IOException {
-        final ProductData.UTC time = EgrAaiProductReader.readReferenceTime(getResourceAsFile(RESOURCE_NAME));
+        final File productFile = getResourceAsFile();
+        final ProductData.UTC time = EgrAaiProductReader.readReferenceTime(productFile);
         assertEquals(TimeZone.getTimeZone("UTC"), time.getAsCalendar().getTimeZone());
         assertEquals(2010, time.getAsCalendar().get(Calendar.YEAR));
         assertEquals(5, time.getAsCalendar().get(Calendar.MONTH));
@@ -77,9 +78,10 @@ public class EgrAaiProductReaderTest {
 
     @Test
     public void testSourceImage() throws URISyntaxException {
-        final EgrAaiProductReader.SampleReader sampleReader =
-                EgrAaiProductReader.createSampleReader(getResourceAsFile(RESOURCE_NAME));
+        final File productFile = getResourceAsFile();
+        final EgrAaiProductReader.SampleReader sampleReader = EgrAaiProductReader.createSampleReader(productFile);
         assertNotNull(sampleReader);
+
         final RenderedImage sourceImage =
                 EgrAaiProductReader.createSourceImage(ProductData.TYPE_UINT16, COL_COUNT, ROW_COUNT, sampleReader);
         assertNotNull(sourceImage);
@@ -100,7 +102,7 @@ public class EgrAaiProductReaderTest {
 
     @Test
     public void testReadSamples() throws URISyntaxException {
-        final Number[] samples = EgrAaiProductReader.readSamples(getResourceAsFile(RESOURCE_NAME));
+        final Number[] samples = EgrAaiProductReader.readSamples(getResourceAsFile());
         assertEquals(COL_COUNT * ROW_COUNT, samples.length);
         assertEquals(999, getSample(samples, 0, 0));
         assertEquals(443, getSample(samples, 2, ROW_COUNT - 3));
@@ -110,11 +112,14 @@ public class EgrAaiProductReaderTest {
         assertEquals(999, getSample(samples, COL_COUNT - 1, 0));
     }
 
-    private static File getResourceAsFile(String name) throws URISyntaxException {
-        final URL url = EgrAaiProductReaderTest.class.getResource(name);
+    private static File getResourceAsFile() throws URISyntaxException {
+        final URL url = EgrAaiProductReaderTest.class.getResource(RESOURCE_NAME);
+        assertNotNull(url);
         final URI uri = url.toURI();
 
-        return new File(uri);
+        final File resourceFile = new File(uri);
+        assertTrue(resourceFile.isFile());
+        return resourceFile;
     }
 
     private static short getSample(Number[] samples, int x, int y) {
