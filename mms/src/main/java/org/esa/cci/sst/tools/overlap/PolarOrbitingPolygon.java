@@ -92,6 +92,7 @@ public class PolarOrbitingPolygon {
         double firstEquatorCrossingLonPlus90 = Double.NaN;
         double transformedSampleLon = Double.NaN;
         boolean isInside = false;
+
         for (int i = 0; i < ring.size() - 1; ++i) {
             final double lon1 = shiftIfZero(GeometryUtil.normalizeLongitude(ring.get(i).getLon() - sampleLon));
             final double lat1 = shiftIfZero(ring.get(i).getLat());

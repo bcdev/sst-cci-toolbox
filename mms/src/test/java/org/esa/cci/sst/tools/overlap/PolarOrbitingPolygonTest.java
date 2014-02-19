@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class PolarOrbitingPolygonTest {
 
-    static final Point[] ATSR2_POINTS = {
+    private static final Point[] ATSR2_POINTS = {
             new Point(-73.2396621704102, -0.54239547252655),
             new Point(-73.1431732177734, -0.520916402339935),
             new Point(-72.2660293579102, -0.325591802597046),
@@ -82,7 +82,7 @@ public class PolarOrbitingPolygonTest {
             new Point(-73.2396621704102, -0.54239547252655)
     };
 
-    static final Point[] TEST_POLYGON = new Point[]{
+    private static final Point[] TEST_POLYGON = new Point[]{
             new Point(10, 40),
 
             new Point(12, 39.6),
@@ -109,12 +109,14 @@ public class PolarOrbitingPolygonTest {
             new Point(12, 50),
             new Point(10, 40)
     };
-    static final Point[] TEST_POINTS_INSIDE = new Point[]{
+
+    private static final Point[] TEST_POINTS_INSIDE = new Point[]{
             new Point(14, 40),
             new Point(14, 50),
             new Point(22, 60)
     };
-    static final Point[] TEST_POINTS_OUTSIDE = new Point[]{
+
+    private static final Point[] TEST_POINTS_OUTSIDE = new Point[]{
             new Point(22, 80),
             new Point(5, 55),
             new Point(25, 55),
