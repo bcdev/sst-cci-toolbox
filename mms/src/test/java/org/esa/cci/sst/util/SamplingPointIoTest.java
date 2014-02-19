@@ -13,12 +13,12 @@ import static org.junit.Assert.assertNotNull;
 
 public class SamplingPointIoTest {
 
-    public static final String EMPTY_LIST_STRING = "{\"samplingPoints\":[]}";
-    public static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11}]}";
+    private static final String EMPTY_LIST_STRING = "{\"samplingPoints\":[]}";
+    private static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11}]}";
 
     @Test
     public void testWriteEmptyList() throws IOException {
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final ByteArrayOutputStream outputStream = createEmptyStream();
         final ArrayList<SamplingPoint> emptyList = new ArrayList<>();
 
         SamplingPointIO.write(emptyList, outputStream);
@@ -28,7 +28,7 @@ public class SamplingPointIoTest {
 
     @Test
     public void testReadEmptyStream() throws IOException {
-        final ByteArrayInputStream inputStream = new ByteArrayInputStream(EMPTY_LIST_STRING.getBytes());
+        final ByteArrayInputStream inputStream = createEmptyListStream();
 
         final List<SamplingPoint> emptyList = SamplingPointIO.read(inputStream);
         assertNotNull(emptyList);
@@ -37,16 +37,10 @@ public class SamplingPointIoTest {
 
     @Test
     public void testWriteSinglePointList() throws IOException {
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final ByteArrayOutputStream outputStream = createEmptyStream();
         final ArrayList<SamplingPoint> list = new ArrayList<>();
 
-        final SamplingPoint point = new SamplingPoint(1.0, 2.0, 1000, 0.5);
-        point.setIndex(1);
-        point.setReference(67);
-        point.setX(17);
-        point.setY(11);
-        point.setReference2(71);
-        list.add(point);
+        createSinglePointList(list);
 
         SamplingPointIO.write(list, outputStream);
         assertEquals(SINGLE_POINT_LIST_STRING, outputStream.toString());
@@ -54,7 +48,7 @@ public class SamplingPointIoTest {
 
     @Test
     public void testReadSinglePointStream() throws IOException {
-        final ByteArrayInputStream inputStream = new ByteArrayInputStream(SINGLE_POINT_LIST_STRING.getBytes());
+        final ByteArrayInputStream inputStream = createSinglePointStream();
 
         final List<SamplingPoint> list = SamplingPointIO.read(inputStream);
         assertNotNull(list);
@@ -73,7 +67,7 @@ public class SamplingPointIoTest {
 
     @Test
     public void testWriteReadMultiPointList() throws IOException {
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final ByteArrayOutputStream outputStream = createEmptyStream();
         final ArrayList<SamplingPoint> list1 = new ArrayList<>();
         list1.add(new SamplingPoint(1.0, 1.0, 1, 0.1));
         list1.add(new SamplingPoint(2.0, 2.0, 2, 0.2));
@@ -98,5 +92,27 @@ public class SamplingPointIoTest {
         assertEquals(referencePoint.getReference2(), testedPoint.getReference2());
         assertEquals(referencePoint.getX(), testedPoint.getX());
         assertEquals(referencePoint.getY(), testedPoint.getY());
+    }
+
+    private ByteArrayOutputStream createEmptyStream() {
+        return new ByteArrayOutputStream();
+    }
+
+    private ByteArrayInputStream createEmptyListStream() {
+        return new ByteArrayInputStream(EMPTY_LIST_STRING.getBytes());
+    }
+
+    private ByteArrayInputStream createSinglePointStream() {
+        return new ByteArrayInputStream(SINGLE_POINT_LIST_STRING.getBytes());
+    }
+
+    private void createSinglePointList(ArrayList<SamplingPoint> list) {
+        final SamplingPoint point = new SamplingPoint(1.0, 2.0, 1000, 0.5);
+        point.setIndex(1);
+        point.setReference(67);
+        point.setX(17);
+        point.setY(11);
+        point.setReference2(71);
+        list.add(point);
     }
 }
