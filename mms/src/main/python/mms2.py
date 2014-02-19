@@ -136,7 +136,7 @@ for year in years:
                        ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
                         '/smp/' + sensor + '/' + year + '/' + month,
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
-                       parameters=[year, month, sensor, samplespermonth, skip, usecase])
+                       parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
             skip += samplespermonth
             continue
 
