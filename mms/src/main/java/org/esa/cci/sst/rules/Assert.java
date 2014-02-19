@@ -29,27 +29,9 @@ import java.text.MessageFormat;
  */
 class Assert {
 
-    private Assert() {
-    }
-
-    static void notNull(Object value, String name) throws RuleException {
-        if (value == null) {
-            throw new RuleException(
-                    MessageFormat.format("Expected non-null value for property ''{0}''.", name));
-        }
-    }
-
-    static void notEmpty(String value, String name) throws RuleException {
-        if (value.isEmpty()) {
-            throw new RuleException(
-                    MessageFormat.format("Expected non-empty value for property ''{0}''.", name));
-        }
-    }
-
     static void condition(boolean condition, String expression) throws RuleException {
         if (!condition) {
-            throw new RuleException(
-                    MessageFormat.format("Expected condition ''{0}'' to be satisfied.", expression));
+            throw new RuleException(MessageFormat.format("Expected condition ''{0}'' to be satisfied.", expression));
         }
     }
 
@@ -57,8 +39,8 @@ class Assert {
         if (!expectedType.name().equals(column.getType())) {
             throw new RuleException(
                     MessageFormat.format("Expected data type ''{0}'', but actual type is ''{1}''.",
-                                         expectedType.name(),
-                                         column.getType()));
+                            expectedType.name(),
+                            column.getType()));
         }
     }
 
@@ -66,21 +48,21 @@ class Assert {
         if (array.getElementType() != expectedType.getPrimitiveClassType()) {
             throw new RuleException(
                     MessageFormat.format("Expected data type ''{0}'', but actual type is ''{1}''.",
-                                         expectedType,
-                                         array.getElementType().getSimpleName()));
+                            expectedType,
+                            array.getElementType().getSimpleName()));
         }
     }
 
     static void addOffset(Number expectedAddOffset, Item column) throws RuleException {
         final Number actualAddOffset = column.getAddOffset();
         if (expectedAddOffset == null && actualAddOffset != null ||
-            expectedAddOffset != null && actualAddOffset == null ||
-            expectedAddOffset != null &&
-            !Double.valueOf(expectedAddOffset.doubleValue()).equals(actualAddOffset.doubleValue())) {
+                expectedAddOffset != null && actualAddOffset == null ||
+                expectedAddOffset != null &&
+                        !Double.valueOf(expectedAddOffset.doubleValue()).equals(actualAddOffset.doubleValue())) {
             throw new RuleException(
                     MessageFormat.format("Expected add-offset ''{0}'', but actual add-offset is ''{1}''.",
-                                         expectedAddOffset,
-                                         actualAddOffset));
+                            expectedAddOffset,
+                            actualAddOffset));
         }
     }
 
@@ -88,8 +70,11 @@ class Assert {
         if (!expectedUnit.equals(column.getUnit())) {
             throw new RuleException(
                     MessageFormat.format("Expected unit ''{0}'', but actual unit is ''{1}''.",
-                                         expectedUnit,
-                                         column.getUnit()));
+                            expectedUnit,
+                            column.getUnit()));
         }
+    }
+
+    private Assert() {
     }
 }

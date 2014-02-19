@@ -1,7 +1,7 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 /*
- * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
+ * Copyright (C) 2012-14 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -23,11 +23,11 @@ import java.util.List;
 
 public class ClearSkyPointRemover {
 
-    private double minimumClearSkyProbability = 0.05;
-
     public void removeSamples(List<SamplingPoint> samples) {
         final ArrayList<SamplingPoint> remainingSamples = new ArrayList<>(samples.size());
         final ClearSkyProbability clearSkyProbability = Container.CLEAR_SKY_PROBABILITY;
+        final double minimumClearSkyProbability = 0.05;
+
         for (final SamplingPoint point : samples) {
             final double f = minimumClearSkyProbability / clearSkyProbability.getSample(point.getLon(), point.getLat());
             if (point.getRandom() <= f) {

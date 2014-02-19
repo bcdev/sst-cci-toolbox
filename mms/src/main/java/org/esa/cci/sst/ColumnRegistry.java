@@ -56,9 +56,9 @@ public class ColumnRegistry {
      * Creates a new instance of this class.
      */
     public ColumnRegistry() {
-        columnsByName = new HashMap<String, Item>();
-        rulesByTarget = new HashMap<Item, Rule>();
-        columnsByTarget = new HashMap<Item, Item>();
+        columnsByName = new HashMap<>();
+        rulesByTarget = new HashMap<>();
+        columnsByTarget = new HashMap<>();
     }
 
 
@@ -102,7 +102,7 @@ public class ColumnRegistry {
             scanner.useLocale(Locale.ENGLISH);
 
             try {
-                final List<String> nameList = new ArrayList<String>();
+                final List<String> nameList = new ArrayList<>();
                 for (int lineNumber = 0; scanner.hasNextLine(); lineNumber++) {
                     final String line = stripComment(scanner.nextLine()).trim();
                     final String[] tokens = line.split("\\s+");
@@ -256,7 +256,7 @@ public class ColumnRegistry {
      * @return {@code true} if a column has been registered with the name supplied,
      *         {@code false} otherwise.
      */
-    public boolean hasColumn(String name) {
+    private boolean hasColumn(String name) {
         synchronized (columnsByName) {
             return columnsByName.containsKey(name);
         }
