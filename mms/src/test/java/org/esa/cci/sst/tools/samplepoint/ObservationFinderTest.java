@@ -10,9 +10,11 @@ import org.postgis.Point;
 import org.postgis.Polygon;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ObservationFinderTest {
 
@@ -171,6 +173,17 @@ public class ObservationFinderTest {
         ObservationFinder.findObservations(samples, twentyfiveHoursInMillis, false, orbitPolygonAtsr2);
 
         assertEquals(471, samples.size());
+    }
+
+    @Test
+    public void testFindObservations_withNoPolygon() throws Exception {
+        final ArrayList<SamplingPoint> samples = new ArrayList<>();
+        samples.add(new SamplingPoint());
+
+        final int seventeenDaysTwelveHoursInMillis = 86400 * 175 / 10 * 1000;
+        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillis, true);
+
+        assertTrue(samples.isEmpty());
     }
 
     private static PolarOrbitingPolygon createPolarOrbitingPolygon(String time, Point[] points) throws ParseException {
