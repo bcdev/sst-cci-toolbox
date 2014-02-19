@@ -1,9 +1,15 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.tools.samplepoint.*;
+import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
+import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
+import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
+import org.esa.cci.sst.tools.samplepoint.SamplePointExporter;
+import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
+import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -52,21 +58,34 @@ public class SamplingPointGenerator extends BasicTool {
 
     private void run() throws IOException {
         final SobolSamplePointGenerator generator = createSamplePointGenerator();
+        getLogger().info(MessageFormat.format("Starting creating {0} samples...", sampleCount));
         final List<SamplingPoint> samples = generator.createSamples(sampleCount, sampleSkip, startTime, stopTime);
+        getLogger().info(MessageFormat.format("Finished creating {0} samples", samples.size()));
 
         final LandPointRemover landPointRemover = createLandPointRemover();
+        getLogger().info("Starting removing land samples...");
         landPointRemover.removeSamples(samples);
+        getLogger().info(MessageFormat.format("Finished removing land samples ({0} samples left)", samples.size()));
 
         final ClearSkyPointRemover clearSkyPointRemover = createClearSkyPointRemover();
+        getLogger().info("Starting removing prior clear-sky samples...");
         clearSkyPointRemover.removeSamples(samples);
+        getLogger().info(
+                MessageFormat.format("Finished removing prior clear-sky samples ({0} samples left)", samples.size()));
 
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
+        getLogger().info("Starting associating samples with observations...");
         observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, halfRevisitTime);
+        getLogger().info(
+                MessageFormat.format("Finished associating samples with observations ({0} samples left)",
+                                     samples.size()));
 
         final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
         final SamplePointExporter samplePointExporter = new SamplePointExporter(getConfig());
         samplePointExporter.setLogger(getLogger());
+        getLogger().info("Starting writing samples...");
         samplePointExporter.export(samples, timeRange);
+        getLogger().info("Finished writing samples...");
     }
 
     private SobolSamplePointGenerator createSamplePointGenerator() {
