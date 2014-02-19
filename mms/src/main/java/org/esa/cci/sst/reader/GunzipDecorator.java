@@ -25,13 +25,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -59,7 +53,6 @@ public class GunzipDecorator implements Reader {
      * Maybe deflates gz files, initialises reader.
      *
      * @param dataFile The file to be read.
-     *
      * @throws IOException if decompressing or opening the file with the decorated reader fails.
      */
     @Override
@@ -72,7 +65,7 @@ public class GunzipDecorator implements Reader {
             } else {
                 path = archiveRoot.getPath() + File.separator + dataFile.getPath();
             }
-            tmpFile = tmpFileFor(path, true);
+            tmpFile = tmpFileFor(path);
             decompress(new File(path), tmpFile);
 
             // temporarily read from tmp path
@@ -196,26 +189,23 @@ public class GunzipDecorator implements Reader {
      * Else, it is a system default.
      *
      * @param dataFilePath path of the .gz file
-     * @param deleteOnExit
-     *
      * @return File in tmp dir
-     *
      * @throws IOException if the tmp file could not be created
      */
-    private static File tmpFileFor(String dataFilePath, boolean deleteOnExit) throws IOException {
+    private static File tmpFileFor(String dataFilePath) throws IOException {
         // chop of path before filename and ".gz" suffix to determine filename
         final int slashPosition = dataFilePath.lastIndexOf(File.separator);
         final int dotGzPosition = dataFilePath.length() - ".gz".length();
         final String fileName = dataFilePath.substring(slashPosition + 1, dotGzPosition);
+
         // use filename without suffix as prefix and "." + suffix as suffix
         final int dotPosition = fileName.lastIndexOf('.');
         final String prefix = (dotPosition > -1) ? fileName.substring(0, dotPosition) : fileName;
         final String suffix = (dotPosition > -1) ? fileName.substring(dotPosition) : null;
+
         // create temporary file in tmp dir, either property java.io.tmpdir or system default
         final File tempFile = File.createTempFile(prefix, suffix);
-        if (deleteOnExit) {
-            tempFile.deleteOnExit();
-        }
+        tempFile.deleteOnExit();
         return tempFile;
     }
 
@@ -224,7 +214,6 @@ public class GunzipDecorator implements Reader {
      *
      * @param gzipFile existing file in gzip format
      * @param tmpFile  new file for the uncompressed content
-     *
      * @throws IOException if reading the input, decompression, or writing the output fails
      */
     private static void decompress(File gzipFile, File tmpFile) throws IOException {

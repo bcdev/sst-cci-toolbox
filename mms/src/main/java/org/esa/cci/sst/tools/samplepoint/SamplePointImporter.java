@@ -1,7 +1,6 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;
@@ -10,8 +9,10 @@ import org.esa.cci.sst.util.TimeUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 
 public class SamplePointImporter {
@@ -20,6 +21,8 @@ public class SamplePointImporter {
     private final String sensorName;
     private final int year;
     private final int month;
+
+    private Logger logger;
 
     public SamplePointImporter(Configuration config) {
         usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
@@ -30,7 +33,10 @@ public class SamplePointImporter {
         final Date centerDate = TimeUtil.centerTime(startDate, stopDate);
         year = TimeUtil.getYear(centerDate);
         month = TimeUtil.getMonth(centerDate);
+    }
 
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 
     public List<SamplingPoint> load() throws IOException {
@@ -47,18 +53,29 @@ public class SamplePointImporter {
         return listA;
     }
 
-    private List<SamplingPoint> loadPointsFrom(File fileA) throws IOException {
-        try (FileInputStream inputStream = new FileInputStream(fileA)) {
+    private List<SamplingPoint> loadPointsFrom(File file) throws IOException {
+        if (file == null) {
+            return Collections.emptyList();
+        }
+
+        try (FileInputStream inputStream = new FileInputStream(file)) {
             return SamplingPointIO.read(inputStream);
         }
     }
 
     private File getInputFile(char key) {
-        final String pathA = SamplingPointUtil.createPath(usecaseRootPath, sensorName, year, month, key);
-        final File fileA = new File(pathA);
-        if (!fileA.isFile()) {
-            throw new ToolException("Missing input file: sensor.5-smp-2007-01-a.json", -1);
+        final String path = SamplingPointUtil.createPath(usecaseRootPath, sensorName, year, month, key);
+        final File file = new File(path);
+        if (!file.isFile()) {
+            logWarning("Missing input file: " + file.getAbsolutePath());
+            return null;
         }
-        return fileA;
+        return file;
+    }
+
+    private void logWarning(String message) {
+        if (logger != null) {
+            logger.warning(message);
+        }
     }
 }

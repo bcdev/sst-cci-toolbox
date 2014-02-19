@@ -3,7 +3,6 @@ package org.esa.cci.sst.tools.samplepoint;
 
 import org.esa.beam.util.io.FileUtils;
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;
 import org.esa.cci.sst.util.TimeUtil;
@@ -47,9 +46,11 @@ public class SamplePointImporterIntegrationTest {
     }
 
     @Test
-    public void testLoad_missingFile() throws IOException {
+    public void testLoad_missingFile_triggersLogMessage() throws IOException {
         final Configuration config = createConfig();
+        final TestLogger testLogger = new TestLogger();
         final SamplePointImporter importer = new SamplePointImporter(config);
+        importer.setLogger(testLogger);
 
         writePoints(Collections.<SamplingPoint>emptyList(), SENSOR + "-smp-" + YEAR + "-01-b.json");
         writePoints(Collections.<SamplingPoint>emptyList(), SENSOR + "-smp-" + YEAR + "-01-c.json");
@@ -57,12 +58,14 @@ public class SamplePointImporterIntegrationTest {
         config.put(Configuration.KEY_MMS_SAMPLING_START_TIME, "2007-01-01T00:00:00Z");
         config.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2007-01-31T23:59:59Z");
 
-        try {
-            importer.load();
-            fail("ToolException expected");
-        } catch (ToolException expected) {
-            assertEquals("Missing input file: " + SENSOR + "-smp-" + YEAR + "-01-a.json", expected.getMessage());
-        }
+        final List<SamplingPoint> loadedPoints = importer.load();
+        assertNotNull(loadedPoints);
+        assertEquals(0, loadedPoints.size());
+
+        final String warning = testLogger.getWarning();
+        assertNotNull(warning);
+        assertTrue(warning.contains("Missing input file:"));
+        assertTrue(warning.contains("sensor.5-smp-2007-01-a.json"));
     }
 
     @Test
