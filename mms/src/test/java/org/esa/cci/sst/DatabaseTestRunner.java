@@ -18,7 +18,6 @@ package org.esa.cci.sst;
 
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
-import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -80,8 +79,7 @@ public class DatabaseTestRunner extends BlockJUnit4ClassRunner {
             }
         }
         try {
-            @SuppressWarnings({"UnusedDeclaration"})
-            final PersistenceManager pm = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, configuration);
+            new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, configuration);
             canPersist = true;
         } catch (Throwable t) {
             System.out.println("Test" + klass.getName() + " suppressed - JPA persistence not available.");

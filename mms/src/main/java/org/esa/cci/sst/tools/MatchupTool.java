@@ -117,8 +117,7 @@ public class MatchupTool extends BasicTool {
     private static final String METOP = "metop";
     private static final String SEVIRI = "seviri";
     private static final String AVHRR_MD = "avhrr_md";
-    private static final Map<Class<? extends Observation>, String> OBSERVATION_QUERY_MAP =
-            new HashMap<Class<? extends Observation>, String>(12);
+    private static final Map<Class<? extends Observation>, String> OBSERVATION_QUERY_MAP = new HashMap<>(12);
 
     private Sensor atsrSensor;
     private Sensor metopSensor;
@@ -664,7 +663,7 @@ public class MatchupTool extends BasicTool {
         final ReferenceObservation refObs = matchup.getRefObs();
         final Observation sensorObs = findCoincidingObservation(refObs, queryString, observationClass, sensorName);
         if (sensorObs != null) {
-            final Coincidence coincidence = createCoincidence(matchup, sensorObs);
+            createCoincidence(matchup, sensorObs);
             matchup.setPattern(matchup.getPattern() | pattern);
         }
     }
@@ -676,9 +675,9 @@ public class MatchupTool extends BasicTool {
      * @param refObs The reference observation.
      * @param sensor The sensor.
      * @return common observation of sensor with coincidence to reference observation
-     * that is temporally closest to reference observation, null if no
-     * observation of the specified sensor has a coincidence with the
-     * reference observation
+     *         that is temporally closest to reference observation, null if no
+     *         observation of the specified sensor has a coincidence with the
+     *         reference observation
      */
     private Observation findCoincidingObservation(ReferenceObservation refObs, Sensor sensor) {
         final Class<? extends Observation> observationClass = getObservationClass(sensor);
@@ -770,21 +769,6 @@ public class MatchupTool extends BasicTool {
         Query delete = getPersistenceManager().createQuery("delete from Coincidence c");
         delete.executeUpdate();
         delete = getPersistenceManager().createQuery("delete from Matchup m");
-        delete.executeUpdate();
-
-        getPersistenceManager().commit();
-    }
-
-    private void cleanupIntervalJpa() {
-        getPersistenceManager().transaction();
-
-        Query delete = getPersistenceManager().createQuery("delete from Coincidence c where exists ( select r from ReferenceObservation r, Matchup m where c.matchup = m and m.refObs = r and r.time >= :start and r.time < :stop )");
-        delete.setParameter("start", matchupStartTime);
-        delete.setParameter("stop", matchupStopTime);
-        delete.executeUpdate();
-        delete = getPersistenceManager().createQuery("delete from Matchup m where exists ( select r from ReferenceObservation r where m.refObs = r and r.time >= :start and r.time < :stop )");
-        delete.setParameter("start", matchupStartTime);
-        delete.setParameter("stop", matchupStopTime);
         delete.executeUpdate();
 
         getPersistenceManager().commit();

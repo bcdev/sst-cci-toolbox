@@ -16,12 +16,7 @@
 
 package org.esa.cci.sst.orm;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
+import javax.persistence.*;
 import java.util.List;
 import java.util.Map;
 
@@ -91,23 +86,6 @@ public class PersistenceManager {
         } else {
             throw new NonUniqueResultException(
                     "Single result instead of " + result.size() + " expected for query '" + query.toString() + "'.");
-        }
-    }
-
-    public Object pickNative(String queryString, Object... parameter) {
-        final Query query = createNativeQuery(queryString);
-        for (int i = 0; i < parameter.length; ++i) {
-            query.setParameter(i + 1, parameter[i]);
-        }
-        List result = query.getResultList();
-
-        if (result.isEmpty()) {
-            return null;
-        } else if (result.size() == 1) {
-            return result.get(0);
-        } else {
-            throw new NonUniqueResultException(
-                    "single result instead of " + result.size() + " expected for query " + query.toString());
         }
     }
 
