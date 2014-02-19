@@ -17,7 +17,7 @@ let d1="d + 32 * 86400"
 starttime=$year-$month-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @$d1`-01T00:00:00Z
 
-sampling-tool.sh -c $MMS_HOME/config/$usecase-config.xml \
+sampling-tool.sh -c $MMS_HOME/config/$usecase-config.properties \
 -Dmms.usecase=${usecase} \
 -Dmms.sampling.startTime=${starttime} \
 -Dmms.sampling.stopTime=${stoptime} \
