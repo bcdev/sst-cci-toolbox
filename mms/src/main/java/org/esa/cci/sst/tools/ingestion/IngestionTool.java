@@ -168,11 +168,10 @@ public class IngestionTool extends BasicTool {
 
             final String observationTypeKey = String.format("mms.observationType.%s", sensor);
             final String observationType = config.getStringValue(observationTypeKey, "RelatedObservation");
-
-            final long pattern = config.getPattern(sensor);
             if (readerSpec == null || inputDirPath == null || sensor == null) {
                 continue;
             }
+            final long pattern = config.getPattern(sensor);
             getLogger().fine("Looking for " + sensor + " files");
 
             final String filenamePatternKey = String.format("mms.source.%d.filenamePattern", i);
