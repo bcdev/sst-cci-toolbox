@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SamplePointExporter {
@@ -41,7 +42,8 @@ public class SamplePointExporter {
 
         if (!samplingPoints.isEmpty()) {
             if (logger != null) {
-                logger.warning("List of sampling points still contains points out of expected time range: " + samplingPoints.size());
+                logger.warning(
+                        "List of sampling points still contains points out of expected time range: " + samplingPoints.size());
             }
         }
 
@@ -53,7 +55,8 @@ public class SamplePointExporter {
         writeSamplingPoints(pointsMonthAfter, monthAfter, archiveRootPath, sensorName, 'c');
     }
 
-    private void writeSamplingPoints(List<SamplingPoint> points, TimeRange timeRange, String archiveRootPath, String sensorName, char key) throws IOException {
+    private void writeSamplingPoints(List<SamplingPoint> points, TimeRange timeRange, String archiveRootPath,
+                                     String sensorName, char key) throws IOException {
         final int year = TimeUtil.getYear(timeRange.getStartDate());
         final int month = TimeUtil.getMonth(timeRange.getStartDate());
 
@@ -67,7 +70,9 @@ public class SamplePointExporter {
         }
 
         if (!targetFile.createNewFile()) {
-            throw new ToolException("Unable to create target file: " + targetFile.getAbsolutePath(), -1);
+            if (logger != null && logger.isLoggable(Level.WARNING)) {
+                logger.warning("Overwriting target file: " + targetFile.getAbsolutePath());
+            }
         }
 
         try (FileOutputStream outputStream = new FileOutputStream(targetFile)) {
