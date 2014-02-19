@@ -94,10 +94,14 @@ public class PolarOrbitingPolygon {
         boolean isInside = false;
 
         for (int i = 0; i < ring.size() - 1; ++i) {
-            final double lon1 = shiftIfZero(GeometryUtil.normalizeLongitude(ring.get(i).getLon() - sampleLon));
-            final double lat1 = shiftIfZero(ring.get(i).getLat());
-            final double lon2 = shiftIfZero(GeometryUtil.normalizeLongitude(ring.get(i + 1).getLon() - sampleLon));
-            final double lat2 = shiftIfZero(ring.get(i + 1).getLat());
+            final Point point = ring.get(i);
+            final Point nextPoint = ring.get(i + 1);
+
+            final double lon1 = shiftIfZero(GeometryUtil.normalizeLongitude(point.getLon() - sampleLon));
+            final double lat1 = shiftIfZero(point.getLat());
+            final double lon2 = shiftIfZero(GeometryUtil.normalizeLongitude(nextPoint.getLon() - sampleLon));
+            final double lat2 = shiftIfZero(nextPoint.getLat());
+
             if (isEdgeCrossingMeridian(lon1, lon2)) {
                 final double crossingLat = getLatitudeAtMeridian(lat1, lon1, lat2, lon2);
                 if (isBetween(crossingLat, equatorLat, sampleLat)) {
@@ -105,7 +109,7 @@ public class PolarOrbitingPolygon {
                 }
             }
             if (isEdgeCrossingEquator(lat1, lat2)) {
-                final double crossingLon = getLongitudeAtEquator(lat1, ring.get(i).getLon(), lat2, ring.get(i + 1).getLon());
+                final double crossingLon = getLongitudeAtEquator(lat1, point.getLon(), lat2, nextPoint.getLon());
                 if (Double.isNaN(firstEquatorCrossingLonPlus90)) {
                     firstEquatorCrossingLonPlus90 = GeometryUtil.normalizeLongitude(crossingLon + 90.0);
                     transformedSampleLon = GeometryUtil.normalizeLongitude(sampleLon - firstEquatorCrossingLonPlus90);
@@ -134,7 +138,7 @@ public class PolarOrbitingPolygon {
         if (lon2 == lon1) {
             return lat1;
         }
-        return lat1 + (lat2 - lat1) * (0.0 - lon1) / GeometryUtil.normalizeLongitude(lon2 - lon1);
+        return lat1 - (lat2 - lat1) * lon1 / GeometryUtil.normalizeLongitude(lon2 - lon1);
     }
 
     static boolean isEdgeCrossingMeridian(double lon1, double lon2) {

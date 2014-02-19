@@ -178,10 +178,9 @@ public class PolarOrbitingPolygonTest {
 
     @Test
     public void testAtsr2Polygon() {
-        double skip = 2.5;               // 2.5
+        final double skip = 2.5;               // 2.5
         final int expectedMatches = 519; // 3259
         for (int rotations = 0; rotations < 360.0 / skip; ++rotations) {
-//            System.out.println("cycle " + rotations + " lat=" + ATSR2_POINTS[0].getY() + " lon=" + ATSR2_POINTS[0].getX());
             final Geometry geometry = new Polygon(new LinearRing[]{new LinearRing(ATSR2_POINTS)});
             final PolarOrbitingPolygon polygon = new PolarOrbitingPolygon(1, System.currentTimeMillis(), geometry);
             int orbitMatches = 0;
@@ -189,12 +188,9 @@ public class PolarOrbitingPolygonTest {
                 //int lineMatches = 0;
                 for (double lon = -180.0 + skip; lon <= 180.0; lon += skip) {
                     if (polygon.isPointInPolygon(lat, lon)) {
-                        //System.out.print(lon + ", ");
-                        //      ++lineMatches;
                         ++orbitMatches;
                     }
                 }
-                //System.out.println(lineMatches + " points inside at lat=" + lat);
             }
             assertEquals("orbitMatches", expectedMatches, orbitMatches);
             rotate(ATSR2_POINTS, skip);
