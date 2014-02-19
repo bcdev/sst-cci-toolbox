@@ -1,7 +1,7 @@
 from pmonitor import PMonitor
 
 # usecase = 'mms-wpr-02' - no, short names simplify operations
-usecase = 'mms2'
+usecase = 'mms-wpr-02'
 
 # TODO for testing only, remove this line when producing
 years = ['2003']
