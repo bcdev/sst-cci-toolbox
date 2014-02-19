@@ -62,10 +62,7 @@ class DetectorTemperature extends Rule {
             result.setShort(0, FILL_VALUE);
             return result;
         }
-        final int recordNo = observation.getRecordNo();
-//        observationReader.getColumns();
-//        final int scanline = getScanline();
-//        final long time = getTime(recordNo, scanline);
+
         final long time = getTime();
         final Date date = new Date(time);
         float detectorTemperature = DetectorTemperatureProvider.create().getDetectorTemperature(date);
