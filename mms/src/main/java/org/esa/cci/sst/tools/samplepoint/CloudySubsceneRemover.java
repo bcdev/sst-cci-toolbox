@@ -36,7 +36,6 @@ import ucar.ma2.Array;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,6 +128,10 @@ public class CloudySubsceneRemover {
     }
 
     public void removeSamples(List<SamplingPoint> samples) {
+        if (logger != null && logger.isLoggable(Level.INFO)) {
+            final String message = "Staring removing cloudy samples...";
+            logger.info(message);
+        }
         final String columnName = sensorName + "." + cloudFlagsVariableName;
         final Column column = storage.getColumn(columnName);
         final Number fillValue = column.getFillValue();
@@ -147,9 +150,6 @@ public class CloudySubsceneRemover {
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
 
         final List<SamplingPoint> clearSkySamples = new ArrayList<>(samples.size());
-        final Integer[] datafileIds = samplesByDatafile.keySet().toArray(
-                new Integer[samplesByDatafile.keySet().size()]);
-        Arrays.sort(datafileIds);
 
         for (final int id : samplesByDatafile.keySet()) {
             final List<SamplingPoint> points = samplesByDatafile.get(id);
@@ -157,6 +157,13 @@ public class CloudySubsceneRemover {
             if (observation != null) {
                 final DataFile datafile = observation.getDatafile();
                 try (final Reader reader = ReaderFactory.open(datafile, config)) {
+
+                    if (logger != null && logger.isLoggable(Level.INFO)) {
+                        final String message = MessageFormat.format(
+                                "Starting removing cloudy samples associated with data file ''{0}''...",
+                                datafile.getPath());
+                        logger.info(message);
+                    }
                     for (final SamplingPoint point : points) {
                         final double lat = point.getLat();
                         final double lon = point.getLon();
@@ -193,6 +200,12 @@ public class CloudySubsceneRemover {
                             }
                         }
                     }
+                    if (logger != null && logger.isLoggable(Level.INFO)) {
+                        final String message = MessageFormat.format(
+                                "Finished removing cloudy samples associated with data file ''{0}'' ({1} clear-sky samples found so far)",
+                                datafile.getPath(), clearSkySamples.size());
+                        logger.info(message);
+                    }
                 } catch (IOException e) {
                     throw new ToolException(
                             MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
@@ -202,6 +215,11 @@ public class CloudySubsceneRemover {
         }
         samples.clear();
         samples.addAll(clearSkySamples);
+        if (logger != null && logger.isLoggable(Level.INFO)) {
+            final String message = MessageFormat.format(
+                    "Finished removing cloudy samples ({0} clear-sky samples found)", samples.size());
+            logger.info(message);
+        }
     }
 
     public boolean getPrimary() {
