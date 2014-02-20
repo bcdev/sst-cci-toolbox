@@ -93,18 +93,16 @@ public final class SamplingPointPlotter {
             component = null;
         }
         final Graphics2D graphics = image.createGraphics();
+        final LonLatMapStrategy strategy = new LonLatMapStrategy(w, h);
 
         for (final SamplingPoint p : samples) {
-            final double x = (p.getLon() + 180.0) / 360.0;
-            final double y = (90.0 - p.getLat()) / 180.0;
-            final int i = (int) (y * h);
-            final int k = (int) (x * w);
+            final PlotPoint mapPoint = strategy.map(p);
 
             try {
                 SwingUtilities.invokeAndWait(new Runnable() {
                     @Override
                     public void run() {
-                        graphics.fill(new Rectangle(k, i, 1, 1));
+                        graphics.fill(new Rectangle(mapPoint.getX(), mapPoint.getY(), 1, 1));
                     }
                 });
             } catch (InterruptedException | InvocationTargetException ignored) {
