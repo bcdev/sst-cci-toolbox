@@ -67,6 +67,7 @@ wait_for_task_jobs_completion() {
 submit_job() {
     jobname=$1
     command=$2
+    echo "ssh lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 02:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command}"
     line=`ssh lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 02:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command}`
     echo ${line}
     jobs=`echo ${line} | awk '{ print substr($2,2,length($2)-2) }'`
