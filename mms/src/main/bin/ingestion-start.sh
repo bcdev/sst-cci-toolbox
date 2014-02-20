@@ -1,21 +1,22 @@
 #!/bin/bash
 
-. $MMS_HOME/bin/mms-env.sh
-cd $MMS_INST
+. ${MMS_HOME}/bin/mms-env.sh
+cd ${MMS_INST}
 
 year=$1
 month=$2
 usecase=$3
 
-echo "`date -u +%Y%m%d-%H%M%S` submitting tasks to ingest $year/$month"
+task="ingestion"
+jobname="${task}-${year}-${month}"
+command="${task}-run.sh ${year} ${month} ${usecase}"
 
-read_task_jobs ingestion
+echo "`date -u +%Y%m%d-%H%M%S` submitting task '${task}' for ${year}/${month} usecase ${usecase}"
 
-if [ -z $jobs ]; then
-    line=`ssh lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 02:00 -P esacci_sst -cwd $MMS_INST -oo $MMS_LOG/ingestion-$year-$month.out -eo $MMS_LOG/ingestion-$year-$month.err -J ingestion-$year$month $MMS_HOME/bin/ingestion-run2.sh $year $month $usecase`
-    echo $line
-    jobs=`echo $line | awk '{ print substr($2,2,length($2)-2) }'`
-    echo "$MMS_LOG/ingestion-$year-$month.out/$jobs" > $MMS_TASKS/ingestion-$year-$month.tasks
+read_task_jobs ${task}
+
+if [ -z ${jobs} ]; then
+    submit_job ${jobname} ${command}
 fi
 
-wait_for_task_jobs_completion ingestion
+wait_for_task_jobs_completion ${task}

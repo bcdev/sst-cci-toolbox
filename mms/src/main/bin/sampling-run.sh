@@ -1,36 +1,26 @@
 #!/bin/bash
-
-. mymms
-. $MMS_HOME/bin/mms-env.sh
+# sampling-run.sh 2003 01 atsr.3 300000 0 mms2
+# mms/archive/atsr.3/v2.1/2003/01/17/ATS_TOA_1P...N1
+# mms/archive/mms2/smp/atsr.3/2003/atsr.3-smp-2003-01-b.txt
 
 year=$1
 month=$2
-d=`date +%s -u -d "$year-$month-01 00:00:00"`
-let d1="d - 8640 * 175"
-let d2="d + 8640 * 525"
-starttime=`date +%Y-%m-%dT%H:%M:%SZ -u -d @$d1`
-stoptime=`date +%Y-%m-%dT%H:%M:%SZ -u -d @$d2`
+sensor=$3
+count=$4
+skip=$5
+usecase=$6
 
-echo "`date -u +%Y%m%d-%H%M%S` sampling $year/$month ..."
+. mymms
 
-if [ "$year" = "" -o "$month" = "" ]; then
-    echo "missing parameter, use $0 year month"
-    exit 1
-fi
+d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
+let d1="d + 32 * 86400"
+starttime=${year}-${month}-01T00:00:00Z
+stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
-echo $MMS_HOME/bin/sampling-tool.sh -c $MMS_CONFIG -debug \
+sampling-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
+-Dmms.usecase=${usecase} \
 -Dmms.sampling.startTime=${starttime} \
 -Dmms.sampling.stopTime=${stoptime} \
--Dmms.sampling.sensor=atsr_orb.3 \
--Dmms.sampling.sensor2=atsr_orb.2 \
--Dmms.sampling.count=20000000 \
--Dmms.sampling.cleanupinterval=true
-$MMS_HOME/bin/sampling-tool.sh -c $MMS_CONFIG -debug \
--Dmms.sampling.startTime=${starttime} \
--Dmms.sampling.stopTime=${stoptime} \
--Dmms.sampling.sensor=atsr_orb.3 \
--Dmms.sampling.sensor2=atsr_orb.2 \
--Dmms.sampling.count=20000000 \
--Dmms.sampling.cleanupinterval=true
-
-echo "`date -u +%Y%m%d-%H%M%S` sampling $year/$month ... done"
+-Dmms.sampling.sensor=${sensor} \
+-Dmms.sampling.count=${count} \
+-Dmms.sampling.skip=${skip}

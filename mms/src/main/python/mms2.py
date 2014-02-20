@@ -99,8 +99,8 @@ for (sensor, sensorstart, sensorstop) in sensors:
 
 hosts = [('localhost', 2)]
 types = [('ingestion-start.sh', 12),
-         ('sampling-run2.sh', 12),
-         ('clearsky-run2.sh', 12),
+         ('sampling-run.sh', 12),
+         ('clearsky-run.sh', 12),
          ('mmd-run2.sh', 12),
          ('coincidence-run2.sh', 12),
          ('nwp-run2.sh', 12),
@@ -117,7 +117,7 @@ for year in years:
     for month in months:
         # 1. Ingestion of all sensor data required for month
         # pm.execute('ingestion-start.sh',  # for parallel execution on lotus
-        pm.execute('ingestion-run2.sh',
+        pm.execute('ingestion-run.sh',
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
@@ -129,7 +129,7 @@ for year in years:
             next_month_year, next_month = next_year_month_of(year, month)
             # TODO - implement skipping of Sobol points rq-20140214
             # 2. Generate sampling points per month and sensor
-            pm.execute('sampling-run2.sh',
+            pm.execute('sampling-run.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,
                         '/obs/' + year + '/' + month,
                         '/obs/' + next_month_year + '/' + next_month],
@@ -141,7 +141,7 @@ for year in years:
             continue
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
-            pm.execute('clearsky-run2.sh',
+            pm.execute('clearsky-run.sh',
                        ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
                         '/smp/' + sensor + '/' + year + '/' + month,
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
