@@ -36,7 +36,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
                 <include>pm*</include>
             </includes>
             <outputDirectory>bin</outputDirectory>
-            <fileMode>0774</fileMode>
+            <fileMode>0770</fileMode>
             <filtered>true</filtered>
         </fileSet>
 
@@ -48,7 +48,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
                 <include>template-*</include>
             </includes>
             <outputDirectory>bin-hl</outputDirectory>
-            <fileMode>0774</fileMode>
+            <fileMode>0770</fileMode>
             <filtered>true</filtered>
         </fileSet>
 
@@ -58,7 +58,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
                 <include>*.py</include>
             </includes>
             <outputDirectory>python</outputDirectory>
-            <fileMode>0774</fileMode>
+            <fileMode>0770</fileMode>
             <filtered>true</filtered>
         </fileSet>
 
@@ -69,7 +69,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             </includes>
             <outputDirectory>config</outputDirectory>
             <directoryMode>0774</directoryMode>
-            <fileMode>0664</fileMode>
+            <fileMode>0660</fileMode>
         </fileSet>
     </fileSets>
 
