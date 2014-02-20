@@ -14,6 +14,7 @@ public class PlotSamplingPointFileTool extends BasicTool {
 
 
     private String inputFilePath;
+    private String mapStrategyName;
     private boolean displayImage;
 
     protected PlotSamplingPointFileTool() {
@@ -44,6 +45,7 @@ public class PlotSamplingPointFileTool extends BasicTool {
 
         inputFilePath = config.getStringValue("json-file-path");
         displayImage = config.getBooleanValue("display-image");
+        mapStrategyName = config.getStringValue("map-strategy");
     }
 
     private void run() throws IOException {
@@ -68,6 +70,7 @@ public class PlotSamplingPointFileTool extends BasicTool {
                     .live(false)
                     .windowTitle(name + " - " + samplingPoints.size() + " points")
                     .filePath(name.concat(".png"))
+                    .mapStrategyName(mapStrategyName)
                     .plot();
         } finally {
             if (inputStream != null) {

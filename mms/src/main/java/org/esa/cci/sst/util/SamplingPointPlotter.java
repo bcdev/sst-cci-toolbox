@@ -17,14 +17,8 @@
 package org.esa.cci.sst.util;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -36,11 +30,15 @@ import java.util.List;
  */
 public final class SamplingPointPlotter {
 
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 400;
+
     private List<SamplingPoint> samples;
     private String filePath;
     private boolean show = true;
     private boolean live = false;
     private String windowTitle;
+    private String mapStrategyName;
 
     public SamplingPointPlotter() {
     }
@@ -70,8 +68,16 @@ public final class SamplingPointPlotter {
         return this;
     }
 
+    public SamplingPointPlotter mapStrategyName(String mapStrategyName) {
+        this.mapStrategyName = mapStrategyName;
+        return this;
+    }
+
     public BufferedImage plot() throws IOException {
-        final BufferedImage image = drawImage();
+        final MapStrategy strategy = getMapStrategy();
+        strategy.initialize(samples);
+
+        final BufferedImage image = drawImage(strategy);
         if (!live && show) {
             showImage(image);
         }
@@ -82,10 +88,8 @@ public final class SamplingPointPlotter {
         return image;
     }
 
-    private BufferedImage drawImage() {
-        final int w = 800;
-        final int h = 400;
-        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_BINARY);
+    private BufferedImage drawImage(MapStrategy strategy) {
+        final BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_BYTE_BINARY);
         final JComponent component;
         if (live) {
             component = showImage(image);
@@ -93,7 +97,7 @@ public final class SamplingPointPlotter {
             component = null;
         }
         final Graphics2D graphics = image.createGraphics();
-        final LonLatMapStrategy strategy = new LonLatMapStrategy(w, h);
+
 
         for (final SamplingPoint p : samples) {
             final PlotPoint mapPoint = strategy.map(p);
@@ -138,8 +142,15 @@ public final class SamplingPointPlotter {
         return label;
     }
 
-    void writeImage(BufferedImage image) throws IOException {
+    private void writeImage(BufferedImage image) throws IOException {
         ImageIO.write(image, "png", new File(filePath));
     }
 
+    private MapStrategy getMapStrategy() {
+        if (mapStrategyName != null && mapStrategyName.equalsIgnoreCase("TIME-LAT")) {
+            return new TimeLatMapStrategy(WIDTH, HEIGHT);
+        } else {
+            return new LonLatMapStrategy(WIDTH, HEIGHT);
+        }
+    }
 }
