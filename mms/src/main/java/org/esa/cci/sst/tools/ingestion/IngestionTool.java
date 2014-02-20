@@ -279,18 +279,6 @@ public class IngestionTool extends BasicTool {
         persistenceManager.commit();
     }
 
-    private void validateInputSet(final int directoryCount) {
-        if (directoryCount == 0) {
-            throw new ToolException("No input sets given.\n" +
-                                    "Input sets are specified as configuration properties as follows:\n" +
-                                    "\tmms.source.<i>.inputDirectory = <inputDirectory>\n" +
-                                    "\tmms.source.<i>.filenamePattern = <filenamePattern> (opt)" +
-                                    "\tmms.source.<i>.sensor = <sensor>\n" +
-                                    "\tmms.source.<i>.reader = <ReaderClass>",
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-    }
-
     private List<File> getInputFiles(final String filenamePattern, final File inputDir) {
         final List<File> inputFileList = new ArrayList<>(0);
         collectInputFiles(inputDir, filenamePattern, inputFileList);
