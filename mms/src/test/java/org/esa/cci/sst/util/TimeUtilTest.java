@@ -155,6 +155,38 @@ public class TimeUtilTest {
         assertEquals(6, TimeUtil.getMonth(date));
     }
 
+    @Test
+    public void testGetBeginOfMoth() {
+        Calendar calendar = createCalendar(2011, 8, 19, 18, 24, 53);
+        Date date = calendar.getTime();
+
+        final Date begin = TimeUtil.getBeginOfMonth(date);
+        calendar.setTime(begin);
+        assertEquals(2011, calendar.get(Calendar.YEAR));
+        assertEquals(8, calendar.get(Calendar.MONTH));
+        assertEquals(1, calendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(0, calendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(0, calendar.get(Calendar.MINUTE));
+        assertEquals(0, calendar.get(Calendar.SECOND));
+        assertEquals(0, calendar.get(Calendar.MILLISECOND));
+    }
+
+    @Test
+    public void testGetEndOfMoth() {
+        Calendar calendar = createCalendar(2010, 7, 14, 15, 24, 53);
+        Date date = calendar.getTime();
+
+        final Date end = TimeUtil.getEndOfMonth(date);
+        calendar.setTime(end);
+        assertEquals(2010, calendar.get(Calendar.YEAR));
+        assertEquals(7, calendar.get(Calendar.MONTH));
+        assertEquals(31, calendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(23, calendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(59, calendar.get(Calendar.MINUTE));
+        assertEquals(59, calendar.get(Calendar.SECOND));
+        assertEquals(0, calendar.get(Calendar.MILLISECOND));
+    }
+
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
         final GregorianCalendar c = createUtcCalendar();
         c.clear();

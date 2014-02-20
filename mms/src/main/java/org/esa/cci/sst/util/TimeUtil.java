@@ -228,4 +228,19 @@ public final class TimeUtil {
         utcCalendar.setTime(date);
         return utcCalendar.get(Calendar.MONTH) + 1;
     }
+
+    public static Date getBeginOfMonth(Date date) {
+        final GregorianCalendar utcCalendar = createUtcCalendar();
+        utcCalendar.setTime(date);
+        utcCalendar.set(Calendar.DAY_OF_MONTH, 1);
+        return getBeginningOfDay(utcCalendar.getTime());
+    }
+
+    public static Date getEndOfMonth(Date date) {
+        final GregorianCalendar utcCalendar = createUtcCalendar();
+        utcCalendar.setTime(date);
+        final int maxDay = utcCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        utcCalendar.set(Calendar.DAY_OF_MONTH, maxDay);
+        return getEndOfDay(utcCalendar.getTime());
+    }
 }
