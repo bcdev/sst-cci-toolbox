@@ -109,6 +109,10 @@ public class CloudySubsceneRemover {
         return this;
     }
 
+    public boolean getPrimary() {
+        return primary;
+    }
+
     public static void removeSamples(List<SamplingPoint> samples, String sensorName, boolean primarySensor,
                                      int subSceneWidth, int subSceneHeight,
                                      Configuration config, Storage storage, Logger logger, String cloudFlagsName,
@@ -202,7 +206,7 @@ public class CloudySubsceneRemover {
                     }
                     if (logger != null && logger.isLoggable(Level.INFO)) {
                         final String message = MessageFormat.format(
-                                "Finished removing cloudy samples: data file ''{0}'', {1} clear-sky samples",
+                                "Finished removing cloudy samples: data file ''{0}'' ({1} clear-sky samples)",
                                 datafile.getPath(), clearSkySamples.size());
                         logger.info(message);
                     }
@@ -220,9 +224,5 @@ public class CloudySubsceneRemover {
                     "Finished removing cloudy samples: {0} clear-sky samples found in total", samples.size());
             logger.info(message);
         }
-    }
-
-    public boolean getPrimary() {
-        return primary;
     }
 }

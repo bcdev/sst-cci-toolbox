@@ -1,7 +1,6 @@
 from pmonitor import PMonitor
 
-# usecase = 'mms-wpr-02' - no, short names simplify operations
-usecase = 'mms-wpr-02'
+usecase = 'mms2'
 
 # TODO for testing only, remove this line when producing
 #years = ['2003']
@@ -127,7 +126,6 @@ for year in years:
                 continue
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
-            # TODO - implement skipping of Sobol points rq-20140214
             # 2. Generate sampling points per month and sensor
             pm.execute('sampling-run.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,

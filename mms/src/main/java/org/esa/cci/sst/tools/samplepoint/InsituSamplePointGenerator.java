@@ -12,7 +12,11 @@ import org.esa.cci.sst.util.TimeUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class InsituSamplePointGenerator {
@@ -44,7 +48,8 @@ public class InsituSamplePointGenerator {
         return samplingPoints;
     }
 
-    private void extractPointsInTimeRange(ArrayList<SamplingPoint> samplingPoints, TimeRange timeRange, File insituFile) {
+    private void extractPointsInTimeRange(ArrayList<SamplingPoint> samplingPoints, TimeRange timeRange,
+                                          File insituFile) {
         final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
 
         try {
@@ -64,7 +69,8 @@ public class InsituSamplePointGenerator {
 
     private LinkedList<File> findFilesInTimeRange(TimeRange timeRange) {
         final LinkedList<File> filesInRange = new LinkedList<>();
-        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"}, true); // @todo 1 rq/tb-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
+        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"},
+                                                                 true); // @todo 1 rq/tb-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
         for (final File file : insituFiles) {
             try {
                 final TimeRange fileTimeRange = extractTimeRange(file.getName());

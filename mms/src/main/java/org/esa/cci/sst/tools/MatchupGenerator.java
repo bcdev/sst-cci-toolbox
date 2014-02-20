@@ -19,14 +19,17 @@ import org.postgis.Point;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MatchupGenerator extends BasicTool {
 
-    private static final String SOBOL_SENSOR_NAME = "sobol";
+    private static final String SENSOR_NAME_SOBOL = "sobol";
     private static final byte DATASET_DUMMY = (byte) 8;
     private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
 
@@ -39,6 +42,7 @@ public class MatchupGenerator extends BasicTool {
     private String cloudFlagsVariableName;
     private int cloudFlagsMask;
     private double cloudyPixelFraction;
+    private long referenceSensorPattern;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -75,6 +79,7 @@ public class MatchupGenerator extends BasicTool {
         cloudFlagsVariableName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME);
         cloudFlagsMask = config.getIntValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK);
         cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
+        referenceSensorPattern = config.getPattern(SENSOR_NAME_SOBOL);
     }
 
     private void run() throws IOException {
@@ -104,39 +109,84 @@ public class MatchupGenerator extends BasicTool {
         }
 
         final OverlapRemover overlapRemover = createOverlapRemover();
+        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
+            final String message = "Starting removing overlapping samples...";
+            getLogger().info(message);
+        }
         overlapRemover.removeSamples(samples);
+        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
+            final String message = "Finished removing overlapping samples (" + samples.size() + " samples left)";
+            getLogger().info(message);
+        }
+
+        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
+            final String message = "Starting creating matchups...";
+            getLogger().info(message);
+        }
+        createMatchups(samples, SENSOR_NAME_SOBOL, sensorName1, sensorName2, referenceSensorPattern,
+                       getPersistenceManager(), getStorage(), getLogger());
+        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
+            final String message = "Finished creating matchups...";
+            getLogger().info(message);
+        }
     }
 
-    static void createMatchups(List<SamplingPoint> samples, Storage storage, PersistenceManager pm,
-                               String referenceSensorName, String primarySensorName, String secondarySensorName,
-                               long referenceSensorPattern) {
+    static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
+                               String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
+                               Storage storage, Logger logger) {
         final Stack<EntityTransaction> transactions = new Stack<>();
         try {
             // 1. create reference sensor, if not already present
             transactions.push(pm.transaction());
             if (storage.getSensor(referenceSensorName) == null) {
+                if (logger != null && logger.isLoggable(Level.INFO)) {
+                    final String message = MessageFormat.format("Starting persisting reference sensor: {0}",
+                                                                referenceSensorName);
+                    logger.info(message);
+                }
                 final Sensor sensor = new SensorBuilder()
                         .name(referenceSensorName)
                         .observationType(ReferenceObservation.class)
                         .pattern(referenceSensorPattern)
                         .build();
                 pm.persist(sensor);
+                if (logger != null && logger.isLoggable(Level.INFO)) {
+                    final String message = MessageFormat.format("Finished persisting reference sensor: {0}",
+                                                                referenceSensorName);
+                    logger.info(message);
+                }
             }
             pm.commit();
 
             // 2. create reference observations
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Starting creating reference observations...";
+                logger.info(message);
+            }
             transactions.push(pm.transaction());
             final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
                                                                                                  referenceSensorName,
                                                                                                  storage);
             pm.commit();
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Finished creating reference observations";
+                logger.info(message);
+            }
 
             // 3. persist reference observations, because we need the ID
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Starting persisting reference observations...";
+                logger.info(message);
+            }
             transactions.push(pm.transaction());
             for (final ReferenceObservation r : referenceObservations) {
                 pm.persist(r);
             }
             pm.commit();
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Finished persisting reference observations";
+                logger.info(message);
+            }
 
             // 4. define matchup pattern
             transactions.push(pm.transaction());
@@ -149,8 +199,16 @@ public class MatchupGenerator extends BasicTool {
                 matchupPattern = referenceSensorPattern | storage.getSensor(primarySensorName).getPattern();
             }
             pm.commit();
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = MessageFormat.format("Matchup pattern: {0}", matchupPattern);
+                logger.info(message);
+            }
 
             // 5. create matchups and coincidences
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Starting creating matchups and coincidences...";
+                logger.info(message);
+            }
             transactions.push(pm.transaction());
             final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
             final List<Coincidence> coincidences = new ArrayList<>(samples.size());
@@ -181,8 +239,16 @@ public class MatchupGenerator extends BasicTool {
                 }
             }
             pm.commit();
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Finished creating matchups and coincidences";
+                logger.info(message);
+            }
 
             // 6. persist matchups and coincidences
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Starting persisting matchups and coincidences...";
+                logger.info(message);
+            }
             transactions.push(pm.transaction());
             for (Matchup m : matchups) {
                 pm.persist(m);
@@ -191,6 +257,10 @@ public class MatchupGenerator extends BasicTool {
                 pm.persist(c);
             }
             pm.commit();
+            if (logger != null && logger.isLoggable(Level.INFO)) {
+                final String message = "Finished persisting matchups and coincidences...";
+                logger.info(message);
+            }
         } catch (Exception e) {
             while (!transactions.isEmpty()) {
                 transactions.pop().rollback();
@@ -251,7 +321,7 @@ public class MatchupGenerator extends BasicTool {
         delete = getPersistenceManager().createQuery("delete from Matchup m");
         delete.executeUpdate();
         delete = getPersistenceManager().createQuery(
-                "delete from Observation o where o.sensor = '" + SOBOL_SENSOR_NAME + "'");
+                "delete from Observation o where o.sensor = '" + SENSOR_NAME_SOBOL + "'");
         delete.executeUpdate();
 
         getPersistenceManager().commit();
@@ -261,17 +331,17 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().transaction();
 
         Query delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + SOBOL_SENSOR_NAME + "')");
+                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + SENSOR_NAME_SOBOL + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + SOBOL_SENSOR_NAME + "')");
+                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + SENSOR_NAME_SOBOL + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + SOBOL_SENSOR_NAME + "'");
+                "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + SENSOR_NAME_SOBOL + "'");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();

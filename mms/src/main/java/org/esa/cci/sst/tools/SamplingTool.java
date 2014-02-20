@@ -142,8 +142,9 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Removing overlapping areas..." + sampleList.size());
 
         getLogger().info("Creating matchups...");
-        MatchupGenerator.createMatchups(sampleList, getStorage(), getPersistenceManager(), "sobol", samplingSensor, samplingSensor2,
-                                        getConfig().getPattern("mms.pattern.sobol"));
+        MatchupGenerator.createMatchups(sampleList, "sobol", samplingSensor, samplingSensor2,
+                                        getConfig().getPattern("mms.pattern.sobol"), getPersistenceManager(), getStorage(),
+                                        null);
         getLogger().info("Creating matchups..." + sampleList.size());
     }
 
