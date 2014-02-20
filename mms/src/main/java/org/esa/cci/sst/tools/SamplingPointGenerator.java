@@ -9,6 +9,7 @@ import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
@@ -52,7 +53,7 @@ public class SamplingPointGenerator extends BasicTool {
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
         halfRevisitTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_HALF_REVISIT_TIME);
         sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
-        sampleSkip = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SKIP, 0);
+        sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
     }
 

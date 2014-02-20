@@ -6,6 +6,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.Properties;
 
@@ -113,6 +114,15 @@ public class ConfigurationTest {
 
         assertEquals(94, configuration.getIntValue("a_key", 107));
         assertEquals(107, configuration.getIntValue("no_key", 107));
+    }
+
+    @Test
+    public void testPutAndGetBigIntegerValue_withDefault() {
+        configuration.put("a_key", "2147483648");
+
+        final BigInteger defaultValue = new BigInteger("107");
+        assertEquals(new BigInteger("2147483648"), configuration.getBigIntegerValue("a_key", defaultValue));
+        assertEquals(defaultValue, configuration.getBigIntegerValue("no_key", defaultValue));
     }
 
     @Test

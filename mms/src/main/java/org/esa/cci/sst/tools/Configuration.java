@@ -4,6 +4,7 @@ import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
@@ -27,6 +28,8 @@ public class Configuration {
 
     public static final String KEY_SOURCE_START_TIME = "mms.source.startTime";
     public static final String KEY_SOURCE_STOP_TIME = "mms.source.stopTime";
+
+    public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
 
     public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
     public static final String KEY_MMS_SAMPLING_SENSOR_2 = "mms.sampling.sensor.2";
@@ -158,7 +161,7 @@ public class Configuration {
     }
 
     public long getPattern(String sensorName) {
-        final String key = "mms.pattern." + sensorName;
+        final String key = KEY_MMS_PATTERN_PREFIX + sensorName;
         final String value = getStringValue(key);
         if (value == null) {
             throw new ToolException("No value for key: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
@@ -168,7 +171,7 @@ public class Configuration {
     }
 
     public long getPattern(String sensorName, long defaultValue) {
-        final String key = "mms.pattern." + sensorName;
+        final String key = KEY_MMS_PATTERN_PREFIX + sensorName;
         final String value = getStringValue(key);
         if (value == null) {
             return defaultValue;
@@ -185,5 +188,17 @@ public class Configuration {
             throw new ToolException("Cannot parse pattern: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         return pattern;
+    }
+
+    public BigInteger getBigIntegerValue(String key, BigInteger defaultValue) {
+        final String intString = properties.getProperty(key);
+        if (intString == null) {
+            return defaultValue;
+        }
+        try {
+            return new BigInteger(intString);
+        } catch (NumberFormatException e) {
+            throw new ToolException("Cannot parse big integer value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
     }
 }

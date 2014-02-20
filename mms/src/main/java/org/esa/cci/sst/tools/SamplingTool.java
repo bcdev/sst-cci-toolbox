@@ -23,6 +23,7 @@ import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import javax.persistence.Query;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -72,7 +73,7 @@ public class SamplingTool extends BasicTool {
         startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME, "2004-06-01T00:00:00Z").getTime();
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2004-06-04T00:00:00Z").getTime();
         sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT, 10000);
-        sampleSkip = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SKIP, 0);
+        sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
         matchupDistanceSeconds = config.getIntValue(MMS_SAMPLING_MATCHUPDISTANCE, 90000);
         subSceneWidth = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_WIDTH, 7);
         subSceneHeight = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
