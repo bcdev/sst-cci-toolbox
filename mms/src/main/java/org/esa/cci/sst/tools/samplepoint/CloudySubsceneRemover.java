@@ -129,7 +129,7 @@ public class CloudySubsceneRemover {
 
     public void removeSamples(List<SamplingPoint> samples) {
         if (logger != null && logger.isLoggable(Level.INFO)) {
-            final String message = "Staring removing cloudy samples...";
+            final String message = "Starting removing cloudy samples...";
             logger.info(message);
         }
         final String columnName = sensorName + "." + cloudFlagsVariableName;
@@ -160,7 +160,7 @@ public class CloudySubsceneRemover {
 
                     if (logger != null && logger.isLoggable(Level.INFO)) {
                         final String message = MessageFormat.format(
-                                "Starting removing cloudy samples associated with data file ''{0}''...",
+                                "Starting removing cloudy samples: data file ''{0}''...",
                                 datafile.getPath());
                         logger.info(message);
                     }
@@ -202,7 +202,7 @@ public class CloudySubsceneRemover {
                     }
                     if (logger != null && logger.isLoggable(Level.INFO)) {
                         final String message = MessageFormat.format(
-                                "Finished removing cloudy samples associated with data file ''{0}'' ({1} clear-sky samples found so far)",
+                                "Finished removing cloudy samples: data file ''{0}'', {1} clear-sky samples",
                                 datafile.getPath(), clearSkySamples.size());
                         logger.info(message);
                     }
@@ -217,7 +217,7 @@ public class CloudySubsceneRemover {
         samples.addAll(clearSkySamples);
         if (logger != null && logger.isLoggable(Level.INFO)) {
             final String message = MessageFormat.format(
-                    "Finished removing cloudy samples ({0} clear-sky samples found)", samples.size());
+                    "Finished removing cloudy samples: {0} clear-sky samples found in total", samples.size());
             logger.info(message);
         }
     }
