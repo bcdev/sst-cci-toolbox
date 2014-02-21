@@ -28,8 +28,7 @@ public class LandSeaMaskTest {
 
     @Test
     public void testDoNotThrowException() throws Exception {
-        final WatermaskClassifier classifier = new WatermaskClassifier(50);
-        int waterMaskSample = classifier.getWaterMaskSample(-65f, 120);
-        assertEquals(WatermaskClassifier.WATER_VALUE, waterMaskSample);
+        final WatermaskClassifier classifier = new WatermaskClassifier(1000);
+        assertTrue(classifier.isWater(-65.0f, 120.0f));
     }
 }
