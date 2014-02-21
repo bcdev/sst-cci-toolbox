@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 # ingestion-run.sh 2003 01 mms2
 year=$1
 month=$2
@@ -6,7 +7,7 @@ usecase=$3
 
 . mymms
 
-ifconfig
+/sbin/ifconfig
 
 ingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.source.11.inputDirectory=atsr.1/v2.1/${year}/${month} \
