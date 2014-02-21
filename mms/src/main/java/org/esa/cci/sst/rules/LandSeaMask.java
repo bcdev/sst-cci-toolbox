@@ -113,7 +113,7 @@ class LandSeaMask extends AbstractImplicitRule {
     private WatermaskClassifier createWatermaskClassifier() {
         try {
             // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
-            return new WatermaskClassifier(WatermaskClassifier.RESOLUTION_50, WatermaskClassifier.MODE_GC, 11, 11);
+            return new WatermaskClassifier(50, 11, 11);
         } catch (IOException e) {
             throw new ToolException("Unable to create watermask classifier.", e, ToolException.UNKNOWN_ERROR);
         }
