@@ -19,11 +19,10 @@ package org.esa.cci.sst.rules;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.beam.watermask.operator.WatermaskClassifier;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.Watermask;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -41,16 +40,16 @@ import java.io.IOException;
 class LandSeaMask extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.BYTE;
-    private final WatermaskClassifier classifier;
+    private final Watermask classifier;
 
     LandSeaMask() {
-        classifier = createWatermaskClassifier();
+        classifier = new Watermask();
     }
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder.type(DATA_TYPE);
-        targetColumnBuilder.fillValue((byte) WatermaskClassifier.INVALID_VALUE);
+        targetColumnBuilder.fillValue(Byte.MIN_VALUE);
     }
 
     @Override
@@ -99,7 +98,7 @@ class LandSeaMask extends AbstractImplicitRule {
             for (int y = minY; y <= maxY; y++) {
                 if (x >= 0 && y >= 0 && x < observationReader.getElementCount() && y < observationReader.getScanLineCount()) {
                     index.set(0, yi, xi);
-                    final byte fraction = classifier.getWaterMaskFraction(geoCoding, x, y);
+                    final byte fraction = classifier.getWaterFraction(geoCoding, x, y);
                     targetArray.setByte(index, fraction);
                 }
                 yi++;
@@ -110,22 +109,13 @@ class LandSeaMask extends AbstractImplicitRule {
         return targetArray;
     }
 
-    private WatermaskClassifier createWatermaskClassifier() {
-        try {
-            // TODO - use no hard-coded value, but let subsampling depend on resolution of source image
-            return new WatermaskClassifier(1000, 11, 11);
-        } catch (IOException e) {
-            throw new ToolException("Unable to create watermask classifier.", e, ToolException.UNKNOWN_ERROR);
-        }
-    }
-
     private Array createFilledArray(int[] shape) {
         final Array fillArray = Array.factory(DataType.BYTE, shape);
         final Index index = fillArray.getIndex();
         for (int x = 0; x < shape[1]; x++) {
             for (int y = 0; y < shape[2]; y++) {
                 index.set(0, x, y);
-                fillArray.setByte(index, (byte) WatermaskClassifier.INVALID_VALUE);
+                fillArray.setByte(index, Byte.MIN_VALUE);
             }
         }
         return fillArray;

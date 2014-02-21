@@ -1,4 +1,4 @@
-package org.esa.cci.sst.tools.samplepoint;/*
+package org.esa.cci.sst.util;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -16,6 +16,7 @@ package org.esa.cci.sst.tools.samplepoint;/*
 
 import org.esa.cci.sst.IoTestRunner;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
+import org.esa.cci.sst.util.Watermask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -28,7 +29,7 @@ import static org.junit.Assert.assertTrue;
 public class WatermaskTest {
 
     @Test
-    public void testWatermask() throws Exception {
+    public void testIsWater() throws Exception {
         final Watermask watermask = new Watermask();
 
         assertTrue(watermask.isWater(0.0, 0.0));

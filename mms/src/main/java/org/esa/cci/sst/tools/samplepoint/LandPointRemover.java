@@ -15,6 +15,7 @@ package org.esa.cci.sst.tools.samplepoint;/*
  */
 
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.Watermask;
 
 import java.util.ArrayList;
 import java.util.List;
