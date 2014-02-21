@@ -51,7 +51,8 @@ wait_for_task_jobs_completion() {
         do
             job=`basename ${logandid}`
             log=`dirname ${logandid}`
-            if ! tail -n1 $log | grep -q done
+            #if ! tail -n1 $log | grep -q done
+            if ! grep -qF 'Successfully completed.' $log
             then
                 echo "tail -n10 ${log}"
                 tail -n10 $log
