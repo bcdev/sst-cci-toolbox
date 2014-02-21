@@ -290,7 +290,11 @@ public abstract class BasicTool {
             return;
         }
         getLogger().info("connecting to database " + config.getStringValue("openjpa.ConnectionURL"));
-        persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, config.getAsProperties());
+        try {
+            persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, config.getAsProperties());
+        } catch (Exception e) {
+            throw new ToolException("Unable to establish database connection.", e, ToolException.TOOL_DB_ERROR);
+        }
         if (config.getBooleanValue("mms.db.useindex")) {
             try {
                 persistenceManager.transaction();

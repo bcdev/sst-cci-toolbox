@@ -31,6 +31,7 @@ public class ToolException extends RuntimeException {
     public static final int TOOL_CONFIGURATION_ERROR = 11;
     public static final int TOOL_ERROR = 21;
     public static final int TOOL_IO_ERROR = 22;
+    public static final int TOOL_DB_ERROR = 31;
 
     private final int exitCode;
 
