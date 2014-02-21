@@ -51,8 +51,8 @@ public class IngestionTool extends BasicTool {
     public static void main(String[] args) {
         final IngestionTool tool = new IngestionTool();
         try {
-            final boolean performWork = tool.setCommandLineArgs(args);
-            if (!performWork) {
+            final boolean ok = tool.setCommandLineArgs(args);
+            if (!ok) {
                 return;
             }
             tool.initialize();
@@ -104,8 +104,8 @@ public class IngestionTool extends BasicTool {
             // open database
             persistenceManager.transaction();
 
-            Sensor sensor = getSensor(sensorName);
             boolean addVariables = false;
+            Sensor sensor = getSensor(sensorName);
             if (sensor == null) {
                 addVariables = true;
                 sensor = ingester.createSensor(sensorName, observationType, pattern);
