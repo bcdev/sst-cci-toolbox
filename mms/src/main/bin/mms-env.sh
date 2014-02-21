@@ -35,7 +35,7 @@ wait_for_task_jobs_completion() {
     step=$1
     while true
     do
-        sleep 120
+        sleep 30
         
         echo "`date -u +%Y%m%d-%H%M%S` inquiring jobs ${jobs} for ${step} ${year}/${month}"
         # output of bjobs command
