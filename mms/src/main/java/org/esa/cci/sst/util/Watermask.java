@@ -14,40 +14,24 @@ package org.esa.cci.sst.util;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoPos;
-import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.util.PixelLocator;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 
 import javax.imageio.ImageIO;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 
 public final class Watermask {
 
+    public static final byte INVALID_WATER_FRACTION = Byte.MIN_VALUE;
     private static final String RESOURCE_NAME = "water.png";
 
     private final GridDef gridDef;
-    private final Raster imageRaster;
 
     public Watermask() {
-        final BufferedImage waterImage;
-        try {
-            final URL url = getClass().getResource(RESOURCE_NAME);
-            if (url != null) {
-                waterImage = ImageIO.read(url);
-            } else {
-                throw new IllegalStateException(MessageFormat.format(
-                        "Cannot find resource for water mask image ''{0}''.", RESOURCE_NAME));
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException(MessageFormat.format(
-                    "Cannot read resource for water mask image ''{0}''.", RESOURCE_NAME), e);
-        }
-        imageRaster = waterImage.getRaster();
         gridDef = GridDef.createGlobal(0.01);
     }
 
@@ -55,12 +39,11 @@ public final class Watermask {
         final int x = gridDef.getGridX(lon, true);
         final int y = gridDef.getGridY(lat, true);
 
-        return imageRaster.getSample(x, y, 0) != 0;
+        return Container.WATERMASK_IMAGE.getRaster().getSample(x, y, 0) != 0;
     }
 
-    public byte getWaterFraction(GeoCoding geoCoding, int pixelX, int pixelY) {
-        final GeoPos g = new GeoPos();
-        final PixelPos p = new PixelPos();
+    public byte getWaterFraction(int x, int y, PixelLocator locator) {
+        final Point2D g = new Point2D.Double();
 
         final int stepCountX = 11;
         final int stepCountY = 11;
@@ -70,16 +53,12 @@ public final class Watermask {
         int waterCount = 0;
         int invalidCount = 0;
 
-        for (int i = 0; i < stepCountY; i++) {
-            final double y = pixelY + i * deltaY;
-            for (int j = 0; j < stepCountX; j++) {
-                final double x = pixelX + j * deltaX;
-
-                p.setLocation(x, y);
-                geoCoding.getGeoPos(p, g);
-
-                if (g.isValid()) {
-                    if (isWater(g.getLon(), g.getLat())) {
+        for (int i = 0; i < stepCountX; i++) {
+            final double u = x + i * deltaX;
+            for (int j = 0; j < stepCountY; j++) {
+                final double v = y + j * deltaY;
+                if (locator.getGeoLocation(u, v, g)) {
+                    if (isWater(g.getX(), g.getY())) {
                         waterCount++;
                     }
                 } else {
@@ -90,9 +69,30 @@ public final class Watermask {
 
         final int count = stepCountX * stepCountY;
         if (invalidCount == count) {
-            return Byte.MIN_VALUE;
+            return INVALID_WATER_FRACTION;
         }
         return (byte) ((100.0 * waterCount) / count);
     }
 
+    private static BufferedImage createWatermaskImage() {
+        final BufferedImage watermaskImage;
+        try {
+            final URL url = Watermask.class.getResource(RESOURCE_NAME);
+            if (url != null) {
+                watermaskImage = ImageIO.read(url);
+            } else {
+                throw new IllegalStateException(MessageFormat.format(
+                        "Resource for watermask image ''{0}'' not found.", RESOURCE_NAME));
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(MessageFormat.format(
+                    "Unable to read resource for watermask image ''{0}''.", RESOURCE_NAME), e);
+        }
+        return watermaskImage;
+    }
+
+    private static final class Container {
+
+        private static final BufferedImage WATERMASK_IMAGE = createWatermaskImage();
+    }
 }

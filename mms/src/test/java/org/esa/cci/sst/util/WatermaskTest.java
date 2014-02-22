@@ -14,16 +14,15 @@ package org.esa.cci.sst.util;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.beam.util.PixelLocator;
 import org.esa.cci.sst.IoTestRunner;
-import org.esa.cci.sst.util.SobolSequenceGenerator;
-import org.esa.cci.sst.util.Watermask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.awt.geom.Point2D;
 import java.util.Date;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(IoTestRunner.class)
 public class WatermaskTest {
@@ -34,6 +33,27 @@ public class WatermaskTest {
 
         assertTrue(watermask.isWater(0.0, 0.0));
         assertFalse(watermask.isWater(20.0, 0.0));
+    }
+
+    @Test
+    public void testGetWaterFraction() throws Exception {
+        final Watermask watermask = new Watermask();
+
+        final PixelLocator equirectangularGeographic = new PixelLocator() {
+            @Override
+            public boolean getGeoLocation(double x, double y, Point2D g) {
+                g.setLocation(x, y);
+                return true;
+            }
+
+            @Override
+            public boolean getPixelLocation(double lon, double lat, Point2D p) {
+                return false;
+            }
+        };
+
+        assertEquals(100, watermask.getWaterFraction(0, 0, equirectangularGeographic));
+        assertEquals(0, watermask.getWaterFraction(20, 0, equirectangularGeographic));
     }
 
     // for testing performance only - rq-20140212
