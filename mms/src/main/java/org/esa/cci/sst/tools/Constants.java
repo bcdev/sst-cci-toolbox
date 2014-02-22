@@ -64,6 +64,7 @@ public class Constants {
 
     public static final String PROPERTY_NWP_ARC3_START_TIME = "mms.nwp_arc3.startTime";
     public static final String PROPERTY_NWP_ARC3_STOP_TIME = "mms.nwp_arc3.stopTime";
+    public static final int PERSISTENCE_RETRY_COUNT = 7;
 
     private Constants() {
     }

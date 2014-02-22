@@ -291,7 +291,9 @@ public abstract class BasicTool {
         }
         getLogger().info("connecting to database " + config.getStringValue("openjpa.ConnectionURL"));
         try {
-            persistenceManager = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, config.getAsProperties());
+            persistenceManager = PersistenceManager.create(Constants.PERSISTENCE_UNIT_NAME,
+                                                           Constants.PERSISTENCE_RETRY_COUNT,
+                                                           config.getAsProperties());
         } catch (Exception e) {
             throw new ToolException("Unable to establish database connection.", e, ToolException.TOOL_DB_ERROR);
         }

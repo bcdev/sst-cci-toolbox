@@ -79,7 +79,7 @@ public class DatabaseTestRunner extends BlockJUnit4ClassRunner {
             }
         }
         try {
-            new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, configuration);
+            PersistenceManager.create(Constants.PERSISTENCE_UNIT_NAME, 0, configuration);
             canPersist = true;
         } catch (Throwable t) {
             System.out.println("Test" + klass.getName() + " suppressed - JPA persistence not available.");

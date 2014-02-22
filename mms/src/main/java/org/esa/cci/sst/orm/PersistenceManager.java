@@ -16,7 +16,12 @@
 
 package org.esa.cci.sst.orm;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
 import java.util.List;
 import java.util.Map;
 
@@ -28,12 +33,28 @@ import java.util.Map;
  */
 public class PersistenceManager {
 
-    private EntityManager entityManager = null;
+    private final EntityManager entityManager;
 
-    public PersistenceManager(String persistenceUnitName, Map conf) {
-        final EntityManagerFactory emFactory;
-        emFactory = Persistence.createEntityManagerFactory(persistenceUnitName, conf);
-        entityManager = emFactory.createEntityManager();
+    public static PersistenceManager create(String persistenceUnitName, int retryCount, Map conf) {
+        final EntityManagerFactory factory = Persistence.createEntityManagerFactory(persistenceUnitName, conf);
+        for (int i= 0; i < 1 + retryCount; i++) {
+            try {
+                return new PersistenceManager(factory.createEntityManager());
+            } catch (Exception e) {
+                if (i == retryCount) {
+                    throw e;
+                }
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+        return null; // cannot happen
+    }
+
+    private PersistenceManager(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     public void close() {

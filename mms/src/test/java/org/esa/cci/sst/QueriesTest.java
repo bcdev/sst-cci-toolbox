@@ -69,7 +69,7 @@ public class QueriesTest {
             }
         }
 
-        pm = new PersistenceManager(Constants.PERSISTENCE_UNIT_NAME, configuration);
+        pm = PersistenceManager.create(Constants.PERSISTENCE_UNIT_NAME, 0, configuration);
     }
 
     @Test
