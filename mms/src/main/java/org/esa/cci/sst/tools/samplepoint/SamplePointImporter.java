@@ -9,6 +9,7 @@ import org.esa.cci.sst.util.TimeUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -55,7 +56,7 @@ public class SamplePointImporter {
 
     private List<SamplingPoint> loadPointsFrom(File file) throws IOException {
         if (file == null) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         try (FileInputStream inputStream = new FileInputStream(file)) {
