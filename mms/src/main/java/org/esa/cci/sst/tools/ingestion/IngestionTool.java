@@ -104,19 +104,15 @@ public class IngestionTool extends BasicTool {
             // open database
             persistenceManager.transaction();
 
-            boolean addVariables = false;
             Sensor sensor = getSensor(sensorName);
             if (sensor == null) {
-                addVariables = true;
                 sensor = ingester.createSensor(sensorName, observationType, pattern);
             }
             final DataFile dataFile = new DataFile(path, sensor);
             reader.init(dataFile, archiveRoot);
 
             persistenceManager.persist(dataFile);
-            if (addVariables) {
-                ingester.persistColumns(sensorName, reader);
-            }
+            ingester.persistColumns(sensorName, reader);
 
             int recordsInTimeInterval = persistObservations(sensorName, reader);
             // make changes in database
