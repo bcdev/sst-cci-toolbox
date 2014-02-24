@@ -138,6 +138,10 @@ public class CloudySubsceneRemover {
         }
         final String columnName = sensorName + "." + cloudFlagsVariableName;
         final Column column = storage.getColumn(columnName);
+        if (column == null) {
+            throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName),
+                                    ToolException.TOOL_ERROR);
+        }
         final Number fillValue = column.getFillValue();
         final PixelCounter pixelCounter = new PixelCounter(cloudFlagsMask, fillValue);
 
