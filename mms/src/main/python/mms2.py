@@ -99,7 +99,7 @@ for (sensor, sensorstart, sensorstop) in sensors:
 hosts = [('localhost', 12)]
 types = [('ingestion-start.sh', 12),
          ('sampling-run.sh', 2),
-         ('clearsky-run.sh', 12),
+         ('clearsky-start.sh', 12),
          ('mmd-run2.sh', 12),
          ('coincidence-run2.sh', 12),
          ('nwp-run2.sh', 12),
