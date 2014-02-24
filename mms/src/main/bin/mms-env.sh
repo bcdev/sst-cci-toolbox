@@ -12,11 +12,11 @@ if [ ! -z ${MMS_DEBUG} ]; then
 fi
 
 read_task_jobs() {
-    step=$1
+    jobname=$1
     jobs=
-    if [ -e ${MMS_TASKS}/$step-${year}-${month}.tasks ]
+    if [ -e ${MMS_TASKS}/${jobname}.tasks ]
     then
-        for logandid in `cat ${MMS_TASKS}/${step}-${year}-${month}.tasks`
+        for logandid in `cat ${MMS_TASKS}/${jobname}.tasks`
         do
             job=`basename ${logandid}`
             log=`dirname ${logandid}`
@@ -47,7 +47,7 @@ wait_for_task_jobs_completion() {
             continue
         fi
         
-        for logandid in `cat ${MMS_TASKS}/${step}-${year}-${month}.tasks`
+        for logandid in `cat ${MMS_TASKS}/${jobname}.tasks`
         do
             job=`basename ${logandid}`
             log=`dirname ${logandid}`
