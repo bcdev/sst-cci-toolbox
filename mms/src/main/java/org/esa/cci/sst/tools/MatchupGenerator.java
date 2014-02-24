@@ -87,7 +87,15 @@ public class MatchupGenerator extends BasicTool {
 
         final SamplePointImporter samplePointImporter = new SamplePointImporter(getConfig());
         samplePointImporter.setLogger(getLogger());
+        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
+            final String message = "Starting loading samples...";
+            getLogger().info(message);
+        }
         final List<SamplingPoint> samples = samplePointImporter.load();
+        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
+            final String message = "Finished loading samples: (" + samples.size() + " loaded).";
+            getLogger().info(message);
+        }
 
         final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
         subsceneRemover.sensorName(sensorName1)
