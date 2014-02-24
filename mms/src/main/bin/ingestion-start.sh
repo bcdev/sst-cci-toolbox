@@ -11,7 +11,7 @@ task="ingestion"
 jobname="${task}-${year}-${month}"
 command="${task}-run.sh ${year} ${month} ${usecase}"
 
-echo "`date -u +%Y%m%d-%H%M%S` submitting job '${jobname}' for usecase '${usecase}"
+echo "`date -u +%Y%m%d-%H%M%S` submitting job '${jobname}' for usecase ${usecase}"
 
 read_task_jobs ${jobname}
 
