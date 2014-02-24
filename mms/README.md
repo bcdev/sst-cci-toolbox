@@ -61,10 +61,10 @@ Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal typ
 
 In order to automatically start your database on log-in, type
 
-    cp /usr/local/Cellar/postgresql/9.0.4/org.postgresql.postgres.plist ~/Library/LaunchAgents
-    launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
+    ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
+    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
 
-Then open `/Library/LaunchAgents/org.postgresql.postgres.plist` and in the entry following `-D` replace the existing path with the actual path to your database.
+Then open `~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist` and in the entry following `-D` replace the existing path with the actual path to your database.
 
 ## Installation and database server startup on Eddie VM
 
