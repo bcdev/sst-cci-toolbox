@@ -7,8 +7,6 @@ usecase=$3
 
 . mymms
 
-/sbin/ifconfig
-
 ingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.source.11.inputDirectory=atsr.1/v2.1/${year}/${month} \
 -Dmms.source.12.inputDirectory=atsr.2/v2.1/${year}/${month} \
