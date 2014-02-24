@@ -211,15 +211,35 @@ public class ConfigurationTest {
         } catch (Exception expected) {
         }
 
-        configuration.put("mysensor", "100");
+        configuration.put("mysensor", "8000000000000000");
         try {
             configuration.getPattern("mysensor");
             fail();
         } catch (Exception expected) {
         }
 
-        configuration.put("mms.pattern.mysensor", "100");
-        assertEquals(256, configuration.getPattern("mysensor"));
+        configuration.put("mms.pattern.mysensor", "8000000000000000");
+        assertEquals(0x8000000000000000L, configuration.getPattern("mysensor"));
+    }
+
+    @Test
+    public void testGetSensorPattern_withTooManyBits() throws Exception {
+        configuration.put("mms.pattern.mysensor", "10000000000000000");
+        try {
+            configuration.getPattern("mysensor");
+            fail();
+        } catch (Exception expexted) {
+        }
+    }
+
+    @Test
+    public void testGetSensorPattern_withTooManyBitsSet() throws Exception {
+        configuration.put("mms.pattern.mysensor", "8000000000000001");
+        try {
+            configuration.getPattern("mysensor");
+            fail();
+        } catch (Exception expexted) {
+        }
     }
 
     @Test

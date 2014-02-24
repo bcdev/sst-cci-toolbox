@@ -183,7 +183,14 @@ public class Configuration {
     private long parsePattern(String key, String value) {
         final long pattern;
         try {
-            pattern = Long.parseLong(value, 16);
+            final BigInteger bigInteger = new BigInteger(value, 16);
+            if (bigInteger.bitLength() > 64) {
+                throw new ToolException("Too many bits in pattern: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            if (bigInteger.bitCount() > 1) {
+                throw new ToolException("Too many bits set in pattern: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            pattern = bigInteger.longValue();
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse pattern: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
