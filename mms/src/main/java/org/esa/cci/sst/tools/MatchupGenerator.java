@@ -208,7 +208,7 @@ public class MatchupGenerator extends BasicTool {
             }
             pm.commit();
             if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = MessageFormat.format("Matchup pattern: {0}", matchupPattern);
+                final String message = MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern));
                 logger.info(message);
             }
 
