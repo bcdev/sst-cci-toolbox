@@ -96,10 +96,10 @@ for (sensor, sensorstart, sensorstop) in sensors:
         next_month_year, next_month = next_year_month_of(sensorstop[0:4], sensorstop[5:7])
     inputs.append('/obs/' + next_month_year + '/' + next_month)
 
-hosts = [('localhost', 12)]
-types = [('ingestion-start.sh', 12),
+hosts = [('localhost', 96)]
+types = [('ingestion-start.sh', 96),
          ('sampling-run.sh', 2),
-         ('clearsky-start.sh', 12),
+         ('clearsky-start.sh', 48),
          ('mmd-run2.sh', 12),
          ('coincidence-run2.sh', 12),
          ('nwp-run2.sh', 12),
@@ -119,6 +119,7 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
+        continue;
 
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
