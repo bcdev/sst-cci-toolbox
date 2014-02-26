@@ -158,10 +158,11 @@ public class MatchupTool extends BasicTool {
     @Override
     public void initialize() {
         super.initialize();
-        atsrSensor = getSensor(ATSR_MD);
-        metopSensor = getSensor(METOP);
-        seviriSensor = getSensor(SEVIRI);
-        avhrrSensor = getSensor(AVHRR_MD);
+        final Storage storage = getStorage();
+        atsrSensor = storage.getSensor(ATSR_MD);
+        metopSensor = storage.getSensor(METOP);
+        seviriSensor = storage.getSensor(SEVIRI);
+        avhrrSensor = storage.getSensor(AVHRR_MD);
         getMatchupStartTime();
     }
 
@@ -557,7 +558,7 @@ public class MatchupTool extends BasicTool {
                 final List<Matchup> matchups = query.getResultList();
 
                 for (String sensorName : sensorNames) {
-                    final Sensor sensor = getSensor(sensorName);
+                    final Sensor sensor = getStorage().getSensor(sensorName);
                     final Class<? extends Observation> observationClass = getObservationClass(sensor);
                     final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
                     for (final Matchup matchup : matchups) {
@@ -604,7 +605,7 @@ public class MatchupTool extends BasicTool {
             if (sensorName == null) {
                 continue;
             }
-            final Sensor sensor = getSensor(sensorName);
+            final Sensor sensor = getStorage().getSensor(sensorName);
             if (sensor == null) {
                 continue;
             }
