@@ -28,6 +28,7 @@ import org.esa.cci.sst.util.TimeUtil;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -97,7 +98,9 @@ class MmdObservationIngester {
     private void setCoincidenceTimeDelta(final Matchup matchup, final Observation observation,
                                          final Coincidence coincidence) {
         if (observation instanceof Timeable) {
-            final double timeDelta = TimeUtil.timeDifferenceInSeconds(matchup, (Timeable) observation);
+            final Date matchupTime = matchup.getRefObs().getTime();
+            final Date observationTime = ((Timeable) observation).getTime();
+            final double timeDelta = TimeUtil.getTimeDifferenceInSeconds(matchupTime, observationTime);
             coincidence.setTimeDifference(timeDelta);
         }
     }

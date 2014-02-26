@@ -126,8 +126,8 @@ public class MatchupTool extends BasicTool {
     private Date matchupStartTime;
     private Date matchupStopTime;
 
-    private List<Matchup> matchupAccu = new ArrayList<Matchup>();
-    private List<Coincidence> coincidenceAccu = new ArrayList<Coincidence>();
+    private List<Matchup> matchupAccu = new ArrayList<>();
+    private List<Coincidence> coincidenceAccu = new ArrayList<>();
 
     static {
         OBSERVATION_QUERY_MAP.put(ReferenceObservation.class, COINCIDING_OBSERVATION_QUERY);
@@ -753,7 +753,9 @@ public class MatchupTool extends BasicTool {
      */
     private Coincidence createCoincidence(Matchup matchup, Observation observation) {
         Assert.argument(observation instanceof Timeable, "!(observation instanceof Timeable)");
-        final double timeDifference = TimeUtil.timeDifferenceInSeconds(matchup, (Timeable) observation);
+        final Date matchupTime = matchup.getRefObs().getTime();
+        final Date observationTime = ((Timeable) observation).getTime();
+        final double timeDifference = TimeUtil.getTimeDifferenceInSeconds(matchupTime, observationTime);
         final Coincidence coincidence = new Coincidence();
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);

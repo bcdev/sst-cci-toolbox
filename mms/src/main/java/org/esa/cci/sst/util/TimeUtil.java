@@ -16,8 +16,6 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.tools.ToolException;
 
 import java.text.MessageFormat;
@@ -155,19 +153,15 @@ public final class TimeUtil {
                 time.getTime() - deltaInMillis < end.getTime();
     }
 
-    public static double timeDifferenceInSeconds(Matchup m, Timeable t) {
-        return timeDifferenceInSeconds(m.getRefObs().getTime(), t.getTime());
-    }
-
-    public static double timeDifferenceInSeconds(Date d, Date d2) {
+    public static double getTimeDifferenceInSeconds(Date d, Date d2) {
         return Math.abs(d.getTime() - d2.getTime()) / 1000.0;
     }
 
-    public static Date centerTime(Date startTime, Date endTime) {
+    public static Date getCenterTime(Date startTime, Date endTime) {
         return new Date((startTime.getTime() + endTime.getTime()) / 2);
     }
 
-    public static double timeRadius(Date startTime, Date endTime) {
+    public static double getTimeRadius(Date startTime, Date endTime) {
         return Math.abs(endTime.getTime() - startTime.getTime()) / 2000.0;
     }
 

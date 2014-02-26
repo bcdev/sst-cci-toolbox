@@ -94,8 +94,8 @@ class InsituReader extends NetcdfReader {
 
         final Date startTime = insituAccessor.getHistoryStart();
         final Date endTime = insituAccessor.getHistoryEnd();
-        observation.setTime(TimeUtil.centerTime(startTime, endTime));
-        observation.setTimeRadius(TimeUtil.timeRadius(startTime, endTime));
+        observation.setTime(TimeUtil.getCenterTime(startTime, endTime));
+        observation.setTimeRadius(TimeUtil.getTimeRadius(startTime, endTime));
 
         final double startLon = GeometryUtil.normalizeLongitude(insituAccessor.getStartLon());
         final double startLat = insituAccessor.getStartLat();

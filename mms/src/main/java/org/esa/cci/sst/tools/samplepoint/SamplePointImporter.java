@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -31,7 +30,7 @@ public class SamplePointImporter {
 
         final Date startDate = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME);
         final Date stopDate = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME);
-        final Date centerDate = TimeUtil.centerTime(startDate, stopDate);
+        final Date centerDate = TimeUtil.getCenterTime(startDate, stopDate);
         year = TimeUtil.getYear(centerDate);
         month = TimeUtil.getMonth(centerDate);
     }
