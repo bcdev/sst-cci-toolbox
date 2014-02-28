@@ -35,7 +35,7 @@ wait_for_task_jobs_completion() {
     step=$1
     while true
     do
-        sleep 20
+        sleep 60
         
         echo "`date -u +%Y%m%d-%H%M%S` inquiring jobs ${jobs} for ${jobname}"
         # output of bjobs command
@@ -48,7 +48,7 @@ wait_for_task_jobs_completion() {
             continue
         fi
 
-        sleep 20
+        sleep 60
 
         for logandid in `cat ${MMS_TASKS}/${jobname}.tasks`
         do
