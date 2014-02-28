@@ -66,6 +66,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             <directory>src/main/config</directory>
             <includes>
                 <include>*.properties</include>
+                <include>*.config</include>
             </includes>
             <outputDirectory>config</outputDirectory>
             <directoryMode>0774</directoryMode>
