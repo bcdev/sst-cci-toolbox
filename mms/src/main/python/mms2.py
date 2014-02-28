@@ -143,6 +143,7 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
             # 4. Create single-sensor MMD with subscenes
             pm.execute('mmd-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
@@ -153,7 +154,6 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-run2.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
