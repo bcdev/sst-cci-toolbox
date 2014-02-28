@@ -96,7 +96,7 @@ hosts = [('localhost', 1)]
 types = [('ingestion-run.sh', 1),
          ('sampling-run.sh', 1),
          ('clearsky-run.sh', 1),
-         ('mmd-run2.sh', 1),
+         ('mmd-run.sh', 1),
          ('coincidence-run2.sh', 1),
          ('nwp-run2.sh', 1),
          ('arc-run2.sh', 1),
@@ -142,7 +142,7 @@ for year in years:
                        parameters=[year, month, sensor, usecase])
             continue
             # 4. Create single-sensor MMD with subscenes
-            pm.execute('mmd-run2.sh',
+            pm.execute('mmd-run.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
@@ -186,7 +186,7 @@ for year in years:
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
             # 12. Produce final single-sensor MMD file
-            pm.execute('mmd-run2.sh',
+            pm.execute('mmd-run.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
                        ['/mmd/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'mmd2', usecase])

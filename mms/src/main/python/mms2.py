@@ -100,7 +100,7 @@ hosts = [('localhost', 96)]
 types = [('ingestion-start.sh', 96),
          ('sampling-run.sh', 2),
          ('clearsky-start.sh', 48),
-         ('mmd-run2.sh', 12),
+         ('mmd-start.sh', 12),
          ('coincidence-run2.sh', 12),
          ('nwp-run2.sh', 12),
          ('arc-run2.sh', 12),
@@ -119,7 +119,6 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
-        continue;
 
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
@@ -144,12 +143,12 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
             # 4. Create single-sensor MMD with subscenes
-            pm.execute('mmd-run2.sh',
+            pm.execute('mmd-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
+            continue
             # 5. Add coincidences from Sea Ice and Aerosol data
             # TODO - why do not extract and ingest those?
             pm.execute('coincidence-run2.sh',
@@ -190,7 +189,7 @@ for year in years:
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
             # 12. Produce final single-sensor MMD file
-            pm.execute('mmd-run2.sh',
+            pm.execute('mmd-run.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
                        ['/mmd/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'mmd2', usecase])
