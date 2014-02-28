@@ -223,15 +223,15 @@ public class MatchupGenerator extends BasicTool {
             for (int i = 0; i < samples.size(); i++) {
                 final SamplingPoint p = samples.get(i);
                 final ReferenceObservation r = referenceObservations.get(i);
-                final Matchup m = new Matchup();
-                m.setId(r.getId());
-                m.setRefObs(r);
+                final Matchup matchup = new Matchup();
+                matchup.setId(r.getId());
+                matchup.setRefObs(r);
                 // @todo 2 tb/** check pattern when using with insitu data - we may have to add a "| historyPattern" here   tb 2014-02-12
-                m.setPattern(matchupPattern);
-                matchups.add(m);
+                matchup.setPattern(matchupPattern);
+                matchups.add(matchup);
                 final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
                 final Coincidence c1 = new Coincidence();
-                c1.setMatchup(m);
+                c1.setMatchup(matchup);
                 c1.setObservation(o1);
                 // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
                 c1.setTimeDifference(0.0);
@@ -239,9 +239,11 @@ public class MatchupGenerator extends BasicTool {
                 if (secondarySensorName != null) {
                     final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
                     final Coincidence c2 = new Coincidence();
-                    c2.setMatchup(m);
+                    c2.setMatchup(matchup);
                     c2.setObservation(o2);
-                    c2.setTimeDifference(TimeUtil.timeDifferenceInSeconds(m, o2));
+                    final Date matchupTime = matchup.getRefObs().getTime();
+                    final Date relatedTime = o2.getTime();
+                    c2.setTimeDifference(TimeUtil.getTimeDifferenceInSeconds(matchupTime, relatedTime));
 
                     coincidences.add(c2);
                 }

@@ -76,7 +76,7 @@ public class TimeRange {
     }
 
     private GregorianCalendar getCalendarAtCenter() {
-        final Date centerDate = TimeUtil.centerTime(startDate, stopDate);
+        final Date centerDate = TimeUtil.getCenterTime(startDate, stopDate);
         final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
         utcCalendar.setTime(centerDate);
         return utcCalendar;

@@ -199,6 +199,21 @@ public class TimeUtilTest {
         assertEquals(0, calendar.get(Calendar.MILLISECOND));
     }
 
+    @Test
+    public void testGetTimeDifferenceInSeconds() {
+        Date date_1 = new Date(10000010000L);
+        Date date_2 = new Date(10000020000L);
+
+        assertEquals(10.0, TimeUtil.getTimeDifferenceInSeconds(date_1, date_2), 1e-8);
+        assertEquals(10.0, TimeUtil.getTimeDifferenceInSeconds(date_2, date_1), 1e-8);
+
+        date_1 = new Date(23000022000L);
+        date_2 = new Date(23000033000L);
+
+        assertEquals(11.0, TimeUtil.getTimeDifferenceInSeconds(date_1, date_2), 1e-8);
+        assertEquals(11.0, TimeUtil.getTimeDifferenceInSeconds(date_2, date_1), 1e-8);
+    }
+
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
         final GregorianCalendar c = createUtcCalendar();
         c.clear();

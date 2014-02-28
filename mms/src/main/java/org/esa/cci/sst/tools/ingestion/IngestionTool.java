@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
+import com.sun.jndi.cosnaming.CNCtx;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
@@ -26,15 +27,11 @@ import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
 
-import javax.persistence.Query;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Tool to ingest new input files containing records of observations into the MMS database.
@@ -57,10 +54,17 @@ public class IngestionTool extends BasicTool {
             }
             tool.initialize();
             final Configuration config = tool.getConfig();
+
             final boolean doCleanup = config.getBooleanValue("mms.initialcleanup");
             if (doCleanup) {
                 tool.cleanup();
             }
+
+            final boolean doCleanupInterval = config.getBooleanValue(Configuration.KEY_MMS_INGESTION_CLEANUPINTERVAL);
+            if (doCleanupInterval) {
+                tool.cleanupInterval();
+            }
+
             tool.ingest();
         } catch (ToolException e) {
             tool.getErrorHandler().terminate(e);
@@ -104,7 +108,7 @@ public class IngestionTool extends BasicTool {
             // open database
             persistenceManager.transaction();
 
-            Sensor sensor = getSensor(sensorName);
+            Sensor sensor = getStorage().getSensor(sensorName);
             if (sensor == null) {
                 sensor = ingester.createSensor(sensorName, observationType, pattern);
             }
@@ -118,7 +122,7 @@ public class IngestionTool extends BasicTool {
             // make changes in database
             persistenceManager.commit();
             getLogger().info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
-                                                  recordsInTimeInterval));
+                    recordsInTimeInterval));
         } catch (Exception e) {
             // do not make any change in case of errors
             try {
@@ -178,7 +182,7 @@ public class IngestionTool extends BasicTool {
                 inputFileList = getInputFiles(filenamePattern + "\\.gz", inputDir);
                 if (inputFileList.isEmpty()) {
                     getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}/{1}''.",
-                                                             archiveRootPath, inputDirPath));
+                            archiveRootPath, inputDirPath));
                 }
             }
             for (final File inputFile : inputFileList) {
@@ -228,7 +232,7 @@ public class IngestionTool extends BasicTool {
             } catch (Exception e) {
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",
-                                                           recordNo, e.getMessage()));
+                        recordNo, e.getMessage()));
                 for (StackTraceElement stackTraceElement : e.getStackTrace()) {
                     messageBuilder.append(stackTraceElement.toString());
                     messageBuilder.append('\n');
@@ -245,34 +249,18 @@ public class IngestionTool extends BasicTool {
 
     private void cleanup() {
         getLogger().info("Cleaning up database.");
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        persistenceManager.transaction();
-        Query statement = persistenceManager.createQuery("delete from DataFile f");
-        statement.executeUpdate();
-        statement = persistenceManager.createQuery("delete from Observation o");
-        statement.executeUpdate();
-        statement = persistenceManager.createQuery("delete from Column c");
-        statement.executeUpdate();
-        statement = persistenceManager.createQuery("delete from Sensor s");
-        statement.executeUpdate();
-        statement = persistenceManager.createQuery("delete from Coincidence c");
-        statement.executeUpdate();
-        statement = persistenceManager.createQuery("delete from Matchup m");
-        statement.executeUpdate();
-//        try {
-//            statement = persistenceManager.createNativeQuery("drop index geo");
-//            statement.executeUpdate();
-//        } catch (Exception e) {
-//            System.err.format("geo index dropping failed: %s\n%s\n", e.toString(), "drop index geo");
-//        }
-//        try {
-//            statement = persistenceManager.createNativeQuery("create index geo on mm_observation using gist(location)");
-//            statement.executeUpdate();
-//        } catch (Exception e) {
-//            System.err.format("geo index creation failed: %s\n%s\n", e.toString(),
-//                              "create index geo on mm_observation using gist(location)");
-//        }
-        persistenceManager.commit();
+
+        final CleanupStatement cleanupStatement = new CleanupStatement(getPersistenceManager());
+        cleanupStatement.execute();
+    }
+
+    private void cleanupInterval() {
+        final Date sourceStartTime = getSourceStartTime();
+        final Date sourceStopTime = getSourceStopTime();
+        getLogger().info("Cleaning up database for time range: " + sourceStartTime.toString() + " - " + sourceStopTime.toString());
+
+        final CleanupStatement cleanupStatement = new CleanupStatement(getPersistenceManager());
+        cleanupStatement.executeForInterval(sourceStartTime, sourceStopTime);
     }
 
     private List<File> getInputFiles(final String filenamePattern, final File inputDir) {
