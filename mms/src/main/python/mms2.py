@@ -98,10 +98,10 @@ for (sensor, sensorstart, sensorstop) in sensors:
 
 hosts = [('localhost', 96)]
 types = [('ingestion-start.sh', 96),
-         ('sampling-run.sh', 2),
-         ('clearsky-start.sh', 48),
-         ('mmd-start.sh', 12),
-         ('coincidence-run2.sh', 12),
+         ('sampling-start.sh', 12),
+         ('clearsky-start.sh', 96),
+         ('mmd-start.sh', 96),
+         ('coincidence-start.sh', 12),
          ('nwp-run2.sh', 12),
          ('arc-run2.sh', 12),
          ('reingestion-run2.sh', 12)]
@@ -126,7 +126,7 @@ for year in years:
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
             # 2. Generate sampling points per month and sensor
-            pm.execute('sampling-run.sh',
+            pm.execute('sampling-start.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,
                         '/obs/' + year + '/' + month,
                         '/obs/' + next_month_year + '/' + next_month],
@@ -148,13 +148,12 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            continue
             # 5. Add coincidences from Sea Ice and Aerosol data
-            # TODO - why do not extract and ingest those?
-            pm.execute('coincidence-run2.sh',
+            pm.execute('coincidence-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-run2.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
