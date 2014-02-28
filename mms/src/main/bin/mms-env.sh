@@ -42,7 +42,8 @@ wait_for_task_jobs_completion() {
         # jobs=7948
         # JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
         # 7948    mboettc RUN   lotus      lotus.jc.rl host045.jc. *g-2003-01 Feb 13 13:13
-        if ssh -A lotus.jc.rl.ac.uk bjobs -P esacci_sst | egrep -q "^$jobs\\>"
+        #if ssh -A lotus.jc.rl.ac.uk bjobs -P esacci_sst | egrep -q "^$jobs\\>"
+        if bjobs -P esacci_sst | egrep -q "^$jobs\\>"
         then
             continue
         fi
@@ -75,8 +76,10 @@ wait_for_task_jobs_completion() {
 submit_job() {
     jobname=$1
     command=$2
-    echo "ssh -A lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
-    line=`ssh -A lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}`
+    #echo "ssh -A lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
+    #line=`ssh -A lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}`
+    echo "bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
+    line=`bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}`
     echo ${line}
     jobs=`echo ${line} | awk '{ print substr($2,2,length($2)-2) }'`
     echo "${MMS_LOG}/${jobname}.out/${jobs}" > ${MMS_TASKS}/${jobname}.tasks
