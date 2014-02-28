@@ -8,34 +8,44 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.junit.Assert.*;
 
 public class EgrAaiProductReaderPluginTest {
 
     private EgrAaiProductReaderPlugIn plugIn;
 
     @Before
-    public void setUp(){
+    public void setUp() {
         plugIn = new EgrAaiProductReaderPlugIn();
     }
 
     @Test
     public void testGetDecodeQualification() {
-        assertEquals(DecodeQualification.INTENDED, plugIn.getDecodeQualification("20120623.egr"));
-        assertEquals(DecodeQualification.INTENDED, plugIn.getDecodeQualification(new File("20140130.egr")));
+        DecodeQualification decodeQualification = plugIn.getDecodeQualification("20120623.egr");
+        assertThat(decodeQualification, is(DecodeQualification.INTENDED));
 
-        assertEquals(DecodeQualification.UNABLE, plugIn.getDecodeQualification(new File("A20140130.egr")));
-        assertEquals(DecodeQualification.UNABLE, plugIn.getDecodeQualification("20140130.docx"));
-        assertEquals(DecodeQualification.UNABLE, plugIn.getDecodeQualification("a certain file"));
-        assertEquals(DecodeQualification.UNABLE, plugIn.getDecodeQualification(""));
+        decodeQualification = plugIn.getDecodeQualification(new File("20140130.egr"));
+        assertThat(decodeQualification, is(DecodeQualification.INTENDED));
+
+        decodeQualification = plugIn.getDecodeQualification(new File("A20140130.egr"));
+        assertThat(decodeQualification, is(DecodeQualification.UNABLE));
+
+        decodeQualification = plugIn.getDecodeQualification("20140130.docx");
+        assertThat(decodeQualification, is(DecodeQualification.UNABLE));
+
+        decodeQualification = plugIn.getDecodeQualification("a certain file");
+        assertThat(decodeQualification, is(DecodeQualification.UNABLE));
+
+        decodeQualification = plugIn.getDecodeQualification("");
+        assertThat(decodeQualification, is(DecodeQualification.UNABLE));
     }
 
     @Test
     public void testGetInputTypes() {
         final Class[] inputTypes = plugIn.getInputTypes();
-        assertEquals(2, inputTypes.length);
+        assertThat(inputTypes, is(arrayWithSize(2)));
 
         assertEquals(File.class, inputTypes[0]);
         assertEquals(String.class, inputTypes[1]);
