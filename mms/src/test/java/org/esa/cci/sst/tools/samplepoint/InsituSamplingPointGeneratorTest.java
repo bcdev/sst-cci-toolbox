@@ -80,7 +80,7 @@ public class InsituSamplingPointGeneratorTest {
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
-        assertEquals(197, inSituPoints.size());
+        assertEquals(207, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
