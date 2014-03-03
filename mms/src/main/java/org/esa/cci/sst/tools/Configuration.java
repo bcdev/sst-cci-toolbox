@@ -25,6 +25,7 @@ public class Configuration {
 
     public static final String KEY_MATCHUP_START_TIME = "mms.matchup.startTime";
     public static final String KEY_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
+    public static final String KEY_MMS_MATCHUP_PRIMARYSENSOR = "mms.matchup.primarysensor";
 
     public static final String KEY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
 
