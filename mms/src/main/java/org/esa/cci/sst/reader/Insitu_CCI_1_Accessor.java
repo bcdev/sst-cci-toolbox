@@ -105,8 +105,7 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
             final double mjd = historyTimes.getDouble(i);
             final Date date = TimeUtil.julianDateToDate(mjd);
             final SamplingPoint samplingPoint = new SamplingPoint(lon.getDouble(i), lat.getDouble(i), date.getTime(), Double.NaN);
-            final String wmoId = getObservationName();
-            samplingPoint.setReference(Integer.parseInt(wmoId));
+            samplingPoint.setIndex(i);
             samplingPoints.add(samplingPoint);
         }
         return samplingPoints;
