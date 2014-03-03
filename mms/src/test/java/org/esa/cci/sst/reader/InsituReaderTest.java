@@ -300,93 +300,90 @@ public class InsituReaderTest {
         }
     }
 
+   // @todo 2 tb/tb add tests for GTMBA data once Gary has updated the files
+
     @Test
     public void testReadObservation_SST_CCI_V2_Argo_Data() throws Exception {
         final InsituObservation observation;
 
-        // @todo 1 tb/tb replace with actual data from Gary tb 2014-03-03
-//        try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
-//            assertEquals(1, reader.getNumRecords());
-//            observation = reader.readObservation(0);
-//
-//            assertCorrectDate(2003, 0, 20, observation.getTime().getTime());
-//
-//            assertEquals(859463.0, observation.getTimeRadius(), 0.0);
-//
-//            final PGgeometry location = observation.getLocation();
-//            assertNotNull(location);
-//
-//            final Geometry geometry = location.getGeometry();
-//            assertTrue(geometry instanceof LineString);
-//
-//            final Point startPoint = geometry.getFirstPoint();
-//            assertEquals(4.541999816894531, startPoint.getX(), 1e-8);
-//            assertEquals(-62.78499984741211, startPoint.getY(), 1e-8);
-//
-//            final Point endPoint = geometry.getLastPoint();
-//            assertEquals(3.2060000896453857, endPoint.getX(), 1e-8);
-//            assertEquals(-62.749000549316406, endPoint.getY(), 1e-8);
-//        }
+        try (InsituReader reader = createReader("insitu_5_WMOID_69036_20001006_20020906.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
+
+            assertCorrectDate(2001, 8, 21, observation.getTime().getTime());
+
+            assertEquals(30234900.0, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertThat(geometry, is(instanceOf(LineString.class)));
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(-20.252, startPoint.getX(), 1e-6);
+            assertEquals(41.58, startPoint.getY(), 1e-5);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(-22.798, endPoint.getX(), 1e-6);
+            assertEquals(35.347, endPoint.getY(), 1e-6);
+        }
     }
 
     @Test
     public void testRead_SST_CCI_V2_Argo_Data() throws Exception {
-        final ExtractDefinitionBuilder builder = prepareExtractBuilder(2003, 0, 20);
-        builder.shape(new int[]{1, 3});
+        final ExtractDefinitionBuilder builder = prepareExtractBuilder(2001, 7, 20);
+        builder.shape(new int[]{1, 2});
         final ExtractDefinition extractDefinition = builder.build();
 
-        // @todo 1 tb/tb replace with actual data from Gary tb 2014-03-03
-//        try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
-//            Array array = reader.read("sst", extractDefinition);
-//            assertNotNull(array);
-//            assertEquals(3, array.getSize());
-//
-//            assertEquals(0.621, array.getDouble(0), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(1), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(2), 1e-6);
-//
-//            array = reader.read("lon", extractDefinition);
-//            assertNotNull(array);
-//            assertEquals(3, array.getSize());
-//
-//            assertEquals(3.8989999, array.getDouble(0), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(1), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(2), 1e-6);
-//
-//            array = reader.read("lat", extractDefinition);
-//            assertNotNull(array);
-//            assertEquals(3, array.getSize());
-//
-//            assertEquals(-62.625, array.getDouble(0), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(1), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(2), 1e-6);
-//
-//            array = reader.read("time", extractDefinition);
-//            assertNotNull(array);
-//            assertEquals(3, array.getSize());
-//
-//            assertEquals(790590428, array.getDouble(0), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(1), 1e-6);
-//            assertEquals(-32768.0, array.getDouble(2), 1e-6);
-//        }
+        try (InsituReader reader = createReader("insitu_5_WMOID_69036_20001006_20020906.nc")) {
+            Array array = reader.read("insitu.sea_surface_temperature", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(21.92, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.lon", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(-21.617, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.lat", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(39.47499847, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.time", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(749478179, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.sst_uncertainty", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(0.002, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+
+            array = reader.read("insitu.mohc_id", extractDefinition);
+            assertEquals(2, array.getSize());
+            assertEquals(2519326, array.getDouble(0), 1e-6);
+            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+        }
     }
 
     @Test
     public void testReadSamplingPoints_SST_CCI_V2_Argo_Data() throws Exception {
-        // @todo 1 tb/tb replace with actual data from Gary tb 2014-03-03
-//        try (InsituReader reader = createReader("insitu_5_WMOID_7900016_20030110_20030130.nc")) {
-//            final List<SamplingPoint> samplingPoints = reader.readSamplingPoints();
-//            assertEquals(3, samplingPoints.size());
-//
-//            SamplingPoint samplingPoint = samplingPoints.get(0);
-//            assertCorrectSamplingPoint(-62.785, 4.542, 1042188973000L, 7900016, samplingPoint);
-//
-//            samplingPoint = samplingPoints.get(1);
-//            assertCorrectSamplingPoint(-62.625, 3.899, 1043051228000L, 7900016, samplingPoint);
-//
-//            samplingPoint = samplingPoints.get(2);
-//            assertCorrectSamplingPoint(-62.749, 3.206, 1043907899000L, 7900016, samplingPoint);
-//        }
+        try (InsituReader reader = createReader("insitu_5_WMOID_69036_20001006_20020906.nc")) {
+            final List<SamplingPoint> samplingPoints = reader.readSamplingPoints();
+            assertEquals(27, samplingPoints.size());
+
+            SamplingPoint samplingPoint = samplingPoints.get(0);
+            assertCorrectSamplingPoint(41.58, -20.252, 970839660000L, 0, samplingPoint);
+
+            samplingPoint = samplingPoints.get(14);
+            assertCorrectSamplingPoint(38.003, -22.754, 1003672140000L, 14, samplingPoint);
+
+            samplingPoint = samplingPoints.get(26);
+            assertCorrectSamplingPoint(35.347, -22.798, 1031309460000L, 26, samplingPoint);
+        }
     }
 
     @Test
