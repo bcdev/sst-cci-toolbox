@@ -37,7 +37,9 @@ import org.esa.cci.sst.util.ReaderCache;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
 import javax.persistence.Query;
@@ -82,7 +84,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void run(String[] args) {
-        NetcdfFileWriteable mmd = null;
+        NetcdfFileWriter mmd = null;
         try {
             final boolean performWork = setCommandLineArgs(args);
             if (!performWork) {
@@ -94,7 +96,7 @@ public class MmdTool extends BasicTool {
             mmd = defineMmd(mmd);
             final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(),
                     getPattern());
-            writeMmdShuffled(mmd, mmd.getVariables(), recordOfMatchupMap);
+            writeMmdShuffled(mmd, mmd.getNetcdfFile().getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -119,7 +121,7 @@ public class MmdTool extends BasicTool {
      * @param recordOfMatchup
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
-    void writeMmdShuffled(NetcdfFileWriteable mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
+    void writeMmdShuffled(NetcdfFileWriter mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
         final String condition = getCondition();
         final int pattern = getPattern();
         // group variables by sensors
@@ -344,7 +346,7 @@ public class MmdTool extends BasicTool {
         return false;
     }
 
-    private void writeImplicitColumn(NetcdfFileWriteable mmd, Variable variable, int targetRecordNo, Item targetColumn,
+    private void writeImplicitColumn(NetcdfFileWriter mmd, Variable variable, int targetRecordNo, Item targetColumn,
                                      Context context) {
         try {
             final Converter converter = columnRegistry.getConverter(targetColumn);
@@ -353,7 +355,7 @@ public class MmdTool extends BasicTool {
             if (targetArray != null) {
                 final int[] targetStart = new int[variable.getRank()];
                 targetStart[0] = targetRecordNo;
-                mmd.write(variable.getFullNameEscaped(), targetStart, targetArray);
+                mmd.write(variable, targetStart, targetArray);
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
@@ -370,7 +372,7 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private void writeColumn(NetcdfFileWriteable mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
+    private void writeColumn(NetcdfFileWriter mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
             final Reader reader = readerCache.getReader(observation.getDatafile(), true);
@@ -397,7 +399,7 @@ public class MmdTool extends BasicTool {
 
                 final int[] targetStart = new int[variable.getRank()];
                 targetStart[0] = i;
-                mmd.write(variable.getFullNameEscaped(), targetStart, targetArray);
+                mmd.write(variable, targetStart, targetArray);
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
@@ -437,20 +439,20 @@ public class MmdTool extends BasicTool {
         readerCache = new ReaderCache(readerCacheSize, config, getLogger());
     }
 
-    private NetcdfFileWriteable createMmd() throws IOException {
+    private NetcdfFileWriter createMmd() throws IOException {
         final Configuration config = getConfig();
         final String mmdDirPath = config.getStringValue("mms.target.dir", ".");
         final String mmdFileName = config.getStringValue("mms.target.filename", "mmd.nc");
         final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
 
-        final NetcdfFileWriteable mmd = NetcdfFileWriteable.createNew(mmdFilePath, true);
+        final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, mmdFilePath);
         mmd.setLargeFile(true);
 
         return mmd;
     }
 
 
-    private NetcdfFileWriteable defineMmd(NetcdfFileWriteable mmd) throws IOException {
+    private NetcdfFileWriter defineMmd(NetcdfFileWriter mmd) throws IOException {
         defineDimensions(mmd);
         defineVariables(mmd);
         defineGlobalAttributes(mmd);
@@ -460,7 +462,7 @@ public class MmdTool extends BasicTool {
         return mmd;
     }
 
-    private void defineDimensions(NetcdfFileWriteable mmdFile) {
+    private void defineDimensions(NetcdfFileWriter mmdFile) {
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
                 getTime(Constants.PROPERTY_TARGET_START_TIME),
                 getTime(Constants.PROPERTY_TARGET_STOP_TIME),
@@ -469,7 +471,7 @@ public class MmdTool extends BasicTool {
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
         } else {
-            mmdFile.addDimension(Constants.DIMENSION_NAME_MATCHUP, matchupCount);
+            mmdFile.addDimension(null, Constants.DIMENSION_NAME_MATCHUP, matchupCount);
         }
         for (final String dimensionName : dimensionNames) {
             if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
@@ -480,7 +482,7 @@ public class MmdTool extends BasicTool {
                         MessageFormat.format("Length of dimension ''{0}'' is not configured.", dimensionName),
                         ToolException.TOOL_CONFIGURATION_ERROR);
             }
-            mmdFile.addDimension(dimensionName, dimensionConfiguration.get(dimensionName));
+            mmdFile.addDimension(null, dimensionName, dimensionConfiguration.get(dimensionName));
         }
     }
 
@@ -498,19 +500,19 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private void defineVariables(NetcdfFileWriteable mmdFile) {
+    private void defineVariables(NetcdfFileWriter mmdFile) {
         for (final String name : targetColumnNames) {
             final Item column = columnRegistry.getColumn(name);
             IoUtil.addVariable(mmdFile, column);
         }
     }
 
-    private void defineGlobalAttributes(NetcdfFileWriteable file) {
-        file.addGlobalAttribute("title", "SST CCI multi-sensor match-up dataset (MMD) template");
-        file.addGlobalAttribute("institution", "Brockmann Consult");
-        file.addGlobalAttribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)");
-        file.addGlobalAttribute("creation_date", Calendar.getInstance().getTime().toString());
-        file.addGlobalAttribute("total_number_of_matchups", matchupCount);
+    private void defineGlobalAttributes(NetcdfFileWriter file) {
+        file.addGroupAttribute(null, new Attribute("title", "SST CCI multi-sensor match-up dataset (MMD) template"));
+        file.addGroupAttribute(null, new Attribute("institution", "Brockmann Consult"));
+        file.addGroupAttribute(null, new Attribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)"));
+        file.addGroupAttribute(null, new Attribute("creation_date", Calendar.getInstance().getTime().toString()));
+        file.addGroupAttribute(null, new Attribute("total_number_of_matchups", matchupCount));
     }
 
     private void readDimensionConfiguration(Collection<String> dimensionNames) {

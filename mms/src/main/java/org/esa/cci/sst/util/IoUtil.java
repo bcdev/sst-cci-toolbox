@@ -24,6 +24,7 @@ import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.Group;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
 import java.text.MessageFormat;
@@ -194,10 +195,9 @@ public class IoUtil {
         }
     }
 
-    public static void addVariable(NetcdfFileWriteable targetFile, Item column) {
-        final Group rootGroup = targetFile.getRootGroup();
+    public static void addVariable(NetcdfFileWriter targetFile, Item column) {
         final DataType dataType = DataType.valueOf(column.getType());
-        final Variable v = targetFile.addVariable(rootGroup, column.getName(), dataType, column.getDimensions());
+        final Variable v = targetFile.addVariable(null, column.getName(), dataType, column.getDimensions());
 
         final boolean unsigned = column.isUnsigned();
         if (unsigned) {

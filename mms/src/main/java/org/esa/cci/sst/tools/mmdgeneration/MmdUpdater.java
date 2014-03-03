@@ -23,6 +23,7 @@ import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
 import java.io.File;
@@ -40,7 +41,7 @@ import java.util.Map;
 public class MmdUpdater extends BasicTool {
 
     final List<Variable> variables = new ArrayList<Variable>(5);
-    NetcdfFileWriteable mmd;
+    NetcdfFileWriter mmd;
 
     protected MmdUpdater() {
         super("mmdupdate-tool.sh", "0.1");
@@ -106,18 +107,18 @@ public class MmdUpdater extends BasicTool {
         try {
             mmd.close();
         } catch (IOException e) {
-            getLogger().warning("File '" + mmd.getLocation() + "' could not be closed.");
+            getLogger().warning("File '" + mmd.getNetcdfFile().getLocation() + "' could not be closed.");
         }
     }
 
     void openMmd() {
         final String mmdLocation = getConfig().getStringValue("mms.mmdupdate.mmd");
         try {
-            final boolean canOpen = NetcdfFileWriteable.canOpen(mmdLocation);
+            final boolean canOpen = NetcdfFile.canOpen(mmdLocation);
             if(!canOpen) {
                 throw new Exception("Cannot open file '" + mmdLocation + "'.");
             }
-            mmd = NetcdfFileWriteable.openExisting(mmdLocation);
+            mmd = NetcdfFileWriter.openExisting(mmdLocation);
         } catch (Exception e) {
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
