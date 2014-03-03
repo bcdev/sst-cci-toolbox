@@ -160,7 +160,6 @@ for year in years:
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
             # 7. Extract NWP analysis (an) and forecast (fc) data for matchup point
-            # TODO - why do I do this? Will these be ingested later?
             pm.execute('nwpmatchup-run2.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month,

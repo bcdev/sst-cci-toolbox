@@ -21,6 +21,9 @@ public class Configuration {
     public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
 
+    public static final String KEY_NWP_FOR_MATCHUP_POINTS = "mms.nwp.extractformatchup";
+    public static final String KEY_NWP_SENSOR = "mms.nwp.sensor";
+
     public static final String KEY_MMS_INGESTION_CLEANUPINTERVAL = "mms.ingestion.cleanupinterval";
 
     public static final String KEY_MATCHUP_START_TIME = "mms.matchup.startTime";
