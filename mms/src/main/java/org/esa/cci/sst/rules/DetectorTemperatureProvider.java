@@ -67,8 +67,8 @@ public class DetectorTemperatureProvider {
      * @return The detector temperature.
      */
     public float getDetectorTemperature(Date date) {
-        final double millisSince1970 = date.getTime();
-        final double millisSince1978 = millisSince1970 - TimeUtil.MILLIS_1978;
+        final long millisSince1970 = date.getTime();
+        final long millisSince1978 = millisSince1970 - TimeUtil.MILLIS_1978;
         final double secondsSinceCciEpoch = millisSince1978 / 1000;
         int index = (int) Math.round((secondsSinceCciEpoch - startTime) / step);
         if(index >= temperatures.length) {
