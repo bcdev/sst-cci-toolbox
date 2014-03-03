@@ -6,9 +6,7 @@ cd ${MMS_INST}
 year=$1
 month=$2
 sensor=$3
-count=$4
-skip=$5
-usecase=$6
+usecase=$4
 
 task="coincidence"
 jobname="${task}-${year}-${month}-${sensor}"
