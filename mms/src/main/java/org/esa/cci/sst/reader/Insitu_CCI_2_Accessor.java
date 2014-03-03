@@ -31,7 +31,7 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
 
     @Override
     public void readHistoryTimes() throws IOException {
-        final Variable timeVariable = netcdfReader.getVariable("time");
+        final Variable timeVariable = netcdfReader.getVariable("insitu.time");
         historyTimes = timeVariable.read();
     }
 
@@ -132,14 +132,14 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
 
     private void ensureLon() throws IOException {
         if (lon == null) {
-            final Variable lonVariable = netcdfReader.getVariable("lon");
+            final Variable lonVariable = netcdfReader.getVariable("insitu.lon");
             lon = lonVariable.read();
         }
     }
 
     private void ensureLat() throws IOException {
         if (lat == null) {
-            final Variable latVariable = netcdfReader.getVariable("lat");
+            final Variable latVariable = netcdfReader.getVariable("insitu.lat");
             lat = latVariable.read();
         }
     }

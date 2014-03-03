@@ -60,16 +60,7 @@ class InsituReader extends NetcdfReader {
     public void init(DataFile datafile, File archiveRoot) throws IOException {
         super.init(datafile, archiveRoot);
 
-        final String title = getGlobalAttribute("title");
-        if (title == null) {
-            throw new IOException("Illegal file format");
-        }
-        if (title.contains("SST CCI Phase II")) {
-            insituAccessor = new Insitu_CCI_2_Accessor(this);
-        } else {
-            insituAccessor = new Insitu_CCI_1_Accessor(this);
-        }
-
+        insituAccessor = createInsituAccessor();
         insituAccessor.readHistoryTimes();
     }
 
@@ -169,6 +160,18 @@ class InsituReader extends NetcdfReader {
     @Override
     public int getElementCount() {
         throw new IllegalStateException("Not implemented");
+    }
+
+    private InsituAccessor createInsituAccessor() throws IOException {
+        final String title = getGlobalAttribute("title");
+        if (title == null) {
+            throw new IOException("Illegal file format");
+        }
+        if (title.contains("SST CCI Phase II")) {
+            return new Insitu_CCI_2_Accessor(this);
+        } else {
+            return new Insitu_CCI_1_Accessor(this);
+        }
     }
 
     // package access for testing only tb 2014-02-06
