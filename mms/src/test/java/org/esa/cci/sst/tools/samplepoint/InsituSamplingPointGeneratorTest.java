@@ -43,8 +43,8 @@ public class InsituSamplingPointGeneratorTest {
 
     @Test
     public void testGenerate_timeRangeBeforeData() throws URISyntaxException, ParseException {
-        final long startTime = TimeUtil.parseCcsdsUtcFormat("1984-06-01T00:00:00Z").getTime();
-        final long stopTime = TimeUtil.parseCcsdsUtcFormat("1984-06-04T00:00:00Z").getTime();
+        final long startTime = TimeUtil.parseCcsdsUtcFormat("1983-06-01T00:00:00Z").getTime();
+        final long stopTime = TimeUtil.parseCcsdsUtcFormat("1983-06-04T00:00:00Z").getTime();
 
         final List<SamplingPoint> inSituPoints = generator.generate(startTime, stopTime);
         assertNotNull(inSituPoints);
