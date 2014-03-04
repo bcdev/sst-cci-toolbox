@@ -86,7 +86,7 @@ public class SamplingTool extends BasicTool {
         final Configuration config = getConfig();
         if (config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_CLEANUP)) {
             cleanup();
-        } else if (config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_CLEANUPINTERVAL)) {
+        } else if (config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_CLEANUP_INTERVAL)) {
             cleanupInterval();
         }
 

@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.tools.nwp;
 
-import org.esa.cci.sst.tools.ingestion.MmdIngestionTool;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -33,43 +32,5 @@ public class NwpToolTest {
         assertEquals("avhrr.12", NwpTool.getAlternativeSensorName("avhrr.n12"));
         assertEquals("avhrr.14", NwpTool.getAlternativeSensorName("avhrr.n14"));
         assertEquals("atsr.1", NwpTool.getAlternativeSensorName("atsr.1"));
-    }
-
-    @SuppressWarnings("ConstantIfStatement")
-    public static void main(String[] _) throws IOException, InterruptedException {
-        // code snippet for creating an NWP file from an MMD file
-        if (true) {
-            final String sensorName = "atsr.3";
-            final String pattern = "20";
-            final String dimensionProperties = "mms/src/main/config/mms-wpr-02/mmd-dimensions.properties";
-            final String sourceMmd = "archive/mmd-2004-06-11.nc";
-            final String nwpArchivePath = "archive/ecmwf-era-interim/v01";
-            final String nwpMmd = "archive/nwp-2004-06-11.nc";
-            final String[] args = new String[]{"false",
-                    sensorName,
-                    pattern,
-                    dimensionProperties,
-                    sourceMmd,
-                    nwpArchivePath,
-                    nwpMmd
-            };
-
-            new NwpTool(args).createMergedFile();
-        }
-        if (true) {
-            final String sourceMmd = "archive/mmd-2004-06-11.nc";
-            final String nwpArchivePath = "archive/ecmwf-era-interim/v01";
-            final String anMmd = "archive/nwpan-2004-06-11.nc";
-            final String fcMmd = "archive/nwpfc-2004-06-11.nc";
-            final String[] args = new String[]{"true",
-                    sourceMmd,
-                    nwpArchivePath,
-                    anMmd,
-                    fcMmd
-            };
-            final NwpTool nwpTool = new NwpTool(args);
-            nwpTool.createMatchupAnFile();
-            nwpTool.createMatchupFcFile();
-        }
     }
 }

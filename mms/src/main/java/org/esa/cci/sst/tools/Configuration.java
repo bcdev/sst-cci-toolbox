@@ -21,14 +21,21 @@ public class Configuration {
     public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
 
-    public static final String KEY_NWP_FOR_MATCHUP_POINTS = "mms.nwp.extractformatchup";
-    public static final String KEY_NWP_SENSOR = "mms.nwp.sensor";
+    public static final String KEY_MMS_MMD_SOURCE_LOCATION = "mms.mmd.source";
+    public static final String KEY_MMS_MMD_TARGET_DIMENSIONS = "mms.target.dimensions";
+
+    public static final String KEY_MMS_NWP_FOR_MATCHUP_POINTS = "mms.nwp.formatchuppoints";
+    public static final String KEY_MMS_NWP_SENSOR = "mms.nwp.sensor";
+    public static final String KEY_MMS_NWP_SOURCE_LOCATION = "mms.nwp.source";
+    public static final String KEY_MMS_NWP_TARGET_LOCATION = "mms.nwp.target";
+    public static final String KEY_MMS_NWP_AN_TARGET_LOCATION = "mms.nwpan.target";
+    public static final String KEY_MMS_NWP_FC_TARGET_LOCATION = "mms.nwpfc.target";
 
     public static final String KEY_MMS_INGESTION_CLEANUPINTERVAL = "mms.ingestion.cleanupinterval";
 
     public static final String KEY_MATCHUP_START_TIME = "mms.matchup.startTime";
     public static final String KEY_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
-    public static final String KEY_MMS_MATCHUP_PRIMARYSENSOR = "mms.matchup.primarysensor";
+    public static final String KEY_MMS_MATCHUP_PRIMARY_SENSOR = "mms.matchup.primarysensor";
 
     public static final String KEY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
 
@@ -48,7 +55,7 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     public static final String KEY_MMS_SAMPLING_HALF_REVISIT_TIME = "mms.sampling.halfrevisittime";
     public static final String KEY_MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
-    public static final String KEY_MMS_SAMPLING_CLEANUPINTERVAL = "mms.sampling.cleanupinterval";
+    public static final String KEY_MMS_SAMPLING_CLEANUP_INTERVAL = "mms.sampling.cleanupinterval";
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME = "mms.sampling.cloudflags.variable";
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
     public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";

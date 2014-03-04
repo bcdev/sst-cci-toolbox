@@ -13,7 +13,7 @@
 
 java \
     -Dmms.home="$MMS_HOME" \
-    -Djava.io.tmpdir=`pwd` \
+    -Djava.io.tmpdir=${TMPDIR} \
     -Xmx512M $MMS_OPTIONS \
     -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpaversion}.jar" \
     -classpath "$MMS_HOME/lib/*" \

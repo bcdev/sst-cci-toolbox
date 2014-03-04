@@ -224,7 +224,7 @@ public class MatchupTool extends BasicTool {
             findSingleSensorMatchups(AVHRR_MD, avhrrSensor);
         }
 
-        final String primarySensor = config.getStringValue(Configuration.KEY_MMS_MATCHUP_PRIMARYSENSOR);
+        final String primarySensor = config.getStringValue(Configuration.KEY_MMS_MATCHUP_PRIMARY_SENSOR);
         if (primarySensor != null) {
             getLogger().info("Primary sensor is " + primarySensor);
         }

@@ -38,7 +38,6 @@ import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
@@ -516,7 +515,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void readDimensionConfiguration(Collection<String> dimensionNames) {
-        final String configFilePath = getConfig().getStringValue("mms.target.dimensions");
+        final String configFilePath = getConfig().getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIMENSIONS);
         if (configFilePath == null) {
             throw new ToolException("No target dimensions specified.", ToolException.TOOL_CONFIGURATION_ERROR);
         }

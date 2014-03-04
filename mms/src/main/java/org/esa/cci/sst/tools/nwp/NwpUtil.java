@@ -25,6 +25,7 @@ import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
 import java.io.File;
@@ -293,8 +294,8 @@ class NwpUtil {
         return script;
     }
 
-    static void addVariable(NetcdfFileWriteable netcdfFile, Variable s) {
-        final Variable t = netcdfFile.addVariable(s.getShortName(), s.getDataType(), s.getDimensionsString());
+    static void addVariable(NetcdfFileWriter netcdfFile, Variable s) {
+        final Variable t = netcdfFile.addVariable(null, s.getShortName(), s.getDataType(), s.getDimensionsString());
         for (final Attribute a : s.getAttributes()) {
             t.addAttribute(a);
         }
