@@ -211,13 +211,13 @@ public class PolarOrbitingPolygonTest {
         assertEquals(13.0, longitudeAtEquator, 1e-8);
 
         longitudeAtEquator = PolarOrbitingPolygon.getLongitudeAtEquator(12.0, 0.0, 14.0, 15.0);
-        assertEquals(-90.0, longitudeAtEquator, 1e-8);  // @todo 1 tb/mb really?
+        assertEquals(-90.0, longitudeAtEquator, 1e-8);
 
         longitudeAtEquator = PolarOrbitingPolygon.getLongitudeAtEquator(12.0, 13.0, 14.0, 15.0);
         assertEquals(1.0, longitudeAtEquator, 1e-8);
 
         longitudeAtEquator = PolarOrbitingPolygon.getLongitudeAtEquator(12.0, 13.0, 14.0, 0.0);
-        assertEquals(91.0, longitudeAtEquator, 1e-8);   // @todo 1 tb/mb really?
+        assertEquals(91.0, longitudeAtEquator, 1e-8);
 
         longitudeAtEquator = PolarOrbitingPolygon.getLongitudeAtEquator(12.0, 15.0, 14.0, 15.0);
         assertEquals(15.0, longitudeAtEquator, 1e-8);

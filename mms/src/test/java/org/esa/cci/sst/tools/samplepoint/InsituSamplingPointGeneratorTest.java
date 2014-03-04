@@ -75,39 +75,38 @@ public class InsituSamplingPointGeneratorTest {
 
     @Test
     public void testGenerate_timeRangeContainsTwoFiles() throws URISyntaxException, ParseException {
-        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2003-01-31T00:00:00Z");
-        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2007-12-01T00:00:00Z");
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("1984-06-01T00:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("1985-02-30T00:00:00Z");
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
-        assertEquals(207, inSituPoints.size());
+        assertEquals(35, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
 
     @Test
     public void testGenerate_timeRangeIntersectsOneFile() throws URISyntaxException, ParseException {
-        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2003-01-01T00:00:00Z");
-        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2003-01-12T00:00:00Z");
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2013-04-12T00:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2013-08-22T00:00:00Z");
 
-        // @todo 1 tb/tb reanimate when all data ist updated to latest in-situ format tb 2014-03-03
-//        final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
-//        assertNotNull(inSituPoints);
-//        assertEquals(1, inSituPoints.size());
-//
-//        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
+        assertNotNull(inSituPoints);
+        assertEquals(321, inSituPoints.size());
+
+        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
 
     @Test
     public void testGenerate_timeRangeIntersectsAlFiles() throws URISyntaxException, ParseException {
-        final Date startDate = TimeUtil.parseCcsdsUtcFormat("1998-01-01T00:00:00Z");
-        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2012-01-12T00:00:00Z");
-// @todo 1 tb/tb reanimate when all data ist updated to latest in-situ format tb 2014-03-03
-//        final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
-//        assertNotNull(inSituPoints);
-//        assertEquals(223 + 3 + 1285, inSituPoints.size());
-//
-//        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("1983-01-01T00:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2014-01-12T00:00:00Z");
+
+        final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
+        assertNotNull(inSituPoints);
+        assertEquals(38978, inSituPoints.size());
+
+        TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
     }
 
     @Test
@@ -116,12 +115,11 @@ public class InsituSamplingPointGeneratorTest {
 
         generator.setLogger(testLogger);
 
-        // @todo 1 tb/tb reanimate when all data ist updated to latest in-situ format tb 2014-03-03
-//        final Date startDate = TimeUtil.parseCcsdsUtcFormat("1998-01-01T00:00:00Z");
-//        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2012-01-12T00:00:00Z");
-//        generator.generate(startDate.getTime(), stopDate.getTime());
-//
-//        assertEquals("Unparseable date: \"actual\"", testLogger.getWarning());
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("1998-01-01T00:00:00Z");
+        final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2012-01-12T00:00:00Z");
+        generator.generate(startDate.getTime(), stopDate.getTime());
+
+        assertEquals("Unparseable date: \"actual\"", testLogger.getWarning());
     }
 
     @Test
