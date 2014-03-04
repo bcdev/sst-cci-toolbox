@@ -21,10 +21,7 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.GunzipDecorator;
 import org.esa.cci.sst.reader.MmdReader;
-import org.esa.cci.sst.tools.BasicTool;
-import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tools.*;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.Query;
@@ -85,21 +82,22 @@ public class MmdIngestionTool extends BasicTool {
         }
         try {
             getPersistenceManager().transaction();
-            Sensor sensor = getSensor(sensorName);
+            final Storage storage = getStorage();
+            Sensor sensor = storage.getSensor(sensorName);
             final boolean persistSensor = (sensor == null);
             if (persistSensor) {
                 try {
                     sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
                     // make sensor entry visible to concurrent processes to avoid duplicate creation
                 } catch (EntityExistsException e) {
-                    sensor = getSensor(sensorName);
+                    sensor = storage.getSensor(sensorName);
                 }
             }
             getPersistenceManager().commit();
 
             if (withOverwrite) {
-                getPersistenceManager().transaction();
-                dataFile = getDatafile(path);
+
+                dataFile = storage.getDatafile(path);
                 if (dataFile != null) {
                     dropObservationsAndCoincidencesOf(dataFile);
                 }

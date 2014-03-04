@@ -280,11 +280,6 @@ public abstract class BasicTool {
         return getStorage().getSensor(sensorName);
     }
 
-    @Deprecated
-    public final DataFile getDatafile(final String path) {
-        return getStorage().getDatafile(path);
-    }
-
     public void initialize() {
         if (initialised) {
             return;
