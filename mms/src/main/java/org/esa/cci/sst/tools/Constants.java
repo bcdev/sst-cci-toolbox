@@ -66,6 +66,23 @@ public class Constants {
     public static final String PROPERTY_NWP_ARC3_STOP_TIME = "mms.nwp_arc3.stopTime";
     public static final int PERSISTENCE_RETRY_COUNT = 7;
 
+    public static final String SENSOR_NAME_AVHRR_MD = "avhrr_md";
+    public static final String SENSOR_NAME_METOP_MD = "metop";
+    public static final String SENSOR_NAME_SEVIRI_MD = "seviri";
+    public static final String SENSOR_NAME_SOBOL = "sobol";
+
+    public static final byte MATCHUP_INSITU_DATASET_DUMMY_BC = (byte) 8;
+    public static final byte MATCHUP_REFERENCE_FLAG_UNDEFINED = (byte) 4;
+
+    public static final byte MATCHUP_INSITU_DATASET_DRIFTER = 0;
+    public static final byte MATCHUP_INSITU_DATASET_MOORING = 1;
+    public static final byte MATCHUP_INSITU_DATASET_SHIP = 2;
+    public static final byte MATCHUP_INSITU_DATASET_GTMBA = 3;
+    public static final byte MATCHUP_INSITU_DATASET_RADIOMETER = 4;
+    public static final byte MATCHUP_INSITU_DATASET_ARGO = 5;
+    public static final byte MATCHUP_INSITU_DATASET_DUMMY_SEA_ICE = 6;
+    public static final byte MATCHUP_INSITU_DATASET_DUMMY_DIURNAL_VARIABILITY = 7;
+
     private Constants() {
     }
 }

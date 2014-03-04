@@ -18,6 +18,7 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.Constants;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -46,13 +47,13 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
         byte flag;
         if ("atsr_md".equalsIgnoreCase(sensor)) {
             flag = 0;
-        } else if ("metop".equalsIgnoreCase(sensor)) {
+        } else if (Constants.SENSOR_NAME_METOP_MD.equalsIgnoreCase(sensor)) {
             flag = 1;
-        } else if ("seviri".equalsIgnoreCase(sensor)) {
+        } else if (Constants.SENSOR_NAME_SEVIRI_MD.equalsIgnoreCase(sensor)) {
             flag = 2;
-        } else if("avhrr_md".equalsIgnoreCase(sensor)) {
+        } else if(Constants.SENSOR_NAME_AVHRR_MD.equalsIgnoreCase(sensor)) {
             flag = 3;
-        } else if("sobol".equalsIgnoreCase(sensor)) {
+        } else if(Constants.SENSOR_NAME_SOBOL.equalsIgnoreCase(sensor)) {
             flag = 4;
         } else {
             throw new RuleException(MessageFormat.format("Unknown primary sensor ''{0}''.", sensor));

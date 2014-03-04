@@ -29,10 +29,6 @@ import java.util.logging.Logger;
 
 public class MatchupGenerator extends BasicTool {
 
-    private static final String SENSOR_NAME_SOBOL = "sobol";
-    private static final byte DATASET_DUMMY = (byte) 8;
-    private static final byte REFERENCE_FLAG_UNDEFINED = (byte) 4;
-
     private long startTime;
     private long stopTime;
     private String sensorName1;
@@ -79,7 +75,7 @@ public class MatchupGenerator extends BasicTool {
         cloudFlagsVariableName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME);
         cloudFlagsMask = config.getIntValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK);
         cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
-        referenceSensorPattern = config.getPattern(SENSOR_NAME_SOBOL);
+        referenceSensorPattern = config.getPattern(Constants.SENSOR_NAME_SOBOL);
     }
 
     private void run() throws IOException {
@@ -131,7 +127,7 @@ public class MatchupGenerator extends BasicTool {
             final String message = "Starting creating matchups...";
             getLogger().info(message);
         }
-        createMatchups(samples, SENSOR_NAME_SOBOL, sensorName1, sensorName2, referenceSensorPattern,
+        createMatchups(samples, Constants.SENSOR_NAME_SOBOL, sensorName1, sensorName2, referenceSensorPattern,
                        getPersistenceManager(), getStorage(), getLogger());
         if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
             final String message = "Finished creating matchups...";
@@ -301,8 +297,8 @@ public class MatchupGenerator extends BasicTool {
             final Observation o = storage.getObservation(p.getReference());
             r.setDatafile(o.getDatafile());
             r.setRecordNo(0);
-            r.setDataset(DATASET_DUMMY);
-            r.setReferenceFlag(REFERENCE_FLAG_UNDEFINED);
+            r.setDataset(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC);
+            r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
 
             referenceObservations.add(r);
         }
@@ -331,7 +327,7 @@ public class MatchupGenerator extends BasicTool {
         delete = getPersistenceManager().createQuery("delete from Matchup m");
         delete.executeUpdate();
         delete = getPersistenceManager().createQuery(
-                "delete from Observation o where o.sensor = '" + SENSOR_NAME_SOBOL + "'");
+                "delete from Observation o where o.sensor = '" + Constants.SENSOR_NAME_SOBOL + "'");
         delete.executeUpdate();
 
         getPersistenceManager().commit();
@@ -341,17 +337,17 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().transaction();
 
         Query delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + SENSOR_NAME_SOBOL + "')");
+                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_SOBOL + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + SENSOR_NAME_SOBOL + "')");
+                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_SOBOL + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + SENSOR_NAME_SOBOL + "'");
+                "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_SOBOL + "'");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();

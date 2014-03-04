@@ -30,8 +30,17 @@ import ucar.ma2.DataType;
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
 final class MatchupInsituDataset extends AbstractImplicitRule {
 
-    private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4, 5, 6, 7};
-    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variability";
+    private static final byte[] FLAG_VALUES = new byte[]{
+            Constants.MATCHUP_INSITU_DATASET_DRIFTER,
+            Constants.MATCHUP_INSITU_DATASET_MOORING,
+            Constants.MATCHUP_INSITU_DATASET_SHIP,
+            Constants.MATCHUP_INSITU_DATASET_GTMBA,
+            Constants.MATCHUP_INSITU_DATASET_RADIOMETER,
+            Constants.MATCHUP_INSITU_DATASET_ARGO,
+            Constants.MATCHUP_INSITU_DATASET_DUMMY_SEA_ICE,
+            Constants.MATCHUP_INSITU_DATASET_DUMMY_DIURNAL_VARIABILITY,
+            Constants.MATCHUP_INSITU_DATASET_DUMMY_BC};
+    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variability dummy_bc";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
