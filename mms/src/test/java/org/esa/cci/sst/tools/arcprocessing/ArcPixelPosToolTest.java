@@ -19,8 +19,10 @@ package org.esa.cci.sst.tools.arcprocessing;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.cci.sst.IoTestRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.awt.image.Raster;
 import java.io.File;
@@ -28,9 +30,7 @@ import java.net.URL;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Thomas Storm
- */
+@RunWith(IoTestRunner.class)
 public class ArcPixelPosToolTest {
 
     private ArcPixelPosTool tool;
