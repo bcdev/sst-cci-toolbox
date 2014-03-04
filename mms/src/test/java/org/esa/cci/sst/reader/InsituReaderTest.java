@@ -556,6 +556,95 @@ public class InsituReaderTest {
     }
 
     @Test
+    public void testReadObservation_SST_CCI_V2_Cdt_Data() throws Exception {
+        final InsituObservation observation;
+
+        try (InsituReader reader = createReader("insitu_11_WMOID_991446_19850619_19850703.nc")) {
+            assertEquals(1, reader.getNumRecords());
+            observation = reader.readObservation(0);
+
+            assertCorrectDate(1985, 5, 26, observation.getTime().getTime());
+            assertEquals(579564.5, observation.getTimeRadius(), 0.0);
+
+            final PGgeometry location = observation.getLocation();
+            assertNotNull(location);
+
+            final Geometry geometry = location.getGeometry();
+            assertThat(geometry, is(instanceOf(LineString.class)));
+
+            final Point startPoint = geometry.getFirstPoint();
+            assertEquals(-63.8303, startPoint.getX(), 1e-6);
+            assertEquals(43.7332, startPoint.getY(), 1e-5);
+
+            final Point endPoint = geometry.getLastPoint();
+            assertEquals(-61.1702, endPoint.getX(), 1e-6);
+            assertEquals(45.09500122, endPoint.getY(), 1e-6);
+        }
+    }
+
+    @Test
+    public void testRead_SST_CCI_V2_Cdt_Data() throws Exception {
+        final ExtractDefinitionBuilder builder = prepareExtractBuilder(1985, 5, 30);
+        builder.shape(new int[]{1, 3});
+        final ExtractDefinition extractDefinition = builder.build();
+
+        try (InsituReader reader = createReader("insitu_11_WMOID_991446_19850619_19850703.nc")) {
+            Array array = reader.read("insitu.sea_surface_temperature", extractDefinition);
+            assertEquals(3, array.getSize());
+            assertEquals(11.894, array.getDouble(0), 1e-6);
+            assertEquals(11.897, array.getDouble(1), 1e-6);
+            assertEquals(11.89, array.getDouble(2), 1e-6);
+
+            array = reader.read("insitu.lon", extractDefinition);
+            assertEquals(3, array.getSize());
+            assertEquals(-58.55149841, array.getDouble(0), 1e-6);
+            assertEquals(-58.5573, array.getDouble(1), 1e-6);
+            assertEquals(-58.5658, array.getDouble(2), 1e-6);
+
+            array = reader.read("insitu.lat", extractDefinition);
+            assertEquals(3, array.getSize());
+            assertEquals(43.837002, array.getDouble(0), 1e-6);
+            assertEquals(43.8385, array.getDouble(1), 1e-6);
+            assertEquals(43.8452, array.getDouble(2), 1e-6);
+
+            array = reader.read("insitu.time", extractDefinition);
+            assertEquals(3, array.getSize());
+            assertEquals(236546028, array.getDouble(0), 1e-6);
+            assertEquals(236551212, array.getDouble(1), 1e-6);
+            assertEquals(236556251, array.getDouble(2), 1e-6);
+
+            array = reader.read("insitu.sst_uncertainty", extractDefinition);
+            assertEquals(3, array.getSize());
+            assertEquals(0.002, array.getDouble(0), 1e-6);
+            assertEquals(0.002, array.getDouble(1), 1e-6);
+            assertEquals(0.002, array.getDouble(2), 1e-6);
+
+            array = reader.read("insitu.mohc_id", extractDefinition);
+            assertEquals(3, array.getSize());
+            assertEquals(737551, array.getDouble(0), 1e-6);
+            assertEquals(739080, array.getDouble(1), 1e-6);
+            assertEquals(740163, array.getDouble(2), 1e-6);
+        }
+    }
+
+    @Test
+    public void testReadSamplingPoints_SST_CCI_V2_Cdt_Data() throws Exception {
+        try (InsituReader reader = createReader("insitu_11_WMOID_991446_19850619_19850703.nc")) {
+            final List<SamplingPoint> samplingPoints = reader.readSamplingPoints();
+            assertEquals(20, samplingPoints.size());
+
+            SamplingPoint samplingPoint = samplingPoints.get(0);
+            assertCorrectSamplingPoint(43.7332, -63.8303, 488062511000L, 0, samplingPoint);
+
+            samplingPoint = samplingPoints.get(9);
+            assertCorrectSamplingPoint(40.5975, -62.2245, 488347560000L, 9, samplingPoint);
+
+            samplingPoint = samplingPoints.get(19);
+            assertCorrectSamplingPoint(45.095, -61.1702, 489221640000L, 19, samplingPoint);
+        }
+    }
+
+    @Test
     public void testCreateSubset_1D() throws InvalidRangeException {
         final Array historyTimes = InsituData.createHistoryTimeArray_MJD();
         final Range range = InsituReaderHelper.findRange(historyTimes, 2455090.56, 0.5);
