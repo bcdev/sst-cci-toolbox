@@ -55,11 +55,11 @@ class NwpTool extends BasicTool {
     private static final String CDO_NWP_TEMPLATE =
             "#! /bin/sh\n" +
             "${CDO} ${CDO_OPTS} -f nc2 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 -R mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 -R mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f nc2 -R -t ecmwf mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
-            "${CDO} ${CDO_OPTS} -f nc2 -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
-            "${CDO} ${CDO_OPTS} -f nc2 -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
+            "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,CI,ASN,SSTK,TCWV,MSL,TCC,U10,V10,T2,D2,AL,SKT ${GGAS_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} ${SPAM_TIME_SERIES_REMAPPED} ${NWP_TIME_SERIES}\n";
 
     private static final String CDO_MATCHUP_AN_TEMPLATE =
@@ -285,8 +285,8 @@ class NwpTool extends BasicTool {
             properties.setProperty("SPAM_TIMESTEPS",
                                    NwpUtil.files(nwpSourceLocation + "/spam", subDirectories, "spam[0-9]*.grb"));
             properties.setProperty("GGAS_TIME_SERIES", NwpUtil.createTempFile("ggas", ".nc", false).getPath());
-            properties.setProperty("GGAM_TIME_SERIES", NwpUtil.createTempFile("ggam", ".grb", false).getPath());
-            properties.setProperty("SPAM_TIME_SERIES", NwpUtil.createTempFile("spam", ".grb", false).getPath());
+            properties.setProperty("GGAM_TIME_SERIES", NwpUtil.createTempFile("ggam", ".nc", false).getPath());
+            properties.setProperty("SPAM_TIME_SERIES", NwpUtil.createTempFile("spam", ".nc", false).getPath());
             properties.setProperty("GGAM_TIME_SERIES_REMAPPED", NwpUtil.createTempFile("ggar", ".nc", false).getPath());
             properties.setProperty("SPAM_TIME_SERIES_REMAPPED", NwpUtil.createTempFile("spar", ".nc", false).getPath());
             properties.setProperty("NWP_TIME_SERIES", NwpUtil.createTempFile("nwp", ".nc", false).getPath());
