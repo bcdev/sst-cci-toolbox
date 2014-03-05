@@ -106,6 +106,24 @@ public class ToolStorageTest {
     }
 
     @Test
+    public void testGetReferenceObservation() {
+        final String sql = "select o from ReferenceObservation o where o.id = ?1";
+        final int id = 2286;
+        final String name = "refer_to_me";
+        final ReferenceObservation referenceObservation = new ReferenceObservation();
+        referenceObservation.setName(name);
+
+        when(persistenceManager.pick(sql, id)).thenReturn(referenceObservation);
+
+        final ReferenceObservation toolStorageReferenceObservation = toolStorage.getReferenceObservation(id);
+        assertNotNull(toolStorageReferenceObservation);
+        assertEquals(name, toolStorageReferenceObservation.getName());
+
+        verify(persistenceManager, times(1)).pick(sql, id);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
     public void testGetSensor() {
         final String sql = "select s from Sensor s where s.name = ?1";
         final String sensorName = "blabla";

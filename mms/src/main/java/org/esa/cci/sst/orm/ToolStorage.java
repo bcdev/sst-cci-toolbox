@@ -33,7 +33,12 @@ class ToolStorage implements Storage {
 
     @Override
     public RelatedObservation getRelatedObservation(int id) {
-        return (RelatedObservation) persistenceManager.pick("select o from Observation o where o.id = ?1", id);
+        return (RelatedObservation) getObservation(id);
+    }
+
+    @Override
+    public ReferenceObservation getReferenceObservation(int id) {
+        return (ReferenceObservation) persistenceManager.pick("select o from ReferenceObservation o where o.id = ?1", id);
     }
 
     @Override

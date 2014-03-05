@@ -14,11 +14,7 @@ package org.esa.cci.sst.orm;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.data.Column;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.*;
 
 public interface Storage {
 
@@ -31,6 +27,8 @@ public interface Storage {
     Observation getObservation(int id);
 
     RelatedObservation getRelatedObservation(int id);
+
+    ReferenceObservation getReferenceObservation(int id);
 
     Sensor getSensor(String sensorName);
 }

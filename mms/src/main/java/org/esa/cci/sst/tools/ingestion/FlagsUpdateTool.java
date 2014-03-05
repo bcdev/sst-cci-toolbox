@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools.ingestion;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
@@ -66,18 +67,21 @@ public class FlagsUpdateTool extends BasicTool {
         final String mmdFilename = config.getStringValue(Configuration.KEY_MMS_REINGESTION_FILENAME);
         final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
         final MmdReader reader = createReader(mmdFilename, archiveRootPath);
+
         // determine MMD' variables
         final Item referenceFlagColumn = reader.getColumn("matchup.reference_flag");
         if (referenceFlagColumn != null) {
             getLogger().fine("going to update column referenceflag of matchup reference observations");
         }
+
         // loop over matchups
         final int numRecords = reader.getNumRecords();
         int count = 0;
+        final Storage storage = getPersistenceManager().getToolStorage();
         for (int recordNo = 0; recordNo < numRecords; ++recordNo) {
             // look up observation
             final int matchupId = reader.getMatchupId(recordNo);
-            final ReferenceObservation observation = (ReferenceObservation) getPersistenceManager().pick("select o from ReferenceObservation o where o.id = ?1", matchupId);
+            final ReferenceObservation observation = storage.getReferenceObservation(matchupId);
             if (observation == null) {
                 getLogger().warning(String.format("matchup %d of record %d not found - skipped", matchupId, recordNo));
                 continue;
