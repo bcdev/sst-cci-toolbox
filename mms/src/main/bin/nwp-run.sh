@@ -11,7 +11,7 @@ usecase=$4
 
 . mymms
 
-nwp-tool.sh -c ${usecase}-config.properties \
+nwp-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.nwp.formatchuppoints=false \
 -Dmms.nwp.sensor=${sensor} \
 -Dmms.target.dimensions=${MMS_HOME}/config/mmd-dimensions.properties \

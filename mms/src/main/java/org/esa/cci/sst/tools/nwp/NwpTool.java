@@ -120,7 +120,8 @@ class NwpTool extends BasicTool {
             fcTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_FC_TARGET_LOCATION);
         } else {
             nwpTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_TARGET_LOCATION);
-            sensorName = config.getStringValue(Configuration.KEY_MMS_NWP_SENSOR);
+            sensorName = config.getStringValue(Configuration.KEY_MMS_NWP_SENSOR).replace("_orb", "");
+            // TODO - check for AVHRRs, patterns of orbit files and sub-scene files are different (rq-20140304)
             sensorPattern = (int) config.getPattern(sensorName);
         }
     }
