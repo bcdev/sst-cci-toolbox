@@ -77,27 +77,33 @@ public class InsituSamplingPointGeneratorTest {
         final Date startDate = parseDate("2007-11-01T00:00:00Z");
         final Date stopDate = parseDate("2008-02-01T00:00:00Z");
         when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.store(any(DataFile.class))).thenReturn(78);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
         assertEquals(1285, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        TestHelper.assertPointsHaveReference(78, inSituPoints);
 
         assertNumDataFilesStored(1);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testGenerate_timeRangeContainsOneFile_dataFileAlreadyStored() throws URISyntaxException, ParseException {
         final Date startDate = parseDate("2007-11-01T00:00:00Z");
         final Date stopDate = parseDate("2008-02-01T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(new DataFile());
+        final DataFile dataFile = new DataFile();
+        dataFile.setId(7765);
+        when(mockStorage.getDatafile(anyString())).thenReturn(dataFile);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
         assertEquals(1285, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
+        TestHelper.assertPointsHaveReference(7765, inSituPoints);
 
         verify(mockStorage, times(1)).getDatafile(anyString());
         verify(mockStorage, times(0)).store(any(DataFile.class));

@@ -44,10 +44,9 @@ public class InsituSamplePointGenerator {
         for (File insituFile : filesInRange) {
             extractPointsInTimeRange(samplingPoints, timeRange, insituFile);
 
-            final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
-            if (storageDatafile == null) {
-                final DataFile dataFile = createDataFile(insituFile, sensor);
-                storage.store(dataFile);
+            final int id = persist(insituFile);
+            for (SamplingPoint samplingPoint : samplingPoints) {
+                samplingPoint.setReference(id);
             }
         }
         return samplingPoints;
@@ -119,5 +118,15 @@ public class InsituSamplePointGenerator {
         dataFile.setPath(insituFile.getPath());
         dataFile.setSensor(sensor);
         return dataFile;
+    }
+
+    private int persist(File insituFile) {
+        final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
+        if (storageDatafile == null) {
+            final DataFile dataFile = createDataFile(insituFile, sensor);
+            return storage.store(dataFile);
+        } else {
+            return storageDatafile.getId();
+        }
     }
 }
