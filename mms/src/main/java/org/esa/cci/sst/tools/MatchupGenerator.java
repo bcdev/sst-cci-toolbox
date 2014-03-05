@@ -8,6 +8,7 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;

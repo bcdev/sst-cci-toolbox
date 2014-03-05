@@ -27,7 +27,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.Storage;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.SamplingPoint;

@@ -1,4 +1,4 @@
-package org.esa.cci.sst.tools;/*
+package org.esa.cci.sst.orm;/*
  * Copyright (C) 2012 Brockmann Consult GmbH (info@brockmann-consult.de)
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -23,6 +23,8 @@ import org.esa.cci.sst.data.Sensor;
 public interface Storage {
 
     DataFile getDatafile(String path);
+
+    int store(DataFile dataFile);
 
     Column getColumn(String columnName);
 

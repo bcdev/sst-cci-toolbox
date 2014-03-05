@@ -18,7 +18,7 @@ package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.GunzipDecorator;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.*;
@@ -51,9 +51,6 @@ public class MmdIngestionTool extends BasicTool {
 
     private static final String MMS_REINGESTION_SENSOR_PROPERTY = "mms.reingestion.sensor";
     private static final String MMS_REINGESTION_PATTERN_PROPERTY = "mms.reingestion.pattern";
-    private static final String DATAFILE_ALREADY_INGESTED = "SELECT COUNT(*) " +
-            "FROM mm_datafile " +
-            "WHERE path = '%s'";
 
     private MmdReader reader;
     private Ingester ingester;
@@ -116,7 +113,7 @@ public class MmdIngestionTool extends BasicTool {
 
             getPersistenceManager().transaction();
             if (isNewDatafile) {
-                storeDataFile();
+                storeDataFile(dataFile, storage);
             }
             ingestObservations(pattern);
             getPersistenceManager().commit();
@@ -176,17 +173,11 @@ public class MmdIngestionTool extends BasicTool {
         return dataFile;
     }
 
-    private void storeDataFile() {
-        final String queryString = String.format(DATAFILE_ALREADY_INGESTED, dataFile.getPath());
-        storeOnce(dataFile, queryString);
-    }
-
-    private void storeOnce(final DataFile datafile, final String queryString) {
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        final Query query = persistenceManager.createNativeQuery(queryString, Integer.class);
-        int result = (Integer) query.getSingleResult();
-        if (result == 0) {
-            persistenceManager.persist(datafile);
+    // package access for testing only tb 2014-03-05
+    static void storeDataFile(DataFile dataFile, Storage storage) {
+        final DataFile datafileFromDb = storage.getDatafile(dataFile.getPath());
+        if (datafileFromDb == null) {
+            storage.store(dataFile);
         } else {
             throw new IllegalStateException("Trying to ingest duplicate datafile.");
         }

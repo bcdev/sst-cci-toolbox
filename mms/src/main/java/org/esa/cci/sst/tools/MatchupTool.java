@@ -26,6 +26,7 @@ import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.Timeable;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.PersistenceException;
@@ -632,7 +633,7 @@ public class MatchupTool extends BasicTool {
     }
 
     private List<String> determineRelatedSensorNames() {
-        List<String> sensorNames = new ArrayList<String>();
+        List<String> sensorNames = new ArrayList<>();
         final Configuration config = getConfig();
         for (int i = 0; i < 100; i++) {
             final String sensorKey = String.format("mms.matchup.%d.sensor", i);

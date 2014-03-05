@@ -53,14 +53,14 @@ public class PersistenceManager {
         return null; // cannot happen
     }
 
-    private PersistenceManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
     public void close() {
         if (entityManager != null) {
             entityManager.close();
         }
+    }
+
+    public Storage getToolStorage() {
+        return new ToolStorage(this);
     }
 
     public EntityTransaction transaction() {
@@ -116,5 +116,9 @@ public class PersistenceManager {
 
     public void clear() {
         entityManager.clear();
+    }
+
+    private PersistenceManager(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 }
