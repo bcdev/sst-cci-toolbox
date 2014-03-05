@@ -76,17 +76,13 @@ public class MatchupGenerator extends BasicTool {
     private void run() throws IOException {
         cleanupIfRequested();
 
+        final Logger logger = getLogger();
+
+        logInfo(logger, "Starting loading samples...");
         final SamplePointImporter samplePointImporter = new SamplePointImporter(getConfig());
-        samplePointImporter.setLogger(getLogger());
-        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
-            final String message = "Starting loading samples...";
-            getLogger().info(message);
-        }
+        samplePointImporter.setLogger(logger);
         final List<SamplingPoint> samples = samplePointImporter.load();
-        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
-            final String message = "Finished loading samples: (" + samples.size() + " loaded).";
-            getLogger().info(message);
-        }
+        logInfo(logger, "Finished loading samples: (" + samples.size() + " loaded).");
 
         final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
         subsceneRemover.sensorName(sensorName1)
@@ -98,7 +94,7 @@ public class MatchupGenerator extends BasicTool {
                 .cloudyPixelFraction(cloudyPixelFraction)
                 .config(getConfig())
                 .storage(getStorage())
-                .logger(getLogger())
+                .logger(logger)
                 .removeSamples(samples);
 
         if (sensorName2 != null) {
@@ -107,27 +103,15 @@ public class MatchupGenerator extends BasicTool {
             // subsceneRemover.sensorName(sensorName2).primary(false).removeSamples(samples);
         }
 
+        logInfo(logger, "Starting removing overlapping samples...");
         final OverlapRemover overlapRemover = createOverlapRemover();
-        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
-            final String message = "Starting removing overlapping samples...";
-            getLogger().info(message);
-        }
         overlapRemover.removeSamples(samples);
-        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
-            final String message = "Finished removing overlapping samples (" + samples.size() + " samples left)";
-            getLogger().info(message);
-        }
+        logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
 
-        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
-            final String message = "Starting creating matchups...";
-            getLogger().info(message);
-        }
+        logInfo(logger, "Starting creating matchups...");
         createMatchups(samples, Constants.SENSOR_NAME_SOBOL, sensorName1, sensorName2, referenceSensorPattern,
-                getPersistenceManager(), getStorage(), getLogger());
-        if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
-            final String message = "Finished creating matchups...";
-            getLogger().info(message);
-        }
+                getPersistenceManager(), getStorage(), logger);
+        logInfo(logger, "Finished creating matchups...");
     }
 
     static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
