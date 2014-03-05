@@ -35,7 +35,7 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder
-                .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD AVHRR_MD")
+                .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD AVHRR_MD sobol")
                 .flagValues(new byte[] {0, 1, 2, 3});
     }
 

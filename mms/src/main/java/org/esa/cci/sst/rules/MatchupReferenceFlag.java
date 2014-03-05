@@ -29,8 +29,16 @@ import ucar.ma2.DataType;
  */
 final class MatchupReferenceFlag extends AbstractImplicitRule {
 
-    private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4};
-    private static final String FLAG_MEANINGS = "training test selection validation undefined";
+    private static final byte[] FLAG_VALUES = new byte[]{
+            Constants.MATCHUP_REFERENCE_FLAG_INVALID,
+            Constants.MATCHUP_REFERENCE_FLAG_ALGORITHM,
+            Constants.MATCHUP_REFERENCE_FLAG_BLIND,
+            Constants.MATCHUP_REFERENCE_FLAG_VALIDATION,
+            Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED,
+            Constants.MATCHUP_REFERENCE_FLAG_DUPLICATE
+    };
+
+    private static final String FLAG_MEANINGS = "invalid algorithm blind validation undefined duplicate";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
