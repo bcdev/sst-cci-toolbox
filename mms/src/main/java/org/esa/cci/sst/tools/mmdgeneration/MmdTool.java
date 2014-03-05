@@ -486,7 +486,7 @@ public class MmdTool extends BasicTool {
     }
 
     private String getCondition() {
-        return getConfig().getStringValue("mms.target.condition");
+        return getConfig().getStringValue("mms.target.condition", null);
     }
 
     // e.g. "m.pattern & ?2 = ?2"  (select matchups with certain sensors)
