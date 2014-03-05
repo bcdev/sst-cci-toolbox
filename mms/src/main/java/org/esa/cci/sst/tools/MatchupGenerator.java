@@ -1,12 +1,6 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.SensorBuilder;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
@@ -129,7 +123,7 @@ public class MatchupGenerator extends BasicTool {
             getLogger().info(message);
         }
         createMatchups(samples, Constants.SENSOR_NAME_SOBOL, sensorName1, sensorName2, referenceSensorPattern,
-                       getPersistenceManager(), getStorage(), getLogger());
+                getPersistenceManager(), getStorage(), getLogger());
         if (getLogger() != null && getLogger().isLoggable(Level.INFO)) {
             final String message = "Finished creating matchups...";
             getLogger().info(message);
@@ -144,76 +138,51 @@ public class MatchupGenerator extends BasicTool {
             // 1. create reference sensor, if not already present
             transactions.push(pm.transaction());
             if (storage.getSensor(referenceSensorName) == null) {
-                if (logger != null && logger.isLoggable(Level.INFO)) {
-                    final String message = MessageFormat.format("Starting persisting reference sensor: {0}",
-                                                                referenceSensorName);
-                    logger.info(message);
-                }
+                logInfo(logger, MessageFormat.format("Starting persisting reference sensor: {0}", referenceSensorName));
                 final Sensor sensor = new SensorBuilder()
                         .name(referenceSensorName)
                         .observationType(ReferenceObservation.class)
                         .pattern(referenceSensorPattern)
                         .build();
                 pm.persist(sensor);
-                if (logger != null && logger.isLoggable(Level.INFO)) {
-                    final String message = MessageFormat.format("Finished persisting reference sensor: {0}",
-                                                                referenceSensorName);
-                    logger.info(message);
-                }
+                logInfo(logger, MessageFormat.format("Finished persisting reference sensor: {0}", referenceSensorName));
             }
             pm.commit();
 
             // 2. create reference observations
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Starting creating reference observations...";
-                logger.info(message);
-            }
+            logInfo(logger, "Starting creating reference observations...");
             transactions.push(pm.transaction());
             final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                                                                                                 referenceSensorName,
-                                                                                                 storage);
+                    referenceSensorName,
+                    storage);
             pm.commit();
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Finished creating reference observations";
-                logger.info(message);
-            }
+            logInfo(logger, "Finished creating reference observations");
 
             // 3. persist reference observations, because we need the ID
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Starting persisting reference observations...";
-                logger.info(message);
-            }
+            logInfo(logger, "Starting persisting reference observations...");
             transactions.push(pm.transaction());
             for (final ReferenceObservation r : referenceObservations) {
                 pm.persist(r);
             }
             pm.commit();
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Finished persisting reference observations";
-                logger.info(message);
-            }
+            logInfo(logger, "Finished persisting reference observations");
 
             // 4. define matchup pattern
             transactions.push(pm.transaction());
             final long matchupPattern;
             if (secondarySensorName != null) {
                 matchupPattern = referenceSensorPattern |
-                                 storage.getSensor(primarySensorName).getPattern() |
-                                 storage.getSensor(secondarySensorName).getPattern();
+                        storage.getSensor(primarySensorName).getPattern() |
+                        storage.getSensor(secondarySensorName).getPattern();
             } else {
                 matchupPattern = referenceSensorPattern | storage.getSensor(primarySensorName).getPattern();
             }
             pm.commit();
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern));
-                logger.info(message);
-            }
+            logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
             // 5. create matchups and coincidences
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Starting creating matchups and coincidences...";
-                logger.info(message);
-            }
+            logInfo(logger, "Starting creating matchups and coincidences...");
+
             transactions.push(pm.transaction());
             final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
             final List<Coincidence> coincidences = new ArrayList<>(samples.size());
@@ -246,16 +215,12 @@ public class MatchupGenerator extends BasicTool {
                 }
             }
             pm.commit();
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Finished creating matchups and coincidences";
-                logger.info(message);
-            }
+
+            logInfo(logger, "Finished creating matchups and coincidences");
 
             // 6. persist matchups and coincidences
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Starting persisting matchups and coincidences...";
-                logger.info(message);
-            }
+            logInfo(logger, "Starting persisting matchups and coincidences...");
+
             transactions.push(pm.transaction());
             for (Matchup m : matchups) {
                 pm.persist(m);
@@ -264,15 +229,19 @@ public class MatchupGenerator extends BasicTool {
                 pm.persist(c);
             }
             pm.commit();
-            if (logger != null && logger.isLoggable(Level.INFO)) {
-                final String message = "Finished persisting matchups and coincidences...";
-                logger.info(message);
-            }
+
+            logInfo(logger, "Finished persisting matchups and coincidences...");
         } catch (Exception e) {
             while (!transactions.isEmpty()) {
                 transactions.pop().rollback();
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
+        }
+    }
+
+    private static void logInfo(Logger logger, String message) {
+        if (logger != null && logger.isLoggable(Level.INFO)) {
+            logger.info(message);
         }
     }
 
