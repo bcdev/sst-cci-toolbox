@@ -83,21 +83,21 @@ class NwpUtil {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable anMmd = NetcdfFileWriteable.createNew(anTargetLocation, true);
-        anMmd.addDimension(matchupDimension.getShortName(), matchupCount);
+        final NetcdfFileWriter anMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, anTargetLocation);
+        anMmd.addDimension(null, matchupDimension.getShortName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
-        anMmd.addDimension("matchup.nwp.an.time", timeStepCount);
-        anMmd.addDimension("matchup.nwp.ny", gy);
-        anMmd.addDimension("matchup.nwp.nx", gx);
+        anMmd.addDimension(null, "matchup.nwp.an.time", timeStepCount);
+        anMmd.addDimension(null, "matchup.nwp.ny", gy);
+        anMmd.addDimension(null, "matchup.nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        anMmd.addVariable(matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        anMmd.addVariable(null, matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : analysisFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = anMmd.addVariable("matchup.nwp.an." + s.getShortName(), s.getDataType(),
+                    final Variable t = anMmd.addVariable(null, "matchup.nwp.an." + s.getShortName(), s.getDataType(),
                                                          "matchup matchup.nwp.an.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
@@ -113,7 +113,7 @@ class NwpUtil {
         final Array sourceTimes = findVariable(analysisFile, "time", "t").read();
 
         try {
-            anMmd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
+            anMmd.write(anMmd.findVariable(NetcdfFile.makeValidPathName("matchup.id")), matchupIds);
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
@@ -126,7 +126,7 @@ class NwpUtil {
 
                 final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
 
-                for (final Variable t : anMmd.getVariables()) {
+                for (final Variable t : anMmd.getNetcdfFile().getVariables()) {
                     if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
@@ -137,7 +137,7 @@ class NwpUtil {
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    anMmd.write(t.getFullNameEscaped(), targetStart, sourceData.reshape(targetShape));
+                    anMmd.write(t, targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
@@ -160,21 +160,21 @@ class NwpUtil {
         final int gy = yDimension.getLength() / matchupCount;
         final int gx = xDimension.getLength();
 
-        final NetcdfFileWriteable fcMmd = NetcdfFileWriteable.createNew(fcTargetLocation, true);
-        fcMmd.addDimension(matchupDimension.getShortName(), matchupCount);
+        final NetcdfFileWriter fcMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, fcTargetLocation);
+        fcMmd.addDimension(null, matchupDimension.getShortName(), matchupCount);
 
         final int timeStepCount = pastTimeStepCount + futureTimeStepCount + 1;
-        fcMmd.addDimension("matchup.nwp.fc.time", timeStepCount);
-        fcMmd.addDimension("matchup.nwp.ny", gy);
-        fcMmd.addDimension("matchup.nwp.nx", gx);
+        fcMmd.addDimension(null, "matchup.nwp.fc.time", timeStepCount);
+        fcMmd.addDimension(null, "matchup.nwp.ny", gy);
+        fcMmd.addDimension(null, "matchup.nwp.nx", gx);
 
         final Variable matchupId = findVariable(mmd, "matchup.id");
-        fcMmd.addVariable(matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
+        fcMmd.addVariable(null, matchupId.getShortName(), matchupId.getDataType(), matchupId.getDimensionsString());
 
         for (final Variable s : forecastFile.getVariables()) {
             if (s.getRank() == 4) {
                 if (s.getDimension(1).getLength() == 1) {
-                    final Variable t = fcMmd.addVariable("matchup.nwp.fc." + s.getShortName(), s.getDataType(),
+                    final Variable t = fcMmd.addVariable(null, "matchup.nwp.fc." + s.getShortName(), s.getDataType(),
                                                          "matchup matchup.nwp.fc.time matchup.nwp.ny matchup.nwp.nx");
                     for (final Attribute a : s.getAttributes()) {
                         t.addAttribute(a);
@@ -190,7 +190,7 @@ class NwpUtil {
         final Array sourceTimes = findVariable(forecastFile, "time", "t").read();
 
         try {
-            fcMmd.write(NetcdfFile.makeValidPathName("matchup.id"), matchupIds);
+            fcMmd.write(fcMmd.findVariable(NetcdfFile.makeValidPathName("matchup.id")), matchupIds);
 
             final int[] sourceShape = {timeStepCount, 1, gy, gx};
             for (int i = 0; i < matchupCount; i++) {
@@ -203,7 +203,7 @@ class NwpUtil {
 
                 final int[] sourceStart = {timeStep - pastTimeStepCount, 0, i * gy, 0};
 
-                for (final Variable t : fcMmd.getVariables()) {
+                for (final Variable t : fcMmd.getNetcdfFile().getVariables()) {
                     if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
@@ -214,7 +214,7 @@ class NwpUtil {
                     targetShape[0] = 1;
                     final int[] targetStart = new int[targetShape.length];
                     targetStart[0] = i;
-                    fcMmd.write(t.getFullNameEscaped(), targetStart, sourceData.reshape(targetShape));
+                    fcMmd.write(t, targetStart, sourceData.reshape(targetShape));
                 }
             }
         } catch (InvalidRangeException e) {
@@ -246,7 +246,7 @@ class NwpUtil {
     static File createTempFile(String prefix, String suffix, boolean deleteOnExit) throws IOException {
         final File tempFile = File.createTempFile(prefix, suffix);
         if (deleteOnExit) {
-            tempFile.deleteOnExit();
+            //tempFile.deleteOnExit();
         }
         return tempFile;
     }

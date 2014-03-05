@@ -360,7 +360,7 @@ class NwpTool extends BasicTool {
             copySensorVariablesData(mmd, mmdNwp);
             copyNwpData(nwpSourceFile, sensorName, mmd, mmdNwp);
         } catch (IOException e) {
-            final String message = MessageFormat.format("Failed to write NWP MMD file: {0}({1})", nwpTargetLocation,
+            final String message = MessageFormat.format("Failed to write NWP MMD file: {0} ({1})", nwpTargetLocation,
                                                         e.getMessage());
             getLogger().warning(message);
             throw new IOException(message, e);

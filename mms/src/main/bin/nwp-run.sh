@@ -11,6 +11,8 @@ usecase=$4
 
 . mymms
 
+mkdir -p ${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}
+
 nwp-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.nwp.formatchuppoints=false \
 -Dmms.nwp.sensor=${sensor} \
