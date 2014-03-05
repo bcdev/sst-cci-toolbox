@@ -16,12 +16,7 @@
 
 package org.esa.cci.sst.orm;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
+import javax.persistence.*;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +32,7 @@ public class PersistenceManager {
 
     public static PersistenceManager create(String persistenceUnitName, int retryCount, Map conf) {
         final EntityManagerFactory factory = Persistence.createEntityManagerFactory(persistenceUnitName, conf);
-        for (int i= 0; i < 1 + retryCount; i++) {
+        for (int i = 0; i < 1 + retryCount; i++) {
             try {
                 return new PersistenceManager(factory.createEntityManager());
             } catch (Exception e) {
@@ -93,29 +88,28 @@ public class PersistenceManager {
         return entityManager.createNativeQuery(queryString, resultClass);
     }
 
-    public Object pick(String queryString, Object... parameter) {
-        final Query query = createQuery(queryString);
-        for (int i = 0; i < parameter.length; ++i) {
-            query.setParameter(i + 1, parameter[i]);
-        }
-        List result = query.getResultList();
-
-        if (result.isEmpty()) {
-            return null;
-        } else if (result.size() == 1) {
-            return result.get(0);
-        } else {
-            throw new NonUniqueResultException(
-                    "Single result instead of " + result.size() + " expected for query '" + query.toString() + "'.");
-        }
-    }
-
     public void detach(Object entity) {
         entityManager.detach(entity);
     }
 
     public void clear() {
         entityManager.clear();
+    }
+
+    Object pick(String queryString, Object... parameter) {
+        final Query query = createQuery(queryString);
+        for (int i = 0; i < parameter.length; ++i) {
+            query.setParameter(i + 1, parameter[i]);
+        }
+        final List result = query.getResultList();
+
+        if (result.isEmpty()) {
+            return null;
+        } else if (result.size() == 1) {
+            return result.get(0);
+        } else {
+            throw new NonUniqueResultException("Single result instead of " + result.size() + " expected for query '" + query.toString() + "'.");
+        }
     }
 
     private PersistenceManager(EntityManager entityManager) {
