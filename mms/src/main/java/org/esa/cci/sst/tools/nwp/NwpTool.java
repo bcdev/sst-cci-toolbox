@@ -55,8 +55,8 @@ class NwpTool extends BasicTool {
     private static final String CDO_NWP_TEMPLATE =
             "#! /bin/sh\n" +
             "${CDO} ${CDO_OPTS} -f nc4 mergetime ${GGAS_TIMESTEPS} ${GGAS_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc4 mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
-            "${CDO} ${CDO_OPTS} -f nc4 mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f grb mergetime ${GGAM_TIMESTEPS} ${GGAM_TIME_SERIES} && " +
+            "${CDO} ${CDO_OPTS} -f grb mergetime ${SPAM_TIMESTEPS} ${SPAM_TIME_SERIES} && " +
             // attention: chaining the operations below results in a loss of the y dimension in the result file
             "${CDO} ${CDO_OPTS} -f nc4 -R -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -selname,Q,O3 ${GGAM_TIME_SERIES} ${GGAM_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc4 -t ecmwf setreftime,${REFTIME} -remapbil,${GEO} -sp2gp -selname,LNSP,T ${SPAM_TIME_SERIES} ${SPAM_TIME_SERIES_REMAPPED} && " +
