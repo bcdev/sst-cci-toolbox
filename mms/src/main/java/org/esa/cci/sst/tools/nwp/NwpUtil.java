@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools.nwp;
 import org.esa.beam.util.math.FracIndex;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TemplateResolver;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
@@ -34,8 +35,15 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * Provides some helper methods for nwp generation.
@@ -46,6 +54,53 @@ import java.util.Properties;
 class NwpUtil {
 
     private NwpUtil() {
+    }
+
+    static List<String> getRelevantNwpDirs(Variable timeVariable) throws IOException {
+        final Number fillValue = timeVariable.findAttribute("_FillValue").getNumericValue();
+        int startTime = Integer.MAX_VALUE;
+        int endTime = Integer.MIN_VALUE;
+        final Array times = timeVariable.read();
+        for (int i = 0; i < times.getSize(); i++) {
+            final int currentTime = times.getInt(i);
+            if (currentTime != fillValue.intValue()) {
+                if (currentTime < startTime) {
+                    startTime = currentTime;
+                } else if (currentTime > endTime) {
+                    endTime = currentTime;
+                }
+            }
+        }
+
+        final int threeDays = 60 * 60 * 24 * 3;
+        final int twoDays = 60 * 60 * 24 * 2;
+        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - threeDays);
+        final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + twoDays);
+        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.setTime(startDate);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        final List<String> dirs = new ArrayList<>();
+        while (!calendar.getTime().after(stopDate)) {
+            dirs.add(simpleDateFormat.format(calendar.getTime()));
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        return dirs;
+    }
+
+    static int getAttribute(Variable s, String name, int defaultValue) {
+        final Attribute a = s.findAttribute(name);
+        if (a == null) {
+            return defaultValue;
+        }
+        return a.getNumericValue().intValue();
     }
 
     static float getAttribute(Variable s, String name, float defaultValue) {
@@ -310,15 +365,12 @@ class NwpUtil {
     }
 
     static Variable findVariable(NetcdfFile file, String... names) throws IOException {
-        final StringBuilder expectedNames = new StringBuilder("{ ");
-        for (String name : names) {
-            Variable v = file.findVariable(NetcdfFile.makeValidPathName(name));
+        for (final String name : names) {
+            final Variable v = file.findVariable(NetcdfFile.makeValidPathName(name));
             if (v != null) {
                 return v;
             }
-            expectedNames.append(name).append(' ');
         }
-        expectedNames.append('}');
-        throw new IOException(MessageFormat.format("Expected variable in ''{0}''.", expectedNames.toString()));
+        throw new IOException(MessageFormat.format("Expected to find any variable in ''{0}''.", Arrays.toString(names)));
     }
 }

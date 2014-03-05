@@ -41,10 +41,10 @@ class ObservationTime extends AbstractImplicitRule {
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Array array = Array.factory(DATA_TYPE, new int[]{1});
         final Long time = getTime();
-        if (time != null && time != Short.MIN_VALUE) {
+        if (time != null) {
             array.setInt(0, TimeUtil.intMillisToSecondsSinceEpoch(time));
         } else {
-            array.setInt(0, Short.MIN_VALUE);
+            array.setInt(0, Integer.MIN_VALUE);
         }
         return array;
     }
