@@ -35,6 +35,7 @@ import ucar.nc2.Variable;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -296,7 +297,9 @@ class NwpTool extends BasicTool {
 
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
             try {
-                writeMmdNwpFile(nwpFile, sensorName);
+                getLogger().info(MessageFormat.format("Starting to write NWP MMD file: {0}", nwpTargetLocation));
+                writeNwpMmdFile(nwpFile, sensorName);
+                getLogger().info(MessageFormat.format("Finished writing NWP MMD file: {0}", nwpTargetLocation));
             } finally {
                 try {
                     nwpFile.close();
@@ -344,20 +347,30 @@ class NwpTool extends BasicTool {
         return subDirectories;
     }
 
-    private void writeMmdNwpFile(NetcdfFile nwpSourceFile, String sensorName) throws IOException {
-        // TODO - check why this is done. A sensor MMD file is already open! (rq-20140127)
+    private void writeNwpMmdFile(NetcdfFile nwpSourceFile, String sensorName) throws IOException {
         final NetcdfFile mmd = NetcdfFile.open(mmdSourceLocation);
         final NetcdfFileWriter mmdNwp = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, nwpTargetLocation);
 
-        copySensorVariablesStructure(sensorName, mmd, mmdNwp);
-        copyNwpStructure(nwpSourceFile, sensorName, mmd, mmdNwp);
+        try {
+            copySensorVariablesStructure(sensorName, mmd, mmdNwp);
+            copyNwpStructure(nwpSourceFile, sensorName, mmd, mmdNwp);
 
-        mmdNwp.create();
+            mmdNwp.create();
 
-        copySensorVariablesData(mmd, mmdNwp);
-        copyNwpData(nwpSourceFile, sensorName, mmd, mmdNwp);
-
-        mmdNwp.close();
+            copySensorVariablesData(mmd, mmdNwp);
+            copyNwpData(nwpSourceFile, sensorName, mmd, mmdNwp);
+        } catch (IOException e) {
+            final String message = MessageFormat.format("Failed to write NWP MMD file: {0}({1})", nwpTargetLocation,
+                                                        e.getMessage());
+            getLogger().warning(message);
+            throw new IOException(message, e);
+        } finally {
+            try {
+                mmdNwp.close();
+            } catch (IOException ignored) {
+                // ignore
+            }
+        }
     }
 
     private void copyNwpData(NetcdfFile nwpSourceFile, String sensorName, NetcdfFile mmd,
