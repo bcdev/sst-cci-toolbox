@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.ToolException;
 import org.junit.Test;
 
 import java.io.File;
@@ -41,7 +42,12 @@ public class IngestionToolTest {
         assertTrue(configOnly.setCommandLineArgs(new String[]{"-c", configFile.getPath()}));
         assertEquals("value1", configOnly.getConfig().getStringValue("mms.name1"));
         if (new File(BasicTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {
-            assertNull(configOnly.getConfig().getStringValue("openjpa.ConnectionURL"));
+            try {
+                configOnly.getConfig().getStringValue("openjpa.ConnectionURL");
+                fail("ToolException expected");
+            } catch (ToolException expected) {
+
+            }
         }
 
         IngestionTool printHelp = new IngestionTool();

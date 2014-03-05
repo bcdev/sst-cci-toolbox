@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools;
 
+import org.apache.commons.lang.StringUtils;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ public class Configuration {
 
     public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
 
+    public static final String KEY_MMS_SAMPLING_GENERATOR = "mms.sampling.generator";
     public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
     public static final String KEY_MMS_SAMPLING_SENSOR_2 = "mms.sampling.sensor.2";
     public static final String KEY_MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
@@ -75,7 +77,11 @@ public class Configuration {
     }
 
     public String getStringValue(String key) {
-        return properties.getProperty(key);
+        final String property = properties.getProperty(key);
+        if (StringUtils.isEmpty(property)) {
+            throw new ToolException("No value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        return property;
     }
 
     public String getStringValue(String key, String defaultValue) {
@@ -103,6 +109,9 @@ public class Configuration {
 
     public boolean getBooleanValue(String key) {
         final String boolString = (String) properties.get(key);
+        if (StringUtils.isEmpty(boolString)) {
+            throw new ToolException("No value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
         return Boolean.parseBoolean(boolString);
     }
 
@@ -114,7 +123,7 @@ public class Configuration {
         try {
             return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse double value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -126,7 +135,7 @@ public class Configuration {
         try {
             return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse double value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -138,7 +147,7 @@ public class Configuration {
         try {
             return Integer.parseInt(intString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse integer value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -150,7 +159,7 @@ public class Configuration {
         try {
             return Integer.parseInt(intString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse integer value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -185,8 +194,11 @@ public class Configuration {
 
     public long getPattern(String sensorName, long defaultValue) {
         final String key = KEY_MMS_PATTERN_PREFIX + sensorName;
-        final String value = getStringValue(key);
-        if (value == null) {
+        final String value;
+
+        try {
+            value = getStringValue(key);
+        } catch (ToolException e) {
             return defaultValue;
         }
 
@@ -218,7 +230,7 @@ public class Configuration {
         try {
             return new BigInteger(intString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse big integer value: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse big integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 }

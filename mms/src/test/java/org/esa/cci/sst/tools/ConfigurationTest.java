@@ -10,12 +10,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class ConfigurationTest {
 
@@ -30,6 +25,16 @@ public class ConfigurationTest {
     public void testPutAndGetStringValue() {
         configuration.put("mms.toms.key", "the value");
         assertEquals("the value", configuration.getStringValue("mms.toms.key"));
+    }
+
+    @Test
+    public void testPutAndGetStringValue_valueNotInConfig() {
+        try {
+            configuration.getStringValue("mms.toms.key");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("No value for: mms.toms.key", expected.getMessage());
+        }
     }
 
     @Test
@@ -89,6 +94,16 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testGetBooleanValue_noValueInConfig() {
+        try {
+            configuration.getBooleanValue("unconfigured_key");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("No value for: unconfigured_key", expected.getMessage());
+        }
+    }
+
+    @Test
     public void testPutAndGetDoubleValue_withDefault() {
         configuration.put("a_key", "94.7");
 
@@ -102,9 +117,34 @@ public class ConfigurationTest {
 
         assertEquals(94.7, configuration.getDoubleValue("a_key"), 0.0);
         try {
-            assertEquals(107.3, configuration.getDoubleValue("no_key"), 0.0);
-            fail();
-        } catch (Exception expected) {
+            configuration.getDoubleValue("no_key");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("No value for: no_key", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testPutAndGetDoubleValue_unparseableValue() {
+        configuration.put("a_key", "alotofthings");
+
+        try {
+            configuration.getDoubleValue("a_key");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("Cannot parse double value: a_key: alotofthings", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testPutAndGetDoubleValue_withDefault_unparseableValue() {
+        configuration.put("a_key", "stupid");
+
+        try {
+            configuration.getDoubleValue("a_key", 23.9);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("Cannot parse double value: a_key: stupid", expected.getMessage());
         }
     }
 
@@ -117,6 +157,40 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testGetIntValue_noValueInConfig() {
+        try {
+            configuration.getIntValue("nasenmann.org");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("No value for: nasenmann.org", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testGetIntValue_unparseableValue() {
+        configuration.put("int_key", "fourteen");
+
+        try {
+            configuration.getIntValue("int_key");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("Cannot parse integer value: int_key: fourteen", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testPutAndGetIntValue_withDefault_unparseableInteger() {
+        configuration.put("a_key", "fourteen");
+
+        try {
+            configuration.getIntValue("a_key", 107);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("Cannot parse integer value: a_key: fourteen", expected.getMessage());
+        }
+    }
+
+    @Test
     public void testPutAndGetBigIntegerValue_withDefault() {
         configuration.put("a_key", "2147483648");
 
@@ -126,21 +200,23 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testPutAndGetIntValue_unparseableInteger() {
-        configuration.put("a_key", "fourteen");
+    public void testPutAndGetBigIntegerValue_unpareseableValue() {
+        configuration.put("a_key", "huge_number");
 
+        final BigInteger defaultValue = new BigInteger("107");
         try {
-            configuration.getIntValue("a_key", 107);
+            configuration.getBigIntegerValue("a_key", defaultValue);
             fail("ToolException expected");
         } catch (ToolException expected) {
+            assertEquals("Cannot parse big integer value: a_key: huge_number", expected.getMessage());
         }
     }
 
     @Test
     public void testLoad() throws IOException {
         final String configFileContent = "key.1 = value.1\n" +
-                                         "date.key = 1979-01-01T00:00:00Z\n" +
-                                         "key.2 = value.2";
+                "date.key = 1979-01-01T00:00:00Z\n" +
+                "key.2 = value.2";
 
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(configFileContent.getBytes());
         final InputStreamReader reader = new InputStreamReader(inputStream);
@@ -191,7 +267,13 @@ public class ConfigurationTest {
 
         assertEquals("initial_value", configuration.getStringValue("initial_key"));
         assertEquals("mms.value", configuration.getStringValue("mms.key"));
-        assertNull(configuration.getStringValue("appended_key"));
+
+
+        try {
+            configuration.getStringValue("appended_key");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
     }
 
     @Test
