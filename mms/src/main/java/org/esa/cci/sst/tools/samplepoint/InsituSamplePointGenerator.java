@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.esa.beam.util.StringUtils;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -12,11 +13,7 @@ import org.esa.cci.sst.util.TimeUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class InsituSamplePointGenerator {
@@ -24,13 +21,15 @@ public class InsituSamplePointGenerator {
     private final File archiveDir;
     private final Reader reader;
     private final Sensor sensor;
+    private final Storage storage;
 
     private Logger logger;
 
-    public InsituSamplePointGenerator(File archiveDir, Sensor sensor) {
+    public InsituSamplePointGenerator(File archiveDir, Sensor sensor, Storage storage) {
         this.archiveDir = archiveDir;
         this.reader = ReaderFactory.createReader("InsituReader", "");
         this.sensor = sensor;
+        this.storage = storage;
     }
 
     public void setLogger(Logger logger) {
@@ -44,6 +43,12 @@ public class InsituSamplePointGenerator {
         final LinkedList<File> filesInRange = findFilesInTimeRange(timeRange);
         for (File insituFile : filesInRange) {
             extractPointsInTimeRange(samplingPoints, timeRange, insituFile);
+
+            final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
+            if (storageDatafile == null) {
+                final DataFile dataFile = createDataFile(insituFile, sensor);
+                storage.store(dataFile);
+            }
         }
         return samplingPoints;
     }
@@ -69,8 +74,8 @@ public class InsituSamplePointGenerator {
 
     private LinkedList<File> findFilesInTimeRange(TimeRange timeRange) {
         final LinkedList<File> filesInRange = new LinkedList<>();
-        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"},
-                                                                 true); // @todo 1 rq/tb-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
+        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"}, true);
+        // @todo 1 rq/tb-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
         for (final File file : insituFiles) {
             try {
                 final TimeRange fileTimeRange = extractTimeRange(file.getName());
@@ -105,5 +110,14 @@ public class InsituSamplePointGenerator {
         final Date beginning = TimeUtil.getBeginningOfDay(startDate);
         final Date end = TimeUtil.getEndOfDay(endDate);
         return new TimeRange(beginning, end);
+    }
+
+    // package access for testing only tb 2014-03-05
+    static DataFile createDataFile(File insituFile, Sensor sensor) {
+        final DataFile dataFile = new DataFile();
+
+        dataFile.setPath(insituFile.getPath());
+        dataFile.setSensor(sensor);
+        return dataFile;
     }
 }
