@@ -60,7 +60,6 @@ public class DataFile {
     }
 
     // important: this is not public API
-    @Deprecated
     public void setId(int id) {
         this.id = id;
     }

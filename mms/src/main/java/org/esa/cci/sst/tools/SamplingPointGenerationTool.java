@@ -1,17 +1,11 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
-import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
-import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
-import org.esa.cci.sst.tools.samplepoint.SamplePointExporter;
-import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
-import org.esa.cci.sst.tools.samplepoint.TimeRange;
+import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.List;
 
 public class SamplingPointGenerationTool extends BasicTool {
@@ -22,6 +16,7 @@ public class SamplingPointGenerationTool extends BasicTool {
     private int sampleCount;
     private int sampleSkip;
     private String sensorName;
+    private WorkflowContext workflowContext;
 
     public SamplingPointGenerationTool() {
         super("sampling-point-generator", "1.0");
@@ -55,6 +50,15 @@ public class SamplingPointGenerationTool extends BasicTool {
         sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
         sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
+
+        workflowContext = new WorkflowContext();
+        workflowContext.setLogger(getLogger());
+        workflowContext.setConfig(config);
+        workflowContext.setPersistenceManager(getPersistenceManager());
+        workflowContext.setStartTime(startTime);
+        workflowContext.setStopTime(stopTime);
+        workflowContext.setHalfRevisitTime(halfRevisitTime);
+        workflowContext.setSensorName(sensorName);
     }
 
     private void run() throws IOException {
@@ -74,19 +78,11 @@ public class SamplingPointGenerationTool extends BasicTool {
         getLogger().info(
                 MessageFormat.format("Finished removing prior clear-sky samples ({0} samples left)", samples.size()));
 
-        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
-        getLogger().info("Starting associating samples with observations...");
-        observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, halfRevisitTime);
-        getLogger().info(
-                MessageFormat.format("Finished associating samples with observations ({0} samples left)",
-                                     samples.size()));
+        final FindObservationsWorkflow findObservationsWorkflow = new FindObservationsWorkflow(workflowContext);
+        findObservationsWorkflow.execute(samples);
 
-        final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
-        final SamplePointExporter samplePointExporter = new SamplePointExporter(getConfig());
-        samplePointExporter.setLogger(getLogger());
-        getLogger().info("Starting writing samples...");
-        samplePointExporter.export(samples, timeRange);
-        getLogger().info("Finished writing samples...");
+        final ExportSamplingPointsWorkflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
+        exportSamplingPointsWorkflow.execute(samples);
     }
 
     private SobolSamplePointGenerator createSamplePointGenerator() {

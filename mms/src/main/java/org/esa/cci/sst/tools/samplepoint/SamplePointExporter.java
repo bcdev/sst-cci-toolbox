@@ -42,8 +42,7 @@ public class SamplePointExporter {
 
         if (!samplingPoints.isEmpty()) {
             if (logger != null) {
-                logger.warning(
-                        "List of sampling points still contains points out of expected time range: " + samplingPoints.size());
+                logger.warning("List of sampling points still contains points out of expected time range: " + samplingPoints.size());
             }
         }
 

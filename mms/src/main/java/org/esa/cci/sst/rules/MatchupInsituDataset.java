@@ -39,8 +39,15 @@ final class MatchupInsituDataset extends AbstractImplicitRule {
             Constants.MATCHUP_INSITU_DATASET_ARGO,
             Constants.MATCHUP_INSITU_DATASET_DUMMY_SEA_ICE,
             Constants.MATCHUP_INSITU_DATASET_DUMMY_DIURNAL_VARIABILITY,
-            Constants.MATCHUP_INSITU_DATASET_DUMMY_BC};
-    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variability dummy_bc";
+            Constants.MATCHUP_INSITU_DATASET_DUMMY_BC,
+            Constants.MATCHUP_INSITU_DATASET_XBT,
+            Constants.MATCHUP_INSITU_DATASET_MBT,
+            Constants.MATCHUP_INSITU_DATASET_CTD,
+            Constants.MATCHUP_INSITU_DATASET_ANIMAL,
+            Constants.MATCHUP_INSITU_DATASET_BOTTLE
+    };
+
+    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variability dummy_bc xbt mbt ctd animal bottle";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
