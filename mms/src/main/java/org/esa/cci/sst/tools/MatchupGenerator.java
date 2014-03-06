@@ -1,6 +1,10 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
@@ -110,7 +114,7 @@ public class MatchupGenerator extends BasicTool {
 
         logInfo(logger, "Starting creating matchups...");
         createMatchups(samples, Constants.SENSOR_NAME_SOBOL, sensorName1, sensorName2, referenceSensorPattern,
-                getPersistenceManager(), getStorage(), logger);
+                       getPersistenceManager(), getStorage(), logger);
         logInfo(logger, "Finished creating matchups...");
     }
 
@@ -119,30 +123,17 @@ public class MatchupGenerator extends BasicTool {
                                Storage storage, Logger logger) {
         final Stack<EntityTransaction> transactions = new Stack<>();
         try {
-            // 1. create reference sensor, if not already present
-            transactions.push(pm.transaction());
-            if (storage.getSensor(referenceSensorName) == null) {
-                logInfo(logger, MessageFormat.format("Starting persisting reference sensor: {0}", referenceSensorName));
-                final Sensor sensor = new SensorBuilder()
-                        .name(referenceSensorName)
-                        .observationType(ReferenceObservation.class)
-                        .pattern(referenceSensorPattern)
-                        .build();
-                pm.persist(sensor);
-                logInfo(logger, MessageFormat.format("Finished persisting reference sensor: {0}", referenceSensorName));
-            }
-            pm.commit();
-
-            // 2. create reference observations
+            // create reference observations
             logInfo(logger, "Starting creating reference observations...");
             transactions.push(pm.transaction());
-            final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                    referenceSensorName,
-                    storage);
+            final List<ReferenceObservation> referenceObservations =
+                    createReferenceObservations(samples,
+                                                referenceSensorName + "." + primarySensorName,
+                                                storage);
             pm.commit();
             logInfo(logger, "Finished creating reference observations");
 
-            // 3. persist reference observations, because we need the ID
+            // persist reference observations, because we need the ID
             logInfo(logger, "Starting persisting reference observations...");
             transactions.push(pm.transaction());
             for (final ReferenceObservation r : referenceObservations) {
@@ -151,20 +142,20 @@ public class MatchupGenerator extends BasicTool {
             pm.commit();
             logInfo(logger, "Finished persisting reference observations");
 
-            // 4. define matchup pattern
+            // define matchup pattern
             transactions.push(pm.transaction());
             final long matchupPattern;
             if (secondarySensorName != null) {
                 matchupPattern = referenceSensorPattern |
-                        storage.getSensor(primarySensorName).getPattern() |
-                        storage.getSensor(secondarySensorName).getPattern();
+                                 storage.getSensor(primarySensorName).getPattern() |
+                                 storage.getSensor(secondarySensorName).getPattern();
             } else {
                 matchupPattern = referenceSensorPattern | storage.getSensor(primarySensorName).getPattern();
             }
             pm.commit();
             logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
-            // 5. create matchups and coincidences
+            // create matchups and coincidences
             logInfo(logger, "Starting creating matchups and coincidences...");
 
             transactions.push(pm.transaction());
@@ -204,7 +195,7 @@ public class MatchupGenerator extends BasicTool {
 
             logInfo(logger, "Finished creating matchups and coincidences");
 
-            // 6. persist matchups and coincidences
+            // persist matchups and coincidences
             logInfo(logger, "Starting persisting matchups and coincidences...");
 
             transactions.push(pm.transaction());
