@@ -74,7 +74,8 @@ public class MatchupGenerator extends BasicTool {
         cloudFlagsVariableName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME);
         cloudFlagsMask = config.getIntValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK);
         cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
-        referenceSensorPattern = config.getPattern(Constants.SENSOR_NAME_SOBOL);
+        // TODO - reference sensor pattern is different for in-situ points, make reference sensor name configurable rq-20140306
+        referenceSensorPattern = config.getPattern(Constants.SENSOR_NAME_SOBOL, 0);
     }
 
     private void run() throws IOException {
