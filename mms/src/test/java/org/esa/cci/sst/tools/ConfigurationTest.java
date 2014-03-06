@@ -286,7 +286,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testGetSensorPattern_withoutDefaultValue() throws Exception {
+    public void testGetPattern_withoutDefaultValue() throws Exception {
         try {
             configuration.getPattern("mysensor");
             fail();
@@ -305,7 +305,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testGetSensorPattern_withTooManyBits() throws Exception {
+    public void testGetPattern_withTooManyBits() throws Exception {
         configuration.put("mms.pattern.mysensor", "10000000000000000");
         try {
             configuration.getPattern("mysensor");
@@ -315,7 +315,7 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testGetSensorPattern_withTooManyBitsSet() throws Exception {
+    public void testGetPattern_withTooManyBitsSet() throws Exception {
         configuration.put("mms.pattern.mysensor", "8000000000000001");
         try {
             configuration.getPattern("mysensor");
@@ -325,7 +325,17 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testGetSensorPattern_withDefaultValue() throws Exception {
+    public void testGetPattern_unparseablePattern() throws Exception {
+        configuration.put("mms.pattern.mysensor", "p-a-t-t-e-r-n");
+        try {
+            configuration.getPattern("mysensor");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
+
+    @Test
+    public void testGetPattern_withDefaultValue() throws Exception {
         assertEquals(8L, configuration.getPattern("mysensor", 8L));
 
         configuration.put("mms.pattern.mysensor", "100");

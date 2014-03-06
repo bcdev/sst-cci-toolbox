@@ -185,9 +185,6 @@ public class Configuration {
     public long getPattern(String sensorName) {
         final String key = KEY_MMS_PATTERN_PREFIX + sensorName;
         final String value = getStringValue(key);
-        if (value == null) {
-            throw new ToolException("No value for key: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
 
         return parsePattern(key, value);
     }
@@ -205,6 +202,18 @@ public class Configuration {
         return parsePattern(key, value);
     }
 
+    public BigInteger getBigIntegerValue(String key, BigInteger defaultValue) {
+        final String intString = properties.getProperty(key);
+        if (intString == null) {
+            return defaultValue;
+        }
+        try {
+            return new BigInteger(intString);
+        } catch (NumberFormatException e) {
+            throw new ToolException("Cannot parse big integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
     private long parsePattern(String key, String value) {
         final long pattern;
         try {
@@ -220,17 +229,5 @@ public class Configuration {
             throw new ToolException("Cannot parse pattern: " + key, e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         return pattern;
-    }
-
-    public BigInteger getBigIntegerValue(String key, BigInteger defaultValue) {
-        final String intString = properties.getProperty(key);
-        if (intString == null) {
-            return defaultValue;
-        }
-        try {
-            return new BigInteger(intString);
-        } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse big integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
     }
 }

@@ -127,13 +127,13 @@ public class InsituSamplingPointGeneratorTest {
 
     @Test
     public void testGenerate_timeRangeIntersectsOneFile() throws URISyntaxException, ParseException {
-        final Date startDate = parseDate("2013-04-12T00:00:00Z");
+        final Date startDate = parseDate("2013-08-12T00:00:00Z");
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
         when(mockStorage.getDatafile(anyString())).thenReturn(null);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
-        assertEquals(321, inSituPoints.size());
+        assertEquals(3, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
 
@@ -148,11 +148,11 @@ public class InsituSamplingPointGeneratorTest {
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
-        assertEquals(38978, inSituPoints.size());
+        assertEquals(1116420, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
 
-        assertNumDataFilesStored(10);
+        assertNumDataFilesStored(11);
     }
 
     @Test
