@@ -1,17 +1,11 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
-import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
-import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
-import org.esa.cci.sst.tools.samplepoint.SamplePointExporter;
-import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
-import org.esa.cci.sst.tools.samplepoint.TimeRange;
+import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.List;
 
 public class SamplingPointGenerationTool extends BasicTool {
@@ -79,14 +73,18 @@ public class SamplingPointGenerationTool extends BasicTool {
         observationFinder.findPrimarySensorObservations(samples, sensorName, startTime, stopTime, halfRevisitTime);
         getLogger().info(
                 MessageFormat.format("Finished associating samples with observations ({0} samples left)",
-                                     samples.size()));
+                        samples.size()));
 
-        final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
-        final SamplePointExporter samplePointExporter = new SamplePointExporter(getConfig());
-        samplePointExporter.setLogger(getLogger());
-        getLogger().info("Starting writing samples...");
-        samplePointExporter.export(samples, timeRange);
-        getLogger().info("Finished writing samples...");
+        final Configuration config = getConfig();
+
+        final WorkflowContext workflowContext = new WorkflowContext();
+        workflowContext.setLogger(getLogger());
+        workflowContext.setConfig(config);
+        workflowContext.setStartTime(startTime);
+        workflowContext.setStopTime(stopTime);
+
+        final ExportSamplingPointsWorkflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
+        exportSamplingPointsWorkflow.execute(samples);
     }
 
     private SobolSamplePointGenerator createSamplePointGenerator() {
