@@ -5,17 +5,10 @@ import org.esa.cci.sst.util.SamplingPoint;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.text.MessageFormat;
 import java.util.List;
 
 public class SamplingPointGenerationTool extends BasicTool {
 
-    private long startTime;
-    private long stopTime;
-    private int halfRevisitTime;
-    private int sampleCount;
-    private int sampleSkip;
-    private String sensorName;
     private WorkflowContext workflowContext;
 
     public SamplingPointGenerationTool() {
@@ -44,12 +37,12 @@ public class SamplingPointGenerationTool extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
-        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
-        halfRevisitTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_HALF_REVISIT_TIME);
-        sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
-        sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
-        sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
+        long startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
+        long stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
+        int halfRevisitTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_HALF_REVISIT_TIME);
+        int sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
+        int sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
+        String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
 
         workflowContext = new WorkflowContext();
         workflowContext.setLogger(getLogger());
@@ -59,41 +52,18 @@ public class SamplingPointGenerationTool extends BasicTool {
         workflowContext.setStopTime(stopTime);
         workflowContext.setHalfRevisitTime(halfRevisitTime);
         workflowContext.setSensorName(sensorName);
+        workflowContext.setSampleCount(sampleCount);
+        workflowContext.setSampleSkip(sampleSkip);
     }
 
     private void run() throws IOException {
-        final SobolSamplePointGenerator generator = createSamplePointGenerator();
-        getLogger().info(MessageFormat.format("Starting creating {0} samples...", sampleCount));
-        final List<SamplingPoint> samples = generator.createSamples(sampleCount, sampleSkip, startTime, stopTime);
-        getLogger().info(MessageFormat.format("Finished creating {0} samples", samples.size()));
+        final Workflow generatePointsWorkflow = new GenerateSobolPointsWorkflow(workflowContext);
+        final List<SamplingPoint> samples = generatePointsWorkflow.execute();
 
-        final LandPointRemover landPointRemover = createLandPointRemover();
-        getLogger().info("Starting removing land samples...");
-        landPointRemover.removeSamples(samples);
-        getLogger().info(MessageFormat.format("Finished removing land samples ({0} samples left)", samples.size()));
-
-        final ClearSkyPointRemover clearSkyPointRemover = createClearSkyPointRemover();
-        getLogger().info("Starting removing prior clear-sky samples...");
-        clearSkyPointRemover.removeSamples(samples);
-        getLogger().info(
-                MessageFormat.format("Finished removing prior clear-sky samples ({0} samples left)", samples.size()));
-
-        final FindObservationsWorkflow findObservationsWorkflow = new FindObservationsWorkflow(workflowContext);
+        final Workflow findObservationsWorkflow = new FindObservationsWorkflow(workflowContext);
         findObservationsWorkflow.execute(samples);
 
-        final ExportSamplingPointsWorkflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
+        final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
         exportSamplingPointsWorkflow.execute(samples);
-    }
-
-    private SobolSamplePointGenerator createSamplePointGenerator() {
-        return new SobolSamplePointGenerator();
-    }
-
-    private LandPointRemover createLandPointRemover() {
-        return new LandPointRemover();
-    }
-
-    private ClearSkyPointRemover createClearSkyPointRemover() {
-        return new ClearSkyPointRemover();
     }
 }

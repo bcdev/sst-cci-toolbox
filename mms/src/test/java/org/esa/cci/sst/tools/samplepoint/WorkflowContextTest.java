@@ -72,9 +72,33 @@ public class WorkflowContextTest {
 
     @Test
     public void testSetGetSensorName() {
-         final String sensorName = "odometer";
+        final String sensorName = "odometer";
 
         workflowContext.setSensorName(sensorName);
         assertEquals(sensorName, workflowContext.getSensorName());
+    }
+
+    @Test
+    public void testSetGetSampleCount() {
+        final int count_1 = 776;
+        final int count_2 = 87665;
+
+        workflowContext.setSampleCount(count_1);
+        assertEquals(count_1, workflowContext.getSampleCount());
+
+        workflowContext.setSampleCount(count_2);
+        assertEquals(count_2, workflowContext.getSampleCount());
+    }
+
+    @Test
+    public void testSetGetSampleSkip() {
+        final int skip_1 = 99;
+        final int skip_2 = 75622;
+
+        workflowContext.setSampleSkip(skip_1);
+        assertEquals(skip_1, workflowContext.getSampleSkip());
+
+        workflowContext.setSampleSkip(skip_2);
+        assertEquals(skip_2, workflowContext.getSampleSkip());
     }
 }

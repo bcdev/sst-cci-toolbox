@@ -14,6 +14,8 @@ public class WorkflowContext {
     private Configuration config;
     private PersistenceManager persistenceManager;
     private String sensorName;
+    private int sampleCount;
+    private int sampleSkip;
 
     public void setStartTime(long startTime) {
         this.startTime = startTime;
@@ -69,5 +71,21 @@ public class WorkflowContext {
 
     public String getSensorName() {
         return sensorName;
+    }
+
+    public void setSampleCount(int sampleCount) {
+        this.sampleCount = sampleCount;
+    }
+
+    public int getSampleCount() {
+        return sampleCount;
+    }
+
+    public void setSampleSkip(int sampleSkip) {
+        this.sampleSkip = sampleSkip;
+    }
+
+    public int getSampleSkip() {
+        return sampleSkip;
     }
 }

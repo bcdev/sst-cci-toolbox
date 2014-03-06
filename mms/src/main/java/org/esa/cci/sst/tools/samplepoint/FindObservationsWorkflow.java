@@ -9,11 +9,9 @@ import java.util.List;
 public class FindObservationsWorkflow extends Workflow {
 
     private final ObservationFinder observationFinder;
-    private final WorkflowContext workflowContext;
 
     public FindObservationsWorkflow(WorkflowContext workflowContext) {
         super(workflowContext);
-        this.workflowContext = workflowContext;
 
         observationFinder = new ObservationFinder(workflowContext.getPersistenceManager());
     }
@@ -30,5 +28,10 @@ public class FindObservationsWorkflow extends Workflow {
         observationFinder.findPrimarySensorObservations(samplingPoints, sensorName, startTime, stopTime, halfRevisitTime);
 
         logInfo(MessageFormat.format("Finished associating samples with observations ({0} samples left)", samplingPoints.size()));
+    }
+
+    @Override
+    public List<SamplingPoint> execute() throws IOException {
+        return null;    // nothing to do here
     }
 }

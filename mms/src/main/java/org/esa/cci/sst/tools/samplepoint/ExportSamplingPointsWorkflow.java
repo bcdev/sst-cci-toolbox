@@ -30,4 +30,9 @@ public class ExportSamplingPointsWorkflow extends Workflow {
 
         logInfo("Finished writing samples...");
     }
+
+    @Override
+    public List<SamplingPoint> execute() throws IOException {
+        return null;    // nothing to do here
+    }
 }
