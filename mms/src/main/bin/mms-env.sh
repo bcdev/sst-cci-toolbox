@@ -50,7 +50,7 @@ wait_for_task_jobs_completion() {
 
         sleep 60
 
-        if [ - s ${MMS_TASKS}/${jobname}.tasks ]
+        if [ -s ${MMS_TASKS}/${jobname}.tasks ]
         then
             for logandid in `cat ${MMS_TASKS}/${jobname}.tasks`
             do
