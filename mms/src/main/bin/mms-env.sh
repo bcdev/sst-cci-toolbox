@@ -50,26 +50,29 @@ wait_for_task_jobs_completion() {
 
         sleep 60
 
-        for logandid in `cat ${MMS_TASKS}/${jobname}.tasks`
-        do
-            job=`basename ${logandid}`
-            log=`dirname ${logandid}`
+        if [ - s ${MMS_TASKS}/${jobname}.tasks ]
+        then
+            for logandid in `cat ${MMS_TASKS}/${jobname}.tasks`
+            do
+                job=`basename ${logandid}`
+                log=`dirname ${logandid}`
 
-            if ! grep -qF 'Successfully completed.' ${log}
-            then
-                if [ -s ${log} ]
+                if ! grep -qF 'Successfully completed.' ${log}
                 then
-                    echo "tail -n10 ${log}"
-                    tail -n10 ${log}
-                else
-                    echo "`date -u +%Y%m%d-%H%M%S` logfile ${log} for job ${job} not found"
+                    if [ -s ${log} ]
+                    then
+                        echo "tail -n10 ${log}"
+                        tail -n10 ${log}
+                    else
+                        echo "`date -u +%Y%m%d-%H%M%S` logfile ${log} for job ${job} not found"
+                    fi
+                    echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed"
+                    exit 1
                 fi
-                echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed"
-                exit 1
-            fi
-        done
-        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
-        exit 0
+            done
+            echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
+            exit 0
+        fi
     done
 }
 
