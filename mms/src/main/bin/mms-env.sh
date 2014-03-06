@@ -84,6 +84,9 @@ submit_job() {
     echo "bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
     line=`bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}`
     echo ${line}
-    jobs=`echo ${line} | awk '{ print substr($2,2,length($2)-2) }'`
-    echo "${MMS_LOG}/${jobname}.out/${jobs}" > ${MMS_TASKS}/${jobname}.tasks
+    if echo ${line} | grep -qF 'is submitted'
+    then
+        jobs=`echo ${line} | awk '{ print substr($2,2,length($2)-2) }'`
+        echo "${MMS_LOG}/${jobname}.out/${jobs}" > ${MMS_TASKS}/${jobname}.tasks
+    fi
 }
