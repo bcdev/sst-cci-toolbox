@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools.samplepoint;
 
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Configuration;
 
 import java.util.logging.Logger;
@@ -8,8 +9,11 @@ public class WorkflowContext {
 
     private long startTime;
     private long stopTime;
+    private int halfRevisitTime;
     private Logger logger;
     private Configuration config;
+    private PersistenceManager persistenceManager;
+    private String sensorName;
 
     public void setStartTime(long startTime) {
         this.startTime = startTime;
@@ -41,5 +45,29 @@ public class WorkflowContext {
 
     public Configuration getConfig() {
         return config;
+    }
+
+    public void setHalfRevisitTime(int halfRevisitTime) {
+        this.halfRevisitTime = halfRevisitTime;
+    }
+
+    public int getHalfRevisitTime() {
+        return halfRevisitTime;
+    }
+
+    public PersistenceManager getPersistenceManager() {
+        return persistenceManager;
+    }
+
+    public void setPersistenceManager(PersistenceManager persistenceManager) {
+        this.persistenceManager = persistenceManager;
+    }
+
+    public void setSensorName(String sensorName) {
+        this.sensorName = sensorName;
+    }
+
+    public String getSensorName() {
+        return sensorName;
     }
 }

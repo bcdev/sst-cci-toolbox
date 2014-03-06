@@ -43,6 +43,18 @@ public class WorkflowContextTest {
     }
 
     @Test
+    public void testSetGetHalfRevisitTime() {
+        final int halfTime_1 = 45;
+        final int halfTime_2 = 1098876;
+
+        workflowContext.setHalfRevisitTime(halfTime_1);
+        assertEquals(halfTime_1, workflowContext.getHalfRevisitTime());
+
+        workflowContext.setHalfRevisitTime(halfTime_2);
+        assertEquals(halfTime_2, workflowContext.getHalfRevisitTime());
+    }
+
+    @Test
     public void testSetGetLogger() {
         final Logger logger = Logger.getAnonymousLogger();
 
@@ -56,5 +68,13 @@ public class WorkflowContextTest {
 
         workflowContext.setConfig(configuration);
         assertSame(configuration, workflowContext.getConfig());
+    }
+
+    @Test
+    public void testSetGetSensorName() {
+         final String sensorName = "odometer";
+
+        workflowContext.setSensorName(sensorName);
+        assertEquals(sensorName, workflowContext.getSensorName());
     }
 }
