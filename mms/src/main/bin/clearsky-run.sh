@@ -15,6 +15,8 @@ let d1="d + 32 * 86400"
 starttime=${year}-${month}-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
+echo "`date -u +%Y%m%d-%H%M%S` clearsky ${year}/${month} sensor ${sensor} starttime ${starttime} stoptime ${stoptime}..."
+
 clearsky-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.usecase=${usecase} \
 -Dmms.sampling.startTime=${starttime} \
@@ -22,3 +24,4 @@ clearsky-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.sampling.sensor=${sensor} \
 -Dmms.sampling.cleanupinterval=true
 
+echo "`date -u +%Y%m%d-%H%M%S` clearsky ${year}/${month} sensor ${sensor} completed"

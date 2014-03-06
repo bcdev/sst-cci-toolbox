@@ -193,6 +193,9 @@ public class CloudySubsceneRemover {
                                 // @todo 3 tb/** do we need the x/y coordinates in the SamplingPoint? tb 2014-03-06
                                 // @todo 2 tb/** check what the consequences are if we use in-situ data here
                                 point.setTime(reader.getTime(0, pixelY));
+                                geoCoding.getGeoPos(pixelPos, geoPos);
+                                point.setLat(geoPos.getLat());
+                                point.setLon(geoPos.getLon());
                             }
 
                             final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
