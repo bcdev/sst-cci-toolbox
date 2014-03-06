@@ -637,7 +637,7 @@ public class MatchupTool extends BasicTool {
         final Configuration config = getConfig();
         for (int i = 0; i < 100; i++) {
             final String sensorKey = String.format("mms.matchup.%d.sensor", i);
-            final String sensorName = config.getStringValue(sensorKey);
+            final String sensorName = config.getStringValue(sensorKey, null);
             if (sensorName == null) {
                 continue;
             }
