@@ -37,23 +37,11 @@ public class SamplingPointGenerationTool extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-        long startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
-        long stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
-        int halfRevisitTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_HALF_REVISIT_TIME);
-        int sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
-        int sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
-        String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
-
         workflowContext = new WorkflowContext();
         workflowContext.setLogger(getLogger());
         workflowContext.setConfig(config);
         workflowContext.setPersistenceManager(getPersistenceManager());
-        workflowContext.setStartTime(startTime);
-        workflowContext.setStopTime(stopTime);
-        workflowContext.setHalfRevisitTime(halfRevisitTime);
-        workflowContext.setSensorName(sensorName);
-        workflowContext.setSampleCount(sampleCount);
-        workflowContext.setSampleSkip(sampleSkip);
+        assignFromConfig(workflowContext, config);
     }
 
     private void run() throws IOException {
@@ -65,5 +53,26 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
         exportSamplingPointsWorkflow.execute(samples);
+    }
+
+    // package access for testing only tb 2014-03-06
+    static void assignFromConfig(WorkflowContext workflowContext, Configuration config) {
+        long startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
+        workflowContext.setStartTime(startTime);
+
+        long stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
+        workflowContext.setStopTime(stopTime);
+
+        int halfRevisitTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_HALF_REVISIT_TIME);
+        workflowContext.setHalfRevisitTime(halfRevisitTime);
+
+        String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
+        workflowContext.setSensorName(sensorName);
+
+        int sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
+        workflowContext.setSampleSkip(sampleSkip);
+
+        int sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
+        workflowContext.setSampleCount(sampleCount);
     }
 }
