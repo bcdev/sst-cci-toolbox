@@ -180,22 +180,24 @@ public class MatchupGenerator extends BasicTool {
                 matchup.setPattern(matchupPattern);
                 matchups.add(matchup);
                 final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
-                final Coincidence c1 = new Coincidence();
-                c1.setMatchup(matchup);
-                c1.setObservation(o1);
+
+                final Coincidence coincidence = new Coincidence();
+                coincidence.setMatchup(matchup);
+                coincidence.setObservation(o1);
                 // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
-                c1.setTimeDifference(0.0);
-                coincidences.add(c1);
+                coincidence.setTimeDifference(0.0); // Math.abs(r.getTime().getTime() -
+                coincidences.add(coincidence);
+
                 if (secondarySensorName != null) {
                     final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
-                    final Coincidence c2 = new Coincidence();
-                    c2.setMatchup(matchup);
-                    c2.setObservation(o2);
+                    final Coincidence secondCoincidence = new Coincidence();
+                    secondCoincidence.setMatchup(matchup);
+                    secondCoincidence.setObservation(o2);
                     final Date matchupTime = matchup.getRefObs().getTime();
                     final Date relatedTime = o2.getTime();
-                    c2.setTimeDifference(TimeUtil.getTimeDifferenceInSeconds(matchupTime, relatedTime));
+                    secondCoincidence.setTimeDifference(TimeUtil.getTimeDifferenceInSeconds(matchupTime, relatedTime));
 
-                    coincidences.add(c2);
+                    coincidences.add(secondCoincidence);
                 }
             }
             pm.commit();
@@ -251,6 +253,7 @@ public class MatchupGenerator extends BasicTool {
             final Observation o = storage.getObservation(p.getReference());
             r.setDatafile(o.getDatafile());
             r.setRecordNo(0);
+            // @todo 1 tb/** we may want to differentiate the insitu-souces tb 2014-03-06
             r.setDataset(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC);
             r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
 

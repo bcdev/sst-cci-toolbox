@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
@@ -50,7 +51,7 @@ class AvhrrMdReader extends MdReader implements InsituSource {
                                                              getFloat("insitu.latitude", recordNo)));
         observation.setName(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
-        observation.setReferenceFlag((byte) 4);
+        observation.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
         observation.setSensor(getDatafile().getSensor().getName());
         observation.setPoint(location);
         observation.setLocation(location);

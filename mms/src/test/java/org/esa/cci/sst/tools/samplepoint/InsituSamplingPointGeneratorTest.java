@@ -57,6 +57,8 @@ public class InsituSamplingPointGeneratorTest {
         assertNotNull(inSituPoints);
         assertEquals(0, inSituPoints.size());
 
+        verify(mockStorage, times(0)).getDatafile(anyString());
+        verify(mockStorage, times(0)).store(any(DataFile.class));
         verifyNoMoreInteractions(mockStorage);
     }
 

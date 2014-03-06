@@ -20,6 +20,7 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.PgUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
@@ -97,7 +98,7 @@ class MetopReader extends MdReader implements InsituSource {
             default:
                 observation.setDataset(dataset);
         }
-        observation.setReferenceFlag((byte) 4);
+        observation.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
         observation.setSensor(getSensorName());
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{new LinearRing(getPoints(recordNo))})));
         observation.setPoint(new PGgeometry(newPoint(getLon(recordNo, y, x), getLat(recordNo, y, x))));

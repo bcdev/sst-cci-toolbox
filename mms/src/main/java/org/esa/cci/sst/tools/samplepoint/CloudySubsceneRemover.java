@@ -189,6 +189,8 @@ public class CloudySubsceneRemover {
                             if (primary) {
                                 point.setX(pixelX);
                                 point.setY(pixelY);
+                                // @todo 1 tb/** set satellite pixel lon/lat tb 2014-03-06
+                                // @todo 3 tb/** do we need the x/y coordinates in the SamplingPoint? tb 2014-03-06
                                 // @todo 2 tb/** check what the consequences are if we use in-situ data here
                                 point.setTime(reader.getTime(0, pixelY));
                             }

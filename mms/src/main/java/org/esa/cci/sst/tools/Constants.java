@@ -71,7 +71,6 @@ public class Constants {
     public static final String SENSOR_NAME_SEVIRI_MD = "seviri";
     public static final String SENSOR_NAME_SOBOL = "sobol";
 
-    public static final byte MATCHUP_INSITU_DATASET_DUMMY_BC = 8;
     public static final byte MATCHUP_REFERENCE_FLAG_INVALID = 0;
     public static final byte MATCHUP_REFERENCE_FLAG_ALGORITHM = 1;
     public static final byte MATCHUP_REFERENCE_FLAG_BLIND = 2;
@@ -87,6 +86,12 @@ public class Constants {
     public static final byte MATCHUP_INSITU_DATASET_ARGO = 5;
     public static final byte MATCHUP_INSITU_DATASET_DUMMY_SEA_ICE = 6;
     public static final byte MATCHUP_INSITU_DATASET_DUMMY_DIURNAL_VARIABILITY = 7;
+    public static final byte MATCHUP_INSITU_DATASET_DUMMY_BC = 8;
+    public static final byte MATCHUP_INSITU_DATASET_XBT = 9;
+    public static final byte MATCHUP_INSITU_DATASET_MBT = 10;
+    public static final byte MATCHUP_INSITU_DATASET_CTD = 11;
+    public static final byte MATCHUP_INSITU_DATASET_ANIMAL = 12;
+    public static final byte MATCHUP_INSITU_DATASET_BOTTLE = 13;
 
     private Constants() {
     }

@@ -42,13 +42,11 @@ public class Matchup {
     private boolean invalid;
 
     @Id
-    //@GeneratedValue
     public int getId() {
         return id;
     }
 
-    //// important: this is not public API
-    //@Deprecated
+    // important: this is not public API
     public void setId(int id) {
         this.id = id;
     }

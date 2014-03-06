@@ -44,9 +44,13 @@ public class InsituSamplePointGenerator {
         for (File insituFile : filesInRange) {
             extractPointsInTimeRange(samplingPoints, timeRange, insituFile);
 
-            final int id = persist(insituFile);
-            for (SamplingPoint samplingPoint : samplingPoints) {
-                samplingPoint.setReference(id);
+            if (samplingPoints.size() > 0) {
+                final int id = persist(insituFile);
+                for (SamplingPoint samplingPoint : samplingPoints) {
+                    samplingPoint.setReference(id);
+                }
+            } else {
+                logWarning("File does not contain any data in time range: " + insituFile.getAbsolutePath());
             }
         }
         return samplingPoints;
@@ -65,7 +69,7 @@ public class InsituSamplePointGenerator {
                 }
             }
         } catch (IOException e) {
-            logError(e.getMessage());
+            logWarning(e.getMessage());
         } finally {
             reader.close();
         }
@@ -82,13 +86,13 @@ public class InsituSamplePointGenerator {
                     filesInRange.add(file);
                 }
             } catch (ParseException e) {
-                logError(e.getMessage());
+                logWarning(e.getMessage());
             }
         }
         return filesInRange;
     }
 
-    private void logError(String message) {
+    private void logWarning(String message) {
         if (logger != null) {
             logger.warning(message);
         }
