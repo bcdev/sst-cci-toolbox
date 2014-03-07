@@ -23,7 +23,8 @@ public class MmdToolTest {
         assertNotNull(netCDFWriter);
         assertEquals(NetcdfFileWriter.Version.netcdf4, netCDFWriter.getVersion());
         final NetcdfFile netcdfFile = netCDFWriter.getNetcdfFile();
-        assertEquals("\\here\\we\\are_now.nc", netcdfFile.getLocation());
+        // this assert is platform-specific
+        assertEquals("/here/we/are_now.nc", netcdfFile.getLocation());
     }
 
     @Test
@@ -34,6 +35,7 @@ public class MmdToolTest {
         assertNotNull(netCDFWriter);
         assertEquals(NetcdfFileWriter.Version.netcdf4, netCDFWriter.getVersion());
         final NetcdfFile netcdfFile = netCDFWriter.getNetcdfFile();
-        assertEquals(".\\mmd.nc", netcdfFile.getLocation());
+        // this assert is platform-specific
+        assertEquals("./mmd.nc", netcdfFile.getLocation());
     }
 }
