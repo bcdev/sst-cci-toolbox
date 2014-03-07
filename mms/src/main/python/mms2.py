@@ -159,34 +159,27 @@ for year in years:
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            # 7. Extract NWP analysis (an) and forecast (fc) data for matchup point
-            pm.execute('nwpmatchup-run2.sh',
-                       ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/nwp/' + sensor + '/' + year + '/' + month,
-                        '/nwp/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, usecase])
-            # 8. Conduct ARC processing
+            # 7. Conduct ARC processing
             pm.execute('arc-run2.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            # 9. Re-ingest sensor sub-scenes into database
+            # 8. Re-ingest sensor sub-scenes into database
             pm.execute('reingestion-run2.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            # 10. Ingest sensor sub-scene NWP data into database
-            # TODO - why don't I ingest NWP analysis and forecast data?
+            # 9. Ingest sensor sub-scene and matchup NWP data into database
             pm.execute('reingestion-run2.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
-            # 11. Ingest sensor sub-scene ARC results into database
+            # 10. Ingest sensor sub-scene ARC results into database
             pm.execute('reingestion-run2.sh',
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
-            # 12. Produce final single-sensor MMD file
+            # 11. Produce final single-sensor MMD file
             pm.execute('mmd-run.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
                        ['/mmd/' + sensor + '/' + year + '/' + month],

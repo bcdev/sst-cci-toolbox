@@ -25,7 +25,6 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
@@ -185,7 +184,8 @@ class NwpUtil {
                     if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
-                    final Variable s = findVariable(analysisFile, t.getShortName().substring("matchup.nwp.an.".length()));
+                    final Variable s = findVariable(analysisFile,
+                                                    t.getShortName().substring("matchup.nwp.an.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
@@ -206,7 +206,8 @@ class NwpUtil {
     }
 
     static void writeForecastMmdFile(NetcdfFile mmd, NetcdfFile forecastFile,
-                                     String fcTargetLocation, int pastTimeStepCount, int futureTimeStepCount) throws IOException {
+                                     String fcTargetLocation, int pastTimeStepCount, int futureTimeStepCount) throws
+                                                                                                              IOException {
         final Dimension matchupDimension = findDimension(mmd, "matchup");
         final Dimension yDimension = findDimension(forecastFile, "y");
         final Dimension xDimension = findDimension(forecastFile, "x");
@@ -262,7 +263,8 @@ class NwpUtil {
                     if ("matchup.id".equals(t.getShortName())) {
                         continue;
                     }
-                    final Variable s = findVariable(forecastFile, t.getShortName().substring("matchup.nwp.fc.".length()));
+                    final Variable s = findVariable(forecastFile,
+                                                    t.getShortName().substring("matchup.nwp.fc.".length()));
                     final Array sourceData = s.read(sourceStart, sourceShape);
 
                     final int[] targetShape = t.getShape();
@@ -306,7 +308,12 @@ class NwpUtil {
         return tempFile;
     }
 
-    static String files(final String dirPath, List<String> subDirectories, final String pattern) {
+    static String composeFilesString(final String dirPath, final List<String> subDirectories, final String pattern) {
+        return composeFilesString(dirPath, subDirectories, pattern, null);
+    }
+
+    static String composeFilesString(final String dirPath, final List<String> subDirectories, final String pattern,
+                                     final String selector) {
         final StringBuilder sb = new StringBuilder();
         final FilenameFilter filter = new FilenameFilter() {
             @Override
@@ -322,6 +329,11 @@ class NwpUtil {
             }
             for (final File file : files) {
                 if (sb.length() > 0) {
+                    sb.append(' ');
+                }
+                if (selector != null) {
+                    sb.append('-');
+                    sb.append(selector);
                     sb.append(' ');
                 }
                 sb.append(file.getPath());
@@ -371,6 +383,7 @@ class NwpUtil {
                 return v;
             }
         }
-        throw new IOException(MessageFormat.format("Expected to find any variable in ''{0}''.", Arrays.toString(names)));
+        throw new IOException(
+                MessageFormat.format("Expected to find any variable in ''{0}''.", Arrays.toString(names)));
     }
 }

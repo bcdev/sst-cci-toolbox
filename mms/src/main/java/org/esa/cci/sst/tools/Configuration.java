@@ -25,7 +25,6 @@ public class Configuration {
     public static final String KEY_MMS_MMD_SOURCE_LOCATION = "mms.mmd.source";
     public static final String KEY_MMS_MMD_TARGET_DIMENSIONS = "mms.target.dimensions";
 
-    public static final String KEY_MMS_NWP_FOR_MATCHUP_POINTS = "mms.nwp.formatchuppoints";
     public static final String KEY_MMS_NWP_SENSOR = "mms.nwp.sensor";
     public static final String KEY_MMS_NWP_SOURCE_LOCATION = "mms.nwp.source";
     public static final String KEY_MMS_NWP_TARGET_LOCATION = "mms.nwp.target";

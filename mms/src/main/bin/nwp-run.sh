@@ -14,9 +14,10 @@ usecase=$4
 mkdir -p ${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}
 
 nwp-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
--Dmms.nwp.formatchuppoints=false \
 -Dmms.nwp.sensor=${sensor} \
 -Dmms.target.dimensions=${MMS_HOME}/config/mmd-dimensions.properties \
 -Dmms.mmd.source=${MMS_ARCHIVE}/${usecase}/sub/${sensor}/${year}/${sensor}-sub-${year}-${month}.nc \
 -Dmms.nwp.source=${MMS_ARCHIVE}/era-interim/v1 \
--Dmms.nwp.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwp-${year}-${month}.nc
+-Dmms.nwp.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwp-${year}-${month}.nc \
+-Dmms.nwpan.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpAn-${year}-${month}.nc \
+-Dmms.nwpfc.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpFc-${year}-${month}.nc
