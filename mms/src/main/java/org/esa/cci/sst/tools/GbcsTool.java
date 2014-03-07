@@ -23,11 +23,13 @@ public class GbcsTool {
 
     private static final String GBCS_CALL_TEMPLATE =
             "#! /bin/sh\n" +
-            "module load intel/12.1.5 &&" +
+            "module load intel/${mms.gbcs.intelversion} &&" +
             "${mms.gbcs.home}/bin/MMD_SCREEN_Linux ${mms.gbcs.home}/dat_cci/${INP_FILE} ${mms.gbcs.mmd.source} ${mms.gbcs.nwp.source} ${mms.gbcs.mmd.target}";
 
     public static void main(String[] args) {
         final Properties properties = new Properties();
+
+        // TODO - select Sensor input file
 
         final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
         try {
