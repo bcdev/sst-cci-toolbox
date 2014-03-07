@@ -24,6 +24,7 @@ import org.esa.cci.sst.Queries;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
@@ -66,6 +67,7 @@ public class MmdTool extends BasicTool {
 
     private ReaderCache readerCache;
     private int matchupCount;
+    private Storage toolStorage;
 
     public MmdTool() {
         super("mmd-tool.sh", "0.1");
@@ -82,8 +84,36 @@ public class MmdTool extends BasicTool {
         tool.run(args);
     }
 
+    @Override
+    public void initialize() {
+        super.initialize();
+
+        registerSourceColumns();
+        registerImplicitColumn();
+        registerTargetColumns();
+
+        for (final String name : targetColumnNames) {
+            final Item column = columnRegistry.getColumn(name);
+            final String dimensions = column.getDimensions();
+            if (dimensions.isEmpty()) {
+                final String message = MessageFormat.format(
+                        "Expected at least one dimension for target column ''{0}''.", name);
+                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
+        }
+
+        readDimensionConfiguration(dimensionNames);
+        final Configuration config = getConfig();
+        final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
+        readerCache = new ReaderCache(readerCacheSize, config, getLogger());
+
+        toolStorage = getPersistenceManager().getToolStorage();
+    }
+
     private void run(String[] args) {
-        NetcdfFileWriter mmd = null;
+        NetcdfFileWriter fileWriter = null;
+
         try {
             final boolean performWork = setCommandLineArgs(args);
             if (!performWork) {
@@ -91,20 +121,20 @@ public class MmdTool extends BasicTool {
             }
             initialize();
 
-            mmd = createMmd();
-            mmd = defineMmd(mmd);
+            fileWriter = createNetCDFWriter(getConfig());
+            fileWriter = defineMmd(fileWriter);
             final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(),
                     getPattern());
-            writeMmdShuffled(mmd, mmd.getNetcdfFile().getVariables(), recordOfMatchupMap);
+            writeMmdShuffled(fileWriter, fileWriter.getNetcdfFile().getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
         } catch (Throwable t) {
             getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
-            if (mmd != null) {
+            if (fileWriter != null) {
                 try {
                     readerCache.clear();
-                    mmd.close();
+                    fileWriter.close();
                 } catch (IOException ignored) {
                 }
             }
@@ -367,6 +397,7 @@ public class MmdTool extends BasicTool {
         }
     }
 
+
     private void writeColumn(NetcdfFileWriter mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
@@ -405,36 +436,9 @@ public class MmdTool extends BasicTool {
         }
     }
 
-
-    @Override
-    public void initialize() {
-        super.initialize();
-
-        registerSourceColumns();
-        registerImplicitColumn();
-        registerTargetColumns();
-
-        for (final String name : targetColumnNames) {
-            final Item column = columnRegistry.getColumn(name);
-            final String dimensions = column.getDimensions();
-            if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format(
-                        "Expected at least one dimension for target column ''{0}''.", name);
-                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
-        }
-
-        readDimensionConfiguration(dimensionNames);
-        final Configuration config = getConfig();
-        final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
-        readerCache = new ReaderCache(readerCacheSize, config, getLogger());
-    }
-
-    private NetcdfFileWriter createMmd() throws IOException {
-        final Configuration config = getConfig();
-        final String mmdDirPath = config.getStringValue("mms.target.dir", ".");
-        final String mmdFileName = config.getStringValue("mms.target.filename", "mmd.nc");
+    static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
+        final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_TARGET_DIR, ".");
+        final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_TARGET_FILENAME, "mmd.nc");
         final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
 
         final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, mmdFilePath);
@@ -541,7 +545,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void registerSourceColumns() {
-        final List<? extends Item> columns = Queries.getAllColumns(getPersistenceManager());
+        final List<? extends Item> columns = toolStorage.getAllColumns();
         for (final Item column : columns) {
             columnRegistry.register(column);
         }

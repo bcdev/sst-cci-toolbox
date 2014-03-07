@@ -214,6 +214,32 @@ public class TimeUtilTest {
         assertEquals(11.0, TimeUtil.getTimeDifferenceInSeconds(date_2, date_1), 1e-8);
     }
 
+    @Test
+    public void testFormatCcsdsUtcMillisFormat() {
+        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.set(Calendar.YEAR, 2010);
+        calendar.set(Calendar.DAY_OF_YEAR, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 46800000);
+
+        assertEquals("2010-01-01T13:00:00.000Z", TimeUtil.formatCcsdsUtcMillisFormat(calendar.getTime()));
+    }
+
+    @Test
+    public void testDateToSecondsSinceEpoch() {
+        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.set(Calendar.YEAR, 2010);
+        calendar.set(Calendar.DAY_OF_YEAR, 334);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 83019029);
+
+        assertEquals(1038697419.029, TimeUtil.dateToSecondsSinceEpoch(calendar.getTime()), 1e-8);
+    }
+
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
         final GregorianCalendar c = createUtcCalendar();
         c.clear();

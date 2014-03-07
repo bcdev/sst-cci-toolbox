@@ -2,6 +2,9 @@ package org.esa.cci.sst.orm;
 
 import org.esa.cci.sst.data.*;
 
+import javax.persistence.Query;
+import java.util.List;
+
 class ToolStorage implements Storage {
 
     private final PersistenceManager persistenceManager;
@@ -13,6 +16,13 @@ class ToolStorage implements Storage {
     @Override
     public Column getColumn(String columnName) {
         return (Column) persistenceManager.pick("select c from Column c where c.name = ?1", columnName);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<? extends Item> getAllColumns() {
+        final Query query = persistenceManager.createQuery("select c from Column c order by c.name");
+        return query.getResultList();
     }
 
     @Override

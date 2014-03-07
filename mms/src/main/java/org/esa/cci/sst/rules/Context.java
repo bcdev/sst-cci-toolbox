@@ -18,7 +18,6 @@ package org.esa.cci.sst.rules;
 
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
 import ucar.nc2.Variable;
 
