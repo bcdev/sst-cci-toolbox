@@ -79,12 +79,20 @@ wait_for_task_jobs_completion() {
 submit_job() {
     jobname=$1
     command=$2
+    bsubmit="bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
+
     rm -f ${MMS_LOG}/${jobname}.out
     rm -f ${MMS_LOG}/${jobname}.err
-    #echo "ssh -A lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
-    #line=`ssh -A lotus.jc.rl.ac.uk bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}`
-    echo "bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
-    line=`bsub -q lotus -n 1 -W 04:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}`
+
+    if hostname | grep -gF 'lotus.jc.rl.ac.uk'
+    then
+        echo "${bsubmit}"
+        line=`${bsubmit}`
+    else
+        echo "ssh -A lotus.jc.rl.ac.uk ${bsubmit}"
+        line=`ssh -A lotus.jc.rl.ac.uk ${bsubmit}`
+    fi
+
     echo ${line}
     if echo ${line} | grep -qF 'is submitted'
     then
