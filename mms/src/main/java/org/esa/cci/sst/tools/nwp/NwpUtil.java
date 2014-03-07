@@ -309,11 +309,6 @@ class NwpUtil {
     }
 
     static String composeFilesString(final String dirPath, final List<String> subDirectories, final String pattern) {
-        return composeFilesString(dirPath, subDirectories, pattern, null);
-    }
-
-    static String composeFilesString(final String dirPath, final List<String> subDirectories, final String pattern,
-                                     final String selector) {
         final StringBuilder sb = new StringBuilder();
         final FilenameFilter filter = new FilenameFilter() {
             @Override
@@ -329,11 +324,6 @@ class NwpUtil {
             }
             for (final File file : files) {
                 if (sb.length() > 0) {
-                    sb.append(' ');
-                }
-                if (selector != null) {
-                    sb.append('-');
-                    sb.append(selector);
                     sb.append(' ');
                 }
                 sb.append(file.getPath());
