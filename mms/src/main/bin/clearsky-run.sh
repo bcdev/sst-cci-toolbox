@@ -23,5 +23,3 @@ clearsky-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.sampling.stopTime=${stoptime} \
 -Dmms.sampling.sensor=${sensor} \
 -Dmms.sampling.cleanupinterval=true
-
-echo "`date -u +%Y%m%d-%H%M%S` clearsky ${year}/${month} sensor ${sensor} completed"

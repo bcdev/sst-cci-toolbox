@@ -24,5 +24,3 @@ ${MMS_HOME}/bin/mapplot-tool.sh -c ${MMS_CONFIG} -debug \
 -Dmms.sampling.stopTime=${year2}-${month2}-01T00:00:00Z \
 -Dmms.sampling.sensor=atsr_orb.3 \
 -Dmms.sampling.showmaps=false
-
-echo "`date -u +%Y%m%d-%H%M%S` mapplot ${year}/${month} ... done"

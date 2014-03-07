@@ -31,5 +31,3 @@ mmd-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.target.variables=${MMS_HOME}/config/${sensor}-${mmdtype}-variables.config \
 -Dmms.target.dir=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year} \
 -Dmms.target.filename=${sensor}-${mmdtype}-${year}-${month}.nc
-
-echo "`date -u +%Y%m%d-%H%M%S` mmd ${year}/${month} sensor ${sensor} type ${mmdtype} completed"

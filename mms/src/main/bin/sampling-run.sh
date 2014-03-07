@@ -26,5 +26,3 @@ sampling-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.sampling.sensor=${sensor} \
 -Dmms.sampling.count=${count} \
 -Dmms.sampling.skip=${skip}
-
-echo "`date -u +%Y%m%d-%H%M%S` sampling ${year}/${month} sensor ${sensor} completed"
