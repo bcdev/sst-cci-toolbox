@@ -83,7 +83,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void run(String[] args) {
-        NetcdfFileWriter mmd = null;
+        NetcdfFileWriter fileWriter = null;
+
         try {
             final boolean performWork = setCommandLineArgs(args);
             if (!performWork) {
@@ -91,20 +92,20 @@ public class MmdTool extends BasicTool {
             }
             initialize();
 
-            mmd = createMmd();
-            mmd = defineMmd(mmd);
+            fileWriter = createNetCDFWriter(getConfig());
+            fileWriter = defineMmd(fileWriter);
             final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(),
                     getPattern());
-            writeMmdShuffled(mmd, mmd.getNetcdfFile().getVariables(), recordOfMatchupMap);
+            writeMmdShuffled(fileWriter, fileWriter.getNetcdfFile().getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
         } catch (Throwable t) {
             getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
-            if (mmd != null) {
+            if (fileWriter != null) {
                 try {
                     readerCache.clear();
-                    mmd.close();
+                    fileWriter.close();
                 } catch (IOException ignored) {
                 }
             }
@@ -431,10 +432,9 @@ public class MmdTool extends BasicTool {
         readerCache = new ReaderCache(readerCacheSize, config, getLogger());
     }
 
-    private NetcdfFileWriter createMmd() throws IOException {
-        final Configuration config = getConfig();
-        final String mmdDirPath = config.getStringValue("mms.target.dir", ".");
-        final String mmdFileName = config.getStringValue("mms.target.filename", "mmd.nc");
+    static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
+        final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_TARGET_DIR, ".");
+        final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_TARGET_FILENAME, "mmd.nc");
         final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
 
         final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, mmdFilePath);

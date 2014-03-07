@@ -61,6 +61,9 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
     public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
 
+    public static final String KEY_MMS_TARGET_DIR = "mms.target.dir";
+    public static final String KEY_MMS_TARGET_FILENAME = "mms.target.filename";
+
     private final Properties properties;
 
     public Configuration() {
