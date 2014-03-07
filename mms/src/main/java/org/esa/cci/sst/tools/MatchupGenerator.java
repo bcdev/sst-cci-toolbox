@@ -69,7 +69,7 @@ public class MatchupGenerator extends BasicTool {
         startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
         stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
         sensorName1 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
-        sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2);
+        sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
         subSceneWidth = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_WIDTH, 7);
         subSceneHeight = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
         cloudFlagsVariableName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME);
