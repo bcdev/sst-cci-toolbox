@@ -28,9 +28,12 @@ import static org.junit.Assert.*;
 public class NwpToolTest {
 
     @Test
-    public void testGetAlternativeSensorName() throws Exception {
-        assertEquals("avhrr.12", NwpTool.getAlternativeSensorName("avhrr.n12"));
-        assertEquals("avhrr.14", NwpTool.getAlternativeSensorName("avhrr.n14"));
-        assertEquals("atsr.1", NwpTool.getAlternativeSensorName("atsr.1"));
+    public void testGetSensorBasename() throws Exception {
+        assertEquals("atsr", NwpTool.getSensorBasename("atsr.1"));
+        assertEquals("atsr", NwpTool.getSensorBasename("atsr.2"));
+        assertEquals("atsr", NwpTool.getSensorBasename("atsr.3"));
+
+        assertEquals("avhrr", NwpTool.getSensorBasename("avhrr.n14"));
+        assertEquals("avhrr", NwpTool.getSensorBasename("avhrr.m02"));
     }
 }
