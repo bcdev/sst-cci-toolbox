@@ -136,6 +136,7 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
             skip += samplespermonth
+            continue
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-start.sh',
@@ -170,7 +171,7 @@ for year in years:
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            # 9. Ingest sensor sub-scene and matchup NWP data into database
+            # 9. Ingest sensor NWP data into database
             pm.execute('reingestion-run2.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
