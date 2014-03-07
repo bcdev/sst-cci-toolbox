@@ -3,8 +3,10 @@ package org.esa.cci.sst.tools;
 import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.text.ParseException;
 import java.util.List;
 
 public class SamplingPointGenerationTool extends BasicTool {
@@ -44,8 +46,8 @@ public class SamplingPointGenerationTool extends BasicTool {
         assignFromConfig(workflowContext, config);
     }
 
-    private void run() throws IOException {
-        final Workflow generatePointsWorkflow = new GenerateSobolPointsWorkflow(workflowContext);
+    private void run() throws IOException, ParseException {
+        final Workflow generatePointsWorkflow = createPointGeneratorWorkflow(workflowContext);
         final List<SamplingPoint> samples = generatePointsWorkflow.execute();
 
         final Workflow findObservationsWorkflow = new FindObservationsWorkflow(workflowContext);
@@ -53,6 +55,18 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
         exportSamplingPointsWorkflow.execute(samples);
+    }
+
+    // package access for testing only tb 2014-03-07
+    static Workflow createPointGeneratorWorkflow(WorkflowContext workflowContext) {
+        final String sampleGeneratorName = workflowContext.getSampleGeneratorName();
+        if ("SOBOL".equalsIgnoreCase(sampleGeneratorName)) {
+            return new GenerateSobolPointsWorkflow(workflowContext);
+        } else if ("INSITU".equalsIgnoreCase(sampleGeneratorName)) {
+            return new GenerateInsituPointsWorkflow(workflowContext);
+        }
+
+        throw new IllegalArgumentException("Invalid generatorname: " + sampleGeneratorName);
     }
 
     // package access for testing only tb 2014-03-06
@@ -74,5 +88,17 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         int sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
         workflowContext.setSampleCount(sampleCount);
+
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        workflowContext.setArchiveRootDir(new File(archiveRootPath));
+
+        final String insituSensorName = config.getStringValue("mms.source.45.sensor");
+        workflowContext.setInsituSensorName(insituSensorName);
+
+        final long insituPattern = config.getPattern("history");
+        workflowContext.setInsituSensorPattern(insituPattern);
+
+        final String sampleGeneratorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR);
+        workflowContext.setSampleGeneratorName(sampleGeneratorName);
     }
 }

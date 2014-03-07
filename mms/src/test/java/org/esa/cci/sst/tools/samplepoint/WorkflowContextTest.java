@@ -4,6 +4,7 @@ import org.esa.cci.sst.tools.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
@@ -100,5 +101,53 @@ public class WorkflowContextTest {
 
         workflowContext.setSampleSkip(skip_2);
         assertEquals(skip_2, workflowContext.getSampleSkip());
+    }
+
+    @Test
+    public void testSetGetArchiveRootDir() {
+        final File rootDir = new File("/home/archive");
+
+        workflowContext.setArchiveRootDir(rootDir);
+        assertSameAbsolutePath(rootDir, workflowContext.getArchiveRootDir());
+    }
+
+    @Test
+    public void testSetGetInsituSensorName() {
+        final String name_1 = "instrument";
+        final String name_2 = "a_Sensor";
+
+        workflowContext.setInsituSensorName(name_1);
+        assertEquals(name_1, workflowContext.getInsituSensorName());
+
+        workflowContext.setInsituSensorName(name_2);
+        assertEquals(name_2, workflowContext.getInsituSensorName());
+    }
+
+    @Test
+    public void testSetGetInsituSensorPattern() {
+        final long pattern_1 = 4000000000000000L;
+        final long pattern_2 = 8000000000000000L;
+
+        workflowContext.setInsituSensorPattern(pattern_1);
+        assertEquals(pattern_1, workflowContext.getInsituSensorPattern());
+
+        workflowContext.setInsituSensorPattern(pattern_2);
+        assertEquals(pattern_2, workflowContext.getInsituSensorPattern());
+    }
+
+    @Test
+    public void testSetGetSampleGeneratorName() {
+        final String generatorName_1 = "willi";
+        final String generatorName_2 = "charlotte";
+
+        workflowContext.setSampleGeneratorName(generatorName_1);
+        assertEquals(generatorName_1, workflowContext.getSampleGeneratorName());
+
+        workflowContext.setSampleGeneratorName(generatorName_2);
+        assertEquals(generatorName_2, workflowContext.getSampleGeneratorName());
+    }
+
+    private static void assertSameAbsolutePath(File rootDir, File archiveRootDir) {
+        assertEquals(rootDir.getAbsolutePath(), archiveRootDir.getAbsolutePath());
     }
 }
