@@ -94,6 +94,14 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testPutAndGetBooleanValue_withDefault() {
+        configuration.put("a_key", "true");
+
+        assertTrue(configuration.getBooleanValue("a_key", false));
+        assertFalse(configuration.getBooleanValue("no_key", false));
+    }
+
+    @Test
     public void testGetBooleanValue_noValueInConfig() {
         try {
             configuration.getBooleanValue("unconfigured_key");

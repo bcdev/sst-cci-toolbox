@@ -114,6 +114,14 @@ public class Configuration {
         return Boolean.parseBoolean(boolString);
     }
 
+    public boolean getBooleanValue(String key, boolean defaultValue) {
+        final String boolString = (String) properties.get(key);
+        if (StringUtils.isEmpty(boolString)) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(boolString);
+    }
+
     public double getDoubleValue(String key) {
         final String doubleString = properties.getProperty(key);
         if (doubleString == null) {
@@ -122,7 +130,8 @@ public class Configuration {
         try {
             return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -134,7 +143,8 @@ public class Configuration {
         try {
             return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -146,7 +156,8 @@ public class Configuration {
         try {
             return Integer.parseInt(intString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -158,7 +169,8 @@ public class Configuration {
         try {
             return Integer.parseInt(intString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -209,7 +221,8 @@ public class Configuration {
         try {
             return new BigInteger(intString);
         } catch (NumberFormatException e) {
-            throw new ToolException("Cannot parse big integer value: " + key + ": " + intString, e, ToolException.TOOL_CONFIGURATION_ERROR);
+            throw new ToolException("Cannot parse big integer value: " + key + ": " + intString, e,
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -229,4 +242,5 @@ public class Configuration {
         }
         return pattern;
     }
+
 }

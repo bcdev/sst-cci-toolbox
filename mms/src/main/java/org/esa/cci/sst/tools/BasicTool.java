@@ -262,7 +262,7 @@ public abstract class BasicTool {
         } catch (Exception e) {
             throw new ToolException("Unable to establish database connection.", e, ToolException.TOOL_DB_ERROR);
         }
-        if (config.getBooleanValue("mms.db.useindex")) {
+        if (config.getBooleanValue("mms.db.useindex", false)) {
             try {
                 persistenceManager.transaction();
                 final Query setSeqScanOff = persistenceManager.createNativeQuery("set enable_seqscan to off");
