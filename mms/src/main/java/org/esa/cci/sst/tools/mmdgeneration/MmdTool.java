@@ -24,6 +24,7 @@ import org.esa.cci.sst.Queries;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
@@ -66,6 +67,7 @@ public class MmdTool extends BasicTool {
 
     private ReaderCache readerCache;
     private int matchupCount;
+    private Storage toolStorage;
 
     public MmdTool() {
         super("mmd-tool.sh", "0.1");
@@ -80,6 +82,33 @@ public class MmdTool extends BasicTool {
     public static void main(String[] args) {
         final MmdTool tool = new MmdTool();
         tool.run(args);
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+
+        registerSourceColumns();
+        registerImplicitColumn();
+        registerTargetColumns();
+
+        for (final String name : targetColumnNames) {
+            final Item column = columnRegistry.getColumn(name);
+            final String dimensions = column.getDimensions();
+            if (dimensions.isEmpty()) {
+                final String message = MessageFormat.format(
+                        "Expected at least one dimension for target column ''{0}''.", name);
+                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
+        }
+
+        readDimensionConfiguration(dimensionNames);
+        final Configuration config = getConfig();
+        final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
+        readerCache = new ReaderCache(readerCacheSize, config, getLogger());
+
+        toolStorage = getPersistenceManager().getToolStorage();
     }
 
     private void run(String[] args) {
@@ -368,6 +397,7 @@ public class MmdTool extends BasicTool {
         }
     }
 
+
     private void writeColumn(NetcdfFileWriter mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
@@ -404,32 +434,6 @@ public class MmdTool extends BasicTool {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
-    }
-
-
-    @Override
-    public void initialize() {
-        super.initialize();
-
-        registerSourceColumns();
-        registerImplicitColumn();
-        registerTargetColumns();
-
-        for (final String name : targetColumnNames) {
-            final Item column = columnRegistry.getColumn(name);
-            final String dimensions = column.getDimensions();
-            if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format(
-                        "Expected at least one dimension for target column ''{0}''.", name);
-                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
-        }
-
-        readDimensionConfiguration(dimensionNames);
-        final Configuration config = getConfig();
-        final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
-        readerCache = new ReaderCache(readerCacheSize, config, getLogger());
     }
 
     static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
@@ -541,7 +545,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void registerSourceColumns() {
-        final List<? extends Item> columns = Queries.getAllColumns(getPersistenceManager());
+        final List<? extends Item> columns = toolStorage.getAllColumns();
         for (final Item column : columns) {
             columnRegistry.register(column);
         }

@@ -4,6 +4,11 @@ import org.esa.cci.sst.data.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.persistence.Query;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -36,6 +41,27 @@ public class ToolStorageTest {
         assertEquals(columnName, toolStorageColumn.getName());
 
         verify(persistenceManager, times(1)).pick(sql, columnName);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testGetAllColumns() {
+        final String sql = "select c from Column c order by c.name";
+        final ArrayList<Column> columnList = new ArrayList<>();
+        columnList.add((Column) new ColumnBuilder().name("test_me").build());
+
+        final Query query = mock(Query.class);
+
+        when(persistenceManager.createQuery(sql)).thenReturn(query);
+        when(query.getResultList()).thenReturn(columnList);
+
+        final List<? extends Item> allColumns = toolStorage.getAllColumns();
+        assertNotNull(allColumns);
+        assertEquals(1, allColumns.size());
+        assertEquals("test_me", allColumns.get(0).getName());
+
+        verify(persistenceManager, times(1)).createQuery(sql);
+        verify(query, times(1)).getResultList();
         verifyNoMoreInteractions(persistenceManager);
     }
 

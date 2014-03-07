@@ -16,10 +16,8 @@
 
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.tools.ToolException;
 
 import javax.persistence.Query;
 import java.util.Date;
@@ -35,28 +33,18 @@ public class Queries {
     private Queries() {
     }
 
-    public static final String QUERY_STRING_SELECT_ALL_COLUMNS =
-            "select c" +
-            " from Column c" +
-            " order by c.name";
-
     public static final String QUERY_STRING_COUNT_MATCHUPS_FOR_SENSOR =
             "select count(m.id)" +
-            " from mm_matchup m, mm_observation r" +
-            " where r.time >= ?1 and r.time < ?2" +
-            " and r.id = m.refobs_id";
+                    " from mm_matchup m, mm_observation r" +
+                    " where r.time >= ?1 and r.time < ?2" +
+                    " and r.id = m.refobs_id";
 
     public static final String QUERY_STRING_SELECT_MATCHUPS_FOR_SENSOR =
             "select m.id" +
-            " from mm_matchup m, mm_observation r" +
-            " where r.time >= ?1 and r.time < ?2" +
-            " and r.id = m.refobs_id" +
-            " order by r.time, r.id";
-
-    @SuppressWarnings({"unchecked"})
-    public static List<? extends Item> getAllColumns(PersistenceManager pm) {
-        return pm.createQuery(QUERY_STRING_SELECT_ALL_COLUMNS).getResultList();
-    }
+                    " from mm_matchup m, mm_observation r" +
+                    " where r.time >= ?1 and r.time < ?2" +
+                    " and r.id = m.refobs_id" +
+                    " order by r.time, r.id";
 
     public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate, String condition, int pattern) {
         String queryString = QUERY_STRING_COUNT_MATCHUPS_FOR_SENSOR;

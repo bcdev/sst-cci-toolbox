@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst;
 
-import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Constants;
@@ -33,7 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(DatabaseTestRunner.class)
 public class QueriesTest {
@@ -70,15 +70,6 @@ public class QueriesTest {
         }
 
         pm = PersistenceManager.create(Constants.PERSISTENCE_UNIT_NAME, 0, configuration);
-    }
-
-    @Test
-    public void testGetAllColumns() {
-        @SuppressWarnings({"unchecked"})
-        final List<? extends Item> columnList = Queries.getAllColumns(pm);
-
-        assertNotNull(columnList);
-        assertEquals(357, columnList.size());
     }
 
     @Test
