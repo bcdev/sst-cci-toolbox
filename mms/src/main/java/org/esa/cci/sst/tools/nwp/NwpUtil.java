@@ -332,25 +332,6 @@ class NwpUtil {
         return sb.toString();
     }
 
-    static File writeCdoScript(String template, Properties properties) throws IOException {
-        final File script = File.createTempFile("cdo", ".sh");
-        final boolean executable = script.setExecutable(true);
-        if (!executable) {
-            throw new IOException("Cannot create CDO script.");
-        }
-        final Writer writer = new FileWriter(script);
-        try {
-            final TemplateResolver templateResolver = new TemplateResolver(properties);
-            writer.write(templateResolver.resolve(template));
-        } finally {
-            try {
-                writer.close();
-            } catch (IOException ignored) {
-            }
-        }
-        return script;
-    }
-
     static void addVariable(NetcdfFileWriter netcdfFile, Variable s) {
         final Variable t = netcdfFile.addVariable(null, s.getShortName(), s.getDataType(), s.getDimensionsString());
         for (final Attribute a : s.getAttributes()) {

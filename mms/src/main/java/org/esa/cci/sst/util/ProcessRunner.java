@@ -16,10 +16,14 @@
 package org.esa.cci.sst.util;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Writer;
 import java.text.MessageFormat;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,6 +39,25 @@ public class ProcessRunner {
 
     public ProcessRunner(String loggerName) {
         logger = Logger.getLogger(loggerName);
+    }
+
+    public static File writeExecutableScript(String template, Properties properties) throws IOException {
+        final File script = File.createTempFile("cdo", ".sh");
+        final boolean executable = script.setExecutable(true);
+        if (!executable) {
+            throw new IOException("Cannot create executable script.");
+        }
+        final Writer writer = new FileWriter(script);
+        try {
+            final TemplateResolver templateResolver = new TemplateResolver(properties);
+            writer.write(templateResolver.resolve(template));
+        } finally {
+            try {
+                writer.close();
+            } catch (IOException ignored) {
+            }
+        }
+        return script;
     }
 
     public void execute(final String command) throws IOException, InterruptedException {

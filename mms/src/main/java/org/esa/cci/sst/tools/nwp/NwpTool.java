@@ -151,7 +151,7 @@ class NwpTool extends BasicTool {
             properties.setProperty("AN_TIME_SERIES", NwpUtil.createTempFile("analysis", ".nc", true).getPath());
 
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-            runner.execute(NwpUtil.writeCdoScript(CDO_MATCHUP_AN_TEMPLATE, properties).getPath());
+            runner.execute(ProcessRunner.writeExecutableScript(CDO_MATCHUP_AN_TEMPLATE, properties).getPath());
 
             final NetcdfFile anFile = NetcdfFile.open(properties.getProperty("AN_TIME_SERIES"));
             try {
@@ -200,7 +200,7 @@ class NwpTool extends BasicTool {
             properties.setProperty("FC_TIME_SERIES", NwpUtil.createTempFile("forecast", ".nc", true).getPath());
 
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-            runner.execute(NwpUtil.writeCdoScript(CDO_MATCHUP_FC_TEMPLATE, properties).getPath());
+            runner.execute(ProcessRunner.writeExecutableScript(CDO_MATCHUP_FC_TEMPLATE, properties).getPath());
 
             final NetcdfFile fcFile = NetcdfFile.open(properties.getProperty("FC_TIME_SERIES"));
             try {
@@ -286,7 +286,7 @@ class NwpTool extends BasicTool {
             properties.setProperty("NWP_TIME_SERIES", NwpUtil.createTempFile("nwp", ".nc", true).getPath());
 
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-            final String path = NwpUtil.writeCdoScript(CDO_NWP_TEMPLATE, properties).getPath();
+            final String path = ProcessRunner.writeExecutableScript(CDO_NWP_TEMPLATE, properties).getPath();
             runner.execute(path);
 
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
