@@ -234,11 +234,6 @@ public abstract class BasicTool {
 
             final Properties optionProperties = commandLine.getOptionProperties("D");
             config.add(optionProperties);
-
-            // set java.io.tmpdir system property for file io of compressed files
-            final String systemTmpDir = System.getProperty("java.io.tmpdir", "/tmp");
-            final String tmpDir = commandLine.getOptionValue("tmp", systemTmpDir);
-            System.getProperties().put("java.io.tmpdir", tmpDir);
         } catch (ParseException e) {
             throw new ToolException(e.getMessage(), e, ToolException.COMMAND_LINE_ARGUMENTS_PARSE_ERROR);
         }
@@ -329,8 +324,6 @@ public abstract class BasicTool {
         propertyOpt.setArgName("property=value");
         propertyOpt.setArgs(2);
 
-        final Option tmpDirOpt = new Option("tmp", true, "temp dir for file IO");
-
         Options options = new Options();
         options.addOption(helpOpt);
         options.addOption(versionOpt);
@@ -338,7 +331,6 @@ public abstract class BasicTool {
         options.addOption(debugOpt);
         options.addOption(confFileOpt);
         options.addOption(propertyOpt);
-        options.addOption(tmpDirOpt);
 
         return options;
     }
