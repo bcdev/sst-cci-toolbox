@@ -303,7 +303,7 @@ class NwpUtil {
     static File createTempFile(String prefix, String suffix, boolean deleteOnExit) throws IOException {
         final File tempFile = File.createTempFile(prefix, suffix);
         if (deleteOnExit) {
-            //tempFile.deleteOnExit();
+            tempFile.deleteOnExit();
         }
         return tempFile;
     }
