@@ -92,9 +92,11 @@ public class SamplingPointGenerationTool extends BasicTool {
         final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
         workflowContext.setArchiveRootDir(new File(archiveRootPath));
 
-        final String insituSensorName = config.getStringValue("mms.source.45.sensor");
+        // TODO - insitu is not needed for Sobol sampling
+        final String insituSensorName = config.getStringValue("mms.source.45.sensor", null);
         workflowContext.setInsituSensorName(insituSensorName);
 
+        // TODO - insitu is not needed for Sobol sampling
         final long insituPattern = config.getPattern("history");
         workflowContext.setInsituSensorPattern(insituPattern);
 
