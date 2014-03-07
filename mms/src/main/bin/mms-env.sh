@@ -84,7 +84,7 @@ submit_job() {
     rm -f ${MMS_LOG}/${jobname}.out
     rm -f ${MMS_LOG}/${jobname}.err
 
-    if hostname | grep -gF 'lotus.jc.rl.ac.uk'
+    if hostname | grep -qF 'lotus.jc.rl.ac.uk'
     then
         echo "${bsubmit}"
         line=`${bsubmit}`
