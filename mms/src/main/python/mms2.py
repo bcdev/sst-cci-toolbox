@@ -8,9 +8,9 @@ years = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999',
          '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
          '2011', '2012']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-sensors = [('atsr_orb.1', '1991-08-01', '1997-12-17'),
-           ('atsr_orb.2', '1995-06-01', '2003-06-22'),
-           ('atsr_orb.3', '2002-05-20', '2012-04-08')]
+sensors = [('atsr.1', '1991-08-01', '1997-12-17'),
+           ('atsr.2', '1995-06-01', '2003-06-22'),
+           ('atsr.3', '2002-05-20', '2012-04-08')]
 # 300000 leads to about 2500 surviving samples per month
 samplespermonth = 300000
 skip = 0
@@ -153,12 +153,12 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-run.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
             # 7. Conduct ARC processing
             pm.execute('arc-run2.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],

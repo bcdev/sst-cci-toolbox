@@ -31,6 +31,7 @@ import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SensorNames;
 import ucar.ma2.Array;
 
 import java.io.IOException;
@@ -136,7 +137,7 @@ public class CloudySubsceneRemover {
             final String message = "Starting removing cloudy samples...";
             logger.info(message);
         }
-        final String columnName = sensorName + "." + cloudFlagsVariableName;
+        final String columnName = SensorNames.ensureOrbitName(sensorName) + "." + cloudFlagsVariableName;
         final Column column = storage.getColumn(columnName);
         if (column == null) {
             throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName),

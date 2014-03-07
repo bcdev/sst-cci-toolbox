@@ -21,6 +21,7 @@ import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.ProcessRunner;
+import org.esa.cci.sst.util.SensorNames;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -112,7 +113,7 @@ class NwpTool extends BasicTool {
         anTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_AN_TARGET_LOCATION);
         fcTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_FC_TARGET_LOCATION);
         nwpTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_TARGET_LOCATION);
-        sensorName = config.getStringValue(Configuration.KEY_MMS_NWP_SENSOR).replace("_orb", "");
+        sensorName = SensorNames.ensureStandardName(config.getStringValue(Configuration.KEY_MMS_NWP_SENSOR));
         // TODO - check for AVHRRs, patterns of orbit files and sub-scene files are different (rq-20140304)
         sensorPattern = (int) config.getPattern(sensorName);
     }

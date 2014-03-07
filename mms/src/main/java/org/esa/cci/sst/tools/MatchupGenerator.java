@@ -11,6 +11,7 @@ import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SensorNames;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
@@ -129,7 +130,8 @@ public class MatchupGenerator extends BasicTool {
             transactions.push(pm.transaction());
             final List<ReferenceObservation> referenceObservations =
                     createReferenceObservations(samples,
-                                                referenceSensorName + "." + primarySensorName,
+                                                referenceSensorName + "." +
+                                                SensorNames.ensureStandardName(primarySensorName),
                                                 storage);
             pm.commit();
             logInfo(logger, "Finished creating reference observations");
@@ -148,10 +150,11 @@ public class MatchupGenerator extends BasicTool {
             final long matchupPattern;
             if (secondarySensorName != null) {
                 matchupPattern = referenceSensorPattern |
-                                 storage.getSensor(primarySensorName).getPattern() |
-                                 storage.getSensor(secondarySensorName).getPattern();
+                                 storage.getSensor(SensorNames.ensureOrbitName(primarySensorName)).getPattern() |
+                                 storage.getSensor(SensorNames.ensureOrbitName(secondarySensorName)).getPattern();
             } else {
-                matchupPattern = referenceSensorPattern | storage.getSensor(primarySensorName).getPattern();
+                matchupPattern = referenceSensorPattern | storage.getSensor(
+                        SensorNames.ensureOrbitName(primarySensorName)).getPattern();
             }
             pm.commit();
             logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));

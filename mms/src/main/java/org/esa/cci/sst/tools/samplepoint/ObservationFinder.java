@@ -5,6 +5,7 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SensorNames;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
@@ -77,7 +78,8 @@ public class ObservationFinder {
         final long halfRevisitTimeMillis = halfRevisitTime * 1000;
         final Date startDate = new Date(startTime - halfRevisitTimeMillis);
         final Date stopDate = new Date(stopTime + halfRevisitTimeMillis);
-        final List<RelatedObservation> orbitObservations = findOrbitObservations(sensorName, startDate, stopDate);
+        final List<RelatedObservation> orbitObservations = findOrbitObservations(
+                SensorNames.ensureOrbitName(sensorName), startDate, stopDate);
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
         for (int i = 0; i < orbitObservations.size(); ++i) {
             final RelatedObservation orbitObservation = orbitObservations.get(i);
@@ -150,14 +152,14 @@ public class ObservationFinder {
         samples.addAll(accu);
     }
 
-    private List<RelatedObservation> findOrbitObservations(String sensor, Date startDate, Date stopDate) {
+    private List<RelatedObservation> findOrbitObservations(String sensorName, Date startDate, Date stopDate) {
         final String s1 = TimeUtil.formatCcsdsUtcFormat(startDate);
         final String s2 = TimeUtil.formatCcsdsUtcFormat(stopDate);
         final String queryString = SENSOR_OBSERVATION_QUERY_TEMPLATE_STRING
                 .replaceAll("\\?2", "'" + s1 + "'")
                 .replaceAll("\\?3", "'" + s2 + "'");
         final Query query = persistenceManager.createNativeQuery(queryString, RelatedObservation.class);
-        query.setParameter(1, sensor);
+        query.setParameter(1, sensorName);
 
         //noinspection unchecked
         return query.getResultList();

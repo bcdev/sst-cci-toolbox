@@ -360,11 +360,7 @@ public class MmdTool extends BasicTool {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
                     e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
-        } catch (RuleException e) {
-            final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                    e.getMessage());
-            throw new ToolException(message, e, ToolException.TOOL_ERROR);
-        } catch (InvalidRangeException e) {
+        } catch (RuleException | InvalidRangeException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
                     e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
@@ -403,10 +399,7 @@ public class MmdTool extends BasicTool {
         } catch (IOException e) {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             getLogger().warning(message);
-        } catch (RuleException e) {
-            final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
-            throw new ToolException(message, e, ToolException.TOOL_ERROR);
-        } catch (InvalidRangeException e) {
+        } catch (RuleException | InvalidRangeException e) {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
