@@ -135,7 +135,6 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
             skip += samplespermonth
-            continue
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-start.sh',
@@ -144,6 +143,7 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
             # 4. Create single-sensor MMD with subscenes
             pm.execute('mmd-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
