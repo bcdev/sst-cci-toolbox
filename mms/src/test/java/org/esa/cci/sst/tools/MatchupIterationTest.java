@@ -2,17 +2,13 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.TimeUtil;
-import org.junit.Test;
 
 import javax.persistence.Query;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
 /**
- * TODO add API doc
- *
  * @author Martin Boettcher
  */
 public class MatchupIterationTest extends BasicTool {
@@ -74,5 +70,4 @@ public class MatchupIterationTest extends BasicTool {
         }
         getPersistenceManager().commit();
     }
-
 }
