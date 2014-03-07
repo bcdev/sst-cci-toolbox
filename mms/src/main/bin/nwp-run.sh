@@ -13,6 +13,8 @@ usecase=$4
 
 mkdir -p ${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}
 
+echo "`date -u +%Y%m%d-%H%M%S` nwp ${year}/${month} sensor ${sensor}..."
+
 nwp-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.nwp.sensor=${sensor} \
 -Dmms.target.dimensions=${MMS_HOME}/config/mmd-dimensions.properties \
@@ -21,3 +23,5 @@ nwp-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.nwp.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwp-${year}-${month}.nc \
 -Dmms.nwpan.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpAn-${year}-${month}.nc \
 -Dmms.nwpfc.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpFc-${year}-${month}.nc
+
+echo "`date -u +%Y%m%d-%H%M%S` nwp ${year}/${month} sensor ${sensor} completed"

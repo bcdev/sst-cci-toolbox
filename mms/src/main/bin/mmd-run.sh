@@ -20,7 +20,7 @@ pattern=`cat ${MMS_HOME}/config/${usecase}-config.properties | awk "/mms.pattern
 
 mkdir -p ${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}
 
-echo "`date -u +%Y%m%d-%H%M%S` mmd ${year}/${month} sensor ${sensor} type ${mmdtype} starttime ${starttime} stoptime ${stoptime} patter ${pattern}..."
+echo "`date -u +%Y%m%d-%H%M%S` mmd ${year}/${month} sensor ${sensor} type ${mmdtype} starttime ${starttime} stoptime ${stoptime} pattern ${pattern}..."
 
 mmd-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.target.startTime=${starttime} \
