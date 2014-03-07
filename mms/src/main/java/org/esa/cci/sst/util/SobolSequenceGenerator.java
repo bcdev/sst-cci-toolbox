@@ -100,7 +100,7 @@ public class SobolSequenceGenerator {
      */
     public SobolSequenceGenerator(final int dimension) {
         if (dimension < 1 || dimension > MAX_DIMENSION) {
-            throw new IllegalArgumentException("dimension < 1 || dimension > MAX_DIMENSION"); // TODO - message
+            throw new IllegalArgumentException("Illegal input dimension: " + dimension);
         }
 
         // initialize the other dimensions with direction numbers from a resource

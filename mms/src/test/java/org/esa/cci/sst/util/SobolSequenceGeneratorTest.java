@@ -1,14 +1,13 @@
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.util.SobolSequenceGenerator;
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.*;
 
 public class SobolSequenceGeneratorTest {
 
     @Test
-    public void testSkip() {
+    public void testSkipOneResultsInSameVectorThanCallingNextVectorTwice() {
         SobolSequenceGenerator generator = new SobolSequenceGenerator(1);
 
         generator.nextVector();
@@ -22,7 +21,7 @@ public class SobolSequenceGeneratorTest {
     }
 
     @Test
-    public void testSkipZero() {
+    public void testSkipZeroResultsInSameVector() {
         SobolSequenceGenerator generator = new SobolSequenceGenerator(1);
 
         final double[] firstOutput = generator.nextVector();
@@ -32,5 +31,22 @@ public class SobolSequenceGeneratorTest {
 
         final double[] skippedOutput = generator.nextVector();
         assertArrayEquals(firstOutput, skippedOutput, 0.0);
+    }
+
+    @Test
+    public void testConstructionFailsOnIllegalDimension() {
+        try {
+            new SobolSequenceGenerator(0);
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal input dimension: 0", expected.getMessage());
+        }
+
+        try {
+            new SobolSequenceGenerator(1001);
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal input dimension: 1001", expected.getMessage());
+        }
     }
 }
