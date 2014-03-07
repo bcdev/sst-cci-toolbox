@@ -17,14 +17,27 @@ package org.esa.cci.sst.tools;/*
 import org.esa.cci.sst.util.ProcessRunner;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Properties;
 
 public class GbcsTool extends BasicTool {
 
+    private static final String KEY_MMS_GBCS_INTELVERSION = "mms.gbcs.intelversion";
+    private static final String KEY_MMS_GBCS_VERSION = "mms.gbcs.version";
+    private static final String KEY_MMS_GBCS_HOME = "mms.gbcs.home";
+    private static final String KEY_MMS_GBCS_MMD_SOURCE = "mms.gbcs.mmd.source";
+    private static final String KEY_MMS_GBCS_NWP_SOURCE = "mms.gbcs.nwp.source";
+    private static final String KEY_MMS_GBCS_MMD_TARGET = "mms.gbcs.mmd.target";
+    private static final String KEY_MMS_GBCS_SENSOR = "mms.gbcs.sensor";
+
     private static final String TEMPLATE =
-            "#! /bin/sh\n" +
-            "module load intel/${mms.gbcs.intelversion} &&" +
-            "${mms.gbcs.home}/${mms.gbcs.version}/bin/MMD_SCREEN_Linux ${mms.gbcs.home}/${mms.gbcs.version}/dat_cci/${INP_FILE} ${mms.gbcs.mmd.source} ${mms.gbcs.nwp.source} ${mms.gbcs.mmd.target}";
+            String.format(
+                    "#! /bin/sh\nmodule load intel/${%s}\n${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${INP} ${%s} ${%s} ${%s}",
+                    KEY_MMS_GBCS_INTELVERSION, KEY_MMS_GBCS_HOME, KEY_MMS_GBCS_VERSION, KEY_MMS_GBCS_HOME,
+                    KEY_MMS_GBCS_VERSION, KEY_MMS_GBCS_MMD_SOURCE, KEY_MMS_GBCS_NWP_SOURCE, KEY_MMS_GBCS_MMD_TARGET);
+
+    private String sensorName;
+    private Properties properties;
 
     public GbcsTool() {
         super("gbcs-tool", "1.0");
@@ -47,18 +60,62 @@ public class GbcsTool extends BasicTool {
 
     @Override
     public void initialize() {
-        // nothing
+        final Configuration config = getConfig();
+
+        properties = new Properties();
+        properties.put(KEY_MMS_GBCS_INTELVERSION, config.getStringValue(KEY_MMS_GBCS_INTELVERSION));
+        properties.put(KEY_MMS_GBCS_VERSION, config.getStringValue(KEY_MMS_GBCS_VERSION));
+        properties.put(KEY_MMS_GBCS_HOME, config.getStringValue(KEY_MMS_GBCS_HOME));
+        properties.put(KEY_MMS_GBCS_MMD_SOURCE, config.getStringValue(KEY_MMS_GBCS_MMD_SOURCE));
+        properties.put(KEY_MMS_GBCS_NWP_SOURCE, config.getStringValue(KEY_MMS_GBCS_NWP_SOURCE));
+        properties.put(KEY_MMS_GBCS_MMD_TARGET, config.getStringValue(KEY_MMS_GBCS_MMD_TARGET));
+
+        sensorName = config.getStringValue(KEY_MMS_GBCS_SENSOR);
     }
 
     private void run() throws IOException, InterruptedException {
-        final Properties properties = new Properties();
-
-        // TODO - select Sensor input file
+        final String inputFilename = getInputFilename(sensorName);
+        properties.put("INP", inputFilename);
 
         final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
         final String resolvedTemplate = ProcessRunner.resolveTemplate(TEMPLATE, properties);
 
         runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "gbcs", ".sh").getPath());
+    }
+
+    static String getInputFilename(String sensorName) {
+        switch (sensorName) {
+            case "atsr.1":
+                return "MMD_ATSR1.inp";
+            case "atsr.2":
+                return "MMD_ATSR2.inp";
+            case "atsr.3":
+                return "MMD_AATSR.inp";
+            case "avhrr.n10":
+                return "MMD_NOAA10.inp";
+            case "avhrr.n11":
+                return "MMD_NOAA11.inp";
+            case "avhrr.n12":
+                return "MMD_NOAA12.inp";
+            case "avhrr.n14":
+                return "MMD_NOAA14.inp";
+            case "avhrr.n15":
+                return "MMD_NOAA15.inp";
+            case "avhrr.n16":
+                return "MMD_NOAA16.inp";
+            case "avhrr.n17":
+                return "MMD_NOAA17.inp";
+            case "avhrr.n18":
+                return "MMD_NOAA18.inp";
+            case "avhrr.n19":
+                return "MMD_NOAA19.inp";
+            case "avhrr.m02":
+                return "MMD_METOP02.inp";
+            default:
+                throw new ToolException(
+                        MessageFormat.format("Illegal value ''{0}'' for key ''{1}''.", sensorName, KEY_MMS_GBCS_SENSOR),
+                        ToolException.TOOL_CONFIGURATION_ERROR);
+        }
     }
 
 }
