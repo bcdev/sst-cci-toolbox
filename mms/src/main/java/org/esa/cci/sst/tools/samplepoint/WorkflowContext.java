@@ -3,6 +3,7 @@ package org.esa.cci.sst.tools.samplepoint;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.Configuration;
 
+import java.io.File;
 import java.util.logging.Logger;
 
 public class WorkflowContext {
@@ -16,6 +17,10 @@ public class WorkflowContext {
     private String sensorName;
     private int sampleCount;
     private int sampleSkip;
+    private File archiveRootDir;
+    private long inistuSensorPattern;
+    private String insituSensorName;
+    private String sampleGeneratorName;
 
     public void setStartTime(long startTime) {
         this.startTime = startTime;
@@ -87,5 +92,37 @@ public class WorkflowContext {
 
     public int getSampleSkip() {
         return sampleSkip;
+    }
+
+    public void setArchiveRootDir(File archiveRootDir) {
+        this.archiveRootDir = archiveRootDir;
+    }
+
+    public File getArchiveRootDir() {
+        return archiveRootDir;
+    }
+
+    public void setInsituSensorPattern(long sensorPattern) {
+        this.inistuSensorPattern = sensorPattern;
+    }
+
+    public long getInsituSensorPattern() {
+        return inistuSensorPattern;
+    }
+
+    public void setInsituSensorName(String insituSensorName) {
+        this.insituSensorName = insituSensorName;
+    }
+
+    public String getInsituSensorName() {
+        return insituSensorName;
+    }
+
+    public void setSampleGeneratorName(String sampleGeneratorName) {
+        this.sampleGeneratorName = sampleGeneratorName;
+    }
+
+    public String getSampleGeneratorName() {
+        return sampleGeneratorName;
     }
 }
