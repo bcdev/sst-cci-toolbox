@@ -102,7 +102,8 @@ class NwpTool extends BasicTool {
 
     @Override
     public void initialize() {
-        super.initialize();
+        // no database functions needed, therefore don't call
+        // super.initialize();
 
         final Configuration config = getConfig();
 

@@ -60,6 +60,8 @@ public class GbcsTool extends BasicTool {
 
     @Override
     public void initialize() {
+        // no database functions needed, therefore don't call
+        // super.initialize();
         final Configuration config = getConfig();
 
         properties = new Properties();
