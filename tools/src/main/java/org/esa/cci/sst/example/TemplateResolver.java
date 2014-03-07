@@ -144,4 +144,12 @@ public class TemplateResolver {
 
         return sb.toString();
     }
+
+    public boolean canResolve(String string) {
+        return !pattern.matcher(resolve(string)).find();
+    }
+
+    public boolean isResolved(String string) {
+        return !pattern.matcher(string).find();
+    }
 }

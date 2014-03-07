@@ -19,25 +19,46 @@ import org.esa.cci.sst.util.ProcessRunner;
 import java.io.IOException;
 import java.util.Properties;
 
-public class GbcsTool {
+public class GbcsTool extends BasicTool {
 
-    private static final String GBCS_CALL_TEMPLATE =
+    private static final String TEMPLATE =
             "#! /bin/sh\n" +
             "module load intel/${mms.gbcs.intelversion} &&" +
-            "${mms.gbcs.home}/bin/MMD_SCREEN_Linux ${mms.gbcs.home}/dat_cci/${INP_FILE} ${mms.gbcs.mmd.source} ${mms.gbcs.nwp.source} ${mms.gbcs.mmd.target}";
+            "${mms.gbcs.home}/${mms.gbcs.version}/bin/MMD_SCREEN_Linux ${mms.gbcs.home}/${mms.gbcs.version}/dat_cci/${INP_FILE} ${mms.gbcs.mmd.source} ${mms.gbcs.nwp.source} ${mms.gbcs.mmd.target}";
+
+    public GbcsTool() {
+        super("gbcs-tool", "1.0");
+    }
 
     public static void main(String[] args) {
+        final GbcsTool tool = new GbcsTool();
+        try {
+            if (!tool.setCommandLineArgs(args)) {
+                return;
+            }
+            tool.initialize();
+            tool.run();
+        } catch (ToolException e) {
+            tool.getErrorHandler().terminate(e);
+        } catch (Exception e) {
+            tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.UNKNOWN_ERROR));
+        }
+    }
+
+    @Override
+    public void initialize() {
+        // nothing
+    }
+
+    private void run() throws IOException, InterruptedException {
         final Properties properties = new Properties();
 
         // TODO - select Sensor input file
 
         final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-        try {
-            runner.execute(ProcessRunner.writeExecutableScript(GBCS_CALL_TEMPLATE, properties).getPath());
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        final String resolvedTemplate = ProcessRunner.resolveTemplate(TEMPLATE, properties);
 
+        runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "gbcs", ".sh").getPath());
     }
 
 }

@@ -41,16 +41,26 @@ public class ProcessRunner {
         logger = Logger.getLogger(loggerName);
     }
 
-    public static File writeExecutableScript(String template, Properties properties) throws IOException {
-        final File script = File.createTempFile("cdo", ".sh");
+    public static String resolveTemplate(String template, Properties properties) {
+        final TemplateResolver templateResolver = new TemplateResolver(properties);
+        final String resolvedTemplate = templateResolver.resolve(template);
+
+        if (templateResolver.isResolved(resolvedTemplate)) {
+            return resolvedTemplate;
+        }
+
+        throw new RuntimeException("Unresolved template:\n" + resolvedTemplate);
+    }
+
+    public static File writeExecutableScript(String resolvedTemplate, String prefix, String suffix) throws IOException {
+        final File script = File.createTempFile(prefix, suffix);
         final boolean executable = script.setExecutable(true);
         if (!executable) {
             throw new IOException("Cannot create executable script.");
         }
         final Writer writer = new FileWriter(script);
         try {
-            final TemplateResolver templateResolver = new TemplateResolver(properties);
-            writer.write(templateResolver.resolve(template));
+            writer.write(resolvedTemplate);
         } finally {
             try {
                 writer.close();

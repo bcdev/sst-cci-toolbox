@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
  * property values.
  *
  * @author Ralf Quast
+ *
+ * TODO - this class is duplicated in org.esa.sst.example. Remove from there and copy test class from there to here
  */
 public class TemplateResolver {
 
@@ -108,4 +110,13 @@ public class TemplateResolver {
 
         return sb.toString();
     }
+
+    public boolean canResolve(String string) {
+        return !pattern.matcher(resolve(string)).find();
+    }
+
+    public boolean isResolved(String string) {
+        return !pattern.matcher(string).find();
+    }
+
 }

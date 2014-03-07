@@ -20,6 +20,8 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for class {@link TemplateResolver}.
@@ -118,5 +120,25 @@ public class TemplateResolverTest {
                 templateResolver.resolve("${foo} pig cow"));
         assertEquals("${cat} pig ${foo}",
                 templateResolver.resolve("${foo} pig ${bar}"));
+    }
+
+    @Test
+    public void testCanResolve() throws Exception {
+        final Properties properties = new Properties();
+        final TemplateResolver templateResolver = new TemplateResolver(properties);
+
+        assertFalse(templateResolver.canResolve("${bar}"));
+
+        properties.setProperty("bar", "foo");
+        assertTrue(templateResolver.canResolve("${bar}"));
+    }
+
+    @Test
+    public void testIsResolved() throws Exception {
+        final Properties properties = new Properties();
+        final TemplateResolver templateResolver = new TemplateResolver(properties);
+
+        assertFalse(templateResolver.isResolved("${bar}"));
+        assertTrue(templateResolver.isResolved("bar"));
     }
 }

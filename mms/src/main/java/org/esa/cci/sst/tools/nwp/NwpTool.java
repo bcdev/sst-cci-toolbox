@@ -151,7 +151,8 @@ class NwpTool extends BasicTool {
             properties.setProperty("AN_TIME_SERIES", NwpUtil.createTempFile("analysis", ".nc", true).getPath());
 
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-            runner.execute(ProcessRunner.writeExecutableScript(CDO_MATCHUP_AN_TEMPLATE, properties).getPath());
+            final String resolvedTemplate = ProcessRunner.resolveTemplate(CDO_MATCHUP_AN_TEMPLATE, properties);
+            runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh").getPath());
 
             final NetcdfFile anFile = NetcdfFile.open(properties.getProperty("AN_TIME_SERIES"));
             try {
@@ -200,7 +201,8 @@ class NwpTool extends BasicTool {
             properties.setProperty("FC_TIME_SERIES", NwpUtil.createTempFile("forecast", ".nc", true).getPath());
 
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-            runner.execute(ProcessRunner.writeExecutableScript(CDO_MATCHUP_FC_TEMPLATE, properties).getPath());
+            final String resolvedTemplate = ProcessRunner.resolveTemplate(CDO_MATCHUP_FC_TEMPLATE, properties);
+            runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh").getPath());
 
             final NetcdfFile fcFile = NetcdfFile.open(properties.getProperty("FC_TIME_SERIES"));
             try {
@@ -286,7 +288,8 @@ class NwpTool extends BasicTool {
             properties.setProperty("NWP_TIME_SERIES", NwpUtil.createTempFile("nwp", ".nc", true).getPath());
 
             final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
-            final String path = ProcessRunner.writeExecutableScript(CDO_NWP_TEMPLATE, properties).getPath();
+            final String resolvedTemplate = ProcessRunner.resolveTemplate(CDO_NWP_TEMPLATE, properties);
+            final String path = ProcessRunner.writeExecutableScript(resolvedTemplate, "cdo", ".sh").getPath();
             runner.execute(path);
 
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
