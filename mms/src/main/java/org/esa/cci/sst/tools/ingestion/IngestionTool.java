@@ -158,17 +158,17 @@ public class IngestionTool extends BasicTool {
         int directoryCount = 0;
         for (int i = 0; i < 100; i++) {
             final String inputDirKey = String.format("mms.source.%d.inputDirectory", i);
-            final String inputDirPath = config.getStringValue(inputDirKey);
+            final String inputDirPath = config.getStringValue(inputDirKey, null);
 
             final String sensorKey = String.format("mms.source.%d.sensor", i);
-            final String sensor = config.getStringValue(sensorKey);
+            final String sensor = config.getStringValue(sensorKey, null);
 
             final String readerSpecKey = String.format("mms.reader.%s", sensor);
             final String readerSpec = config.getStringValue(readerSpecKey, ReaderFactory.DEFAULT_READER_SPEC);
 
             final String observationTypeKey = String.format("mms.observationType.%s", sensor);
             final String observationType = config.getStringValue(observationTypeKey, "RelatedObservation");
-            if (readerSpec == null || inputDirPath == null || sensor == null) {
+            if (inputDirPath == null || sensor == null) {
                 continue;
             }
             final long pattern = config.getPattern(sensor);
