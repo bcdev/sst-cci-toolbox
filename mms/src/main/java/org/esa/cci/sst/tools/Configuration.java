@@ -63,6 +63,13 @@ public class Configuration {
 
     public static final String KEY_MMS_TARGET_DIR = "mms.target.dir";
     public static final String KEY_MMS_TARGET_FILENAME = "mms.target.filename";
+    public static final String KEY_MMS_GBCS_INTELVERSION = "mms.gbcs.intelversion";
+    public static final String KEY_MMS_GBCS_VERSION = "mms.gbcs.version";
+    public static final String KEY_MMS_GBCS_HOME = "mms.gbcs.home";
+    public static final String KEY_MMS_GBCS_MMD_SOURCE = "mms.gbcs.mmd.source";
+    public static final String KEY_MMS_GBCS_NWP_SOURCE = "mms.gbcs.nwp.source";
+    public static final String KEY_MMS_GBCS_MMD_TARGET = "mms.gbcs.mmd.target";
+    public static final String KEY_MMS_GBCS_SENSOR = "mms.gbcs.sensor";
 
     private final Properties properties;
 
