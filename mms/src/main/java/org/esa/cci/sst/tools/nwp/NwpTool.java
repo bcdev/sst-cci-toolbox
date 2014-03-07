@@ -76,7 +76,6 @@ class NwpTool extends BasicTool {
     private String mmdSourceLocation;
     private String nwpSourceLocation;
     private String nwpTargetLocation;
-    private String geoFileLocation;
     private String anTargetLocation;
     private String fcTargetLocation;
     private String dimensionFilePath;
@@ -107,13 +106,12 @@ class NwpTool extends BasicTool {
 
         final Configuration config = getConfig();
 
-        mmdSourceLocation = config.getStringValue(Configuration.KEY_MMS_MMD_SOURCE_LOCATION);
-        nwpSourceLocation = config.getStringValue(Configuration.KEY_MMS_NWP_SOURCE_LOCATION);
-        dimensionFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIMENSIONS);
-
-        anTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_AN_TARGET_LOCATION);
-        fcTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_FC_TARGET_LOCATION);
-        nwpTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_TARGET_LOCATION);
+        dimensionFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_DIMENSIONS);
+        mmdSourceLocation = config.getStringValue(Configuration.KEY_MMS_NWP_MMD_SOURCE);
+        nwpSourceLocation = config.getStringValue(Configuration.KEY_MMS_NWP_SOURCE);
+        nwpTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_NWP_TARGET);
+        anTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_AN_TARGET);
+        fcTargetLocation = config.getStringValue(Configuration.KEY_MMS_NWP_FC_TARGET);
         sensorName = SensorNames.ensureStandardName(config.getStringValue(Configuration.KEY_MMS_NWP_SENSOR));
         // TODO - check for AVHRRs, patterns of orbit files and sub-scene files are different (rq-20140304)
         sensorPattern = (int) config.getPattern(sensorName);
@@ -133,11 +131,11 @@ class NwpTool extends BasicTool {
         final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(NwpUtil.findVariable(mmdFile, "matchup.time"));
 
         final int timeStepCount = Integer.parseInt(dimensions.getProperty("matchup.nwp.an.time"));
-        final int futureTimeStepCount = (timeStepCount - 1) / 3;
-        final int pastTimeStepCount = futureTimeStepCount * 2;
+        final int futureTimeStepCount = computeFutureTimeStepCount(timeStepCount);
+        final int pastTimeStepCount = computePastTimeStepCount(timeStepCount);
 
         try {
-            writeMatchupGeoFile(mmdFile);
+            final String geoFileLocation = writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");
@@ -178,11 +176,11 @@ class NwpTool extends BasicTool {
         final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(NwpUtil.findVariable(mmdFile, "matchup.time"));
 
         final int timeStepCount = Integer.parseInt(dimensions.getProperty("matchup.nwp.fc.time"));
-        final int futureTimeStepCount = (timeStepCount - 1) / 3;
-        final int pastTimeStepCount = futureTimeStepCount * 2;
+        final int futureTimeStepCount = computeFutureTimeStepCount(timeStepCount);
+        final int pastTimeStepCount = computePastTimeStepCount(timeStepCount);
 
         try {
-            writeMatchupGeoFile(mmdFile);
+            final String geoFileLocation = writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");
@@ -224,32 +222,16 @@ class NwpTool extends BasicTool {
     }
 
     void writeSensorNwpFile(Properties dimensions) throws IOException, InterruptedException {
-        final NetcdfFile sensorMmdFile = NetcdfFile.open(writeSensorMmdFile(sensorName, sensorPattern));
-        final Variable timeVariable = NwpUtil.findVariable(sensorMmdFile, sensorName + ".time",
-                                                           getAlternativeSensorName(sensorName) + ".time");
+        final String sensorMmdPath = writeSingleSensorMmdFile(mmdSourceLocation, sensorName, sensorPattern);
+        final NetcdfFile sensorMmdFile = NetcdfFile.open(sensorMmdPath);
+        final Variable timeVariable = NwpUtil.findVariable(sensorMmdFile, sensorName + ".time");
         final List<String> subDirectories = NwpUtil.getRelevantNwpDirs(timeVariable);
-        final int nx;
-        final int ny;
-        final int nwpNx;
-        final int nwpNy;
+        final String sensorBasename = getSensorBasename(sensorName);
+        final int nx = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nx"));
+        final int ny = Integer.parseInt(dimensions.getProperty(sensorBasename + ".ny"));
+        final int nwpNx = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nwp.nx"));
+        final int nwpNy = Integer.parseInt(dimensions.getProperty(sensorBasename + ".nwp.ny"));
 
-        if (sensorName.startsWith("atsr")) {
-            nx = Integer.parseInt(dimensions.getProperty("atsr.nx"));
-            ny = Integer.parseInt(dimensions.getProperty("atsr.ny"));
-            nwpNx = Integer.parseInt(dimensions.getProperty("atsr.nwp.nx"));
-            nwpNy = Integer.parseInt(dimensions.getProperty("atsr.nwp.ny"));
-        } else if (sensorName.startsWith("avhrr")) {
-            nx = Integer.parseInt(dimensions.getProperty("avhrr.nx"));
-            ny = Integer.parseInt(dimensions.getProperty("avhrr.ny"));
-            nwpNx = Integer.parseInt(dimensions.getProperty("avhrr.nwp.nx"));
-            nwpNy = Integer.parseInt(dimensions.getProperty("avhrr.nwp.ny"));
-        } else {
-            getLogger().warning("sensor '" + sensorName + "' is neither ATSR nor AVHRR - interpolating a single pixel");
-            nx = 1;
-            ny = 1;
-            nwpNx = 1;
-            nwpNy = 1;
-        }
         final int strideX;
         final int strideY;
         if (nwpNx > 1) {
@@ -264,7 +246,7 @@ class NwpTool extends BasicTool {
         }
 
         try {
-            writeSensorGeoFile(sensorMmdFile, nwpNx, nwpNy, strideX, strideY);
+            final String geoFileLocation = writeSensorGeoFile(sensorMmdFile, nwpNx, nwpNy, strideX, strideY, sensorName);
 
             final Properties properties = new Properties();
             properties.setProperty("CDO", "cdo");
@@ -296,7 +278,7 @@ class NwpTool extends BasicTool {
             final NetcdfFile nwpFile = NetcdfFile.open(properties.getProperty("NWP_TIME_SERIES"));
             try {
                 getLogger().info(MessageFormat.format("Starting to write NWP MMD file: {0}", nwpTargetLocation));
-                mergeAndWrite(sensorMmdFile, nwpFile);
+                merge(sensorMmdFile, nwpFile, sensorName, nwpTargetLocation);
                 getLogger().info(MessageFormat.format("Finished writing NWP MMD file: {0}", nwpTargetLocation));
             } finally {
                 try {
@@ -312,9 +294,9 @@ class NwpTool extends BasicTool {
         }
     }
 
-    private void mergeAndWrite(NetcdfFile sourceMmd, NetcdfFile sourceNwp) throws IOException {
-        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4,
-                                                                      nwpTargetLocation);
+    private static void merge(NetcdfFile sourceMmd, NetcdfFile sourceNwp, String sensorName,
+                       String targetPath) throws IOException {
+        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, targetPath);
 
         try {
             // copy MMD structure
@@ -337,7 +319,7 @@ class NwpTool extends BasicTool {
             final int gx = xDimension.getLength();
             final int gz = levDimension.getLength();
 
-            final String sensorBasename = sensorName.replaceAll("\\..+", "");
+            final String sensorBasename = getSensorBasename(sensorName);
             targetMmd.addDimension(null, sensorBasename + ".nwp.nx", gx);
             targetMmd.addDimension(null, sensorBasename + ".nwp.ny", gy);
             targetMmd.addDimension(null, sensorBasename + ".nwp.nz", gz);
@@ -369,9 +351,7 @@ class NwpTool extends BasicTool {
             targetMmd.write(targetMatchupId, NwpUtil.findVariable(sourceMmd, "matchup.id").read());
 
             //copy NWP data;
-            final Variable targetTimesVariable = NwpUtil.findVariable(sourceMmd,
-                                                                      sensorName + ".time",
-                                                                      getAlternativeSensorName(sensorName) + ".time");
+            final Variable targetTimesVariable = NwpUtil.findVariable(sourceMmd, sensorName + ".time");
             final Array sourceTimes = NwpUtil.findVariable(sourceNwp, "time", "t").read();
             final Array targetTimes = targetTimesVariable.read();
             final float targetTimeFillValue = NwpUtil.getAttribute(targetTimesVariable, "_FillValue",
@@ -426,9 +406,8 @@ class NwpTool extends BasicTool {
                 }
             }
         } catch (IOException | InvalidRangeException e) {
-            final String message = MessageFormat.format("Failed to write NWP MMD file: {0} ({1})", nwpTargetLocation,
+            final String message = MessageFormat.format("Failed to write NWP MMD file: {0} ({1})", targetPath,
                                                         e.getMessage());
-            getLogger().warning(message);
             throw new IOException(message, e);
         } finally {
             try {
@@ -443,25 +422,25 @@ class NwpTool extends BasicTool {
      * Writes the latitude, longitude and time for those records in an MMD file that correspond
      * to a certain sensor to a new MMD file.
      *
-     * @param sensorName    The sensor name.
-     * @param sensorPattern The sensor pattern.
+     * @param sourceMmdLocation The location of the source (multi-sensor) MMD file.
+     * @param sensorName        The sensor name.
+     * @param sensorPattern     The sensor pattern.
      *
      * @return the location of the netCDF file written.
      *
      * @throws java.io.IOException when an error occurred.
      */
-    @SuppressWarnings({"ConstantConditions"})
-    private String writeSensorMmdFile(String sensorName, int sensorPattern) throws IOException {
-        final NetcdfFile sourceMmd = NetcdfFile.open(mmdSourceLocation);
-
+    private static String writeSingleSensorMmdFile(String sourceMmdLocation, String sensorName,
+                                                   int sensorPattern) throws IOException {
+        final NetcdfFile sourceMmd = NetcdfFile.open(sourceMmdLocation);
         try {
             final Dimension matchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");
-            final String sensorBasename = sensorName.replaceAll("\\..+", "");
+            final String sensorBasename = getSensorBasename(sensorName);
             final Dimension nyDimension = NwpUtil.findDimension(sourceMmd, sensorBasename + ".ny");
             final Dimension nxDimension = NwpUtil.findDimension(sourceMmd, sensorBasename + ".nx");
 
             final Array sensorPatterns = NwpUtil.findVariable(sourceMmd, "matchup.sensor_list").read();
-            final int matchupCount = getMatchupCount(sensorPatterns);
+            final int matchupCount = getMatchupCount(sensorPatterns, sensorPattern);
             final String sensorMmdLocation = NwpUtil.createTempFile("mmd", ".nc", true).getPath();
             final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3,
                                                                           sensorMmdLocation);
@@ -474,15 +453,11 @@ class NwpTool extends BasicTool {
             targetMmd.addDimension(null, nxDimension.getShortName(), nx);
 
             NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, "matchup.id"));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".latitude",
-                                                                getAlternativeSensorName(sensorName) + ".latitude"));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".longitude",
-                                                                getAlternativeSensorName(sensorName) + ".longitude"));
-            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".time",
-                                                                getAlternativeSensorName(sensorName) + ".time"));
+            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".latitude"));
+            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".longitude"));
+            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".time"));
 
             targetMmd.create();
-
             try {
                 for (final Variable sourceVariable : sourceMmd.getVariables()) {
                     final int[] sourceStart = new int[sourceVariable.getRank()];
@@ -526,8 +501,7 @@ class NwpTool extends BasicTool {
      *
      * @throws java.io.IOException when an error occurred.
      */
-    @SuppressWarnings({"ConstantConditions"})
-    private void writeMatchupGeoFile(NetcdfFile mmd) throws IOException {
+    private static String writeMatchupGeoFile(NetcdfFile mmd) throws IOException {
         final Dimension matchupDimension = NwpUtil.findDimension(mmd, "matchup");
 
         final String location = NwpUtil.createTempFile("geo", ".nc", true).getPath();
@@ -550,11 +524,9 @@ class NwpTool extends BasicTool {
         final Variable gridMask = geoFile.addVariable(null, "grid_imask", DataType.INT, "grid_size");
         geoFile.addVariable(null, "grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
         geoFile.addVariable(null, "grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
-
         geoFile.addGroupAttribute(null, new Attribute("title", "MMD geo-location in SCRIP format"));
 
         geoFile.create();
-
         try {
             geoFile.write(gridDims, Array.factory(new int[]{1, matchupCount}));
 
@@ -591,24 +563,25 @@ class NwpTool extends BasicTool {
             } catch (IOException ignored) {
             }
         }
-        geoFileLocation = geoFile.getNetcdfFile().getLocation();
+        return geoFile.getNetcdfFile().getLocation();
     }
 
     /**
      * Writes the sensor geo-coordinates from an MMD file to a SCRIP compatible file.
      *
-     * @param mmd     The MMD file.
-     * @param gx      The the number of tie points in x direction.
-     * @param gy      The the number of tie points in y direction.
-     * @param strideX The tie point stride in x direction.
-     * @param strideY The tie point stride in y direction.
+     * @param mmd        The MMD file.
+     * @param gx         The the number of tie points in x direction.
+     * @param gy         The the number of tie points in y direction.
+     * @param strideX    The tie point stride in x direction.
+     * @param strideY    The tie point stride in y direction.
+     * @param sensorName The sensor name.
      *
      * @throws java.io.IOException when an error occurred.
      */
-    @SuppressWarnings({"ConstantConditions"})
-    private void writeSensorGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY) throws IOException {
+    private static String writeSensorGeoFile(NetcdfFile mmd, int gx, int gy, int strideX, int strideY,
+                                             String sensorName) throws IOException {
         final Dimension matchupDimension = NwpUtil.findDimension(mmd, "matchup");
-        final String sensorBasename = sensorName.replaceAll("\\..+", "");
+        final String sensorBasename = getSensorBasename(sensorName);
         final Dimension nyDimension = NwpUtil.findDimension(mmd, sensorBasename + ".ny");
         final Dimension nxDimension = NwpUtil.findDimension(mmd, sensorBasename + ".nx");
 
@@ -634,11 +607,9 @@ class NwpTool extends BasicTool {
         final Variable gridMask = geoFile.addVariable(null, "grid_imask", DataType.INT, "grid_size");
         geoFile.addVariable(null, "grid_corner_lat", DataType.FLOAT, "grid_size grid_corners");
         geoFile.addVariable(null, "grid_corner_lon", DataType.FLOAT, "grid_size grid_corners");
-
         geoFile.addGroupAttribute(null, new Attribute("title", "MMD geo-location in SCRIP format"));
 
         geoFile.create();
-
         try {
             geoFile.write(gridDims, Array.factory(new int[]{gx, gy * matchupCount}));
 
@@ -649,10 +620,8 @@ class NwpTool extends BasicTool {
             final int[] targetShape = {gy * gx};
             final Array maskData = Array.factory(DataType.INT, targetShape);
 
-            final Variable sourceLat = NwpUtil.findVariable(mmd, sensorName + ".latitude",
-                                                            getAlternativeSensorName(sensorName) + ".latitude");
-            final Variable sourceLon = NwpUtil.findVariable(mmd, sensorName + ".longitude",
-                                                            getAlternativeSensorName(sensorName) + ".longitude");
+            final Variable sourceLat = NwpUtil.findVariable(mmd, sensorName + ".latitude");
+            final Variable sourceLon = NwpUtil.findVariable(mmd, sensorName + ".longitude");
 
             for (int i = 0; i < matchupCount; i++) {
                 sourceStart[0] = i;
@@ -677,21 +646,25 @@ class NwpTool extends BasicTool {
             } catch (IOException ignored) {
             }
         }
-        geoFileLocation = geoFile.getNetcdfFile().getLocation();
+        return geoFile.getNetcdfFile().getLocation();
     }
 
-    static String getAlternativeSensorName(String sensorName) {
-        if (!sensorName.startsWith("avhrr.")) {
-            return sensorName;
-        }
-        final int index = sensorName.indexOf(".");
-        return sensorName.substring(0, index) + "." + sensorName.substring(index + 2);
+    static int computeFutureTimeStepCount(int timeStepCount) {
+        return (timeStepCount - 1) / 3;
     }
 
-    private int getMatchupCount(Array sensorPatterns) {
+    static int computePastTimeStepCount(int timeStepCount) {
+        return ((timeStepCount - 1) / 3) * 2;
+    }
+
+    static String getSensorBasename(String sensorName) {
+        return sensorName.replaceAll("\\..+", "");
+    }
+
+    static int getMatchupCount(Array sensorPatterns, int wantedPattern) {
         int matchupCount = 0;
         for (int i = 0; i < sensorPatterns.getSize(); ++i) {
-            if ((sensorPatterns.getInt(i) & sensorPattern) == sensorPattern) {
+            if ((sensorPatterns.getInt(i) & wantedPattern) == wantedPattern) {
                 matchupCount++;
             }
         }

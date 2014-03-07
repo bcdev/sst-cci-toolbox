@@ -16,10 +16,10 @@ mkdir -p ${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}
 echo "`date -u +%Y%m%d-%H%M%S` nwp ${year}/${month} sensor ${sensor}..."
 
 nwp-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
--Dmms.nwp.sensor=${sensor} \
 -Dmms.target.dimensions=${MMS_HOME}/config/mmd-dimensions.properties \
--Dmms.mmd.source=${MMS_ARCHIVE}/${usecase}/sub/${sensor}/${year}/${sensor}-sub-${year}-${month}.nc \
--Dmms.nwp.source=${MMS_ARCHIVE}/era-interim/v1 \
--Dmms.nwp.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwp-${year}-${month}.nc \
--Dmms.nwpan.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpAn-${year}-${month}.nc \
--Dmms.nwpfc.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpFc-${year}-${month}.nc
+-Dmms.nwp.sensor=${sensor} \
+-Dmms.nwp.mmd.source=${MMS_ARCHIVE}/${usecase}/sub/${sensor}/${year}/${sensor}-sub-${year}-${month}.nc \
+-Dmms.nwp.nwp.source=${MMS_ARCHIVE}/era-interim/v1 \
+-Dmms.nwp.nwp.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwp-${year}-${month}.nc \
+-Dmms.nwp.an.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpAn-${year}-${month}.nc \
+-Dmms.nwp.fc.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpFc-${year}-${month}.nc

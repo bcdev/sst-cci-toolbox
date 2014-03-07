@@ -437,8 +437,8 @@ public class MmdTool extends BasicTool {
     }
 
     static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
-        final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_TARGET_DIR, ".");
-        final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_TARGET_FILENAME, "mmd.nc");
+        final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIR, ".");
+        final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME, "mmd.nc");
         final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
 
         final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, mmdFilePath);
@@ -512,7 +512,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void readDimensionConfiguration(Collection<String> dimensionNames) {
-        final String configFilePath = getConfig().getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIMENSIONS);
+        final String configFilePath = getConfig().getStringValue(Configuration.KEY_MMS_MMD_DIMENSIONS);
         if (configFilePath == null) {
             throw new ToolException("No target dimensions specified.", ToolException.TOOL_CONFIGURATION_ERROR);
         }

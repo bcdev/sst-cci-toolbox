@@ -16,8 +16,8 @@ public class MmdToolTest {
     @Test
     public void testCreateNetCDFWriter() throws IOException {
         final Configuration configuration = new Configuration();
-        configuration.put(Configuration.KEY_MMS_TARGET_DIR, "/here/we");
-        configuration.put(Configuration.KEY_MMS_TARGET_FILENAME, "are_now.nc");
+        configuration.put(Configuration.KEY_MMS_MMD_TARGET_DIR, "/here/we");
+        configuration.put(Configuration.KEY_MMS_MMD_TARGET_FILENAME, "are_now.nc");
 
         final NetcdfFileWriter netCDFWriter = MmdTool.createNetCDFWriter(configuration);
         assertNotNull(netCDFWriter);

@@ -15,34 +15,19 @@ public class Configuration {
 
     public static final String KEY_CONFIGURATION = "mms.configuration";
     public static final String KEY_USECASE = "mms.usecase";
-
-    public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";
-    public static final String KEY_ARCHIVE_ROOTDIR = "mms.archive.rootdir";
-
-    public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
-    public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
-
-    public static final String KEY_MMS_MMD_SOURCE_LOCATION = "mms.mmd.source";
-    public static final String KEY_MMS_MMD_TARGET_DIMENSIONS = "mms.target.dimensions";
-
-    public static final String KEY_MMS_NWP_SENSOR = "mms.nwp.sensor";
-    public static final String KEY_MMS_NWP_SOURCE_LOCATION = "mms.nwp.source";
-    public static final String KEY_MMS_NWP_TARGET_LOCATION = "mms.nwp.target";
-    public static final String KEY_MMS_NWP_AN_TARGET_LOCATION = "mms.nwpan.target";
-    public static final String KEY_MMS_NWP_FC_TARGET_LOCATION = "mms.nwpfc.target";
+    public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
 
     public static final String KEY_MMS_INGESTION_CLEANUPINTERVAL = "mms.ingestion.cleanupinterval";
+    public static final String KEY_MMS_INGESTION_START_TIME = "mms.source.startTime";
+    public static final String KEY_MMS_INGESTION_STOP_TIME = "mms.source.stopTime";
 
-    public static final String KEY_MATCHUP_START_TIME = "mms.matchup.startTime";
-    public static final String KEY_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
+    public static final String KEY_MMS_MATCHUP_START_TIME = "mms.matchup.startTime";
+    public static final String KEY_MMS_MATCHUP_STOP_TIME = "mms.matchup.stopTime";
     public static final String KEY_MMS_MATCHUP_PRIMARY_SENSOR = "mms.matchup.primarysensor";
 
-    public static final String KEY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
-
-    public static final String KEY_SOURCE_START_TIME = "mms.source.startTime";
-    public static final String KEY_SOURCE_STOP_TIME = "mms.source.stopTime";
-
-    public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
+    public static final String KEY_MMS_MMD_DIMENSIONS = "mms.target.dimensions";
+    public static final String KEY_MMS_MMD_TARGET_DIR = "mms.target.dir";
+    public static final String KEY_MMS_MMD_TARGET_FILENAME = "mms.target.filename";
 
     public static final String KEY_MMS_SAMPLING_GENERATOR = "mms.sampling.generator";
     public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
@@ -61,8 +46,13 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
     public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
 
-    public static final String KEY_MMS_TARGET_DIR = "mms.target.dir";
-    public static final String KEY_MMS_TARGET_FILENAME = "mms.target.filename";
+    public static final String KEY_MMS_NWP_MMD_SOURCE = "mms.nwp.mmd.source";
+    public static final String KEY_MMS_NWP_SENSOR = "mms.nwp.sensor";
+    public static final String KEY_MMS_NWP_SOURCE = "mms.nwp.nwp.source";
+    public static final String KEY_MMS_NWP_NWP_TARGET = "mms.nwp.nwp.target";
+    public static final String KEY_MMS_NWP_AN_TARGET = "mms.nwp.an.target";
+    public static final String KEY_MMS_NWP_FC_TARGET = "mms.nwp.fc.target";
+
     public static final String KEY_MMS_GBCS_INTELVERSION = "mms.gbcs.intelversion";
     public static final String KEY_MMS_GBCS_VERSION = "mms.gbcs.version";
     public static final String KEY_MMS_GBCS_HOME = "mms.gbcs.home";
@@ -70,6 +60,14 @@ public class Configuration {
     public static final String KEY_MMS_GBCS_NWP_SOURCE = "mms.gbcs.nwp.source";
     public static final String KEY_MMS_GBCS_MMD_TARGET = "mms.gbcs.mmd.target";
     public static final String KEY_MMS_GBCS_SENSOR = "mms.gbcs.sensor";
+
+    // yet unclear properties
+    public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";
+    public static final String KEY_ARCHIVE_ROOTDIR = "mms.archive.rootdir";
+    public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
+    public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
+    public static final String KEY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
+
 
     private final Properties properties;
 

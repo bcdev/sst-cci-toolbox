@@ -333,8 +333,8 @@ public class MatchupTool extends BasicTool {
 
     private void getMatchupStartTime() {
         final Configuration config = getConfig();
-        matchupStartTime = config.getDateValue(Configuration.KEY_MATCHUP_START_TIME, "1978-01-01T00:00:00Z");
-        matchupStopTime = config.getDateValue(Configuration.KEY_MATCHUP_STOP_TIME, "2100-01-01T00:00:00Z");
+        matchupStartTime = config.getDateValue(Configuration.KEY_MMS_MATCHUP_START_TIME, "1978-01-01T00:00:00Z");
+        matchupStopTime = config.getDateValue(Configuration.KEY_MMS_MATCHUP_STOP_TIME, "2100-01-01T00:00:00Z");
     }
 
     /**

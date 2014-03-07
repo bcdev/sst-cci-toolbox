@@ -198,10 +198,12 @@ public abstract class BasicTool {
         return persistenceManager;
     }
 
+    // TODO - move method to ingestion tool
     public final Date getSourceStartTime() {
         return sourceStartTime;
     }
 
+    // TODO - move method to ingestion tool
     public final Date getSourceStopTime() {
         return sourceStopTime;
     }
@@ -268,8 +270,10 @@ public abstract class BasicTool {
             }
         }
         toolStorage = persistenceManager.getToolStorage();
-        sourceStartTime = config.getDateValue(Configuration.KEY_SOURCE_START_TIME, "1978-01-01T00:00:00Z");
-        sourceStopTime = config.getDateValue(Configuration.KEY_SOURCE_STOP_TIME, "2100-01-01T00:00:00Z");
+
+        // TODO - move to ingestion tool
+        sourceStartTime = config.getDateValue(Configuration.KEY_MMS_INGESTION_START_TIME, "1978-01-01T00:00:00Z");
+        sourceStopTime = config.getDateValue(Configuration.KEY_MMS_INGESTION_STOP_TIME, "2100-01-01T00:00:00Z");
 
         initialised = true;
     }
