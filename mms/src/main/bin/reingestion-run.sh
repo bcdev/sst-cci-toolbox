@@ -14,9 +14,12 @@ usecase=$5
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
 
+# TODO - what is the result of this when there is no entry in config file for the given sensor?
 pattern=`cat ${MMS_HOME}/config/${usecase}-config.properties | awk "/mms.pattern.$sensor/ { print \\$3 }"`
 
 echo "`date -u +%Y%m%d-%H%M%S` reingestion ${year}/${month} sensor ${sensor} type ${mmdtype} pattern ${pattern}..."
+
+# TODO - think about sensor prefixes
 
 reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.reingestion.filename=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
@@ -24,4 +27,4 @@ reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.reingestion.overwrite=true \
 -Dmms.db.useindex=true \
 -Dmms.reingestion.sensor=${mmdtype}_${sensor} \
--Dmms.reingestion.pattern=0
+-Dmms.reingestion.pattern=${pattern}
