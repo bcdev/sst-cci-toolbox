@@ -22,16 +22,17 @@ import java.util.Properties;
 
 public class GbcsTool extends BasicTool {
 
+    private static final String KEY_CONFIG_FILENAME = "CONFIG";
     private static final String TEMPLATE =
             String.format(
-                    "#! /bin/sh\n" +
-                    "module load intel/${%s}\n" +
-                    "${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${INP} ${%s} ${%s} ${%s}\n",
+                    "module load intel/${%s} && " +
+                    "${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${%s} ${%s} ${%s} ${%s}",
                     Configuration.KEY_MMS_GBCS_INTELVERSION,
                     Configuration.KEY_MMS_GBCS_HOME,
                     Configuration.KEY_MMS_GBCS_VERSION,
                     Configuration.KEY_MMS_GBCS_HOME,
                     Configuration.KEY_MMS_GBCS_VERSION,
+                    KEY_CONFIG_FILENAME,
                     Configuration.KEY_MMS_GBCS_MMD_SOURCE,
                     Configuration.KEY_MMS_GBCS_NWP_SOURCE,
                     Configuration.KEY_MMS_GBCS_MMD_TARGET);
@@ -81,16 +82,16 @@ public class GbcsTool extends BasicTool {
     }
 
     private void run() throws IOException, InterruptedException {
-        final String inputFilename = getInputFilename(sensorName);
-        properties.put("INP", inputFilename);
+        final String configFilename = getConfigurationFilename(sensorName);
+        properties.put(KEY_CONFIG_FILENAME, configFilename);
 
         final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
         final String resolvedTemplate = ProcessRunner.resolveTemplate(TEMPLATE, properties);
 
-        runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "gbcs", ".sh").getPath());
+        runner.execute(resolvedTemplate);
     }
 
-    static String getInputFilename(String sensorName) {
+    static String getConfigurationFilename(String sensorName) {
         switch (sensorName) {
             case "atsr.1":
                 return "MMD_ATSR1.inp";

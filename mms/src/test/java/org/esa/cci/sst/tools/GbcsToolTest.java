@@ -23,25 +23,25 @@ public class GbcsToolTest {
 
     @Test
     public void testInputFilename_ATSR1() throws Exception {
-        assertEquals("MMD_ATSR1.inp", GbcsTool.getInputFilename("atsr.1"));
+        assertEquals("MMD_ATSR1.inp", GbcsTool.getConfigurationFilename("atsr.1"));
 
     }
 
     @Test
     public void testInputFilename_ATSR2() throws Exception {
-        assertEquals("MMD_ATSR2.inp", GbcsTool.getInputFilename("atsr.2"));
+        assertEquals("MMD_ATSR2.inp", GbcsTool.getConfigurationFilename("atsr.2"));
 
     }
 
     @Test
     public void testInputFilename_ATSR3() throws Exception {
-        assertEquals("MMD_AATSR.inp", GbcsTool.getInputFilename("atsr.3"));
+        assertEquals("MMD_AATSR.inp", GbcsTool.getConfigurationFilename("atsr.3"));
     }
 
     @Test
     public void testInputFilename_ForIllegalSensor() throws Exception {
         try {
-            GbcsTool.getInputFilename("something else flying around");
+            GbcsTool.getConfigurationFilename("something else flying around");
             fail();
         } catch (ToolException e) {
             assertEquals(ToolException.TOOL_CONFIGURATION_ERROR, e.getExitCode());
