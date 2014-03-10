@@ -140,7 +140,7 @@ class NwpTool extends BasicTool {
             final String geoFileLocation = writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
-            properties.setProperty("CDO", cdoHome + "/cdo");
+            properties.setProperty("CDO", cdoHome + "/bin/cdo");
             properties.setProperty("CDO_OPTS", "-M");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
