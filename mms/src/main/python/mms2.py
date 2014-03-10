@@ -96,13 +96,13 @@ for (sensor, sensorstart, sensorstop) in sensors:
         next_month_year, next_month = next_year_month_of(sensorstop[0:4], sensorstop[5:7])
     inputs.append('/obs/' + next_month_year + '/' + next_month)
 
-hosts = [('localhost', 120)]
+hosts = [('localhost', 240)]
 types = [('ingestion-start.sh', 120),
          ('sampling-start.sh', 12),
          ('clearsky-start.sh', 120),
          ('mmd-start.sh', 120),
          ('coincidence-start.sh', 12),
-         ('nwp-run.sh', 120),
+         ('nwp-run.sh', 240),
          ('arc-run2.sh', 120),
          ('reingestion-run2.sh', 12)]
 
