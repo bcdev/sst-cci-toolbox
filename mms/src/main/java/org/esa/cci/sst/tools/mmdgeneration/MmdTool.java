@@ -60,7 +60,7 @@ import java.util.logging.Level;
 public class MmdTool extends BasicTool {
 
     private final ColumnRegistry columnRegistry;
-    private final Set<String> dimensionNames;
+    private Set<String> dimensionNames;
     private final Map<String, Integer> dimensionConfiguration;
     private final List<String> targetColumnNames ;
 
@@ -71,7 +71,6 @@ public class MmdTool extends BasicTool {
         super("mmd-tool.sh", "0.1");
 
         columnRegistry = new ColumnRegistry();
-        dimensionNames = new TreeSet<>();
         dimensionConfiguration = new HashMap<>(50);
         targetColumnNames = new ArrayList<>(500);
     }
@@ -93,23 +92,12 @@ public class MmdTool extends BasicTool {
 
         initializeColumns();
 
-        for (final String name : targetColumnNames) {
-            final Item column = columnRegistry.getColumn(name);
-            final String dimensions = column.getDimensions();
-            if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format("Expected at least one dimension for target column ''{0}''.", name);
-                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
-        }
-
+        dimensionNames = initializeDimensionNames(targetColumnNames, columnRegistry);
         readDimensionConfiguration(dimensionNames);
 
         final Configuration config = getConfig();
         final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
         readerCache = new ReaderCache(readerCacheSize, config, getLogger());
-
-
     }
 
     private void run(String[] args) {
@@ -143,6 +131,21 @@ public class MmdTool extends BasicTool {
         }
     }
 
+    static TreeSet<String> initializeDimensionNames(List<String> targetColumnNames, ColumnRegistry columnRegistry) {
+        final TreeSet<String> dimensionNames = new TreeSet<>();
+        for (final String name : targetColumnNames) {
+            final Item column = columnRegistry.getColumn(name);
+            final String dimensions = column.getDimensions();
+            if (dimensions.isEmpty()) {
+                final String message = MessageFormat.format("Expected at least one dimension for target column ''{0}''.", name);
+                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
+        }
+
+        return dimensionNames;
+    }
+
     private void initializeColumns() {
         final Storage toolStorage = getPersistenceManager().getToolStorage();
         final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
@@ -156,7 +159,6 @@ public class MmdTool extends BasicTool {
      *
      * @param mmd
      * @param mmdVariables
-     * @param recordOfMatchup
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
     void writeMmdShuffled(NetcdfFileWriter mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
