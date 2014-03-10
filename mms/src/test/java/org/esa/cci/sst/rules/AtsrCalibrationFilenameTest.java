@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.beam.framework.dataio.ProductIO;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Matchup;
@@ -48,7 +49,7 @@ public class AtsrCalibrationFilenameTest {
     @Ignore
     public void testV1cAndG1cFilename() throws Exception {
         // @todo 2 tb/** file is not checked into git - tb 2014-01-16
-        final String file = getClass().getResource("atsr_metadata.dim").getFile();
+        final String file = TestHelper.getResourcePath(getClass(), "atsr_metadata.dim");
         final Product product = ProductIO.readProduct(file);
 
         final G1cFilename g1cFilename = new G1cFilename();

@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
@@ -12,9 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -34,9 +33,8 @@ public class InsituSamplingPointGeneratorTest {
 
     @BeforeClass
     public static void beforeClass() throws URISyntaxException {
-        final URL testArchiveUrl = InsituSamplingPointGeneratorTest.class.getResource("../../reader/insitu_0_WMOID_71566_20020211_20120214.nc");
-        final URI uri = testArchiveUrl.toURI();
-        archiveDir = new File(uri).getParentFile();
+        final String resourcePath = TestHelper.getResourcePath(InsituSamplingPointGeneratorTest.class, "../../reader/insitu_0_WMOID_71566_20020211_20120214.nc");
+        archiveDir = new File(resourcePath).getParentFile();
         assertTrue(archiveDir.isDirectory());
 
         sensor = new SensorBuilder().name("history").pattern(4000000000000000L).build();

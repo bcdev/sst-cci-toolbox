@@ -19,6 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.util.PgUtil;
 import org.junit.AfterClass;
@@ -31,9 +32,7 @@ import ucar.ma2.InvalidRangeException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,9 +51,9 @@ public class AmsreProductReaderTest {
 
     @BeforeClass
     public static void init() throws IOException, URISyntaxException {
-        final URL url = AmsreProductReaderTest.class.getResource(AMSR_RESOURCE_NAME);
-        final URI uri = url.toURI();
-        final File file = new File(uri);
+        final String filePath = TestHelper.getResourcePath(AmsreProductReaderTest.class, AMSR_RESOURCE_NAME);
+        final File file = new File(filePath);
+        assertTrue(file.isFile());
 
         productReader = new ProductReader("amsre");
         dataFile = new DataFile();

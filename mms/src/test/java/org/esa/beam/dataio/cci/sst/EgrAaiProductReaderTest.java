@@ -20,6 +20,7 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.cci.sst.TestHelper;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.junit.Test;
 
@@ -29,9 +30,7 @@ import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -113,11 +112,9 @@ public class EgrAaiProductReaderTest {
     }
 
     private static File getResourceAsFile() throws URISyntaxException {
-        final URL url = EgrAaiProductReaderTest.class.getResource(RESOURCE_NAME);
-        assertNotNull(url);
-        final URI uri = url.toURI();
+        final String filePath = TestHelper.getResourcePath(EgrAaiProductReaderTest.class, RESOURCE_NAME);
 
-        final File resourceFile = new File(uri);
+        final File resourceFile = new File(filePath);
         assertTrue(resourceFile.isFile());
         return resourceFile;
     }

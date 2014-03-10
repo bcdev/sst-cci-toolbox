@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
@@ -24,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
@@ -91,9 +91,8 @@ public class MmdReaderTest {
 
     private void initMmdReader(final String filename) throws IOException {
         final DataFile dataFile = new DataFile();
-        final File file = new File(getClass().getResource(filename).getFile());
-        dataFile.setPath(file.getPath());
+        final String filePath = TestHelper.getResourcePath(getClass(), filename);
+        dataFile.setPath(filePath);
         mmdReader.init(dataFile, null);
     }
-
 }

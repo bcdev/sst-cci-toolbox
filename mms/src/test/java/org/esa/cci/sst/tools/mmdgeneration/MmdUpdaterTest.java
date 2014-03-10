@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.tools.Configuration;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class MmdUpdaterTest {
 
     @Before
     public void setUp() throws Exception {
-        fileLocation = getClass().getResource("dummy.nc").getFile();
+        fileLocation = TestHelper.getResourcePath(getClass(), "dummy.nc");
     }
 
     public MmdUpdater createUpdater(final String variableList) throws IOException {

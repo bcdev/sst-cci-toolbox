@@ -20,13 +20,13 @@ import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.cci.sst.IoTestRunner;
+import org.esa.cci.sst.TestHelper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.awt.image.Raster;
 import java.io.File;
-import java.net.URL;
 
 import static org.junit.Assert.*;
 
@@ -38,15 +38,15 @@ public class ArcPixelPosToolTest {
     @Before
     public void setUp() throws Exception {
         tool = new ArcPixelPosTool();
-        final URL resource = getClass().getResource("mms-config.properties");
-        final File resourceFile = new File(resource.toURI());
+        final String filePath = TestHelper.getResourcePath(getClass(), "mms-config.properties");
+        final File resourceFile = new File(filePath);
         tool.setCommandLineArgs(new String[]{"-c" + resourceFile.getPath()});
     }
 
     @Test
     public void testCreatePixelPosFile() throws Exception {
-        final String file = getClass().getResource("NSS.GHRR.NP.D10365.S2336.E2359.B0978080.SV.LOC.nc").getFile();
-        final Product product = tool.readProduct(file);
+        final String filePath = TestHelper.getResourcePath(getClass(), "NSS.GHRR.NP.D10365.S2336.E2359.B0978080.SV.LOC.nc");
+        final Product product = tool.readProduct(filePath);
         assertNotNull(product);
         assertNotNull(product.getGeoCoding());
     }
@@ -83,8 +83,8 @@ public class ArcPixelPosToolTest {
 
     @Test
     public void testNormaliseProduct() throws Exception {
-        final String file = getClass().getResource("NSS.GHRR.NP.D10365.S2336.E2359.B0978080.SV.LOC.nc").getFile();
-        final Product product = tool.readProduct(file);
+        final String filePath = TestHelper.getResourcePath(getClass(), "NSS.GHRR.NP.D10365.S2336.E2359.B0978080.SV.LOC.nc");
+        final Product product = tool.readProduct(filePath);
         final Band lon = product.getBand("lon");
         final Raster raster = lon.getSourceImage().getData();
         for (int x = raster.getMinX(); x < raster.getWidth(); x++) {

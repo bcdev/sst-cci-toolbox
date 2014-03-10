@@ -17,6 +17,7 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.ColumnRegistry;
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.rules.RuleException;
@@ -102,7 +103,8 @@ public class TargetVariableConfigurationTest {
                                                                                   URISyntaxException {
         NetcdfFile netcdfFile = null;
         try {
-            final File sensorFile = new File(TargetVariableConfigurationTest.class.getResource(fileName).toURI());
+            final String filePath = TestHelper.getResourcePath(getClass(), fileName);
+            final File sensorFile = new File(filePath);
             netcdfFile = NetcdfFile.open(sensorFile.getPath());
             for (final Variable variable : netcdfFile.getVariables()) {
                 final Item column = IoUtil.createColumnBuilder(variable, sensorName).build();

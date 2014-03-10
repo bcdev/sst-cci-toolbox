@@ -20,6 +20,7 @@ import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.cci.sst.TestHelper;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.Array;
@@ -57,7 +58,7 @@ public class NcAaiProductReaderTest {
 
             @Override
             public String getInput() {
-                return getClass().getResource("aai_20101224.nc").getFile();
+                return TestHelper.getResourcePath(getClass(), "aai_20101224.nc");
             }
         };
         product = reader.createPlainProduct();
@@ -106,7 +107,7 @@ public class NcAaiProductReaderTest {
 
     @Test
     public void testGetMinAndMaxValue() throws Exception {
-        final String testFile = getClass().getResource("aai_20101224.nc").getFile();
+        final String testFile = TestHelper.getResourcePath(getClass(), "aai_20101224.nc");
         final NetcdfFile file = NetcdfFile.open(testFile);
         float minValue = Float.MAX_VALUE;
         float maxValue = Float.MIN_VALUE;

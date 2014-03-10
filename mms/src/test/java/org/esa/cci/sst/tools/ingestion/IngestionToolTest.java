@@ -16,15 +16,15 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.net.URL;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 public class IngestionToolTest {
 
@@ -37,8 +37,8 @@ public class IngestionToolTest {
         }
 
         IngestionTool configOnly = new IngestionTool();
-        final URL url = IngestionToolTest.class.getResource("ingestionToolTest.properties");
-        final File configFile = new File(url.toURI());
+        final String filePath = TestHelper.getResourcePath(getClass(), "ingestionToolTest.properties");
+        final File configFile = new File(filePath);
         assertTrue(configOnly.setCommandLineArgs(new String[]{"-c", configFile.getPath()}));
         assertEquals("value1", configOnly.getConfig().getStringValue("mms.name1"));
         if (new File(BasicTool.DEFAULT_CONFIGURATION_FILE_NAME).exists()) {

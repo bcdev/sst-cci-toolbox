@@ -17,6 +17,7 @@
 package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.cci.sst.TestHelper;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class AvhrrPodProductReaderTest96 {
     public void setUp() throws Exception {
         final AvhrrPodProductReaderPlugIn plugIn = new AvhrrPodProductReaderPlugIn();
         reader = (AvhrrPodProductReader) plugIn.createReaderInstance();
-        final String fileName = getClass().getResource("NSS.GHRR.ND.D96154.S0723.E0918.B2623536.WI").getFile();
+        final String fileName = TestHelper.getResourcePath(getClass(), "NSS.GHRR.ND.D96154.S0723.E0918.B2623536.WI");
         product = reader.readProductNodes(fileName, null);
     }
 
@@ -52,7 +53,6 @@ public class AvhrrPodProductReaderTest96 {
         assertSame(reader, product.getProductReader());
         assertEquals("NSS.GHRR.ND.D96154.S0723.E0918.B2623536.WI", product.getFileLocation().getName());
         assertEquals(2, product.getTiePointGrids().length);
-
     }
 
     @Test

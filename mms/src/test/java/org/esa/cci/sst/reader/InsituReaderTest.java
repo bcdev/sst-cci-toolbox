@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.DataFile;
@@ -33,11 +34,7 @@ import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.ma2.Range;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -1114,20 +1111,13 @@ public class InsituReaderTest {
 
     private static InsituReader createReader(String resourceName) throws Exception {
         final DataFile dataFile = new DataFile();
-        final String path = getResourceAsFile(resourceName).getPath();
+        final String path = TestHelper.getResourcePath(InsituReaderTest.class, resourceName);
         dataFile.setPath(path);
 
         final InsituReader reader = new InsituReader("history");
         reader.init(dataFile, null);
 
         return reader;
-    }
-
-    private static File getResourceAsFile(String name) throws URISyntaxException {
-        final URL url = InsituReaderTest.class.getResource(name);
-        final URI uri = url.toURI();
-
-        return new File(uri);
     }
 
     private static Calendar createUtcCalendar() {

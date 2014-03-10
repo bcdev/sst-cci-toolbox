@@ -17,12 +17,8 @@
 package org.esa.cci.sst.reader;
 
 import org.esa.beam.dataio.cci.sst.EgrAaiProductReaderTest;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.GlobalObservation;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.SensorBuilder;
+import org.esa.cci.sst.TestHelper;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -31,9 +27,7 @@ import ucar.ma2.InvalidRangeException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -47,9 +41,9 @@ public class AaiProductReaderTest {
 
     @BeforeClass
     public static void init() throws IOException, URISyntaxException {
-        final URL url = EgrAaiProductReaderTest.class.getResource(AAI_RESOURCE_NAME);
-        final URI uri = url.toURI();
-        final File file = new File(uri);
+        final String filePath = TestHelper.getResourcePath(EgrAaiProductReaderTest.class, AAI_RESOURCE_NAME);
+        final File file = new File(filePath);
+        assertTrue(file.isFile());
 
         reader = new AaiProductReader("aai");
         dataFile = new DataFile();
