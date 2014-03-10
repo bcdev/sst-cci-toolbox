@@ -26,7 +26,7 @@ public interface Storage {
 
     Column getColumn(String columnName);
 
-    List getAllColumns();
+    List<Item> getAllColumns();
 
     Observation getObservation(int id);
 

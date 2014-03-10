@@ -67,7 +67,6 @@ public class MmdTool extends BasicTool {
 
     private ReaderCache readerCache;
     private int matchupCount;
-    private Storage toolStorage;
 
     public MmdTool() {
         super("mmd-tool.sh", "0.1");
@@ -88,27 +87,29 @@ public class MmdTool extends BasicTool {
     public void initialize() {
         super.initialize();
 
-        registerSourceColumns();
-        registerImplicitColumn();
+        final Storage toolStorage = getPersistenceManager().getToolStorage();
+        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
+        columnRegistryInitializer.initialize();
+
         registerTargetColumns();
 
         for (final String name : targetColumnNames) {
             final Item column = columnRegistry.getColumn(name);
             final String dimensions = column.getDimensions();
             if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format(
-                        "Expected at least one dimension for target column ''{0}''.", name);
+                final String message = MessageFormat.format("Expected at least one dimension for target column ''{0}''.", name);
                 throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
             }
             dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
         }
 
         readDimensionConfiguration(dimensionNames);
+
         final Configuration config = getConfig();
         final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
         readerCache = new ReaderCache(readerCacheSize, config, getLogger());
 
-        toolStorage = getPersistenceManager().getToolStorage();
+
     }
 
     private void run(String[] args) {
@@ -544,18 +545,9 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private void registerSourceColumns() {
-        final List<? extends Item> columns = toolStorage.getAllColumns();
-        for (final Item column : columns) {
-            columnRegistry.register(column);
-        }
-    }
-
     private void registerTargetColumns() {
+        // @todo 3 tb/tb move to initializer class - need to discuss. tb 2014-03-10
         final String configFilePath = getConfig().getStringValue("mms.target.variables");
-        if (configFilePath == null) {
-            throw new ToolException("No target variables specified.", ToolException.TOOL_CONFIGURATION_ERROR);
-        }
         try {
             targetColumnNames.addAll(columnRegistry.registerColumns(new File(configFilePath)));
         } catch (FileNotFoundException e) {
@@ -563,10 +555,6 @@ public class MmdTool extends BasicTool {
         } catch (ParseException e) {
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
-    }
-
-    private void registerImplicitColumn() {
-        columnRegistry.register(new ColumnBuilder().build());
     }
 
     private Observation findObservation(String sensorName, Matchup matchup) {

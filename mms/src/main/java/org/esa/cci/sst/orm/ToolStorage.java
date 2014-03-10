@@ -20,7 +20,7 @@ class ToolStorage implements Storage {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<? extends Item> getAllColumns() {
+    public List<Item> getAllColumns() {
         final Query query = persistenceManager.createQuery("select c from Column c order by c.name");
         return query.getResultList();
     }
