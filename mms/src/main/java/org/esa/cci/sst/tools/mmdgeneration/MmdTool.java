@@ -109,10 +109,10 @@ public class MmdTool extends BasicTool {
             }
             initialize();
 
-            fileWriter = createNetCDFWriter(getConfig());
+            final Configuration config = getConfig();
+            fileWriter = createNetCDFWriter(config);
             fileWriter = defineMmd(fileWriter);
-            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(),
-                    getPattern());
+            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(), getPattern(config));
             writeMmdShuffled(fileWriter, fileWriter.getNetcdfFile().getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
@@ -162,7 +162,7 @@ public class MmdTool extends BasicTool {
      */
     void writeMmdShuffled(NetcdfFileWriter mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
         final String condition = getCondition();
-        final int pattern = getPattern();
+        final int pattern = getPattern(getConfig());
         // group variables by sensors
         Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
         final Set<String> keys = sensorMap.keySet();
@@ -447,6 +447,7 @@ public class MmdTool extends BasicTool {
         }
     }
 
+    // package access for testing only tb 2014-03-10
     static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
         final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIR, ".");
         final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME, "mmd.nc");
@@ -473,7 +474,7 @@ public class MmdTool extends BasicTool {
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
                 getTime(Constants.PROPERTY_TARGET_START_TIME),
                 getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                getCondition(), getPattern());
+                getCondition(), getPattern(getConfig()));
         getLogger().info(String.format("%d matchups in time interval", matchupCount));
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
@@ -497,10 +498,10 @@ public class MmdTool extends BasicTool {
         return getConfig().getStringValue("mms.target.condition", null);
     }
 
-    // e.g. "m.pattern & ?2 = ?2"  (select matchups with certain sensors)
-    private int getPattern() {
+    // package access for testing only tb 2014-03-10
+    static int getPattern(Configuration config) {
         try {
-            return Integer.parseInt(getConfig().getStringValue("mms.target.pattern", "0"), 16);
+            return Integer.parseInt(config.getStringValue("mms.target.pattern", "0"), 16);
         } catch (NumberFormatException e) {
             throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
                     ToolException.TOOL_CONFIGURATION_ERROR);

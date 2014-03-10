@@ -85,6 +85,36 @@ public class MmdToolTest {
         }
     }
 
+    @Test
+    public void testGetPattern() {
+        final Configuration config = new Configuration();
+        config.put("mms.target.pattern", "10000");
+
+        final int pattern = MmdTool.getPattern(config);
+        assertEquals(65536, pattern);   // which is 10000 to the base of 16 tb 2014-03-10
+    }
+
+    @Test
+    public void testGetPattern_usesDefaultWhenValueInConfigNotSet() {
+        final Configuration config = new Configuration();
+
+        final int pattern = MmdTool.getPattern(config);
+        assertEquals(0, pattern);
+    }
+
+    @Test
+    public void testGetPattern_throwsWhenValueIsUnparseable() {
+        final Configuration config = new Configuration();
+        config.put("mms.target.pattern", "oooopsi");
+
+        try {
+            MmdTool.getPattern(config);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+            assertEquals("Property 'mms.target.pattern' must be set to an integral number.", expected.getMessage());
+        }
+    }
+
     private String toPath(String... pathComponents) {
         final StringBuilder stringBuilder = new StringBuilder();
         for (String component : pathComponents) {
