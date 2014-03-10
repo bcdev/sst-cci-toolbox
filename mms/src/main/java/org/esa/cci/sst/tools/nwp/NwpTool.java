@@ -71,14 +71,15 @@ class NwpTool extends BasicTool {
             "${CDO} ${CDO_OPTS} -f nc2 setreftime,${REFTIME} -remapbil,${GEO} -selname,SSTK,MSL,BLH,U10,V10,T2,D2 ${GGFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} && " +
             "${CDO} ${CDO_OPTS} -f nc2 merge -setreftime,${REFTIME} -remapbil,${GEO} -selname,SSHF,SLHF,SSRD,STRD,SSR,STR,EWSS,NSSS,E,TP ${GAFS_TIME_SERIES} ${GGFS_TIME_SERIES_REMAPPED} ${FC_TIME_SERIES}\n";
 
-    private String sensorName;
-    private int sensorPattern;
+    private String cdoHome;
     private String mmdSourceLocation;
     private String nwpSourceLocation;
     private String nwpTargetLocation;
     private String anTargetLocation;
     private String fcTargetLocation;
     private String dimensionFilePath;
+    private String sensorName;
+    private int sensorPattern;
 
     NwpTool() {
         super("nwp-tool", "1.0");
@@ -106,6 +107,7 @@ class NwpTool extends BasicTool {
 
         final Configuration config = getConfig();
 
+        cdoHome = config.getStringValue(Configuration.KEY_MMS_NWP_CDO_HOME);
         dimensionFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_DIMENSIONS);
         mmdSourceLocation = config.getStringValue(Configuration.KEY_MMS_NWP_MMD_SOURCE);
         nwpSourceLocation = config.getStringValue(Configuration.KEY_MMS_NWP_SOURCE);
@@ -138,7 +140,7 @@ class NwpTool extends BasicTool {
             final String geoFileLocation = writeMatchupGeoFile(mmdFile);
 
             final Properties properties = new Properties();
-            properties.setProperty("CDO", "cdo");
+            properties.setProperty("CDO", cdoHome + "/cdo");
             properties.setProperty("CDO_OPTS", "-M");
             properties.setProperty("REFTIME", "1978-01-01,00:00:00,seconds");
 
