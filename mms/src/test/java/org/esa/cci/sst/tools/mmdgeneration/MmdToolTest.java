@@ -6,6 +6,7 @@ import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
 
+import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
@@ -23,8 +24,7 @@ public class MmdToolTest {
         assertNotNull(netCDFWriter);
         assertEquals(NetcdfFileWriter.Version.netcdf4, netCDFWriter.getVersion());
         final NetcdfFile netcdfFile = netCDFWriter.getNetcdfFile();
-        // this assert is platform-specific
-        assertEquals("/here/we/are_now.nc", netcdfFile.getLocation());
+        assertEquals(File.separator + "here"+ File.separator + "we"+ File.separator + "are_now.nc", netcdfFile.getLocation());
     }
 
     @Test
@@ -35,7 +35,6 @@ public class MmdToolTest {
         assertNotNull(netCDFWriter);
         assertEquals(NetcdfFileWriter.Version.netcdf4, netCDFWriter.getVersion());
         final NetcdfFile netcdfFile = netCDFWriter.getNetcdfFile();
-        // this assert is platform-specific
-        assertEquals("./mmd.nc", netcdfFile.getLocation());
+        assertEquals("."+ File.separator + "mmd.nc", netcdfFile.getLocation());
     }
 }
