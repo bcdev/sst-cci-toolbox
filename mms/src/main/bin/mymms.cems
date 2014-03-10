@@ -20,7 +20,6 @@ export MMS_ARCHIVE=/group_workspaces/cems/esacci_sst/mms/archive
 #export MMS_TEMP=/exports/work/geos_gc_sst_cci/temparea
 #export MMS_NAS=/exports/nas/exports/cse/geos/scratch/gc/sst-cci/archive
 #export MMS_GBCS=/exports/work/geos_gc_sst_cci/avhrr/GBCS
-#export MMS_CDO=/exports/work/geos_gc_sst_cci/mms
 #export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3-20111024
 
 export MMS_CONFIG=$MMS_INST/mms-config.properties
