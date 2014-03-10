@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools;
 import org.junit.Test;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.MessageFormat;
@@ -28,7 +29,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Ralf Quast
@@ -77,17 +78,22 @@ public class JobRunnerTest {
         runner.option("-W", "04:00");
 
         final String command = runner.buildCommand("sleep 100");
-        assertEquals("bsub -J testjob -P esacci_sst -W 04:00 -cwd . -eo testjob.err -n 1 -oo testjob.out -q lotus sleep 100", command);
+        assertEquals(
+                "bsub -J testjob -P esacci_sst -W 04:00 -cwd . -eo testjob.err -n 1 -oo testjob.out -q lotus sleep 100",
+                command);
     }
 
     @Test
     public void testResponseLine() throws Exception {
-        final JobRunner runner = new JobRunner("echo");
-        final String jobname = "testjob";
-        final String command = "Job <1711> is submitted successfully";
+        final File executable = new File("/bin/echo");
+        if (executable.canExecute()) {
+            final JobRunner runner = new JobRunner("echo");
+            final String jobname = "testjob";
+            final String command = "Job <1711> is submitted successfully";
 
-        final String message = runner.submit(jobname, command);
-        assertEquals("Job <1711> is submitted successfully", message);
+            final String message = runner.submit(jobname, command);
+            assertEquals("Job <1711> is submitted successfully", message);
+        }
     }
 
 

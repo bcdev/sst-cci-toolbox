@@ -91,6 +91,7 @@ public class GbcsTool extends BasicTool {
         runner.execute(resolvedTemplate);
     }
 
+    // package public for testing
     static String getConfigurationFilename(String sensorName) {
         switch (sensorName) {
             case "atsr.1":
