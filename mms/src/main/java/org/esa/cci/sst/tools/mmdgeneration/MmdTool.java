@@ -59,17 +59,21 @@ import java.util.logging.Level;
  */
 public class MmdTool extends BasicTool {
 
-    private final ColumnRegistry columnRegistry = new ColumnRegistry();
-
-    private final Set<String> dimensionNames = new TreeSet<>();
-    private final Map<String, Integer> dimensionConfiguration = new HashMap<>(50);
-    private final List<String> targetColumnNames = new ArrayList<>(500);
+    private final ColumnRegistry columnRegistry;
+    private final Set<String> dimensionNames;
+    private final Map<String, Integer> dimensionConfiguration;
+    private final List<String> targetColumnNames ;
 
     private ReaderCache readerCache;
     private int matchupCount;
 
     public MmdTool() {
         super("mmd-tool.sh", "0.1");
+
+        columnRegistry = new ColumnRegistry();
+        dimensionNames = new TreeSet<>();
+        dimensionConfiguration = new HashMap<>(50);
+        targetColumnNames = new ArrayList<>(500);
     }
 
     /**
@@ -87,11 +91,7 @@ public class MmdTool extends BasicTool {
     public void initialize() {
         super.initialize();
 
-        final Storage toolStorage = getPersistenceManager().getToolStorage();
-        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
-        columnRegistryInitializer.initialize();
-
-        registerTargetColumns();
+        initializeColumns();
 
         for (final String name : targetColumnNames) {
             final Item column = columnRegistry.getColumn(name);
@@ -141,6 +141,14 @@ public class MmdTool extends BasicTool {
             }
             getPersistenceManager().close();
         }
+    }
+
+    private void initializeColumns() {
+        final Storage toolStorage = getPersistenceManager().getToolStorage();
+        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
+        columnRegistryInitializer.initialize();
+
+        registerTargetColumns();
     }
 
     /**
