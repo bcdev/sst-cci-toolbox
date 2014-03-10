@@ -62,7 +62,7 @@ public class MmdTool extends BasicTool {
     private final ColumnRegistry columnRegistry;
     private Set<String> dimensionNames;
     private final Map<String, Integer> dimensionConfiguration;
-    private final List<String> targetColumnNames ;
+    private final List<String> targetColumnNames;
 
     private ReaderCache readerCache;
     private int matchupCount;
@@ -157,7 +157,7 @@ public class MmdTool extends BasicTool {
     /**
      * Writes MMD by having the input files in the outermost loop to avoid re-opening them.
      *
-     * @param mmd
+     * @param mmd the file writer
      * @param mmdVariables
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
@@ -523,36 +523,42 @@ public class MmdTool extends BasicTool {
     }
 
     private void readDimensionConfiguration(Collection<String> dimensionNames) {
-        final String configFilePath = getConfig().getStringValue(Configuration.KEY_MMS_MMD_DIMENSIONS);
-        if (configFilePath == null) {
-            throw new ToolException("No target dimensions specified.", ToolException.TOOL_CONFIGURATION_ERROR);
+        final Properties properties = readDimensionProperties(getConfig());
+
+        for (final String dimensionName : dimensionNames) {
+            if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
+                continue;
+            }
+            final String dimensionLength = properties.getProperty(dimensionName);
+            if (!properties.containsKey(dimensionName)) {
+                throw new ToolException(
+                        MessageFormat.format("Length of dimension ''{0}'' is not configured.", dimensionName),
+                        ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            try {
+                dimensionConfiguration.put(dimensionName, Integer.parseInt(dimensionLength));
+            } catch (NumberFormatException e) {
+                throw new ToolException(
+                        MessageFormat.format("Cannot parse length of dimension ''{0}''.", dimensionName),
+                        ToolException.TOOL_CONFIGURATION_ERROR);
+            }
         }
+
+    }
+
+    // package access for testing only tb 2014-03-10
+    static Properties readDimensionProperties(Configuration configuration) {
+        final String configFilePath = configuration.getStringValue(Configuration.KEY_MMS_MMD_DIMENSIONS);
+
         final Properties properties = new Properties();
         try {
             properties.load(new FileInputStream(configFilePath));
-            for (final String dimensionName : dimensionNames) {
-                if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
-                    continue;
-                }
-                final String dimensionLength = properties.getProperty(dimensionName);
-                if (!properties.containsKey(dimensionName)) {
-                    throw new ToolException(
-                            MessageFormat.format("Length of dimension ''{0}'' is not configured.", dimensionName),
-                            ToolException.TOOL_CONFIGURATION_ERROR);
-                }
-                try {
-                    dimensionConfiguration.put(dimensionName, Integer.parseInt(dimensionLength));
-                } catch (NumberFormatException e) {
-                    throw new ToolException(
-                            MessageFormat.format("Cannot parse length of dimension ''{0}''.", dimensionName),
-                            ToolException.TOOL_CONFIGURATION_ERROR);
-                }
-            }
         } catch (FileNotFoundException e) {
             throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
         } catch (IOException e) {
             throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_IO_ERROR);
         }
+        return properties;
     }
 
     private void registerTargetColumns() {
