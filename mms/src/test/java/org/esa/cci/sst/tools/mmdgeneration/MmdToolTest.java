@@ -2,7 +2,6 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 
 import org.esa.cci.sst.ColumnRegistry;
-import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
@@ -13,7 +12,6 @@ import ucar.nc2.NetcdfFileWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Properties;
 import java.util.TreeSet;
 
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -82,29 +80,6 @@ public class MmdToolTest {
 
         try {
             MmdTool.initializeDimensionNames(nameList, columnRegistry);
-            fail("ToolException expected");
-        } catch (ToolException expected) {
-        }
-    }
-
-    @Test
-    public void testReadDimensionProperties() {
-        final String dimensionFilePath = TestHelper.getResourcePath(getClass(), "dimension.properties");
-        final Configuration config = new Configuration();
-        config.put(Configuration.KEY_MMS_MMD_DIMENSIONS, dimensionFilePath);
-
-        final Properties dimensionProperties = MmdTool.readDimensionProperties(config);
-        assertNotNull(dimensionProperties);
-        assertEquals("unlimited", dimensionProperties.getProperty("matchup"));
-        assertEquals("80", dimensionProperties.getProperty("filename_length"));
-    }
-
-    @Test
-    public void testReadDimensionProperties_missingConfigValue() {
-        final Configuration config = new Configuration();
-
-        try {
-            MmdTool.readDimensionProperties(config);
             fail("ToolException expected");
         } catch (ToolException expected) {
         }

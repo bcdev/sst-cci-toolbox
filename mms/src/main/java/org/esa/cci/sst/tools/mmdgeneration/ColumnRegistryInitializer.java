@@ -8,17 +8,17 @@ import org.esa.cci.sst.orm.Storage;
 
 import java.util.List;
 
-public class ColumnRegistryInitializer {
+class ColumnRegistryInitializer {
 
     private final ColumnRegistry registry;
     private final Storage storage;
 
-    public ColumnRegistryInitializer(ColumnRegistry registry, Storage storage) {
+    ColumnRegistryInitializer(ColumnRegistry registry, Storage storage) {
         this.registry = registry;
         this.storage = storage;
     }
 
-    public void initialize() {
+    void initialize() {
         final List<Item> allColumns = storage.getAllColumns();
         for (Item next : allColumns) {
             registry.register(next);

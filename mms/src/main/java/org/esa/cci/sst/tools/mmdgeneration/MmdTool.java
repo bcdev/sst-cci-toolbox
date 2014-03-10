@@ -44,7 +44,6 @@ import ucar.nc2.Variable;
 
 import javax.persistence.Query;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -61,7 +60,7 @@ public class MmdTool extends BasicTool {
 
     private final ColumnRegistry columnRegistry;
     private Set<String> dimensionNames;
-    private final Map<String, Integer> dimensionConfiguration;
+    private Map<String, Integer> dimensionConfiguration;
     private final List<String> targetColumnNames;
 
     private ReaderCache readerCache;
@@ -71,7 +70,6 @@ public class MmdTool extends BasicTool {
         super("mmd-tool.sh", "0.1");
 
         columnRegistry = new ColumnRegistry();
-        dimensionConfiguration = new HashMap<>(50);
         targetColumnNames = new ArrayList<>(500);
     }
 
@@ -92,10 +90,11 @@ public class MmdTool extends BasicTool {
 
         initializeColumns();
 
-        dimensionNames = initializeDimensionNames(targetColumnNames, columnRegistry);
-        readDimensionConfiguration(dimensionNames);
-
         final Configuration config = getConfig();
+
+        dimensionNames = initializeDimensionNames(targetColumnNames, columnRegistry);
+        dimensionConfiguration = DimensionConfigurationInitializer.initalize(dimensionNames, config);
+
         final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
         readerCache = new ReaderCache(readerCacheSize, config, getLogger());
     }
@@ -157,8 +156,8 @@ public class MmdTool extends BasicTool {
     /**
      * Writes MMD by having the input files in the outermost loop to avoid re-opening them.
      *
-     * @param mmd the file writer
-     * @param mmdVariables
+     * @param mmd             the file writer
+     * @param mmdVariables    the variables to write
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
     void writeMmdShuffled(NetcdfFileWriter mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
@@ -261,6 +260,7 @@ public class MmdTool extends BasicTool {
             if (pattern != 0) {
                 query.setParameter(4, pattern);
             }
+            @SuppressWarnings("unchecked")
             List<Matchup> matchups = query.getResultList();
             getLogger().info(String.format("%d matchups retrieved for %s", matchups.size(), sensorName));
             for (final Matchup matchup : matchups) {
@@ -322,7 +322,7 @@ public class MmdTool extends BasicTool {
     }
 
     private Map<Integer, Integer> createInvertedIndexOfMatchups(String condition, int pattern) {
-        final Map<Integer, Integer> recordOfMatchup = new HashMap<Integer, Integer>();
+        final Map<Integer, Integer> recordOfMatchup = new HashMap<>();
         {
             final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
                     getTime(Constants.PROPERTY_TARGET_START_TIME),
@@ -337,13 +337,13 @@ public class MmdTool extends BasicTool {
     }
 
     private Map<String, List<Variable>> createSensorMap(List<Variable> mmdVariables) {
-        Map<String, List<Variable>> sensorMap = new HashMap<String, List<Variable>>();
+        Map<String, List<Variable>> sensorMap = new HashMap<>();
         for (final Variable variable : mmdVariables) {
             final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
             final String sensorName = targetColumn.getSensor().getName();
             List<Variable> variables = sensorMap.get(sensorName);
             if (variables == null) {
-                variables = new ArrayList();
+                variables = new ArrayList<>();
                 sensorMap.put(sensorName, variables);
             }
             variables.add(variable);
@@ -520,45 +520,6 @@ public class MmdTool extends BasicTool {
         file.addGroupAttribute(null, new Attribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)"));
         file.addGroupAttribute(null, new Attribute("creation_date", Calendar.getInstance().getTime().toString()));
         file.addGroupAttribute(null, new Attribute("total_number_of_matchups", matchupCount));
-    }
-
-    private void readDimensionConfiguration(Collection<String> dimensionNames) {
-        final Properties properties = readDimensionProperties(getConfig());
-
-        for (final String dimensionName : dimensionNames) {
-            if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
-                continue;
-            }
-            final String dimensionLength = properties.getProperty(dimensionName);
-            if (!properties.containsKey(dimensionName)) {
-                throw new ToolException(
-                        MessageFormat.format("Length of dimension ''{0}'' is not configured.", dimensionName),
-                        ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-            try {
-                dimensionConfiguration.put(dimensionName, Integer.parseInt(dimensionLength));
-            } catch (NumberFormatException e) {
-                throw new ToolException(
-                        MessageFormat.format("Cannot parse length of dimension ''{0}''.", dimensionName),
-                        ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-        }
-
-    }
-
-    // package access for testing only tb 2014-03-10
-    static Properties readDimensionProperties(Configuration configuration) {
-        final String configFilePath = configuration.getStringValue(Configuration.KEY_MMS_MMD_DIMENSIONS);
-
-        final Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(configFilePath));
-        } catch (FileNotFoundException e) {
-            throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
-        } catch (IOException e) {
-            throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_IO_ERROR);
-        }
-        return properties;
     }
 
     private void registerTargetColumns() {
