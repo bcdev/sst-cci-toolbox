@@ -46,6 +46,7 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
     public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
 
+    public static final String KEY_MMS_NWP_CDO_HOME = "mms.nwp.cdo.home";
     public static final String KEY_MMS_NWP_MMD_SOURCE = "mms.nwp.mmd.source";
     public static final String KEY_MMS_NWP_SENSOR = "mms.nwp.sensor";
     public static final String KEY_MMS_NWP_SOURCE = "mms.nwp.nwp.source";
