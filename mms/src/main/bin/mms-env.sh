@@ -68,10 +68,11 @@ wait_for_task_jobs_completion() {
                     fi
                     echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed"
                     exit 1
+                else
+                    echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
+                    exit 0
                 fi
             done
-            echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
-            exit 0
         fi
     done
 }
