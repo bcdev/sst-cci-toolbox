@@ -123,49 +123,51 @@ class NwpTool extends BasicTool {
     private void run() throws IOException, InterruptedException {
         final boolean exists = new File(mmdSourceLocation).exists();
 
-        if (exists) {
-            final Properties dimensions = new Properties();
-            dimensions.load(new BufferedReader(new FileReader(dimensionFilePath)));
-
-            getLogger().info(
-                    MessageFormat.format("extracting matchups from source file: {0}", mmdSourceLocation));
-            final String sensorMmdLocation = writeSingleSensorMmdFile(mmdSourceLocation, sensorName, sensorPattern);
-            getLogger().info(
-                    MessageFormat.format("completed extracting matchups from source file: {0}", mmdSourceLocation));
-
-            if (sensorMmdLocation != null) {
-                getLogger().info(
-                        MessageFormat.format("extracting NWP data for source file: {0}", sensorMmdLocation));
-                writeSensorNwpFile(sensorMmdLocation, dimensions);
-                getLogger().info(
-                        MessageFormat.format("completed extracting NWP data for source file: {0}", sensorMmdLocation));
-
-                getLogger().info(
-                        MessageFormat.format("extracting NWP analysis data for source file: {0}", sensorMmdLocation));
-                writeMatchupAnFile(sensorMmdLocation, dimensions);
-                getLogger().info(
-                        MessageFormat.format("completed extracting NWP analysis data for source file: {0}",
-                                             sensorMmdLocation));
-
-                getLogger().info(
-                        MessageFormat.format("extracting NWP forecast data for source file: {0}", sensorMmdLocation));
-                writeMatchupFcFile(sensorMmdLocation, dimensions);
-                getLogger().info(
-                        MessageFormat.format("completed extracting NWP forecast data for source file: {0}",
-                                             sensorMmdLocation));
-            } else {
-                getLogger().warning(
-                        MessageFormat.format("no records with pattern {0} found in source file: {1}",
-                                             sensorPattern, mmdSourceLocation));
-                getLogger().warning(
-                        MessageFormat.format("skipping target: {0}", nwpTargetLocation));
-            }
-        } else {
+        if (!exists) {
             getLogger().warning(
                     MessageFormat.format("missing source file: {0}", mmdSourceLocation));
             getLogger().warning(
-                    MessageFormat.format("skipping target: {0}", nwpTargetLocation));
+                    MessageFormat.format("skipping target file: {0}", nwpTargetLocation));
+            return;
         }
+
+        getLogger().info(
+                MessageFormat.format("extracting matchups from source file: {0}", mmdSourceLocation));
+        final String sensorMmdLocation = writeSingleSensorMmdFile(mmdSourceLocation, sensorName, sensorPattern);
+        getLogger().info(
+                MessageFormat.format("completed extracting matchups from source file: {0}", mmdSourceLocation));
+
+        if (sensorMmdLocation == null) {
+            getLogger().warning(
+                    MessageFormat.format("no records with pattern {0} found in source file: {1}",
+                                         sensorPattern, mmdSourceLocation));
+            getLogger().warning(
+                    MessageFormat.format("skipping target file: {0}", nwpTargetLocation));
+            return;
+        }
+
+        final Properties dimensions = new Properties();
+        dimensions.load(new BufferedReader(new FileReader(dimensionFilePath)));
+
+        getLogger().info(
+                MessageFormat.format("extracting NWP data for source file: {0}", sensorMmdLocation));
+        writeSensorNwpFile(sensorMmdLocation, dimensions);
+        getLogger().info(
+                MessageFormat.format("completed extracting NWP data for source file: {0}", sensorMmdLocation));
+
+        getLogger().info(
+                MessageFormat.format("extracting NWP analysis data for source file: {0}", sensorMmdLocation));
+        writeMatchupAnFile(sensorMmdLocation, dimensions);
+        getLogger().info(
+                MessageFormat.format("completed extracting NWP analysis data for source file: {0}",
+                                     sensorMmdLocation));
+
+        getLogger().info(
+                MessageFormat.format("extracting NWP forecast data for source file: {0}", sensorMmdLocation));
+        writeMatchupFcFile(sensorMmdLocation, dimensions);
+        getLogger().info(
+                MessageFormat.format("completed extracting NWP forecast data for source file: {0}",
+                                     sensorMmdLocation));
     }
 
     void writeMatchupAnFile(String sensorMmdPath, Properties dimensions) throws IOException, InterruptedException {
