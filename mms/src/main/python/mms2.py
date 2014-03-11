@@ -103,7 +103,7 @@ types = [('ingestion-start.sh', 120),
          ('mmd-start.sh', 120),
          ('coincidence-start.sh', 12),
          ('nwp-run.sh', 240),
-         ('arc-run2.sh', 120),
+         ('gbcs-run.sh', 120),
          ('reingestion-run2.sh', 12)]
 
 pm = PMonitor(inputs,
@@ -153,15 +153,14 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-run.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
             continue
-            # 7. Conduct ARC processing
-            pm.execute('arc-run2.sh',
+            # 7. Conduct GBCS processing
+            pm.execute('gbcs-run.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
