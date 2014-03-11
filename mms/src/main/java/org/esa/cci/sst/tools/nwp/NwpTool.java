@@ -462,6 +462,9 @@ class NwpTool extends BasicTool {
             targetMmd.addDimension(null, nxDimension.getShortName(), nx);
 
             NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, "matchup.id"));
+            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, "matchup.time"));
+            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, "matchup.latitude"));
+            NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, "matchup.longitude"));
             NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".latitude"));
             NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".longitude"));
             NwpUtil.addVariable(targetMmd, NwpUtil.findVariable(sourceMmd, sensorName + ".time"));
