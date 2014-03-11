@@ -110,9 +110,16 @@ public class MmdTool extends BasicTool {
             if (!performWork) {
                 return;
             }
+
             initialize();
 
+            matchupCount = getMatchupCount();
+            if (matchupCount == 0) {
+                return;
+            }
+
             final Configuration config = getConfig();
+
             fileWriter = createNetCDFWriter(config);
             fileWriter = defineMmd(fileWriter);
 
@@ -475,19 +482,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void defineDimensions(NetcdfFileWriter mmdFile) {
-        final Configuration config = getConfig();
-        final PersistenceManager persistenceManager = getPersistenceManager();
-        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
+        mmdFile.addDimension(null, Constants.DIMENSION_NAME_MATCHUP, matchupCount);
 
-        final MatchupQueryParameter parameter = createMatchupQueryParameter(config);
-        matchupCount = matchupStorage.getCount(parameter);
-
-        getLogger().info(String.format("%d matchups in time interval", matchupCount));
-        if (matchupCount == 0) {
-            mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
-        } else {
-            mmdFile.addDimension(null, Constants.DIMENSION_NAME_MATCHUP, matchupCount);
-        }
         for (final String dimensionName : dimensionNames) {
             if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
                 continue;
@@ -499,6 +495,19 @@ public class MmdTool extends BasicTool {
             }
             mmdFile.addDimension(null, dimensionName, dimensionConfiguration.get(dimensionName));
         }
+    }
+
+    private int getMatchupCount() {
+        final Configuration config = getConfig();
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
+
+        final MatchupQueryParameter parameter = createMatchupQueryParameter(config);
+        final int matchupCount = matchupStorage.getCount(parameter);
+
+        getLogger().info(String.format("%d matchups in time interval", matchupCount));
+
+        return matchupCount;
     }
 
     // package access for testing only tb 2014-03-11
