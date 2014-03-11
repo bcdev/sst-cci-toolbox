@@ -26,7 +26,7 @@ public class GbcsTool extends BasicTool {
     private static final String KEY_CONFIG_FILENAME = "CONFIG";
     private static final String TEMPLATE =
             String.format(
-                    "modulecmd sh load intel/${%s} && " +
+                    "eval `/usr/bin/modulecmd sh load intel/${%s}` && " +
                     "${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${%s} ${%s} ${%s} ${%s}",
                     Configuration.KEY_MMS_GBCS_INTELVERSION,
                     Configuration.KEY_MMS_GBCS_HOME,
