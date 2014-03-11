@@ -479,11 +479,7 @@ public class MmdTool extends BasicTool {
         final PersistenceManager persistenceManager = getPersistenceManager();
         final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
 
-        final MatchupQueryParameter parameter = new MatchupQueryParameter();
-        parameter.setStartDate(getStartTime(config));
-        parameter.setStopDate(getStopTime(config));
-        parameter.setCondition(getCondition(config));
-        parameter.setPattern(getPattern(config));
+        final MatchupQueryParameter parameter = createMatchupQueryParameter(config);
         matchupCount = matchupStorage.getCount(parameter);
 
         getLogger().info(String.format("%d matchups in time interval", matchupCount));
@@ -572,5 +568,15 @@ public class MmdTool extends BasicTool {
             }
         }
         return null;
+    }
+
+    // package access for testing only tb 2014-03-11
+    static MatchupQueryParameter createMatchupQueryParameter(Configuration config) {
+        final MatchupQueryParameter parameter = new MatchupQueryParameter();
+        parameter.setStartDate(getStartTime(config));
+        parameter.setStopDate(getStopTime(config));
+        parameter.setCondition(getCondition(config));
+        parameter.setPattern(getPattern(config));
+        return parameter;
     }
 }

@@ -3,6 +3,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
@@ -140,11 +141,7 @@ public class MmdToolTest {
 
         final Date startTime = MmdTool.getStartTime(configuration);
         assertNotNull(startTime);
-        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
-        utcCalendar.setTime(startTime);
-        assertEquals(1992, utcCalendar.get(Calendar.YEAR));
-        assertEquals(1, utcCalendar.get(Calendar.MONTH));
-        assertEquals(3, utcCalendar.get(Calendar.DAY_OF_MONTH));
+        assertCorrectDate(1992, 2, 3, startTime);
     }
 
     @Test
@@ -165,11 +162,7 @@ public class MmdToolTest {
 
         final Date stopTime = MmdTool.getStopTime(configuration);
         assertNotNull(stopTime);
-        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
-        utcCalendar.setTime(stopTime);
-        assertEquals(1993, utcCalendar.get(Calendar.YEAR));
-        assertEquals(2, utcCalendar.get(Calendar.MONTH));
-        assertEquals(4, utcCalendar.get(Calendar.DAY_OF_MONTH));
+        assertCorrectDate(1993, 3, 4, stopTime);
     }
 
     @Test
@@ -183,6 +176,26 @@ public class MmdToolTest {
         }
     }
 
+    @Test
+    public void testCreateMatchupQueryParameter() {
+        final Configuration config = new Configuration();
+        config.put(Constants.PROPERTY_TARGET_START_TIME, "1993-03-04T00:00:00Z");
+        config.put(Constants.PROPERTY_TARGET_STOP_TIME, "1994-05-05T00:00:00Z");
+        config.put("mms.target.condition", "another_condition");
+        config.put("mms.target.pattern", "108");
+
+        final MatchupQueryParameter parameter = MmdTool.createMatchupQueryParameter(config);
+        assertNotNull(parameter);
+
+        final Date startDate = parameter.getStartDate();
+        assertCorrectDate(1993, 3, 4, startDate);
+
+        final Date stopDate = parameter.getStopDate();
+        assertCorrectDate(1994, 5, 5, stopDate);
+
+        assertEquals("another_condition", parameter.getCondition());
+        assertEquals(264, parameter.getPattern());  // remember, it's hex
+    }
 
     private String toPath(String... pathComponents) {
         final StringBuilder stringBuilder = new StringBuilder();
@@ -192,5 +205,13 @@ public class MmdToolTest {
         }
 
         return stringBuilder.substring(0, stringBuilder.length() - 1);
+    }
+
+    private void assertCorrectDate(int year, int month, int day, Date date) {
+        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
+        utcCalendar.setTime(date);
+        assertEquals(year, utcCalendar.get(Calendar.YEAR));
+        assertEquals(month - 1, utcCalendar.get(Calendar.MONTH));
+        assertEquals(day, utcCalendar.get(Calendar.DAY_OF_MONTH));
     }
 }
