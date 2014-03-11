@@ -16,8 +16,7 @@
 
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.1.xsd
-http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://maven.apache.org/xsd/assembly-1.1.1.xsd">
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://maven.apache.org/xsd/assembly-1.1.1.xsd">
     <id>bin</id>
 
     <formats>
@@ -30,24 +29,9 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
         <fileSet>
             <directory>src/main/bin</directory>
             <includes>
-                <include>mymms.*</include>
-                <include>*.sh</include>
-                <include>pg*</include>
-                <include>pm*</include>
+                <include>*.*</include>
             </includes>
             <outputDirectory>bin</outputDirectory>
-            <fileMode>0770</fileMode>
-            <filtered>true</filtered>
-        </fileSet>
-
-        <fileSet>
-            <directory>src/main/bin-hl</directory>
-            <includes>
-                <include>*.sh</include>
-                <include>pg*</include>
-                <include>template-*</include>
-            </includes>
-            <outputDirectory>bin-hl</outputDirectory>
             <fileMode>0770</fileMode>
             <filtered>true</filtered>
         </fileSet>
@@ -59,7 +43,7 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             </includes>
             <outputDirectory>python</outputDirectory>
             <fileMode>0770</fileMode>
-            <filtered>true</filtered>
+            <filtered>false</filtered>
         </fileSet>
 
         <fileSet>
@@ -68,6 +52,9 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
                 <include>*.properties</include>
                 <include>*.config</include>
             </includes>
+            <excludes>
+                <exclude>*-TEMPLATE.properties</exclude>
+            </excludes>
             <outputDirectory>config</outputDirectory>
             <directoryMode>0774</directoryMode>
             <fileMode>0660</fileMode>
@@ -76,18 +63,6 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
 
     <dependencySets>
         <dependencySet>
-            <!--
-            <includes>
-                <include>com.bc.ceres:*</include>
-                <include>org.esa.beam:*</include>
-                <include>${project.groupId}:*</include>
-            </includes>
-            -->
-            <!--
-            <excludes>
-                <exclude>com.bc.ceres:ceres-launcher</exclude>
-            </excludes>
-            -->
             <scope>runtime</scope>
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>false</useTransitiveFiltering>
@@ -97,40 +72,6 @@ http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.1 http://mave
             </outputFileNameMapping>
             <fileMode>0664</fileMode>
         </dependencySet>
-
-        <!--
-        <dependencySet>
-            <includes>
-                <include>com.bc.ceres:ceres-launcher</include>
-            </includes>
-            <scope>runtime</scope>
-            <useTransitiveDependencies>true</useTransitiveDependencies>
-            <useTransitiveFiltering>false</useTransitiveFiltering>
-            <outputDirectory>bin</outputDirectory>
-            <outputFileNameMapping>
-                ${artifact.artifactId}.${artifact.extension}
-            </outputFileNameMapping>
-            <fileMode>0444</fileMode>
-        </dependencySet>
-        -->
-
-        <!--
-        <dependencySet>
-            <excludes>
-                <exclude>com.bc.ceres:*</exclude>
-                <exclude>org.esa.beam:*</exclude>
-                <exclude>${project.groupId}:*</exclude>
-            </excludes>
-            <scope>runtime</scope>
-            <useTransitiveDependencies>true</useTransitiveDependencies>
-            <useTransitiveFiltering>false</useTransitiveFiltering>
-            <outputDirectory>lib</outputDirectory>
-            <outputFileNameMapping>
-                ${artifact.artifactId}-${artifact.version}.${artifact.extension}
-            </outputFileNameMapping>
-            <fileMode>0664</fileMode>
-        </dependencySet>
-        -->
     </dependencySets>
 
 </assembly>
