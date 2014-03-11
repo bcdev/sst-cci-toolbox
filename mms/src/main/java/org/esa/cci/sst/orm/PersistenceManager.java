@@ -54,8 +54,12 @@ public class PersistenceManager {
         }
     }
 
-    public Storage getToolStorage() {
-        return new ToolStorage(this);
+    public Storage getStorage() {
+        return new StorageImpl(this);
+    }
+
+    public MatchupStorage getMatchupStorage() {
+        return new MatchupStorageImpl(this);
     }
 
     public EntityTransaction transaction() {

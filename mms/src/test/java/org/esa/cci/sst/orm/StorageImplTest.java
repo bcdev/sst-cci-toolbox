@@ -14,18 +14,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 
-public class ToolStorageTest {
+public class StorageImplTest {
 
     private static final int ID = 1234;
     private static final String GET_OBSERVATION_SQL = "select o from Observation o where o.id = ?1";
 
     private PersistenceManager persistenceManager;
-    private ToolStorage toolStorage;
+    private StorageImpl storageImpl;
 
     @Before
     public void setUp() {
         persistenceManager = mock(PersistenceManager.class);
-        toolStorage = new ToolStorage(persistenceManager);
+        storageImpl = new StorageImpl(persistenceManager);
     }
 
     @Test
@@ -36,7 +36,7 @@ public class ToolStorageTest {
 
         when(persistenceManager.pick(sql, columnName)).thenReturn(column);
 
-        final Column toolStorageColumn = toolStorage.getColumn(columnName);
+        final Column toolStorageColumn = storageImpl.getColumn(columnName);
         assertNotNull(toolStorageColumn);
         assertEquals(columnName, toolStorageColumn.getName());
 
@@ -55,7 +55,7 @@ public class ToolStorageTest {
         when(persistenceManager.createQuery(sql)).thenReturn(query);
         when(query.getResultList()).thenReturn(columnList);
 
-        final List<? extends Item> allColumns = toolStorage.getAllColumns();
+        final List<? extends Item> allColumns = storageImpl.getAllColumns();
         assertNotNull(allColumns);
         assertEquals(1, allColumns.size());
         assertEquals("test_me", allColumns.get(0).getName());
@@ -73,7 +73,7 @@ public class ToolStorageTest {
 
         when(persistenceManager.pick(sql, path)).thenReturn(dataFile);
 
-        final DataFile toolStorageDatafile = toolStorage.getDatafile(path);
+        final DataFile toolStorageDatafile = storageImpl.getDatafile(path);
         assertNotNull(toolStorageDatafile);
         assertEquals(path, toolStorageDatafile.getPath());
 
@@ -89,7 +89,7 @@ public class ToolStorageTest {
 
         when(persistenceManager.pick(sql, path)).thenReturn(dataFile);
 
-        final int storedId = toolStorage.store(dataFile);
+        final int storedId = storageImpl.store(dataFile);
         assertEquals(ID, storedId);
 
         verify(persistenceManager, times(1)).persist(dataFile);
@@ -106,7 +106,7 @@ public class ToolStorageTest {
 
         when(persistenceManager.pick(GET_OBSERVATION_SQL, id)).thenReturn(observation);
 
-        final Observation toolStorageObservation = toolStorage.getObservation(id);
+        final Observation toolStorageObservation = storageImpl.getObservation(id);
         assertNotNull(toolStorageObservation);
         assertEquals(name, toolStorageObservation.getName());
 
@@ -123,7 +123,7 @@ public class ToolStorageTest {
 
         when(persistenceManager.pick(GET_OBSERVATION_SQL, id)).thenReturn(observation);
 
-        final RelatedObservation toolStorageObservation = toolStorage.getRelatedObservation(id);
+        final RelatedObservation toolStorageObservation = storageImpl.getRelatedObservation(id);
         assertNotNull(toolStorageObservation);
         assertEquals(name, toolStorageObservation.getName());
 
@@ -141,7 +141,7 @@ public class ToolStorageTest {
 
         when(persistenceManager.pick(sql, id)).thenReturn(referenceObservation);
 
-        final ReferenceObservation toolStorageReferenceObservation = toolStorage.getReferenceObservation(id);
+        final ReferenceObservation toolStorageReferenceObservation = storageImpl.getReferenceObservation(id);
         assertNotNull(toolStorageReferenceObservation);
         assertEquals(name, toolStorageReferenceObservation.getName());
 
@@ -157,7 +157,7 @@ public class ToolStorageTest {
 
         when(persistenceManager.pick(sql, sensorName)).thenReturn(sensor);
 
-        final Sensor toolStorageSensor = toolStorage.getSensor(sensorName);
+        final Sensor toolStorageSensor = storageImpl.getSensor(sensorName);
         assertNotNull(toolStorageSensor);
         assertEquals(sensorName, toolStorageSensor.getName());
 

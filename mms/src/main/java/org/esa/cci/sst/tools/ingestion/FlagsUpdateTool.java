@@ -77,7 +77,7 @@ public class FlagsUpdateTool extends BasicTool {
         // loop over matchups
         final int numRecords = reader.getNumRecords();
         int count = 0;
-        final Storage storage = getPersistenceManager().getToolStorage();
+        final Storage storage = getPersistenceManager().getStorage();
         for (int recordNo = 0; recordNo < numRecords; ++recordNo) {
             // look up observation
             final int matchupId = reader.getMatchupId(recordNo);

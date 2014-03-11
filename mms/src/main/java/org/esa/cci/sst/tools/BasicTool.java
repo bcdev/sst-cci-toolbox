@@ -269,7 +269,7 @@ public abstract class BasicTool {
                 getLogger().warning("failed setting seqscan to off: " + e.getMessage());
             }
         }
-        toolStorage = persistenceManager.getToolStorage();
+        toolStorage = persistenceManager.getStorage();
 
         // TODO - move to ingestion tool
         sourceStartTime = config.getDateValue(Configuration.KEY_MMS_INGESTION_START_TIME, "1978-01-01T00:00:00Z");

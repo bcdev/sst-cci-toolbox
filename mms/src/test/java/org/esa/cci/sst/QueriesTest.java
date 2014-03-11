@@ -73,14 +73,6 @@ public class QueriesTest {
     }
 
     @Test
-    public void testGetMatchupCountForSensor() throws ParseException {
-        @SuppressWarnings({"unchecked"})
-        final int matchupCount = Queries.getMatchupCount(pm, START_DATE, STOP_DATE, null, 0);
-
-        assertEquals(1966, matchupCount);
-    }
-
-    @Test
     public void testGetMatchupsForSensor() throws ParseException {
         @SuppressWarnings({"unchecked"})
         final List<Matchup> matchupList = Queries.getMatchups(pm, START_DATE, STOP_DATE, null, 0);

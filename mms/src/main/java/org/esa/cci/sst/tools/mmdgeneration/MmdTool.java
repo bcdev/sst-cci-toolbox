@@ -24,6 +24,9 @@ import org.esa.cci.sst.Queries;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.MatchupQueryParameter;
+import org.esa.cci.sst.orm.MatchupStorage;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
@@ -149,7 +152,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void initializeColumns() {
-        final Storage toolStorage = getPersistenceManager().getToolStorage();
+        final Storage toolStorage = getPersistenceManager().getStorage();
         final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
         columnRegistryInitializer.initialize();
 
@@ -473,11 +476,16 @@ public class MmdTool extends BasicTool {
 
     private void defineDimensions(NetcdfFileWriter mmdFile) {
         final Configuration config = getConfig();
-        matchupCount = Queries.getMatchupCount(getPersistenceManager(),
-                getStartTime(config),
-                getStopTime(config),
-                getCondition(config),
-                getPattern(config));
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
+
+        final MatchupQueryParameter parameter = new MatchupQueryParameter();
+        parameter.setStartDate(getStartTime(config));
+        parameter.setStopDate(getStopTime(config));
+        parameter.setCondition(getCondition(config));
+        parameter.setPattern(getPattern(config));
+        matchupCount = matchupStorage.getCount(parameter);
+
         getLogger().info(String.format("%d matchups in time interval", matchupCount));
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);

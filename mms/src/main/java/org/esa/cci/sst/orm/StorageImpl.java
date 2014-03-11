@@ -5,11 +5,11 @@ import org.esa.cci.sst.data.*;
 import javax.persistence.Query;
 import java.util.List;
 
-class ToolStorage implements Storage {
+class StorageImpl implements Storage {
 
     private final PersistenceManager persistenceManager;
 
-    ToolStorage(PersistenceManager persistenceManager) {
+    StorageImpl(PersistenceManager persistenceManager) {
         this.persistenceManager = persistenceManager;
     }
 
