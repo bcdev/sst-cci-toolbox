@@ -32,7 +32,6 @@ public class ToolException extends RuntimeException {
     public static final int TOOL_ERROR = 21;
     public static final int TOOL_IO_ERROR = 22;
     public static final int TOOL_DB_ERROR = 31;
-    public static final int NO_RELEVANT_MATCHUPS_FOUND = 32;
 
     private final int exitCode;
 
