@@ -57,20 +57,20 @@ wait_for_task_jobs_completion() {
                 job=`basename ${logandid}`
                 log=`dirname ${logandid}`
 
-                if ! grep -qF 'Successfully completed.' ${log}
+                if [ -s ${log} ]
                 then
-                    if [ -s ${log} ]
+                    if ! grep -qF 'Successfully completed.' ${log}
                     then
                         echo "tail -n10 ${log}"
                         tail -n10 ${log}
+                        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed"
+                        exit 1
                     else
-                        echo "`date -u +%Y%m%d-%H%M%S` logfile ${log} for job ${job} not found"
+                        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
+                        exit 0
                     fi
-                    echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed"
-                    exit 1
                 else
-                    echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
-                    exit 0
+                        echo "`date -u +%Y%m%d-%H%M%S` logfile ${log} for job ${job} not found"
                 fi
             done
         fi
