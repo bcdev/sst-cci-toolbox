@@ -32,7 +32,7 @@ read_task_jobs() {
 }
 
 wait_for_task_jobs_completion() {
-    step=$1
+    jobname=$1
     while true
     do
         sleep 60
