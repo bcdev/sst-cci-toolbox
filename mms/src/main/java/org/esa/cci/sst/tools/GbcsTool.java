@@ -26,8 +26,9 @@ public class GbcsTool extends BasicTool {
     private static final String KEY_CONFIG_FILENAME = "CONFIG";
     private static final String TEMPLATE =
             String.format(
-                    "eval `/usr/bin/modulecmd sh load intel/${%s}` && " +
-                    "${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${%s} ${%s} ${%s} ${%s}",
+                    "#!/bin/bash\n" +
+                    "module load intel/${%s}\n" +
+                    "${%s}/${%s}/bin/MMD_SCREEN_Linux ${%s}/${%s}/dat_cci/${%s} ${%s} ${%s} ${%s}\n",
                     Configuration.KEY_MMS_GBCS_INTELVERSION,
                     Configuration.KEY_MMS_GBCS_HOME,
                     Configuration.KEY_MMS_GBCS_VERSION,
@@ -100,7 +101,7 @@ public class GbcsTool extends BasicTool {
         final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
         final String resolvedTemplate = ProcessRunner.resolveTemplate(TEMPLATE, properties);
 
-        runner.execute(resolvedTemplate);
+        runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "gbcs", ".sh").getPath());
     }
 
     private boolean doesNotExist(String path) {
