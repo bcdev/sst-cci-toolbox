@@ -4,15 +4,16 @@ package org.esa.cci.sst.tools.mmdgeneration;
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.*;
@@ -131,6 +132,57 @@ public class MmdToolTest {
         final String condition = MmdTool.getCondition(config);
         assertNull(condition);
     }
+
+    @Test
+    public void testGetStartTime() {
+        final Configuration configuration = new Configuration();
+        configuration.put(Constants.PROPERTY_TARGET_START_TIME, "1992-02-03T00:00:00Z");
+
+        final Date startTime = MmdTool.getStartTime(configuration);
+        assertNotNull(startTime);
+        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
+        utcCalendar.setTime(startTime);
+        assertEquals(1992, utcCalendar.get(Calendar.YEAR));
+        assertEquals(1, utcCalendar.get(Calendar.MONTH));
+        assertEquals(3, utcCalendar.get(Calendar.DAY_OF_MONTH));
+    }
+
+    @Test
+    public void testGetStartTime_throwsWhenValueNotInConfig() {
+        final Configuration configuration = new Configuration();
+
+        try {
+            MmdTool.getStartTime(configuration);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
+
+    @Test
+    public void testGetStopTime() {
+        final Configuration configuration = new Configuration();
+        configuration.put(Constants.PROPERTY_TARGET_STOP_TIME, "1993-03-04T00:00:00Z");
+
+        final Date stopTime = MmdTool.getStopTime(configuration);
+        assertNotNull(stopTime);
+        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
+        utcCalendar.setTime(stopTime);
+        assertEquals(1993, utcCalendar.get(Calendar.YEAR));
+        assertEquals(2, utcCalendar.get(Calendar.MONTH));
+        assertEquals(4, utcCalendar.get(Calendar.DAY_OF_MONTH));
+    }
+
+    @Test
+    public void testGetStopTime_throwsWhenValueNotInConfig() {
+        final Configuration configuration = new Configuration();
+
+        try {
+            MmdTool.getStopTime(configuration);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
+
 
     private String toPath(String... pathComponents) {
         final StringBuilder stringBuilder = new StringBuilder();

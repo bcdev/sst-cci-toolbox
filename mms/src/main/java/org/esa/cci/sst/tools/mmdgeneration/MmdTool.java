@@ -259,8 +259,8 @@ public class MmdTool extends BasicTool {
             getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
             final Query query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
             query.setParameter(1, sensorName);
-            query.setParameter(2, getTime(Constants.PROPERTY_TARGET_START_TIME));
-            query.setParameter(3, getTime(Constants.PROPERTY_TARGET_STOP_TIME));
+            query.setParameter(2, getStartTime(config));
+            query.setParameter(3, getStopTime(config));
             if (pattern != 0) {
                 query.setParameter(4, pattern);
             }
@@ -327,15 +327,16 @@ public class MmdTool extends BasicTool {
 
     private Map<Integer, Integer> createInvertedIndexOfMatchups(String condition, int pattern) {
         final Map<Integer, Integer> recordOfMatchup = new HashMap<>();
-        {
-            final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
-                    getTime(Constants.PROPERTY_TARGET_START_TIME),
-                    getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                    condition, pattern);
-            getLogger().info(String.format("%d matchups retrieved", matchups.size()));
-            for (int i = 0; i < matchups.size(); ++i) {
-                recordOfMatchup.put(matchups.get(i).getId(), i);
-            }
+
+        final Configuration config = getConfig();
+        final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
+                getStartTime(config),
+                getStopTime(config),
+                condition, pattern);
+        getLogger().info(String.format("%d matchups retrieved", matchups.size()));
+
+        for (int i = 0; i < matchups.size(); ++i) {
+            recordOfMatchup.put(matchups.get(i).getId(), i);
         }
         return recordOfMatchup;
     }
@@ -353,10 +354,6 @@ public class MmdTool extends BasicTool {
             variables.add(variable);
         }
         return sensorMap;
-    }
-
-    private Date getTime(String key) {
-        return getConfig().getDateValue(key);
     }
 
     private boolean testCoincidenceAccurately(ReferenceObservation refObs, Observation observation) throws IOException {
@@ -477,8 +474,8 @@ public class MmdTool extends BasicTool {
     private void defineDimensions(NetcdfFileWriter mmdFile) {
         final Configuration config = getConfig();
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
-                getTime(Constants.PROPERTY_TARGET_START_TIME),
-                getTime(Constants.PROPERTY_TARGET_STOP_TIME),
+                getStartTime(config),
+                getStopTime(config),
                 getCondition(config),
                 getPattern(config));
         getLogger().info(String.format("%d matchups in time interval", matchupCount));
@@ -513,6 +510,16 @@ public class MmdTool extends BasicTool {
             throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
+    }
+
+    // package access for testing only tb 2014-03-11
+    static Date getStartTime(Configuration configuration) {
+        return configuration.getDateValue(Constants.PROPERTY_TARGET_START_TIME);
+    }
+
+    // package access for testing only tb 2014-03-11
+    static Date getStopTime(Configuration configuration) {
+        return configuration.getDateValue(Constants.PROPERTY_TARGET_STOP_TIME);
     }
 
     private void defineVariables(NetcdfFileWriter mmdFile) {
