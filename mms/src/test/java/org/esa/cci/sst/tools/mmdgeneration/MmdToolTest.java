@@ -3,16 +3,18 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.*;
@@ -115,6 +117,86 @@ public class MmdToolTest {
         }
     }
 
+    @Test
+    public void testGetCondition() {
+        final Configuration config = new Configuration();
+        config.put("mms.target.condition", "the_condition");
+
+        final String condition = MmdTool.getCondition(config);
+        assertEquals("the_condition", condition);
+    }
+
+    @Test
+    public void testGetCondition_returnsNullWhenNotPresentInConfig() {
+        final Configuration config = new Configuration();
+
+        final String condition = MmdTool.getCondition(config);
+        assertNull(condition);
+    }
+
+    @Test
+    public void testGetStartTime() {
+        final Configuration configuration = new Configuration();
+        configuration.put(Constants.PROPERTY_TARGET_START_TIME, "1992-02-03T00:00:00Z");
+
+        final Date startTime = MmdTool.getStartTime(configuration);
+        assertNotNull(startTime);
+        assertCorrectDate(1992, 2, 3, startTime);
+    }
+
+    @Test
+    public void testGetStartTime_throwsWhenValueNotInConfig() {
+        final Configuration configuration = new Configuration();
+
+        try {
+            MmdTool.getStartTime(configuration);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
+
+    @Test
+    public void testGetStopTime() {
+        final Configuration configuration = new Configuration();
+        configuration.put(Constants.PROPERTY_TARGET_STOP_TIME, "1993-03-04T00:00:00Z");
+
+        final Date stopTime = MmdTool.getStopTime(configuration);
+        assertNotNull(stopTime);
+        assertCorrectDate(1993, 3, 4, stopTime);
+    }
+
+    @Test
+    public void testGetStopTime_throwsWhenValueNotInConfig() {
+        final Configuration configuration = new Configuration();
+
+        try {
+            MmdTool.getStopTime(configuration);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
+
+    @Test
+    public void testCreateMatchupQueryParameter() {
+        final Configuration config = new Configuration();
+        config.put(Constants.PROPERTY_TARGET_START_TIME, "1993-03-04T00:00:00Z");
+        config.put(Constants.PROPERTY_TARGET_STOP_TIME, "1994-05-05T00:00:00Z");
+        config.put("mms.target.condition", "another_condition");
+        config.put("mms.target.pattern", "108");
+
+        final MatchupQueryParameter parameter = MmdTool.createMatchupQueryParameter(config);
+        assertNotNull(parameter);
+
+        final Date startDate = parameter.getStartDate();
+        assertCorrectDate(1993, 3, 4, startDate);
+
+        final Date stopDate = parameter.getStopDate();
+        assertCorrectDate(1994, 5, 5, stopDate);
+
+        assertEquals("another_condition", parameter.getCondition());
+        assertEquals(264, parameter.getPattern());  // remember, it's hex
+    }
+
     private String toPath(String... pathComponents) {
         final StringBuilder stringBuilder = new StringBuilder();
         for (String component : pathComponents) {
@@ -123,5 +205,13 @@ public class MmdToolTest {
         }
 
         return stringBuilder.substring(0, stringBuilder.length() - 1);
+    }
+
+    private void assertCorrectDate(int year, int month, int day, Date date) {
+        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
+        utcCalendar.setTime(date);
+        assertEquals(year, utcCalendar.get(Calendar.YEAR));
+        assertEquals(month - 1, utcCalendar.get(Calendar.MONTH));
+        assertEquals(day, utcCalendar.get(Calendar.DAY_OF_MONTH));
     }
 }

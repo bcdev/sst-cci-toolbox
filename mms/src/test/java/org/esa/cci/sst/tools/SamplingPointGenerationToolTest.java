@@ -54,7 +54,7 @@ public class SamplingPointGenerationToolTest {
         workflowContext.setInsituSensorName("wtf");
         final Storage storage = mock(Storage.class);
         final PersistenceManager persistenceManager = mock(PersistenceManager.class);
-        when(persistenceManager.getToolStorage()).thenReturn(storage);
+        when(persistenceManager.getStorage()).thenReturn(storage);
         workflowContext.setPersistenceManager(persistenceManager);
 
         workflowContext.setSampleGeneratorName("SOBOL");

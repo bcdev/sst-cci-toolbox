@@ -102,8 +102,8 @@ types = [('ingestion-start.sh', 120),
          ('clearsky-start.sh', 120),
          ('mmd-start.sh', 120),
          ('coincidence-start.sh', 12),
-         ('nwp-run.sh', 240),
-         ('arc-run2.sh', 120),
+         ('nwp-start.sh', 240),
+         ('gbcs-start.sh', 240),
          ('reingestion-run2.sh', 12)]
 
 pm = PMonitor(inputs,
@@ -148,23 +148,22 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            continue
             # 5. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
             # 6. Extract NWP data for sub-scenes
-            pm.execute('nwp-run.sh',
+            pm.execute('nwp-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
-            # 7. Conduct ARC processing
-            pm.execute('arc-run2.sh',
+            # 7. Conduct GBCS processing
+            pm.execute('gbcs-start.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
             # 8. Re-ingest sensor sub-scenes into database
             pm.execute('reingestion-run2.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],

@@ -33,12 +33,6 @@ public class Queries {
     private Queries() {
     }
 
-    public static final String QUERY_STRING_COUNT_MATCHUPS_FOR_SENSOR =
-            "select count(m.id)" +
-                    " from mm_matchup m, mm_observation r" +
-                    " where r.time >= ?1 and r.time < ?2" +
-                    " and r.id = m.refobs_id";
-
     public static final String QUERY_STRING_SELECT_MATCHUPS_FOR_SENSOR =
             "select m.id" +
                     " from mm_matchup m, mm_observation r" +
@@ -46,24 +40,6 @@ public class Queries {
                     " and r.id = m.refobs_id" +
                     " order by r.time, r.id";
 
-    public static int getMatchupCount(PersistenceManager pm, Date startDate, Date stopDate, String condition, int pattern) {
-        String queryString = QUERY_STRING_COUNT_MATCHUPS_FOR_SENSOR;
-        if (condition != null) {
-            queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
-        }
-        if (pattern != 0) {
-            queryString = queryString.replaceAll(" where ", " where m.pattern & ?3 = ?3 and ");
-        }
-        final Query query = pm.createNativeQuery(queryString);
-        query.setParameter(1, startDate);
-        query.setParameter(2, stopDate);
-        if (pattern != 0) {
-            query.setParameter(3, pattern);
-        }
-
-        final Number matchupCount = (Number) query.getSingleResult();
-        return matchupCount.intValue();
-    }
 
     @SuppressWarnings({"unchecked"})
     public static List<Matchup> getMatchups(PersistenceManager pm, Date startDate, Date stopDate, String condition, int pattern) {

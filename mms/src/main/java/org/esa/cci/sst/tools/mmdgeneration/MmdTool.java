@@ -24,6 +24,9 @@ import org.esa.cci.sst.Queries;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.MatchupQueryParameter;
+import org.esa.cci.sst.orm.MatchupStorage;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
@@ -107,12 +110,22 @@ public class MmdTool extends BasicTool {
             if (!performWork) {
                 return;
             }
+
             initialize();
 
+            matchupCount = getMatchupCount();
+            if (matchupCount == 0) {
+                return;
+            }
+
             final Configuration config = getConfig();
+
             fileWriter = createNetCDFWriter(config);
             fileWriter = defineMmd(fileWriter);
-            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(), getPattern(config));
+
+            final String condition = getCondition(config);
+            final int pattern = getPattern(config);
+            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(condition, pattern);
             writeMmdShuffled(fileWriter, fileWriter.getNetcdfFile().getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
@@ -146,7 +159,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void initializeColumns() {
-        final Storage toolStorage = getPersistenceManager().getToolStorage();
+        final Storage toolStorage = getPersistenceManager().getStorage();
         final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
         columnRegistryInitializer.initialize();
 
@@ -161,8 +174,9 @@ public class MmdTool extends BasicTool {
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
     void writeMmdShuffled(NetcdfFileWriter mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
-        final String condition = getCondition();
-        final int pattern = getPattern(getConfig());
+        final Configuration config = getConfig();
+        final String condition = getCondition(config);
+        final int pattern = getPattern(config);
         // group variables by sensors
         Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
         final Set<String> keys = sensorMap.keySet();
@@ -255,8 +269,8 @@ public class MmdTool extends BasicTool {
             getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
             final Query query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
             query.setParameter(1, sensorName);
-            query.setParameter(2, getTime(Constants.PROPERTY_TARGET_START_TIME));
-            query.setParameter(3, getTime(Constants.PROPERTY_TARGET_STOP_TIME));
+            query.setParameter(2, getStartTime(config));
+            query.setParameter(3, getStopTime(config));
             if (pattern != 0) {
                 query.setParameter(4, pattern);
             }
@@ -323,15 +337,16 @@ public class MmdTool extends BasicTool {
 
     private Map<Integer, Integer> createInvertedIndexOfMatchups(String condition, int pattern) {
         final Map<Integer, Integer> recordOfMatchup = new HashMap<>();
-        {
-            final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
-                    getTime(Constants.PROPERTY_TARGET_START_TIME),
-                    getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                    condition, pattern);
-            getLogger().info(String.format("%d matchups retrieved", matchups.size()));
-            for (int i = 0; i < matchups.size(); ++i) {
-                recordOfMatchup.put(matchups.get(i).getId(), i);
-            }
+
+        final Configuration config = getConfig();
+        final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
+                getStartTime(config),
+                getStopTime(config),
+                condition, pattern);
+        getLogger().info(String.format("%d matchups retrieved", matchups.size()));
+
+        for (int i = 0; i < matchups.size(); ++i) {
+            recordOfMatchup.put(matchups.get(i).getId(), i);
         }
         return recordOfMatchup;
     }
@@ -349,10 +364,6 @@ public class MmdTool extends BasicTool {
             variables.add(variable);
         }
         return sensorMap;
-    }
-
-    private Date getTime(String key) {
-        return getConfig().getDateValue(key);
     }
 
     private boolean testCoincidenceAccurately(ReferenceObservation refObs, Observation observation) throws IOException {
@@ -471,16 +482,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void defineDimensions(NetcdfFileWriter mmdFile) {
-        matchupCount = Queries.getMatchupCount(getPersistenceManager(),
-                getTime(Constants.PROPERTY_TARGET_START_TIME),
-                getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                getCondition(), getPattern(getConfig()));
-        getLogger().info(String.format("%d matchups in time interval", matchupCount));
-        if (matchupCount == 0) {
-            mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
-        } else {
-            mmdFile.addDimension(null, Constants.DIMENSION_NAME_MATCHUP, matchupCount);
-        }
+        mmdFile.addDimension(null, Constants.DIMENSION_NAME_MATCHUP, matchupCount);
+
         for (final String dimensionName : dimensionNames) {
             if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
                 continue;
@@ -494,8 +497,22 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private String getCondition() {
-        return getConfig().getStringValue("mms.target.condition", null);
+    private int getMatchupCount() {
+        final Configuration config = getConfig();
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
+
+        final MatchupQueryParameter parameter = createMatchupQueryParameter(config);
+        final int matchupCount = matchupStorage.getCount(parameter);
+
+        getLogger().info(String.format("%d matchups in time interval", matchupCount));
+
+        return matchupCount;
+    }
+
+    // package access for testing only tb 2014-03-11
+    static String getCondition(Configuration config) {
+        return config.getStringValue("mms.target.condition", null);
     }
 
     // package access for testing only tb 2014-03-10
@@ -506,6 +523,16 @@ public class MmdTool extends BasicTool {
             throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
+    }
+
+    // package access for testing only tb 2014-03-11
+    static Date getStartTime(Configuration configuration) {
+        return configuration.getDateValue(Constants.PROPERTY_TARGET_START_TIME);
+    }
+
+    // package access for testing only tb 2014-03-11
+    static Date getStopTime(Configuration configuration) {
+        return configuration.getDateValue(Constants.PROPERTY_TARGET_STOP_TIME);
     }
 
     private void defineVariables(NetcdfFileWriter mmdFile) {
@@ -550,5 +577,15 @@ public class MmdTool extends BasicTool {
             }
         }
         return null;
+    }
+
+    // package access for testing only tb 2014-03-11
+    static MatchupQueryParameter createMatchupQueryParameter(Configuration config) {
+        final MatchupQueryParameter parameter = new MatchupQueryParameter();
+        parameter.setStartDate(getStartTime(config));
+        parameter.setStopDate(getStopTime(config));
+        parameter.setCondition(getCondition(config));
+        parameter.setPattern(getPattern(config));
+        return parameter;
     }
 }

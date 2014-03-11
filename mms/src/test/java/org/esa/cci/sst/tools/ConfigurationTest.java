@@ -52,6 +52,15 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testGetDateValue_throwsWhenNotSet() {
+        try {
+            configuration.getDateValue("date.key");
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
+
+    @Test
     public void testPutAndGetDateValue_withDefaultValue() {
         configuration.put("date.key", "1978-01-01T00:00:00Z");
 

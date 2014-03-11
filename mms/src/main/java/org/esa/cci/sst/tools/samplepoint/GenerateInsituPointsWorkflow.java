@@ -23,7 +23,7 @@ public class GenerateInsituPointsWorkflow extends Workflow{
         final String insituSensorName = context.getInsituSensorName();
         final long insituSensorPattern = context.getInsituSensorPattern();
         final Sensor sensor = createSensor(insituSensorName, insituSensorPattern);
-        final Storage toolStorage = context.getPersistenceManager().getToolStorage();
+        final Storage toolStorage = context.getPersistenceManager().getStorage();
 
         generator = new InsituSamplePointGenerator(archiveRootDir, sensor, toolStorage);
         generator.setLogger(workflowContext.getLogger());

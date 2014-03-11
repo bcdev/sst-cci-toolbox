@@ -98,21 +98,17 @@ public class Configuration {
 
     public Date getDateValue(String key) {
         final String dateString = (String) properties.get(key);
-        try {
-            return TimeUtil.parseCcsdsUtcFormat(dateString);
-        } catch (ParseException e) {
-            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
+        if (StringUtils.isEmpty(dateString)) {
+            throw new ToolException("No date value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
         }
+
+        return parseDateString(dateString);
     }
 
     public Date getDateValue(String key, String defaultValue) {
         final String dateString = properties.getProperty(key, defaultValue);
 
-        try {
-            return TimeUtil.parseCcsdsUtcFormat(dateString);
-        } catch (ParseException e) {
-            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
+        return parseDateString(dateString);
     }
 
     public boolean getBooleanValue(String key) {
@@ -252,4 +248,11 @@ public class Configuration {
         return pattern;
     }
 
+    private Date parseDateString(String dateString) {
+        try {
+            return TimeUtil.parseCcsdsUtcFormat(dateString);
+        } catch (ParseException e) {
+            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
 }

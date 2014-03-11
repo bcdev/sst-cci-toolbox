@@ -422,9 +422,9 @@ public class InsituReaderTest {
         try (InsituReader reader = createReader("insitu_4_WMOID_PoB_20040717_20100929.nc")) {
             Array array = reader.read("insitu.sea_surface_temperature", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(290.3999938, array.getDouble(0), 1e-6);
-            assertEquals(290.600006, array.getDouble(1), 1e-6);
-            assertEquals(294.7999878, array.getDouble(2), 1e-6);
+            assertEquals(17.25, array.getDouble(0), 1e-6);
+            assertEquals(17.450012, array.getDouble(1), 1e-6);
+            assertEquals(21.649994, array.getDouble(2), 1e-6);
 
             array = reader.read("insitu.lon", extractDefinition);
             assertEquals(3, array.getSize());
