@@ -43,7 +43,7 @@
             </includes>
             <outputDirectory>python</outputDirectory>
             <fileMode>0770</fileMode>
-            <filtered>false</filtered>
+            <filtered>true</filtered>
         </fileSet>
 
         <fileSet>

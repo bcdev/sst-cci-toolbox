@@ -1,10 +1,8 @@
 #!/bin/bash
 # MMS environment setup
-# usage:  . mymms  (or mymms xxx-start.sh ...)
+# usage:  . mymms
 
 umask 007
-#ulimit -Ss unlimited
-#ulimit -Sv unlimited
 
 export PGPORT=5423
 export PGHOST=mms1.cems.rl.ac.uk
@@ -15,13 +13,9 @@ export PATH=/group_workspaces/cems/esacci_sst/mms/software/bin:$PATH
 export LD_LIBRARY_PATH=/group_workspaces/cems/esacci_sst/mms/software/lib:/group_workspaces/cems/esacci_sst/software/common/lib:$LD_LIBRARY_PATH
 
 export MMS_HOME=/group_workspaces/cems/esacci_sst/mms/software/sst-cci-mms-${pom.version}
-export MMS_INST=/group_workspaces/cems/esacci_sst/mms/inst
 export MMS_ARCHIVE=/group_workspaces/cems/esacci_sst/mms/archive
-#export MMS_TEMP=/exports/work/geos_gc_sst_cci/temparea
-#export MMS_NAS=/exports/nas/exports/cse/geos/scratch/gc/sst-cci/archive
-#export MMS_GBCS=/exports/work/geos_gc_sst_cci/avhrr/GBCS
-#export MMS_ARC3=/exports/work/geos_gc_sst_cci/mms/arc3-20111024
 
+export MMS_INST=/group_workspaces/cems/esacci_sst/mms/inst
 export MMS_CONFIG=$MMS_INST/mms-config.properties
 export MMS_TASKS=$MMS_INST/tasks
 export MMS_LOG=$MMS_INST/log
