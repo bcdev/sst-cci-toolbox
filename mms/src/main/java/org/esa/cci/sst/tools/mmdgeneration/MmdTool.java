@@ -112,7 +112,10 @@ public class MmdTool extends BasicTool {
             final Configuration config = getConfig();
             fileWriter = createNetCDFWriter(config);
             fileWriter = defineMmd(fileWriter);
-            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(getCondition(), getPattern(config));
+
+            final String condition = getCondition(config);
+            final int pattern = getPattern(config);
+            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(condition, pattern);
             writeMmdShuffled(fileWriter, fileWriter.getNetcdfFile().getVariables(), recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
@@ -161,8 +164,9 @@ public class MmdTool extends BasicTool {
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
     void writeMmdShuffled(NetcdfFileWriter mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
-        final String condition = getCondition();
-        final int pattern = getPattern(getConfig());
+        final Configuration config = getConfig();
+        final String condition = getCondition(config);
+        final int pattern = getPattern(config);
         // group variables by sensors
         Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
         final Set<String> keys = sensorMap.keySet();
@@ -471,10 +475,12 @@ public class MmdTool extends BasicTool {
     }
 
     private void defineDimensions(NetcdfFileWriter mmdFile) {
+        final Configuration config = getConfig();
         matchupCount = Queries.getMatchupCount(getPersistenceManager(),
                 getTime(Constants.PROPERTY_TARGET_START_TIME),
                 getTime(Constants.PROPERTY_TARGET_STOP_TIME),
-                getCondition(), getPattern(getConfig()));
+                getCondition(config),
+                getPattern(config));
         getLogger().info(String.format("%d matchups in time interval", matchupCount));
         if (matchupCount == 0) {
             mmdFile.addUnlimitedDimension(Constants.DIMENSION_NAME_MATCHUP);
@@ -494,8 +500,9 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private String getCondition() {
-        return getConfig().getStringValue("mms.target.condition", null);
+    // package access for testing only tb 2014-03-11
+    static String getCondition(Configuration config) {
+        return config.getStringValue("mms.target.condition", null);
     }
 
     // package access for testing only tb 2014-03-10

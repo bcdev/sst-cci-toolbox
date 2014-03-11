@@ -115,6 +115,23 @@ public class MmdToolTest {
         }
     }
 
+    @Test
+    public void testGetCondition() {
+        final Configuration config = new Configuration();
+        config.put("mms.target.condition", "the_condition");
+
+        final String condition = MmdTool.getCondition(config);
+        assertEquals("the_condition", condition);
+    }
+
+    @Test
+    public void testGetCondition_returnsNullWhenNotPresentInConfig() {
+        final Configuration config = new Configuration();
+
+        final String condition = MmdTool.getCondition(config);
+        assertNull(condition);
+    }
+
     private String toPath(String... pathComponents) {
         final StringBuilder stringBuilder = new StringBuilder();
         for (String component : pathComponents) {
