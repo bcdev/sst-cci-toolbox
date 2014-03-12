@@ -88,12 +88,6 @@ public final class ColumnBuilder {
         return this;
     }
 
-    public ColumnBuilder type(String type) {
-        Assert.argument(type != null, "type == null");
-        final DataType dataType = DataType.valueOf(type);
-        return type(dataType);
-    }
-
     public ColumnBuilder unsigned(boolean unsigned) {
         this.unsigned = unsigned;
         return this;
@@ -150,17 +144,6 @@ public final class ColumnBuilder {
         return flagMasks(sb.length() != 0 ? sb.toString() : null);
     }
 
-    public ColumnBuilder flagMasks(long... flagMasks) {
-        final StringBuilder sb = new StringBuilder();
-        for (final long mask : flagMasks) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append(mask);
-        }
-        return flagMasks(sb.length() != 0 ? sb.toString() : null);
-    }
-
     public ColumnBuilder flagMasks(String flagMasks) {
         Assert.argument(flagMasks == null ||
                         flagMasks.matches(FLAG_MASKS_PATTERN),
@@ -178,28 +161,6 @@ public final class ColumnBuilder {
     }
 
     public ColumnBuilder flagValues(byte... flagValues) {
-        final StringBuilder sb = new StringBuilder();
-        for (final long mask : flagValues) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append(mask);
-        }
-        return flagValues(sb.length() != 0 ? sb.toString() : null);
-    }
-
-    public ColumnBuilder flagValues(int... flagValues) {
-        final StringBuilder sb = new StringBuilder();
-        for (final long mask : flagValues) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append(mask);
-        }
-        return flagValues(sb.length() != 0 ? sb.toString() : null);
-    }
-
-    public ColumnBuilder flagValues(long... flagValues) {
         final StringBuilder sb = new StringBuilder();
         for (final long mask : flagValues) {
             if (sb.length() > 0) {

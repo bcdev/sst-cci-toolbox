@@ -59,4 +59,16 @@ public class ColumnBuilderTest {
     public void testBuild_WithTooManyDimensions() {
         builder.dimensions("a b c").build();
     }
+
+    @Test
+    public void testBuildWithIntFlagMasks() {
+        final Item item = builder.flagMasks(8, 2, 7, 1).dimensions("a b").build();
+        assertEquals("8 2 7 1", item.getFlagMasks());
+    }
+
+    @Test
+    public void testBuildWithByteFlagMasks() {
+        final Item item = builder.flagMasks((byte)3, (byte)4, (byte)1).dimensions("a b").build();
+        assertEquals("3 4 1", item.getFlagMasks());
+    }
 }
