@@ -10,10 +10,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import ucar.nc2.Attribute;
-import ucar.nc2.Group;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriter;
+import ucar.nc2.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -129,5 +126,28 @@ public class MmdWriterTest {
 
         verifyStatic();
         NetcdfFileWriter.openExisting(filePath);
+    }
+
+    @Test
+    public void testGetVariables() {
+        final Variable variable = mock(Variable.class);
+        final List<Variable> variables = new ArrayList<>();
+        variables.add(variable);
+
+        final NetcdfFile netcdfFile = mock(NetcdfFile.class);
+        when(netcdfFile.getVariables()).thenReturn(variables);
+
+        when(fileWriter.getNetcdfFile()).thenReturn(netcdfFile);
+
+        final List<Variable> variablesRead = mmdWriter.getVariables();
+        assertNotNull(variablesRead);
+        assertEquals(1, variablesRead.size());
+        assertEquals(variable, variablesRead.get(0));
+
+        verify(netcdfFile, times(1)).getVariables();
+        verifyNoMoreInteractions(netcdfFile);
+
+        verify(fileWriter, times(1)).getNetcdfFile();
+        verifyNoMoreInteractions(fileWriter);
     }
 }

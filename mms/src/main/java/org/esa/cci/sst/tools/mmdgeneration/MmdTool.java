@@ -162,7 +162,7 @@ public class MmdTool extends BasicTool {
     void writeMmdShuffled(MmdWriter mmdWriter, Map<Integer, Integer> recordOfMatchup) {
 
         final NetcdfFileWriter mmd = mmdWriter.getFileWriter();
-        final List<Variable> mmdVariables = mmd.getNetcdfFile().getVariables();
+        final List<Variable> mmdVariables = mmdWriter.getVariables();
 
         final Configuration config = getConfig();
         final String condition = getCondition(config);
