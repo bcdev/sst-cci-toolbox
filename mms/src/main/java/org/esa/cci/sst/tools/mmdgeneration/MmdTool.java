@@ -99,7 +99,7 @@ public class MmdTool extends BasicTool {
     }
 
     private void run(String[] args) {
-        NetcdfFileWriter fileWriter = null;
+        MmdWriter mmdWriter = null;
 
         try {
             final boolean performWork = setCommandLineArgs(args);
@@ -116,8 +116,8 @@ public class MmdTool extends BasicTool {
 
             final Configuration config = getConfig();
 
-            fileWriter = createNetCDFWriter(config);
-            final MmdWriter mmdWriter = prepareMmdWriter(fileWriter);
+            final NetcdfFileWriter fileWriter = createNetCDFWriter(config);
+            mmdWriter = prepareMmdWriter(fileWriter);
 
             final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups();
 
@@ -127,10 +127,10 @@ public class MmdTool extends BasicTool {
         } catch (Throwable t) {
             getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
         } finally {
-            if (fileWriter != null) {
+            readerCache.clear();
+            if (mmdWriter != null) {
                 try {
-                    readerCache.clear();
-                    fileWriter.close();
+                    mmdWriter.close();
                 } catch (IOException ignored) {
                 }
             }
@@ -153,20 +153,17 @@ public class MmdTool extends BasicTool {
         return dimensionNames;
     }
 
-    void writeMmdShuffled(MmdWriter mmdWriter, Map<Integer, Integer> recordOfMatchup) {
-        final NetcdfFileWriter mmd = mmdWriter.getFileWriter();
-        final List<Variable> mmdVariables = mmd.getNetcdfFile().getVariables();
-        writeMmdShuffled(mmd, mmdVariables, recordOfMatchup);
-    }
-
     /**
      * Writes MMD by having the input files in the outermost loop to avoid re-opening them.
      *
-     * @param mmd             the file writer
-     * @param mmdVariables    the variables to write
+     * @param mmdWriter       the mmd writer
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
-    void writeMmdShuffled(NetcdfFileWriter mmd, List<Variable> mmdVariables, Map<Integer, Integer> recordOfMatchup) {
+    void writeMmdShuffled(MmdWriter mmdWriter, Map<Integer, Integer> recordOfMatchup) {
+
+        final NetcdfFileWriter mmd = mmdWriter.getFileWriter();
+        final List<Variable> mmdVariables = mmd.getNetcdfFile().getVariables();
+
         final Configuration config = getConfig();
         final String condition = getCondition(config);
         final int pattern = getPattern(config);

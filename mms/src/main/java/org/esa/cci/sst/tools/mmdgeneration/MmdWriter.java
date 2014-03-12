@@ -4,6 +4,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.Attribute;
+import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
 
 import java.io.IOException;
@@ -12,6 +13,16 @@ import java.util.*;
 class MmdWriter {
 
     private final NetcdfFileWriter fileWriter;
+
+    static boolean canOpen(String filePath) throws IOException {
+        return NetcdfFile.canOpen(filePath);
+    }
+
+    static MmdWriter open(String filePath) throws IOException {
+        final NetcdfFileWriter netcdfFileWriter = NetcdfFileWriter.openExisting(filePath);
+
+        return new MmdWriter(netcdfFileWriter);
+    }
 
     MmdWriter(NetcdfFileWriter fileWriter) {
         this.fileWriter = fileWriter;
@@ -26,7 +37,12 @@ class MmdWriter {
     }
 
     NetcdfFileWriter getFileWriter() {
-        return fileWriter;
+        return fileWriter;  // @todo 2 tb/tb remove when code is migrated completely tb 2014-03-12
+    }
+
+    void close() throws IOException {
+        fileWriter.flush();
+        fileWriter.close();
     }
 
     private void addVariables(List<Item> variableList) {
