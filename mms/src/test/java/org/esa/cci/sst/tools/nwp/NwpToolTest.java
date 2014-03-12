@@ -36,4 +36,16 @@ public class NwpToolTest {
         assertEquals("avhrr", NwpTool.getSensorBasename("avhrr.n14"));
         assertEquals("avhrr", NwpTool.getSensorBasename("avhrr.m02"));
     }
+
+    @Test
+    public void testComputeFutureTimeStepCount() throws Exception {
+        assertEquals(12, NwpTool.computeFutureTimeStepCount(33));
+        assertEquals(6, NwpTool.computeFutureTimeStepCount(17));
+    }
+
+    @Test
+    public void testComputePastTimeStepCount() throws Exception {
+        assertEquals(20, NwpTool.computePastTimeStepCount(33));
+        assertEquals(10, NwpTool.computePastTimeStepCount(17));
+    }
 }

@@ -71,10 +71,10 @@ class NwpUtil {
             }
         }
 
-        final int threeDays = 60 * 60 * 24 * 3;
-        final int twoDays = 60 * 60 * 24 * 2;
-        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - threeDays);
-        final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + twoDays);
+        final int seventyTwoHours = 72 * 60 * 60;
+        final int fortyEightHours = 48 * 60 * 60;
+        final Date startDate = TimeUtil.secondsSince1978ToDate(startTime - seventyTwoHours);
+        final Date stopDate = TimeUtil.secondsSince1978ToDate(endTime + fortyEightHours);
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTime(startDate);
         calendar.set(Calendar.HOUR_OF_DAY, 0);

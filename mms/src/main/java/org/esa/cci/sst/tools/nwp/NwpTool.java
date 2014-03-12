@@ -704,12 +704,14 @@ class NwpTool extends BasicTool {
         return geoFile.getNetcdfFile().getLocation();
     }
 
+    // package public for testing
     static int computeFutureTimeStepCount(int timeStepCount) {
-        return (timeStepCount - 1) / 3;
+        return ((timeStepCount - 1) / 8) * 3;
     }
 
+    // package public for testing
     static int computePastTimeStepCount(int timeStepCount) {
-        return ((timeStepCount - 1) / 3) * 2;
+        return ((timeStepCount - 1) / 8) * 5;
     }
 
     static String getSensorBasename(String sensorName) {
