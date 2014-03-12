@@ -225,6 +225,7 @@
             </activation>
             <properties>
                 <mms.home>/group_workspaces/cems/esacci_sst/mms/software/sst-cci-mms-${pom.version}</mms.home>
+                <mms.jdk.home>/group_workspaces/cems/esacci_sst/mms/software/jdk1.7.0_51</mms.jdk.home>
                 <mms.archive.rootdir>/group_workspaces/cems/esacci_sst/mms/archive</mms.archive.rootdir>
                 <mms.pg.host>172.16.150.238</mms.pg.host>
                 <mms.pg.port>5423</mms.pg.port>

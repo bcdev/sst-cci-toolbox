@@ -8,7 +8,7 @@ export PGPORT=${mms.pg.port}
 export PGHOST=${mms.pg.host}
 export PGDATA=/data/mboettcher/mms/db/mmdb
 
-export PATH=/group_workspaces/cems/esacci_sst/mms/software/jdk1.7.0_51/bin:${PATH}
+export PATH=${mms.jdk.home}/bin:${PATH}
 export PATH=/group_workspaces/cems/esacci_sst/mms/software/bin:${PATH}
 export LD_LIBRARY_PATH=/group_workspaces/cems/esacci_sst/mms/software/lib:/group_workspaces/cems/esacci_sst/software/common/lib:${LD_LIBRARY_PATH}
 
