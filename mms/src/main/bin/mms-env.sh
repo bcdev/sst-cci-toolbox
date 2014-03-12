@@ -20,11 +20,14 @@ read_task_jobs() {
         do
             job=`basename ${logandid}`
             log=`dirname ${logandid}`
-            if [ "${jobs}" != "" ]
+            if grep -qF 'Successfully completed.' ${log}
             then
-                jobs="${jobs}|${job}"
-            else
-                jobs="${job}"
+                if [ "${jobs}" != "" ]
+                then
+                    jobs="${jobs}|${job}"
+                else
+                    jobs="${job}"
+                fi
             fi
         done
         test ${jobs} || jobs=none
