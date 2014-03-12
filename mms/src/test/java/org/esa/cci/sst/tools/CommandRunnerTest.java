@@ -26,17 +26,17 @@ import static org.junit.Assert.*;
 /**
  * @author Ralf Quast
  */
-public class JobRunnerTest {
+public class CommandRunnerTest {
 
     @Test
     public void testResponse_NoLineExpected() throws Exception {
         final File executable = new File("/bin/sleep");
         if (executable.canExecute()) {
-            final JobRunner runner = new JobRunner();
-            final String jobname = "test";
+            final CommandRunner runner = new CommandRunner();
+            final String jobName = "test";
             final String command = "/bin/sleep 1";
 
-            final List<String> lines = runner.submit(jobname, command);
+            final List<String> lines = runner.execute(jobName, command);
             assertNotNull(lines);
             assertTrue(lines.isEmpty());
         }
@@ -46,11 +46,11 @@ public class JobRunnerTest {
     public void testResponse_SingleLineExpected() throws Exception {
         final File executable = new File("/bin/echo");
         if (executable.canExecute()) {
-            final JobRunner runner = new JobRunner();
-            final String jobname = "test";
+            final CommandRunner runner = new CommandRunner();
+            final String jobName = "test";
             final String command = "/bin/echo Job <1711> is submitted successfully";
 
-            final List<String> lines = runner.submit(jobname, command);
+            final List<String> lines = runner.execute(jobName, command);
             assertNotNull(lines);
             assertEquals(1, lines.size());
             assertEquals("Job <1711> is submitted successfully", lines.get(0));

@@ -23,33 +23,29 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * @author Ralf Quast
  */
-class JobRunner {
+class CommandRunner {
 
     private final Logger logger;
 
 
-    JobRunner() {
+    CommandRunner() {
         this(null);
     }
 
-    JobRunner(Logger logger) {
+    CommandRunner(Logger logger) {
         this.logger = logger;
     }
 
-
-    List<String> submit(String jobName, String command) throws IOException, InterruptedException {
+    List<String> execute(String jobName, String command) throws IOException, InterruptedException {
         try {
             if (logger != null && logger.isLoggable(Level.FINER)) {
-                logger.entering(JobRunner.class.getName(), "submit");
+                logger.entering(CommandRunner.class.getName(), "execute");
             }
             if (command == null) {
                 return Collections.emptyList();
@@ -59,12 +55,12 @@ class JobRunner {
             }
             if (logger != null && logger.isLoggable(Level.INFO)) {
                 logger.info(
-                        MessageFormat.format("submitting job {0} with command <code>{1}</code>", jobName, command));
+                        MessageFormat.format("executing job ''{0}'' with command ''{1}''", jobName, command));
             }
             final Process process = Runtime.getRuntime().exec(command);
             if (process.waitFor() != 0) {
                 throw new RuntimeException(
-                        MessageFormat.format("Failed to submit job {0}. Exit value is {1}.", jobName,
+                        MessageFormat.format("Failed to execute job ''{0}''. Exit value is {1}.", jobName,
                                              process.exitValue()));
             }
             final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -77,12 +73,12 @@ class JobRunner {
                 response.add(line);
             }
             if (logger != null && logger.isLoggable(Level.INFO)) {
-                logger.info(MessageFormat.format("job {0} is submitted successfully", jobName));
+                logger.info(MessageFormat.format("job ''{0}'' is executed successfully", jobName));
             }
             return response;
         } finally {
             if (logger != null && logger.isLoggable(Level.FINER)) {
-                logger.exiting(JobRunner.class.getName(), "submit");
+                logger.exiting(CommandRunner.class.getName(), "execute");
             }
         }
     }

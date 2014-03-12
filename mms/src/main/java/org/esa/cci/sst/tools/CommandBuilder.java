@@ -21,7 +21,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
- * For building commands to be submitted with the {@link JobRunner}.
+ * For building commands to be submitted with the {@link CommandRunner}.
  *
  * @author Ralf Quast
  */
@@ -29,6 +29,10 @@ class CommandBuilder {
 
     private final SortedMap<String, String> options;
     private String execute;
+
+    CommandBuilder() {
+        this("");
+    }
 
     CommandBuilder(String execute) {
         this.execute = execute;

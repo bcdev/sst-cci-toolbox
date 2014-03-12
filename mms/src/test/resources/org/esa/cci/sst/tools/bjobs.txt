@@ -1,0 +1,5 @@
+JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
+54340   rquast  RUN   lotus      lotus.jc.rl.ac.uk host041.jc.rl.ac.uk mmd-2001-10-atsr.2-sub Mar 11 08:22
+54341   rquast  DONE  lotus      lotus.jc.rl.ac.uk host024.jc.rl.ac.uk sleep 2    Mar 11 08:32
+54342   rquast  DONE  lotus      lotus.jc.rl.ac.uk host024.jc.rl.ac.uk sleep 1    Mar 11 09:09
+54343   rquast  DONE  lotus      lotus.jc.rl.ac.uk host024.jc.rl.ac.uk sleep 1    Mar 11 09:28
