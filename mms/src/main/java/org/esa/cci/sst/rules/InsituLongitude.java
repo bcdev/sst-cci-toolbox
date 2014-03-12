@@ -37,7 +37,7 @@ import java.io.IOException;
 class InsituLongitude extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
-    private static final int[] SHAPE = {1, 48};
+    private static final int[] SHAPE = {1, 96};
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
 
     @Override
@@ -57,7 +57,7 @@ class InsituLongitude extends AbstractImplicitRule {
                         .shape(SHAPE)
                         .referenceObservation(referenceObservation)
                         .build();
-                return observationReader.read("lon", extractDefinition);
+                return observationReader.read("insitu.longitude", extractDefinition);
             } else {
                 final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
                 final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();

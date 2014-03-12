@@ -40,7 +40,7 @@ class InsituTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
     private static final int FILL_VALUE = Integer.MIN_VALUE;
-    private static final int[] SHAPE = {1, 48};
+    private static final int[] SHAPE = {1, 96};
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
 
     @Override
@@ -64,7 +64,7 @@ class InsituTime extends AbstractImplicitRule {
                         .shape(SHAPE)
                         .referenceObservation(refObs)
                         .build();
-                final Array insituTimes = observationReader.read("time", extractDefinition);
+                final Array insituTimes = observationReader.read("insitu.time", extractDefinition);
                 for (int i = 0; i < insituTimes.getSize(); i++) {
                     final double insituTime = insituTimes.getDouble(i);
                     insituTimes.setDouble(i, insituTime - refTime);

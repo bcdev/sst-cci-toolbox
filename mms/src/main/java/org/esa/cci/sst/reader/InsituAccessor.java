@@ -28,6 +28,7 @@ interface InsituAccessor {
 
     double getEndLat() throws IOException;
 
+    // @ todo 1 tb/tb make time range configurable tb 2014-03-12
     Range find12HoursRange(Date date);
 
     List<Range> createSubsampling(Range range, int maxLength);

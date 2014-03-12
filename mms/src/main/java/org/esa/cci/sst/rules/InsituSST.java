@@ -37,7 +37,7 @@ import java.io.IOException;
 class InsituSST extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
-    private static final int[] SHAPE = {1, 48};
+    private static final int[] SHAPE = {1, 96};
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
 
     @Override
@@ -51,14 +51,14 @@ class InsituSST extends AbstractImplicitRule {
     public Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Context context = getContext();
         final ReferenceObservation referenceObservation = context.getMatchup().getRefObs();
-        final Reader observationReader = context.getObservationReader();
+        final Reader observationReader = context.getObservationReader();    // @todo 2 tb/** use referenceObservation reader tb 2014-03-12
         try {
             if (observationReader != null) {
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
                         .shape(SHAPE)
                         .referenceObservation(referenceObservation)
                         .build();
-                return observationReader.read("sst", extractDefinition);
+                return observationReader.read("inistu.sea_surface_temperature", extractDefinition);
             } else {
                 final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
                 final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
