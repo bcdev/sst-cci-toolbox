@@ -710,8 +710,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(688592, array.getDouble(0), 1e-6);
-            assertEquals(689384, array.getDouble(1), 1e-6);
+            assertEquals(688592, array.getInt(0));  // @todo 4 tb/tb check for return type - is not always double tb 2014-03-12
+            assertEquals(689384, array.getInt(1));
         }
     }
 

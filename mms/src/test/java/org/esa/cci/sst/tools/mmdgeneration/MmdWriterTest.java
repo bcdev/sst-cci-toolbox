@@ -5,9 +5,9 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import ucar.nc2.Attribute;
@@ -32,6 +32,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({IoUtil.class, NetcdfFile.class, NetcdfFileWriter.class})
+@PowerMockIgnore("org.esa.cci.sst.data.*")
 public class MmdWriterTest {
 
     private MmdWriter mmdWriter;
@@ -41,10 +42,11 @@ public class MmdWriterTest {
     public void setUp() {
         fileWriter = mock(NetcdfFileWriter.class);
         mmdWriter = new MmdWriter(fileWriter);
+
+        mockStatic(IoUtil.class);
     }
 
     @Test
-    @Ignore
     public void testInitialize() throws IOException {
         final HashMap<String, Integer> dimensionConfig = new HashMap<>();
         dimensionConfig.put("left", 67);
@@ -56,8 +58,6 @@ public class MmdWriterTest {
         final Item variable_2 = new ColumnBuilder().name("variable_2").build();
         variableList.add(variable_1);
         variableList.add(variable_2);
-
-        mockStatic(IoUtil.class);
 
         mmdWriter.initialize(matchupCount, dimensionConfig, variableList);
 
@@ -83,7 +83,6 @@ public class MmdWriterTest {
     }
 
     @Test
-    @Ignore
     public void testClose() throws IOException {
         mmdWriter.close();
 
@@ -93,7 +92,6 @@ public class MmdWriterTest {
     }
 
     @Test
-    @Ignore
     public void testCanOpen_true() throws IOException {
         final String filePath = "/file/path";
 
