@@ -53,7 +53,7 @@ public class ProcessRunner {
     }
 
     public static File writeExecutableScript(String resolvedTemplate, String prefix, String suffix) throws IOException {
-        final File script = File.createTempFile(prefix, suffix);
+        final File script = createTempFile(prefix, suffix, true);
         final boolean executable = script.setExecutable(true);
         if (!executable) {
             throw new IOException("Cannot create executable script.");
@@ -101,6 +101,14 @@ public class ProcessRunner {
                 logger.exiting(ProcessRunner.class.getName(), "execute");
             }
         }
+    }
+
+    private static File createTempFile(String prefix, String suffix, boolean deleteOnExit) throws IOException {
+        final File file = File.createTempFile(prefix, suffix);
+        if (deleteOnExit) {
+            file.deleteOnExit();
+        }
+        return file;
     }
 
     private class LoggingThread extends Thread {
