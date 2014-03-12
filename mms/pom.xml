@@ -214,4 +214,22 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>cems</id>
+            <activation>
+                <property>
+                    <name>env.HOSTNAME</name>
+                    <value>mms1.cems.rl.ac.uk</value>
+                </property>
+            </activation>
+            <properties>
+                <mms.home>/group_workspaces/cems/esacci_sst/mms/software/sst-cci-mms-${pom.version}</mms.home>
+                <mms.archive.rootdir>/group_workspaces/cems/esacci_sst/mms/archive</mms.archive.rootdir>
+                <mms.pg.host>172.16.150.238</mms.pg.host>
+                <mms.pg.port>5423</mms.pg.port>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>

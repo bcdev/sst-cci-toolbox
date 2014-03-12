@@ -58,6 +58,7 @@
             <outputDirectory>config</outputDirectory>
             <directoryMode>0774</directoryMode>
             <fileMode>0660</fileMode>
+            <filtered>true</filtered>
         </fileSet>
     </fileSets>
 
