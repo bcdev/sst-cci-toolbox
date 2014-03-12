@@ -44,6 +44,7 @@ public class GbcsTool extends BasicTool {
     private String mmdSource;
     private String nwpSource;
     private String mmdTarget;
+    private boolean deleteOnExit;
 
     public GbcsTool() {
         super("gbcs-tool", "1.0");
@@ -74,6 +75,7 @@ public class GbcsTool extends BasicTool {
         nwpSource = config.getStringValue(Configuration.KEY_MMS_GBCS_NWP_SOURCE);
         mmdTarget = config.getStringValue(Configuration.KEY_MMS_GBCS_MMD_TARGET);
         sensorName = config.getStringValue(Configuration.KEY_MMS_GBCS_SENSOR);
+        deleteOnExit = config.getBooleanValue(Configuration.KEY_MMS_IO_TMPDELETEONEXIT, true);
 
         properties = new Properties();
         properties.put(Configuration.KEY_MMS_GBCS_INTELVERSION,
@@ -101,7 +103,7 @@ public class GbcsTool extends BasicTool {
         final ProcessRunner runner = new ProcessRunner("org.esa.cci.sst");
         final String resolvedTemplate = ProcessRunner.resolveTemplate(TEMPLATE, properties);
 
-        runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "gbcs", ".sh").getPath());
+        runner.execute(ProcessRunner.writeExecutableScript(resolvedTemplate, "gbcs", ".sh", deleteOnExit).getPath());
     }
 
     private boolean doesNotExist(String path) {

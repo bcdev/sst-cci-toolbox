@@ -227,11 +227,11 @@ public abstract class BasicTool {
                 configurationFile = new File(DEFAULT_CONFIGURATION_FILE_NAME);
                 if (configurationFile.exists()) {
                     addConfigurationProperties(configurationFile);
-                    config.put(Configuration.KEY_CONFIGURATION, configurationFile.getPath());
+                    config.put(Configuration.KEY_MMS_CONFIGURATION, configurationFile.getPath());
                 }
             } else {
                 addConfigurationProperties(configurationFile);
-                config.put(Configuration.KEY_CONFIGURATION, configurationFile.getPath());
+                config.put(Configuration.KEY_MMS_CONFIGURATION, configurationFile.getPath());
             }
 
             final Properties optionProperties = commandLine.getOptionProperties("D");

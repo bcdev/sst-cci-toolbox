@@ -12,7 +12,7 @@ public class ConfigUtil {
 
         final String usecase;
         try {
-            usecase = config.getStringValue(Configuration.KEY_USECASE);
+            usecase = config.getStringValue(Configuration.KEY_MMS_USECASE);
         } catch (Exception e) {
             return archiveRootPath;
         }

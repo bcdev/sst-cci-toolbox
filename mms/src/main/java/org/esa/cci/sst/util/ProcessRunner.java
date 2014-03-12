@@ -52,8 +52,9 @@ public class ProcessRunner {
         throw new RuntimeException("Unresolved template:\n" + resolvedTemplate);
     }
 
-    public static File writeExecutableScript(String resolvedTemplate, String prefix, String suffix) throws IOException {
-        final File script = createTempFile(prefix, suffix, true);
+    public static File writeExecutableScript(String resolvedTemplate, String prefix, String suffix,
+                                             boolean deleteOnExit) throws IOException {
+        final File script = createTempFile(prefix, suffix, deleteOnExit);
         final boolean executable = script.setExecutable(true);
         if (!executable) {
             throw new IOException("Cannot create executable script.");

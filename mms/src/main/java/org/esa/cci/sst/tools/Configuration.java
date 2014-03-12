@@ -13,9 +13,10 @@ import java.util.Properties;
 
 public class Configuration {
 
-    public static final String KEY_CONFIGURATION = "mms.configuration";
-    public static final String KEY_USECASE = "mms.usecase";
+    public static final String KEY_MMS_CONFIGURATION = "mms.configuration";
+    public static final String KEY_MMS_USECASE = "mms.usecase";
     public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
+    public static final String KEY_MMS_IO_TMPDELETEONEXIT = "mms.io.tmpdeleteonexit";
 
     public static final String KEY_MMS_INGESTION_CLEANUPINTERVAL = "mms.ingestion.cleanupinterval";
     public static final String KEY_MMS_INGESTION_START_TIME = "mms.source.startTime";

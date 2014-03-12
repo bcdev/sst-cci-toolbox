@@ -17,7 +17,7 @@ public class ConfigUtilTest {
     public void testGetUsecaseRootPath() {
         final Configuration config = new Configuration();
         config.put(Configuration.KEY_ARCHIVE_ROOTDIR, "/archive");
-        config.put(Configuration.KEY_USECASE, "mms2");
+        config.put(Configuration.KEY_MMS_USECASE, "mms2");
 
         final String path = ConfigUtil.getUsecaseRootPath(config);
         assertNotNull(path);

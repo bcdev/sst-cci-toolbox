@@ -120,7 +120,7 @@ public class SamplePointImporterIntegrationTest {
     private Configuration createConfig() {
         final Configuration config = new Configuration();
         config.put(Configuration.KEY_ARCHIVE_ROOTDIR, test_archive.getAbsolutePath());
-        config.put(Configuration.KEY_USECASE, USE_CASE);
+        config.put(Configuration.KEY_MMS_USECASE, USE_CASE);
         config.put(Configuration.KEY_MMS_SAMPLING_SENSOR, SENSOR);
         config.put(Configuration.KEY_MMS_SAMPLING_START_TIME, "2007-01-01T00:00:00Z");
         config.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2007-01-31T23:59:59Z");

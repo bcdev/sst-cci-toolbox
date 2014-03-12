@@ -124,7 +124,7 @@ public class Arc1ProcessingTool extends BasicTool {
         final String startTimeProperty = config.getStringValue(Constants.PROPERTY_OUTPUT_START_TIME);
         final String endTimeProperty = config.getStringValue(Constants.PROPERTY_OUTPUT_STOP_TIME);
         final String sensorName = config.getStringValue(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "avhrr_orb.n18"
-        final String configurationPath = config.getStringValue(Configuration.KEY_CONFIGURATION);
+        final String configurationPath = config.getStringValue(Configuration.KEY_MMS_CONFIGURATION);
         final String condition = config.getStringValue(Constants.PROPERTY_ARC1x2_CONDITION);
 
         final Date startTime = TimeUtil.getConfiguredTimeOf(startTimeProperty);
