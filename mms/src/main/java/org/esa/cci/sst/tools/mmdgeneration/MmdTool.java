@@ -20,7 +20,6 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.ColumnRegistry;
-import org.esa.cci.sst.Queries;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
@@ -120,9 +119,8 @@ public class MmdTool extends BasicTool {
             fileWriter = createNetCDFWriter(config);
             final MmdWriter mmdWriter = prepareMmdWriter(fileWriter);
 
-            final String condition = getCondition(config);
-            final int pattern = getPattern(config);
-            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(condition, pattern);
+            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups();
+
             writeMmdShuffled(mmdWriter, recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
@@ -330,14 +328,15 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    private Map<Integer, Integer> createInvertedIndexOfMatchups(String condition, int pattern) {
+    private Map<Integer, Integer> createInvertedIndexOfMatchups() {
         final Map<Integer, Integer> recordOfMatchup = new HashMap<>();
 
         final Configuration config = getConfig();
-        final List<Matchup> matchups = Queries.getMatchups(getPersistenceManager(),
-                getStartTime(config),
-                getStopTime(config),
-                condition, pattern);
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
+        final MatchupQueryParameter queryParameter = createMatchupQueryParameter(config);
+        final List<Matchup> matchups = matchupStorage.get(queryParameter);
+
         getLogger().info(String.format("%d matchups retrieved", matchups.size()));
 
         for (int i = 0; i < matchups.size(); ++i) {

@@ -25,7 +25,7 @@ class MmdWriter {
         fileWriter.create();
     }
 
-    public NetcdfFileWriter getFileWriter() {
+    NetcdfFileWriter getFileWriter() {
         return fileWriter;
     }
 
