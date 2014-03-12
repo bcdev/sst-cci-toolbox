@@ -182,8 +182,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(1014480612, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(1014480612, array.getLong(0));
+            assertEquals(-32768, array.getLong(1));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(2, array.getSize());
@@ -192,8 +192,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(1107312, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(1107312, array.getLong(0));
+            assertEquals(-32768, array.getLong(1));
         }
     }
 
@@ -265,8 +265,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(760449600, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(760449600, array.getLong(0));
+            assertEquals(-32768, array.getLong(1));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(2, array.getSize());
@@ -275,8 +275,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(63641, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(63641, array.getInt(0));
+            assertEquals(-32768, array.getInt(1));
         }
     }
 
@@ -351,9 +351,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(966664799, array.getDouble(0), 1e-6);
-            assertEquals(966707999, array.getDouble(1), 1e-6);
-            assertEquals(966729599, array.getDouble(2), 1e-6);
+            assertEquals(966664799, array.getLong(0));
+            assertEquals(966707999, array.getLong(1));
+            assertEquals(966729599, array.getLong(2));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(3, array.getSize());
@@ -363,9 +363,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(543446, array.getDouble(0), 1e-6);
-            assertEquals(543518, array.getDouble(1), 1e-6);
-            assertEquals(543589, array.getDouble(2), 1e-6);
+            assertEquals(543446, array.getInt(0));
+            assertEquals(543518, array.getInt(1));
+            assertEquals(543589, array.getInt(2));
         }
     }
 
@@ -440,9 +440,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(905472100, array.getDouble(0), 1e-6);
-            assertEquals(905515371, array.getDouble(1), 1e-6);
-            assertEquals(905558244, array.getDouble(2), 1e-6);
+            assertEquals(905472100, array.getLong(0));
+            assertEquals(905515371, array.getLong(1));
+            assertEquals(905558244, array.getLong(2));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(3, array.getSize());
@@ -452,9 +452,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(660398, array.getDouble(0), 1e-6);
-            assertEquals(660523, array.getDouble(1), 1e-6);
-            assertEquals(660792, array.getDouble(2), 1e-6);
+            assertEquals(660398, array.getInt(0));
+            assertEquals(660523, array.getInt(1));
+            assertEquals(660792, array.getInt(2));
         }
     }
 
@@ -474,7 +474,6 @@ public class InsituReaderTest {
             assertCorrectSamplingPoint(50.810432, -1.09588, 1285758454000L, 284201, samplingPoint);
         }
     }
-
 
     @Test
     public void testReadObservation_SST_CCI_V2_Argo_Data() throws Exception {
@@ -528,8 +527,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(749478179, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(749478179, array.getLong(0));
+            assertEquals(-32768, array.getLong(1));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(2, array.getSize());
@@ -538,8 +537,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(2519326, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(2519326, array.getInt(0));
+            assertEquals(-32768, array.getInt(1));
         }
     }
 
@@ -614,9 +613,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(904274351, array.getDouble(0), 1e-6);
-            assertEquals(904312728, array.getDouble(1), 1e-6);
-            assertEquals(904338467, array.getDouble(2), 1e-6);
+            assertEquals(904274351, array.getLong(0));
+            assertEquals(904312728, array.getLong(1));
+            assertEquals(904338467, array.getLong(2));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(3, array.getSize());
@@ -626,9 +625,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(2581270, array.getDouble(0), 1e-6);
-            assertEquals(2589864, array.getDouble(1), 1e-6);
-            assertEquals(2597200, array.getDouble(2), 1e-6);
+            assertEquals(2581270, array.getInt(0));
+            assertEquals(2589864, array.getInt(1));
+            assertEquals(2597200, array.getInt(2));
         }
     }
 
@@ -700,8 +699,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(202543200, array.getDouble(0), 1e-6);
-            assertEquals(202586400, array.getDouble(1), 1e-6);
+            assertEquals(202543200, array.getLong(0));
+            assertEquals(202586400, array.getLong(1));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(2, array.getSize());
@@ -710,7 +709,7 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(688592, array.getInt(0));  // @todo 4 tb/tb check for return type - is not always double tb 2014-03-12
+            assertEquals(688592, array.getInt(0));
             assertEquals(689384, array.getInt(1));
         }
     }
@@ -780,8 +779,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(1124204340, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(1124204340, array.getLong(0));
+            assertEquals(-32768, array.getLong(1));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(2, array.getSize());
@@ -790,8 +789,8 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(2, array.getSize());
-            assertEquals(5054746, array.getDouble(0), 1e-6);
-            assertEquals(-32768.0, array.getDouble(1), 1e-6);
+            assertEquals(5054746, array.getInt(0));
+            assertEquals(-32768, array.getInt(1));
         }
     }
 
@@ -866,9 +865,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(1120785599, array.getDouble(0), 1e-6);
-            assertEquals(1120828799, array.getDouble(1), 1e-6);
-            assertEquals(1120849799, array.getDouble(2), 1e-6);
+            assertEquals(1120785599, array.getLong(0));
+            assertEquals(1120828799, array.getLong(1));
+            assertEquals(1120849799, array.getLong(2));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(3, array.getSize());
@@ -878,9 +877,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(5726049, array.getDouble(0), 1e-6);
-            assertEquals(5714613, array.getDouble(1), 1e-6);
-            assertEquals(5714645, array.getDouble(2), 1e-6);
+            assertEquals(5726049, array.getInt(0));
+            assertEquals(5714613, array.getInt(1));
+            assertEquals(5714645, array.getInt(2));
         }
     }
 
@@ -955,9 +954,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.time", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(223949699, array.getDouble(0), 1e-6);
-            assertEquals(223996500, array.getDouble(1), 1e-6);
-            assertEquals(224026380, array.getDouble(2), 1e-6);
+            assertEquals(223949699, array.getLong(0));
+            assertEquals(223996500, array.getLong(1));
+            assertEquals(224026380, array.getLong(2));
 
             array = reader.read("insitu.sst_uncertainty", extractDefinition);
             assertEquals(3, array.getSize());
@@ -967,9 +966,9 @@ public class InsituReaderTest {
 
             array = reader.read("insitu.mohc_id", extractDefinition);
             assertEquals(3, array.getSize());
-            assertEquals(782525, array.getDouble(0), 1e-6);
-            assertEquals(785943, array.getDouble(1), 1e-6);
-            assertEquals(787379, array.getDouble(2), 1e-6);
+            assertEquals(782525, array.getInt(0));
+            assertEquals(785943, array.getInt(1));
+            assertEquals(787379, array.getInt(2));
         }
     }
 
