@@ -36,12 +36,10 @@ import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
-import org.esa.cci.sst.util.IoUtil;
 import org.esa.cci.sst.util.ReaderCache;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
-import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
@@ -62,7 +60,6 @@ import java.util.logging.Level;
 public class MmdTool extends BasicTool {
 
     private final ColumnRegistry columnRegistry;
-    private Set<String> dimensionNames;
     private Map<String, Integer> dimensionConfiguration;
     private final List<String> targetColumnNames;
 
@@ -95,7 +92,7 @@ public class MmdTool extends BasicTool {
 
         final Configuration config = getConfig();
 
-        dimensionNames = initializeDimensionNames(targetColumnNames, columnRegistry);
+        final Set<String> dimensionNames = initializeDimensionNames(targetColumnNames, columnRegistry);
         dimensionConfiguration = DimensionConfigurationInitializer.initalize(dimensionNames, config);
 
         final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
@@ -121,12 +118,12 @@ public class MmdTool extends BasicTool {
             final Configuration config = getConfig();
 
             fileWriter = createNetCDFWriter(config);
-            fileWriter = defineMmd(fileWriter);
+            final MmdWriter mmdWriter = prepareMmdWriter(fileWriter);
 
             final String condition = getCondition(config);
             final int pattern = getPattern(config);
             final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(condition, pattern);
-            writeMmdShuffled(fileWriter, fileWriter.getNetcdfFile().getVariables(), recordOfMatchupMap);
+            writeMmdShuffled(mmdWriter, recordOfMatchupMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -158,12 +155,10 @@ public class MmdTool extends BasicTool {
         return dimensionNames;
     }
 
-    private void initializeColumns() {
-        final Storage toolStorage = getPersistenceManager().getStorage();
-        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
-        columnRegistryInitializer.initialize();
-
-        registerTargetColumns();
+    void writeMmdShuffled(MmdWriter mmdWriter, Map<Integer, Integer> recordOfMatchup) {
+        final NetcdfFileWriter mmd = mmdWriter.getFileWriter();
+        final List<Variable> mmdVariables = mmd.getNetcdfFile().getVariables();
+        writeMmdShuffled(mmd, mmdVariables, recordOfMatchup);
     }
 
     /**
@@ -366,6 +361,14 @@ public class MmdTool extends BasicTool {
         return sensorMap;
     }
 
+    private void initializeColumns() {
+        final Storage toolStorage = getPersistenceManager().getStorage();
+        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
+        columnRegistryInitializer.initialize();
+
+        registerTargetColumns();
+    }
+
     private boolean testCoincidenceAccurately(ReferenceObservation refObs, Observation observation) throws IOException {
         final Reader observationReader = readerCache.getReader(observation.getDatafile(), true);
         final GeoCoding geoCoding;
@@ -471,30 +474,13 @@ public class MmdTool extends BasicTool {
     }
 
 
-    private NetcdfFileWriter defineMmd(NetcdfFileWriter mmd) throws IOException {
-        defineDimensions(mmd);
-        defineVariables(mmd);
-        defineGlobalAttributes(mmd);
+    private MmdWriter prepareMmdWriter(NetcdfFileWriter fileWriter) throws IOException {
 
-        mmd.create();
+        final List<Item> variableList = extractVariableList(targetColumnNames, columnRegistry);
+        final MmdWriter mmdWriter = new MmdWriter(fileWriter);
+        mmdWriter.initialize(matchupCount, dimensionConfiguration, variableList);
 
-        return mmd;
-    }
-
-    private void defineDimensions(NetcdfFileWriter mmdFile) {
-        mmdFile.addDimension(null, Constants.DIMENSION_NAME_MATCHUP, matchupCount);
-
-        for (final String dimensionName : dimensionNames) {
-            if (Constants.DIMENSION_NAME_MATCHUP.equals(dimensionName)) {
-                continue;
-            }
-            if (!dimensionConfiguration.containsKey(dimensionName)) {
-                throw new ToolException(
-                        MessageFormat.format("Length of dimension ''{0}'' is not configured.", dimensionName),
-                        ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-            mmdFile.addDimension(null, dimensionName, dimensionConfiguration.get(dimensionName));
-        }
+        return mmdWriter;
     }
 
     private int getMatchupCount() {
@@ -535,21 +521,6 @@ public class MmdTool extends BasicTool {
         return configuration.getDateValue(Constants.PROPERTY_TARGET_STOP_TIME);
     }
 
-    private void defineVariables(NetcdfFileWriter mmdFile) {
-        for (final String name : targetColumnNames) {
-            final Item column = columnRegistry.getColumn(name);
-            IoUtil.addVariable(mmdFile, column);
-        }
-    }
-
-    private void defineGlobalAttributes(NetcdfFileWriter file) {
-        file.addGroupAttribute(null, new Attribute("title", "SST CCI multi-sensor match-up dataset (MMD) template"));
-        file.addGroupAttribute(null, new Attribute("institution", "Brockmann Consult"));
-        file.addGroupAttribute(null, new Attribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)"));
-        file.addGroupAttribute(null, new Attribute("creation_date", Calendar.getInstance().getTime().toString()));
-        file.addGroupAttribute(null, new Attribute("total_number_of_matchups", matchupCount));
-    }
-
     private void registerTargetColumns() {
         // @todo 3 tb/tb move to initializer class - need to discuss. tb 2014-03-10
         final String configFilePath = getConfig().getStringValue("mms.target.variables");
@@ -587,5 +558,16 @@ public class MmdTool extends BasicTool {
         parameter.setCondition(getCondition(config));
         parameter.setPattern(getPattern(config));
         return parameter;
+    }
+
+    // package access for testing only tb 2014-03-12
+    static List<Item> extractVariableList(List<String> targetNames, ColumnRegistry columnRegistry) {
+        final ArrayList<Item> variableList = new ArrayList<>();
+
+        for (String targetName : targetNames) {
+            variableList.add(columnRegistry.getColumn(targetName));
+        }
+
+        return variableList;
     }
 }

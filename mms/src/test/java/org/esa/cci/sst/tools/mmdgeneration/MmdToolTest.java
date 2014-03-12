@@ -3,6 +3,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
@@ -195,6 +196,24 @@ public class MmdToolTest {
 
         assertEquals("another_condition", parameter.getCondition());
         assertEquals(264, parameter.getPattern());  // remember, it's hex
+    }
+
+    @Test
+    public void testExtractVariableList()  {
+        final ColumnRegistry columnRegistry = new ColumnRegistry();
+        columnRegistry.register(new ColumnBuilder().name("Heike").dimensions("a b c").rank(3).build());
+        columnRegistry.register(new ColumnBuilder().name("Klaus").dimensions("left right").rank(2).build());
+        columnRegistry.register(new ColumnBuilder().name("Carmen").dimensions("up down").rank(2).build());
+
+        final ArrayList<String> targetNames = new ArrayList<>();
+        targetNames.add("Heike");
+        targetNames.add("Carmen");
+
+        final List<Item> variableList = MmdTool.extractVariableList(targetNames, columnRegistry);
+        assertNotNull(variableList);
+        assertEquals(2, variableList.size());
+        assertEquals("Heike", variableList.get(0).getName());
+        assertEquals("Carmen", variableList.get(1).getName());
     }
 
     private String toPath(String... pathComponents) {
