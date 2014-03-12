@@ -26,8 +26,6 @@ import com.bc.ceres.core.Assert;
  */
 public final class SensorBuilder {
 
-    private static final String PACKAGE_NAME = SensorBuilder.class.getPackage().getName();
-
     private String name;
     private long pattern;
     private String observationType;
@@ -59,8 +57,9 @@ public final class SensorBuilder {
         Assert.argument(observationType != null, "observationType == null");
         final Class<? extends Observation> observationClass;
         try {
+            final String packagename = getClass().getPackage().getName();
             //noinspection unchecked
-            observationClass = (Class<? extends Observation>) Class.forName(PACKAGE_NAME + "." + observationType);
+            observationClass = (Class<? extends Observation>) Class.forName(packagename + "." + observationType);
         } catch (ClassCastException e) {
             throw new IllegalArgumentException(e);
         } catch (ClassNotFoundException e) {

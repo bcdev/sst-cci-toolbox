@@ -20,9 +20,7 @@ import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 import ucar.ma2.Array;
-import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
@@ -41,7 +39,7 @@ import java.util.Map;
 public class MmdUpdater extends BasicTool {
 
     final List<Variable> variables = new ArrayList<Variable>(5);
-    NetcdfFileWriter mmd;
+    private MmdWriter mmdWriter;
 
     protected MmdUpdater() {
         super("mmdupdate-tool.sh", "0.1");
@@ -71,7 +69,7 @@ public class MmdUpdater extends BasicTool {
         mmdTool.initialize();
         final String mmdLocation = getConfig().getStringValue("mms.mmdupdate.mmd");
         final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(mmdLocation, null);
-        mmdTool.writeMmdShuffled(mmd, variables, recordOfMatchupMap);
+        mmdTool.writeMmdShuffled(mmdWriter, recordOfMatchupMap);
     }
 
     private Map<Integer, Integer> createInvertedIndexOfMatchups(String path, File archiveRoot) {
@@ -105,20 +103,20 @@ public class MmdUpdater extends BasicTool {
 
     private void close() {
         try {
-            mmd.close();
+            mmdWriter.close();
         } catch (IOException e) {
-            getLogger().warning("File '" + mmd.getNetcdfFile().getLocation() + "' could not be closed.");
+            getLogger().warning("File could not be closed: " + e.getMessage());
         }
     }
 
     void openMmd() {
         final String mmdLocation = getConfig().getStringValue("mms.mmdupdate.mmd");
         try {
-            final boolean canOpen = NetcdfFile.canOpen(mmdLocation);
-            if(!canOpen) {
-                throw new Exception("Cannot open file '" + mmdLocation + "'.");
+            final boolean canOpen = MmdWriter.canOpen(mmdLocation);
+            if (!canOpen) {
+                throw new ToolException("Cannot open file '" + mmdLocation + "'.", ToolException.TOOL_IO_ERROR);
             }
-            mmd = NetcdfFileWriter.openExisting(mmdLocation);
+            mmdWriter = MmdWriter.open(mmdLocation);
         } catch (Exception e) {
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
@@ -126,8 +124,10 @@ public class MmdUpdater extends BasicTool {
 
     void parseVariables() {
         final String updateVariables = getConfig().getStringValue("mms.mmdupdate.variables");
+        final NetcdfFileWriter fileWriter = mmdWriter.getFileWriter();
         for (String updateVariable : updateVariables.split(",")) {
-            final Variable variable = mmd.findVariable(NetcdfFile.makeValidPathName(updateVariable));
+            // @todo 1 tb/tb move to MmdWriter class tb 2014-03-12
+            final Variable variable = fileWriter.findVariable(NetcdfFile.makeValidPathName(updateVariable));
             if (variable == null) {
                 getLogger().warning("Variable '" + updateVariable + "' not found in mmd file.");
             }
