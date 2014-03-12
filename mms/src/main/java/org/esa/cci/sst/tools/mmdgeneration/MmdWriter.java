@@ -6,9 +6,13 @@ import org.esa.cci.sst.util.IoUtil;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
+import ucar.nc2.Variable;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 class MmdWriter {
 
@@ -34,6 +38,11 @@ class MmdWriter {
         addVariables(variableList);
 
         fileWriter.create();
+    }
+
+    List<Variable> getVariables() {
+        final NetcdfFile netcdfFile = fileWriter.getNetcdfFile();
+        return netcdfFile.getVariables();
     }
 
     NetcdfFileWriter getFileWriter() {
