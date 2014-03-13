@@ -18,7 +18,6 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.util.ReaderCache;
@@ -34,15 +33,17 @@ import java.util.Map;
  * @author Thomas Storm
  */
 @SuppressWarnings("ReturnOfThis")
-class ContextBuilder {
+public class ContextBuilder {
 
-    private final ReaderCache readerCache;
-
+    private ReaderCache readerCache;
     private Matchup matchup;
-    private ReferenceObservation referenceObservation;
     private Variable targetVariable;
     private Observation observation;
     private Map<String, Integer> dimensionConfiguration;
+
+
+    public ContextBuilder() {
+    }
 
     ContextBuilder(ReaderCache readerCache) {
         this.readerCache = readerCache;
@@ -63,13 +64,13 @@ class ContextBuilder {
         return this;
     }
 
-    public ContextBuilder dimensionConfiguration(Map<String,Integer> dimensionConfiguration) {
+    public ContextBuilder dimensionConfiguration(Map<String, Integer> dimensionConfiguration) {
         this.dimensionConfiguration = Collections.unmodifiableMap(dimensionConfiguration);
         return this;
     }
 
     @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
-    Context build() {
+    public Context build() {
         final ContextImpl context = new ContextImpl();
         context.readerCache = readerCache;
         context.matchup = matchup;

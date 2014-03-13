@@ -16,18 +16,13 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.SensorBuilder;
-import org.esa.cci.sst.data.Timeable;
+import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.util.TimeUtil;
 
-import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
@@ -54,9 +49,9 @@ class Ingester {
                 hasPersisted = true;
             } catch (IllegalArgumentException e) {
                 final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
-                                                            observation.getId(),
-                                                            recordNo,
-                                                            e.getMessage());
+                        observation.getId(),
+                        recordNo,
+                        e.getMessage());
                 tool.getErrorHandler().warn(e, message);
             }
         }
@@ -66,13 +61,12 @@ class Ingester {
     void persistColumns(final String sensorName, final Reader reader) throws IOException {
         final Item[] columns = reader.getColumns();
         final Logger logger = tool.getLogger();
-        logger.info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.",
-                                         sensorName, columns.length));
-        final Query query = tool.getPersistenceManager().createQuery("select c.name from Column c");
-        final List<String> existingVariables = query.getResultList();
+        logger.info(MessageFormat.format("Number of columns for sensor ''{0}'' = {1}.", sensorName, columns.length));
+        final ColumnStorage columnStorage = tool.getPersistenceManager().getColumnStorage();
+        final List<String> existingVariables = columnStorage.getAllColumnNames();
         for (final Item column : columns) {
             if (!existingVariables.contains(column.getName())) {
-                tool.getPersistenceManager().persist(column);
+                columnStorage.store((Column) column);
             }
         }
     }

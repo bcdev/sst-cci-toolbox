@@ -23,10 +23,7 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
-import org.esa.cci.sst.orm.MatchupQueryParameter;
-import org.esa.cci.sst.orm.MatchupStorage;
-import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.orm.*;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
@@ -358,8 +355,8 @@ public class MmdTool extends BasicTool {
     }
 
     private void initializeColumns() {
-        final Storage toolStorage = getPersistenceManager().getStorage();
-        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, toolStorage);
+        final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
+        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, columnStorage);
         columnRegistryInitializer.initialize();
 
         registerTargetColumns();

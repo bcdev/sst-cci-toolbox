@@ -2,27 +2,12 @@ package org.esa.cci.sst.orm;
 
 import org.esa.cci.sst.data.*;
 
-import javax.persistence.Query;
-import java.util.List;
-
 class StorageImpl implements Storage {
 
     private final PersistenceManager persistenceManager;
 
     StorageImpl(PersistenceManager persistenceManager) {
         this.persistenceManager = persistenceManager;
-    }
-
-    @Override
-    public Column getColumn(String columnName) {
-        return (Column) persistenceManager.pick("select c from Column c where c.name = ?1", columnName);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<Item> getAllColumns() {
-        final Query query = persistenceManager.createQuery("select c from Column c order by c.name");
-        return query.getResultList();
     }
 
     @Override
@@ -55,4 +40,6 @@ class StorageImpl implements Storage {
     public final Sensor getSensor(final String sensorName) {
         return (Sensor) persistenceManager.pick("select s from Sensor s where s.name = ?1", sensorName);
     }
+
+
 }

@@ -122,7 +122,7 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Finding satellite sub-scenes...");
         CloudySubsceneRemover.removeSamples(sampleList, samplingSensor, true, subSceneWidth, subSceneHeight,
                                             getConfig(),
-                                            getStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
+                                            getStorage(), getColumnStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
         if (samplingSensor2 != null) {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
@@ -133,7 +133,7 @@ public class SamplingTool extends BasicTool {
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
             CloudySubsceneRemover.removeSamples(sampleList, samplingSensor2, false, subSceneWidth, subSceneHeight,
                                                 getConfig(),
-                                                getStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
+                                                getStorage(), getColumnStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes..." + sampleList.size());
         }
 

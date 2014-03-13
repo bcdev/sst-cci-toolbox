@@ -16,17 +16,11 @@ package org.esa.cci.sst.orm;/*
 
 import org.esa.cci.sst.data.*;
 
-import java.util.List;
-
 public interface Storage {
 
     DataFile getDatafile(String path);
 
     int store(DataFile dataFile);
-
-    Column getColumn(String columnName);
-
-    List<Item> getAllColumns();
 
     Observation getObservation(int id);
 

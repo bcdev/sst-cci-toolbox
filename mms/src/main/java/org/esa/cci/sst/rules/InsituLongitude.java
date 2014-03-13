@@ -37,8 +37,9 @@ import java.io.IOException;
 class InsituLongitude extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
-    private static final int[] SHAPE = {1, 96};
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
+    // package access for testing only tb 2014-03-13
+    int[] historyShape = {1, 96};
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
@@ -54,7 +55,7 @@ class InsituLongitude extends AbstractImplicitRule {
         try {
             if (observationReader != null) {
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                        .shape(SHAPE)
+                        .shape(historyShape)
                         .referenceObservation(referenceObservation)
                         .build();
                 return observationReader.read("insitu.longitude", extractDefinition);
@@ -70,5 +71,12 @@ class InsituLongitude extends AbstractImplicitRule {
         } catch (IOException e) {
             throw new RuleException("Unable to read in-situ longitude", e);
         }
+    }
+
+    @Override
+    public void setContext(Context context) {
+        super.setContext(context);
+
+        historyShape = InsituHelper.getShape(context);
     }
 }

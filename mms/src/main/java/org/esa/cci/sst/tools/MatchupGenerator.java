@@ -5,6 +5,7 @@ import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
@@ -91,6 +92,7 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Finished loading samples: (" + samples.size() + " loaded).");
 
         final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
+        final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
         subsceneRemover.sensorName(sensorName1)
                 .primary(true)
                 .subSceneWidth(subSceneWidth)
@@ -100,6 +102,7 @@ public class MatchupGenerator extends BasicTool {
                 .cloudyPixelFraction(cloudyPixelFraction)
                 .config(getConfig())
                 .storage(getStorage())
+                .columnStorage(columnStorage)
                 .logger(logger)
                 .removeSamples(samples);
 
