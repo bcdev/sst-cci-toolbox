@@ -2,8 +2,11 @@ package org.esa.cci.sst.tools.samplepoint;
 
 import org.apache.commons.io.FileUtils;
 import org.esa.beam.util.StringUtils;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
@@ -22,14 +25,16 @@ public class InsituSamplePointGenerator {
     private final Reader reader;
     private final Sensor sensor;
     private final Storage storage;
+    private final ColumnStorage columnStorage;
 
     private Logger logger;
 
-    public InsituSamplePointGenerator(File archiveDir, Sensor sensor, Storage storage) {
+    public InsituSamplePointGenerator(File archiveDir, Sensor sensor, Storage storage, ColumnStorage columnStorage) {
         this.archiveDir = archiveDir;
         this.reader = ReaderFactory.createReader("InsituReader", "");
         this.sensor = sensor;
         this.storage = storage;
+        this.columnStorage = columnStorage;
     }
 
     public void setLogger(Logger logger) {
@@ -42,36 +47,53 @@ public class InsituSamplePointGenerator {
 
         final LinkedList<File> filesInRange = findFilesInTimeRange(timeRange);
         for (File insituFile : filesInRange) {
-            extractPointsInTimeRange(samplingPoints, timeRange, insituFile);
+            try {
+                initializeReader(insituFile);
+                extractPointsInTimeRange(samplingPoints, timeRange);
 
-            if (samplingPoints.size() > 0) {
-                final int id = persist(insituFile);
-                for (SamplingPoint samplingPoint : samplingPoints) {
-                    samplingPoint.setReference(id);
+                if (samplingPoints.size() > 0) {
+                    final int id = persist(insituFile);
+
+                    setReferenceId(samplingPoints, id);
+
+                    final Item[] readerColumns = reader.getColumns();
+                    final List<String> columnNames = columnStorage.getAllColumnNames();
+                    for (final Item column : readerColumns) {
+                        if (!columnNames.contains(column.getName())) {
+                            columnStorage.store((Column) column);
+                        }
+                    }
+
+                } else {
+                    logWarning("File does not contain any data in time range: " + insituFile.getAbsolutePath());
                 }
-            } else {
-                logWarning("File does not contain any data in time range: " + insituFile.getAbsolutePath());
+
+            } catch (IOException e) {
+                logWarning(e.getMessage());
+            } finally {
+                reader.close();
             }
         }
         return samplingPoints;
     }
 
-    private void extractPointsInTimeRange(ArrayList<SamplingPoint> samplingPoints, TimeRange timeRange,
-                                          File insituFile) {
-        final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
+    private void setReferenceId(ArrayList<SamplingPoint> samplingPoints, int id) {
+        for (SamplingPoint samplingPoint : samplingPoints) {
+            samplingPoint.setReference(id);
+        }
+    }
 
-        try {
-            reader.init(dataFile, archiveDir);
-            final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
-            for (final SamplingPoint samplingPoint : pointsInFile) {
-                if (timeRange.includes(new Date(samplingPoint.getTime()))) {
-                    samplingPoints.add(samplingPoint);
-                }
+    private void initializeReader(File insituFile) throws IOException {
+        final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
+        reader.init(dataFile, archiveDir);
+    }
+
+    private void extractPointsInTimeRange(ArrayList<SamplingPoint> samplingPoints, TimeRange timeRange) throws IOException {
+        final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
+        for (final SamplingPoint samplingPoint : pointsInFile) {
+            if (timeRange.includes(new Date(samplingPoint.getTime()))) {
+                samplingPoints.add(samplingPoint);
             }
-        } catch (IOException e) {
-            logWarning(e.getMessage());
-        } finally {
-            reader.close();
         }
     }
 

@@ -2,9 +2,11 @@ package org.esa.cci.sst.tools.samplepoint;
 
 
 import org.esa.cci.sst.TestHelper;
+import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
@@ -15,6 +17,7 @@ import org.junit.Test;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -30,6 +33,7 @@ public class InsituSamplingPointGeneratorTest {
     private static Sensor sensor;
     private InsituSamplePointGenerator generator;
     private Storage mockStorage;
+    private ColumnStorage mockColumnStorage;
 
     @BeforeClass
     public static void beforeClass() throws URISyntaxException {
@@ -43,7 +47,8 @@ public class InsituSamplingPointGeneratorTest {
     @Before
     public void setUp() {
         mockStorage = mock(Storage.class);
-        generator = new InsituSamplePointGenerator(archiveDir, sensor, mockStorage);
+        mockColumnStorage = mock(ColumnStorage.class);
+        generator = new InsituSamplePointGenerator(archiveDir, sensor, mockStorage, mockColumnStorage);
     }
 
     @Test
@@ -138,6 +143,42 @@ public class InsituSamplingPointGeneratorTest {
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
 
         assertNumDataFilesStored(1);
+    }
+
+    @Test
+    public void testGenerate_newColumnsArePersisted() throws ParseException {
+        final Date startDate = parseDate("2013-08-12T00:00:00Z");
+        final Date stopDate = parseDate("2013-08-22T00:00:00Z");
+        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+
+        generator.generate(startDate.getTime(), stopDate.getTime());
+
+        verify(mockColumnStorage, times(1)).getAllColumnNames();
+        verify(mockColumnStorage, times(6)).store(any(Column.class));
+        verifyNoMoreInteractions(mockColumnStorage);
+    }
+
+    @Test
+    public void testGenerate_noColumnsArePersistedWhenAllAreAlreadyInDB() throws ParseException {
+        final Date startDate = parseDate("2013-08-12T00:00:00Z");
+        final Date stopDate = parseDate("2013-08-22T00:00:00Z");
+        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+
+        final ArrayList<String> columnNamesInDb = new ArrayList<String>();
+        columnNamesInDb.add("insitu.time");
+        columnNamesInDb.add("insitu.lat");
+        columnNamesInDb.add("insitu.lon");
+        columnNamesInDb.add("insitu.sea_surface_temperature");
+        columnNamesInDb.add("insitu.sst_uncertainty");
+        columnNamesInDb.add("insitu.mohc_id");
+        when(mockColumnStorage.getAllColumnNames()).thenReturn(columnNamesInDb);
+
+        generator.generate(startDate.getTime(), stopDate.getTime());
+
+        verify(mockColumnStorage, times(1)).getAllColumnNames();
+        // @todo 1 tb/tb re-activate test when naming of columns is clear tb 2014-03-13
+//        verify(mockColumnStorage, times(0)).store(any(Column.class));
+//        verifyNoMoreInteractions(mockColumnStorage);
     }
 
     @Test
