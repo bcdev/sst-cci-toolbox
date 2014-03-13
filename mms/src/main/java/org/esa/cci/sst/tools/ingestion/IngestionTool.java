@@ -70,6 +70,8 @@ public class IngestionTool extends BasicTool {
             tool.getErrorHandler().terminate(e);
         } catch (Throwable t) {
             tool.getErrorHandler().terminate(new ToolException(t.getMessage(), t, ToolException.UNKNOWN_ERROR));
+        } finally {
+            tool.getPersistenceManager().close();
         }
     }
 
