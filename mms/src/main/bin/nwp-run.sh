@@ -28,4 +28,4 @@ nwp-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.nwp.forsensor=false \
 -Dmms.nwp.mmd.source=${MMS_ARCHIVE}/${usecase}/sub/${sensor}/${year}/${sensor}-sub-${year}-${month}.nc \
 -Dmms.nwp.nwp.source=${MMS_ARCHIVE}/era-interim/v1 \
--Dmms.nwp.nwp.target=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwpaf-${year}-${month}.nc
+-Dmms.nwp.nwp.target=${MMS_ARCHIVE}/${usecase}/nwpaf/${sensor}/${year}/${sensor}-nwpaf-${year}-${month}.nc
