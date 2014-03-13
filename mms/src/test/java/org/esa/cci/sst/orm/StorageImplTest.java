@@ -61,7 +61,39 @@ public class StorageImplTest {
         assertEquals("test_me", allColumns.get(0).getName());
 
         verify(persistenceManager, times(1)).createQuery(sql);
+        verifyNoMoreInteractions(persistenceManager);
         verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testGetAllColumnNames() {
+        final String sql = "select c.name from Column c";
+        final ArrayList<String> columnNameList = new ArrayList<>();
+        columnNameList.add("Johanna");
+        columnNameList.add("Uwe");
+
+        final Query query = mock(Query.class);
+
+        when(persistenceManager.createQuery(sql)).thenReturn(query);
+        when(query.getResultList()).thenReturn(columnNameList);
+
+        final List<String> namesFromStorage = storageImpl.getAllColumnNames();
+        assertNotNull(namesFromStorage);
+
+        verify(persistenceManager, times(1)).createQuery(sql);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(persistenceManager);
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testStoreColumns() {
+        final Column column = (Column) new ColumnBuilder().name("Hannibal").build();
+
+        storageImpl.store(column);
+
+        verify(persistenceManager, times(1)).persist(column);
         verifyNoMoreInteractions(persistenceManager);
     }
 

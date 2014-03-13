@@ -25,6 +25,17 @@ class StorageImpl implements Storage {
         return query.getResultList();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<String> getAllColumnNames() {
+        final Query query = persistenceManager.createQuery("select c.name from Column c");
+        return query.getResultList();
+    }
+
+    public void store(Column column) {
+        persistenceManager.persist(column);
+    }
+
     @Override
     public final DataFile getDatafile(final String path) {
         return (DataFile) persistenceManager.pick("select f from DataFile f where f.path = ?1", path);
@@ -55,4 +66,6 @@ class StorageImpl implements Storage {
     public final Sensor getSensor(final String sensorName) {
         return (Sensor) persistenceManager.pick("select s from Sensor s where s.name = ?1", sensorName);
     }
+
+
 }

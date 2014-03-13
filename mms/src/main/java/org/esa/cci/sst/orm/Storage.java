@@ -28,6 +28,10 @@ public interface Storage {
 
     List<Item> getAllColumns();
 
+    List<String> getAllColumnNames();
+
+    void store(Column column);
+
     Observation getObservation(int id);
 
     RelatedObservation getRelatedObservation(int id);
