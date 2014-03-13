@@ -168,6 +168,8 @@ public class MatchupTool extends BasicTool {
             tool.getErrorHandler().terminate(e);
         } catch (Exception e) {
             tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.UNKNOWN_ERROR));
+        } finally {
+            tool.getPersistenceManager().close();
         }
     }
 
