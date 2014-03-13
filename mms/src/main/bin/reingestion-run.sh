@@ -2,6 +2,9 @@
 # reingestion-run.sh 2003 01 atsr.3 sub mms2
 # mms/archive/atsr.3/v2.1/2003/01/17/ATS_TOA_1P...N1
 # mms/archive/mms2/sub/atsr.3/2003/atsr.3-sub-2003-01.nc
+# mms/archive/mms2/arc/atsr.3/2003/atsr.3-arc-2003-01.nc
+# mms/archive/mms2/nwp/atsr.3/2003/atsr.3-nwp-2003-01.nc
+# mms/archive/mms2/nwpaf/atsr.3/2003/atsr.3-nwpaf-2003-01.nc
 
 year=$1
 month=$2
@@ -14,17 +17,17 @@ usecase=$5
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
 
-# TODO - what is the result of this when there is no entry in config file for the given sensor?
-pattern=`cat ${MMS_HOME}/config/${usecase}-config.properties | awk "/mms.pattern.$sensor/ { print \\$3 }"`
+pattern = `cat ${MMS_HOME}/config/${usecase}-config.properties | awk "/mms.pattern.$sensor/ { print \\$3 }"`
+if [ -z ${pattern} ]; then
+    pattern = 0
+fi
 
 echo "`date -u +%Y%m%d-%H%M%S` reingestion ${year}/${month} sensor ${sensor} type ${mmdtype} pattern ${pattern}..."
 
-# TODO - think about sensor prefixes
-
 reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
--Dmms.reingestion.filename=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
--Dmms.reingestion.located=no \
--Dmms.reingestion.overwrite=true \
 -Dmms.db.useindex=true \
+-Dmms.reingestion.filename=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
 -Dmms.reingestion.sensor=${mmdtype}_${sensor} \
--Dmms.reingestion.pattern=${pattern}
+-Dmms.reingestion.pattern=${pattern} \
+-Dmms.reingestion.located=false \
+-Dmms.reingestion.overwrite=true
