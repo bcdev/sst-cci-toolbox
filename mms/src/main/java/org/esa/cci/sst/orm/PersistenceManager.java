@@ -49,7 +49,7 @@ public class PersistenceManager {
     }
 
     public void close() {
-        if (entityManager != null) {
+        if (entityManager != null && entityManager.isOpen()) {
             entityManager.close();
         }
     }
