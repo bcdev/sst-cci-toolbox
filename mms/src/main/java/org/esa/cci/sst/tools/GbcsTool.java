@@ -54,6 +54,7 @@ public class GbcsTool extends BasicTool {
         final GbcsTool tool = new GbcsTool();
         try {
             if (!tool.setCommandLineArgs(args)) {
+                tool.printHelp();
                 return;
             }
             tool.initialize();
