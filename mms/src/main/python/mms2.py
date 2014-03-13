@@ -104,7 +104,7 @@ types = [('ingestion-start.sh', 120),
          ('coincidence-start.sh', 12),
          ('nwp-start.sh', 240),
          ('gbcs-start.sh', 240),
-         ('reingestion-run2.sh', 12)]
+         ('reingestion-start.sh', 120)]
 
 pm = PMonitor(inputs,
               request='mms2',
@@ -166,24 +166,28 @@ for year in years:
                        parameters=[year, month, sensor, usecase])
             continue
             # 8. Re-ingest sensor sub-scenes into database
-            pm.execute('reingestion-run2.sh',
+            pm.execute('reingestion-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
             # 9. Ingest sensor NWP data into database
-            pm.execute('reingestion-run2.sh',
+            pm.execute('reingestion-start.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
+            pm.execute('reingestion-start.sh',
+                       ['/nwp/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'nwpaf', usecase])
             # 10. Ingest sensor sub-scene ARC results into database
-            pm.execute('reingestion-run2.sh',
+            pm.execute('reingestion-start.sh',
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
             # 11. Produce final single-sensor MMD file
-            pm.execute('mmd-run.sh',
+            pm.execute('mmd-start.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
                        ['/mmd/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'mmd2', usecase])
+                       parameters=[year, month, sensor, 'mmd', usecase])
 
 pm.wait_for_completion()
