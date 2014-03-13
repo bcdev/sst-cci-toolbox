@@ -29,7 +29,9 @@
         <fileSet>
             <directory>src/main/bin</directory>
             <includes>
-                <include>*.*</include>
+                <include>*.sh</include>
+                <include>pg*</include>
+                <include>pm*</include>
             </includes>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0770</fileMode>
