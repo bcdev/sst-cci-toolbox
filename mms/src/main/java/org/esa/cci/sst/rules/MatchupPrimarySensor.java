@@ -35,7 +35,7 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder
-                .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD AVHRR_MD sobol")
+                .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD AVHRR_MD dummy")
                 .flagValues(new byte[] {0, 1, 2, 3});
     }
 
@@ -53,7 +53,7 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
             flag = 2;
         } else if(Constants.SENSOR_NAME_AVHRR_MD.equalsIgnoreCase(sensor)) {
             flag = 3;
-        } else if(Constants.SENSOR_NAME_SOBOL.equalsIgnoreCase(sensor)) {
+        } else if(Constants.SENSOR_NAME_DUMMY.equalsIgnoreCase(sensor)) {
             flag = 4;
         } else {
             throw new RuleException(MessageFormat.format("Unknown primary sensor ''{0}''.", sensor));

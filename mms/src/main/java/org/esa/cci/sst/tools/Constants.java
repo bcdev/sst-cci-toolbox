@@ -69,7 +69,7 @@ public class Constants {
     public static final String SENSOR_NAME_AVHRR_MD = "avhrr_md";
     public static final String SENSOR_NAME_METOP_MD = "metop";
     public static final String SENSOR_NAME_SEVIRI_MD = "seviri";
-    public static final String SENSOR_NAME_SOBOL = "sobol";
+    public static final String SENSOR_NAME_DUMMY = "dummy";
 
     public static final byte MATCHUP_REFERENCE_FLAG_INVALID = 0;
     public static final byte MATCHUP_REFERENCE_FLAG_ALGORITHM = 1;

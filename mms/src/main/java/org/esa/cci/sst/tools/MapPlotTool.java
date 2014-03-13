@@ -33,6 +33,7 @@ import java.util.List;
 
 public class MapPlotTool extends BasicTool {
 
+    // TODO - adapt query because o.sensor is not 'sobol' anymore (rq-20140313)
     private static final String REFOBS_QUERY =
             "select o"
             + " from ReferenceObservation o, Matchup m, Observation o2, Coincidence c2"

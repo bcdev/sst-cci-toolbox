@@ -77,7 +77,7 @@ public class MatchupGenerator extends BasicTool {
         cloudFlagsMask = config.getIntValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK);
         cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
         // TODO - reference sensor pattern is different for in-situ points, make reference sensor name configurable rq-20140306
-        referenceSensorPattern = config.getPattern(Constants.SENSOR_NAME_SOBOL, 0);
+        referenceSensorPattern = config.getPattern(Constants.SENSOR_NAME_DUMMY, 0);
     }
 
     private void run() throws IOException {
@@ -118,7 +118,7 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
 
         logInfo(logger, "Starting creating matchups...");
-        createMatchups(samples, Constants.SENSOR_NAME_SOBOL, sensorName1, sensorName2, referenceSensorPattern,
+        createMatchups(samples, Constants.SENSOR_NAME_DUMMY, sensorName1, sensorName2, referenceSensorPattern,
                        getPersistenceManager(), getStorage(), logger);
         logInfo(logger, "Finished creating matchups...");
     }
@@ -282,7 +282,7 @@ public class MatchupGenerator extends BasicTool {
         delete = getPersistenceManager().createQuery("delete from Matchup m");
         delete.executeUpdate();
         delete = getPersistenceManager().createQuery(
-                "delete from Observation o where o.sensor = '" + Constants.SENSOR_NAME_SOBOL + "'");
+                "delete from Observation o where o.sensor = '" + Constants.SENSOR_NAME_DUMMY + "'");
         delete.executeUpdate();
 
         getPersistenceManager().commit();
@@ -292,17 +292,17 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().transaction();
 
         Query delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_SOBOL + "')");
+                "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_SOBOL + "')");
+                "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
-                "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_SOBOL + "'");
+                "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "'");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
