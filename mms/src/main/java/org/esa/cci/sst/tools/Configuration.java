@@ -62,12 +62,17 @@ public class Configuration {
     public static final String KEY_MMS_GBCS_MMD_TARGET = "mms.gbcs.mmd.target";
     public static final String KEY_MMS_GBCS_SENSOR = "mms.gbcs.sensor";
 
+    public static final String KEY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
+    public static final String KEY_MMS_REINGESTION_OVERWRITE = "mms.reingestion.overwrite";
+    public static final String KEY_MMS_REINGESTION_PATTERN = "mms.reingestion.pattern";
+    public static final String KEY_MMS_REINGESTION_SENSOR = "mms.reingestion.sensor";
+    public static final String KEY_MMS_REINGESTION_SOURCE = "mms.reingestion.filename";
+
     // yet unclear properties
     public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";
     public static final String KEY_ARCHIVE_ROOTDIR = "mms.archive.rootdir";
     public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
-    public static final String KEY_MMS_REINGESTION_FILENAME = "mms.reingestion.filename";
 
 
     private final Properties properties;
@@ -177,6 +182,10 @@ public class Configuration {
             throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e,
                                     ToolException.TOOL_CONFIGURATION_ERROR);
         }
+    }
+
+    public long getPatternValue(String key) {
+        return parsePattern(key, getStringValue(key));
     }
 
     public void add(Properties toAdd) {

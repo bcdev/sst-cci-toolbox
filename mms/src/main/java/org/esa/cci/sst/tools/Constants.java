@@ -48,7 +48,6 @@ public class Constants {
     public static final String PROPERTY_ARC1x2_CONDITION = "mms.arc1x2.condition";
 
     public static final String PROPERTY_OUTPUT_SENSOR = "mms.arc1x2.sensor";
-    public static final String PROPERTY_MMS_REINGESTION_LOCATED = "mms.reingestion.located";
     public static final String PROPERTY_NWP_ARC3_TMPDIR = "mms.nwp_arc3.tmpdir";
     public static final String PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN = "mms.nwp_arc3.pattern";
 

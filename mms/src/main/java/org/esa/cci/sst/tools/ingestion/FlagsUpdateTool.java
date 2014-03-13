@@ -64,9 +64,9 @@ public class FlagsUpdateTool extends BasicTool {
     private void run() throws IOException {
         // create reader for MMD'
         final Configuration config = getConfig();
-        final String mmdFilename = config.getStringValue(Configuration.KEY_MMS_REINGESTION_FILENAME);
+        final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
         final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
-        final MmdReader reader = createReader(mmdFilename, archiveRootPath);
+        final MmdReader reader = createReader(mmdFileLocation, archiveRootPath);
 
         // determine MMD' variables
         final Item referenceFlagColumn = reader.getColumn("matchup.reference_flag");

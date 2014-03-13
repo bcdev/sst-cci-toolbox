@@ -72,7 +72,7 @@ public class MmdReader implements Reader {
         if (matchupIds == null) {
             matchupIds = ncFile.findVariable(NetcdfFile.makeValidPathName(Constants.VARIABLE_NAME_ARC2_MATCHUP_ID));
         }
-        final String property = getProperty(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "no");
+        final String property = getProperty(Configuration.KEY_MMS_REINGESTION_LOCATED, "false");
         if ("yes".equals(property)) {
             delegateReader = new MmdObservationReader(dataFile, ncFile, sensorName);
         } else {

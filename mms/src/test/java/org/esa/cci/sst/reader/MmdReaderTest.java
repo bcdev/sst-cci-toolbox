@@ -19,7 +19,6 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.Constants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class MmdReaderTest {
         final Configuration configuration = new Configuration();
         configuration.put("mms.reingestion.sensor", "avhrr.n15");
         configuration.put("mms.reingestion.pattern", "10000");
-        configuration.put(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "yes");
+        configuration.put(Configuration.KEY_MMS_REINGESTION_LOCATED, "true");
 
         mmdReader = new MmdReader("avhrr.n15");
         mmdReader.setConfiguration(configuration);

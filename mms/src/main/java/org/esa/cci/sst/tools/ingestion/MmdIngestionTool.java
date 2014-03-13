@@ -21,7 +21,9 @@ import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.GunzipDecorator;
 import org.esa.cci.sst.reader.MmdReader;
-import org.esa.cci.sst.tools.*;
+import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.ToolException;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.Query;
@@ -38,45 +40,44 @@ public class MmdIngestionTool extends BasicTool {
 
     public static void main(String[] args) {
         final MmdIngestionTool tool = new MmdIngestionTool();
-        final boolean ok = tool.setCommandLineArgs(args);
-        if (ok) {
+        try {
+            final boolean ok = tool.setCommandLineArgs(args);
+            if (!ok) {
+                tool.printHelp();
+                return;
+            }
             tool.initialize();
             tool.ingest();
+        } catch (ToolException e) {
+            tool.getErrorHandler().terminate(e);
+        } catch (Exception e) {
+            tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.UNKNOWN_ERROR));
+        } finally {
             tool.getPersistenceManager().close();
-        } else {
-            tool.printHelp();
         }
     }
 
-
-    private static final String MMS_REINGESTION_SENSOR_PROPERTY = "mms.reingestion.sensor";
-    private static final String MMS_REINGESTION_PATTERN_PROPERTY = "mms.reingestion.pattern";
 
     private MmdReader reader;
     private Ingester ingester;
     private DataFile dataFile;
 
     private MmdIngestionTool() {
-        super("reingestion-tool.sh", "0.1");
+        super("reingestion-tool.sh", "1.0");
     }
 
     void ingest() {
         ingester = new Ingester(this);
-        final String sensorName = getProperty(MMS_REINGESTION_SENSOR_PROPERTY);
-
         final Configuration config = getConfig();
-        final String patternProperty = config.getStringValue(MMS_REINGESTION_PATTERN_PROPERTY, "0");
-        final long pattern = Long.parseLong(patternProperty, 16);
-        final String locatedString = config.getStringValue(Constants.PROPERTY_MMS_REINGESTION_LOCATED, "false");
-        final boolean located = Boolean.parseBoolean(locatedString) /* for backward compatibility */ || "yes".equals(locatedString);
 
-        final boolean withOverwrite = config.getBooleanValue("mms.reingestion.overwrite");
-        String path = config.getStringValue(Configuration.KEY_MMS_REINGESTION_FILENAME);
+        final String sensorName = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SENSOR);
+        final long pattern = config.getPatternValue(Configuration.KEY_MMS_REINGESTION_PATTERN);
+        final boolean located = config.getBooleanValue(Configuration.KEY_MMS_REINGESTION_LOCATED);
+        final boolean withOverwrite = config.getBooleanValue(Configuration.KEY_MMS_REINGESTION_OVERWRITE);
+        final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
         final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
         final File archiveRoot = new File(archiveRootPath);
-        if (path.startsWith(archiveRootPath + File.separator)) {
-            path = path.substring(archiveRootPath.length() + 1);
-        }
+
         try {
             getPersistenceManager().transaction();
             final Storage storage = getStorage();
@@ -93,16 +94,15 @@ public class MmdIngestionTool extends BasicTool {
             getPersistenceManager().commit();
 
             if (withOverwrite) {
-
-                dataFile = storage.getDatafile(path);
+                dataFile = storage.getDatafile(mmdFileLocation);
                 if (dataFile != null) {
-                    dropObservationsAndCoincidencesOf(dataFile);
+                    deleteObservationsAndCoincidences(dataFile);
                 }
                 getPersistenceManager().commit();
             }
-            boolean isNewDatafile = dataFile == null;
-            if (isNewDatafile) {
-                createDataFile(sensor, path);
+            boolean datafileNotPersisted = dataFile == null;
+            if (datafileNotPersisted) {
+                createDataFile(sensor, mmdFileLocation);
             }
 
             initReader(dataFile, archiveRoot);
@@ -112,7 +112,7 @@ public class MmdIngestionTool extends BasicTool {
             getPersistenceManager().commit();
 
             getPersistenceManager().transaction();
-            if (isNewDatafile) {
+            if (datafileNotPersisted) {
                 storeDataFile(dataFile, storage);
             }
             ingestObservations(pattern);
@@ -120,35 +120,30 @@ public class MmdIngestionTool extends BasicTool {
         } catch (Exception e) {
             try {
                 getPersistenceManager().rollback();
-            } catch (Exception _) {
-                // ignore
+            } catch (Exception ignored) {
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
 
-    private void dropObservationsAndCoincidencesOf(DataFile dataFile) {
-
-//            Query query = getPersistenceManager().createQuery("delete from Coincidence where exists " +
-//                                                              "( select f from DataFile f, Observation o " +
-//                                                              "  where f.path = ?1 and o.dataFile = f and c.observation = o )");
+    private void deleteObservationsAndCoincidences(DataFile dataFile) {
         Query query = getPersistenceManager().createNativeQuery("delete from mm_coincidence c " +
-                "where exists ( select f.id from mm_datafile f, mm_observation o " +
-                "where f.path = ?1 and o.datafile_id = f.id and c.observation_id = o.id )");
+                                                                "where exists ( select f.id from mm_datafile f, mm_observation o " +
+                                                                "where f.path = ?1 and o.datafile_id = f.id and c.observation_id = o.id )");
         query.setParameter(1, dataFile.getPath());
         long time = System.currentTimeMillis();
         query.executeUpdate();
         getLogger().info(MessageFormat.format("{0} coincidences dropped in {1} ms.", dataFile.getPath(),
-                System.currentTimeMillis() - time));
+                                              System.currentTimeMillis() - time));
 
         query = getPersistenceManager().createNativeQuery("delete from mm_observation o " +
-                "where exists ( select f.id from mm_datafile f " +
-                "where f.path = ?1 and o.datafile_id = f.id )");
+                                                          "where exists ( select f.id from mm_datafile f " +
+                                                          "where f.path = ?1 and o.datafile_id = f.id )");
         query.setParameter(1, dataFile.getPath());
         time = System.currentTimeMillis();
         query.executeUpdate();
         getLogger().info(MessageFormat.format("{0} observations dropped in {1} ms.", dataFile.getPath(),
-                System.currentTimeMillis() - time));
+                                              System.currentTimeMillis() - time));
     }
 
     private void ingestObservations(long pattern) {
@@ -185,22 +180,15 @@ public class MmdIngestionTool extends BasicTool {
 
     private void initReader(final DataFile dataFile, File archiveRoot) {
         reader = new MmdReader(dataFile.getSensor().getName());
-        GunzipDecorator decorator = new GunzipDecorator(reader);
+        final GunzipDecorator decorator = new GunzipDecorator(reader);
         reader.setConfiguration(getConfig());
         try {
             decorator.init(dataFile, archiveRoot);
         } catch (IOException e) {
             final File filePath = new File(archiveRoot, dataFile.getPath());
-            throw new ToolException("Error initializing Reader for MMD file '" + filePath + "'.", e, ToolException.TOOL_ERROR);
+            throw new ToolException("Error initializing Reader for MMD file '" + filePath + "'.", e,
+                                    ToolException.TOOL_ERROR);
         }
-    }
-
-    private String getProperty(String key) {
-        final String property = getConfig().getStringValue(key);
-        if (property == null) {
-            throw new IllegalStateException(MessageFormat.format("Property ''{0}'' not specified in config file.", key));
-        }
-        return property;
     }
 
 }
