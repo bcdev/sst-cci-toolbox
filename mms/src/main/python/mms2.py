@@ -175,10 +175,6 @@ for year in years:
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
-            pm.execute('reingestion-start.sh',
-                       ['/nwp/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'nwpaf', usecase])
             # 10. Ingest sensor sub-scene ARC results into database
             pm.execute('reingestion-start.sh',
                        ['/arc/' + sensor + '/' + year + '/' + month],
@@ -188,6 +184,6 @@ for year in years:
             pm.execute('mmd-start.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
                        ['/mmd/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'mmd', usecase])
+                       parameters=[year, month, sensor, 'mmd2', usecase])
 
 pm.wait_for_completion()
