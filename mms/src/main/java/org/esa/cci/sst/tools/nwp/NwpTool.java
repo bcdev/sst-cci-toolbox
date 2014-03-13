@@ -90,6 +90,7 @@ class NwpTool extends BasicTool {
         final NwpTool tool = new NwpTool();
         try {
             if (!tool.setCommandLineArgs(args)) {
+                tool.printHelp();
                 return;
             }
             tool.initialize();
