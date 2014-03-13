@@ -49,11 +49,10 @@ public class Configuration {
 
     public static final String KEY_MMS_NWP_CDO_HOME = "mms.nwp.cdo.home";
     public static final String KEY_MMS_NWP_MMD_SOURCE = "mms.nwp.mmd.source";
+    public static final String KEY_MMS_NWP_NWP_SOURCE = "mms.nwp.nwp.source";
+    public static final String KEY_MMS_NWP_FOR_SENSOR = "mms.nwp.forsensor";
     public static final String KEY_MMS_NWP_SENSOR = "mms.nwp.sensor";
-    public static final String KEY_MMS_NWP_SOURCE = "mms.nwp.nwp.source";
     public static final String KEY_MMS_NWP_NWP_TARGET = "mms.nwp.nwp.target";
-    public static final String KEY_MMS_NWP_AN_TARGET = "mms.nwp.an.target";
-    public static final String KEY_MMS_NWP_FC_TARGET = "mms.nwp.fc.target";
 
     public static final String KEY_MMS_GBCS_INTELVERSION = "mms.gbcs.intelversion";
     public static final String KEY_MMS_GBCS_VERSION = "mms.gbcs.version";
