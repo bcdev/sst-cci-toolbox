@@ -24,6 +24,7 @@ import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.Configuration;
@@ -54,6 +55,7 @@ public class CloudySubsceneRemover {
     private double cloudyPixelFraction;
     private Configuration config;
     private Storage storage;
+    private ColumnStorage columnStorage;
     private Logger logger;
 
     public CloudySubsceneRemover() {
@@ -105,6 +107,11 @@ public class CloudySubsceneRemover {
         return this;
     }
 
+    public CloudySubsceneRemover columnStorage(ColumnStorage columnStorage){
+        this.columnStorage = columnStorage;
+        return this;
+    }
+
     public CloudySubsceneRemover logger(Logger logger) {
         this.logger = logger;
         return this;
@@ -116,7 +123,7 @@ public class CloudySubsceneRemover {
 
     public static void removeSamples(List<SamplingPoint> samples, String sensorName, boolean primarySensor,
                                      int subSceneWidth, int subSceneHeight,
-                                     Configuration config, Storage storage, Logger logger, String cloudFlagsName,
+                                     Configuration config, Storage storage, ColumnStorage columnStorage, Logger logger, String cloudFlagsName,
                                      int pixelMask, double cloudyPixelFraction) {
         new CloudySubsceneRemover()
                 .sensorName(sensorName)
@@ -128,6 +135,7 @@ public class CloudySubsceneRemover {
                 .cloudyPixelFraction(cloudyPixelFraction)
                 .config(config)
                 .storage(storage)
+                .columnStorage(columnStorage)
                 .logger(logger)
                 .removeSamples(samples);
     }
@@ -138,7 +146,7 @@ public class CloudySubsceneRemover {
             logger.info(message);
         }
         final String columnName = SensorNames.ensureOrbitName(sensorName) + "." + cloudFlagsVariableName;
-        final Column column = storage.getColumn(columnName);
+        final Column column = columnStorage.getColumn(columnName);
         if (column == null) {
             throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName),
                                     ToolException.TOOL_ERROR);

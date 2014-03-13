@@ -58,7 +58,7 @@ public class SamplingToolTest {
                                                         86400 * 175 / 10);
 
         CloudySubsceneRemover.removeSamples(sampleList, "atsr_orb.3", true, 7, 7, tool.getConfig(),
-                                            tool.getStorage(), tool.getLogger(), "cloud_flags_nadir", 3, 0.0);
+                                            tool.getStorage(), tool.getColumnStorage(), tool.getLogger(), "cloud_flags_nadir", 3, 0.0);
         tool.removeOverlappingSamples(sampleList);
 
         assertEquals(77, sampleList.size());

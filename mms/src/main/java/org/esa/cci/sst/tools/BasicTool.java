@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools;
 import org.apache.commons.cli.*;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.util.logging.BeamLogManager;
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.util.TimeUtil;
@@ -245,6 +246,10 @@ public abstract class BasicTool {
 
     public Storage getStorage() {
         return toolStorage;
+    }
+
+    public ColumnStorage getColumnStorage() {
+        return getPersistenceManager().getColumnStorage();
     }
 
     public void initialize() {

@@ -4,7 +4,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
-import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ public class ColumnRegistryInitializerTest {
 
     @Test
     public void testInitialize() {
-        final Storage storage = mock(Storage.class);
+        final ColumnStorage storage = mock(ColumnStorage.class);
         final List<Item> columnList = new ArrayList<>();
         columnList.add(new ColumnBuilder().name("col_1").build());
         columnList.add(new ColumnBuilder().name("col_2").build());

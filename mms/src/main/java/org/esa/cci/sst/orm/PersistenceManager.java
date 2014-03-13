@@ -62,6 +62,10 @@ public class PersistenceManager {
         return new MatchupStorageImpl(this);
     }
 
+    public ColumnStorage getColumnStorage(){
+        return new ColumnStorageImpl(this);
+    }
+
     public EntityTransaction transaction() {
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
