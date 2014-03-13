@@ -16,13 +16,13 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.common.ExtractDefinition;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -37,12 +37,13 @@ import java.io.IOException;
 class InsituSST extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
-    private static final int[] SHAPE = {1, 96};
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
+    // package access for testing only tb 2014-03-13
+    int[] historyShape;
 
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
-                                                                                                     RuleException {
+            RuleException {
         targetColumnBuilder.type(DATA_TYPE);
         targetColumnBuilder.fillValue(Short.MIN_VALUE);
     }
@@ -55,7 +56,7 @@ class InsituSST extends AbstractImplicitRule {
         try {
             if (observationReader != null) {
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
-                        .shape(SHAPE)
+                        .shape(historyShape)
                         .referenceObservation(referenceObservation)
                         .build();
                 return observationReader.read("inistu.sea_surface_temperature", extractDefinition);
@@ -71,5 +72,12 @@ class InsituSST extends AbstractImplicitRule {
         } catch (IOException e) {
             throw new RuleException("Unable to read in-situ sea surface temperature", e);
         }
+    }
+
+    @Override
+    public void setContext(Context context) {
+        super.setContext(context);
+
+        historyShape = InsituHelper.getShape(context);
     }
 }
