@@ -15,6 +15,7 @@ package org.esa.cci.sst.tools;/*
  */
 
 import org.esa.cci.sst.DatabaseTestRunner;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -52,7 +53,8 @@ public class SamplingToolTest {
         final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, startTime, stopTime);
         SamplingTool.removeLandSamples(sampleList);
         SamplingTool.reduceByClearSkyStatistic(sampleList);
-        final ObservationFinder observationFinder = new ObservationFinder(tool.getPersistenceManager());
+        final PersistenceManager persistenceManager = tool.getPersistenceManager();
+        final ObservationFinder observationFinder = new ObservationFinder(persistenceManager.getStorage());
         observationFinder.findPrimarySensorObservations(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3,
                                                         tool.getStartTime(), tool.getStopTime(),
                                                         86400 * 175 / 10);

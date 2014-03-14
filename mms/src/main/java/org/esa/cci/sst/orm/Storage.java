@@ -16,6 +16,9 @@ package org.esa.cci.sst.orm;/*
 
 import org.esa.cci.sst.data.*;
 
+import java.util.Date;
+import java.util.List;
+
 public interface Storage {
 
     DataFile getDatafile(String path);
@@ -25,6 +28,8 @@ public interface Storage {
     Observation getObservation(int id);
 
     RelatedObservation getRelatedObservation(int id);
+
+    List<RelatedObservation> getRelatedObservations(String sensorName, Date startDate, Date stopDate);
 
     ReferenceObservation getReferenceObservation(int id);
 

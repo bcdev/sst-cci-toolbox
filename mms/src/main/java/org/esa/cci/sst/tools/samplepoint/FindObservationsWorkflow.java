@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools.samplepoint;
 
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import java.io.IOException;
@@ -13,7 +14,8 @@ public class FindObservationsWorkflow extends Workflow {
     public FindObservationsWorkflow(WorkflowContext workflowContext) {
         super(workflowContext);
 
-        observationFinder = new ObservationFinder(workflowContext.getPersistenceManager());
+        final PersistenceManager persistenceManager = workflowContext.getPersistenceManager();
+        observationFinder = new ObservationFinder(persistenceManager.getStorage());
     }
 
     @Override
@@ -21,11 +23,11 @@ public class FindObservationsWorkflow extends Workflow {
         final String sensorName = workflowContext.getSensorName();
         final long startTime = workflowContext.getStartTime();
         final long stopTime = workflowContext.getStopTime();
-        final int halfRevisitTime = workflowContext.getSearchTime();
+        final int searchTime = workflowContext.getSearchTime();
 
         logInfo("Starting associating samples with observations...");
 
-        observationFinder.findPrimarySensorObservations(samplingPoints, sensorName, startTime, stopTime, halfRevisitTime);
+        observationFinder.findPrimarySensorObservations(samplingPoints, sensorName, startTime, stopTime, searchTime);
 
         logInfo(MessageFormat.format("Finished associating samples with observations ({0} samples left)", samplingPoints.size()));
     }

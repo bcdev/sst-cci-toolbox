@@ -15,11 +15,7 @@ package org.esa.cci.sst.tools;/*
  */
 
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
-import org.esa.cci.sst.tools.samplepoint.ClearSkyPointRemover;
-import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
-import org.esa.cci.sst.tools.samplepoint.LandPointRemover;
-import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
-import org.esa.cci.sst.tools.samplepoint.SobolSamplePointGenerator;
+import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import javax.persistence.Query;
@@ -104,9 +100,9 @@ public class SamplingTool extends BasicTool {
 
         getLogger().info("Finding reference observations...");
         final int halfRepeatCycleInSeconds = 86400 * 175 / 10;
-        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
+        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager().getStorage());
         observationFinder.findPrimarySensorObservations(sampleList, samplingSensor,
-                                                        startTime, stopTime, halfRepeatCycleInSeconds);
+                startTime, stopTime, halfRepeatCycleInSeconds);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -121,19 +117,19 @@ public class SamplingTool extends BasicTool {
 
         getLogger().info("Finding satellite sub-scenes...");
         CloudySubsceneRemover.removeSamples(sampleList, samplingSensor, true, subSceneWidth, subSceneHeight,
-                                            getConfig(),
-                                            getStorage(), getColumnStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
+                getConfig(),
+                getStorage(), getColumnStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
         if (samplingSensor2 != null) {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
             observationFinder.findSecondarySensorObservations(sampleList, samplingSensor2,
-                                                              startTime, stopTime, matchupDistanceSeconds);
+                    startTime, stopTime, matchupDistanceSeconds);
             getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
 
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");
             CloudySubsceneRemover.removeSamples(sampleList, samplingSensor2, false, subSceneWidth, subSceneHeight,
-                                                getConfig(),
-                                                getStorage(), getColumnStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
+                    getConfig(),
+                    getStorage(), getColumnStorage(), getLogger(), "cloud_flags_nadir", 3, 0.0);
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes..." + sampleList.size());
         }
 
@@ -143,8 +139,8 @@ public class SamplingTool extends BasicTool {
 
         getLogger().info("Creating matchups...");
         MatchupGenerator.createMatchups(sampleList, "sobol", samplingSensor, samplingSensor2,
-                                        getConfig().getPattern("mms.pattern.sobol"), getPersistenceManager(), getStorage(),
-                                        null);
+                getConfig().getPattern("mms.pattern.sobol"), getPersistenceManager(), getStorage(),
+                null);
         getLogger().info("Creating matchups..." + sampleList.size());
     }
 
