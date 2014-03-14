@@ -107,4 +107,12 @@ public class ExtractDefinitionBuilderTest {
         final ExtractDefinition ed = builder.build();
         assertEquals(7855, ed.getFillValue());
     }
+
+    @Test
+    public void testBuild_extractDuration() {
+        final ExtractDefinitionBuilder extractDefinitionBuilder = builder.halfExtractDuration(456);
+
+        final ExtractDefinition ed = extractDefinitionBuilder.build();
+        assertEquals(456, ed.getHalfExtractDuration());
+    }
 }

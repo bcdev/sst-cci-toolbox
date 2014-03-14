@@ -37,6 +37,8 @@ public class ExtractDefinitionBuilder {
     private Date date;
     private Number fillValue;
 
+    private int halfExtractDuration;
+
     public ExtractDefinitionBuilder() {
         shape = new int[]{1};
     }
@@ -80,6 +82,11 @@ public class ExtractDefinitionBuilder {
         return this;
     }
 
+    public ExtractDefinitionBuilder halfExtractDuration(int halfExtractDuration) {
+        this.halfExtractDuration = halfExtractDuration;
+        return this;
+    }
+
     public ExtractDefinition build() {
         final double lat = this.lat;
         final double lon = this.lon;
@@ -115,6 +122,11 @@ public class ExtractDefinitionBuilder {
             @Override
             public final Date getDate() {
                 return date;
+            }
+
+            @Override
+            public int getHalfExtractDuration() {
+                return halfExtractDuration;
             }
 
             @Override
