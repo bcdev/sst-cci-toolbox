@@ -119,7 +119,6 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
-        continue
 
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
@@ -136,6 +135,7 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
             skip += samplespermonth
+            continue
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-start.sh',
