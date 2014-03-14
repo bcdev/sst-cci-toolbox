@@ -164,21 +164,39 @@ public class InsituSamplingPointGeneratorTest {
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
         when(mockStorage.getDatafile(anyString())).thenReturn(null);
 
-        final ArrayList<String> columnNamesInDb = new ArrayList<String>();
-        columnNamesInDb.add("insitu.time");
-        columnNamesInDb.add("insitu.lat");
-        columnNamesInDb.add("insitu.lon");
-        columnNamesInDb.add("insitu.sea_surface_temperature");
-        columnNamesInDb.add("insitu.sst_uncertainty");
-        columnNamesInDb.add("insitu.mohc_id");
+        final ArrayList<String> columnNamesInDb = new ArrayList<>();
+        columnNamesInDb.add("history.insitu.time");
+        columnNamesInDb.add("history.insitu.lat");
+        columnNamesInDb.add("history.insitu.lon");
+        columnNamesInDb.add("history.insitu.sea_surface_temperature");
+        columnNamesInDb.add("history.insitu.sst_uncertainty");
+        columnNamesInDb.add("history.insitu.mohc_id");
         when(mockColumnStorage.getAllColumnNames()).thenReturn(columnNamesInDb);
 
         generator.generate(startDate.getTime(), stopDate.getTime());
 
         verify(mockColumnStorage, times(1)).getAllColumnNames();
-        // @todo 1 tb/tb re-activate test when naming of columns is clear tb 2014-03-13
-//        verify(mockColumnStorage, times(0)).store(any(Column.class));
-//        verifyNoMoreInteractions(mockColumnStorage);
+        verify(mockColumnStorage, times(0)).store(any(Column.class));
+        verifyNoMoreInteractions(mockColumnStorage);
+    }
+
+    @Test
+    public void testGenerate_missingColumnsArePersistedWhenColumnsArePartiallyStored() throws ParseException {
+        final Date startDate = parseDate("2013-08-12T00:00:00Z");
+        final Date stopDate = parseDate("2013-08-22T00:00:00Z");
+        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+
+        final ArrayList<String> columnNamesInDb = new ArrayList<>();
+        columnNamesInDb.add("history.insitu.time");
+        columnNamesInDb.add("history.insitu.lon");
+        columnNamesInDb.add("history.insitu.sst_uncertainty");
+        when(mockColumnStorage.getAllColumnNames()).thenReturn(columnNamesInDb);
+
+        generator.generate(startDate.getTime(), stopDate.getTime());
+
+        verify(mockColumnStorage, times(1)).getAllColumnNames();
+        verify(mockColumnStorage, times(3)).store(any(Column.class));
+        verifyNoMoreInteractions(mockColumnStorage);
     }
 
     @Test

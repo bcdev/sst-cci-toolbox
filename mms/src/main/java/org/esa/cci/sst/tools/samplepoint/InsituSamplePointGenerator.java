@@ -31,7 +31,7 @@ public class InsituSamplePointGenerator {
 
     public InsituSamplePointGenerator(File archiveDir, Sensor sensor, Storage storage, ColumnStorage columnStorage) {
         this.archiveDir = archiveDir;
-        this.reader = ReaderFactory.createReader("InsituReader", "");
+        this.reader = ReaderFactory.createReader("InsituReader", "history");
         this.sensor = sensor;
         this.storage = storage;
         this.columnStorage = columnStorage;

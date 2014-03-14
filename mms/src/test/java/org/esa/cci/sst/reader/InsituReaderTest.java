@@ -19,9 +19,7 @@ package org.esa.cci.sst.reader;
 import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
@@ -128,6 +126,16 @@ public class InsituReaderTest {
 
             samplingPoint = samplingPoints.get(1284);
             assertCorrectSamplingPoint(15.607534, 84.8221817, 1200086841600L, 1284, samplingPoint);
+        }
+    }
+
+    @Test
+    public void testGetColumns_SST_CCI_V1_Data() throws Exception {
+        try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
+            final Item[] columns = reader.getColumns();
+            assertEquals(5, columns.length);
+            assertEquals("history.insitu.time", columns[2].getName());
+            assertEquals("history.insitu.latitude", columns[4].getName());
         }
     }
 
@@ -990,6 +998,16 @@ public class InsituReaderTest {
     }
 
     @Test
+    public void testGetColumns_SST_CCI_V2_Data() throws Exception {
+        try (InsituReader reader = createReader("insitu_13_WMOID_856160_19850120_19850212.nc")) {
+            final Item[] columns = reader.getColumns();
+            assertEquals(6, columns.length);
+            assertEquals("history.insitu.lon", columns[1].getName());
+            assertEquals("history.insitu.mohc_id", columns[3].getName());
+        }
+    }
+
+    @Test
     public void testCreateSubset_1D() throws InvalidRangeException {
         final Array historyTimes = InsituData.createHistoryTimeArray_MJD();
         final Range range = InsituReaderHelper.findRange(historyTimes, 2455090.56, 0.5);
@@ -1109,9 +1127,11 @@ public class InsituReaderTest {
     }
 
     private static InsituReader createReader(String resourceName) throws Exception {
-        final DataFile dataFile = new DataFile();
         final String path = TestHelper.getResourcePath(InsituReaderTest.class, resourceName);
+        final Sensor sensor = new SensorBuilder().name("history").build();
+        final DataFile dataFile = new DataFile();
         dataFile.setPath(path);
+        dataFile.setSensor(sensor);
 
         final InsituReader reader = new InsituReader("history");
         reader.init(dataFile, null);
