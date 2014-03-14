@@ -153,12 +153,12 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            continue
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
             # 7. Conduct GBCS processing
             pm.execute('gbcs-start.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
