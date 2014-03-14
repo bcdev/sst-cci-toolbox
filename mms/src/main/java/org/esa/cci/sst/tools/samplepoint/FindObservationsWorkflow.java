@@ -21,7 +21,7 @@ public class FindObservationsWorkflow extends Workflow {
         final String sensorName = workflowContext.getSensorName();
         final long startTime = workflowContext.getStartTime();
         final long stopTime = workflowContext.getStopTime();
-        final int halfRevisitTime = workflowContext.getHalfRevisitTime();
+        final int halfRevisitTime = workflowContext.getSearchTime();
 
         logInfo("Starting associating samples with observations...");
 

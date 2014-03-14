@@ -79,8 +79,8 @@ public class SamplingPointGenerationTool extends BasicTool {
         long stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
         workflowContext.setStopTime(stopTime);
 
-        int halfRevisitTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_HALF_REVISIT_TIME);
-        workflowContext.setHalfRevisitTime(halfRevisitTime);
+        int searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME);
+        workflowContext.setSearchtTime(searchTime);
 
         String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
         workflowContext.setSensorName(sensorName);
@@ -94,12 +94,10 @@ public class SamplingPointGenerationTool extends BasicTool {
         final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
         workflowContext.setArchiveRootDir(new File(archiveRootPath));
 
-        // TODO - insitu is not needed for Sobol sampling
         final String insituSensorName = config.getStringValue("mms.source.45.sensor", null);
         workflowContext.setInsituSensorName(insituSensorName);
 
-        // TODO - insitu is not needed for Sobol sampling
-        final long insituPattern = config.getPattern("history");
+        final long insituPattern = config.getPattern("history", 0);
         workflowContext.setInsituSensorPattern(insituPattern);
 
         final String sampleGeneratorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR);

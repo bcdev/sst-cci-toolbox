@@ -10,7 +10,7 @@ public class WorkflowContext {
 
     private long startTime;
     private long stopTime;
-    private int halfRevisitTime;
+    private int halfSearchTime;
     private Logger logger;
     private Configuration config;
     private PersistenceManager persistenceManager;
@@ -54,12 +54,12 @@ public class WorkflowContext {
         return config;
     }
 
-    public void setHalfRevisitTime(int halfRevisitTime) {
-        this.halfRevisitTime = halfRevisitTime;
+    public void setSearchtTime(int searchtTime) {
+        this.halfSearchTime = searchtTime;
     }
 
-    public int getHalfRevisitTime() {
-        return halfRevisitTime;
+    public int getSearchTime() {
+        return halfSearchTime;
     }
 
     public PersistenceManager getPersistenceManager() {

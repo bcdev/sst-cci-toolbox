@@ -44,15 +44,15 @@ public class WorkflowContextTest {
     }
 
     @Test
-    public void testSetGetHalfRevisitTime() {
-        final int halfTime_1 = 45;
-        final int halfTime_2 = 1098876;
+    public void testSetGetSearchTime() {
+        final int searchTime_1 = 45;
+        final int searchTime_2 = 1098876;
 
-        workflowContext.setHalfRevisitTime(halfTime_1);
-        assertEquals(halfTime_1, workflowContext.getHalfRevisitTime());
+        workflowContext.setSearchtTime(searchTime_1);
+        assertEquals(searchTime_1, workflowContext.getSearchTime());
 
-        workflowContext.setHalfRevisitTime(halfTime_2);
-        assertEquals(halfTime_2, workflowContext.getHalfRevisitTime());
+        workflowContext.setSearchtTime(searchTime_2);
+        assertEquals(searchTime_2, workflowContext.getSearchTime());
     }
 
     @Test
