@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Timeable;
+import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
@@ -64,8 +65,8 @@ class MmdObservationIngester {
     private void persistObservation(final MmdReader reader, int recordNo) {
         try {
             final Observation observation = reader.readObservation(recordNo);
-            final boolean hasPersisted = ingester.persistObservation(observation, recordNo);
-            if (hasPersisted) {
+            final boolean persisted = ingester.persistObservation(observation, recordNo);
+            if (persisted) {
                 persistCoincidence(reader, recordNo, observation);
             }
         } catch (Exception e) {
@@ -75,11 +76,10 @@ class MmdObservationIngester {
     }
 
     private void persistCoincidence(final MmdReader reader, final int recordNo,
-                                    final Observation observation) throws  IOException {
+                                    final Observation observation) throws IOException {
         final int matchupId = reader.getMatchupId(recordNo);
-        // TODO - check: we do have a method for this in BasicTool? (rq-2014-01-28)
-        final Matchup matchup = (Matchup) getDatabaseObjectById(GET_MATCHUP, matchupId);
-        if(matchup == null) {
+        final Matchup matchup = tool.getPersistenceManager().getMatchupStorage().get(matchupId);
+        if (matchup == null) {
             return;
         }
         final Coincidence coincidence = createCoincidence(matchup, observation);
@@ -103,16 +103,6 @@ class MmdObservationIngester {
             final double timeDelta = TimeUtil.getTimeDifferenceInSeconds(matchupTime, observationTime);
             coincidence.setTimeDifference(timeDelta);
         }
-    }
-
-    private Object getDatabaseObjectById(final String baseQuery, final int id) {
-        final String queryString = String.format(baseQuery, id);
-        final Query query = tool.getPersistenceManager().createQuery(queryString);
-        final List resultList = query.getResultList();
-        if(!resultList.isEmpty()) {
-            return resultList.get(0);
-        }
-        return null;
     }
 
 }

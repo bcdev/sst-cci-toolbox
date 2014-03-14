@@ -73,10 +73,33 @@ public class MmdIngestionTool extends BasicTool {
         final String sensorName = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SENSOR);
         final long pattern = config.getPatternValue(Configuration.KEY_MMS_REINGESTION_PATTERN);
         final boolean located = config.getBooleanValue(Configuration.KEY_MMS_REINGESTION_LOCATED);
-        final boolean withOverwrite = config.getBooleanValue(Configuration.KEY_MMS_REINGESTION_OVERWRITE);
+        final boolean overwrite = config.getBooleanValue(Configuration.KEY_MMS_REINGESTION_OVERWRITE);
         final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         final File archiveRoot = new File(archiveRootPath);
         final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
+        final File mmdFile = new File(mmdFileLocation);
+        if (!mmdFile.isAbsolute()) {
+            final String message = MessageFormat.format("Property key {0}: absolute path expected.",
+                                                        Configuration.KEY_MMS_REINGESTION_SOURCE);
+            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        if (!mmdFile.getAbsolutePath().startsWith(archiveRootPath)) {
+            final String message = MessageFormat.format("Property key {0}: absolute path within archive root {1} expected.",
+                                                        Configuration.KEY_MMS_REINGESTION_SOURCE,
+                                                        archiveRootPath);
+            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        if (!mmdFile.isFile()) {
+            final String message = MessageFormat.format("Property key {0}: absolute path to file expected.",
+                                                        Configuration.KEY_MMS_REINGESTION_SOURCE);
+            throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        if (!mmdFile.exists()) {
+            getLogger().warning("missing source file: " + mmdFile);
+            getLogger().warning("reingestion skipped");
+            return;
+        }
+        final String mmdFileRelativePath = mmdFileLocation.substring(archiveRootPath.length() + 1);
 
         try {
             getPersistenceManager().transaction();
@@ -93,8 +116,8 @@ public class MmdIngestionTool extends BasicTool {
             }
             getPersistenceManager().commit();
 
-            if (withOverwrite) {
-                dataFile = storage.getDatafile(mmdFileLocation);
+            if (overwrite) {
+                dataFile = storage.getDatafile(mmdFileRelativePath);
                 if (dataFile != null) {
                     deleteObservationsAndCoincidences(dataFile);
                 }
@@ -102,7 +125,7 @@ public class MmdIngestionTool extends BasicTool {
             }
             boolean datafileNotPersisted = dataFile == null;
             if (datafileNotPersisted) {
-                createDataFile(sensor, mmdFileLocation);
+                createDataFile(sensor, mmdFileRelativePath);
             }
 
             initReader(dataFile, archiveRoot);
