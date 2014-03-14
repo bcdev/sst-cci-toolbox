@@ -23,7 +23,10 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.*;
-import org.esa.cci.sst.orm.*;
+import org.esa.cci.sst.orm.ColumnStorage;
+import org.esa.cci.sst.orm.MatchupQueryParameter;
+import org.esa.cci.sst.orm.MatchupStorage;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
@@ -421,12 +424,14 @@ public class MmdTool extends BasicTool {
         try {
             final Reader reader = readerCache.getReader(observation.getDatafile(), true);
             final String role = sourceColumn.getRole();
+            final int halfExtractDuration = getConfig().getIntValue("mms.sampling.time.insituextraction");
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
                             .referenceObservation(refObs)
                             .recordNo(observation.getRecordNo())
                             .shape(variable.getShape())
                             .fillValue(targetColumn.getFillValue())
+                            .halfExtractDuration(halfExtractDuration)
                             .build();
             final Array sourceArray = reader.read(role, extractDefinition);
             if (sourceArray != null) {

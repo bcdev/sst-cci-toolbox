@@ -1150,6 +1150,7 @@ public class InsituReaderTest {
         final ReferenceObservation refObs = new ReferenceObservation();
         refObs.setTime(calendar.getTime());
         builder.referenceObservation(refObs);
+        builder.halfExtractDuration(43200);
         return builder;
     }
 

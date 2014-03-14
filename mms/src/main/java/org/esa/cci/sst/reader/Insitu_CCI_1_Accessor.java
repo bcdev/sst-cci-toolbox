@@ -15,7 +15,7 @@ import java.util.List;
 
 class Insitu_CCI_1_Accessor implements InsituAccessor {
 
-    private static final double HALF_JULIAN_DAY = 0.5;
+    private static final double SECS_TO_FRACTIONAL_JD = 1.0 / 86400.0;
 
     private final NetcdfReader netcdfReader;
     private final HashMap<String, String> variableNamesMap;
@@ -84,9 +84,10 @@ class Insitu_CCI_1_Accessor implements InsituAccessor {
     }
 
     @Override
-    public Range find12HoursRange(Date refTime) {
+    public Range findExtractionRange(Date refTime, int halfExtractDurationInSecods) {
         final double refJulianTime = TimeUtil.toJulianDate(refTime);
-        return InsituReaderHelper.findRange(historyTimes, refJulianTime, HALF_JULIAN_DAY);
+        final double timeDelta = SECS_TO_FRACTIONAL_JD * halfExtractDurationInSecods;
+        return InsituReaderHelper.findRange(historyTimes, refJulianTime, timeDelta);
     }
 
     @Override

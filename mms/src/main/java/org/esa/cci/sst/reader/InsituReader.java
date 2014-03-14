@@ -109,7 +109,7 @@ class InsituReader extends NetcdfReader {
     public final Array read(String role, ExtractDefinition extractDefinition) throws IOException {
         final Variable sourceVariable = insituAccessor.getVariable(role);
         final Date refTime = extractDefinition.getDate();
-        final Range range = insituAccessor.find12HoursRange(refTime);
+        final Range range = insituAccessor.findExtractionRange(refTime, extractDefinition.getHalfExtractDuration());
         final Array source = sourceVariable.read();
 
         final Array target = Array.factory(source.getElementType(), extractDefinition.getShape());
