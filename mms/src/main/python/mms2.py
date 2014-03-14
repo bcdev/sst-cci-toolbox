@@ -135,7 +135,6 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
             skip += samplespermonth
-            continue
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-start.sh',
@@ -144,16 +143,17 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            # 4. Create single-sensor MMD with subscenes
-            pm.execute('mmd-start.sh',
-                       ['/clr/' + sensor + '/' + year + '/' + month],
-                       ['/sub/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'sub', usecase])
-            # 5. Add coincidences from Sea Ice and Aerosol data
+            continue
+            # 4. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            # 5. Create single-sensor MMD with subscenes
+            pm.execute('mmd-start.sh',
+                       ['/clr/' + sensor + '/' + year + '/' + month],
+                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'sub', usecase])
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
@@ -164,7 +164,6 @@ for year in years:
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
             # 8. Re-ingest sensor sub-scenes into database
             pm.execute('reingestion-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
