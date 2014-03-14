@@ -103,4 +103,19 @@ public class ColumnStorageImplTest {
         verify(persistenceManager, times(1)).persist(column);
         verifyNoMoreInteractions(persistenceManager);
     }
+
+    @Test
+    public void testDeleteAllColumns() {
+        final String sql = "delete from Column c";
+
+        final Query query = mock(Query.class);
+        when(persistenceManager.createQuery(sql)).thenReturn(query);
+
+        columnStorage.deleteAll();
+
+        verify(persistenceManager, times(1)).createQuery(sql);
+        verifyNoMoreInteractions(persistenceManager);
+        verify(query, times(1)).executeUpdate();
+        verifyNoMoreInteractions(query);
+    }
 }

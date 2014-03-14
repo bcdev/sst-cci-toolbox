@@ -37,5 +37,9 @@ class ColumnStorageImpl implements ColumnStorage {
         persistenceManager.persist(column);
     }
 
-
+    @Override
+    public void deleteAll() {
+        final Query query = persistenceManager.createQuery("delete from Column c");
+        query.executeUpdate();
+    }
 }

@@ -15,4 +15,6 @@ public interface ColumnStorage {
     List<String> getAllColumnNames();
 
     void store(Column column);
+
+    void deleteAll();
 }

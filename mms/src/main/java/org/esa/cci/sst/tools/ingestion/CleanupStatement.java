@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools.ingestion;
 
+import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 
 import javax.persistence.Query;
@@ -22,8 +23,8 @@ class CleanupStatement {
         statement = persistenceManager.createQuery("delete from Observation o");
         statement.executeUpdate();
 
-        statement = persistenceManager.createQuery("delete from Column c");
-        statement.executeUpdate();
+        final ColumnStorage columnStorage = persistenceManager.getColumnStorage();
+        columnStorage.deleteAll();
 
         statement = persistenceManager.createQuery("delete from Sensor s");
         statement.executeUpdate();
