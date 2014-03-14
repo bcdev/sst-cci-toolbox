@@ -23,6 +23,7 @@ import org.postgis.Point;
 import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -92,8 +93,13 @@ public class MapPlotTool extends BasicTool {
             query.setParameter(2, startTime);
             query.setParameter(3, stopTime);
 
+            getLogger().info(
+                    MessageFormat.format("querying samples: sensor = {0}, start time = {1}, stop time = {2}", sensor,
+                                         startTime, stopTime));
             @SuppressWarnings("unchecked")
             final List<ReferenceObservation> referenceObservations = query.getResultList();
+            getLogger().info(MessageFormat.format("{0} samples found", referenceObservations.size()));
+
             final List<SamplingPoint> samples = new ArrayList<>(referenceObservations.size());
             for (final ReferenceObservation o : referenceObservations) {
                 final Point p = o.getPoint().getGeometry().getPoint(0);
