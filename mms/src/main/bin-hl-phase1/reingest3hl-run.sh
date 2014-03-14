@@ -42,14 +42,14 @@ do
     gzip -cf $f > $MMS_ARCHIVE/arc3_hl/v1/$year/$month/$arc3gz
 
     echo "$MMS_HOME/bin/reingestion-tool.sh -c $MMS_CONFIG \
-        -Dmms.reingestion.filename=$MMS_ARCHIVE/nwp_hl/v1/$year/$month/$nwp \
+        -Dmms.reingestion.source=$MMS_ARCHIVE/nwp_hl/v1/$year/$month/$nwp \
         -Dmms.reingestion.located=no \
         -Dmms.reingestion.overwrite=true \
         -Dmms.db.useindex=true \
         -Dmms.reingestion.sensor=nwphl_$sensor \
         -Dmms.reingestion.pattern=$pattern"
     $MMS_HOME/bin/reingestion-tool.sh -c $MMS_CONFIG \
-        -Dmms.reingestion.filename=$MMS_ARCHIVE/nwp_hl/v1/$year/$month/$nwp \
+        -Dmms.reingestion.source=$MMS_ARCHIVE/nwp_hl/v1/$year/$month/$nwp \
         -Dmms.reingestion.located=no \
         -Dmms.reingestion.overwrite=true \
         -Dmms.db.useindex=true \
@@ -57,14 +57,14 @@ do
         -Dmms.reingestion.pattern=0
 
     echo "$MMS_HOME/bin/reingestion-tool.sh -c $MMS_CONFIG \
-        -Dmms.reingestion.filename=$MMS_ARCHIVE/arc3_hl/v1/$year/$month/$arc3gz \
+        -Dmms.reingestion.source=$MMS_ARCHIVE/arc3_hl/v1/$year/$month/$arc3gz \
         -Dmms.reingestion.located=no \
         -Dmms.reingestion.overwrite=true \
         -Dmms.db.useindex=true \
         -Dmms.reingestion.sensor=arc3hl_$sensor \
         -Dmms.reingestion.pattern=0"
     $MMS_HOME/bin/reingestion-tool.sh -c $MMS_CONFIG \
-        -Dmms.reingestion.filename=$MMS_ARCHIVE/arc3_hl/v1/$year/$month/$arc3gz \
+        -Dmms.reingestion.source=$MMS_ARCHIVE/arc3_hl/v1/$year/$month/$arc3gz \
         -Dmms.reingestion.located=no \
         -Dmms.reingestion.overwrite=true \
         -Dmms.db.useindex=true \

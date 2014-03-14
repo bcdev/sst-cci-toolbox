@@ -296,7 +296,7 @@ public class Arc1ProcessingTool extends BasicTool {
         collectCallsWriter.format("scp eddie.ecdf.ed.ac.uk:mms/task-%s/%s.MMM.nc %s\n", basename, basename, destPath);
         collectCallsWriter.format("chmod 775 %s/%s.MMM.nc\n", destPath, basename);
         collectCallsWriter.format(
-                "$MMS_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.filename=%s/%s.MMM.nc \\\n"
+                "$MMS_HOME/bin/mmsreingestmmd.sh -Dmms.reingestion.source=%s/%s.MMM.nc \\\n"
                         + "  -Dmms.reingestion.located=no \\\n"
                         + "  -Dmms.reingestion.sensor=%s \\\n"
                         + "  -Dmms.reingestion.pattern=%s \\\n"

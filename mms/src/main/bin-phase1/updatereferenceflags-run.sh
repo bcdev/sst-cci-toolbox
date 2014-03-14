@@ -15,6 +15,6 @@ fi
 
 input=`ls $MMS_ARCHIVE/referenceflags/v1/$year/referenceflags-mmd-$year-$month-v????????.nc | tail -n1`
 
-$MMS_HOME/bin/flags-tool.sh -c $MMS_CONFIG -Dmms.reingestion.filename=$input -debug
+$MMS_HOME/bin/flags-tool.sh -c $MMS_CONFIG -Dmms.reingestion.source=$input -debug
 
 echo "`date -u +%Y%m%d-%H%M%S` referenceflag MMD' re-ingestion $year/$month ... done"

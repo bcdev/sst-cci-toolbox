@@ -66,7 +66,7 @@ public class Configuration {
     public static final String KEY_MMS_REINGESTION_OVERWRITE = "mms.reingestion.overwrite";
     public static final String KEY_MMS_REINGESTION_PATTERN = "mms.reingestion.pattern";
     public static final String KEY_MMS_REINGESTION_SENSOR = "mms.reingestion.sensor";
-    public static final String KEY_MMS_REINGESTION_SOURCE = "mms.reingestion.filename";
+    public static final String KEY_MMS_REINGESTION_SOURCE = "mms.reingestion.source";
 
     // yet unclear properties
     public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";

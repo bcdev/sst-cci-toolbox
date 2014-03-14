@@ -41,14 +41,14 @@ do
         gzip -cf $f > $MMS_ARCHIVE/avhrr_hl/v1/$year/$month/$output
 
         echo "$MMS_HOME/bin/reingestion-tool.sh -c $MMS_CONFIG \
-            -Dmms.reingestion.filename=$MMS_ARCHIVE/avhrr_hl/v1/$year/$month/$output \
+            -Dmms.reingestion.source=$MMS_ARCHIVE/avhrr_hl/v1/$year/$month/$output \
             -Dmms.reingestion.located=no \
             -Dmms.reingestion.overwrite=true \
             -Dmms.db.useindex=true \
             -Dmms.reingestion.sensor=avhrr_hl.$sensor \
             -Dmms.reingestion.pattern=$pattern"
         $MMS_HOME/bin/reingestion-tool.sh -c $MMS_CONFIG \
-            -Dmms.reingestion.filename=$MMS_ARCHIVE/avhrr_hl/v1/$year/$month/$output \
+            -Dmms.reingestion.source=$MMS_ARCHIVE/avhrr_hl/v1/$year/$month/$output \
             -Dmms.reingestion.located=no \
             -Dmms.reingestion.overwrite=true \
             -Dmms.db.useindex=true \

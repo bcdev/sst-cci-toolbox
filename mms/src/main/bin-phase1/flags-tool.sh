@@ -4,7 +4,7 @@
 . $MMS_HOME/bin/mms-env.sh
 
 # flags-tool.sh expects the following configuration parameters:
-#   mms.reingestion.filename  path to MMD' file
+#   mms.reingestion.source  path to MMD' file
 #   mms.archive.rootdir       optional prefix for relative filenames
 #   openjpa.*                 parameters for database selection
 
