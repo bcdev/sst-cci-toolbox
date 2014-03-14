@@ -21,7 +21,7 @@ mapplot-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.mapplot.starttime=${starttime} \
 -Dmms.mapplot.stoptime=${stoptime} \
 -Dmms.mapplot.sensor=${sensor} \
--Dmms.sampling.show=false \
--Dmms.sampling.strategy=${strategy} \
--Dmms.sampling.target.dir=${MMS_ARCHIVE}/${usecase}/plt/${sensor}/${year} \
--Dmms.sampling.target.filename=${sensor}-${strategy}-${year}-${month}.png
+-Dmms.mapplot.show=false \
+-Dmms.mapplot.strategy=${strategy} \
+-Dmms.mapplot.target.dir=${MMS_ARCHIVE}/${usecase}/plt/${sensor}/${year} \
+-Dmms.mapplot.target.filename=${sensor}-${strategy}-${year}-${month}.png

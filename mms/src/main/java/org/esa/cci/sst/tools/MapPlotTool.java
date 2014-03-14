@@ -76,11 +76,11 @@ public class MapPlotTool extends BasicTool {
         sensor = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_SENSOR);
         startTime = config.getDateValue(Configuration.KEY_MMS_MAPPLOT_START_TIME);
         stopTime = config.getDateValue(Configuration.KEY_MMS_MAPPLOT_STOP_TIME);
-        show = config.getBooleanValue(Configuration.KEY_MMS_MAPPLOT_SHOW);
-        mapStrategyName = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_STATEGY);
+        show = config.getBooleanValue(Configuration.KEY_MMS_MAPPLOT_SHOW, false);
+        mapStrategyName = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_STATEGY, "latlon");
         targetDir = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_DIR);
         targetFilename = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_FILENAME);
-        title = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TITLE, "");
+        title = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TITLE, null);
     }
 
     private void run() throws IOException, ParseException {
