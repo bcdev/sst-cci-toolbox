@@ -98,7 +98,6 @@ public final class SamplingPointPlotter {
         }
         final Graphics2D graphics = image.createGraphics();
 
-
         for (final SamplingPoint p : samples) {
             final PlotPoint mapPoint = strategy.map(p);
 
@@ -147,7 +146,7 @@ public final class SamplingPointPlotter {
     }
 
     private MapStrategy getMapStrategy() {
-        if (mapStrategyName != null && mapStrategyName.equalsIgnoreCase("TIME-LAT")) {
+        if ("timelat".equalsIgnoreCase(mapStrategyName)) {
             return new TimeLatMapStrategy(WIDTH, HEIGHT);
         } else {
             return new LonLatMapStrategy(WIDTH, HEIGHT);

@@ -36,7 +36,6 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_SENSOR_2 = "mms.sampling.sensor.2";
     public static final String KEY_MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
     public static final String KEY_MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
-    public static final String KEY_MMS_SAMPLING_SHOW_MAPS = "mms.sampling.showmaps";
     public static final String KEY_MMS_SAMPLING_COUNT = "mms.sampling.count";
     public static final String KEY_MMS_SAMPLING_SKIP = "mms.sampling.skip";
     public static final String KEY_MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
@@ -47,6 +46,15 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME = "mms.sampling.cloudflags.variable";
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
     public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
+
+    public static final String KEY_MMS_MAPPLOT_STATEGY = "mms.mapplot.strategy";
+    public static final String KEY_MMS_MAPPLOT_TARGET_DIR = "mms.mapplot.target.dir";
+    public static final String KEY_MMS_MAPPLOT_TARGET_FILENAME = "mms.mapplot.target.filename";
+    public static final String KEY_MMS_MAPPLOT_TITLE = "mms.mapplot.title";
+    public static final String KEY_MMS_MAPPLOT_SHOW = "mms.mapplot.show";
+    public static final String KEY_MMS_MAPPLOT_STOP_TIME = "mms.mapplot.stoptime";
+    public static final String KEY_MMS_MAPPLOT_START_TIME = "mms.mapplot.starttime";
+    public static final String KEY_MMS_MAPPLOT_SENSOR = "mms.mapplot.sensor";
 
     public static final String KEY_MMS_NWP_CDO_HOME = "mms.nwp.cdo.home";
     public static final String KEY_MMS_NWP_MMD_SOURCE = "mms.nwp.mmd.source";
@@ -73,7 +81,6 @@ public class Configuration {
     public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";
     public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
-
 
     private final Properties properties;
 

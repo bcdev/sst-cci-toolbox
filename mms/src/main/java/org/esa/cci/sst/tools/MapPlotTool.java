@@ -14,12 +14,10 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointPlotter;
-import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.Point;
 
 import javax.persistence.Query;
@@ -27,23 +25,25 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 public class MapPlotTool extends BasicTool {
 
-    // TODO - adapt query because o.sensor is not 'sobol' anymore (rq-20140313)
-    private static final String REFOBS_QUERY =
+    private static final String SQL_GET_REFERENCE_OBSERVATIONS =
             "select o"
-            + " from ReferenceObservation o, Matchup m, Observation o2, Coincidence c2"
-            + " where m.refObs = o and o.sensor = 'sobol' and o.time >= ?2 and o.time < ?3 and c2.matchup = m and c2.observation = o2 and o2.sensor = ?1"
-            + " order by o.time, m.id";
+            + " from ReferenceObservation o"
+            + " where o.sensor = ?1 and o.time >= ?2 and o.time < ?3"
+            + " order by o.time";
 
-    private String samplingSensor;
+    private String sensor;
     private Date startTime;
     private Date stopTime;
-    private boolean showMaps;
+    private boolean show;
+    private String mapStrategyName;
+    private String targetFilename;
+    private String title;
+    private String targetDir;
 
     MapPlotTool() {
         super("mapplot-tool", "1.0");
@@ -63,6 +63,8 @@ public class MapPlotTool extends BasicTool {
             tool.getErrorHandler().terminate(e);
         } catch (Exception e) {
             tool.getErrorHandler().terminate(new ToolException(e.getMessage(), e, ToolException.UNKNOWN_ERROR));
+        } finally {
+            tool.getPersistenceManager().close();
         }
     }
 
@@ -71,99 +73,42 @@ public class MapPlotTool extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
-        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME);
-        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME);
-        showMaps = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_SHOW_MAPS);
+        sensor = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_SENSOR);
+        startTime = config.getDateValue(Configuration.KEY_MMS_MAPPLOT_START_TIME);
+        stopTime = config.getDateValue(Configuration.KEY_MMS_MAPPLOT_STOP_TIME);
+        show = config.getBooleanValue(Configuration.KEY_MMS_MAPPLOT_SHOW);
+        mapStrategyName = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_STATEGY);
+        targetDir = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_DIR);
+        targetFilename = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_FILENAME);
+        title = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TITLE, "");
     }
 
     private void run() throws IOException, ParseException {
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
             persistenceManager.transaction();
-            final Query query = getPersistenceManager().createQuery(REFOBS_QUERY);
-            query.setParameter(1, samplingSensor);
+            final Query query = getPersistenceManager().createQuery(SQL_GET_REFERENCE_OBSERVATIONS);
+            query.setParameter(1, sensor);
             query.setParameter(2, startTime);
             query.setParameter(3, stopTime);
-            final List<ReferenceObservation> refobsList = query.getResultList();
-            final String imageName = "sobol-" + samplingSensor + "-" + TimeUtil.formatCompactUtcFormat(
-                    startTime) + ".png";
-            plotSamples(refobsList, imageName, imageName, showMaps);
 
-            final List<ReferenceObservation> orbits = findOrbits(TimeUtil.formatCcsdsUtcFormat(startTime),
-                                                                 TimeUtil.formatCcsdsUtcFormat(stopTime));
-            int noOrbitsToPlot = 14;
-            for (ReferenceObservation orbit : orbits) {
-                final DataFile orbitDataFile = orbit.getDatafile();
-                List<ReferenceObservation> orbitSamples = filter(refobsList, new Predicate<ReferenceObservation>() {
-                    @Override
-                    public boolean apply(ReferenceObservation s) {
-                        return s.getDatafile() == orbitDataFile;
-                    }
-                });
-                final String orbitImageName = "sobol-" + orbitDataFile.getPath().substring(
-                        orbitDataFile.getPath().lastIndexOf(
-                                File.separator) + 1) + "-" + TimeUtil.formatCompactUtcFormat(startTime) + ".png";
-                plotSamples(orbitSamples, orbitImageName, orbitImageName, showMaps);
-                if (--noOrbitsToPlot <= 0) {
-                    break;
-                }
+            @SuppressWarnings("unchecked")
+            final List<ReferenceObservation> referenceObservations = query.getResultList();
+            final List<SamplingPoint> samples = new ArrayList<>(referenceObservations.size());
+            for (final ReferenceObservation o : referenceObservations) {
+                final Point p = o.getPoint().getGeometry().getPoint(0);
+                samples.add(new SamplingPoint(p.getX(), p.getY(), 0, 0.0));
             }
+            new SamplingPointPlotter()
+                    .samples(samples)
+                    .show(show)
+                    .live(false)
+                    .windowTitle(title)
+                    .filePath(new File(targetDir, targetFilename).getPath())
+                    .mapStrategyName(mapStrategyName)
+                    .plot();
         } finally {
             persistenceManager.commit();
         }
-
     }
-
-    private static void plotSamples(List<ReferenceObservation> samples, String title, String path, boolean showPlot)
-            throws IOException {
-        final List<SamplingPoint> samplingPoints = new ArrayList<>(samples.size());
-        for (final ReferenceObservation s : samples) {
-            final Point p = s.getPoint().getGeometry().getPoint(0);
-            samplingPoints.add(new SamplingPoint(p.getX(), p.getY(), 0, 0.0));
-        }
-        new SamplingPointPlotter()
-                .samples(samplingPoints)
-                .show(showPlot)
-                .live(showPlot)
-                .windowTitle(title)
-                .filePath(path)
-                .plot();
-    }
-
-    private static final String SENSOR_OBSERVATION_QUERY =
-            "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 and o.time < timestamp ?3"
-            + " order by o.time, o.id";
-
-    List<ReferenceObservation> findOrbits(String startTimeString, String stopTimeString) throws ParseException {
-        //Date startTime = new Date(TimeUtil.parseCcsdsUtcFormat(startTimeString).getTime());
-        //Date stopTime = new Date(TimeUtil.parseCcsdsUtcFormat(stopTimeString).getTime());
-        final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll(
-                "\\?3", "'" + stopTimeString + "'");
-        final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
-        query.setParameter(1, Constants.SENSOR_NAME_ORB_ATSR_3);
-        //query.setParameter(2, startTime);
-        //query.setParameter(3, stopTime);
-        return query.getResultList();
-    }
-
-    public interface Predicate<T> {
-
-        boolean apply(T type);
-    }
-
-    public static <T> List<T> filter(Collection<T> target, Predicate<T> predicate) {
-        List<T> result = new ArrayList<>();
-        for (T element : target) {
-            if (predicate.apply(element)) {
-                result.add(element);
-            }
-        }
-        return result;
-    }
-
-
 }

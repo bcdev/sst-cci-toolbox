@@ -1,26 +1,27 @@
 #!/bin/bash
 
-# TODO - find out what this tool really does and cleanup
-
-. mymms
-. ${MMS_HOME}/bin/mms-env.sh
-
 year=$1
 month=$2
+sensor=$3
+strategy=$4
+usecase=$5
+
+. mymms
+
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
-let d2="d + 86400 * 32"
-year2=`date +%Y -u -d @${d2}`
-month2=`date +%m -u -d @${d2}`
+let d1="d + 32 * 86400"
+starttime=${year}-${month}-01T00:00:00Z
+stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
-echo "`date -u +%Y%m%d-%H%M%S` mapplot ${year}/${month} ..."
+mkdir -p ${MMS_ARCHIVE}/${usecase}/plt/${sensor}/${year}
 
-if [ "${year}" = "" -o "${month}" = "" ]; then
-    echo "missing parameter, use $0 year month"
-    exit 1
-fi
+echo "`date -u +%Y%m%d-%H%M%S` mapplot ${year}/${month} sensor ${sensor} strategy ${strategy} starttime ${starttime} stoptime ${stoptime}..."
 
-${MMS_HOME}/bin/mapplot-tool.sh -c ${MMS_CONFIG} -debug \
--Dmms.sampling.startTime=${year}-${month}-01T00:00:00Z \
--Dmms.sampling.stopTime=${year2}-${month2}-01T00:00:00Z \
--Dmms.sampling.sensor=orb_atsr.3 \
--Dmms.sampling.showmaps=false
+mapplot-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
+-Dmms.mapplot.starttime=${starttime} \
+-Dmms.mapplot.stoptime=${stoptime} \
+-Dmms.mapplot.sensor=${sensor} \
+-Dmms.sampling.show=false \
+-Dmms.sampling.strategy=${strategy} \
+-Dmms.sampling.target.dir=${MMS_ARCHIVE}/${usecase}/plt/${sensor}/${year} \
+-Dmms.sampling.target.filename=${sensor}-${strategy}-${year}-${month}.png
