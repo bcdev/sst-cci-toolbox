@@ -105,6 +105,7 @@ public class MapPlotTool extends BasicTool {
                 final Point p = o.getPoint().getGeometry().getPoint(0);
                 samples.add(new SamplingPoint(p.getX(), p.getY(), 0, 0.0));
             }
+            getLogger().info(MessageFormat.format("plotting {0} samples...", samples.size()));
             new SamplingPointPlotter()
                     .samples(samples)
                     .show(show)
@@ -113,6 +114,7 @@ public class MapPlotTool extends BasicTool {
                     .filePath(new File(targetDir, targetFilename).getPath())
                     .mapStrategyName(mapStrategyName)
                     .plot();
+            getLogger().info("finished plotting samples");
         } finally {
             persistenceManager.commit();
         }
