@@ -103,7 +103,7 @@ public class MapPlotTool extends BasicTool {
             final List<SamplingPoint> samples = new ArrayList<>(referenceObservations.size());
             for (final ReferenceObservation o : referenceObservations) {
                 final Point p = o.getPoint().getGeometry().getPoint(0);
-                samples.add(new SamplingPoint(p.getX(), p.getY(), 0, 0.0));
+                samples.add(new SamplingPoint(p.getX(), p.getY(), o.getTime().getTime(), 0.0));
             }
             getLogger().info(MessageFormat.format("plotting {0} samples...", samples.size()));
             new SamplingPointPlotter()

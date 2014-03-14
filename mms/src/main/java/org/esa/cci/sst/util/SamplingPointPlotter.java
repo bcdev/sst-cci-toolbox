@@ -17,8 +17,14 @@
 package org.esa.cci.sst.util;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -146,10 +152,13 @@ public final class SamplingPointPlotter {
     }
 
     private MapStrategy getMapStrategy() {
-        if ("timelat".equalsIgnoreCase(mapStrategyName)) {
-            return new TimeLatMapStrategy(WIDTH, HEIGHT);
-        } else {
-            return new LonLatMapStrategy(WIDTH, HEIGHT);
+        switch (mapStrategyName) {
+            case "timlat":
+                return new TimeLatMapStrategy(WIDTH, HEIGHT);
+            case "lonlat":
+                return new LonLatMapStrategy(WIDTH, HEIGHT);
+            default:
+                return new LonLatMapStrategy(WIDTH, HEIGHT);
         }
     }
 }
