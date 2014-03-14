@@ -8,7 +8,7 @@ import java.io.File;
 public class ConfigUtil {
 
     public static String getUsecaseRootPath(Configuration config) {
-        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
 
         final String usecase;
         try {

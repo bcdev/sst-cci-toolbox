@@ -91,7 +91,7 @@ public class SamplingPointGenerationTool extends BasicTool {
         int sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
         workflowContext.setSampleCount(sampleCount);
 
-        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         workflowContext.setArchiveRootDir(new File(archiveRootPath));
 
         final String insituSensorName = config.getStringValue("mms.source.45.sensor", null);

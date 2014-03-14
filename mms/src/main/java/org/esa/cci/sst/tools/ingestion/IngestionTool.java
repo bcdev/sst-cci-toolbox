@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
-import com.sun.jndi.cosnaming.CNCtx;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Sensor;
@@ -154,7 +153,7 @@ public class IngestionTool extends BasicTool {
     private void ingest() {
         ingester = new Ingester(this);
         final Configuration config = getConfig();
-        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         final File archiveRoot = new File(archiveRootPath);
 
         int directoryCount = 0;

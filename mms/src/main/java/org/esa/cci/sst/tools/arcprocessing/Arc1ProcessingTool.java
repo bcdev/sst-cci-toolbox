@@ -117,7 +117,7 @@ public class Arc1ProcessingTool extends BasicTool {
     private void run() throws IOException {
         final Configuration config = getConfig();
         final String destPath = config.getStringValue(Constants.PROPERTY_OUTPUT_DESTDIR, ".");
-        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT, ".");
         final File archiveRoot = new File(archiveRootPath);
         final String tmpPath = config.getStringValue(Constants.PROPERTY_OUTPUT_TMPDIR, ".");
 

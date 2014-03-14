@@ -13,10 +13,11 @@ import java.util.Properties;
 
 public class Configuration {
 
+    public static final String KEY_MMS_ARCHIVE_ROOT = "mms.archive.root";
     public static final String KEY_MMS_CONFIGURATION = "mms.configuration";
-    public static final String KEY_MMS_USECASE = "mms.usecase";
-    public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
     public static final String KEY_MMS_IO_TMPDELETEONEXIT = "mms.io.tmpdeleteonexit";
+    public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
+    public static final String KEY_MMS_USECASE = "mms.usecase";
 
     public static final String KEY_MMS_INGESTION_CLEANUPINTERVAL = "mms.ingestion.cleanupinterval";
     public static final String KEY_MMS_INGESTION_START_TIME = "mms.source.startTime";
@@ -70,7 +71,6 @@ public class Configuration {
 
     // yet unclear properties
     public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";
-    public static final String KEY_ARCHIVE_ROOTDIR = "mms.archive.rootdir";
     public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
     public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
 

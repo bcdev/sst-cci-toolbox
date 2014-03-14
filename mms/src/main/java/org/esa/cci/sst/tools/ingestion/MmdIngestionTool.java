@@ -74,9 +74,9 @@ public class MmdIngestionTool extends BasicTool {
         final long pattern = config.getPatternValue(Configuration.KEY_MMS_REINGESTION_PATTERN);
         final boolean located = config.getBooleanValue(Configuration.KEY_MMS_REINGESTION_LOCATED);
         final boolean withOverwrite = config.getBooleanValue(Configuration.KEY_MMS_REINGESTION_OVERWRITE);
-        final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
-        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         final File archiveRoot = new File(archiveRootPath);
+        final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
 
         try {
             getPersistenceManager().transaction();

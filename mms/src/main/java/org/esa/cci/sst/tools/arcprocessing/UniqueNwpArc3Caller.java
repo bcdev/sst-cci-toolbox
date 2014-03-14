@@ -41,7 +41,7 @@ public class UniqueNwpArc3Caller implements NwpArc3Caller {
         final String sensorName = configuration.getStringValue(Configuration.KEY_NWP_ARC3_SENSOR);
         final String startTime = configuration.getStringValue(Constants.PROPERTY_NWP_ARC3_START_TIME);
         final String stopTime = configuration.getStringValue(Constants.PROPERTY_NWP_ARC3_STOP_TIME);
-        final String archiveRootPath = configuration.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR);
+        final String archiveRootPath = configuration.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         String configurationFilePath = configuration.getStringValue(Configuration.KEY_MMS_CONFIGURATION);
         final String sensorPattern = configuration.getStringValue(Constants.PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN);
         final String nwpSourceDir = configuration.getStringValue(Constants.PROPERTY_MMS_NWP_SOURCEDIR);

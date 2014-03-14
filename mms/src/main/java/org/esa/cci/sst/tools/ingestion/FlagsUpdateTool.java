@@ -65,7 +65,7 @@ public class FlagsUpdateTool extends BasicTool {
         // create reader for MMD'
         final Configuration config = getConfig();
         final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
-        final String archiveRootPath = config.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
+        final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT, ".");
         final MmdReader reader = createReader(mmdFileLocation, archiveRootPath);
 
         // determine MMD' variables

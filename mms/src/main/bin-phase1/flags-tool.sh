@@ -5,7 +5,7 @@
 
 # flags-tool.sh expects the following configuration parameters:
 #   mms.reingestion.source  path to MMD' file
-#   mms.archive.rootdir       optional prefix for relative filenames
+#   mms.archive.root       optional prefix for relative filenames
 #   openjpa.*                 parameters for database selection
 
 java \

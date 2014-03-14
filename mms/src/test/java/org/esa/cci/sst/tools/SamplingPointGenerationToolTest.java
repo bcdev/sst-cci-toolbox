@@ -27,7 +27,7 @@ public class SamplingPointGenerationToolTest {
         configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR, "Mathilde");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SKIP, "518");
         configuration.put(Configuration.KEY_MMS_SAMPLING_COUNT, "519");
-        configuration.put(Configuration.KEY_ARCHIVE_ROOTDIR, "/path/archive");
+        configuration.put(Configuration.KEY_MMS_ARCHIVE_ROOT, "/path/archive");
         configuration.put("mms.source.45.sensor", "thermometer");
         configuration.put("mms.pattern.history", "4000000000000000");
         configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "Cool_One");

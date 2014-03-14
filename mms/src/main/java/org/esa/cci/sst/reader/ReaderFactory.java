@@ -53,7 +53,7 @@ public class ReaderFactory {
     public static Reader open(DataFile datafile, Configuration configuration) throws IOException {
         final String sensorName = datafile.getSensor().getName();
         final String readerSpec = configuration.getStringValue("mms.reader." + sensorName, DEFAULT_READER_SPEC);
-        final String archiveRootPath = configuration.getStringValue(Configuration.KEY_ARCHIVE_ROOTDIR, ".");
+        final String archiveRootPath = configuration.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT, ".");
         final File archiveRoot = new File(archiveRootPath);
 
         final Reader reader = createReader(readerSpec, sensorName);

@@ -13,7 +13,7 @@ export PATH=/group_workspaces/cems/esacci_sst/mms/software/bin:${PATH}
 export LD_LIBRARY_PATH=/group_workspaces/cems/esacci_sst/mms/software/lib:/group_workspaces/cems/esacci_sst/software/common/lib:${LD_LIBRARY_PATH}
 
 export MMS_HOME=${mms.home}
-export MMS_ARCHIVE=${mms.archive.rootdir}
+export MMS_ARCHIVE=${mms.archive.root}
 
 export MMS_INST=/group_workspaces/cems/esacci_sst/mms/inst
 export MMS_TASKS=${MMS_INST}/tasks
