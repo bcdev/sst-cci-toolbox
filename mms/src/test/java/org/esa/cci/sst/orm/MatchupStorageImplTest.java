@@ -280,6 +280,27 @@ public class MatchupStorageImplTest {
         verifyNoMoreInteractions(query);
     }
 
+
+    @Test
+    public void testGet_id() {
+        final String sql = "select m from Matchup m where m.id = ?1";
+        final int id = 8876;
+        final long pattern = 12;
+        final Matchup matchup = new Matchup();
+        matchup.setPattern(pattern);
+        matchup.setId(8876);
+
+        when(persistenceManager.pick(sql, id)).thenReturn(matchup);
+
+        final Matchup storageMatchup = matchupStorage.get(id);
+        assertNotNull(storageMatchup);
+        assertEquals(id, storageMatchup.getId());
+        assertEquals(pattern, storageMatchup.getPattern());
+
+        verify(persistenceManager, times(1)).pick(sql, id);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
     private Date createDate(String timeString) throws ParseException {
         return TimeUtil.parseCcsdsUtcFormat(timeString);
     }

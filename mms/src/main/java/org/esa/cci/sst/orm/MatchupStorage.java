@@ -10,4 +10,6 @@ public interface MatchupStorage {
     int getCount(MatchupQueryParameter parameter);
 
     List<Matchup> get(MatchupQueryParameter parameter);
+
+    Matchup get(int matchupId);
 }

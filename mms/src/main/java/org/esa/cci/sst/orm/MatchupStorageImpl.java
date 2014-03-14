@@ -60,6 +60,11 @@ class MatchupStorageImpl implements MatchupStorage {
         return query.getResultList();
     }
 
+    @Override
+    public Matchup get(int matchupId) {
+        return (Matchup) persistenceManager.pick("select m from Matchup m where m.id = ?1", matchupId);
+    }
+
     private String updateWithCondition(MatchupQueryParameter parameter, String queryString) {
         final String condition = parameter.getCondition();
         if (condition != null) {
