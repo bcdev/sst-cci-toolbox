@@ -16,8 +16,10 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.tools.Constants;
+
 /**
- * Sets the sensor to 'atsr_orb.2'.
+ * Sets the sensor to 'orb_atsr.2'.
  *
  * @author Thomas Storm
  */
@@ -25,6 +27,6 @@ package org.esa.cci.sst.rules;
 class Atsr2Sensor extends SensorRule {
 
     Atsr2Sensor() {
-        super("atsr_orb.2");
+        super(Constants.SENSOR_NAME_ORB_ATSR_2);
     }
 }

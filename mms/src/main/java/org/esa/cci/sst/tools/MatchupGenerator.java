@@ -135,7 +135,7 @@ public class MatchupGenerator extends BasicTool {
             transactions.push(pm.transaction());
             final List<ReferenceObservation> referenceObservations =
                     createReferenceObservations(samples,
-                                                referenceSensorName + "." +
+                                                referenceSensorName.substring(0, 3) + "_" +
                                                 SensorNames.ensureStandardName(primarySensorName),
                                                 storage);
             pm.commit();
@@ -284,6 +284,7 @@ public class MatchupGenerator extends BasicTool {
         delete = getPersistenceManager().createQuery("delete from Matchup m");
         delete.executeUpdate();
         delete = getPersistenceManager().createQuery(
+                // TODO - check this, because sensor name for reference observations is built according to the pattern referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName),
                 "delete from Observation o where o.sensor = '" + Constants.SENSOR_NAME_DUMMY + "'");
         delete.executeUpdate();
 
@@ -294,16 +295,19 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().transaction();
 
         Query delete = getPersistenceManager().createNativeQuery(
+                // TODO - check this, because sensor name for reference observations is built according to the pattern referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName),
                 "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
+                // TODO - check this, because sensor name for reference observations is built according to the pattern referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName),
                 "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "')");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
+                // TODO - check this, because sensor name for reference observations is built according to the pattern referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName),
                 "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "'");
         delete.setParameter(1, new Date(startTime));
         delete.setParameter(2, new Date(stopTime));

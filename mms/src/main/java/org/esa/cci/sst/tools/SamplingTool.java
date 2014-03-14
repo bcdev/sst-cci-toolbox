@@ -78,7 +78,7 @@ public class SamplingTool extends BasicTool {
         subSceneWidth = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_WIDTH, 7);
         subSceneHeight = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
 
-        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR, "atsr_orb.3");
+        samplingSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR, Constants.SENSOR_NAME_ORB_ATSR_3);
         samplingSensor2 = config.getStringValue(MMS_SAMPLING_SENSOR2);
     }
 

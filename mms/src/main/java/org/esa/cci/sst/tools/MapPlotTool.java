@@ -144,7 +144,7 @@ public class MapPlotTool extends BasicTool {
         final String queryString2 = SENSOR_OBSERVATION_QUERY.replaceAll("\\?2", "'" + startTimeString + "'").replaceAll(
                 "\\?3", "'" + stopTimeString + "'");
         final Query query = getPersistenceManager().createNativeQuery(queryString2, ReferenceObservation.class);
-        query.setParameter(1, "atsr_orb.3");
+        query.setParameter(1, Constants.SENSOR_NAME_ORB_ATSR_3);
         //query.setParameter(2, startTime);
         //query.setParameter(3, stopTime);
         return query.getResultList();

@@ -17,7 +17,7 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Sets the sensor to 'avhrr_orb.17'.
+ * Sets the sensor to 'avhrr.n17'.
  *
  * @author Thomas Storm
  */

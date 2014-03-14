@@ -36,7 +36,7 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder
                 .flagMeanings("ATSR_MD METOP_MD SEVIRI_MD AVHRR_MD dummy")
-                .flagValues(new byte[] {0, 1, 2, 3});
+                .flagValues(new byte[]{0, 1, 2, 3});
     }
 
     @SuppressWarnings({"IfStatementWithTooManyBranches"})
@@ -45,15 +45,15 @@ class MatchupPrimarySensor extends AbstractImplicitRule {
         final Array array = Array.factory(DataType.BYTE, new int[]{1});
         final String sensor = getContext().getMatchup().getRefObs().getSensor();
         byte flag;
-        if ("atsr_md".equalsIgnoreCase(sensor)) {
+        if (Constants.SENSOR_NAME_ATSR_MD.equalsIgnoreCase(sensor)) {
             flag = 0;
         } else if (Constants.SENSOR_NAME_METOP_MD.equalsIgnoreCase(sensor)) {
             flag = 1;
         } else if (Constants.SENSOR_NAME_SEVIRI_MD.equalsIgnoreCase(sensor)) {
             flag = 2;
-        } else if(Constants.SENSOR_NAME_AVHRR_MD.equalsIgnoreCase(sensor)) {
+        } else if (Constants.SENSOR_NAME_AVHRR_MD.equalsIgnoreCase(sensor)) {
             flag = 3;
-        } else if(Constants.SENSOR_NAME_DUMMY.equalsIgnoreCase(sensor)) {
+        } else if (sensor != null && sensor.startsWith(Constants.SENSOR_NAME_DUMMY.substring(0, 3) + "_")) {
             flag = 4;
         } else {
             throw new RuleException(MessageFormat.format("Unknown primary sensor ''{0}''.", sensor));

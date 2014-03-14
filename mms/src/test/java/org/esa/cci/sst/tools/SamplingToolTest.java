@@ -53,11 +53,11 @@ public class SamplingToolTest {
         SamplingTool.removeLandSamples(sampleList);
         SamplingTool.reduceByClearSkyStatistic(sampleList);
         final ObservationFinder observationFinder = new ObservationFinder(tool.getPersistenceManager());
-        observationFinder.findPrimarySensorObservations(sampleList, "atsr_orb.3",
+        observationFinder.findPrimarySensorObservations(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3,
                                                         tool.getStartTime(), tool.getStopTime(),
                                                         86400 * 175 / 10);
 
-        CloudySubsceneRemover.removeSamples(sampleList, "atsr_orb.3", true, 7, 7, tool.getConfig(),
+        CloudySubsceneRemover.removeSamples(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3, true, 7, 7, tool.getConfig(),
                                             tool.getStorage(), tool.getColumnStorage(), tool.getLogger(), "cloud_flags_nadir", 3, 0.0);
         tool.removeOverlappingSamples(sampleList);
 
@@ -95,10 +95,10 @@ public class SamplingToolTest {
         //tool.reduceByClearSkyStatistic(sampleList);
         System.out.println("Reducing clear samples..." + sampleList.size());
         System.out.println("Finding reference observations...");
-        //tool.findObservations2(sampleList, "atsr_orb.3");
+        //tool.findObservations2(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3);
         System.out.println("Finding reference observations..." + sampleList.size());
         System.out.println("Finding satellite sub-scenes...");
-        //tool.findSatelliteSubscenes(sampleList, "atsr_orb.3");
+        //tool.findSatelliteSubscenes(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3);
         System.out.println("Finding satellite sub-scenes..." + sampleList.size());
         System.out.println("Removing overlapping areas...");
         //tool.removeOverlappingSamples(sampleList);

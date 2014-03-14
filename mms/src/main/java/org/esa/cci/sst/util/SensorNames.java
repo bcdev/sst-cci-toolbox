@@ -25,7 +25,7 @@ public class SensorNames {
             return sensorName;
         }
         if (isStandardName(sensorName)) {
-            return sensorName.replace(".", "_orb.");
+            return "orb_" + sensorName;
         }
         throw new IllegalArgumentException("Sensor name '" + sensorName + "' does not match expected name patterns.");
     }
@@ -35,13 +35,13 @@ public class SensorNames {
             return sensorName;
         }
         if (isOrbitName(sensorName)) {
-            return sensorName.replace("_orb.", ".");
+            return sensorName.substring(4);
         }
         throw new IllegalArgumentException("Sensor name '" + sensorName + "' does not match expected name patterns.");
     }
 
     public static boolean isOrbitName(String sensorName) {
-        return sensorName.matches("(atsr_orb\\.[1-3])|(avhrr_orb\\.[mn]([0-9]){2})");
+        return sensorName.matches("(orb_atsr\\.[1-3])|(orb_avhrr\\.[mn]([0-9]){2})");
     }
 
     public static boolean isStandardName(String sensorName) {

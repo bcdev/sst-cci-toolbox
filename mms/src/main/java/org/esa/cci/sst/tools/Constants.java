@@ -65,10 +65,14 @@ public class Constants {
     public static final String PROPERTY_NWP_ARC3_STOP_TIME = "mms.nwp_arc3.stopTime";
     public static final int PERSISTENCE_RETRY_COUNT = 7;
 
+    public static final String SENSOR_NAME_ATSR_MD = "atsr_md";
     public static final String SENSOR_NAME_AVHRR_MD = "avhrr_md";
     public static final String SENSOR_NAME_METOP_MD = "metop";
     public static final String SENSOR_NAME_SEVIRI_MD = "seviri";
     public static final String SENSOR_NAME_DUMMY = "dummy";
+    public static final String SENSOR_NAME_ORB_ATSR_1 = "orb_atsr.1";
+    public static final String SENSOR_NAME_ORB_ATSR_2 = "orb_atsr.2";
+    public static final String SENSOR_NAME_ORB_ATSR_3 = "orb_atsr.3";
 
     public static final byte MATCHUP_REFERENCE_FLAG_INVALID = 0;
     public static final byte MATCHUP_REFERENCE_FLAG_ALGORITHM = 1;

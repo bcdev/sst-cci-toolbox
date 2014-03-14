@@ -26,24 +26,24 @@ public class SensorNamesTest {
 
     @Test
     public void testIsOrbitName() throws Exception {
-        assertTrue(SensorNames.isOrbitName("atsr_orb.1"));
-        assertTrue(SensorNames.isOrbitName("atsr_orb.2"));
-        assertTrue(SensorNames.isOrbitName("atsr_orb.3"));
+        assertTrue(SensorNames.isOrbitName("orb_atsr.1"));
+        assertTrue(SensorNames.isOrbitName("orb_atsr.2"));
+        assertTrue(SensorNames.isOrbitName("orb_atsr.3"));
 
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n10"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n11"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n12"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n13"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n14"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n15"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n16"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n17"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n18"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.n19"));
-        assertTrue(SensorNames.isOrbitName("avhrr_orb.m02"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n10"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n11"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n12"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n13"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n14"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n15"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n16"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n17"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n18"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.n19"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.m02"));
 
-        assertFalse(SensorNames.isOrbitName("aai_orb"));
-        assertFalse(SensorNames.isOrbitName("seaice_orb"));
+        assertFalse(SensorNames.isOrbitName("orb_aai"));
+        assertFalse(SensorNames.isOrbitName("orb_seaice"));
     }
 
     @Test
@@ -64,21 +64,21 @@ public class SensorNamesTest {
         assertTrue(SensorNames.isStandardName("avhrr.n19"));
         assertTrue(SensorNames.isStandardName("avhrr.m02"));
 
-        assertFalse(SensorNames.isStandardName("atsr_orb.1"));
-        assertFalse(SensorNames.isStandardName("atsr_orb.2"));
-        assertFalse(SensorNames.isStandardName("atsr_orb.3"));
+        assertFalse(SensorNames.isStandardName("orb_atsr.1"));
+        assertFalse(SensorNames.isStandardName("orb_atsr.2"));
+        assertFalse(SensorNames.isStandardName("orb_atsr.3"));
 
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n10"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n11"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n12"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n13"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n14"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n15"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n16"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n17"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n18"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.n19"));
-        assertFalse(SensorNames.isStandardName("avhrr_orb.m02"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n10"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n11"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n12"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n13"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n14"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n15"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n16"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n17"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n18"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.n19"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.m02"));
 
         assertFalse(SensorNames.isStandardName("aai"));
         assertFalse(SensorNames.isStandardName("seaice"));
@@ -88,21 +88,21 @@ public class SensorNamesTest {
     public void testEnsureOrbitName() throws Exception {
         String sensorName;
 
-        sensorName = "atsr_orb.1";
+        sensorName = "orb_atsr.1";
         assertSame(sensorName, SensorNames.ensureOrbitName(sensorName));
 
-        sensorName = "atsr_orb.2";
+        sensorName = "orb_atsr.2";
         assertSame(sensorName, SensorNames.ensureOrbitName(sensorName));
 
-        sensorName = "atsr_orb.3";
+        sensorName = "orb_atsr.3";
         assertSame(sensorName, SensorNames.ensureOrbitName(sensorName));
 
-        assertEquals("atsr_orb.1", SensorNames.ensureOrbitName("atsr.1"));
-        assertEquals("atsr_orb.2", SensorNames.ensureOrbitName("atsr.2"));
-        assertEquals("atsr_orb.3", SensorNames.ensureOrbitName("atsr.3"));
+        assertEquals("orb_atsr.1", SensorNames.ensureOrbitName("atsr.1"));
+        assertEquals("orb_atsr.2", SensorNames.ensureOrbitName("atsr.2"));
+        assertEquals("orb_atsr.3", SensorNames.ensureOrbitName("atsr.3"));
 
-        assertEquals("avhrr_orb.n10", SensorNames.ensureOrbitName("avhrr.n10"));
-        assertEquals("avhrr_orb.m02", SensorNames.ensureOrbitName("avhrr.m02"));
+        assertEquals("orb_avhrr.n10", SensorNames.ensureOrbitName("avhrr.n10"));
+        assertEquals("orb_avhrr.m02", SensorNames.ensureOrbitName("avhrr.m02"));
 
         try {
             SensorNames.ensureOrbitName("aai");
@@ -130,12 +130,12 @@ public class SensorNamesTest {
         sensorName = "atsr.3";
         assertSame(sensorName, SensorNames.ensureStandardName(sensorName));
 
-        assertEquals("atsr.1", SensorNames.ensureStandardName("atsr_orb.1"));
-        assertEquals("atsr.2", SensorNames.ensureStandardName("atsr_orb.2"));
-        assertEquals("atsr.3", SensorNames.ensureStandardName("atsr_orb.3"));
+        assertEquals("atsr.1", SensorNames.ensureStandardName("orb_atsr.1"));
+        assertEquals("atsr.2", SensorNames.ensureStandardName("orb_atsr.2"));
+        assertEquals("atsr.3", SensorNames.ensureStandardName("orb_atsr.3"));
 
-        assertEquals("avhrr.n10", SensorNames.ensureStandardName("avhrr_orb.n10"));
-        assertEquals("avhrr.m02", SensorNames.ensureStandardName("avhrr_orb.m02"));
+        assertEquals("avhrr.n10", SensorNames.ensureStandardName("orb_avhrr.n10"));
+        assertEquals("avhrr.m02", SensorNames.ensureStandardName("orb_avhrr.m02"));
 
         try {
             SensorNames.ensureStandardName("aai");

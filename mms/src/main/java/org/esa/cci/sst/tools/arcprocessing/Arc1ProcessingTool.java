@@ -57,7 +57,7 @@ public class Arc1ProcessingTool extends BasicTool {
 //            "SELECT m.id, ST_astext(ref.point), f.path, s.name, s.pattern " +
 //                    "FROM mm_observation o, mm_coincidence c, mm_matchup m, " +
 //                    "     mm_observation ref, mm_datafile f, mm_sensor s " +
-//                    "WHERE o.sensor LIKE 'avhrr_orb.%' " +
+//                    "WHERE o.sensor LIKE 'orb_avhrr.%' " +
 //                    "AND c.observation_id = o.id " +
 //                    "AND m.id = c.matchup_id " +
 //                    "AND ref.id = m.refobs_id " +
@@ -70,7 +70,7 @@ public class Arc1ProcessingTool extends BasicTool {
             "SELECT r.id, ST_astext(r.point), f.path, s.name, s.pattern " +
                     "FROM mm_observation o, mm_coincidence c, " +
                     "     mm_observation r, mm_datafile f, mm_sensor s " +
-                    "WHERE o.sensor LIKE 'avhrr_orb.%' " +
+                    "WHERE o.sensor LIKE 'orb_avhrr.%' " +
                     "AND c.observation_id = o.id " +
                     "AND r.id = c.matchup_id " +
                     "AND r.time >= ? " +
@@ -123,7 +123,7 @@ public class Arc1ProcessingTool extends BasicTool {
 
         final String startTimeProperty = config.getStringValue(Constants.PROPERTY_OUTPUT_START_TIME);
         final String endTimeProperty = config.getStringValue(Constants.PROPERTY_OUTPUT_STOP_TIME);
-        final String sensorName = config.getStringValue(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "avhrr_orb.n18"
+        final String sensorName = config.getStringValue(Constants.PROPERTY_OUTPUT_SENSOR, "%");  // e.g. "orb_avhrr.n18"
         final String configurationPath = config.getStringValue(Configuration.KEY_MMS_CONFIGURATION);
         final String condition = config.getStringValue(Constants.PROPERTY_ARC1x2_CONDITION);
 
@@ -201,7 +201,7 @@ public class Arc1ProcessingTool extends BasicTool {
         if ("%".equals(sensorName)) {
             allPointsQuery = getPersistenceManager().createNativeQuery(queryString, Object[].class);
         } else {
-            String sensorSpecificQueryString = queryString.replace("LIKE 'avhrr_orb.%'", String.format("= '%s'", sensorName));
+            String sensorSpecificQueryString = queryString.replace("LIKE 'orb_avhrr.%'", String.format("= '%s'", sensorName));
             allPointsQuery = getPersistenceManager().createNativeQuery(sensorSpecificQueryString, Object[].class);
             getLogger().fine(String.format("sensor specific query %s", sensorSpecificQueryString));
         }
@@ -329,7 +329,7 @@ public class Arc1ProcessingTool extends BasicTool {
     }
 
     private static String targetSensorNameOf(String sensor) {
-        return sensor.replaceAll("_orb", "");
+        return sensor.replaceAll("orb_", "");
     }
 
     private static long nonOrbPatternOf(long pattern) {
