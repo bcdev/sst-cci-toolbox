@@ -1,8 +1,15 @@
 package org.esa.cci.sst.orm;
 
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.persistence.Query;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -87,6 +94,34 @@ public class StorageImplTest {
 
         verify(persistenceManager, times(1)).pick(GET_OBSERVATION_SQL, id);
         verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testGetRelatedObservations() throws ParseException {
+        final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-01-01T13:00:00Z");
+        final Date stoptDate = TimeUtil.parseCcsdsUtcFormat("2010-01-05T17:00:00Z");
+        final String sensorName = "thermometer";
+        final String sql ="select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2010-01-01T13:00:00Z' and o.time < timestamp '2010-01-05T17:00:00Z' order by o.time, o.id";
+
+        final ArrayList<RelatedObservation> observations = new ArrayList<>();
+        final RelatedObservation observation = new RelatedObservation();
+        observation.setName("tested thing");
+        observations.add(observation);
+
+        final Query query = mock(Query.class);
+        when(query.getResultList()).thenReturn(observations);
+        when(persistenceManager.createNativeQuery(sql, RelatedObservation.class)).thenReturn(query);
+
+        final List<RelatedObservation> storedObservations = storageImpl.getRelatedObservations(sensorName, startDate, stoptDate);
+        assertNotNull(storedObservations);
+        assertEquals(1, storedObservations.size());
+
+        verify(persistenceManager, times(1)).createNativeQuery(sql, RelatedObservation.class);
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(query, times(1)).setParameter(1, sensorName);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
     }
 
     @Test

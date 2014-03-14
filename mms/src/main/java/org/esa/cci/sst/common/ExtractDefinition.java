@@ -19,5 +19,7 @@ public interface ExtractDefinition {
 
     Date getDate();
 
+    int getHalfExtractDuration();
+
     Number getFillValue();
 }

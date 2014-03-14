@@ -14,7 +14,6 @@ import java.util.List;
 
 class Insitu_CCI_2_Accessor implements InsituAccessor {
 
-    private static final int HALF_DAY_SECS_1978 = 43200;
     public static final String WMOID_TAG = "WMOID_";
 
     private final NetcdfReader netcdfReader;
@@ -79,9 +78,9 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
     }
 
     @Override
-    public Range find12HoursRange(Date refTime) {
+    public Range findExtractionRange(Date refTime, int halfExtractDurationInSeconds) {
         final double refTimeSecsSince1978 = TimeUtil.toSecondsSince1978(refTime);
-        return InsituReaderHelper.findRange(historyTimes, refTimeSecsSince1978, HALF_DAY_SECS_1978);
+        return InsituReaderHelper.findRange(historyTimes, refTimeSecsSince1978, halfExtractDurationInSeconds);
     }
 
     @Override
