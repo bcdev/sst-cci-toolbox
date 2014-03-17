@@ -16,7 +16,7 @@ usecase=$5
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
 
-pattern=`cat ${MMS_HOME}/config/${usecase}-config.properties | awk "/mms.pattern.$sensor/ { print \\$3 }"`
+#pattern=`cat ${MMS_HOME}/config/${usecase}-config.properties | awk "/mms.pattern.$sensor/ { print \\$3 }"`
 
 echo "`date -u +%Y%m%d-%H%M%S` reingestion ${year}/${month} sensor ${sensor} type ${mmdtype} pattern ${pattern}..."
 
@@ -24,7 +24,7 @@ reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.db.useindex=true \
 -Dmms.reingestion.source=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
 -Dmms.reingestion.sensor=${mmdtype}_${sensor} \
--Dmms.reingestion.pattern=${pattern} \
+-Dmms.reingestion.pattern=0 \
 -Dmms.reingestion.located=false \
 -Dmms.reingestion.overwrite=true
 
