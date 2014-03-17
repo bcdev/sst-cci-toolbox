@@ -164,9 +164,7 @@ public class MmdTool extends BasicTool {
 
         // group variables by sensors
         Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
-        final Set<String> keys = sensorMap.keySet();
-        final String[] sensorNames = keys.toArray(new String[keys.size()]);
-        Arrays.sort(sensorNames);
+        final String[] sensorNames = createOrderedSensorNameArray(sensorMap);
 
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         DataFile previousDataFile = null;
@@ -323,6 +321,13 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
+    }
+
+    static String[] createOrderedSensorNameArray(Map<String, List<Variable>> sensorMap) {
+        final Set<String> keys = sensorMap.keySet();
+        final String[] sensorNames = keys.toArray(new String[keys.size()]);
+        Arrays.sort(sensorNames);
+        return sensorNames;
     }
 
     private Map<Integer, Integer> createInvertedIndexOfMatchups() {

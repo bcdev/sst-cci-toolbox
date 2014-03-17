@@ -12,6 +12,7 @@ import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
+import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
@@ -214,6 +215,22 @@ public class MmdToolTest {
         assertEquals(2, variableList.size());
         assertEquals("Heike", variableList.get(0).getName());
         assertEquals("Carmen", variableList.get(1).getName());
+    }
+
+    @Test
+    public void testCreateOrderedSensorNameArray(){
+        final HashMap<String, List<Variable>> sensorMap = new HashMap<>();
+        sensorMap.put("Zenzi", null);
+        sensorMap.put("Franz", null);
+        sensorMap.put("Kevin", null);
+        sensorMap.put("Walpurga", null);
+
+        final String[] nameArray = MmdTool.createOrderedSensorNameArray(sensorMap);
+        assertEquals(4, nameArray.length);
+        assertEquals("Franz", nameArray[0]);
+        assertEquals("Kevin", nameArray[1]);
+        assertEquals("Walpurga", nameArray[2]);
+        assertEquals("Zenzi", nameArray[3]);
     }
 
     private String toPath(String... pathComponents) {
