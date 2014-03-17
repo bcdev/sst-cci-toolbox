@@ -168,12 +168,12 @@ for year in years:
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            continue
             # 9. Ingest sensor NWP data into database
             pm.execute('reingestion-start.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
+            continue
             # 10. Ingest sensor sub-scene ARC results into database
             pm.execute('reingestion-start.sh',
                        ['/arc/' + sensor + '/' + year + '/' + month],
