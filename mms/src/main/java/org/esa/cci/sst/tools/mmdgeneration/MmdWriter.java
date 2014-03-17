@@ -3,6 +3,8 @@ package org.esa.cci.sst.tools.mmdgeneration;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.IoUtil;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
@@ -45,6 +47,11 @@ class MmdWriter {
         return netcdfFile.getVariables();
     }
 
+
+    void write(Variable variable, int[] origin, Array array) throws IOException, InvalidRangeException {
+        fileWriter.write(variable, origin, array);
+    }
+
     NetcdfFileWriter getFileWriter() {
         return fileWriter;  // @todo 2 tb/tb remove when code is migrated completely tb 2014-03-12
     }
@@ -77,4 +84,5 @@ class MmdWriter {
             fileWriter.addDimension(null, dimensionName, dimensionSize);
         }
     }
+
 }

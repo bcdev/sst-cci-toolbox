@@ -160,18 +160,14 @@ public class MmdTool extends BasicTool {
      * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
      */
     void writeMmdShuffled(MmdWriter mmdWriter, Map<Integer, Integer> recordOfMatchup) {
-
-        final NetcdfFileWriter mmd = mmdWriter.getFileWriter();
         final List<Variable> mmdVariables = mmdWriter.getVariables();
 
-        final Configuration config = getConfig();
-        final String condition = getCondition(config);
-        final int pattern = getPattern(config);
         // group variables by sensors
         Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
         final Set<String> keys = sensorMap.keySet();
         final String[] sensorNames = keys.toArray(new String[keys.size()]);
         Arrays.sort(sensorNames);
+
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         DataFile previousDataFile = null;
         for (String sensorName : sensorNames) {
@@ -246,6 +242,10 @@ public class MmdTool extends BasicTool {
                         "order by f.path, r.time, r.id";
 
             }
+
+            final Configuration config = getConfig();
+            final String condition = getCondition(config);
+            final int pattern = getPattern(config);
             if (condition != null) {
                 if (pattern != 0) {
                     queryString = queryString.replaceAll("where r.time",
@@ -300,10 +300,10 @@ public class MmdTool extends BasicTool {
                                     .targetVariable(variable)
                                     .dimensionConfiguration(dimensionConfiguration)
                                     .build();
-                            writeImplicitColumn(mmd, variable, targetRecordNo, targetColumn, context);
+                            writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
                         } else {
                             if (observation != null) {
-                                writeColumn(mmd, variable, targetRecordNo, targetColumn, sourceColumn, observation,
+                                writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn, observation,
                                         referenceObservation);
                             }
                         }
@@ -396,7 +396,7 @@ public class MmdTool extends BasicTool {
         return false;
     }
 
-    private void writeImplicitColumn(NetcdfFileWriter mmd, Variable variable, int targetRecordNo, Item targetColumn,
+    private void writeImplicitColumn(MmdWriter mmdWriter, Variable variable, int targetRecordNo, Item targetColumn,
                                      Context context) {
         try {
             final Converter converter = columnRegistry.getConverter(targetColumn);
@@ -405,7 +405,7 @@ public class MmdTool extends BasicTool {
             if (targetArray != null) {
                 final int[] targetStart = new int[variable.getRank()];
                 targetStart[0] = targetRecordNo;
-                mmd.write(variable, targetStart, targetArray);
+                mmdWriter.write(variable, targetStart, targetArray);
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
@@ -419,7 +419,7 @@ public class MmdTool extends BasicTool {
     }
 
 
-    private void writeColumn(NetcdfFileWriter mmd, Variable variable, int i, Item targetColumn, Item sourceColumn,
+    private void writeColumn(MmdWriter mmdWriter, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
             final Reader reader = readerCache.getReader(observation.getDatafile(), true);
@@ -448,7 +448,7 @@ public class MmdTool extends BasicTool {
 
                 final int[] targetStart = new int[variable.getRank()];
                 targetStart[0] = i;
-                mmd.write(variable, targetStart, targetArray);
+                mmdWriter.write(variable, targetStart, targetArray);
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("observation {0}: {1}", observation.getId(), e.getMessage());

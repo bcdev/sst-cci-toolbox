@@ -38,7 +38,7 @@ import java.util.Map;
  */
 public class MmdUpdater extends BasicTool {
 
-    final List<Variable> variables = new ArrayList<Variable>(5);
+    final List<Variable> variables = new ArrayList<>(5);
     private MmdWriter mmdWriter;
 
     protected MmdUpdater() {
@@ -89,7 +89,7 @@ public class MmdUpdater extends BasicTool {
             }
             int noOfRecords = matchupIds.getShape()[0];
             final Array matchupId = matchupIds.read(new int[]{0}, matchupIds.getShape());
-            final HashMap<Integer, Integer> recordOfMatchupMap = new HashMap<Integer, Integer>();
+            final HashMap<Integer, Integer> recordOfMatchupMap = new HashMap<>();
             for (int recordNo = 0; recordNo < noOfRecords; ++recordNo) {
                 int matchupIdx = matchupId.getInt(recordNo);
                 recordOfMatchupMap.put(matchupIdx, recordNo);

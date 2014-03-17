@@ -10,6 +10,8 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.*;
 
 import java.io.IOException;
@@ -148,6 +150,18 @@ public class MmdWriterTest {
         verifyNoMoreInteractions(netcdfFile);
 
         verify(fileWriter, times(1)).getNetcdfFile();
+        verifyNoMoreInteractions(fileWriter);
+    }
+
+    @Test
+    public void testWrite() throws IOException, InvalidRangeException {
+        final Variable variable = mock(Variable.class);
+        final Array array = mock(Array.class);
+        final int[] origin = {5, 7};
+
+        mmdWriter.write(variable, origin, array);
+
+        verify(fileWriter, times(1)).write(variable, origin, array);
         verifyNoMoreInteractions(fileWriter);
     }
 }
