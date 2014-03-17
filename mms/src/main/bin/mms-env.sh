@@ -30,7 +30,6 @@ read_task_jobs() {
                 fi
             fi
         done
-        test ${jobs} || jobs=none
     fi
 }
 
@@ -66,7 +65,7 @@ wait_for_task_jobs_completion() {
                     then
                         echo "tail -n10 ${log}"
                         tail -n10 ${log}
-                        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed"
+                        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed (reason: see ${log})"
                         exit 1
                     else
                         echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
@@ -102,5 +101,8 @@ submit_job() {
     then
         jobs=`echo ${line} | awk '{ print substr($2,2,length($2)-2) }'`
         echo "${MMS_LOG}/${jobname}.out/${jobs}" > ${MMS_TASKS}/${jobname}.tasks
+    else
+        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed (reason: was not submitted)"
+        exit 1
     fi
 }
