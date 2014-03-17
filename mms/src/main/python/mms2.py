@@ -178,7 +178,6 @@ for year in years:
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
-            continue
             # 11. Produce final single-sensor MMD file
             pm.execute('mmd-start.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
