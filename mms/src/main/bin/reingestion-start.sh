@@ -17,10 +17,8 @@ echo "`date -u +%Y%m%d-%H%M%S` submitting job '${jobname}' for usecase ${usecase
 
 read_task_jobs ${jobname}
 
-echo jobs: ${jobs}
-
 if [ -z ${jobs} ]; then
-    echo "submit_job ${jobname} ${command}"
+    submit_job ${jobname} ${command}
 fi
 
-#wait_for_task_jobs_completion ${jobname}
+wait_for_task_jobs_completion ${jobname}
