@@ -19,8 +19,8 @@ read_task_jobs ${jobname}
 
 echo jobs: ${jobs}
 
-#if [ -z ${jobs} ]; then
-#    submit_job ${jobname} ${command}
-#fi
+if [ -z ${jobs} ]; then
+    echo "submit_job ${jobname} ${command}"
+fi
 
 #wait_for_task_jobs_completion ${jobname}
