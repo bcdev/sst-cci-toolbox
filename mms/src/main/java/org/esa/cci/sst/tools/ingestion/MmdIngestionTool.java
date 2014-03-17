@@ -78,6 +78,11 @@ public class MmdIngestionTool extends BasicTool {
         final File archiveRoot = new File(archiveRootPath);
         final String mmdFileLocation = config.getStringValue(Configuration.KEY_MMS_REINGESTION_SOURCE);
         final File mmdFile = new File(mmdFileLocation);
+        if (!mmdFile.exists()) {
+            getLogger().warning("missing source file: " + mmdFile);
+            getLogger().warning("reingestion skipped");
+            return;
+        }
         if (!mmdFile.isAbsolute()) {
             final String message = MessageFormat.format("Property key {0}: absolute path expected.",
                                                         Configuration.KEY_MMS_REINGESTION_SOURCE);
@@ -93,11 +98,6 @@ public class MmdIngestionTool extends BasicTool {
             final String message = MessageFormat.format("Property key {0}: absolute path to file expected.",
                                                         Configuration.KEY_MMS_REINGESTION_SOURCE);
             throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-        if (!mmdFile.exists()) {
-            getLogger().warning("missing source file: " + mmdFile);
-            getLogger().warning("reingestion skipped");
-            return;
         }
         final String mmdFileRelativePath = mmdFileLocation.substring(archiveRootPath.length() + 1);
 
