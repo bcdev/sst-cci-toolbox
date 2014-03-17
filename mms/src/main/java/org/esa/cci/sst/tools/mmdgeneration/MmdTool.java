@@ -169,77 +169,7 @@ public class MmdTool extends BasicTool {
         // loop over sensors, matchups ordered by sensor files, variables of sensor
         DataFile previousDataFile = null;
         for (String sensorName : sensorNames) {
-            String queryString;
-            if ("history".equals(sensorName)) {
-                // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
-                queryString = "select u.id from (" +
-                        // matchup (here coincidence) with history observation uses history file
-                        "(select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and c.matchup_id = r.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 " +
-                        "and o.datafile_id = f.id " +
-                        ") union (" +
-                        // matchup without history uses file of reference observation
-                        "select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and f.id = r.datafile_id " +
-                        "and not exists ( select o.id from mm_coincidence c, mm_observation o " +
-                        "where c.matchup_id = m.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 ) " +
-                        ") " +
-                        "order by p, t, id) as u";
-
-            } else if ("atsr_md".equals(sensorName) || "metop".equals(sensorName) || "avhrr_md".equals(sensorName)) {
-                // second part of union introduced to access data for metop variables via refobs observation if metop is primary
-                queryString = "select u.id from (" +
-                        // matchup with sensor as related observation uses related observation file
-                        "(select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and c.matchup_id = r.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 " +
-                        "and o.datafile_id = f.id " +
-                        ") union (" +
-                        // matchup with sensor as reference uses refobs file
-                        "select r.id id, f.path p, r.time t " +
-                        "from mm_matchup m, mm_observation r, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and r.sensor = ?1 " +
-                        "and m.id = r.id " +
-                        "and f.id = r.datafile_id) " +
-                        "order by p, t, id) as u";
-
-            } else if (!"Implicit".equals(sensorName)) {
-                // satellite observations use related observation file
-                queryString = "select r.id " +
-                        "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and c.matchup_id = r.id " +
-                        "and c.observation_id = o.id " +
-                        "and o.sensor = ?1 " +
-                        "and o.datafile_id = f.id " +
-                        "order by f.path, r.time, r.id";
-
-            } else {
-                // implicit rules use reference observation file
-                queryString = "select r.id " +
-                        "from mm_matchup m, mm_observation r, mm_datafile f " +
-                        "where r.time >= ?2 and r.time < ?3 " +
-                        "and m.id = r.id " +
-                        "and f.id = r.datafile_id " +
-                        "order by f.path, r.time, r.id";
-
-            }
+            String queryString = getSelectMatchupSql(sensorName);
 
             final Configuration config = getConfig();
             final String condition = getCondition(config);
@@ -321,6 +251,82 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
+    }
+
+    // package access for testing only tb 2014-03-17
+    static String getSelectMatchupSql(String sensorName) {
+        String queryString;
+        if ("history".equals(sensorName)) {
+            // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
+            queryString = "select u.id from (" +
+                    // matchup (here coincidence) with history observation uses history file
+                    "(select r.id id, f.path p, r.time t " +
+                    "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                    "where r.time >= ?2 and r.time < ?3 " +
+                    "and m.id = r.id " +
+                    "and c.matchup_id = r.id " +
+                    "and c.observation_id = o.id " +
+                    "and o.sensor = ?1 " +
+                    "and o.datafile_id = f.id " +
+                    ") union (" +
+                    // matchup without history uses file of reference observation
+                    "select r.id id, f.path p, r.time t " +
+                    "from mm_matchup m, mm_observation r, mm_datafile f " +
+                    "where r.time >= ?2 and r.time < ?3 " +
+                    "and m.id = r.id " +
+                    "and f.id = r.datafile_id " +
+                    "and not exists ( select o.id from mm_coincidence c, mm_observation o " +
+                    "where c.matchup_id = m.id " +
+                    "and c.observation_id = o.id " +
+                    "and o.sensor = ?1 ) " +
+                    ") " +
+                    "order by p, t, id) as u";
+
+        } else if ("atsr_md".equals(sensorName) || "metop".equals(sensorName) || "avhrr_md".equals(sensorName)) {
+            // second part of union introduced to access data for metop variables via refobs observation if metop is primary
+            queryString = "select u.id from (" +
+                    // matchup with sensor as related observation uses related observation file
+                    "(select r.id id, f.path p, r.time t " +
+                    "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                    "where r.time >= ?2 and r.time < ?3 " +
+                    "and m.id = r.id " +
+                    "and c.matchup_id = r.id " +
+                    "and c.observation_id = o.id " +
+                    "and o.sensor = ?1 " +
+                    "and o.datafile_id = f.id " +
+                    ") union (" +
+                    // matchup with sensor as reference uses refobs file
+                    "select r.id id, f.path p, r.time t " +
+                    "from mm_matchup m, mm_observation r, mm_datafile f " +
+                    "where r.time >= ?2 and r.time < ?3 " +
+                    "and r.sensor = ?1 " +
+                    "and m.id = r.id " +
+                    "and f.id = r.datafile_id) " +
+                    "order by p, t, id) as u";
+
+        } else if (!"Implicit".equals(sensorName)) {
+            // satellite observations use related observation file
+            queryString = "select r.id " +
+                    "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
+                    "where r.time >= ?2 and r.time < ?3 " +
+                    "and m.id = r.id " +
+                    "and c.matchup_id = r.id " +
+                    "and c.observation_id = o.id " +
+                    "and o.sensor = ?1 " +
+                    "and o.datafile_id = f.id " +
+                    "order by f.path, r.time, r.id";
+
+        } else {
+            // implicit rules use reference observation file
+            queryString = "select r.id " +
+                    "from mm_matchup m, mm_observation r, mm_datafile f " +
+                    "where r.time >= ?2 and r.time < ?3 " +
+                    "and m.id = r.id " +
+                    "and f.id = r.datafile_id " +
+                    "order by f.path, r.time, r.id";
+
+        }
+        return queryString;
     }
 
     static String[] createOrderedSensorNameArray(Map<String, List<Variable>> sensorMap) {

@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.*;
 
@@ -200,7 +201,7 @@ public class MmdToolTest {
     }
 
     @Test
-    public void testExtractVariableList()  {
+    public void testExtractVariableList() {
         final ColumnRegistry columnRegistry = new ColumnRegistry();
         columnRegistry.register(new ColumnBuilder().name("Heike").dimensions("a b c").rank(3).build());
         columnRegistry.register(new ColumnBuilder().name("Klaus").dimensions("left right").rank(2).build());
@@ -218,7 +219,7 @@ public class MmdToolTest {
     }
 
     @Test
-    public void testCreateOrderedSensorNameArray(){
+    public void testCreateOrderedSensorNameArray() {
         final HashMap<String, List<Variable>> sensorMap = new HashMap<>();
         sensorMap.put("Zenzi", null);
         sensorMap.put("Franz", null);
@@ -231,6 +232,38 @@ public class MmdToolTest {
         assertEquals("Kevin", nameArray[1]);
         assertEquals("Walpurga", nameArray[2]);
         assertEquals("Zenzi", nameArray[3]);
+    }
+
+    @Test
+    public void testGetSelectMatchupSql_history() {
+        final String matchupSql = MmdTool.getSelectMatchupSql("history");
+        assertThat(matchupSql, containsString("and not exists ( select o.id from mm_coincidence c, mm_observation o where c.matchup_id = m.id and c.observation_id = o.id and o.sensor = ?1 ) "));
+    }
+
+    @Test
+    public void testGetSelectMatchupSql_atsrOrMetopOrAvhrr() {
+        final String atsrSql = MmdTool.getSelectMatchupSql("atsr_md");
+        assertThat(atsrSql, containsString("from mm_matchup m, mm_observation r, mm_datafile f where r.time >= ?2 and r.time < ?3 and r.sensor = ?1 and m.id = r.id"));
+
+        final String metopSql = MmdTool.getSelectMatchupSql("metop");
+        assertEquals(atsrSql, metopSql);
+
+        final String avhrrSql = MmdTool.getSelectMatchupSql("avhrr_md");
+        assertEquals(avhrrSql, metopSql);
+    }
+
+    @Test
+    public void testGetSelectMatchupSql_implicit() {
+        final String implicitSql = MmdTool.getSelectMatchupSql("Implicit");
+        assertEquals("select r.id from mm_matchup m, mm_observation r, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and f.id = r.datafile_id order by f.path, r.time, r.id",
+                implicitSql);
+    }
+
+    @Test
+    public void testGetSelectMatchupSql_notImplicit() {
+        final String anyOtherSql = MmdTool.getSelectMatchupSql("Any Other Sensor");
+        assertEquals("select r.id from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and c.matchup_id = r.id and c.observation_id = o.id and o.sensor = ?1 and o.datafile_id = f.id order by f.path, r.time, r.id",
+                anyOtherSql);
     }
 
     private String toPath(String... pathComponents) {
