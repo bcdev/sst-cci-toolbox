@@ -45,8 +45,7 @@ class InsituTime extends AbstractImplicitRule {
     int[] historyShape;
 
     @Override
-    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws
-            RuleException {
+    protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder
                 .type(DATA_TYPE)
                 .fillValue(FILL_VALUE)

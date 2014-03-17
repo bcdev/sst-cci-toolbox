@@ -58,7 +58,7 @@ class InsituLongitude extends AbstractImplicitRule {
                         .shape(historyShape)
                         .referenceObservation(referenceObservation)
                         .build();
-                return observationReader.read("insitu.longitude", extractDefinition);
+                return observationReader.read("insitu.lon", extractDefinition);
             } else {
                 final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
                 final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
