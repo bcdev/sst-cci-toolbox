@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # mapplot-run.sh 2003 01 dum_atsr.3 lonlat mms2
 # mapplot-run.sh 2003 01 dum_atsr.3 timlat mms2
 # mms/archive/mms2/plt/dum_atsr.3/2003/atsr.3-lonlat-2003-01.png

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # sampling-run.sh 2003 01 atsr.3 300000 0 mms2
 # mms/archive/atsr.3/v2.1/2003/01/17/ATS_TOA_1P...N1
 # mms/archive/mms2/smp/atsr.3/2003/atsr.3-smp-2003-01-b.txt
