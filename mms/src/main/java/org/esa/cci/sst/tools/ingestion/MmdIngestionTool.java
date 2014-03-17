@@ -116,6 +116,7 @@ public class MmdIngestionTool extends BasicTool {
             }
             getPersistenceManager().commit();
 
+            getPersistenceManager().transaction();
             if (overwrite) {
                 dataFile = storage.getDatafile(mmdFileRelativePath);
                 if (dataFile != null) {
@@ -123,6 +124,7 @@ public class MmdIngestionTool extends BasicTool {
                 }
                 getPersistenceManager().commit();
             }
+
             boolean datafileNotPersisted = dataFile == null;
             if (datafileNotPersisted) {
                 createDataFile(sensor, mmdFileRelativePath);
