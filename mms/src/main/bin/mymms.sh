@@ -15,7 +15,7 @@ export LD_LIBRARY_PATH=/group_workspaces/cems/esacci_sst/mms/software/lib:/group
 export MMS_HOME=${mms.home}
 export MMS_ARCHIVE=${mms.archive.root}
 
-export MMS_INST=/group_workspaces/cems/esacci_sst/mms/inst
+export MMS_INST=`pwd`
 export MMS_TASKS=${MMS_INST}/tasks
 export MMS_LOG=${MMS_INST}/log
 export TMPDIR=${MMS_INST}/tmp
