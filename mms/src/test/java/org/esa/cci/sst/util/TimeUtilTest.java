@@ -91,6 +91,21 @@ public class TimeUtilTest {
     }
 
     @Test
+    public void testSecondsSince1978ToDate() {
+        final Date date = TimeUtil.secondsSince1978ToDate(791041746);
+
+        final GregorianCalendar utcCalendar = createUtcCalendar();
+        utcCalendar.setTime(date);
+
+        assertEquals(2003, utcCalendar.get(Calendar.YEAR));
+        assertEquals(0, utcCalendar.get(Calendar.MONTH));
+        assertEquals(25, utcCalendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(13, utcCalendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(49, utcCalendar.get(Calendar.MINUTE));
+        assertEquals(6, utcCalendar.get(Calendar.SECOND));
+    }
+
+    @Test
     public void testParseInsituFileNameDateFormat() throws ParseException {
         Date date = TimeUtil.parseInsituFileNameDateFormat("20060321");
         assertEquals(1142899200000L, date.getTime());
