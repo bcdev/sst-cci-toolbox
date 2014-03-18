@@ -64,7 +64,7 @@ public class MmdWriterTest {
         verify(fileWriter, times(1)).addDimension(null, "left", 67);
         verify(fileWriter, times(1)).addDimension(null, "right", 108);
 
-        verify(fileWriter, times(1)).addGroupAttribute(null, new Attribute("title", "SST CCI multi-sensor match-up dataset (MMD) template"));
+        verify(fileWriter, times(1)).addGroupAttribute(null, new Attribute("title", "SST CCI multi-sensor match-up dataset (MMD)"));
         verify(fileWriter, times(1)).addGroupAttribute(null, new Attribute("institution", "Brockmann Consult"));
         verify(fileWriter, times(1)).addGroupAttribute(null, new Attribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)"));
         verify(fileWriter, times(1)).addGroupAttribute(null, new Attribute("total_number_of_matchups", matchupCount));

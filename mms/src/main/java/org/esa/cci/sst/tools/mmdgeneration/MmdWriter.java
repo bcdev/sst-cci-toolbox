@@ -68,7 +68,7 @@ class MmdWriter {
     }
 
     private void addGlobalAttributes(int matchupCount) {
-        fileWriter.addGroupAttribute(null, new Attribute("title", "SST CCI multi-sensor match-up dataset (MMD) template"));
+        fileWriter.addGroupAttribute(null, new Attribute("title", "SST CCI multi-sensor match-up dataset (MMD)"));
         fileWriter.addGroupAttribute(null, new Attribute("institution", "Brockmann Consult"));
         fileWriter.addGroupAttribute(null, new Attribute("contact", "Ralf Quast (ralf.quast@brockmann-consult.de)"));
         fileWriter.addGroupAttribute(null, new Attribute("creation_date", Calendar.getInstance().getTime().toString()));
