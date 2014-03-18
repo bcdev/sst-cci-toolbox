@@ -42,7 +42,6 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
-import javax.persistence.Query;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -167,35 +166,22 @@ public class MmdTool extends BasicTool {
         final String[] sensorNames = createOrderedSensorNameArray(sensorMap);
 
         // loop over sensors, matchups ordered by sensor files, variables of sensor
+        final PersistenceManager persistenceManager = getPersistenceManager();
+        final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
         DataFile previousDataFile = null;
+        final Configuration config = getConfig();
+
         for (String sensorName : sensorNames) {
-            String queryString = getSelectMatchupSql(sensorName);
+            final List<Matchup> matchups = getMatchupsFromDb(matchupStorage, config, sensorName);
 
-            final Configuration config = getConfig();
-            final String condition = getCondition(config);
-            final int pattern = getPattern(config);
-            queryString = applyPatternAndCondition(queryString, condition, pattern);
-
-            getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
-            final Query query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
-
-            query.setParameter(1, sensorName);
-            query.setParameter(2, getStartTime(config));
-            query.setParameter(3, getStopTime(config));
-            if (pattern != 0) {
-                query.setParameter(4, pattern);
-            }
-            @SuppressWarnings("unchecked")
-            List<Matchup> matchups = query.getResultList();
-            getLogger().info(String.format("%d matchups retrieved for %s", matchups.size(), sensorName));
             for (final Matchup matchup : matchups) {
                 try {
                     final Integer recordNo = recordOfMatchup.get(matchup.getId());
                     if (recordNo == null) {
-                        getLogger().warning(
-                                String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
+                        getLogger().warning(String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
                         continue;
                     }
+
                     final int targetRecordNo = recordNo;
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup);
@@ -229,12 +215,12 @@ public class MmdTool extends BasicTool {
                             }
                         }
                     }
-                    getPersistenceManager().detach(matchup);
+                    persistenceManager.detach(matchup);
                     if (observation != null) {
-                        getPersistenceManager().detach(observation);
+                        persistenceManager.detach(observation);
                     }
                     if (referenceObservation != null) {
-                        getPersistenceManager().detach(referenceObservation);
+                        persistenceManager.detach(referenceObservation);
                     }
                 } catch (IOException e) {
                     final String message = MessageFormat.format("matchup {0}: {1}",
@@ -247,100 +233,28 @@ public class MmdTool extends BasicTool {
     }
 
     // package access for testing only tb 2014-03-18
-    static String applyPatternAndCondition(String queryString, String condition, int pattern) {
-        if (condition != null) {
-            if (pattern != 0) {
-                queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and " + condition + " and r.time");
-            } else {
-                queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
-            }
-        } else if (pattern != 0) {
-            queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and r.time");
-        }
-        return queryString;
-    }
-
-    // package access for testing only tb 2014-03-17
-    static String getSelectMatchupSql(String sensorName) {
-        String queryString;
-        if ("history".equals(sensorName)) {
-            // second part of union returns matchups that do not have a history observation and shall read in-situ from context MD
-            queryString = "select u.id from (" +
-                    // matchup (here coincidence) with history observation uses history file
-                    "(select r.id id, f.path p, r.time t " +
-                    "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                    "where r.time >= ?2 and r.time < ?3 " +
-                    "and m.id = r.id " +
-                    "and c.matchup_id = r.id " +
-                    "and c.observation_id = o.id " +
-                    "and o.sensor = ?1 " +
-                    "and o.datafile_id = f.id " +
-                    ") union (" +
-                    // matchup without history uses file of reference observation
-                    "select r.id id, f.path p, r.time t " +
-                    "from mm_matchup m, mm_observation r, mm_datafile f " +
-                    "where r.time >= ?2 and r.time < ?3 " +
-                    "and m.id = r.id " +
-                    "and f.id = r.datafile_id " +
-                    "and not exists ( select o.id from mm_coincidence c, mm_observation o " +
-                    "where c.matchup_id = m.id " +
-                    "and c.observation_id = o.id " +
-                    "and o.sensor = ?1 ) " +
-                    ") " +
-                    "order by p, t, id) as u";
-
-        } else if ("atsr_md".equals(sensorName) || "metop".equals(sensorName) || "avhrr_md".equals(sensorName)) {
-            // second part of union introduced to access data for metop variables via refobs observation if metop is primary
-            queryString = "select u.id from (" +
-                    // matchup with sensor as related observation uses related observation file
-                    "(select r.id id, f.path p, r.time t " +
-                    "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                    "where r.time >= ?2 and r.time < ?3 " +
-                    "and m.id = r.id " +
-                    "and c.matchup_id = r.id " +
-                    "and c.observation_id = o.id " +
-                    "and o.sensor = ?1 " +
-                    "and o.datafile_id = f.id " +
-                    ") union (" +
-                    // matchup with sensor as reference uses refobs file
-                    "select r.id id, f.path p, r.time t " +
-                    "from mm_matchup m, mm_observation r, mm_datafile f " +
-                    "where r.time >= ?2 and r.time < ?3 " +
-                    "and r.sensor = ?1 " +
-                    "and m.id = r.id " +
-                    "and f.id = r.datafile_id) " +
-                    "order by p, t, id) as u";
-
-        } else if (!"Implicit".equals(sensorName)) {
-            // satellite observations use related observation file
-            queryString = "select r.id " +
-                    "from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f " +
-                    "where r.time >= ?2 and r.time < ?3 " +
-                    "and m.id = r.id " +
-                    "and c.matchup_id = r.id " +
-                    "and c.observation_id = o.id " +
-                    "and o.sensor = ?1 " +
-                    "and o.datafile_id = f.id " +
-                    "order by f.path, r.time, r.id";
-
-        } else {
-            // implicit rules use reference observation file
-            queryString = "select r.id " +
-                    "from mm_matchup m, mm_observation r, mm_datafile f " +
-                    "where r.time >= ?2 and r.time < ?3 " +
-                    "and m.id = r.id " +
-                    "and f.id = r.datafile_id " +
-                    "order by f.path, r.time, r.id";
-
-        }
-        return queryString;
-    }
-
     static String[] createOrderedSensorNameArray(Map<String, List<Variable>> sensorMap) {
         final Set<String> keys = sensorMap.keySet();
         final String[] sensorNames = keys.toArray(new String[keys.size()]);
         Arrays.sort(sensorNames);
         return sensorNames;
+    }
+
+
+    private List<Matchup> getMatchupsFromDb(MatchupStorage matchupStorage, Configuration config, String sensorName) {
+        getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
+
+        final MatchupQueryParameter parameter = new MatchupQueryParameter();
+        parameter.setSensorName(sensorName);
+        parameter.setStartDate(getStartTime(config));
+        parameter.setStopDate(getStopTime(config));
+        parameter.setCondition(getCondition(config));
+        parameter.setPattern(getPattern(config));
+
+        final List<Matchup> matchups = matchupStorage.getForMmd(parameter);
+
+        getLogger().info(String.format("%d matchups retrieved for %s", matchups.size(), sensorName));
+        return matchups;
     }
 
     private Map<Integer, Integer> createInvertedIndexOfMatchups() {

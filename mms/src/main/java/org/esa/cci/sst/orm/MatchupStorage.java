@@ -11,5 +11,7 @@ public interface MatchupStorage {
 
     List<Matchup> get(MatchupQueryParameter parameter);
 
+    List<Matchup> getForMmd(MatchupQueryParameter parameter);
+
     Matchup get(int matchupId);
 }

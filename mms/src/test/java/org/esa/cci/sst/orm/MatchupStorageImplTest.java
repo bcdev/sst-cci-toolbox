@@ -11,11 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class MatchupStorageImplTest {
@@ -149,10 +146,7 @@ public class MatchupStorageImplTest {
         final String sql = "select m.id from mm_matchup m, mm_observation r where r.time >= ?1 and r.time < ?2 and r.id = m.refobs_id order by r.time, r.id";
         final Date startDate = createDate("2010-06-02T00:00:00Z");
         final Date stopDate = createDate("2010-06-05T00:00:00Z");
-        final List<Matchup> resultList = new ArrayList<>();
-        final Matchup matchup = new Matchup();
-        matchup.setId(12);
-        resultList.add(matchup);
+        final List<Matchup> resultList = createOneMatchupListWithId(12);
 
         final MatchupQueryParameter parameter = new MatchupQueryParameter();
         parameter.setStartDate(startDate);
@@ -181,10 +175,7 @@ public class MatchupStorageImplTest {
         final Date startDate = createDate("2010-06-02T00:00:00Z");
         final Date stopDate = createDate("2010-06-05T00:00:00Z");
         final String condition = "r.referenceflag = 5";
-        final List<Matchup> resultList = new ArrayList<>();
-        final Matchup matchup = new Matchup();
-        matchup.setId(13);
-        resultList.add(matchup);
+        final List<Matchup> resultList = createOneMatchupListWithId(13);
 
         final MatchupQueryParameter parameter = new MatchupQueryParameter();
         parameter.setStartDate(startDate);
@@ -215,10 +206,7 @@ public class MatchupStorageImplTest {
         final Date stopDate = createDate("2010-06-05T00:00:00Z");
         final int pattern = 7765;
 
-        final List<Matchup> resultList = new ArrayList<>();
-        final Matchup matchup = new Matchup();
-        matchup.setId(14);
-        resultList.add(matchup);
+        final List<Matchup> resultList = createOneMatchupListWithId(14);
 
         final MatchupQueryParameter parameter = new MatchupQueryParameter();
         parameter.setStartDate(startDate);
@@ -251,10 +239,7 @@ public class MatchupStorageImplTest {
         final int pattern = 7765;
         final String condition = "r.referenceflag = 6";
 
-        final List<Matchup> resultList = new ArrayList<>();
-        final Matchup matchup = new Matchup();
-        matchup.setId(15);
-        resultList.add(matchup);
+        final List<Matchup> resultList = createOneMatchupListWithId(15);
 
         final MatchupQueryParameter parameter = new MatchupQueryParameter();
         parameter.setStartDate(startDate);
@@ -280,6 +265,136 @@ public class MatchupStorageImplTest {
         verifyNoMoreInteractions(query);
     }
 
+    @Test
+    public void testGetSelectMatchupSql_history() {
+        final String matchupSql = MatchupStorageImpl.getSelectMatchupSql("history");
+        assertThat(matchupSql, containsString("and not exists ( select o.id from mm_coincidence c, mm_observation o where c.matchup_id = m.id and c.observation_id = o.id and o.sensor = ?1 ) "));
+    }
+
+    @Test
+    public void testGetSelectMatchupSql_atsrOrMetopOrAvhrr() {
+        final String atsrSql = MatchupStorageImpl.getSelectMatchupSql("atsr_md");
+        assertThat(atsrSql, containsString("from mm_matchup m, mm_observation r, mm_datafile f where r.time >= ?2 and r.time < ?3 and r.sensor = ?1 and m.id = r.id"));
+
+        final String metopSql = MatchupStorageImpl.getSelectMatchupSql("metop");
+        assertEquals(atsrSql, metopSql);
+
+        final String avhrrSql = MatchupStorageImpl.getSelectMatchupSql("avhrr_md");
+        assertEquals(avhrrSql, metopSql);
+    }
+
+    @Test
+    public void testGetSelectMatchupSql_implicit() {
+        final String implicitSql = MatchupStorageImpl.getSelectMatchupSql("Implicit");
+        assertEquals("select r.id from mm_matchup m, mm_observation r, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and f.id = r.datafile_id order by f.path, r.time, r.id",
+                implicitSql);
+    }
+
+    @Test
+    public void testGetSelectMatchupSql_notImplicit() {
+        final String anyOtherSql = MatchupStorageImpl.getSelectMatchupSql("Any Other Sensor");
+        assertEquals("select r.id from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and c.matchup_id = r.id and c.observation_id = o.id and o.sensor = ?1 and o.datafile_id = f.id order by f.path, r.time, r.id",
+                anyOtherSql);
+    }
+
+    @Test
+    public void testApplyPatternAndCondition_patternAndCondition() {
+        final String sql = "bla bla bla where r.time = yesterday";
+        final String condition = "absolutely nonsense";
+
+        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, condition, 987);
+        assertEquals("bla bla bla where pattern & ?4 = ?4 and absolutely nonsense and r.time = yesterday", sqlApplied);
+    }
+
+    @Test
+    public void testApplyPatternAndCondition_onlyCondition() {
+        final String sql = "yada yada where r.time = christmas";
+        final String condition = "want_gift = TRUE";
+
+        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, condition, 0);
+        assertEquals("yada yada where want_gift = TRUE and r.time = christmas", sqlApplied);
+    }
+
+    @Test
+    public void testApplyPatternAndCondition_onlyPattern() {
+        final String sql = "select something cool where r.time = easter_last_year";
+
+        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, null, 564);
+        assertEquals("select something cool where pattern & ?4 = ?4 and r.time = easter_last_year", sqlApplied);
+    }
+
+    @Test
+    public void testApplyPatternAndCondition_neitherPatternNorCondition() {
+        final String sql = "select beer where r.time = this_evening";
+
+        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, null, 0);
+        assertEquals(sql, sqlApplied);
+    }
+
+    @Test
+    public void testGetForMmd_history_noPatternNoCondition() throws ParseException {
+        final String sql = "select u.id from ((select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and c.matchup_id = r.id and c.observation_id = o.id and o.sensor = ?1 and o.datafile_id = f.id ) union (select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and f.id = r.datafile_id and not exists ( select o.id from mm_coincidence c, mm_observation o where c.matchup_id = m.id and c.observation_id = o.id and o.sensor = ?1 ) ) order by p, t, id) as u";
+        final String sensorName = "history";
+        final Date startDate = createDate("2011-07-03T00:00:00Z");
+        final Date stopDate = createDate("2011-07-06T00:00:00Z");
+
+        final List<Matchup> resultList = createOneMatchupListWithId(16);
+
+        final MatchupQueryParameter parameter = new MatchupQueryParameter();
+        parameter.setSensorName(sensorName);
+        parameter.setStartDate(startDate);
+        parameter.setStopDate(stopDate);
+
+        when(query.getResultList()).thenReturn(resultList);
+        when(persistenceManager.createNativeQuery(sql, Matchup.class)).thenReturn(query);
+
+        final List<Matchup> forMmd = matchupStorage.getForMmd(parameter);
+        assertEquals(1, forMmd.size());
+        assertEquals(16, forMmd.get(0).getId());
+
+        verify(persistenceManager, times(1)).createNativeQuery(sql, Matchup.class);
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(query, times(1)).setParameter(1, sensorName);
+        verify(query, times(1)).setParameter(2, startDate);
+        verify(query, times(1)).setParameter(3, stopDate);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testGetForMmd_atsr_patternNoCondition() throws ParseException {
+        final String sql = "select u.id from ((select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f where pattern & ?4 = ?4 and r.time >= ?2 and r.time < ?3 and m.id = r.id and c.matchup_id = r.id and c.observation_id = o.id and o.sensor = ?1 and o.datafile_id = f.id ) union (select r.id id, f.path p, r.time t from mm_matchup m, mm_observation r, mm_datafile f where pattern & ?4 = ?4 and r.time >= ?2 and r.time < ?3 and r.sensor = ?1 and m.id = r.id and f.id = r.datafile_id) order by p, t, id) as u";
+        final String sensorName = "atsr_md";
+        final Date startDate = createDate("2012-08-04T00:00:00Z");
+        final Date stopDate = createDate("2012-08-07T00:00:00Z");
+        final int pattern = 6672;
+
+        final List<Matchup> resultList = createOneMatchupListWithId(17);
+
+        final MatchupQueryParameter parameter = new MatchupQueryParameter();
+        parameter.setSensorName(sensorName);
+        parameter.setStartDate(startDate);
+        parameter.setStopDate(stopDate);
+        parameter.setPattern(pattern);
+
+        when(query.getResultList()).thenReturn(resultList);
+        when(persistenceManager.createNativeQuery(sql, Matchup.class)).thenReturn(query);
+
+        final List<Matchup> forMmd = matchupStorage.getForMmd(parameter);
+        assertEquals(1, forMmd.size());
+        assertEquals(17, forMmd.get(0).getId());
+
+        verify(persistenceManager, times(1)).createNativeQuery(sql, Matchup.class);
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(query, times(1)).setParameter(1, sensorName);
+        verify(query, times(1)).setParameter(2, startDate);
+        verify(query, times(1)).setParameter(3, stopDate);
+        verify(query, times(1)).setParameter(4, pattern);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
 
     @Test
     public void testGet_id() {
@@ -303,5 +418,13 @@ public class MatchupStorageImplTest {
 
     private Date createDate(String timeString) throws ParseException {
         return TimeUtil.parseCcsdsUtcFormat(timeString);
+    }
+
+    private List<Matchup> createOneMatchupListWithId(int id) {
+        final List<Matchup> resultList = new ArrayList<>();
+        final Matchup matchup = new Matchup();
+        matchup.setId(id);
+        resultList.add(matchup);
+        return resultList;
     }
 }

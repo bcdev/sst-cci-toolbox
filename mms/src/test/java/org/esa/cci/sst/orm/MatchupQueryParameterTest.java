@@ -47,4 +47,12 @@ public class MatchupQueryParameterTest {
         parameter.setPattern(pattern);
         assertEquals(pattern, parameter.getPattern());
     }
+
+    @Test
+    public void testSetGetSensorName() {
+        final String sensorName = "KoffeeMachine";
+
+        parameter.setSensorName(sensorName);
+        assertEquals(sensorName, parameter.getSensorName());
+    }
 }
