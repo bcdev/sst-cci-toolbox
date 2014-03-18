@@ -174,18 +174,11 @@ public class MmdTool extends BasicTool {
             final Configuration config = getConfig();
             final String condition = getCondition(config);
             final int pattern = getPattern(config);
-            if (condition != null) {
-                if (pattern != 0) {
-                    queryString = queryString.replaceAll("where r.time",
-                            "where pattern & ?4 = ?4 and " + condition + " and r.time");
-                } else {
-                    queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
-                }
-            } else if (pattern != 0) {
-                queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and r.time");
-            }
+            queryString = applyPatternAndCondition(queryString, condition, pattern);
+
             getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
             final Query query = getPersistenceManager().createNativeQuery(queryString, Matchup.class);
+
             query.setParameter(1, sensorName);
             query.setParameter(2, getStartTime(config));
             query.setParameter(3, getStopTime(config));
@@ -251,6 +244,20 @@ public class MmdTool extends BasicTool {
                 }
             }
         }
+    }
+
+    // package access for testing only tb 2014-03-18
+    static String applyPatternAndCondition(String queryString, String condition, int pattern) {
+        if (condition != null) {
+            if (pattern != 0) {
+                queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and " + condition + " and r.time");
+            } else {
+                queryString = queryString.replaceAll("where r.time", "where " + condition + " and r.time");
+            }
+        } else if (pattern != 0) {
+            queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and r.time");
+        }
+        return queryString;
     }
 
     // package access for testing only tb 2014-03-17
