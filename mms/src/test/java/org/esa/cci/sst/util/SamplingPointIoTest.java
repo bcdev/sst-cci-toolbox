@@ -63,7 +63,10 @@ public class SamplingPointIoTest {
         assertEquals(71, point.getReference2());
         assertEquals(17, point.getX());
         assertEquals(11, point.getY());
-        // @todo 1 tb/tb add assertions!
+        assertEquals(19, point.getInsituReference());
+        assertEquals(20, point.getReferenceTime());
+        assertEquals(21.0, point.getReferenceLat(), 1e-8);
+        assertEquals(22.0, point.getReferenceLon(), 1e-8);
     }
 
     @Test

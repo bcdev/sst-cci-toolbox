@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class SamplingPointTest {
 
@@ -57,5 +59,14 @@ public class SamplingPointTest {
 
         samplingPoint.setReferenceLon(lon_2);
         assertEquals(lon_2, samplingPoint.getReferenceLon(), 1e-8);
+    }
+
+    @Test
+    public void testIsInsitu() {
+        final SamplingPoint sobolPoint = new SamplingPoint(1, 2, 3, 56);
+        assertFalse(sobolPoint.isInsitu());
+
+        final SamplingPoint insituPoint = new SamplingPoint(1, 2, 3, Double.NaN);
+        assertTrue(insituPoint.isInsitu());
     }
 }

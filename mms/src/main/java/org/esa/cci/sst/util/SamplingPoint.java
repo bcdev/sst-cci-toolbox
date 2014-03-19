@@ -37,7 +37,6 @@ public final class SamplingPoint {
         this.y = y;
     }
 
-    // @todo 2 tb/tb write test
     @JsonIgnore
     public boolean isInsitu() {
         return Double.isNaN(getRandom());
