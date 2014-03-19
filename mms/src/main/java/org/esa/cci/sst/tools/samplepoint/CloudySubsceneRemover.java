@@ -25,10 +25,10 @@ import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.orm.ColumnStorage;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -107,7 +107,7 @@ public class CloudySubsceneRemover {
         return this;
     }
 
-    public CloudySubsceneRemover columnStorage(ColumnStorage columnStorage){
+    public CloudySubsceneRemover columnStorage(ColumnStorage columnStorage) {
         this.columnStorage = columnStorage;
         return this;
     }
@@ -149,7 +149,7 @@ public class CloudySubsceneRemover {
         final Column column = columnStorage.getColumn(columnName);
         if (column == null) {
             throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName),
-                                    ToolException.TOOL_ERROR);
+                    ToolException.TOOL_ERROR);
         }
         final Number fillValue = column.getFillValue();
         final PixelCounter pixelCounter = new PixelCounter(cloudFlagsMask, fillValue);
@@ -174,13 +174,11 @@ public class CloudySubsceneRemover {
             if (observation != null) {
                 final DataFile datafile = observation.getDatafile();
                 try (final Reader reader = ReaderFactory.open(datafile, config)) {
-
                     if (logger != null && logger.isLoggable(Level.INFO)) {
-                        final String message = MessageFormat.format(
-                                "Starting removing cloudy samples: data file ''{0}''...",
-                                datafile.getPath());
+                        final String message = MessageFormat.format("Starting removing cloudy samples: data file ''{0}''...", datafile.getPath());
                         logger.info(message);
                     }
+
                     for (final SamplingPoint point : points) {
                         final double lat = point.getLat();
                         final double lon = point.getLon();
@@ -188,19 +186,16 @@ public class CloudySubsceneRemover {
                         final GeoCoding geoCoding = reader.getGeoCoding(0);
                         final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
                         final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
+                        final int pixelX = (int) Math.floor(pixelPos.getX());
+                        final int pixelY = (int) Math.floor(pixelPos.getY());
 
                         final int numCols = reader.getElementCount();
                         final int numRows = reader.getScanLineCount();
-                        final int pixelX = (int) Math.floor(pixelPos.getX());
-                        final int pixelY = (int) Math.floor(pixelPos.getY());
 
                         if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
                             if (primary) {
                                 point.setX(pixelX);
                                 point.setY(pixelY);
-                                // @todo 1 tb/** set satellite pixel lon/lat tb 2014-03-06
-                                // @todo 3 tb/** do we need the x/y coordinates in the SamplingPoint? tb 2014-03-06
-                                // @todo 2 tb/** check what the consequences are if we use in-situ data here
                                 point.setReferenceTime(reader.getTime(0, pixelY));
                                 geoCoding.getGeoPos(pixelPos, geoPos);
                                 point.setReferenceLat(geoPos.getLat());

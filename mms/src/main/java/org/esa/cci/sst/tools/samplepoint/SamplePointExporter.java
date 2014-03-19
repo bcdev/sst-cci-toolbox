@@ -41,9 +41,7 @@ public class SamplePointExporter {
         final List<SamplingPoint> pointsMonthAfter = extractSamples(samplingPoints, monthAfter);
 
         if (!samplingPoints.isEmpty()) {
-            if (logger != null) {
-                logger.warning("List of sampling points still contains points out of expected time range: " + samplingPoints.size());
-            }
+            logWarning("List of sampling points still contains points out of expected time range: " + samplingPoints.size());
         }
 
         final String archiveRootPath = ConfigUtil.getUsecaseRootPath(config);
@@ -69,16 +67,13 @@ public class SamplePointExporter {
         }
 
         if (!targetFile.createNewFile()) {
-            if (logger != null && logger.isLoggable(Level.WARNING)) {
-                logger.warning("Overwriting target file: " + targetFile.getAbsolutePath());
-            }
+            logWarning("Overwriting target file: " + targetFile.getAbsolutePath());
         }
 
         try (FileOutputStream outputStream = new FileOutputStream(targetFile)) {
             SamplingPointIO.write(points, outputStream);
         }
     }
-
 
     // package access for testing only tb 2014-02-14
     static List<SamplingPoint> extractSamples(List<SamplingPoint> samples, TimeRange extractRange) {
@@ -93,5 +88,11 @@ public class SamplePointExporter {
             }
         }
         return extracted;
+    }
+
+    private void logWarning(String msg) {
+        if (logger != null && logger.isLoggable(Level.WARNING)) {
+            logger.warning(msg);
+        }
     }
 }
