@@ -45,8 +45,7 @@ public class SamplePointExporterIntegrationTest {
 
         final Date startDate = TimeUtil.parseCcsdsUtcFormat("2011-05-13T00:00:00Z");
         final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2011-07-17T00:00:00Z");
-        final SobolSamplePointGenerator pointGenerator = new SobolSamplePointGenerator();
-        final List<SamplingPoint> samples = pointGenerator.createSamples(200, 5678, startDate.getTime(), stopDate.getTime());
+        final List<SamplingPoint> samples = createSamplingPoints(startDate, stopDate);
 
         final SamplePointExporter exporter = new SamplePointExporter(config);
         exporter.export(samples, new TimeRange(startDate, stopDate));
@@ -56,15 +55,15 @@ public class SamplePointExporterIntegrationTest {
 
         final File mayFile = new File(targetDir, "schnickschnack.4-smp-2011-05-a.json");
         assertTrue(mayFile.isFile());
-        assertEquals(9775, mayFile.length());
+        assertEquals(13787, mayFile.length());
 
         final File juneFile = new File(targetDir, "schnickschnack.4-smp-2011-06-b.json");
         assertTrue(juneFile.isFile());
-        assertEquals(15221, juneFile.length());
+        assertEquals(21477, juneFile.length());
 
         final File julyFile = new File(targetDir, "schnickschnack.4-smp-2011-07-c.json");
         assertTrue(julyFile.isFile());
-        assertEquals(8121, julyFile.length());
+        assertEquals(11453, julyFile.length());
     }
 
     @Test
@@ -73,8 +72,7 @@ public class SamplePointExporterIntegrationTest {
 
         final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-12-13T00:00:00Z");
         final Date stopDate = TimeUtil.parseCcsdsUtcFormat("2011-02-17T00:00:00Z");
-        final SobolSamplePointGenerator pointGenerator = new SobolSamplePointGenerator();
-        final List<SamplingPoint> samples = pointGenerator.createSamples(200, 5678, startDate.getTime(), stopDate.getTime());
+        final List<SamplingPoint> samples = createSamplingPoints(startDate, stopDate);
 
         final SamplePointExporter exporter = new SamplePointExporter(config);
         exporter.export(samples, new TimeRange(startDate, stopDate));
@@ -87,15 +85,15 @@ public class SamplePointExporterIntegrationTest {
 
         final File decemberFile = new File(targetDir2010, "schnickschnack.4-smp-2010-12-a.json");
         assertTrue(decemberFile.isFile());
-        assertEquals(9611, decemberFile.length());
+        assertEquals(13555, decemberFile.length());
 
         final File januaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-01-b.json");
         assertTrue(januaryFile.isFile());
-        assertEquals(15548, januaryFile.length());
+        assertEquals(21940, januaryFile.length());
 
         final File februaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-02-c.json");
         assertTrue(februaryFile.isFile());
-        assertEquals(7958, februaryFile.length());
+        assertEquals(11222, februaryFile.length());
     }
 
     @Test
@@ -103,7 +101,8 @@ public class SamplePointExporterIntegrationTest {
         final Configuration config = createConfig();
 
         final Date pointDate = TimeUtil.parseCcsdsUtcFormat("2008-09-16T00:00:00Z");
-        final SamplingPoint samplingPoint = new SamplingPoint(-29.4, 11.8, pointDate.getTime(), 0.56);
+        final SamplingPoint samplingPoint = new SamplingPoint(-29.4, 11.8, 0, 0.56);
+        samplingPoint.setReferenceTime(pointDate.getTime());
         final List<SamplingPoint> samples = new ArrayList<>();
         samples.add(samplingPoint);
 
@@ -119,11 +118,20 @@ public class SamplePointExporterIntegrationTest {
 
         final File septemberFile = new File(targetDir, "schnickschnack.4-smp-2008-09-b.json");
         assertTrue(septemberFile.isFile());
-        assertEquals(152, septemberFile.length());
+        assertEquals(208, septemberFile.length());
 
         final File octoberFile = new File(targetDir, "schnickschnack.4-smp-2008-10-c.json");
         assertTrue(octoberFile.isFile());
         assertEquals(21, octoberFile.length());
+    }
+
+    private List<SamplingPoint> createSamplingPoints(Date startDate, Date stopDate) {
+        final SobolSamplePointGenerator pointGenerator = new SobolSamplePointGenerator();
+        final List<SamplingPoint> samples = pointGenerator.createSamples(200, 5678, startDate.getTime(), stopDate.getTime());
+        for (SamplingPoint samplingPoint : samples) {
+            samplingPoint.setReferenceTime(samplingPoint.getTime());
+        }
+        return samples;
     }
 
     private Configuration createConfig() {

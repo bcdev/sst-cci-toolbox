@@ -210,13 +210,13 @@ public class MatchupGenerator extends BasicTool {
                     final PGgeometry insituLocation = new PGgeometry(new Point(p.getLon(), p.getLat()));
                     insituObservation.setLocation(insituLocation);
                     insituObservation.setTime(new Date(p.getTime()));
-                    insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0));
+                    insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
                     // TODO - persist insitu observation first or add to some list
 
                     final Coincidence insituCoincidence = new Coincidence();
                     insituCoincidence.setMatchup(matchup);
                     insituCoincidence.setObservation(insituObservation);
-                    insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0));
+                    insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
 
                     coincidences.add(insituCoincidence);
                 }
@@ -268,7 +268,7 @@ public class MatchupGenerator extends BasicTool {
             final Date time = new Date(p.getReferenceTime());
             r.setTime(time);
             if (p.isInsitu()) {
-                r.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0));
+                r.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
             } else {
                 r.setTimeRadius(0.0);
             }

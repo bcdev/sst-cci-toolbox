@@ -1,5 +1,7 @@
 package org.esa.cci.sst.util;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public final class SamplingPoint {
 
     private double random;
@@ -15,6 +17,9 @@ public final class SamplingPoint {
     private int x;
     private int y;
     private int insituReference;
+    private long referenceTime;
+    private double referenceLat;
+    private double referenceLon;
 
     public SamplingPoint() {
     }
@@ -32,6 +37,8 @@ public final class SamplingPoint {
         this.y = y;
     }
 
+    // @todo 2 tb/tb write test
+    @JsonIgnore
     public boolean isInsitu() {
         return Double.isNaN(getRandom());
     }
@@ -110,5 +117,29 @@ public final class SamplingPoint {
 
     public int getInsituReference() {
         return insituReference;
+    }
+
+    public void setReferenceTime(long referenceTime) {
+        this.referenceTime = referenceTime;
+    }
+
+    public long getReferenceTime() {
+        return referenceTime;
+    }
+
+    public void setReferenceLat(double referenceLat) {
+        this.referenceLat = referenceLat;
+    }
+
+    public double getReferenceLat() {
+        return referenceLat;
+    }
+
+    public void setReferenceLon(double referenceLon) {
+        this.referenceLon = referenceLon;
+    }
+
+    public double getReferenceLon() {
+        return referenceLon;
     }
 }

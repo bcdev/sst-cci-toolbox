@@ -65,6 +65,10 @@ public class SamplePointExporterTest {
         final long intervalStart = TimeUtil.parseCcsdsUtcFormat("2003-07-17T00:00:00Z").getTime();
         final long intervalStop = TimeUtil.parseCcsdsUtcFormat("2003-09-15T23:59:59Z").getTime();
         final SobolSamplePointGenerator generator = new SobolSamplePointGenerator();
-        return generator.createSamples(200, 0, intervalStart, intervalStop);
+        final List<SamplingPoint> samples = generator.createSamples(200, 0, intervalStart, intervalStop);
+        for (SamplingPoint samplingPoint : samples) {
+            samplingPoint.setReferenceTime(samplingPoint.getTime());
+        }
+        return samples;
     }
 }

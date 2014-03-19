@@ -14,7 +14,7 @@ import static org.junit.Assert.assertNotNull;
 public class SamplingPointIoTest {
 
     private static final String EMPTY_LIST_STRING = "{\"samplingPoints\":[]}";
-    private static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11,\"insituReference\":19}]}";
+    private static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11,\"insituReference\":19,\"referenceTime\":20,\"referenceLat\":21.0,\"referenceLon\":22.0}]}";
 
     @Test
     public void testWriteEmptyList() throws IOException {
@@ -63,6 +63,7 @@ public class SamplingPointIoTest {
         assertEquals(71, point.getReference2());
         assertEquals(17, point.getX());
         assertEquals(11, point.getY());
+        // @todo 1 tb/tb add assertions!
     }
 
     @Test
@@ -114,6 +115,9 @@ public class SamplingPointIoTest {
         point.setY(11);
         point.setReference2(71);
         point.setInsituReference(19);
+        point.setReferenceTime(20);
+        point.setReferenceLat(21.0);
+        point.setReferenceLon(22.0);
         list.add(point);
     }
 }
