@@ -21,6 +21,7 @@ import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.GeometryUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.LinearRing;
@@ -70,9 +71,7 @@ class SeviriReader extends MdReader implements InsituSource {
      * from right to left looking from first to last scan line.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
-     *
      * @return Observation for SEVIRI sub-scene
-     *
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
@@ -98,19 +97,20 @@ class SeviriReader extends MdReader implements InsituSource {
         observation.setLocation(new PGgeometry(new Polygon(new LinearRing[]{
                 new LinearRing(new Point[]{
                         new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
-                                  coordinateOf(getInt("lat", recordNo, 0, 0))),
+                                coordinateOf(getInt("lat", recordNo, 0, 0))),
                         new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, 0)),
-                                  coordinateOf(getInt("lat", recordNo, noOfLines - 1, 0))),
+                                coordinateOf(getInt("lat", recordNo, noOfLines - 1, 0))),
                         new Point(coordinateOf(getInt("lon", recordNo, noOfLines - 1, noOfColumns - 1)),
-                                  coordinateOf(getInt("lat", recordNo, noOfLines - 1, noOfColumns - 1))),
+                                coordinateOf(getInt("lat", recordNo, noOfLines - 1, noOfColumns - 1))),
                         new Point(coordinateOf(getInt("lon", recordNo, 0, noOfColumns - 1)),
-                                  coordinateOf(getInt("lat", recordNo, 0, noOfColumns - 1))),
+                                coordinateOf(getInt("lat", recordNo, 0, noOfColumns - 1))),
                         new Point(coordinateOf(getInt("lon", recordNo, 0, 0)),
-                                  coordinateOf(getInt("lat", recordNo, 0, 0)))
+                                coordinateOf(getInt("lat", recordNo, 0, 0)))
                 })
         })));
-        observation.setPoint(new PGgeometry(new Point(coordinateOf(getInt("lon", recordNo, line, column)),
-                                                      coordinateOf(getInt("lat", recordNo, line, column)))));
+        final float lon = coordinateOf(getInt("lon", recordNo, line, column));
+        final float lat = coordinateOf(getInt("lat", recordNo, line, column));
+        observation.setPoint(GeometryUtil.createPointGeometry(lon, lat));
         observation.setTime(TimeUtil.secondsSince1981ToDate(
                 getDouble("time", recordNo) + getDouble("dtime", recordNo, line, column)));
         observation.setTimeRadius(Math.abs(getDouble("dtime", recordNo, line, column)));

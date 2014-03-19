@@ -1,23 +1,17 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
+import org.esa.cci.sst.util.GeometryUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SensorNames;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
-import org.postgis.Point;
 
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
@@ -89,26 +83,8 @@ public class MatchupGenerator extends BasicTool {
 
         final Logger logger = getLogger();
 
-        logInfo(logger, "Starting loading samples...");
-        final SamplePointImporter samplePointImporter = new SamplePointImporter(getConfig());
-        samplePointImporter.setLogger(logger);
-        final List<SamplingPoint> samples = samplePointImporter.load();
-        logInfo(logger, "Finished loading samples: (" + samples.size() + " loaded).");
-
-        final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
-        final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
-        subsceneRemover.sensorName(sensorName1)
-                .primary(true)
-                .subSceneWidth(subSceneWidth)
-                .subSceneHeight(subSceneHeight)
-                .cloudFlagsVariableName(cloudFlagsVariableName)
-                .cloudFlagsMask(cloudFlagsMask)
-                .cloudyPixelFraction(cloudyPixelFraction)
-                .config(getConfig())
-                .storage(getStorage())
-                .columnStorage(columnStorage)
-                .logger(logger)
-                .removeSamples(samples);
+        final List<SamplingPoint> samples = loadSamplePoints(logger);
+        removeCloudySamples(logger, samples);
 
         if (sensorName2 != null) {
             // todo - find observations for secondary sensor
@@ -116,36 +92,26 @@ public class MatchupGenerator extends BasicTool {
             // subsceneRemover.sensorName(sensorName2).primary(false).removeSamples(samples);
         }
 
-        logInfo(logger, "Starting removing overlapping samples...");
-        final OverlapRemover overlapRemover = createOverlapRemover();
-        overlapRemover.removeSamples(samples);
-        logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
-
-        logInfo(logger, "Starting creating matchups...");
-        createMatchups(samples, Constants.SENSOR_NAME_DUMMY, sensorName1, sensorName2, referenceSensorPattern,
-                       getPersistenceManager(), getStorage(), logger);
-        logInfo(logger, "Finished creating matchups...");
+        removeOverlappingSamples(logger, samples);
+        createMatchups(logger, samples);
     }
 
     static void createMatchups(List<SamplingPoint> samples, String referenceSensorName, String primarySensorName,
                                String secondarySensorName, long referenceSensorPattern, PersistenceManager pm,
                                Storage storage, Logger logger) {
-        final Stack<EntityTransaction> transactions = new Stack<>();
+        final Stack<EntityTransaction> rollbackStack = new Stack<>();
         try {
             // create reference observations
             logInfo(logger, "Starting creating reference observations...");
-            transactions.push(pm.transaction());
-            final List<ReferenceObservation> referenceObservations =
-                    createReferenceObservations(samples,
-                                                referenceSensorName.substring(0, 3) + "_" +
-                                                SensorNames.ensureStandardName(primarySensorName),
-                                                storage);
+            rollbackStack.push(pm.transaction());
+            final String sensorShortname = createSensorShortName(referenceSensorName, primarySensorName);
+            final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples, sensorShortname, storage);
             pm.commit();
             logInfo(logger, "Finished creating reference observations");
 
             // persist reference observations, because we need the ID
             logInfo(logger, "Starting persisting reference observations...");
-            transactions.push(pm.transaction());
+            rollbackStack.push(pm.transaction());
             for (final ReferenceObservation r : referenceObservations) {
                 pm.persist(r);
             }
@@ -153,12 +119,12 @@ public class MatchupGenerator extends BasicTool {
             logInfo(logger, "Finished persisting reference observations");
 
             // define matchup pattern
-            transactions.push(pm.transaction());
+            rollbackStack.push(pm.transaction());
             final long matchupPattern;
             if (secondarySensorName != null) {
                 matchupPattern = referenceSensorPattern |
-                                 storage.getSensor(SensorNames.ensureOrbitName(primarySensorName)).getPattern() |
-                                 storage.getSensor(SensorNames.ensureOrbitName(secondarySensorName)).getPattern();
+                        storage.getSensor(SensorNames.ensureOrbitName(primarySensorName)).getPattern() |
+                        storage.getSensor(SensorNames.ensureOrbitName(secondarySensorName)).getPattern();
             } else {
                 matchupPattern = referenceSensorPattern | storage.getSensor(
                         SensorNames.ensureOrbitName(primarySensorName)).getPattern();
@@ -169,7 +135,7 @@ public class MatchupGenerator extends BasicTool {
             // create matchups and coincidences
             logInfo(logger, "Starting creating matchups and coincidences...");
 
-            transactions.push(pm.transaction());
+            rollbackStack.push(pm.transaction());
             final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
             final List<Coincidence> coincidences = new ArrayList<>(samples.size());
             for (int i = 0; i < samples.size(); i++) {
@@ -207,7 +173,7 @@ public class MatchupGenerator extends BasicTool {
                     insituObservation.setDatafile(insituDatafile);
                     insituObservation.setRecordNo(p.getIndex());
                     insituObservation.setSensor(Constants.SENSOR_NAME_HISTORY);
-                    final PGgeometry insituLocation = new PGgeometry(new Point(p.getLon(), p.getLat()));
+                    final PGgeometry insituLocation = GeometryUtil.createPointGeometry(p.getLon(), p.getLat());
                     insituObservation.setLocation(insituLocation);
                     insituObservation.setTime(new Date(p.getTime()));
                     insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
@@ -228,7 +194,7 @@ public class MatchupGenerator extends BasicTool {
             // persist matchups and coincidences
             logInfo(logger, "Starting persisting matchups and coincidences...");
 
-            transactions.push(pm.transaction());
+            rollbackStack.push(pm.transaction());
             for (Matchup m : matchups) {
                 pm.persist(m);
             }
@@ -239,11 +205,15 @@ public class MatchupGenerator extends BasicTool {
 
             logInfo(logger, "Finished persisting matchups and coincidences...");
         } catch (Exception e) {
-            while (!transactions.isEmpty()) {
-                transactions.pop().rollback();
+            while (!rollbackStack.isEmpty()) {
+                rollbackStack.pop().rollback();
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
+    }
+
+    static String createSensorShortName(String referenceSensorName, String primarySensorName) {
+        return referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName);
     }
 
     private static void logInfo(Logger logger, String message) {
@@ -256,32 +226,40 @@ public class MatchupGenerator extends BasicTool {
                                                                           String referenceSensorName,
                                                                           Storage storage) {
         final List<ReferenceObservation> referenceObservations = new ArrayList<>(samples.size());
-        for (final SamplingPoint p : samples) {
-            final ReferenceObservation r = new ReferenceObservation();
-            r.setName(String.valueOf(p.getIndex()));
-            r.setSensor(referenceSensorName);
+        for (final SamplingPoint samplingPoint : samples) {
+            final Observation o = storage.getObservation(samplingPoint.getReference());
+            final DataFile datafile = o.getDatafile();
 
-            final PGgeometry location = new PGgeometry(new Point(p.getReferenceLon(), p.getReferenceLat()));
-            r.setLocation(location);
-            r.setPoint(location);
-
-            final Date time = new Date(p.getReferenceTime());
-            r.setTime(time);
-            if (p.isInsitu()) {
-                r.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
-            } else {
-                r.setTimeRadius(0.0);
-            }
-
-            final Observation o = storage.getObservation(p.getReference());
-            r.setDatafile(o.getDatafile());
-            r.setRecordNo(0);
-            r.setDataset(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC); // TODO - set dataset ID (buoy, mooring, etc.) from insitu
-            r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
+            final ReferenceObservation r = createReferenceObservation(referenceSensorName, samplingPoint, datafile);
 
             referenceObservations.add(r);
         }
         return referenceObservations;
+    }
+
+    // package access for testing only tb 2014-03-19
+    static ReferenceObservation createReferenceObservation(String referenceSensorName, SamplingPoint samplingPoint, DataFile datafile) {
+        final ReferenceObservation r = new ReferenceObservation();
+        r.setName(String.valueOf(samplingPoint.getIndex()));
+        r.setSensor(referenceSensorName);
+
+        final PGgeometry location = GeometryUtil.createPointGeometry(samplingPoint.getReferenceLon(), samplingPoint.getReferenceLat());
+        r.setLocation(location);
+        r.setPoint(location);
+
+        final Date time = new Date(samplingPoint.getReferenceTime());
+        r.setTime(time);
+        if (samplingPoint.isInsitu()) {
+            r.setTimeRadius(Math.abs(samplingPoint.getReferenceTime() - samplingPoint.getTime()) / 1000.0);
+        } else {
+            r.setTimeRadius(0.0);
+        }
+
+        r.setDatafile(datafile);
+        r.setRecordNo(0);
+        r.setDataset(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC); // TODO - set dataset ID (buoy, mooring, etc.) from insitu
+        r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
+        return r;
     }
 
     private OverlapRemover createOverlapRemover() {
@@ -298,7 +276,7 @@ public class MatchupGenerator extends BasicTool {
     }
 
 
-    void cleanup() {
+    private void cleanup() {
         getPersistenceManager().transaction();
 
         Query delete = getPersistenceManager().createQuery("delete from Coincidence c");
@@ -313,7 +291,7 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().commit();
     }
 
-    void cleanupInterval() {
+    private void cleanupInterval() {
         getPersistenceManager().transaction();
 
         Query delete = getPersistenceManager().createNativeQuery(
@@ -338,4 +316,43 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().commit();
     }
 
+    private void createMatchups(Logger logger, List<SamplingPoint> samples) {
+        logInfo(logger, "Starting creating matchups...");
+        createMatchups(samples, Constants.SENSOR_NAME_DUMMY, sensorName1, sensorName2, referenceSensorPattern,
+                getPersistenceManager(), getStorage(), logger);
+        logInfo(logger, "Finished creating matchups...");
+    }
+
+    private void removeOverlappingSamples(Logger logger, List<SamplingPoint> samples) {
+        logInfo(logger, "Starting removing overlapping samples...");
+        final OverlapRemover overlapRemover = createOverlapRemover();
+        overlapRemover.removeSamples(samples);
+        logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
+    }
+
+    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples) {
+        final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
+        final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
+        subsceneRemover.sensorName(sensorName1)
+                .primary(true)
+                .subSceneWidth(subSceneWidth)
+                .subSceneHeight(subSceneHeight)
+                .cloudFlagsVariableName(cloudFlagsVariableName)
+                .cloudFlagsMask(cloudFlagsMask)
+                .cloudyPixelFraction(cloudyPixelFraction)
+                .config(getConfig())
+                .storage(getStorage())
+                .columnStorage(columnStorage)
+                .logger(logger)
+                .removeSamples(samples);
+    }
+
+    private List<SamplingPoint> loadSamplePoints(Logger logger) throws IOException {
+        logInfo(logger, "Starting loading samples...");
+        final SamplePointImporter samplePointImporter = new SamplePointImporter(getConfig());
+        samplePointImporter.setLogger(logger);
+        final List<SamplingPoint> samples = samplePointImporter.load();
+        logInfo(logger, "Finished loading samples: (" + samples.size() + " loaded).");
+        return samples;
+    }
 }

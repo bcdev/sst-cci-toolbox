@@ -19,10 +19,10 @@ package org.esa.cci.sst.reader;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.tools.Constants;
+import org.esa.cci.sst.util.GeometryUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
-import org.postgis.Point;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
@@ -51,15 +51,15 @@ class AtsrMdReader extends MdReader implements InsituSource {
      * may serve as reference observation in some matchup.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords
-     *
      * @return Observation for (A)ATSR pixel
-     *
      * @throws IOException if record number is out of range 0 .. numRecords-1 or if file io fails
      */
     @Override
     public ReferenceObservation readObservation(int recordNo) throws IOException {
-        final PGgeometry location = new PGgeometry(new Point(getFloat("atsr.longitude", recordNo),
-                                                             getFloat("atsr.latitude", recordNo)));
+        final float lon = getFloat("atsr.longitude", recordNo);
+        final float lat = getFloat("atsr.latitude", recordNo);
+        final PGgeometry location = GeometryUtil.createPointGeometry(lon, lat);
+
         final ReferenceObservation observation = new ReferenceObservation();
         observation.setName(getString("insitu.callsign", recordNo));
         observation.setDataset(getByte("insitu.dataset", recordNo));
@@ -127,7 +127,7 @@ class AtsrMdReader extends MdReader implements InsituSource {
     public final double readInsituSst(int recordNo) throws IOException {
         final Variable sstVariable = getVariable("insitu.sea_surface_temperature");
         final String unit = sstVariable.findAttribute("units").getStringValue();
-        if("celcius".equals(unit)) {
+        if ("celcius".equals(unit)) {
             return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue() + 273.15;
         } else {
             return getNumberScaled("insitu.sea_surface_temperature", recordNo).doubleValue();
