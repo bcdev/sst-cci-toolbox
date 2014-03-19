@@ -371,7 +371,8 @@ public class MatchupTool extends BasicTool {
                         if (metopObservation != null) {
                             matchup = createMatchup(atsrObservation,
                                                     atsrSensor.getPattern() | metopSensor.getPattern());
-                            createCoincidence(matchup, metopObservation);
+                            final Coincidence coincidence = createCoincidence(matchup, metopObservation);
+                            coincidenceAccu.add(coincidence);
                         }
                     }
 
@@ -385,7 +386,8 @@ public class MatchupTool extends BasicTool {
                             } else {
                                 matchup.setPattern(matchup.getPattern() | seviriSensor.getPattern());
                             }
-                            createCoincidence(matchup, seviriObservation);
+                            final Coincidence coincidence = createCoincidence(matchup, seviriObservation);
+                            coincidenceAccu.add(coincidence);
                         }
                     }
 
@@ -399,7 +401,8 @@ public class MatchupTool extends BasicTool {
                             } else {
                                 matchup.setPattern(matchup.getPattern() | avhrrSensor.getPattern());
                             }
-                            createCoincidence(matchup, avhrrObservation);
+                            final Coincidence coincidence = createCoincidence(matchup, avhrrObservation);
+                            coincidenceAccu.add(coincidence);
                         }
                     }
 
@@ -473,7 +476,8 @@ public class MatchupTool extends BasicTool {
                         if (seviriObservation != null) {
                             final Matchup matchup = createMatchup(metopObservation,
                                                                   metopSensor.getPattern() | seviriSensor.getPattern());
-                            createCoincidence(matchup, seviriObservation);
+                            final Coincidence coincidence = createCoincidence(matchup, seviriObservation);
+                            coincidenceAccu.add(coincidence);
                         }
                     }
                     ++count;
@@ -702,9 +706,22 @@ public class MatchupTool extends BasicTool {
         final ReferenceObservation refObs = matchup.getRefObs();
         final Observation sensorObs = findCoincidingObservation(refObs, queryString, observationClass, sensorName);
         if (sensorObs != null) {
-            createCoincidence(matchup, sensorObs);
-            matchup.setPattern(matchup.getPattern() | pattern);
+            if (!coincidenceAlreadyExists(matchup, sensorObs)) {
+                final Coincidence coincidence = createCoincidence(matchup, sensorObs);
+                coincidenceAccu.add(coincidence);
+                matchup.setPattern(matchup.getPattern() | pattern);
+            }
         }
+    }
+
+    static boolean coincidenceAlreadyExists(Matchup matchup, Observation observation) {
+        final List<Coincidence> coincidences = matchup.getCoincidences();
+        for (Coincidence coincidence : coincidences) {
+            if (coincidence.getObservation().getId() == observation.getId()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -781,7 +798,6 @@ public class MatchupTool extends BasicTool {
         matchup.setId(referenceObservation.getId());
         matchup.setRefObs(referenceObservation);
         matchup.setPattern(pattern);
-        //getPersistenceManager().persist(matchup);
         matchupAccu.add(matchup);
         return matchup;
     }
@@ -796,17 +812,16 @@ public class MatchupTool extends BasicTool {
      *
      * @return newly created Coincidence relating matchup and common observation
      */
-    private Coincidence createCoincidence(Matchup matchup, Observation observation) {
+    static Coincidence createCoincidence(Matchup matchup, Observation observation) {
         Assert.argument(observation instanceof Timeable, "!(observation instanceof Timeable)");
         final Date matchupTime = matchup.getRefObs().getTime();
         final Date observationTime = ((Timeable) observation).getTime();
         final double timeDifference = TimeUtil.getTimeDifferenceInSeconds(matchupTime, observationTime);
         final Coincidence coincidence = new Coincidence();
+
         coincidence.setMatchup(matchup);
         coincidence.setObservation(observation);
         coincidence.setTimeDifference(timeDifference);
-        //getPersistenceManager().persist(coincidence);
-        coincidenceAccu.add(coincidence);
         return coincidence;
     }
 
