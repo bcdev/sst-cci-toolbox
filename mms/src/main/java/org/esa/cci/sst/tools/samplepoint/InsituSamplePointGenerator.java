@@ -79,7 +79,7 @@ public class InsituSamplePointGenerator {
 
     private void setReferenceId(ArrayList<SamplingPoint> samplingPoints, int id) {
         for (SamplingPoint samplingPoint : samplingPoints) {
-            samplingPoint.setReference(id);
+            samplingPoint.setInsituReference(id);
         }
     }
 

@@ -87,7 +87,7 @@ public class SamplePointExporter {
         final Iterator<SamplingPoint> iterator = samples.iterator();
         while (iterator.hasNext()) {
             final SamplingPoint point = iterator.next();
-            if (extractRange.includes(new Date(point.getTime()))) {
+            if (extractRange.includes(new Date(point.getReferenceTime()))) {
                 extracted.add(point);
                 iterator.remove();
             }

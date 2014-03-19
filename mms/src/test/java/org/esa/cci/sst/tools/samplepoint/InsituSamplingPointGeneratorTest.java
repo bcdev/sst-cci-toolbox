@@ -89,7 +89,7 @@ public class InsituSamplingPointGeneratorTest {
         assertEquals(1285, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
-        TestHelper.assertPointsHaveReference(78, inSituPoints);
+        TestHelper.assertPointsHaveInsituReference(78, inSituPoints);
 
         assertNumDataFilesStored(1);
     }
@@ -108,7 +108,7 @@ public class InsituSamplingPointGeneratorTest {
         assertEquals(1285, inSituPoints.size());
 
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
-        TestHelper.assertPointsHaveReference(7765, inSituPoints);
+        TestHelper.assertPointsHaveInsituReference(7765, inSituPoints);
 
         verify(mockStorage, times(1)).getDatafile(anyString());
         verify(mockStorage, times(0)).store(any(DataFile.class));

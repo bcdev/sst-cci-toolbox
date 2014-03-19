@@ -75,7 +75,7 @@ public class SamplingPointGenerationToolTest {
             SamplingPointGenerationTool.createPointGeneratorWorkflow(workflowContext);
             fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Invalid generatorname: STRANGE_NAME", expected.getMessage());
+            assertEquals("Invalid generator name: STRANGE_NAME", expected.getMessage());
         }
     }
 }

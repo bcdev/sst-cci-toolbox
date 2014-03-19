@@ -1,6 +1,8 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.InsituObservation;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -78,8 +80,8 @@ public class MatchupGenerator extends BasicTool {
         cloudFlagsVariableName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME);
         cloudFlagsMask = config.getIntValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK);
         cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
-        // TODO - reference sensor pattern is different for in-situ points, make reference sensor name configurable rq-20140306
-        referenceSensorPattern = config.getPattern(Constants.SENSOR_NAME_DUMMY, 0);
+        final String referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
+        referenceSensorPattern = config.getPattern(referenceSensorName, 0);
     }
 
     private void run() throws IOException {
@@ -176,7 +178,6 @@ public class MatchupGenerator extends BasicTool {
                 final Matchup matchup = new Matchup();
                 matchup.setId(r.getId());
                 matchup.setRefObs(r);
-                // @todo 2 tb/** check pattern when using with insitu data - we may have to add a "| historyPattern" here   tb 2014-02-12
                 matchup.setPattern(matchupPattern);
                 matchups.add(matchup);
                 final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
@@ -184,8 +185,7 @@ public class MatchupGenerator extends BasicTool {
                 final Coincidence coincidence = new Coincidence();
                 coincidence.setMatchup(matchup);
                 coincidence.setObservation(o1);
-                // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
-                coincidence.setTimeDifference(0.0); // Math.abs(r.getTime().getTime() -
+                coincidence.setTimeDifference(0.0);
                 coincidences.add(coincidence);
 
                 if (secondarySensorName != null) {
@@ -198,6 +198,27 @@ public class MatchupGenerator extends BasicTool {
                     secondCoincidence.setTimeDifference(TimeUtil.getTimeDifferenceInSeconds(matchupTime, relatedTime));
 
                     coincidences.add(secondCoincidence);
+                }
+                if (p.getInsituReference() != 0) {
+                    final int datafileId = p.getInsituReference();
+                    final DataFile insituDatafile = storage.getDatafile(datafileId);
+                    final InsituObservation insituObservation = new InsituObservation();
+                    insituObservation.setName("TODO"); // TODO - set WMO-ID
+                    insituObservation.setDatafile(insituDatafile);
+                    insituObservation.setRecordNo(p.getIndex());
+                    insituObservation.setSensor(Constants.SENSOR_NAME_HISTORY);
+                    final PGgeometry insituLocation = new PGgeometry(new Point(p.getLon(), p.getLat()));
+                    insituObservation.setLocation(insituLocation);
+                    insituObservation.setTime(new Date(p.getTime()));
+                    insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0));
+                    // TODO - persist insitu observation first or add to some list
+
+                    final Coincidence insituCoincidence = new Coincidence();
+                    insituCoincidence.setMatchup(matchup);
+                    insituCoincidence.setObservation(insituObservation);
+                    insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0));
+
+                    coincidences.add(insituCoincidence);
                 }
             }
             pm.commit();
@@ -240,21 +261,22 @@ public class MatchupGenerator extends BasicTool {
             r.setName(String.valueOf(p.getIndex()));
             r.setSensor(referenceSensorName);
 
-            final PGgeometry location = new PGgeometry(new Point(p.getLon(), p.getLat()));
+            final PGgeometry location = new PGgeometry(new Point(p.getReferenceLon(), p.getReferenceLat()));
             r.setLocation(location);
             r.setPoint(location);
 
-            // @todo 2 tb/** check for insitu - we may want to keep the *real* time delta tb 2014-02-12
-            final Date time = new Date(p.getTime());
+            final Date time = new Date(p.getReferenceTime());
             r.setTime(time);
-            r.setTimeRadius(0.0);
+            if (p.isInsitu()) {
+                r.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0));
+            } else {
+                r.setTimeRadius(0.0);
+            }
 
-            // @todo 1 tb/** we need to keep the fileId of insitu-file, orbit-file and eventually second orbit-file tb 2014-02-12
             final Observation o = storage.getObservation(p.getReference());
             r.setDatafile(o.getDatafile());
             r.setRecordNo(0);
-            // @todo 1 tb/** we may want to differentiate the insitu-souces tb 2014-03-06
-            r.setDataset(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC);
+            r.setDataset(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC); // TODO - set dataset ID (buoy, mooring, etc.) from insitu
             r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
 
             referenceObservations.add(r);

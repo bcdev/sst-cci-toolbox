@@ -1,6 +1,6 @@
 from pmonitor import PMonitor
 
-usecase = 'mms2'
+usecase = 'mms3'
 
 # TODO for testing only, remove this line when producing
 #years = ['2003']
@@ -147,7 +147,7 @@ for year in years:
             pm.execute('coincidence-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'dum', usecase])
+                       parameters=[year, month, sensor, 'his', usecase])
             # 5. Create single-sensor MMD with subscenes
             pm.execute('mmd-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],

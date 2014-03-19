@@ -5,7 +5,8 @@ set -e
 year=$1
 month=$2
 sensor=$3
-usecase=$4
+sensorprefix=$4
+usecase=$5
 
 . mymms
 
@@ -14,9 +15,9 @@ let d1="d + 32 * 86400"
 starttime=$year-$month-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @$d1`-01T00:00:00Z
 
-echo "`date -u +%Y%m%d-%H%M%S` coincidence ${year}/${month} sensor ${sensor}..."
+echo "`date -u +%Y%m%d-%H%M%S` coincidence ${year}/${month} sensor $sensorprefix}_${sensor}..."
 
 matchup-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.matchup.startTime=${starttime} \
 -Dmms.matchup.stopTime=${stoptime} \
--Dmms.matchup.primarysensor=dum_${sensor}
+-Dmms.matchup.primarysensor=${sensorprefix}_${sensor}

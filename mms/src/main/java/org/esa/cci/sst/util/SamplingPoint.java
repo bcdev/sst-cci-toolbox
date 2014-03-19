@@ -14,6 +14,7 @@ public final class SamplingPoint {
     private int reference2 = -1;
     private int x;
     private int y;
+    private int insituReference;
 
     public SamplingPoint() {
     }
@@ -29,6 +30,10 @@ public final class SamplingPoint {
     public SamplingPoint(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public boolean isInsitu() {
+        return Double.isNaN(getRandom());
     }
 
     public double getLon() {
@@ -97,5 +102,13 @@ public final class SamplingPoint {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public void setInsituReference(int insituReference) {
+        this.insituReference = insituReference;
+    }
+
+    public int getInsituReference() {
+        return insituReference;
     }
 }

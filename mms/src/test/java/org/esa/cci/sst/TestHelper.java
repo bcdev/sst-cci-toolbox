@@ -19,9 +19,9 @@ public class TestHelper {
         }
     }
 
-    public static void assertPointsHaveReference(int id, List<SamplingPoint> inSituPoints) {
+    public static void assertPointsHaveInsituReference(int id, List<SamplingPoint> inSituPoints) {
         for (SamplingPoint next : inSituPoints) {
-            assertEquals(id, next.getReference());
+            assertEquals(id, next.getInsituReference());
         }
     }
 

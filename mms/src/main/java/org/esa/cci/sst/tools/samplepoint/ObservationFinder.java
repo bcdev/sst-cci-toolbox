@@ -100,7 +100,9 @@ public class ObservationFinder {
                         if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
                             if (primarySensor) {
                                 point.setReference(polygons[i0].getId());
-                                point.setTime(polygons[i0].getTime());
+                                // original time and orbit time may fall into different months
+                                // we need the orbit time (and not the original time) when exporting samples
+                                point.setReferenceTime(polygons[i0].getTime());
                             } else {
                                 point.setReference2(polygons[i0].getId());
                             }
@@ -115,7 +117,9 @@ public class ObservationFinder {
                             if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
                                 if (primarySensor) {
                                     point.setReference(polygons[i1].getId());
-                                    point.setTime(polygons[i1].getTime());
+                                    // original time and orbit time may fall into different months
+                                    // we need the orbit time (and not the original time) when exporting samples
+                                    point.setReferenceTime(polygons[i1].getTime());
                                 } else {
                                     point.setReference2(polygons[i1].getId());
                                 }

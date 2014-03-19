@@ -47,6 +47,23 @@ public class StorageImplTest {
     }
 
     @Test
+    public void testGetDataFile_ById() {
+        final String sql = "select f from DataFile f where f.id = ?1";
+        final int id = 23;
+        final DataFile dataFile = createDataFile(id);
+
+        when(persistenceManager.pick(sql, id)).thenReturn(dataFile);
+
+        final DataFile toolStorageDatafile = storageImpl.getDatafile(id);
+        assertNotNull(toolStorageDatafile);
+        assertEquals(id, toolStorageDatafile.getId());
+        assertEquals("something", toolStorageDatafile.getPath());
+
+        verify(persistenceManager, times(1)).pick(sql, id);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
     public void testStoreDataFile() {
         final String sql = "select f from DataFile f where f.path = ?1";
         final String path = "/left/of/rome";
@@ -162,6 +179,12 @@ public class StorageImplTest {
     private DataFile createDataFile(String path) {
         final DataFile dataFile = new DataFile(path, new SensorBuilder().name("cloud").build());
         dataFile.setId(ID);
+        return dataFile;
+    }
+
+    private DataFile createDataFile(int id) {
+        final DataFile dataFile = new DataFile("something", new SensorBuilder().name("cloud").build());
+        dataFile.setId(id);
         return dataFile;
     }
 }

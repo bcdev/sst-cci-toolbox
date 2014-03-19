@@ -62,13 +62,13 @@ public class SamplingPointGenerationTool extends BasicTool {
     // package access for testing only tb 2014-03-07
     static Workflow createPointGeneratorWorkflow(WorkflowContext workflowContext) {
         final String sampleGeneratorName = workflowContext.getSampleGeneratorName();
-        if ("SOBOL".equalsIgnoreCase(sampleGeneratorName)) {
+        if ("sobol".equalsIgnoreCase(sampleGeneratorName)) {
             return new GenerateSobolPointsWorkflow(workflowContext);
-        } else if ("INSITU".equalsIgnoreCase(sampleGeneratorName)) {
+        } else if ("insitu".equalsIgnoreCase(sampleGeneratorName)) {
             return new GenerateInsituPointsWorkflow(workflowContext);
         }
 
-        throw new IllegalArgumentException("Invalid generatorname: " + sampleGeneratorName);
+        throw new IllegalArgumentException("Invalid generator name: " + sampleGeneratorName);
     }
 
     // package access for testing only tb 2014-03-06

@@ -33,6 +33,11 @@ class StorageImpl implements Storage {
     }
 
     @Override
+    public DataFile getDatafile(int id) {
+        return (DataFile) persistenceManager.pick("select f from DataFile f where f.id = ?1", id);
+    }
+
+    @Override
     public final DataFile getDatafile(final String path) {
         return (DataFile) persistenceManager.pick("select f from DataFile f where f.path = ?1", path);
     }

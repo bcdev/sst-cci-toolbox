@@ -14,7 +14,7 @@ import static org.junit.Assert.assertNotNull;
 public class SamplingPointIoTest {
 
     private static final String EMPTY_LIST_STRING = "{\"samplingPoints\":[]}";
-    private static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11}]}";
+    private static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11,\"insituReference\":19}]}";
 
     @Test
     public void testWriteEmptyList() throws IOException {
@@ -113,6 +113,7 @@ public class SamplingPointIoTest {
         point.setX(17);
         point.setY(11);
         point.setReference2(71);
+        point.setInsituReference(19);
         list.add(point);
     }
 }

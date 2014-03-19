@@ -21,6 +21,8 @@ import java.util.List;
 
 public interface Storage {
 
+    DataFile getDatafile(int id);
+
     DataFile getDatafile(String path);
 
     int store(DataFile dataFile);
