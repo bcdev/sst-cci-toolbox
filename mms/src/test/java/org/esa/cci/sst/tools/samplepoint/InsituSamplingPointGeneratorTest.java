@@ -49,7 +49,7 @@ public class InsituSamplingPointGeneratorTest {
     public void setUp() {
         mockStorage = mock(Storage.class);
         mockColumnStorage = mock(ColumnStorage.class);
-        generator = new InsituSamplePointGenerator(archiveDir, sensor, mockStorage, mockColumnStorage);
+        generator = new InsituSamplePointGenerator(archiveDir, sensor, mockStorage, mockColumnStorage, "");
     }
 
     @Test

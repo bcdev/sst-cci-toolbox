@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 public class InsituSamplePointGenerator {
 
     private final File archiveDir;
+    private final String insituRelativePath;
     private final Reader reader;
     private final Sensor sensor;
     private final Storage storage;
@@ -30,8 +31,10 @@ public class InsituSamplePointGenerator {
 
     private Logger logger;
 
-    public InsituSamplePointGenerator(File archiveDir, Sensor sensor, Storage storage, ColumnStorage columnStorage) {
+    public InsituSamplePointGenerator(File archiveDir, Sensor sensor, Storage storage, ColumnStorage columnStorage,
+                                      String insituRelativePath) {
         this.archiveDir = archiveDir;
+        this.insituRelativePath = insituRelativePath;
         this.reader = ReaderFactory.createReader("InsituReader", "history");
         this.sensor = sensor;
         this.storage = storage;
@@ -91,7 +94,11 @@ public class InsituSamplePointGenerator {
     }
 
     private void initializeReader(File insituFile) throws IOException {
-        final DataFile dataFile = new DataFile(insituFile.getName(), sensor);
+        String insituFilePath = insituFile.getPath();
+        if (insituFilePath.startsWith(archiveDir.getAbsolutePath() + File.separator)) {
+            insituFilePath = insituFilePath.substring(archiveDir.getAbsolutePath().length() + 1);
+        }
+        final DataFile dataFile = new DataFile(insituFilePath, sensor);
         reader.init(dataFile, archiveDir);
     }
 
@@ -106,7 +113,7 @@ public class InsituSamplePointGenerator {
 
     private LinkedList<File> findFilesInTimeRange(TimeRange timeRange) {
         final LinkedList<File> filesInRange = new LinkedList<>();
-        final Collection<File> insituFiles = FileUtils.listFiles(archiveDir, new String[]{"nc"}, true);
+        final Collection<File> insituFiles = FileUtils.listFiles(new File(archiveDir, insituRelativePath), new String[]{"nc"}, true);
         // @todo 1 rq/tb-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
         for (final File file : insituFiles) {
             try {

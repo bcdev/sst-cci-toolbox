@@ -28,8 +28,9 @@ public class GenerateInsituPointsWorkflow extends Workflow{
         final PersistenceManager persistenceManager = context.getPersistenceManager();
         final Storage toolStorage = persistenceManager.getStorage();
         final ColumnStorage columnStorage = persistenceManager.getColumnStorage();
+        final String insituInputPath = context.getInsituInputPath();
 
-        generator = new InsituSamplePointGenerator(archiveRootDir, sensor, toolStorage, columnStorage);
+        generator = new InsituSamplePointGenerator(archiveRootDir, sensor, toolStorage, columnStorage, insituInputPath);
         generator.setLogger(workflowContext.getLogger());
     }
 
