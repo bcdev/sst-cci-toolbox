@@ -138,6 +138,7 @@ public class MatchupGenerator extends BasicTool {
             rollbackStack.push(pm.transaction());
             final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
             final List<Coincidence> coincidences = new ArrayList<>(samples.size());
+            final List<InsituObservation> insituObservations = new ArrayList<>(samples.size());
             for (int i = 0; i < samples.size(); i++) {
                 final SamplingPoint p = samples.get(i);
                 final ReferenceObservation r = referenceObservations.get(i);
@@ -168,16 +169,8 @@ public class MatchupGenerator extends BasicTool {
                 if (p.getInsituReference() != 0) {
                     final int datafileId = p.getInsituReference();
                     final DataFile insituDatafile = storage.getDatafile(datafileId);
-                    final InsituObservation insituObservation = new InsituObservation();
-                    insituObservation.setName(p.getDatasetName());
-                    insituObservation.setDatafile(insituDatafile);
-                    insituObservation.setRecordNo(p.getIndex());
-                    insituObservation.setSensor(Constants.SENSOR_NAME_HISTORY);
-                    final PGgeometry insituLocation = GeometryUtil.createPointGeometry(p.getLon(), p.getLat());
-                    insituObservation.setLocation(insituLocation);
-                    insituObservation.setTime(new Date(p.getTime()));
-                    insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
-                    // TODO - persist insitu observation first or add to some list
+                    final InsituObservation insituObservation = createInsituObservation(p, insituDatafile);
+                    insituObservations.add(insituObservation);
 
                     final Coincidence insituCoincidence = new Coincidence();
                     insituCoincidence.setMatchup(matchup);
@@ -201,6 +194,9 @@ public class MatchupGenerator extends BasicTool {
             for (Coincidence c : coincidences) {
                 pm.persist(c);
             }
+            for (InsituObservation insituObservation: insituObservations) {
+                storage.store(insituObservation);
+            }
             pm.commit();
 
             logInfo(logger, "Finished persisting matchups and coincidences...");
@@ -210,6 +206,19 @@ public class MatchupGenerator extends BasicTool {
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
+    }
+
+    private static InsituObservation createInsituObservation(SamplingPoint p, DataFile insituDatafile) {
+        final InsituObservation insituObservation = new InsituObservation();
+        insituObservation.setName(p.getDatasetName());
+        insituObservation.setDatafile(insituDatafile);
+        insituObservation.setRecordNo(p.getIndex());
+        insituObservation.setSensor(Constants.SENSOR_NAME_HISTORY);
+        final PGgeometry insituLocation = GeometryUtil.createPointGeometry(p.getLon(), p.getLat());
+        insituObservation.setLocation(insituLocation);
+        insituObservation.setTime(new Date(p.getTime()));
+        insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
+        return insituObservation;
     }
 
     static String createSensorShortName(String referenceSensorName, String primarySensorName) {
