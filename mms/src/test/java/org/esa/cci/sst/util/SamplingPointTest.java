@@ -77,4 +77,16 @@ public class SamplingPointTest {
         samplingPoint.setInsituDatasetId(InsituDatasetId.mooring);
         assertEquals(InsituDatasetId.mooring, samplingPoint.getInsituDatasetId());
     }
+
+    @Test
+    public void testSetGetDatasetName() {
+        final String name_1 = "Klaus";
+        final String name_2 = "Sven-Jens";
+
+        samplingPoint.setDatasetName(name_1);
+        assertEquals(name_1, samplingPoint.getDatasetName());
+
+        samplingPoint.setDatasetName(name_2);
+        assertEquals(name_2, samplingPoint.getDatasetName());
+    }
 }

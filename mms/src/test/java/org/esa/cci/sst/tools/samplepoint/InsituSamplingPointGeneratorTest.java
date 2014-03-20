@@ -291,27 +291,22 @@ public class InsituSamplingPointGeneratorTest {
     }
 
     @Test
-    public void testSetInsituReferenceId() {
+    public void testSetFileProperties() {
         final List<SamplingPoint> samplingPoints = new ArrayList<>();
         samplingPoints.add(new SamplingPoint());
         samplingPoints.add(new SamplingPoint());
 
-        InsituSamplePointGenerator.setInsituReferenceId(samplingPoints, 34);
-        assertEquals(34, samplingPoints.get(0).getInsituReference());
-        assertEquals(34, samplingPoints.get(1).getInsituReference());
-    }
+        final int id = 98;
+        InsituSamplePointGenerator.setFileProperties(samplingPoints, id, (byte) 9, "Charlotte");
 
-    @Test
-    public void testSetInsituDatasetId() {
-        final List<SamplingPoint> samplingPoints = new ArrayList<>();
-        samplingPoints.add(new SamplingPoint());
-        samplingPoints.add(new SamplingPoint());
-
-        InsituSamplePointGenerator.setInsituDatasetId(samplingPoints, (byte) 8);
-
-        final InsituDatasetId expected = InsituDatasetId.create((byte) 8);
+        final InsituDatasetId expected = InsituDatasetId.create((byte) 9);
+        assertEquals(id, samplingPoints.get(0).getInsituReference());
         assertEquals(expected, samplingPoints.get(0).getInsituDatasetId());
+        assertEquals("Charlotte", samplingPoints.get(0).getDatasetName());
+
+        assertEquals(id, samplingPoints.get(1).getInsituReference());
         assertEquals(expected, samplingPoints.get(1).getInsituDatasetId());
+        assertEquals("Charlotte", samplingPoints.get(1).getDatasetName());
     }
 
     private static long parseTime(String timeString) throws ParseException {

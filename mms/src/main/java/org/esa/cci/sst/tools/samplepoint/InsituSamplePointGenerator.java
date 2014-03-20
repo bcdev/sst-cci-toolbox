@@ -56,9 +56,9 @@ public class InsituSamplePointGenerator {
                 if (samplingPoints.size() > 0) {
                     final int id = persist(insituFile);
                     final byte datasetId = extractInsituDatasetId(insituFile.getName());
+                    final String datasetName = reader.getDatasetName();
 
-                    setInsituReferenceId(samplingPoints, id);
-                    setInsituDatasetId(samplingPoints, datasetId);
+                    setFileProperties(samplingPoints, id, datasetId, datasetName);
 
                     final Item[] readerColumns = reader.getColumns();
                     final List<String> columnNames = columnStorage.getAllColumnNames();
@@ -82,16 +82,11 @@ public class InsituSamplePointGenerator {
     }
 
     // package access for testing only tb 2014-03-20
-    static void setInsituReferenceId(List<SamplingPoint> samplingPoints, int id) {
+    static void setFileProperties(List<SamplingPoint> samplingPoints, int id,byte datasetId, String datasetName) {
         for (SamplingPoint samplingPoint : samplingPoints) {
             samplingPoint.setInsituReference(id);
-        }
-    }
-
-    // package access for testing only tb 2014-03-20
-    static void setInsituDatasetId(List<SamplingPoint> samplingPoints, byte datasetId) {
-        for (SamplingPoint samplingPoint : samplingPoints) {
             samplingPoint.setInsituDatasetId(InsituDatasetId.create(datasetId));
+            samplingPoint.setDatasetName(datasetName);
         }
     }
 

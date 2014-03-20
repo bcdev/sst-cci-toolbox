@@ -22,6 +22,7 @@ public final class SamplingPoint {
     private double referenceLat;
     private double referenceLon;
     private InsituDatasetId insituDatasetId;
+    private String datasetName;
 
     public SamplingPoint() {
     }
@@ -150,5 +151,13 @@ public final class SamplingPoint {
 
     public InsituDatasetId getInsituDatasetId() {
         return insituDatasetId;
+    }
+
+    public void setDatasetName(String datasetName) {
+        this.datasetName = datasetName;
+    }
+
+    public String getDatasetName() {
+        return datasetName;
     }
 }

@@ -55,15 +55,15 @@ public class SamplePointExporterIntegrationTest {
 
         final File mayFile = new File(targetDir, "schnickschnack.4-smp-2011-05-a.json");
         assertTrue(mayFile.isFile());
-        assertEquals(15144, mayFile.length());
+        assertEquals(16265, mayFile.length());
 
         final File juneFile = new File(targetDir, "schnickschnack.4-smp-2011-06-b.json");
         assertTrue(juneFile.isFile());
-        assertEquals(23593, juneFile.length());
+        assertEquals(25341, juneFile.length());
 
         final File julyFile = new File(targetDir, "schnickschnack.4-smp-2011-07-c.json");
         assertTrue(julyFile.isFile());
-        assertEquals(12580, julyFile.length());
+        assertEquals(13511, julyFile.length());
     }
 
     @Test
@@ -85,15 +85,15 @@ public class SamplePointExporterIntegrationTest {
 
         final File decemberFile = new File(targetDir2010, "schnickschnack.4-smp-2010-12-a.json");
         assertTrue(decemberFile.isFile());
-        assertEquals(14889, decemberFile.length());
+        assertEquals(15991, decemberFile.length());
 
         final File januaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-01-b.json");
         assertTrue(januaryFile.isFile());
-        assertEquals(24102, januaryFile.length());
+        assertEquals(25888, januaryFile.length());
 
         final File februaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-02-c.json");
         assertTrue(februaryFile.isFile());
-        assertEquals(12326, februaryFile.length());
+        assertEquals(13238, februaryFile.length());
     }
 
     @Test
@@ -118,7 +118,7 @@ public class SamplePointExporterIntegrationTest {
 
         final File septemberFile = new File(targetDir, "schnickschnack.4-smp-2008-09-b.json");
         assertTrue(septemberFile.isFile());
-        assertEquals(231, septemberFile.length());
+        assertEquals(250, septemberFile.length());
 
         final File octoberFile = new File(targetDir, "schnickschnack.4-smp-2008-10-c.json");
         assertTrue(octoberFile.isFile());

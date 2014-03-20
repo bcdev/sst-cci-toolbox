@@ -169,7 +169,7 @@ public class MatchupGenerator extends BasicTool {
                     final int datafileId = p.getInsituReference();
                     final DataFile insituDatafile = storage.getDatafile(datafileId);
                     final InsituObservation insituObservation = new InsituObservation();
-                    insituObservation.setName("TODO"); // TODO - set WMO-ID
+                    insituObservation.setName(p.getDatasetName());
                     insituObservation.setDatafile(insituDatafile);
                     insituObservation.setRecordNo(p.getIndex());
                     insituObservation.setSensor(Constants.SENSOR_NAME_HISTORY);
