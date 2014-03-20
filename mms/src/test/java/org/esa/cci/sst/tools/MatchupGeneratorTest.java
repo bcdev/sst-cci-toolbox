@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools;
 
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -33,6 +34,7 @@ public class MatchupGeneratorTest {
         samplingPoint.setReferenceLon(22.2);
         samplingPoint.setReferenceLat(33.3);
         samplingPoint.setReferenceTime(776636483L);
+        samplingPoint.setInsituDatasetId(InsituDatasetId.dummy_diurnal_variability);
         final DataFile datafile = new DataFile();
 
         final ReferenceObservation referenceObservation = MatchupGenerator.createReferenceObservation("Sobol", samplingPoint, datafile);
@@ -52,7 +54,7 @@ public class MatchupGeneratorTest {
 
         assertSame(datafile, referenceObservation.getDatafile());
         assertEquals(0, referenceObservation.getRecordNo());
-        assertEquals(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC, referenceObservation.getDataset());
+        assertEquals(InsituDatasetId.dummy_diurnal_variability.getValue(), referenceObservation.getDataset());
         assertEquals(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED, referenceObservation.getReferenceFlag());
     }
 
@@ -63,6 +65,7 @@ public class MatchupGeneratorTest {
         samplingPoint.setReferenceLon(32.2);
         samplingPoint.setReferenceLat(43.3);
         samplingPoint.setReferenceTime(876636483L);
+        samplingPoint.setInsituDatasetId(InsituDatasetId.radiometer);
         final DataFile datafile = new DataFile();
 
         final ReferenceObservation referenceObservation = MatchupGenerator.createReferenceObservation("Bottle", samplingPoint, datafile);
@@ -82,7 +85,7 @@ public class MatchupGeneratorTest {
 
         assertSame(datafile, referenceObservation.getDatafile());
         assertEquals(0, referenceObservation.getRecordNo());
-        assertEquals(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC, referenceObservation.getDataset());
+        assertEquals(InsituDatasetId.radiometer.getValue(), referenceObservation.getDataset());
         assertEquals(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED, referenceObservation.getReferenceFlag());
     }
 }

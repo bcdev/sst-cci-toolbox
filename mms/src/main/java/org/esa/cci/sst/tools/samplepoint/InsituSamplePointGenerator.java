@@ -2,6 +2,7 @@ package org.esa.cci.sst.tools.samplepoint;
 
 import org.apache.commons.io.FileUtils;
 import org.esa.beam.util.StringUtils;
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
@@ -51,10 +52,13 @@ public class InsituSamplePointGenerator {
                 initializeReader(insituFile);
                 extractPointsInTimeRange(samplingPoints, timeRange);
 
+
                 if (samplingPoints.size() > 0) {
                     final int id = persist(insituFile);
+                    final byte datasetId = extractInsituDatasetId(insituFile.getName());
 
                     setReferenceId(samplingPoints, id);
+                    setDatasetId(samplingPoints, datasetId);
 
                     final Item[] readerColumns = reader.getColumns();
                     final List<String> columnNames = columnStorage.getAllColumnNames();
@@ -78,8 +82,15 @@ public class InsituSamplePointGenerator {
     }
 
     private void setReferenceId(ArrayList<SamplingPoint> samplingPoints, int id) {
+
         for (SamplingPoint samplingPoint : samplingPoints) {
             samplingPoint.setInsituReference(id);
+        }
+    }
+
+    private void setDatasetId(ArrayList<SamplingPoint> samplingPoints, byte datasetId) {
+        for (SamplingPoint samplingPoint : samplingPoints) {
+            samplingPoint.setInsituDatasetId(InsituDatasetId.create(datasetId));
         }
     }
 
@@ -151,7 +162,11 @@ public class InsituSamplePointGenerator {
         final int startIndex = fileName.indexOf("_") + 1;
         final int endIndex = fileName.indexOf("_", startIndex + 1);
         final String idString = fileName.substring(startIndex, endIndex);
-        return Byte.parseByte(idString);
+        try {
+            return Byte.parseByte(idString);
+        } catch (NumberFormatException e) {
+            return 8;
+        }
     }
 
     private int persist(File insituFile) {

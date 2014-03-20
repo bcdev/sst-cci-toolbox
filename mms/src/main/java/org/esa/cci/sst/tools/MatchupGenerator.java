@@ -257,7 +257,7 @@ public class MatchupGenerator extends BasicTool {
 
         r.setDatafile(datafile);
         r.setRecordNo(0);
-        r.setDataset(Constants.MATCHUP_INSITU_DATASET_DUMMY_BC); // TODO - set dataset ID (buoy, mooring, etc.) from insitu
+        r.setDataset(samplingPoint.getInsituDatasetId().getValue());
         r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
         return r;
     }

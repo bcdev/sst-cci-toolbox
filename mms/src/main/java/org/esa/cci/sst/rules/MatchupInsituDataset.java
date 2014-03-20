@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.tools.Constants;
@@ -30,24 +31,6 @@ import ucar.ma2.DataType;
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
 final class MatchupInsituDataset extends AbstractImplicitRule {
 
-    private static final byte[] FLAG_VALUES = new byte[]{
-            Constants.MATCHUP_INSITU_DATASET_DRIFTER,
-            Constants.MATCHUP_INSITU_DATASET_MOORING,
-            Constants.MATCHUP_INSITU_DATASET_SHIP,
-            Constants.MATCHUP_INSITU_DATASET_GTMBA,
-            Constants.MATCHUP_INSITU_DATASET_RADIOMETER,
-            Constants.MATCHUP_INSITU_DATASET_ARGO,
-            Constants.MATCHUP_INSITU_DATASET_DUMMY_SEA_ICE,
-            Constants.MATCHUP_INSITU_DATASET_DUMMY_DIURNAL_VARIABILITY,
-            Constants.MATCHUP_INSITU_DATASET_DUMMY_BC,
-            Constants.MATCHUP_INSITU_DATASET_XBT,
-            Constants.MATCHUP_INSITU_DATASET_MBT,
-            Constants.MATCHUP_INSITU_DATASET_CTD,
-            Constants.MATCHUP_INSITU_DATASET_ANIMAL,
-            Constants.MATCHUP_INSITU_DATASET_BOTTLE
-    };
-
-    private static final String FLAG_MEANINGS = "drifter mooring ship gtmba radiometer argo dummy_sea_ice dummy_diurnal_variability dummy_bc xbt mbt ctd animal bottle";
     private static final DataType DATA_TYPE = DataType.BYTE;
 
     @Override
@@ -56,8 +39,8 @@ final class MatchupInsituDataset extends AbstractImplicitRule {
                 unsigned(true).
                 rank(1).
                 dimensions(Constants.DIMENSION_NAME_MATCHUP).
-                flagValues(FLAG_VALUES).
-                flagMeanings(FLAG_MEANINGS);
+                flagValues(InsituDatasetId.getValues()).
+                flagMeanings(InsituDatasetId.getNames());
     }
 
     @Override

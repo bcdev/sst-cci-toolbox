@@ -1,6 +1,7 @@
 package org.esa.cci.sst.util;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.esa.cci.sst.common.InsituDatasetId;
 
 public final class SamplingPoint {
 
@@ -20,6 +21,7 @@ public final class SamplingPoint {
     private long referenceTime;
     private double referenceLat;
     private double referenceLon;
+    private InsituDatasetId insituDatasetId;
 
     public SamplingPoint() {
     }
@@ -140,5 +142,13 @@ public final class SamplingPoint {
 
     public double getReferenceLon() {
         return referenceLon;
+    }
+
+    public void setInsituDatasetId(InsituDatasetId insituDatasetId) {
+        this.insituDatasetId = insituDatasetId;
+    }
+
+    public InsituDatasetId getInsituDatasetId() {
+        return insituDatasetId;
     }
 }

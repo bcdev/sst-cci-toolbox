@@ -1,12 +1,11 @@
 package org.esa.cci.sst.util;
 
 
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class SamplingPointTest {
 
@@ -68,5 +67,14 @@ public class SamplingPointTest {
 
         final SamplingPoint insituPoint = new SamplingPoint(1, 2, 3, Double.NaN);
         assertTrue(insituPoint.isInsitu());
+    }
+
+    @Test
+    public void testSetGetInsituDatasetId() {
+        samplingPoint.setInsituDatasetId(InsituDatasetId.xbt);
+        assertEquals(InsituDatasetId.xbt, samplingPoint.getInsituDatasetId());
+
+        samplingPoint.setInsituDatasetId(InsituDatasetId.mooring);
+        assertEquals(InsituDatasetId.mooring, samplingPoint.getInsituDatasetId());
     }
 }

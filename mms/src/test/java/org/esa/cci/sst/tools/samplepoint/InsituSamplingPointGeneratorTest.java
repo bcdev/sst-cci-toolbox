@@ -284,6 +284,12 @@ public class InsituSamplingPointGeneratorTest {
          assertEquals(12, InsituSamplePointGenerator.extractInsituDatasetId("insitu_12_WMOID_Q9900586_20130331_20130729.nc"));
     }
 
+    @Test
+    public void testExtractInsituDatsetId_invalidId() {
+        // @todo 2 tb/** shall we introduce an enumEntry "invalid" tb 2014-03-20
+        assertEquals(8, InsituSamplePointGenerator.extractInsituDatasetId("insitu_WMOID_11851_20071123_20080111.nc"));
+    }
+
     private static long parseTime(String timeString) throws ParseException {
         return parseDate(timeString).getTime();
     }
