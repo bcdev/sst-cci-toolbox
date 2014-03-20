@@ -188,14 +188,14 @@ public class MatchupGenerator extends BasicTool {
             logInfo(logger, "Starting persisting matchups and coincidences...");
 
             rollbackStack.push(pm.transaction());
+            for (InsituObservation insituObservation: insituObservations) {
+                storage.store(insituObservation);
+            }
             for (Matchup m : matchups) {
                 pm.persist(m);
             }
             for (Coincidence c : coincidences) {
                 pm.persist(c);
-            }
-            for (InsituObservation insituObservation: insituObservations) {
-                storage.store(insituObservation);
             }
             pm.commit();
 
