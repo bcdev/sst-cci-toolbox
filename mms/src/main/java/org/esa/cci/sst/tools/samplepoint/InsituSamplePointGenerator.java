@@ -146,6 +146,14 @@ public class InsituSamplePointGenerator {
         return dataFile;
     }
 
+    // package access for testing only tb 2014-03-19
+    static byte extractInsituDatasetId(String fileName) {
+        final int startIndex = fileName.indexOf("_") + 1;
+        final int endIndex = fileName.indexOf("_", startIndex + 1);
+        final String idString = fileName.substring(startIndex, endIndex);
+        return Byte.parseByte(idString);
+    }
+
     private int persist(File insituFile) {
         final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
         if (storageDatafile == null) {

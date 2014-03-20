@@ -277,6 +277,13 @@ public class InsituSamplingPointGeneratorTest {
         assertEquals(4000000000000000L, sensor.getPattern());
     }
 
+    @Test
+    public void testExtractInsituDatsetId() {
+         assertEquals(0, InsituSamplePointGenerator.extractInsituDatasetId("insitu_0_WMOID_71566_20020211_20120214.nc"));
+         assertEquals(5, InsituSamplePointGenerator.extractInsituDatasetId("insitu_5_WMOID_69036_20001006_20020906.nc"));
+         assertEquals(12, InsituSamplePointGenerator.extractInsituDatasetId("insitu_12_WMOID_Q9900586_20130331_20130729.nc"));
+    }
+
     private static long parseTime(String timeString) throws ParseException {
         return parseDate(timeString).getTime();
     }
