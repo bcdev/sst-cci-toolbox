@@ -36,4 +36,6 @@ public interface Storage {
     ReferenceObservation getReferenceObservation(int id);
 
     Sensor getSensor(String sensorName);
+
+    void store(InsituObservation insituObservation);
 }

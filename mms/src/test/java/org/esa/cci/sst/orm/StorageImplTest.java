@@ -175,6 +175,16 @@ public class StorageImplTest {
         verifyNoMoreInteractions(persistenceManager);
     }
 
+    @Test
+    public void testStoreInsituObservation() {
+        final InsituObservation insituObservation = new InsituObservation();
+
+        storageImpl.store(insituObservation);
+
+        verify(persistenceManager, times(1)).persist(insituObservation);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
     @SuppressWarnings("deprecation")
     private DataFile createDataFile(String path) {
         final DataFile dataFile = new DataFile(path, new SensorBuilder().name("cloud").build());

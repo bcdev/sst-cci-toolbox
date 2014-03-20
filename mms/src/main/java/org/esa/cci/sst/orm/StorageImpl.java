@@ -81,4 +81,9 @@ class StorageImpl implements Storage {
         //noinspection unchecked
         return query.getResultList();
     }
+
+    @Override
+    public void store(InsituObservation insituObservation) {
+        persistenceManager.persist(insituObservation);
+    }
 }
