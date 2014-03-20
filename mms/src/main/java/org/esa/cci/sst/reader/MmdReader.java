@@ -153,21 +153,11 @@ public class MmdReader implements Reader {
         if(year == Short.MIN_VALUE || day == Short.MIN_VALUE || milliseconds == Short.MIN_VALUE) {
             return Short.MIN_VALUE;
         }
-        //final int second = milliseconds / 1000;
-        //final int minute = second / 60;
-        //final int hour = minute / 60;
-        // the above is wrong as it adds elapsed seconds of the day to elapsed minutes of the day
-        // to elapsed hours of the day instead of seconds of the minute to minutes of the hour to hours of the day!
-        //final int millisecond = milliseconds % 1000;
 
-        final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+          final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
         calendar.clear();
         calendar.set(GregorianCalendar.YEAR, year);
         calendar.set(GregorianCalendar.DAY_OF_YEAR, day);
-        //calendar.set(GregorianCalendar.HOUR_OF_DAY, hour);
-        //calendar.set(GregorianCalendar.MINUTE, minute);
-        //calendar.set(GregorianCalendar.SECOND, second);
-        //calendar.set(GregorianCalendar.MILLISECOND, millisecond);
         calendar.set(GregorianCalendar.HOUR_OF_DAY, 0);
         calendar.set(GregorianCalendar.MINUTE, 0);
         calendar.set(GregorianCalendar.SECOND, 0);
@@ -233,6 +223,11 @@ public class MmdReader implements Reader {
     @Override
     public InsituSource getInsituSource() {
         return null;
+    }
+
+    @Override
+    public String getDatasetName() {
+        return "mmd";
     }
 
     @Override

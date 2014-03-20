@@ -103,6 +103,11 @@ public class GunzipDecorator implements Reader {
         return delegate.getNumRecords();
     }
 
+    @Override
+    public String getDatasetName() {
+        return delegate.getDatasetName();
+    }
+
     /**
      * Delegates to decorated reader.
      */

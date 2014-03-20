@@ -169,6 +169,8 @@ public interface Reader extends Closeable {
 
     int getElementCount();
 
+    String getDatasetName();
+
     /**
      * If the reader is a product reader, this method returns the product the reader has read. Otherwise,
      * <code>null</code> is returned.

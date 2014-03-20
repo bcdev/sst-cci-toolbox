@@ -95,6 +95,11 @@ abstract class AbstractProductReader implements Reader {
         return datafile;
     }
 
+    @Override
+    public String getDatasetName() {
+        return sensorName;
+    }
+
     public final String getSensorName() {
         return sensorName;
     }

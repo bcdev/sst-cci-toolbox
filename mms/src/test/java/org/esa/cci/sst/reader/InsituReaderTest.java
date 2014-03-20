@@ -39,9 +39,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
-/**
- * @author Thomas Storm
- */
+
 public class InsituReaderTest {
 
     @Test
@@ -140,6 +138,13 @@ public class InsituReaderTest {
     }
 
     @Test
+    public void testGetDatasetName_SST_CCI_V1_Data() throws Exception {
+        try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
+            assertEquals("11851", reader.getDatasetName());
+        }
+    }
+
+    @Test
     public void testReadObservation_SST_CCI_V2_Drifter_Data() throws Exception {
         final InsituObservation observation;
 
@@ -223,6 +228,13 @@ public class InsituReaderTest {
     }
 
     @Test
+    public void testGetDatasetName_SST_CCI_V2_Drifter_Data() throws Exception {
+        try (InsituReader reader = createReader("insitu_0_WMOID_71566_20020211_20120214.nc")) {
+            assertEquals("71566", reader.getDatasetName());
+        }
+    }
+
+    @Test
     public void testReadObservation_SST_CCI_V2_Ship_Data() throws Exception {
         final InsituObservation observation;
 
@@ -302,6 +314,13 @@ public class InsituReaderTest {
 
             samplingPoint = samplingPoints.get(24);
             assertCorrectSamplingPoint(-2.4, 106.8, 1013385600000L, 24, samplingPoint);
+        }
+    }
+
+    @Test
+    public void testGetDatasetName_SST_CCI_V2_Ship_Data() throws Exception {
+        try (InsituReader reader = createReader("insitu_2_WMOID_ZNUB_20011201_20020211.nc")) {
+            assertEquals("ZNUB", reader.getDatasetName());
         }
     }
 

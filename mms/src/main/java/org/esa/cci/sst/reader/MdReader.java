@@ -54,8 +54,8 @@ import java.util.logging.Logger;
  */
 abstract class MdReader extends NetcdfReader {
 
-    private final Map<String, Array> arrayMap = new HashMap<String, Array>();
-    private final Map<String, Integer> indexMap = new HashMap<String, Integer>();
+    private final Map<String, Array> arrayMap = new HashMap<>();
+    private final Map<String, Integer> indexMap = new HashMap<>();
 
     private int numRecords;
 
@@ -150,6 +150,11 @@ abstract class MdReader extends NetcdfReader {
         final Variable variable = validateArguments(role, 2, DataType.CHAR, recordNo);
         final Array array = getData(variable, recordNo);
         return ((ArrayChar.D2) array).getString(0).trim();
+    }
+
+    @Override
+    public String getDatasetName() {
+        return getSensorName();
     }
 
     /**

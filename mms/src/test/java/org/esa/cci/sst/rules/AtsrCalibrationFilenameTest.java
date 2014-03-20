@@ -102,6 +102,11 @@ public class AtsrCalibrationFilenameTest {
                     }
 
                     @Override
+                    public String getDatasetName() {
+                        return null;
+                    }
+
+                    @Override
                     public DataFile getDatafile() {
                         return null;
                     }

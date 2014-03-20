@@ -88,6 +88,11 @@ public class MmdReaderTest {
         assertEquals(TEST_WITH_ACTUAL_DATA, location.substring(index + 1, location.length()));
     }
 
+    @Test
+    public void testGetDatasetName() {
+         assertEquals("mmd", mmdReader.getDatasetName());
+    }
+
     private void initMmdReader(final String filename) throws IOException {
         final DataFile dataFile = new DataFile();
         final String filePath = TestHelper.getResourcePath(getClass(), filename);

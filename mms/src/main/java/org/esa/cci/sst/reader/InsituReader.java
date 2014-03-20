@@ -99,7 +99,6 @@ class InsituReader extends NetcdfReader {
         return observation;
     }
 
-
     @Override
     public List<SamplingPoint> readSamplingPoints() throws IOException {
         return insituAccessor.readSamplingPoints();
@@ -150,6 +149,11 @@ class InsituReader extends NetcdfReader {
     @Override
     public InsituSource getInsituSource() {
         return null;
+    }
+
+    @Override
+    public String getDatasetName() {
+        return insituAccessor.getObservationName();
     }
 
     @Override
