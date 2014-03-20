@@ -42,7 +42,7 @@ public class SamplingPointGenerationToolTest {
         assertEquals(519, workflowContext.getSampleCount());
         final File archiveRootDir = workflowContext.getArchiveRootDir();
         assertNotNull(archiveRootDir);
-        assertEquals(File.separator + "path" + File.separator + "archive" + File.separator + "refdata", archiveRootDir.getPath());
+        assertEquals(File.separator + "path" + File.separator + "archive", archiveRootDir.getPath());
         assertEquals("thermometer", workflowContext.getInsituSensorName());
         assertEquals(4611686018427387904L, workflowContext.getInsituSensorPattern());
         assertEquals("Cool_One", workflowContext.getSampleGeneratorName());
