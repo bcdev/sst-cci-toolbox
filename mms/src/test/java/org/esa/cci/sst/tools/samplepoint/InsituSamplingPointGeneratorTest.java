@@ -2,6 +2,7 @@ package org.esa.cci.sst.tools.samplepoint;
 
 
 import org.esa.cci.sst.TestHelper;
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
@@ -94,7 +95,6 @@ public class InsituSamplingPointGeneratorTest {
         assertNumDataFilesStored(1);
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testGenerate_timeRangeContainsOneFile_dataFileAlreadyStored() throws URISyntaxException, ParseException {
         final Date startDate = parseDate("2007-11-01T00:00:00Z");
@@ -288,6 +288,30 @@ public class InsituSamplingPointGeneratorTest {
     public void testExtractInsituDatsetId_invalidId() {
         // @todo 2 tb/** shall we introduce an enumEntry "invalid" tb 2014-03-20
         assertEquals(8, InsituSamplePointGenerator.extractInsituDatasetId("insitu_WMOID_11851_20071123_20080111.nc"));
+    }
+
+    @Test
+    public void testSetInsituReferenceId() {
+        final List<SamplingPoint> samplingPoints = new ArrayList<>();
+        samplingPoints.add(new SamplingPoint());
+        samplingPoints.add(new SamplingPoint());
+
+        InsituSamplePointGenerator.setInsituReferenceId(samplingPoints, 34);
+        assertEquals(34, samplingPoints.get(0).getInsituReference());
+        assertEquals(34, samplingPoints.get(1).getInsituReference());
+    }
+
+    @Test
+    public void testSetInsituDatasetId() {
+        final List<SamplingPoint> samplingPoints = new ArrayList<>();
+        samplingPoints.add(new SamplingPoint());
+        samplingPoints.add(new SamplingPoint());
+
+        InsituSamplePointGenerator.setInsituDatasetId(samplingPoints, (byte) 8);
+
+        final InsituDatasetId expected = InsituDatasetId.create((byte) 8);
+        assertEquals(expected, samplingPoints.get(0).getInsituDatasetId());
+        assertEquals(expected, samplingPoints.get(1).getInsituDatasetId());
     }
 
     private static long parseTime(String timeString) throws ParseException {

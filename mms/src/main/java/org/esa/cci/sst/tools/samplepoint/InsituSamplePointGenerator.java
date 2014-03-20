@@ -57,8 +57,8 @@ public class InsituSamplePointGenerator {
                     final int id = persist(insituFile);
                     final byte datasetId = extractInsituDatasetId(insituFile.getName());
 
-                    setReferenceId(samplingPoints, id);
-                    setDatasetId(samplingPoints, datasetId);
+                    setInsituReferenceId(samplingPoints, id);
+                    setInsituDatasetId(samplingPoints, datasetId);
 
                     final Item[] readerColumns = reader.getColumns();
                     final List<String> columnNames = columnStorage.getAllColumnNames();
@@ -81,14 +81,15 @@ public class InsituSamplePointGenerator {
         return samplingPoints;
     }
 
-    private void setReferenceId(ArrayList<SamplingPoint> samplingPoints, int id) {
-
+    // package access for testing only tb 2014-03-20
+    static void setInsituReferenceId(List<SamplingPoint> samplingPoints, int id) {
         for (SamplingPoint samplingPoint : samplingPoints) {
             samplingPoint.setInsituReference(id);
         }
     }
 
-    private void setDatasetId(ArrayList<SamplingPoint> samplingPoints, byte datasetId) {
+    // package access for testing only tb 2014-03-20
+    static void setInsituDatasetId(List<SamplingPoint> samplingPoints, byte datasetId) {
         for (SamplingPoint samplingPoint : samplingPoints) {
             samplingPoint.setInsituDatasetId(InsituDatasetId.create(datasetId));
         }
