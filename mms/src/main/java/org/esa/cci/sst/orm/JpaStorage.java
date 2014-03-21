@@ -64,6 +64,8 @@ class JpaStorage implements Storage {
     public int storeWithTransaction(DataFile dataFile) {
         try {
             persistenceManager.transaction();
+            final Sensor sensor = getSensor(dataFile.getSensor().getName());
+            dataFile.setSensor(sensor);
             persistenceManager.persist(dataFile);
             persistenceManager.commit();
         } catch (Exception e) {

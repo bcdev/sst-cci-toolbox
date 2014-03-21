@@ -126,6 +126,7 @@ public class JpaStorageTest {
 
         verify(persistenceManager, times(1)).persist(dataFile);
         verify(persistenceManager, times(1)).pick(sql, path);
+        verify(persistenceManager, times(1)).pick("select s from Sensor s where s.name = ?1", "cloud");
         verify(persistenceManager, times(2)).transaction();
         verify(persistenceManager, times(2)).commit();
         verifyNoMoreInteractions(persistenceManager);
@@ -150,6 +151,7 @@ public class JpaStorageTest {
         verify(persistenceManager, times(1)).commit();
         verify(persistenceManager, times(1)).pick(sql, path);
         verify(persistenceManager, times(1)).rollback();
+        verify(persistenceManager, times(1)).pick("select s from Sensor s where s.name = ?1", "cloud");
         verifyNoMoreInteractions(persistenceManager);
     }
 
@@ -168,6 +170,7 @@ public class JpaStorageTest {
 
         verify(persistenceManager, times(1)).transaction();
         verify(persistenceManager, times(1)).persist(dataFile);
+        verify(persistenceManager, times(1)).pick("select s from Sensor s where s.name = ?1", "cloud");
         verify(persistenceManager, times(1)).rollback();
         verifyNoMoreInteractions(persistenceManager);
     }
