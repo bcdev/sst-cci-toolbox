@@ -2,6 +2,7 @@ package org.esa.cci.sst.orm;
 
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.ToolException;
 
 import javax.persistence.Query;
 import java.util.List;
@@ -26,11 +27,35 @@ class JpaColumnStorage implements ColumnStorage {
         return query.getResultList();
     }
 
+    @Override
+    public List<Item> getAllColumnsWithTransaction() {
+        try {
+            persistenceManager.transaction();
+            final List<Item> allColumns = getAllColumns();
+            persistenceManager.commit();
+            return allColumns;
+        } catch (Exception e) {
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public List<String> getAllColumnNames() {
         final Query query = persistenceManager.createQuery("select c.name from Column c");
         return query.getResultList();
+    }
+
+    @Override
+    public List<String> getAllColumnNamesWithTransaction() {
+        try {
+            persistenceManager.transaction();
+            final List<String> columnNames = getAllColumnNames();
+            persistenceManager.commit();
+            return columnNames;
+        } catch (Exception e) {
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
     }
 
     public void store(Column column) {

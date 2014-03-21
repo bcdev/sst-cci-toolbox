@@ -157,7 +157,7 @@ public class InsituSamplingPointGeneratorTest {
 
         generator.generate(startDate.getTime(), stopDate.getTime());
 
-        verify(mockColumnStorage, times(1)).getAllColumnNames();
+        verify(mockColumnStorage, times(1)).getAllColumnNamesWithTransaction();
         verify(mockColumnStorage, times(6)).store(any(Column.class));
         verifyNoMoreInteractions(mockColumnStorage);
     }
@@ -175,11 +175,11 @@ public class InsituSamplingPointGeneratorTest {
         columnNamesInDb.add("history.insitu.sea_surface_temperature");
         columnNamesInDb.add("history.insitu.sst_uncertainty");
         columnNamesInDb.add("history.insitu.mohc_id");
-        when(mockColumnStorage.getAllColumnNames()).thenReturn(columnNamesInDb);
+        when(mockColumnStorage.getAllColumnNamesWithTransaction()).thenReturn(columnNamesInDb);
 
         generator.generate(startDate.getTime(), stopDate.getTime());
 
-        verify(mockColumnStorage, times(1)).getAllColumnNames();
+        verify(mockColumnStorage, times(1)).getAllColumnNamesWithTransaction();
         verify(mockColumnStorage, times(0)).store(any(Column.class));
         verifyNoMoreInteractions(mockColumnStorage);
     }
@@ -194,11 +194,11 @@ public class InsituSamplingPointGeneratorTest {
         columnNamesInDb.add("history.insitu.time");
         columnNamesInDb.add("history.insitu.lon");
         columnNamesInDb.add("history.insitu.sst_uncertainty");
-        when(mockColumnStorage.getAllColumnNames()).thenReturn(columnNamesInDb);
+        when(mockColumnStorage.getAllColumnNamesWithTransaction()).thenReturn(columnNamesInDb);
 
         generator.generate(startDate.getTime(), stopDate.getTime());
 
-        verify(mockColumnStorage, times(1)).getAllColumnNames();
+        verify(mockColumnStorage, times(1)).getAllColumnNamesWithTransaction();
         verify(mockColumnStorage, times(3)).store(any(Column.class));
         verifyNoMoreInteractions(mockColumnStorage);
     }

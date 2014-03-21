@@ -80,7 +80,7 @@ public class InsituSamplePointGenerator {
     }
 
     private void persistColumnNames(Item[] readerColumns) {
-        final List<String> columnNames = columnStorage.getAllColumnNames();
+        final List<String> columnNames = columnStorage.getAllColumnNamesWithTransaction();
         for (final Item column : readerColumns) {
             if (!columnNames.contains(column.getName())) {
                 columnStorage.store((Column) column);

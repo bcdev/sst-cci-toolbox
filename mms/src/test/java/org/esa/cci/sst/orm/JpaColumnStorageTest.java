@@ -1,9 +1,11 @@
 package org.esa.cci.sst.orm;
 
 
+import org.apache.openjpa.persistence.PersistenceException;
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.tools.ToolException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,9 +15,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -74,6 +74,52 @@ public class JpaColumnStorageTest {
     }
 
     @Test
+    public void testGetAllColumnsWithTransaction() {
+        final String sql = "select c from Column c order by c.name";
+        final ArrayList<Column> columnList = new ArrayList<>();
+        columnList.add((Column) new ColumnBuilder().name("test_me").build());
+
+        final Query query = mock(Query.class);
+
+        when(persistenceManager.createQuery(sql)).thenReturn(query);
+        when(query.getResultList()).thenReturn(columnList);
+
+        final List<? extends Item> allColumns = columnStorage.getAllColumnsWithTransaction();
+        assertNotNull(allColumns);
+        assertEquals(1, allColumns.size());
+        assertEquals("test_me", allColumns.get(0).getName());
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).createQuery(sql);
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testGetAllColumnsWithTransaction_fails() {
+        final String sql = "select c from Column c order by c.name";
+
+        final Query query = mock(Query.class);
+
+        when(persistenceManager.createQuery(sql)).thenReturn(query);
+        doThrow(new PersistenceException(null, null, null, true)).when(query).getResultList();
+
+        try {
+            columnStorage.getAllColumnsWithTransaction();
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).createQuery(sql);
+        verifyNoMoreInteractions(persistenceManager);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
     public void testGetAllColumnNames() {
         final String sql = "select c.name from Column c";
         final ArrayList<String> columnNameList = new ArrayList<>();
@@ -91,6 +137,51 @@ public class JpaColumnStorageTest {
         verify(persistenceManager, times(1)).createQuery(sql);
         verify(query, times(1)).getResultList();
         verifyNoMoreInteractions(persistenceManager);
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testGetAllColumnNamesWithTransaction() {
+        final String sql = "select c.name from Column c";
+        final ArrayList<String> columnNameList = new ArrayList<>();
+        columnNameList.add("Johanna");
+        columnNameList.add("Uwe");
+
+        final Query query = mock(Query.class);
+
+        when(persistenceManager.createQuery(sql)).thenReturn(query);
+        when(query.getResultList()).thenReturn(columnNameList);
+
+        final List<String> namesFromStorage = columnStorage.getAllColumnNamesWithTransaction();
+        assertNotNull(namesFromStorage);
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).createQuery(sql);
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+        verify(query, times(1)).getResultList();
+        verifyNoMoreInteractions(query);
+    }
+
+    @Test
+    public void testGetAllColumnNamesWithTransaction_failure() {
+        final String sql = "select c.name from Column c";
+
+        final Query query = mock(Query.class);
+
+        when(persistenceManager.createQuery(sql)).thenReturn(query);
+        doThrow(new PersistenceException(null, null, null, true)).when(query).getResultList();
+
+        try {
+            columnStorage.getAllColumnNamesWithTransaction();
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).createQuery(sql);
+        verifyNoMoreInteractions(persistenceManager);
+        verify(query, times(1)).getResultList();
         verifyNoMoreInteractions(query);
     }
 

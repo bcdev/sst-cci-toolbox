@@ -12,7 +12,11 @@ public interface ColumnStorage {
 
     List<Item> getAllColumns();
 
+    List<Item> getAllColumnsWithTransaction();
+
     List<String> getAllColumnNames();
+
+    List<String> getAllColumnNamesWithTransaction();
 
     void store(Column column);
 
