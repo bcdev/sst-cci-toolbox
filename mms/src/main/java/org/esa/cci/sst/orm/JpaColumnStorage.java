@@ -69,6 +69,7 @@ class JpaColumnStorage implements ColumnStorage {
             store(column);
             persistenceManager.commit();
         } catch (Exception e) {
+            e.printStackTrace();
             persistenceManager.rollback();
             throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
         }
