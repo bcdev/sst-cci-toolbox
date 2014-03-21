@@ -63,6 +63,18 @@ class JpaColumnStorage implements ColumnStorage {
     }
 
     @Override
+    public void storeWithTransaction(Column column) {
+        try {
+            persistenceManager.transaction();
+            store(column);
+            persistenceManager.commit();
+        } catch (Exception e) {
+            persistenceManager.rollback();
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
+    }
+
+    @Override
     public void deleteAll() {
         final Query query = persistenceManager.createQuery("delete from Column c");
         query.executeUpdate();

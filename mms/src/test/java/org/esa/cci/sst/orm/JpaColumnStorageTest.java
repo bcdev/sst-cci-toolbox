@@ -186,12 +186,42 @@ public class JpaColumnStorageTest {
     }
 
     @Test
-    public void testStoreColumns() {
+    public void testStoreColumn() {
         final Column column = (Column) new ColumnBuilder().name("Hannibal").build();
 
         columnStorage.store(column);
 
         verify(persistenceManager, times(1)).persist(column);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testStoreColumnWithTransaction() {
+        final Column column = (Column) new ColumnBuilder().name("Schneckchen").build();
+
+        columnStorage.storeWithTransaction(column);
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).persist(column);
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testStoreColumnWithTransaction_failure() {
+        final Column column = (Column) new ColumnBuilder().name("Gansta-Rapper").build();
+
+        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).persist(column);
+
+        try {
+            columnStorage.storeWithTransaction(column);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).persist(column);
+        verify(persistenceManager, times(1)).rollback();
         verifyNoMoreInteractions(persistenceManager);
     }
 

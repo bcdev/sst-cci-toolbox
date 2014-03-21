@@ -20,5 +20,7 @@ public interface ColumnStorage {
 
     void store(Column column);
 
+    void storeWithTransaction(Column column);
+
     void deleteAll();
 }

@@ -158,7 +158,7 @@ public class InsituSamplingPointGeneratorTest {
         generator.generate(startDate.getTime(), stopDate.getTime());
 
         verify(mockColumnStorage, times(1)).getAllColumnNamesWithTransaction();
-        verify(mockColumnStorage, times(6)).store(any(Column.class));
+        verify(mockColumnStorage, times(6)).storeWithTransaction(any(Column.class));
         verifyNoMoreInteractions(mockColumnStorage);
     }
 
@@ -199,7 +199,7 @@ public class InsituSamplingPointGeneratorTest {
         generator.generate(startDate.getTime(), stopDate.getTime());
 
         verify(mockColumnStorage, times(1)).getAllColumnNamesWithTransaction();
-        verify(mockColumnStorage, times(3)).store(any(Column.class));
+        verify(mockColumnStorage, times(3)).storeWithTransaction(any(Column.class));
         verifyNoMoreInteractions(mockColumnStorage);
     }
 

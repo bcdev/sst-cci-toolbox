@@ -83,7 +83,7 @@ public class InsituSamplePointGenerator {
         final List<String> columnNames = columnStorage.getAllColumnNamesWithTransaction();
         for (final Item column : readerColumns) {
             if (!columnNames.contains(column.getName())) {
-                columnStorage.store((Column) column);
+                columnStorage.storeWithTransaction((Column) column);
             }
         }
     }
