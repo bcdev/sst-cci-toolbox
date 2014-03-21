@@ -55,7 +55,7 @@ public class PersistenceManager {
     }
 
     public Storage getStorage() {
-        return new StorageImpl(this);
+        return new JpaStorage(this);
     }
 
     public MatchupStorage getMatchupStorage() {

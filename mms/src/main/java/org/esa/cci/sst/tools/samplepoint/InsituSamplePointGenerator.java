@@ -8,6 +8,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.ColumnStorage;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
@@ -28,17 +29,19 @@ public class InsituSamplePointGenerator {
     private final Sensor sensor;
     private final Storage storage;
     private final ColumnStorage columnStorage;
+    private final PersistenceManager persistenceManager;
 
     private Logger logger;
 
-    public InsituSamplePointGenerator(File archiveDir, Sensor sensor, Storage storage, ColumnStorage columnStorage,
+    public InsituSamplePointGenerator(File archiveDir, Sensor sensor, PersistenceManager persistenceManager,
                                       String insituRelativePath) {
         this.archiveDir = archiveDir;
         this.insituRelativePath = insituRelativePath;
         this.reader = ReaderFactory.createReader("InsituReader", "history");
         this.sensor = sensor;
-        this.storage = storage;
-        this.columnStorage = columnStorage;
+        this.storage = persistenceManager.getStorage();
+        this.columnStorage = persistenceManager.getColumnStorage();
+        this.persistenceManager = persistenceManager;
     }
 
     public void setLogger(Logger logger) {
@@ -54,7 +57,6 @@ public class InsituSamplePointGenerator {
             try {
                 initializeReader(insituFile);
                 extractPointsInTimeRange(samplingPoints, timeRange);
-
 
                 if (samplingPoints.size() > 0) {
                     final int id = persist(insituFile);
@@ -173,10 +175,13 @@ public class InsituSamplePointGenerator {
     }
 
     private int persist(File insituFile) {
+        persistenceManager.transaction();
         final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
+        persistenceManager.commit();
+
         if (storageDatafile == null) {
             final DataFile dataFile = createDataFile(insituFile, sensor);
-            return storage.store(dataFile);
+            return storage.storeWithTransaction(dataFile);
         } else {
             return storageDatafile.getId();
         }

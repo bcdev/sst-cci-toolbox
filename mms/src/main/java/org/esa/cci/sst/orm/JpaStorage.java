@@ -1,13 +1,14 @@
 package org.esa.cci.sst.orm;
 
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;
 import java.util.Date;
 import java.util.List;
 
-class StorageImpl implements Storage {
+class JpaStorage implements Storage {
 
     // rq-20140217 - do not delete, might be useful later
 //    private static final String COINCIDING_OBSERVATION_QUERY_TEMPLATE_STRING =
@@ -28,7 +29,7 @@ class StorageImpl implements Storage {
 
     private final PersistenceManager persistenceManager;
 
-    StorageImpl(PersistenceManager persistenceManager) {
+    JpaStorage(PersistenceManager persistenceManager) {
         this.persistenceManager = persistenceManager;
     }
 
@@ -42,10 +43,30 @@ class StorageImpl implements Storage {
         return (DataFile) persistenceManager.pick("select f from DataFile f where f.path = ?1", path);
     }
 
-    public int store(DataFile dataFile) {
+    public void store(DataFile dataFile) {
         persistenceManager.persist(dataFile);
-        final DataFile picked = getDatafile(dataFile.getPath());
-        return picked.getId();
+    }
+
+    @Override
+    public int storeWithTransaction(DataFile dataFile) {
+        try {
+            persistenceManager.transaction();
+            persistenceManager.persist(dataFile);
+            persistenceManager.commit();
+        } catch (Exception e) {
+            persistenceManager.rollback();
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
+
+        try {
+            persistenceManager.transaction();
+            final DataFile picked = getDatafile(dataFile.getPath());
+            persistenceManager.commit();
+            return picked.getId();
+        } catch (Exception e) {
+            persistenceManager.rollback();
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
     }
 
     @Override

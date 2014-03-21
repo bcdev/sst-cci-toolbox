@@ -25,7 +25,6 @@ public class MmdIngestionToolTest {
         final DataFile dataFile = new DataFile(path, new SensorBuilder().name("Firlefanz").build());
 
         when(mockStorage.getDatafile(path)).thenReturn(null);
-        when(mockStorage.store(dataFile)).thenReturn(12);
 
         MmdIngestionTool.storeDataFile(dataFile, mockStorage);
 

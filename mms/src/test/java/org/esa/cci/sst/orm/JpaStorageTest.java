@@ -1,6 +1,8 @@
 package org.esa.cci.sst.orm;
 
+import org.apache.openjpa.persistence.PersistenceException;
 import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,21 +15,22 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 
-public class StorageImplTest {
+public class JpaStorageTest {
 
     private static final int ID = 1234;
     private static final String GET_OBSERVATION_SQL = "select o from Observation o where o.id = ?1";
 
     private PersistenceManager persistenceManager;
-    private StorageImpl storageImpl;
+    private JpaStorage jpaStorage;
 
     @Before
     public void setUp() {
         persistenceManager = mock(PersistenceManager.class);
-        storageImpl = new StorageImpl(persistenceManager);
+        jpaStorage = new JpaStorage(persistenceManager);
     }
 
     @Test
@@ -38,7 +41,7 @@ public class StorageImplTest {
 
         when(persistenceManager.pick(sql, path)).thenReturn(dataFile);
 
-        final DataFile toolStorageDatafile = storageImpl.getDatafile(path);
+        final DataFile toolStorageDatafile = jpaStorage.getDatafile(path);
         assertNotNull(toolStorageDatafile);
         assertEquals(path, toolStorageDatafile.getPath());
 
@@ -54,7 +57,7 @@ public class StorageImplTest {
 
         when(persistenceManager.pick(sql, id)).thenReturn(dataFile);
 
-        final DataFile toolStorageDatafile = storageImpl.getDatafile(id);
+        final DataFile toolStorageDatafile = jpaStorage.getDatafile(id);
         assertNotNull(toolStorageDatafile);
         assertEquals(id, toolStorageDatafile.getId());
         assertEquals("something", toolStorageDatafile.getPath());
@@ -65,17 +68,71 @@ public class StorageImplTest {
 
     @Test
     public void testStoreDataFile() {
+        final String path = "/left/of/rome";
+        final DataFile dataFile = createDataFile(path);
+
+        jpaStorage.store(dataFile);
+
+        verify(persistenceManager, times(1)).persist(dataFile);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testStoreDataFileWithTransaction() {
         final String sql = "select f from DataFile f where f.path = ?1";
         final String path = "/left/of/rome";
         final DataFile dataFile = createDataFile(path);
 
         when(persistenceManager.pick(sql, path)).thenReturn(dataFile);
 
-        final int storedId = storageImpl.store(dataFile);
+        final int storedId = jpaStorage.storeWithTransaction(dataFile);
         assertEquals(ID, storedId);
 
         verify(persistenceManager, times(1)).persist(dataFile);
         verify(persistenceManager, times(1)).pick(sql, path);
+        verify(persistenceManager, times(2)).transaction();
+        verify(persistenceManager, times(2)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testStoreDataFileWithTransaction_getDataFileFails() {
+        final String path = "/left/of/rome";
+        final String sql = "select f from DataFile f where f.path = ?1";
+        final DataFile dataFile = createDataFile(path);
+
+        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).pick(sql, path);
+
+        try {
+            jpaStorage.storeWithTransaction(dataFile);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(2)).transaction();
+        verify(persistenceManager, times(1)).persist(dataFile);
+        verify(persistenceManager, times(1)).commit();
+        verify(persistenceManager, times(1)).pick(sql, path);
+        verify(persistenceManager, times(1)).rollback();
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testStoreDataFileWithTransaction_persistFails() {
+        final String path = "/left/of/rome";
+        final DataFile dataFile = createDataFile(path);
+
+        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).persist(dataFile);
+
+        try {
+            jpaStorage.storeWithTransaction(dataFile);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).persist(dataFile);
+        verify(persistenceManager, times(1)).rollback();
         verifyNoMoreInteractions(persistenceManager);
     }
 
@@ -88,7 +145,7 @@ public class StorageImplTest {
 
         when(persistenceManager.pick(GET_OBSERVATION_SQL, id)).thenReturn(observation);
 
-        final Observation toolStorageObservation = storageImpl.getObservation(id);
+        final Observation toolStorageObservation = jpaStorage.getObservation(id);
         assertNotNull(toolStorageObservation);
         assertEquals(name, toolStorageObservation.getName());
 
@@ -105,7 +162,7 @@ public class StorageImplTest {
 
         when(persistenceManager.pick(GET_OBSERVATION_SQL, id)).thenReturn(observation);
 
-        final RelatedObservation toolStorageObservation = storageImpl.getRelatedObservation(id);
+        final RelatedObservation toolStorageObservation = jpaStorage.getRelatedObservation(id);
         assertNotNull(toolStorageObservation);
         assertEquals(name, toolStorageObservation.getName());
 
@@ -129,7 +186,7 @@ public class StorageImplTest {
         when(query.getResultList()).thenReturn(observations);
         when(persistenceManager.createNativeQuery(sql, RelatedObservation.class)).thenReturn(query);
 
-        final List<RelatedObservation> storedObservations = storageImpl.getRelatedObservations(sensorName, startDate, stoptDate);
+        final List<RelatedObservation> storedObservations = jpaStorage.getRelatedObservations(sensorName, startDate, stoptDate);
         assertNotNull(storedObservations);
         assertEquals(1, storedObservations.size());
 
@@ -151,7 +208,7 @@ public class StorageImplTest {
 
         when(persistenceManager.pick(sql, id)).thenReturn(referenceObservation);
 
-        final ReferenceObservation toolStorageReferenceObservation = storageImpl.getReferenceObservation(id);
+        final ReferenceObservation toolStorageReferenceObservation = jpaStorage.getReferenceObservation(id);
         assertNotNull(toolStorageReferenceObservation);
         assertEquals(name, toolStorageReferenceObservation.getName());
 
@@ -167,7 +224,7 @@ public class StorageImplTest {
 
         when(persistenceManager.pick(sql, sensorName)).thenReturn(sensor);
 
-        final Sensor toolStorageSensor = storageImpl.getSensor(sensorName);
+        final Sensor toolStorageSensor = jpaStorage.getSensor(sensorName);
         assertNotNull(toolStorageSensor);
         assertEquals(sensorName, toolStorageSensor.getName());
 
@@ -179,7 +236,7 @@ public class StorageImplTest {
     public void testStoreInsituObservation() {
         final InsituObservation insituObservation = new InsituObservation();
 
-        storageImpl.store(insituObservation);
+        jpaStorage.store(insituObservation);
 
         verify(persistenceManager, times(1)).persist(insituObservation);
         verifyNoMoreInteractions(persistenceManager);

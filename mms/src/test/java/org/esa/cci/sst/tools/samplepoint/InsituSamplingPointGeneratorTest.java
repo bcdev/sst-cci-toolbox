@@ -8,6 +8,7 @@ import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.orm.ColumnStorage;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
@@ -49,7 +50,10 @@ public class InsituSamplingPointGeneratorTest {
     public void setUp() {
         mockStorage = mock(Storage.class);
         mockColumnStorage = mock(ColumnStorage.class);
-        generator = new InsituSamplePointGenerator(archiveDir, sensor, mockStorage, mockColumnStorage, "");
+        final PersistenceManager persistenceManager = mock(PersistenceManager.class);
+        when(persistenceManager.getStorage()).thenReturn(mockStorage);
+        when(persistenceManager.getColumnStorage()).thenReturn(mockColumnStorage);
+        generator = new InsituSamplePointGenerator(archiveDir, sensor, persistenceManager, "");
     }
 
     @Test
@@ -83,7 +87,7 @@ public class InsituSamplingPointGeneratorTest {
         final Date startDate = parseDate("2007-11-01T00:00:00Z");
         final Date stopDate = parseDate("2008-02-01T00:00:00Z");
         when(mockStorage.getDatafile(anyString())).thenReturn(null);
-        when(mockStorage.store(any(DataFile.class))).thenReturn(78);
+        when(mockStorage.storeWithTransaction(any(DataFile.class))).thenReturn(78);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
@@ -279,9 +283,9 @@ public class InsituSamplingPointGeneratorTest {
 
     @Test
     public void testExtractInsituDatsetId() {
-         assertEquals(0, InsituSamplePointGenerator.extractInsituDatasetId("insitu_0_WMOID_71566_20020211_20120214.nc"));
-         assertEquals(5, InsituSamplePointGenerator.extractInsituDatasetId("insitu_5_WMOID_69036_20001006_20020906.nc"));
-         assertEquals(12, InsituSamplePointGenerator.extractInsituDatasetId("insitu_12_WMOID_Q9900586_20130331_20130729.nc"));
+        assertEquals(0, InsituSamplePointGenerator.extractInsituDatasetId("insitu_0_WMOID_71566_20020211_20120214.nc"));
+        assertEquals(5, InsituSamplePointGenerator.extractInsituDatasetId("insitu_5_WMOID_69036_20001006_20020906.nc"));
+        assertEquals(12, InsituSamplePointGenerator.extractInsituDatasetId("insitu_12_WMOID_Q9900586_20130331_20130729.nc"));
     }
 
     @Test
@@ -319,7 +323,7 @@ public class InsituSamplingPointGeneratorTest {
 
     private void assertNumDataFilesStored(int storedDateFiles) {
         verify(mockStorage, times(storedDateFiles)).getDatafile(anyString());
-        verify(mockStorage, times(storedDateFiles)).store(any(DataFile.class));
+        verify(mockStorage, times(storedDateFiles)).storeWithTransaction(any(DataFile.class));
         verifyNoMoreInteractions(mockStorage);
     }
 
