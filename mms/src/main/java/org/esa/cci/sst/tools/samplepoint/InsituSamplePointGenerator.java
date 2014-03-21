@@ -64,12 +64,7 @@ public class InsituSamplePointGenerator {
                     setFileProperties(samplingPoints, id, datasetId, datasetName);
 
                     final Item[] readerColumns = reader.getColumns();
-                    final List<String> columnNames = columnStorage.getAllColumnNames();
-                    for (final Item column : readerColumns) {
-                        if (!columnNames.contains(column.getName())) {
-                            columnStorage.store((Column) column);
-                        }
-                    }
+                    persistColumnNames(readerColumns);
 
                 } else {
                     logWarning("File does not contain any data in time range: " + insituFile.getAbsolutePath());
@@ -82,6 +77,15 @@ public class InsituSamplePointGenerator {
             }
         }
         return samplingPoints;
+    }
+
+    private void persistColumnNames(Item[] readerColumns) {
+        final List<String> columnNames = columnStorage.getAllColumnNames();
+        for (final Item column : readerColumns) {
+            if (!columnNames.contains(column.getName())) {
+                columnStorage.store((Column) column);
+            }
+        }
     }
 
     // package access for testing only tb 2014-03-20

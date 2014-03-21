@@ -5,14 +5,14 @@ import org.esa.cci.sst.data.Matchup;
 import javax.persistence.Query;
 import java.util.List;
 
-class MatchupStorageImpl implements MatchupStorage {
+class JpaMatchupStorage implements MatchupStorage {
 
     private static final String SQL_FOR_COUNT = "select count(m.id) from mm_matchup m, mm_observation r where r.time >= ?1 and r.time < ?2 and r.id = m.refobs_id";
     public static final String SQL_FOR_MATCHUPS = "select m.id from mm_matchup m, mm_observation r where r.time >= ?1 and r.time < ?2 and r.id = m.refobs_id order by r.time, r.id";
 
     private final PersistenceManager persistenceManager;
 
-    MatchupStorageImpl(PersistenceManager persistenceManager) {
+    JpaMatchupStorage(PersistenceManager persistenceManager) {
         this.persistenceManager = persistenceManager;
     }
 

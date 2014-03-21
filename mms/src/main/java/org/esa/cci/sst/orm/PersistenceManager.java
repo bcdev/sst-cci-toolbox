@@ -59,11 +59,11 @@ public class PersistenceManager {
     }
 
     public MatchupStorage getMatchupStorage() {
-        return new MatchupStorageImpl(this);
+        return new JpaMatchupStorage(this);
     }
 
     public ColumnStorage getColumnStorage(){
-        return new ColumnStorageImpl(this);
+        return new JpaColumnStorage(this);
     }
 
     public EntityTransaction transaction() {

@@ -15,17 +15,17 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-public class MatchupStorageImplTest {
+public class JpaMatchupStorageTest {
 
     private PersistenceManager persistenceManager;
-    private MatchupStorageImpl matchupStorage;
+    private JpaMatchupStorage matchupStorage;
     private Query query;
 
     @Before
     public void setUp() {
         persistenceManager = mock(PersistenceManager.class);
         query = mock(Query.class);
-        matchupStorage = new MatchupStorageImpl(persistenceManager);
+        matchupStorage = new JpaMatchupStorage(persistenceManager);
     }
 
     @Test
@@ -267,32 +267,32 @@ public class MatchupStorageImplTest {
 
     @Test
     public void testGetSelectMatchupSql_history() {
-        final String matchupSql = MatchupStorageImpl.getSelectMatchupSql("history");
+        final String matchupSql = JpaMatchupStorage.getSelectMatchupSql("history");
         assertThat(matchupSql, containsString("and not exists ( select o.id from mm_coincidence c, mm_observation o where c.matchup_id = m.id and c.observation_id = o.id and o.sensor = ?1 ) "));
     }
 
     @Test
     public void testGetSelectMatchupSql_atsrOrMetopOrAvhrr() {
-        final String atsrSql = MatchupStorageImpl.getSelectMatchupSql("atsr_md");
+        final String atsrSql = JpaMatchupStorage.getSelectMatchupSql("atsr_md");
         assertThat(atsrSql, containsString("from mm_matchup m, mm_observation r, mm_datafile f where r.time >= ?2 and r.time < ?3 and r.sensor = ?1 and m.id = r.id"));
 
-        final String metopSql = MatchupStorageImpl.getSelectMatchupSql("metop");
+        final String metopSql = JpaMatchupStorage.getSelectMatchupSql("metop");
         assertEquals(atsrSql, metopSql);
 
-        final String avhrrSql = MatchupStorageImpl.getSelectMatchupSql("avhrr_md");
+        final String avhrrSql = JpaMatchupStorage.getSelectMatchupSql("avhrr_md");
         assertEquals(avhrrSql, metopSql);
     }
 
     @Test
     public void testGetSelectMatchupSql_implicit() {
-        final String implicitSql = MatchupStorageImpl.getSelectMatchupSql("Implicit");
+        final String implicitSql = JpaMatchupStorage.getSelectMatchupSql("Implicit");
         assertEquals("select r.id from mm_matchup m, mm_observation r, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and f.id = r.datafile_id order by f.path, r.time, r.id",
                 implicitSql);
     }
 
     @Test
     public void testGetSelectMatchupSql_notImplicit() {
-        final String anyOtherSql = MatchupStorageImpl.getSelectMatchupSql("Any Other Sensor");
+        final String anyOtherSql = JpaMatchupStorage.getSelectMatchupSql("Any Other Sensor");
         assertEquals("select r.id from mm_matchup m, mm_observation r, mm_coincidence c, mm_observation o, mm_datafile f where r.time >= ?2 and r.time < ?3 and m.id = r.id and c.matchup_id = r.id and c.observation_id = o.id and o.sensor = ?1 and o.datafile_id = f.id order by f.path, r.time, r.id",
                 anyOtherSql);
     }
@@ -302,7 +302,7 @@ public class MatchupStorageImplTest {
         final String sql = "bla bla bla where r.time = yesterday";
         final String condition = "absolutely nonsense";
 
-        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, condition, 987);
+        final String sqlApplied = JpaMatchupStorage.applyPatternAndCondition(sql, condition, 987);
         assertEquals("bla bla bla where pattern & ?4 = ?4 and absolutely nonsense and r.time = yesterday", sqlApplied);
     }
 
@@ -311,7 +311,7 @@ public class MatchupStorageImplTest {
         final String sql = "yada yada where r.time = christmas";
         final String condition = "want_gift = TRUE";
 
-        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, condition, 0);
+        final String sqlApplied = JpaMatchupStorage.applyPatternAndCondition(sql, condition, 0);
         assertEquals("yada yada where want_gift = TRUE and r.time = christmas", sqlApplied);
     }
 
@@ -319,7 +319,7 @@ public class MatchupStorageImplTest {
     public void testApplyPatternAndCondition_onlyPattern() {
         final String sql = "select something cool where r.time = easter_last_year";
 
-        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, null, 564);
+        final String sqlApplied = JpaMatchupStorage.applyPatternAndCondition(sql, null, 564);
         assertEquals("select something cool where pattern & ?4 = ?4 and r.time = easter_last_year", sqlApplied);
     }
 
@@ -327,7 +327,7 @@ public class MatchupStorageImplTest {
     public void testApplyPatternAndCondition_neitherPatternNorCondition() {
         final String sql = "select beer where r.time = this_evening";
 
-        final String sqlApplied = MatchupStorageImpl.applyPatternAndCondition(sql, null, 0);
+        final String sqlApplied = JpaMatchupStorage.applyPatternAndCondition(sql, null, 0);
         assertEquals(sql, sqlApplied);
     }
 

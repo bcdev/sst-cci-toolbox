@@ -19,15 +19,15 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class ColumnStorageImplTest {
+public class JpaColumnStorageTest {
 
     private PersistenceManager persistenceManager;
-    private ColumnStorageImpl columnStorage;
+    private JpaColumnStorage columnStorage;
 
     @Before
     public void setUp() {
         persistenceManager = mock(PersistenceManager.class);
-        columnStorage = new ColumnStorageImpl(persistenceManager);
+        columnStorage = new JpaColumnStorage(persistenceManager);
     }
 
     @Test

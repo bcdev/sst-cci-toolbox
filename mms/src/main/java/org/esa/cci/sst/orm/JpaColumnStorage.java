@@ -6,11 +6,11 @@ import org.esa.cci.sst.data.Item;
 import javax.persistence.Query;
 import java.util.List;
 
-class ColumnStorageImpl implements ColumnStorage {
+class JpaColumnStorage implements ColumnStorage {
 
     private final PersistenceManager persistenceManager;
 
-    ColumnStorageImpl(PersistenceManager persistenceManager) {
+    JpaColumnStorage(PersistenceManager persistenceManager) {
         this.persistenceManager = persistenceManager;
     }
 
