@@ -2,6 +2,7 @@ package org.esa.cci.sst.orm;
 
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.tools.ToolException;
 
 import javax.persistence.Query;
@@ -66,6 +67,9 @@ class JpaColumnStorage implements ColumnStorage {
     public void storeWithTransaction(Column column) {
         try {
             persistenceManager.transaction();
+            final String sensorName = column.getSensor().getName();
+            final Sensor sensor = (Sensor) persistenceManager.pick("select s from Sensor s where s.name = ?1", sensorName);
+            column.setSensor(sensor);
             store(column);
             persistenceManager.commit();
         } catch (Exception e) {

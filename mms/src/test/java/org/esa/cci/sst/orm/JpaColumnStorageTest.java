@@ -2,9 +2,7 @@ package org.esa.cci.sst.orm;
 
 
 import org.apache.openjpa.persistence.PersistenceException;
-import org.esa.cci.sst.data.Column;
-import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.tools.ToolException;
 import org.junit.Before;
 import org.junit.Test;
@@ -197,19 +195,22 @@ public class JpaColumnStorageTest {
 
     @Test
     public void testStoreColumnWithTransaction() {
-        final Column column = (Column) new ColumnBuilder().name("Schneckchen").build();
+        final Sensor sensor = new SensorBuilder().name("gnatz").build();
+        final Column column = (Column) new ColumnBuilder().name("Schneckchen").sensor(sensor).build();
 
         columnStorage.storeWithTransaction(column);
 
         verify(persistenceManager, times(1)).transaction();
         verify(persistenceManager, times(1)).persist(column);
+        verify(persistenceManager, times(1)). pick("select s from Sensor s where s.name = ?1", "gnatz");
         verify(persistenceManager, times(1)).commit();
         verifyNoMoreInteractions(persistenceManager);
     }
 
     @Test
     public void testStoreColumnWithTransaction_failure() {
-        final Column column = (Column) new ColumnBuilder().name("Gansta-Rapper").build();
+        final Sensor sensor = new SensorBuilder().name("bah").build();
+        final Column column = (Column) new ColumnBuilder().name("Gansta-Rapper").sensor(sensor).build();
 
         doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).persist(column);
 
@@ -221,6 +222,7 @@ public class JpaColumnStorageTest {
 
         verify(persistenceManager, times(1)).transaction();
         verify(persistenceManager, times(1)).persist(column);
+        verify(persistenceManager, times(1)). pick("select s from Sensor s where s.name = ?1", "bah");
         verify(persistenceManager, times(1)).rollback();
         verifyNoMoreInteractions(persistenceManager);
     }
