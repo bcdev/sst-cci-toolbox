@@ -53,6 +53,7 @@ public class InsituSamplingPointGeneratorTest {
         final PersistenceManager persistenceManager = mock(PersistenceManager.class);
         when(persistenceManager.getStorage()).thenReturn(mockStorage);
         when(persistenceManager.getColumnStorage()).thenReturn(mockColumnStorage);
+        when(mockStorage.getSensorWithTransaction(anyString())).thenReturn(sensor);
         generator = new InsituSamplePointGenerator(archiveDir, sensor, persistenceManager, "");
     }
 
@@ -67,6 +68,7 @@ public class InsituSamplingPointGeneratorTest {
 
         verify(mockStorage, times(0)).getDatafileWithTransaction(anyString());
         verify(mockStorage, times(0)).store(any(DataFile.class));
+        verify(mockStorage, times(1)).getSensorWithTransaction(anyString());
         verifyNoMoreInteractions(mockStorage);
     }
 
@@ -79,6 +81,7 @@ public class InsituSamplingPointGeneratorTest {
         assertNotNull(inSituPoints);
         assertEquals(0, inSituPoints.size());
 
+        verify(mockStorage, times(1)).getSensorWithTransaction(anyString());
         verifyNoMoreInteractions(mockStorage);
     }
 
@@ -116,6 +119,7 @@ public class InsituSamplingPointGeneratorTest {
 
         verify(mockStorage, times(1)).getDatafileWithTransaction(anyString());
         verify(mockStorage, times(0)).store(any(DataFile.class));
+        verify(mockStorage, times(1)).getSensorWithTransaction(anyString());
         verifyNoMoreInteractions(mockStorage);
     }
 
@@ -324,6 +328,7 @@ public class InsituSamplingPointGeneratorTest {
     private void assertNumDataFilesStored(int storedDateFiles) {
         verify(mockStorage, times(storedDateFiles)).getDatafileWithTransaction(anyString());
         verify(mockStorage, times(storedDateFiles)).storeWithTransaction(any(DataFile.class));
+        verify(mockStorage, times(1)).getSensorWithTransaction(anyString());
         verifyNoMoreInteractions(mockStorage);
     }
 

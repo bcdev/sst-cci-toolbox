@@ -106,6 +106,31 @@ class JpaStorage implements Storage {
     }
 
     @Override
+    public Sensor getSensorWithTransaction(String sensorName) {
+        try {
+            persistenceManager.transaction();
+            final Sensor sensor = getSensor(sensorName);
+            persistenceManager.commit();
+            return sensor;
+        } catch (Exception e) {
+            persistenceManager.rollback();
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
+    }
+
+    @Override
+    public void storeWithTransaction(Sensor sensor) {
+        try {
+            persistenceManager.transaction();
+            persistenceManager.persist(sensor);
+            persistenceManager.commit();
+        } catch (Exception e) {
+            persistenceManager.rollback();
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
+    }
+
+    @Override
     public List<RelatedObservation> getRelatedObservations(String sensorName, Date startDate, Date stopDate) {
         final String s1 = TimeUtil.formatCcsdsUtcFormat(startDate);
         final String s2 = TimeUtil.formatCcsdsUtcFormat(stopDate);

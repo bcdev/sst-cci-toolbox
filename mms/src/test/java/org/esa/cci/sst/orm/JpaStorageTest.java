@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 
@@ -214,7 +212,7 @@ public class JpaStorageTest {
         final Date startDate = TimeUtil.parseCcsdsUtcFormat("2010-01-01T13:00:00Z");
         final Date stoptDate = TimeUtil.parseCcsdsUtcFormat("2010-01-05T17:00:00Z");
         final String sensorName = "thermometer";
-        final String sql ="select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2010-01-01T13:00:00Z' and o.time < timestamp '2010-01-05T17:00:00Z' order by o.time, o.id";
+        final String sql = "select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2010-01-01T13:00:00Z' and o.time < timestamp '2010-01-05T17:00:00Z' order by o.time, o.id";
 
         final ArrayList<RelatedObservation> observations = new ArrayList<>();
         final RelatedObservation observation = new RelatedObservation();
@@ -268,6 +266,73 @@ public class JpaStorageTest {
         assertEquals(sensorName, toolStorageSensor.getName());
 
         verify(persistenceManager, times(1)).pick(sql, sensorName);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testGetSensorWithTransaction() {
+        final String sql = "select s from Sensor s where s.name = ?1";
+        final String sensorName = "blabla";
+        final Sensor sensor = new SensorBuilder().name(sensorName).build();
+
+        when(persistenceManager.pick(sql, sensorName)).thenReturn(sensor);
+
+        final Sensor toolStorageSensor = jpaStorage.getSensorWithTransaction(sensorName);
+        assertNotNull(toolStorageSensor);
+        assertEquals(sensorName, toolStorageSensor.getName());
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).pick(sql, sensorName);
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testGetSensorWithTransaction_failure() {
+        final String sql = "select s from Sensor s where s.name = ?1";
+        final String sensorName = "blabla";
+
+        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).pick(sql, sensorName);
+
+        try {
+            jpaStorage.getSensorWithTransaction(sensorName);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).pick(sql, sensorName);
+        verify(persistenceManager, times(1)).rollback();
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testStoreSensorWithTransaction() {
+        final Sensor sensor = new SensorBuilder().name("a_sensor").observationType(InsituObservation.class).pattern(4000000000L).build();
+
+        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).persist(sensor);
+
+        try {
+            jpaStorage.storeWithTransaction(sensor);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).persist(sensor);
+        verify(persistenceManager, times(1)).rollback();
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testStoreSensorWithTransaction_failure() {
+        final Sensor sensor = new SensorBuilder().name("a_sensor").observationType(InsituObservation.class).pattern(4000000000L).build();
+
+        jpaStorage.storeWithTransaction(sensor);
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).persist(sensor);
+        verify(persistenceManager, times(1)).commit();
         verifyNoMoreInteractions(persistenceManager);
     }
 

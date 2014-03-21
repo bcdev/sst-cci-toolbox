@@ -41,5 +41,9 @@ public interface Storage {
 
     Sensor getSensor(String sensorName);
 
+    Sensor getSensorWithTransaction(String sensorName);
+
+    void storeWithTransaction(Sensor sensor);
+
     void store(InsituObservation insituObservation);
 }

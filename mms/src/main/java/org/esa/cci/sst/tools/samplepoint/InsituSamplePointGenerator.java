@@ -50,6 +50,8 @@ public class InsituSamplePointGenerator {
         final ArrayList<SamplingPoint> samplingPoints = new ArrayList<>();
         final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
 
+        ensureSensorStoredInDb();
+
         final LinkedList<File> filesInRange = findFilesInTimeRange(timeRange);
         for (File insituFile : filesInRange) {
             try {
@@ -77,6 +79,13 @@ public class InsituSamplePointGenerator {
             }
         }
         return samplingPoints;
+    }
+
+    private void ensureSensorStoredInDb() {
+        final Sensor sensorFromDb = storage.getSensorWithTransaction(sensor.getName());
+        if (sensorFromDb == null) {
+            storage.storeWithTransaction(sensor);
+        }
     }
 
     private void persistColumnNames(Item[] readerColumns) {
