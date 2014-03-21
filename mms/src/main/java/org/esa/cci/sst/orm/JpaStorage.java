@@ -43,6 +43,19 @@ class JpaStorage implements Storage {
         return (DataFile) persistenceManager.pick("select f from DataFile f where f.path = ?1", path);
     }
 
+    @Override
+    public DataFile getDatafileWithTransaction(String path) {
+        try {
+            persistenceManager.transaction();
+            final DataFile dataFile = getDatafile(path);
+            persistenceManager.commit();
+
+            return dataFile;
+        } catch (Exception e) {
+            throw new ToolException("Database error", e, ToolException.TOOL_DB_ERROR);
+        }
+    }
+
     public void store(DataFile dataFile) {
         persistenceManager.persist(dataFile);
     }

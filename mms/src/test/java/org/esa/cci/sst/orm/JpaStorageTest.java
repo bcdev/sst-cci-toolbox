@@ -50,6 +50,42 @@ public class JpaStorageTest {
     }
 
     @Test
+    public void testGetDataFileWithTransaction() {
+        final String sql = "select f from DataFile f where f.path = ?1";
+        final String path = "/over/the/rainbow";
+        final DataFile dataFile = createDataFile(path);
+
+        when(persistenceManager.pick(sql, path)).thenReturn(dataFile);
+
+        final DataFile toolStorageDatafile = jpaStorage.getDatafileWithTransaction(path);
+        assertNotNull(toolStorageDatafile);
+        assertEquals(path, toolStorageDatafile.getPath());
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).pick(sql, path);
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
+    public void testGetDataFileWithTransaction_fails() {
+        final String sql = "select f from DataFile f where f.path = ?1";
+        final String path = "/over/the/rainbow";
+
+        doThrow(new PersistenceException(null, null, null, true)).when(persistenceManager).pick(sql, path);
+
+        try {
+            jpaStorage.getDatafileWithTransaction(path);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).pick(sql, path);
+        verifyNoMoreInteractions(persistenceManager);
+    }
+
+    @Test
     public void testGetDataFile_ById() {
         final String sql = "select f from DataFile f where f.id = ?1";
         final int id = 23;

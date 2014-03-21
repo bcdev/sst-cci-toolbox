@@ -65,7 +65,7 @@ public class InsituSamplingPointGeneratorTest {
         assertNotNull(inSituPoints);
         assertEquals(0, inSituPoints.size());
 
-        verify(mockStorage, times(0)).getDatafile(anyString());
+        verify(mockStorage, times(0)).getDatafileWithTransaction(anyString());
         verify(mockStorage, times(0)).store(any(DataFile.class));
         verifyNoMoreInteractions(mockStorage);
     }
@@ -86,7 +86,7 @@ public class InsituSamplingPointGeneratorTest {
     public void testGenerate_timeRangeContainsOneFile() throws URISyntaxException, ParseException {
         final Date startDate = parseDate("2007-11-01T00:00:00Z");
         final Date stopDate = parseDate("2008-02-01T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
         when(mockStorage.storeWithTransaction(any(DataFile.class))).thenReturn(78);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
@@ -105,7 +105,7 @@ public class InsituSamplingPointGeneratorTest {
         final Date stopDate = parseDate("2008-02-01T00:00:00Z");
         final DataFile dataFile = new DataFile();
         dataFile.setId(7765);
-        when(mockStorage.getDatafile(anyString())).thenReturn(dataFile);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(dataFile);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
@@ -114,7 +114,7 @@ public class InsituSamplingPointGeneratorTest {
         TestHelper.assertPointsInTimeRange(startDate, stopDate, inSituPoints);
         TestHelper.assertPointsHaveInsituReference(7765, inSituPoints);
 
-        verify(mockStorage, times(1)).getDatafile(anyString());
+        verify(mockStorage, times(1)).getDatafileWithTransaction(anyString());
         verify(mockStorage, times(0)).store(any(DataFile.class));
         verifyNoMoreInteractions(mockStorage);
     }
@@ -123,7 +123,7 @@ public class InsituSamplingPointGeneratorTest {
     public void testGenerate_timeRangeContainsTwoFiles() throws URISyntaxException, ParseException {
         final Date startDate = parseDate("1984-06-01T00:00:00Z");
         final Date stopDate = parseDate("1985-02-30T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
@@ -138,7 +138,7 @@ public class InsituSamplingPointGeneratorTest {
     public void testGenerate_timeRangeIntersectsOneFile() throws URISyntaxException, ParseException {
         final Date startDate = parseDate("2013-08-12T00:00:00Z");
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
@@ -153,7 +153,7 @@ public class InsituSamplingPointGeneratorTest {
     public void testGenerate_newColumnsArePersisted() throws ParseException {
         final Date startDate = parseDate("2013-08-12T00:00:00Z");
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
         generator.generate(startDate.getTime(), stopDate.getTime());
 
@@ -166,7 +166,7 @@ public class InsituSamplingPointGeneratorTest {
     public void testGenerate_noColumnsArePersistedWhenAllAreAlreadyInDB() throws ParseException {
         final Date startDate = parseDate("2013-08-12T00:00:00Z");
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
         final ArrayList<String> columnNamesInDb = new ArrayList<>();
         columnNamesInDb.add("history.insitu.time");
@@ -188,7 +188,7 @@ public class InsituSamplingPointGeneratorTest {
     public void testGenerate_missingColumnsArePersistedWhenColumnsArePartiallyStored() throws ParseException {
         final Date startDate = parseDate("2013-08-12T00:00:00Z");
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
         final ArrayList<String> columnNamesInDb = new ArrayList<>();
         columnNamesInDb.add("history.insitu.time");
@@ -207,7 +207,7 @@ public class InsituSamplingPointGeneratorTest {
     public void testGenerate_timeRangeIntersectsAllFiles() throws URISyntaxException, ParseException {
         final Date startDate = parseDate("1983-01-01T00:00:00Z");
         final Date stopDate = parseDate("2014-01-12T00:00:00Z");
-        when(mockStorage.getDatafile(anyString())).thenReturn(null);
+        when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
         final List<SamplingPoint> inSituPoints = generator.generate(startDate.getTime(), stopDate.getTime());
         assertNotNull(inSituPoints);
@@ -322,7 +322,7 @@ public class InsituSamplingPointGeneratorTest {
     }
 
     private void assertNumDataFilesStored(int storedDateFiles) {
-        verify(mockStorage, times(storedDateFiles)).getDatafile(anyString());
+        verify(mockStorage, times(storedDateFiles)).getDatafileWithTransaction(anyString());
         verify(mockStorage, times(storedDateFiles)).storeWithTransaction(any(DataFile.class));
         verifyNoMoreInteractions(mockStorage);
     }

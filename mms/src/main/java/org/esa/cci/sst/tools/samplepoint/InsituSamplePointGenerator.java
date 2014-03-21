@@ -29,7 +29,6 @@ public class InsituSamplePointGenerator {
     private final Sensor sensor;
     private final Storage storage;
     private final ColumnStorage columnStorage;
-    private final PersistenceManager persistenceManager;
 
     private Logger logger;
 
@@ -41,7 +40,6 @@ public class InsituSamplePointGenerator {
         this.sensor = sensor;
         this.storage = persistenceManager.getStorage();
         this.columnStorage = persistenceManager.getColumnStorage();
-        this.persistenceManager = persistenceManager;
     }
 
     public void setLogger(Logger logger) {
@@ -175,9 +173,7 @@ public class InsituSamplePointGenerator {
     }
 
     private int persist(File insituFile) {
-        persistenceManager.transaction();
-        final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
-        persistenceManager.commit();
+        final DataFile storageDatafile = storage.getDatafileWithTransaction(insituFile.getPath());
 
         if (storageDatafile == null) {
             final DataFile dataFile = createDataFile(insituFile, sensor);

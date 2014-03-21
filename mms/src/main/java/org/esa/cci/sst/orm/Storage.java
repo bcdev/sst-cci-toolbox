@@ -25,6 +25,8 @@ public interface Storage {
 
     DataFile getDatafile(String path);
 
+    DataFile getDatafileWithTransaction(String path);
+
     void store(DataFile dataFile);
 
     int storeWithTransaction(DataFile dataFile);
