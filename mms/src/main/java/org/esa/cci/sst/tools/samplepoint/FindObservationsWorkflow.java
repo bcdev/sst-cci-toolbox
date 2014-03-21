@@ -10,12 +10,13 @@ import java.util.List;
 public class FindObservationsWorkflow extends Workflow {
 
     private final ObservationFinder observationFinder;
+    private final PersistenceManager persistenceManager;
 
     public FindObservationsWorkflow(WorkflowContext workflowContext) {
         super(workflowContext);
 
-        final PersistenceManager persistenceManager = workflowContext.getPersistenceManager();
-        observationFinder = new ObservationFinder(persistenceManager.getStorage());
+        persistenceManager = workflowContext.getPersistenceManager();
+        observationFinder = new ObservationFinder(persistenceManager);
     }
 
     @Override
@@ -27,7 +28,9 @@ public class FindObservationsWorkflow extends Workflow {
 
         logInfo("Starting associating samples with observations...");
 
+        persistenceManager.transaction();
         observationFinder.findPrimarySensorObservations(samplingPoints, sensorName, startTime, stopTime, searchTime);
+        persistenceManager.commit();
 
         logInfo(MessageFormat.format("Finished associating samples with observations ({0} samples left)", samplingPoints.size()));
     }

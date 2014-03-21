@@ -79,6 +79,7 @@ public class SamplingTool extends BasicTool {
     }
 
     private void run() throws ParseException {
+        getPersistenceManager().transaction();
         final Configuration config = getConfig();
         if (config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_CLEANUP)) {
             cleanup();
@@ -100,7 +101,7 @@ public class SamplingTool extends BasicTool {
 
         getLogger().info("Finding reference observations...");
         final int halfRepeatCycleInSeconds = 86400 * 175 / 10;
-        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager().getStorage());
+        final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
         observationFinder.findPrimarySensorObservations(sampleList, samplingSensor,
                 startTime, stopTime, halfRepeatCycleInSeconds);
         getLogger().info("Finding reference observations..." + sampleList.size());
@@ -142,6 +143,8 @@ public class SamplingTool extends BasicTool {
                 getConfig().getPattern("mms.pattern.sobol"), getPersistenceManager(), getStorage(),
                 null);
         getLogger().info("Creating matchups..." + sampleList.size());
+
+        getPersistenceManager().commit();
     }
 
     static List<SamplingPoint> createSamples(int sampleCount, int sampleSkip, long startTime, long stopTime) {

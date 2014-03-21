@@ -2,6 +2,7 @@ package org.esa.cci.sst.tools.samplepoint;
 
 
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.overlap.PolarOrbitingPolygon;
 import org.esa.cci.sst.util.SamplingPoint;
@@ -13,10 +14,10 @@ import java.util.List;
 
 public class ObservationFinder {
 
-    private final Storage storage;
+    private final PersistenceManager persistenceManager;
 
-    public ObservationFinder(Storage storage) {
-        this.storage = storage;
+    public ObservationFinder(PersistenceManager persistenceManager) {
+        this.persistenceManager = persistenceManager;
     }
 
     /**
@@ -62,6 +63,7 @@ public class ObservationFinder {
         final Date stopDate = new Date(stopTime + halfRevisitTimeMillis);
         final String orbitSensorName = SensorNames.ensureOrbitName(sensorName);
 
+        final Storage storage = persistenceManager.getStorage();
         final List<RelatedObservation> orbitObservations = storage.getRelatedObservations(orbitSensorName, startDate, stopDate);
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
         for (int i = 0; i < orbitObservations.size(); ++i) {

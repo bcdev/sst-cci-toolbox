@@ -54,7 +54,7 @@ public class SamplingToolTest {
         SamplingTool.removeLandSamples(sampleList);
         SamplingTool.reduceByClearSkyStatistic(sampleList);
         final PersistenceManager persistenceManager = tool.getPersistenceManager();
-        final ObservationFinder observationFinder = new ObservationFinder(persistenceManager.getStorage());
+        final ObservationFinder observationFinder = new ObservationFinder(persistenceManager);
         observationFinder.findPrimarySensorObservations(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3,
                                                         tool.getStartTime(), tool.getStopTime(),
                                                         86400 * 175 / 10);
@@ -88,7 +88,7 @@ public class SamplingToolTest {
         }
 
         System.out.println("Creating samples...");
-        final List<SamplingPoint> sampleList = tool.createSamples(10000, 0, 0, 1);
+        final List<SamplingPoint> sampleList = SamplingTool.createSamples(10000, 0, 0, 1);
         System.out.println("Creating samples... " + sampleList.size());
         System.out.println("Removing land samples...");
         //tool.removeLandSamples(sampleList);
