@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class SamplingPointGenerationTool extends BasicTool {
 
@@ -49,14 +50,20 @@ public class SamplingPointGenerationTool extends BasicTool {
     }
 
     private void run() throws IOException, ParseException {
+        logInfo("Start generating sample points ...");
         final Workflow generatePointsWorkflow = createPointGeneratorWorkflow(workflowContext);
         final List<SamplingPoint> samples = generatePointsWorkflow.execute();
+        logInfo("Generated sample points: " + samples.size());
 
+        logInfo("Start intersecting matching orbits ...");
         final Workflow findObservationsWorkflow = new FindObservationsWorkflow(workflowContext);
         findObservationsWorkflow.execute(samples);
+        logInfo("Intersected with matching orbits: " + samples.size());
 
+        logInfo("Start exporting sample points ...");
         final Workflow exportSamplingPointsWorkflow = new ExportSamplingPointsWorkflow(workflowContext);
         exportSamplingPointsWorkflow.execute(samples);
+        logInfo("Exporting sample points");
     }
 
     // package access for testing only tb 2014-03-07
@@ -105,5 +112,12 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         final String sampleGeneratorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR);
         workflowContext.setSampleGeneratorName(sampleGeneratorName);
+    }
+
+    private void logInfo(String msg) {
+        final Logger logger = getLogger();
+        if (logger != null) {
+            logger.info(msg);
+        }
     }
 }
