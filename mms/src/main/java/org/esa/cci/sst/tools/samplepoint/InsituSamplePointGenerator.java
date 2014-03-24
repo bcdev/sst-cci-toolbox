@@ -59,12 +59,12 @@ public class InsituSamplePointGenerator {
                 initializeReader(insituFile);
                 extractPointsInTimeRange(pointsInFile, timeRange);
 
-                if (samplingPoints.size() > 0) {
+                if (pointsInFile.size() > 0) {
                     final int id = persist(insituFile);
                     final byte datasetId = extractInsituDatasetId(insituFile.getName());
                     final String datasetName = reader.getDatasetName();
 
-                    setFileProperties(samplingPoints, id, datasetId, datasetName);
+                    setFileProperties(pointsInFile, id, datasetId, datasetName);
 
                     final Item[] readerColumns = reader.getColumns();
                     persistColumnNames(readerColumns);
