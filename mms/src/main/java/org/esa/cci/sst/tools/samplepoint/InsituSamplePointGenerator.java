@@ -138,6 +138,7 @@ public class InsituSamplePointGenerator {
             try {
                 final TimeRange fileTimeRange = extractTimeRange(file.getName());
                 if (timeRange.intersectsWith(fileTimeRange)) {
+                    logInfo("Found insitu file in time range: " + file.getName());
                     filesInRange.add(file);
                 }
             } catch (ParseException e) {
