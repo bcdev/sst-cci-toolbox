@@ -69,7 +69,7 @@ public class InsituSamplePointGenerator {
                     final Item[] readerColumns = reader.getColumns();
                     persistColumnNames(readerColumns);
 
-                    logInfo("Read insitu file: " + insituFile.getName() + "  numPoints: " + samplingPoints.size());
+                    logInfo("Read insitu file: " + insituFile.getName() + "  numPoints: " + pointsInFile.size());
                     samplingPoints.addAll(pointsInFile);
                 } else {
                     logWarning("File does not contain any data in time range: " + insituFile.getAbsolutePath());
