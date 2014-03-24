@@ -2,11 +2,15 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -83,8 +87,8 @@ public class SamplingPointGenerationTool extends BasicTool {
         long startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
         workflowContext.setStartTime(startTime);
 
-        long stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
-        workflowContext.setStopTime(stopTime);
+        final Date endOfMonth = ensureEndOfMonth(config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME));
+        workflowContext.setStopTime(endOfMonth.getTime());
 
         int searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME);
         workflowContext.setSearchtTime(searchTime);
@@ -112,6 +116,13 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         final String sampleGeneratorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR);
         workflowContext.setSampleGeneratorName(sampleGeneratorName);
+    }
+
+    private static Date ensureEndOfMonth(Date stopDate) {
+        final GregorianCalendar utcCalendar = TimeUtil.createUtcCalendar();
+        utcCalendar.setTime(stopDate);
+        utcCalendar.add(Calendar.DAY_OF_MONTH, -1);
+        return TimeUtil.getEndOfMonth(utcCalendar.getTime());
     }
 
     private void logInfo(String msg) {
