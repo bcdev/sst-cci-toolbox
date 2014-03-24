@@ -47,16 +47,17 @@ public class InsituSamplePointGenerator {
     }
 
     public List<SamplingPoint> generate(long startTime, long stopTime) throws ParseException {
-        final ArrayList<SamplingPoint> samplingPoints = new ArrayList<>();
+        final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
         final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
 
         ensureSensorStoredInDb();
 
         final LinkedList<File> filesInRange = findFilesInTimeRange(timeRange);
         for (File insituFile : filesInRange) {
+            final LinkedList<SamplingPoint> pointsInFile = new LinkedList<>();
             try {
                 initializeReader(insituFile);
-                extractPointsInTimeRange(samplingPoints, timeRange);
+                extractPointsInTimeRange(pointsInFile, timeRange);
 
                 if (samplingPoints.size() > 0) {
                     final int id = persist(insituFile);
@@ -68,6 +69,8 @@ public class InsituSamplePointGenerator {
                     final Item[] readerColumns = reader.getColumns();
                     persistColumnNames(readerColumns);
 
+                    logInfo("Read insitu file: " + insituFile.getName() + "  numPoints: " + samplingPoints.size());
+                    samplingPoints.addAll(pointsInFile);
                 } else {
                     logWarning("File does not contain any data in time range: " + insituFile.getAbsolutePath());
                 }
@@ -115,7 +118,7 @@ public class InsituSamplePointGenerator {
         reader.init(dataFile, archiveDir);
     }
 
-    private void extractPointsInTimeRange(ArrayList<SamplingPoint> samplingPoints, TimeRange timeRange) throws IOException {
+    private void extractPointsInTimeRange(List<SamplingPoint> samplingPoints, TimeRange timeRange) throws IOException {
         final List<SamplingPoint> pointsInFile = reader.readSamplingPoints();
         for (final SamplingPoint samplingPoint : pointsInFile) {
             if (timeRange.includes(new Date(samplingPoint.getTime()))) {
@@ -138,7 +141,6 @@ public class InsituSamplePointGenerator {
             try {
                 final TimeRange fileTimeRange = extractTimeRange(file.getName());
                 if (timeRange.intersectsWith(fileTimeRange)) {
-                    logInfo("Found insitu file in time range: " + file.getName());
                     filesInRange.add(file);
                 }
             } catch (ParseException e) {
