@@ -98,7 +98,7 @@ public class InsituSamplePointGenerator {
     }
 
     // package access for testing only tb 2014-03-20
-    static void setFileProperties(List<SamplingPoint> samplingPoints, int id,byte datasetId, String datasetName) {
+    static void setFileProperties(List<SamplingPoint> samplingPoints, int id, byte datasetId, String datasetName) {
         for (SamplingPoint samplingPoint : samplingPoints) {
             samplingPoint.setInsituReference(id);
             samplingPoint.setInsituDatasetId(InsituDatasetId.create(datasetId));
@@ -125,8 +125,14 @@ public class InsituSamplePointGenerator {
     }
 
     private LinkedList<File> findFilesInTimeRange(TimeRange timeRange) {
+        final File insituDirectory = new File(archiveDir, insituRelativePath);
+
+        logInfo("Searching for insitu files ...: " + insituDirectory.getPath());
         final LinkedList<File> filesInRange = new LinkedList<>();
-        final Collection<File> insituFiles = FileUtils.listFiles(new File(archiveDir, insituRelativePath), new String[]{"nc"}, true);
+        final Collection<File> insituFiles = FileUtils.listFiles(insituDirectory, new String[]{"nc"}, true);
+        logInfo("Found insitu files: " + insituFiles.size());
+
+        logInfo("Extracting files in time-range... :" + timeRange.getStartDate() + " - " + timeRange.getStopDate());
         // @todo 1 rq/tb-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
         for (final File file : insituFiles) {
             try {
@@ -138,12 +144,19 @@ public class InsituSamplePointGenerator {
                 logWarning(e.getMessage());
             }
         }
+        logInfo("Found insitu files in time range: " + filesInRange.size());
         return filesInRange;
     }
 
     private void logWarning(String message) {
         if (logger != null) {
             logger.warning(message);
+        }
+    }
+
+    private void logInfo(String message) {
+        if (logger != null) {
+            logger.info(message);
         }
     }
 
