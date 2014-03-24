@@ -26,7 +26,11 @@ public class TimeRange {
     }
 
     public boolean includes(Date date) {
-        return (!startDate.after(date)) && (!stopDate.before(date));
+        final long startTime = startDate.getTime();
+        final long stopTime = stopDate.getTime();
+        final long actualTime = date.getTime();
+
+        return (startTime <= actualTime && actualTime < stopTime);
     }
 
     public boolean intersectsWith(TimeRange other) {

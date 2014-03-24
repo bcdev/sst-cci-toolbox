@@ -29,7 +29,7 @@ public class TimeRangeTest {
         date = createDate(2005, 9, 13, 23, 59, 59);
         assertFalse(timeRange.includes(date));
 
-        date = createDate(2005, 9, 20, 23, 59, 59);
+        date = createDate(2005, 9, 20, 23, 59, 58);
         assertTrue(timeRange.includes(date));
         date = createDate(2005, 9, 21, 0, 0, 0);
         assertFalse(timeRange.includes(date));
