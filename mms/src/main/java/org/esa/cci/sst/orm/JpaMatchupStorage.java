@@ -22,7 +22,7 @@ class JpaMatchupStorage implements MatchupStorage {
 
         queryString = updateWithCondition(parameter, queryString);
 
-        final int pattern = parameter.getPattern();
+        final long pattern = parameter.getPattern();
         if (pattern != 0) {
             queryString = queryString.replaceAll(" where ", " where m.pattern & ?3 = ?3 and ");
         }
@@ -45,7 +45,7 @@ class JpaMatchupStorage implements MatchupStorage {
 
         queryString = updateWithCondition(parameter, queryString);
 
-        final int pattern = parameter.getPattern();
+        final long pattern = parameter.getPattern();
         if (pattern != 0) {
             queryString = queryString.replaceAll("order by", "and m.pattern & ?3 = ?3 order by");
         }
@@ -66,7 +66,7 @@ class JpaMatchupStorage implements MatchupStorage {
         final String sensorName = parameter.getSensorName();
         final String sql = getSelectMatchupSql(sensorName);
 
-        final int pattern = parameter.getPattern();
+        final long pattern = parameter.getPattern();
         final String querySql = applyPatternAndCondition(sql, parameter.getCondition(), pattern);
 
         final Query query = persistenceManager.createNativeQuery(querySql, Matchup.class);
@@ -162,7 +162,7 @@ class JpaMatchupStorage implements MatchupStorage {
     }
 
     // package access for testing only tb 2014-03-18
-    static String applyPatternAndCondition(String queryString, String condition, int pattern) {
+    static String applyPatternAndCondition(String queryString, String condition, long pattern) {
         if (condition != null) {
             if (pattern != 0) {
                 queryString = queryString.replaceAll("where r.time", "where pattern & ?4 = ?4 and " + condition + " and r.time");

@@ -7,7 +7,7 @@ public class MatchupQueryParameter {
     private Date startDate;
     private Date stopDate;
     private String condition;
-    private int pattern;
+    private long pattern;
     private String sensorName;
 
     public void setStartDate(Date startDate) {
@@ -34,11 +34,11 @@ public class MatchupQueryParameter {
         return condition;
     }
 
-    public void setPattern(int pattern) {
+    public void setPattern(long pattern) {
         this.pattern = pattern;
     }
 
-    public int getPattern() {
+    public long getPattern() {
         return pattern;
     }
 

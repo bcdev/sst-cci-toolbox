@@ -107,7 +107,7 @@ public class JpaMatchupStorageTest {
 
         verify(query, times(1)).setParameter(1, startDate);
         verify(query, times(1)).setParameter(2, stopDate);
-        verify(query, times(1)).setParameter(3, 128);
+        verify(query, times(1)).setParameter(3, 128L);
         verify(query, times(1)).getSingleResult();
         verifyNoMoreInteractions(query);
     }
@@ -136,7 +136,7 @@ public class JpaMatchupStorageTest {
 
         verify(query, times(1)).setParameter(1, startDate);
         verify(query, times(1)).setParameter(2, stopDate);
-        verify(query, times(1)).setParameter(3, 129);
+        verify(query, times(1)).setParameter(3, 129L);
         verify(query, times(1)).getSingleResult();
         verifyNoMoreInteractions(query);
     }
@@ -204,7 +204,7 @@ public class JpaMatchupStorageTest {
         final String sql = "select m.id from mm_matchup m, mm_observation r where r.time >= ?1 and r.time < ?2 and r.id = m.refobs_id and m.pattern & ?3 = ?3 order by r.time, r.id";
         final Date startDate = createDate("2010-06-02T00:00:00Z");
         final Date stopDate = createDate("2010-06-05T00:00:00Z");
-        final int pattern = 7765;
+        final long pattern = 7765;
 
         final List<Matchup> resultList = createOneMatchupListWithId(14);
 
@@ -236,7 +236,7 @@ public class JpaMatchupStorageTest {
         final String sql = "select m.id from mm_matchup m, mm_observation r where r.referenceflag = 6 and r.time >= ?1 and r.time < ?2 and r.id = m.refobs_id and m.pattern & ?3 = ?3 order by r.time, r.id";
         final Date startDate = createDate("2010-06-02T00:00:00Z");
         final Date stopDate = createDate("2010-06-05T00:00:00Z");
-        final int pattern = 7765;
+        final long pattern = 7765;
         final String condition = "r.referenceflag = 6";
 
         final List<Matchup> resultList = createOneMatchupListWithId(15);
@@ -368,7 +368,7 @@ public class JpaMatchupStorageTest {
         final String sensorName = "atsr_md";
         final Date startDate = createDate("2012-08-04T00:00:00Z");
         final Date stopDate = createDate("2012-08-07T00:00:00Z");
-        final int pattern = 6672;
+        final long pattern = 6672;
 
         final List<Matchup> resultList = createOneMatchupListWithId(17);
 

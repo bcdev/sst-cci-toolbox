@@ -432,9 +432,17 @@ public class MmdTool extends BasicTool {
     }
 
     // package access for testing only tb 2014-03-10
-    static int getPattern(Configuration config) {
+    static long getPattern(Configuration config) {
         try {
-            return Integer.parseInt(config.getStringValue("mms.target.pattern", "0"), 16);
+            long pattern = Long.parseLong(config.getStringValue("mms.target.pattern", "0"), 16);
+
+            final String referenceSensor = config.getStringValue("mms.sampling.referencesensor", null);
+            if ("history".equalsIgnoreCase(referenceSensor)) {
+                final String historyPatternString = config.getStringValue("mms.pattern.history");
+                pattern = pattern | Long.parseLong(historyPatternString, 16);
+            }
+
+            return pattern;
         } catch (NumberFormatException e) {
             throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
                     ToolException.TOOL_CONFIGURATION_ERROR);

@@ -94,15 +94,26 @@ public class MmdToolTest {
         final Configuration config = new Configuration();
         config.put("mms.target.pattern", "10000");
 
-        final int pattern = MmdTool.getPattern(config);
-        assertEquals(65536, pattern);   // which is 10000 to the base of 16 tb 2014-03-10
+        final long pattern = MmdTool.getPattern(config);
+        assertEquals(0x10000, pattern);
+    }
+
+    @Test
+    public void testGetPattern_orsWithHistoryWhenSamplingReferenceSensorIsSet() {
+        final Configuration config = new Configuration();
+        config.put("mms.target.pattern", "10000");
+        config.put("mms.sampling.referencesensor", "history");
+        config.put("mms.pattern.history", "4000000000000000");
+
+        final long pattern = MmdTool.getPattern(config);
+        assertEquals(0x10000 | 0x4000000000000000L, pattern);
     }
 
     @Test
     public void testGetPattern_usesDefaultWhenValueInConfigNotSet() {
         final Configuration config = new Configuration();
 
-        final int pattern = MmdTool.getPattern(config);
+        final long pattern = MmdTool.getPattern(config);
         assertEquals(0, pattern);
     }
 
