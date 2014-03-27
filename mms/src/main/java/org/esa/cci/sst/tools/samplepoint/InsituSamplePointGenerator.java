@@ -12,6 +12,7 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
+import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 
@@ -24,6 +25,7 @@ import java.util.logging.Logger;
 public class InsituSamplePointGenerator {
 
     private final File archiveDir;
+    private final PersistenceManager persistenceManager;
     private final String insituRelativePath;
     private final Reader reader;
     private final Sensor sensor;
@@ -35,6 +37,7 @@ public class InsituSamplePointGenerator {
     public InsituSamplePointGenerator(File archiveDir, Sensor sensor, PersistenceManager persistenceManager,
                                       String insituRelativePath) {
         this.archiveDir = archiveDir;
+        this.persistenceManager = persistenceManager;
         this.insituRelativePath = insituRelativePath;
         this.reader = ReaderFactory.createReader("InsituReader", "history");
         this.sensor = sensor;
@@ -202,13 +205,21 @@ public class InsituSamplePointGenerator {
     }
 
     private int persist(File insituFile) {
-        final DataFile storageDatafile = storage.getDatafileWithTransaction(insituFile.getPath());
+        persistenceManager.transaction();
+        try {
+            final DataFile storageDatafile = storage.getDatafileWithTransaction(insituFile.getPath());
 
-        if (storageDatafile == null) {
-            final DataFile dataFile = createDataFile(insituFile, sensor);
-            return storage.storeWithTransaction(dataFile);
-        } else {
-            return storageDatafile.getId();
+            if (storageDatafile == null) {
+                final DataFile dataFile = createDataFile(insituFile, sensor);
+                return storage.storeWithTransaction(dataFile);
+            } else {
+                return storageDatafile.getId();
+            }
+        } catch (Exception e) {
+            persistenceManager.rollback();
+            throw new ToolException(e.getMessage(), ToolException.TOOL_DB_ERROR);
+        } finally {
+            persistenceManager.commit();
         }
     }
 }
