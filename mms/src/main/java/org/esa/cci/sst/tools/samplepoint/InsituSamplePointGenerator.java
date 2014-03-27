@@ -215,9 +215,9 @@ public class InsituSamplePointGenerator {
         if (storageDatafile == null) {
             final DataFile dataFile = createDataFile(insituFile, sensor);
             storage.store(dataFile);
-            logger.info("persisting datafile: " + dataFile.getPath());
+            //logger.info("persisting datafile: " + dataFile.getPath());
             persistenceManager.commit();
-            logger.info("persisted datafile with id: " + dataFile.getId());
+            //logger.info("persisted datafile with id: " + dataFile.getId());
             return dataFile.getId();
         } else {
             persistenceManager.commit();
