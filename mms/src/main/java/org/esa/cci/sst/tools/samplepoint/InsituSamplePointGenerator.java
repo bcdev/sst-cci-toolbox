@@ -30,7 +30,7 @@ public class InsituSamplePointGenerator {
     private final PersistenceManager persistenceManager;
     private final String insituRelativePath;
     private final Reader reader;
-    private final Sensor sensor;
+    private Sensor sensor;
     private final Storage storage;
     private final ColumnStorage columnStorage;
 
@@ -93,6 +93,8 @@ public class InsituSamplePointGenerator {
         final Sensor sensorFromDb = storage.getSensorWithTransaction(sensor.getName());
         if (sensorFromDb == null) {
             storage.storeWithTransaction(sensor);
+        } else {
+            sensor = sensorFromDb;
         }
     }
 
