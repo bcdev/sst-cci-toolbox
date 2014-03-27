@@ -12,14 +12,16 @@ import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
-import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class InsituSamplePointGenerator {
@@ -206,20 +208,16 @@ public class InsituSamplePointGenerator {
 
     private int persist(File insituFile) {
         persistenceManager.transaction();
-        try {
-            final DataFile storageDatafile = storage.getDatafileWithTransaction(insituFile.getPath());
+        final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
 
-            if (storageDatafile == null) {
-                final DataFile dataFile = createDataFile(insituFile, sensor);
-                return storage.storeWithTransaction(dataFile);
-            } else {
-                return storageDatafile.getId();
-            }
-        } catch (Exception e) {
-            persistenceManager.rollback();
-            throw new ToolException(e.getMessage(), ToolException.TOOL_DB_ERROR);
-        } finally {
+        if (storageDatafile == null) {
+            final DataFile dataFile = createDataFile(insituFile, sensor);
+            storage.store(dataFile);
             persistenceManager.commit();
+            return dataFile.getId();
+        } else {
+            persistenceManager.commit();
+            return storageDatafile.getId();
         }
     }
 }
