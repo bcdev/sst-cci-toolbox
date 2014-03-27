@@ -107,7 +107,7 @@ types = [('ingestion-start.sh', 120),
          ('reingestion-start.sh', 24)]
 
 pm = PMonitor(inputs,
-              request='mms2',
+              request='mms3',
               logdir='trace',
               hosts=hosts,
               types=types)
