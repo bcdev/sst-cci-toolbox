@@ -36,6 +36,7 @@ public class MatchupGenerator extends BasicTool {
     private int cloudFlagsMask;
     private double cloudyPixelFraction;
     private long referenceSensorPattern;
+    private String referenceSensorName;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -74,7 +75,7 @@ public class MatchupGenerator extends BasicTool {
         cloudFlagsVariableName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME);
         cloudFlagsMask = config.getIntValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK);
         cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
-        final String referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
+        referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
         referenceSensorPattern = config.getPattern(referenceSensorName, 0);
     }
 
@@ -327,7 +328,7 @@ public class MatchupGenerator extends BasicTool {
 
     private void createMatchups(Logger logger, List<SamplingPoint> samples) {
         logInfo(logger, "Starting creating matchups...");
-        createMatchups(samples, Constants.SENSOR_NAME_DUMMY, sensorName1, sensorName2, referenceSensorPattern,
+        createMatchups(samples, referenceSensorName, sensorName1, sensorName2, referenceSensorPattern,
                 getPersistenceManager(), getStorage(), logger);
         logInfo(logger, "Finished creating matchups...");
     }
