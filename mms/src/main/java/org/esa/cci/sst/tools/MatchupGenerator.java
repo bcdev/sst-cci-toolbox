@@ -7,10 +7,8 @@ import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
-import org.esa.cci.sst.util.GeometryUtil;
-import org.esa.cci.sst.util.SamplingPoint;
-import org.esa.cci.sst.util.SensorNames;
-import org.esa.cci.sst.util.TimeUtil;
+import org.esa.cci.sst.tools.samplepoint.TimeRange;
+import org.esa.cci.sst.util.*;
 import org.postgis.PGgeometry;
 
 import javax.persistence.EntityTransaction;
@@ -26,8 +24,6 @@ import java.util.logging.Logger;
 
 public class MatchupGenerator extends BasicTool {
 
-    private long startTime;
-    private long stopTime;
     private String sensorName1;
     private String sensorName2;
     private int subSceneWidth;
@@ -37,6 +33,7 @@ public class MatchupGenerator extends BasicTool {
     private double cloudyPixelFraction;
     private long referenceSensorPattern;
     private String referenceSensorName;
+    private TimeRange timeRange;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -66,8 +63,11 @@ public class MatchupGenerator extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME).getTime();
-        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME).getTime();
+
+        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                config);
+
         sensorName1 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
         sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
         subSceneWidth = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_WIDTH, 7);
@@ -189,7 +189,7 @@ public class MatchupGenerator extends BasicTool {
             logInfo(logger, "Starting persisting matchups and coincidences...");
 
             rollbackStack.push(pm.transaction());
-            for (InsituObservation insituObservation: insituObservations) {
+            for (InsituObservation insituObservation : insituObservations) {
                 storage.store(insituObservation);
             }
             for (Matchup m : matchups) {
@@ -304,23 +304,25 @@ public class MatchupGenerator extends BasicTool {
     private void cleanupInterval() {
         getPersistenceManager().transaction();
 
+        final Date startDate = timeRange.getStartDate();
+        final Date stopDate = timeRange.getStopDate();
         Query delete = getPersistenceManager().createNativeQuery(
                 // TODO - check this, because sensor name for reference observations is built according to the pattern referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName),
                 "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "')");
-        delete.setParameter(1, new Date(startTime));
-        delete.setParameter(2, new Date(stopTime));
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 // TODO - check this, because sensor name for reference observations is built according to the pattern referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName),
                 "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "')");
-        delete.setParameter(1, new Date(startTime));
-        delete.setParameter(2, new Date(stopTime));
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 // TODO - check this, because sensor name for reference observations is built according to the pattern referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName),
                 "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = '" + Constants.SENSOR_NAME_DUMMY + "'");
-        delete.setParameter(1, new Date(startTime));
-        delete.setParameter(2, new Date(stopTime));
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
 
         getPersistenceManager().commit();

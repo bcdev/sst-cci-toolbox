@@ -16,6 +16,8 @@ package org.esa.cci.sst.tools;/*
 
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.tools.samplepoint.TimeRange;
+import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointPlotter;
 import org.postgis.Point;
@@ -33,18 +35,17 @@ public class MapPlotTool extends BasicTool {
 
     private static final String SQL_GET_REFERENCE_OBSERVATIONS =
             "select o"
-            + " from ReferenceObservation o"
-            + " where o.sensor = ?1 and o.time >= ?2 and o.time < ?3"
-            + " order by o.time";
+                    + " from ReferenceObservation o"
+                    + " where o.sensor = ?1 and o.time >= ?2 and o.time < ?3"
+                    + " order by o.time";
 
     private String sensor;
-    private Date startTime;
-    private Date stopTime;
     private boolean show;
     private String mapStrategyName;
     private String targetFilename;
     private String title;
     private String targetDir;
+    private TimeRange timeRange;
 
     MapPlotTool() {
         super("mapplot-tool", "1.0");
@@ -75,8 +76,9 @@ public class MapPlotTool extends BasicTool {
 
         final Configuration config = getConfig();
         sensor = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_SENSOR);
-        startTime = config.getDateValue(Configuration.KEY_MMS_MAPPLOT_START_TIME);
-        stopTime = config.getDateValue(Configuration.KEY_MMS_MAPPLOT_STOP_TIME);
+        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_MAPPLOT_START_TIME,
+                Configuration.KEY_MMS_MAPPLOT_STOP_TIME,
+                config);
         show = config.getBooleanValue(Configuration.KEY_MMS_MAPPLOT_SHOW, false);
         mapStrategyName = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_STATEGY, "latlon");
         targetDir = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_DIR);
@@ -88,14 +90,18 @@ public class MapPlotTool extends BasicTool {
         final PersistenceManager persistenceManager = getPersistenceManager();
         try {
             persistenceManager.transaction();
+            final Date startDate = timeRange.getStartDate();
+            final Date stopDate = timeRange.getStopDate();
+
             final Query query = getPersistenceManager().createQuery(SQL_GET_REFERENCE_OBSERVATIONS);
             query.setParameter(1, sensor);
-            query.setParameter(2, startTime);
-            query.setParameter(3, stopTime);
+            query.setParameter(2, startDate);
+            query.setParameter(3, stopDate);
 
             getLogger().info(
                     MessageFormat.format("querying samples: sensor = {0}, start time = {1}, stop time = {2}", sensor,
-                                         startTime, stopTime));
+                            startDate, stopDate)
+            );
             @SuppressWarnings("unchecked")
             final List<ReferenceObservation> referenceObservations = query.getResultList();
             getLogger().info(MessageFormat.format("{0} samples found", referenceObservations.size()));

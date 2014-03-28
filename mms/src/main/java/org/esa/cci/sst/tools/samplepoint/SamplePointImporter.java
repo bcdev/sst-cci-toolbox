@@ -28,9 +28,10 @@ public class SamplePointImporter {
         usecaseRootPath = ConfigUtil.getUsecaseRootPath(config);
         sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
 
-        final Date startDate = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME);
-        final Date stopDate = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME);
-        final Date centerDate = TimeUtil.getCenterTime(startDate, stopDate);
+        final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                config);
+        final Date centerDate = TimeUtil.getCenterTime(timeRange.getStartDate(), timeRange.getStopDate());
         year = TimeUtil.getYear(centerDate);
         month = TimeUtil.getMonth(centerDate);
     }

@@ -25,6 +25,8 @@ import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tools.samplepoint.TimeRange;
+import org.esa.cci.sst.util.ConfigUtil;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -43,6 +45,7 @@ public class IngestionTool extends BasicTool {
     // todo - invert dependency: the ingester uses the tool as strategy for persistence, logging etc. (rq-20110507)
     // todo - strategy pattern: the tool shall use the ingester as strategy for ingesting (rq-20110507)
     private Ingester ingester;
+    private TimeRange timeRange;
 
     public static void main(String[] args) {
         final IngestionTool tool = new IngestionTool();
@@ -72,6 +75,15 @@ public class IngestionTool extends BasicTool {
         } finally {
             tool.getPersistenceManager().close();
         }
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+
+        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_INGESTION_START_TIME,
+                Configuration.KEY_MMS_INGESTION_STOP_TIME,
+                getConfig());
     }
 
     IngestionTool() {
@@ -256,12 +268,12 @@ public class IngestionTool extends BasicTool {
     }
 
     private void cleanupInterval() {
-        final Date sourceStartTime = getSourceStartTime();
-        final Date sourceStopTime = getSourceStopTime();
-        getLogger().info("Cleaning up database for time range: " + sourceStartTime.toString() + " - " + sourceStopTime.toString());
+        final Date startDate = timeRange.getStartDate();
+        final Date stopDate = timeRange.getStopDate();
+        getLogger().info("Cleaning up database for time range: " + startDate.toString() + " - " + stopDate.toString());
 
         final CleanupStatement cleanupStatement = new CleanupStatement(getPersistenceManager());
-        cleanupStatement.executeForInterval(sourceStartTime, sourceStopTime);
+        cleanupStatement.executeForInterval(startDate, stopDate);
     }
 
     private List<File> getInputFiles(final String filenamePattern, final File inputDir) {
@@ -292,5 +304,6 @@ public class IngestionTool extends BasicTool {
             }
         }
     }
+
 
 }

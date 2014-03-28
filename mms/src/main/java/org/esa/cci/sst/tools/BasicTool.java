@@ -91,9 +91,6 @@ public abstract class BasicTool {
     private boolean initialised;
     private PersistenceManager persistenceManager;
 
-    private Date sourceStartTime;
-    private Date sourceStopTime;
-
     static {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         Locale.setDefault(Locale.ENGLISH);
@@ -199,16 +196,6 @@ public abstract class BasicTool {
         return persistenceManager;
     }
 
-    // TODO - move method to ingestion tool
-    public final Date getSourceStartTime() {
-        return sourceStartTime;
-    }
-
-    // TODO - move method to ingestion tool
-    public final Date getSourceStopTime() {
-        return sourceStopTime;
-    }
-
     public final boolean setCommandLineArgs(String[] args) {
         final CommandLineParser parser = new PosixParser();
         try {
@@ -275,10 +262,6 @@ public abstract class BasicTool {
             }
         }
         toolStorage = persistenceManager.getStorage();
-
-        // TODO - move to ingestion tool
-        sourceStartTime = config.getDateValue(Configuration.KEY_MMS_INGESTION_START_TIME, "1978-01-01T00:00:00Z");
-        sourceStopTime = config.getDateValue(Configuration.KEY_MMS_INGESTION_STOP_TIME, "2100-01-01T00:00:00Z");
 
         initialised = true;
     }

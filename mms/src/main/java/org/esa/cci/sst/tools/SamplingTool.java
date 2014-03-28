@@ -16,6 +16,7 @@ package org.esa.cci.sst.tools;/*
 
 import org.esa.cci.sst.tools.overlap.RegionOverlapFilter;
 import org.esa.cci.sst.tools.samplepoint.*;
+import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 
 import javax.persistence.Query;
@@ -31,8 +32,6 @@ public class SamplingTool extends BasicTool {
     private static final String MMS_SAMPLING_SENSOR2 = "mms.sampling.sensor2";
     private static final String MMS_SAMPLING_MATCHUPDISTANCE = "mms.sampling.matchupdistance";
 
-    private long startTime;
-    private long stopTime;
     private int sampleCount;
     private int sampleSkip;
     private int subSceneWidth;
@@ -41,6 +40,7 @@ public class SamplingTool extends BasicTool {
     private int subSceneHeight;
     private String samplingSensor2;
     private int matchupDistanceSeconds;
+    private TimeRange timeRange;
 
     SamplingTool() {
         super("sampling-tool", "1.0");
@@ -66,8 +66,9 @@ public class SamplingTool extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-        startTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_START_TIME, "2004-06-01T00:00:00Z").getTime();
-        stopTime = config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2004-06-04T00:00:00Z").getTime();
+        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                config);
         sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT, 10000);
         sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
         matchupDistanceSeconds = config.getIntValue(MMS_SAMPLING_MATCHUPDISTANCE, 90000);
@@ -87,6 +88,8 @@ public class SamplingTool extends BasicTool {
             cleanupInterval();
         }
 
+        final long startTime = timeRange.getStartDate().getTime();
+        final long stopTime = timeRange.getStopDate().getTime();
         getLogger().info("Creating samples...");
         final List<SamplingPoint> sampleList = createSamples(sampleCount, sampleSkip, startTime, stopTime);
         getLogger().info("Creating samples... " + sampleList.size());
@@ -182,31 +185,35 @@ public class SamplingTool extends BasicTool {
     void cleanupInterval() {
         getPersistenceManager().transaction();
 
+        final Date startDate = timeRange.getStartDate();
+        final Date stopDate = timeRange.getStopDate();
         Query delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
-        delete.setParameter(1, new Date(startTime));
-        delete.setParameter(2, new Date(stopTime));
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol')");
-        delete.setParameter(1, new Date(startTime));
-        delete.setParameter(2, new Date(stopTime));
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_observation r where r.time >= ?1 and r.time < ?2 and r.sensor = 'sobol'");
-        delete.setParameter(1, new Date(startTime));
-        delete.setParameter(2, new Date(stopTime));
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
 
         getPersistenceManager().commit();
     }
 
-    public long getStartTime() {
-        return startTime;
+    // package access for testing only tb 2014-03-28
+    long getStartTime() {
+        return timeRange.getStartDate().getTime();
     }
 
-    public long getStopTime() {
-        return stopTime;
+    // package access for testing only tb 2014-03-28
+    long getStopTime() {
+        return timeRange.getStopDate().getTime();
     }
 }
 

@@ -17,26 +17,16 @@
 package org.esa.cci.sst.tools;
 
 import com.bc.ceres.core.Assert;
-import org.esa.cci.sst.data.Coincidence;
-import org.esa.cci.sst.data.GlobalObservation;
-import org.esa.cci.sst.data.InsituObservation;
-import org.esa.cci.sst.data.Matchup;
-import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.RelatedObservation;
-import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.Timeable;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.tools.samplepoint.TimeRange;
+import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Tool to compute multi-sensor match-ups from the MMS database.
@@ -45,91 +35,91 @@ public class MatchupTool extends BasicTool {
 
     private static final String SENSOR_OBSERVATION_QUERY =
             "select o"
-            + " from ReferenceObservation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= ?2 and o.time < ?3"
-            + " order by o.time, o.id";
+                    + " from ReferenceObservation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= ?2 and o.time < ?3"
+                    + " order by o.time, o.id";
 
     private static final String SINGLE_SENSOR_OBSERVATION_QUERY =
             "select o"
-            + " from ReferenceObservation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= ?2 and o.time < ?3"
-            + " and not exists (select m from Matchup m"
-            + "                 where m.refObs = o)"
-            + " and not exists (select c from Coincidence c"
-            + "                 where c.observation = o)"
-            + " order by o.time, o.id";
+                    + " from ReferenceObservation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= ?2 and o.time < ?3"
+                    + " and not exists (select m from Matchup m"
+                    + "                 where m.refObs = o)"
+                    + " and not exists (select c from Coincidence c"
+                    + "                 where c.observation = o)"
+                    + " order by o.time, o.id";
 
     private static final String MATCHUPS_QUERY =
             "select m"
-            + " from Matchup m inner join m.refObs o"
-            + " where o.time >= ?1 and o.time < ?2"
-            + " order by o.time, m.id";
+                    + " from Matchup m inner join m.refObs o"
+                    + " where o.time >= ?1 and o.time < ?2"
+                    + " order by o.time, m.id";
 
     private static final String MATCHUPS_FOR_PRIMARY_SENSOR_ONLY_QUERY =
             "select m"
-            + " from Matchup m inner join m.refObs o"
-            + " where o.time >= ?1 and o.time < ?2"
-            + " and o.sensor = ?3"
-            + " order by o.time, m.id";
+                    + " from Matchup m inner join m.refObs o"
+                    + " where o.time >= ?1 and o.time < ?2"
+                    + " and o.sensor = ?3"
+                    + " order by o.time, m.id";
 
     private static final String SECONDARY_OBSERVATION_QUERY =
             "select o from ReferenceObservation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= ?2 and o.time < ?3"
-            + " and not exists (select c from Coincidence c"
-            + "                 where c.observation = o)"
-            + " order by o.time, o.id";
+                    + " where o.sensor = ?1"
+                    + " and o.time >= ?2 and o.time < ?3"
+                    + " and not exists (select c from Coincidence c"
+                    + "                 where c.observation = o)"
+                    + " order by o.time, o.id";
 
     private static final String COINCIDING_OBSERVATION_QUERY =
             "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
-            + " and st_intersects(o.location, st_geomfromewkt(?3))"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
+                    + " and st_intersects(o.location, st_geomfromewkt(?3))"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     private static final String COINCIDING_CALLSIGN_QUERY =
             "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
-            + " and o.name = ?4"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
+                    + " and o.name = ?4"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     private static final String COINCIDING_GLOBALOBS_QUERY =
             "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.time >= timestamp ?2 - interval '12:00:00' and o.time < timestamp ?2 + interval '12:00:00'"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     private static final String COINCIDING_INSITUOBS_QUERY =
             "select o.id"
-            + " from mm_observation o"
-            + " where o.sensor = ?1"
-            + " and o.name = ?4"
-            + " and abs(extract(epoch from o.time) - extract(epoch from timestamp ?2)) <= o.timeRadius"
-            + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
+                    + " from mm_observation o"
+                    + " where o.sensor = ?1"
+                    + " and o.name = ?4"
+                    + " and abs(extract(epoch from o.time) - extract(epoch from timestamp ?2)) <= o.timeRadius"
+                    + " order by abs(extract(epoch from o.time) - extract(epoch from timestamp ?2))";
 
     private static final String DUPLICATES_QUERY = "update mm_observation o set referenceflag = 5 " +
-                                                   "where o.sensor=?1 " +
-                                                   "and o.time >= ?2 and o.time < ?3 " +
-                                                   "and o.dataset != 6 and o.dataset != 7 " +
-                                                   "and exists ( select p.id from mm_observation p " +
-                                                   "where p.sensor = o.sensor and p.name = o.name " +
-                                                   "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
-                                                   "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
+            "where o.sensor=?1 " +
+            "and o.time >= ?2 and o.time < ?3 " +
+            "and o.dataset != 6 and o.dataset != 7 " +
+            "and exists ( select p.id from mm_observation p " +
+            "where p.sensor = o.sensor and p.name = o.name " +
+            "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
+            "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
 
     private static final String DUPLICATES_DELETE_QUERY = "delete from mm_observation o " +
-                                                          "where o.sensor=?1 " +
-                                                          "and o.time >= ?2 and o.time < ?3 " +
-                                                          "and o.dataset != 6 and o.dataset != 7 " +
-                                                          "and exists ( select p.id from mm_observation p " +
-                                                          "where p.sensor = o.sensor and p.name = o.name " +
-                                                          "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
-                                                          "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
+            "where o.sensor=?1 " +
+            "and o.time >= ?2 and o.time < ?3 " +
+            "and o.dataset != 6 and o.dataset != 7 " +
+            "and exists ( select p.id from mm_observation p " +
+            "where p.sensor = o.sensor and p.name = o.name " +
+            "and p.time > o.time - interval '00:02:00' and p.time < o.time + interval '00:02:00' " +
+            "and (p.timeradius < o.timeradius or (p.timeradius = o.timeradius and p.id < o.id)) )";
 
     private static final int CHUNK_SIZE = 1024; //*16;
 
@@ -143,8 +133,6 @@ public class MatchupTool extends BasicTool {
     private Sensor metopSensor;
     private Sensor seviriSensor;
     private Sensor avhrrSensor;
-    private Date matchupStartTime;
-    private Date matchupStopTime;
 
     private List<Matchup> matchupAccu = new ArrayList<>();
     private List<Coincidence> coincidenceAccu = new ArrayList<>();
@@ -155,6 +143,8 @@ public class MatchupTool extends BasicTool {
         OBSERVATION_QUERY_MAP.put(GlobalObservation.class, COINCIDING_GLOBALOBS_QUERY);
         OBSERVATION_QUERY_MAP.put(InsituObservation.class, COINCIDING_INSITUOBS_QUERY);
     }
+
+    private TimeRange timeRange;
 
     public static void main(String[] args) {
         final MatchupTool tool = new MatchupTool();
@@ -185,7 +175,7 @@ public class MatchupTool extends BasicTool {
         metopSensor = storage.getSensor(METOP);
         seviriSensor = storage.getSensor(SEVIRI);
         avhrrSensor = storage.getSensor(AVHRR_MD);
-        getMatchupStartTime();
+        loadMatchupStartAndStopTimes();
     }
 
     private void run() {
@@ -243,14 +233,14 @@ public class MatchupTool extends BasicTool {
         try {
             getPersistenceManager().transaction();
             Query query = getPersistenceManager().createNativeQuery(DUPLICATES_QUERY);
-            query.setParameter(2, matchupStartTime);
-            query.setParameter(3, matchupStopTime);
+            query.setParameter(2, timeRange.getStartDate());
+            query.setParameter(3, timeRange.getStopDate());
 
             long time = System.currentTimeMillis();
             query.setParameter(1, ATSR_MD);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", ATSR_MD,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -259,7 +249,7 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, METOP);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", METOP,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -268,7 +258,7 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", SEVIRI,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -277,7 +267,7 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, AVHRR_MD);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates determined in {1} ms.", AVHRR_MD,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
         } catch (Exception e) {
@@ -290,14 +280,14 @@ public class MatchupTool extends BasicTool {
         try {
             getPersistenceManager().transaction();
             Query query = getPersistenceManager().createNativeQuery(DUPLICATES_DELETE_QUERY);
-            query.setParameter(2, matchupStartTime);
-            query.setParameter(3, matchupStopTime);
+            query.setParameter(2, timeRange.getStartDate());
+            query.setParameter(3, timeRange.getStopDate());
 
             long time = System.currentTimeMillis();
             query.setParameter(1, ATSR_MD);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", ATSR_MD,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -306,7 +296,7 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, METOP);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", METOP,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -315,7 +305,7 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, SEVIRI);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", SEVIRI,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
@@ -324,7 +314,7 @@ public class MatchupTool extends BasicTool {
             query.setParameter(1, AVHRR_MD);
             query.executeUpdate();
             getLogger().info(MessageFormat.format("{0} duplicates dropped in {1} ms.", AVHRR_MD,
-                                                  System.currentTimeMillis() - time));
+                    System.currentTimeMillis() - time));
 
             getPersistenceManager().commit();
         } catch (Exception e) {
@@ -333,10 +323,10 @@ public class MatchupTool extends BasicTool {
         }
     }
 
-    private void getMatchupStartTime() {
-        final Configuration config = getConfig();
-        matchupStartTime = config.getDateValue(Configuration.KEY_MMS_MATCHUP_START_TIME, "1978-01-01T00:00:00Z");
-        matchupStopTime = config.getDateValue(Configuration.KEY_MMS_MATCHUP_STOP_TIME, "2100-01-01T00:00:00Z");
+    private void loadMatchupStartAndStopTimes() {
+        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_MATCHUP_START_TIME,
+                Configuration.KEY_MMS_MATCHUP_STOP_TIME,
+                getConfig());
     }
 
     /**
@@ -370,7 +360,7 @@ public class MatchupTool extends BasicTool {
                         final Observation metopObservation = findCoincidingObservation(atsrObservation, metopSensor);
                         if (metopObservation != null) {
                             matchup = createMatchup(atsrObservation,
-                                                    atsrSensor.getPattern() | metopSensor.getPattern());
+                                    atsrSensor.getPattern() | metopSensor.getPattern());
                             final Coincidence coincidence = createCoincidence(matchup, metopObservation);
                             coincidenceAccu.add(coincidence);
                         }
@@ -382,7 +372,7 @@ public class MatchupTool extends BasicTool {
                         if (seviriObservation != null) {
                             if (matchup == null) {
                                 matchup = createMatchup(atsrObservation,
-                                                        atsrSensor.getPattern() | seviriSensor.getPattern());
+                                        atsrSensor.getPattern() | seviriSensor.getPattern());
                             } else {
                                 matchup.setPattern(matchup.getPattern() | seviriSensor.getPattern());
                             }
@@ -397,7 +387,7 @@ public class MatchupTool extends BasicTool {
                         if (avhrrObservation != null) {
                             if (matchup == null) {
                                 matchup = createMatchup(atsrObservation,
-                                                        atsrSensor.getPattern() | avhrrSensor.getPattern());
+                                        atsrSensor.getPattern() | avhrrSensor.getPattern());
                             } else {
                                 matchup.setPattern(matchup.getPattern() | avhrrSensor.getPattern());
                             }
@@ -411,9 +401,9 @@ public class MatchupTool extends BasicTool {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
                         getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
-                                                              count,
-                                                              atsrSensor.getName(),
-                                                              System.currentTimeMillis() - time));
+                                count,
+                                atsrSensor.getName(),
+                                System.currentTimeMillis() - time));
                         time = System.currentTimeMillis();
                     }
                 }
@@ -422,9 +412,9 @@ public class MatchupTool extends BasicTool {
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
             getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
-                                                  count,
-                                                  atsrSensor.getName(),
-                                                  System.currentTimeMillis() - time));
+                    count,
+                    atsrSensor.getName(),
+                    System.currentTimeMillis() - time));
             time = System.currentTimeMillis();
             for (Matchup m : matchupAccu) {
                 getPersistenceManager().persist(m);
@@ -433,9 +423,9 @@ public class MatchupTool extends BasicTool {
                 getPersistenceManager().persist(c);
             }
             getLogger().info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
-                                                  matchupAccu.size(),
-                                                  coincidenceAccu.size(),
-                                                  System.currentTimeMillis() - time));
+                    matchupAccu.size(),
+                    coincidenceAccu.size(),
+                    System.currentTimeMillis() - time));
             matchupAccu.clear();
             coincidenceAccu.clear();
 
@@ -475,7 +465,7 @@ public class MatchupTool extends BasicTool {
                         final Observation seviriObservation = findCoincidingObservation(metopObservation, seviriSensor);
                         if (seviriObservation != null) {
                             final Matchup matchup = createMatchup(metopObservation,
-                                                                  metopSensor.getPattern() | seviriSensor.getPattern());
+                                    metopSensor.getPattern() | seviriSensor.getPattern());
                             final Coincidence coincidence = createCoincidence(matchup, seviriObservation);
                             coincidenceAccu.add(coincidence);
                         }
@@ -485,9 +475,9 @@ public class MatchupTool extends BasicTool {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
                         getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
-                                                              count,
-                                                              metopSensor.getName(),
-                                                              System.currentTimeMillis() - time));
+                                count,
+                                metopSensor.getName(),
+                                System.currentTimeMillis() - time));
                         time = System.currentTimeMillis();
                     }
                 }
@@ -496,9 +486,9 @@ public class MatchupTool extends BasicTool {
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
             getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
-                                                  count,
-                                                  metopSensor.getName(),
-                                                  System.currentTimeMillis() - time));
+                    count,
+                    metopSensor.getName(),
+                    System.currentTimeMillis() - time));
             time = System.currentTimeMillis();
             for (Matchup m : matchupAccu) {
                 getPersistenceManager().persist(m);
@@ -507,9 +497,9 @@ public class MatchupTool extends BasicTool {
                 getPersistenceManager().persist(c);
             }
             getLogger().info(MessageFormat.format("{0} matchups and {1} coincidences stored in {2} ms.",
-                                                  matchupAccu.size(),
-                                                  coincidenceAccu.size(),
-                                                  System.currentTimeMillis() - time));
+                    matchupAccu.size(),
+                    coincidenceAccu.size(),
+                    System.currentTimeMillis() - time));
             matchupAccu.clear();
             coincidenceAccu.clear();
 
@@ -541,9 +531,9 @@ public class MatchupTool extends BasicTool {
                         getPersistenceManager().commit();
                         getPersistenceManager().transaction();
                         getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
-                                                              count,
-                                                              sensor.getName(),
-                                                              System.currentTimeMillis() - time));
+                                count,
+                                sensor.getName(),
+                                System.currentTimeMillis() - time));
                         time = System.currentTimeMillis();
                     }
                 }
@@ -552,16 +542,16 @@ public class MatchupTool extends BasicTool {
             getPersistenceManager().commit();
             getPersistenceManager().transaction();
             getLogger().info(MessageFormat.format("{0} {1} processed in {2} ms.",
-                                                  count,
-                                                  sensor.getName(),
-                                                  System.currentTimeMillis() - time));
+                    count,
+                    sensor.getName(),
+                    System.currentTimeMillis() - time));
             time = System.currentTimeMillis();
             for (Matchup m : matchupAccu) {
                 getPersistenceManager().persist(m);
             }
             getLogger().info(MessageFormat.format("{0} matchups stored in {1} ms.",
-                                                  matchupAccu.size(),
-                                                  System.currentTimeMillis() - time));
+                    matchupAccu.size(),
+                    System.currentTimeMillis() - time));
             matchupAccu.clear();
 
             getPersistenceManager().commit();
@@ -584,8 +574,8 @@ public class MatchupTool extends BasicTool {
             long time = System.currentTimeMillis();
 
             long chunkSizeMillis = 3600 * 1000;
-            final long startTime = matchupStartTime.getTime();
-            final long stopTime = matchupStopTime.getTime();
+            final long startTime = timeRange.getStartDate().getTime();
+            final long stopTime = timeRange.getStopDate().getTime();
             long chunkStartTime = startTime;
             while (chunkStartTime < stopTime) {
                 long chunkStopTime = chunkStartTime + chunkSizeMillis;
@@ -607,10 +597,10 @@ public class MatchupTool extends BasicTool {
                         addCoincidence(matchup, sensorName, queryString, sensor.getPattern(), observationClass);
                     }
                     getLogger().info(MessageFormat.format("{0} {1} up to {2} processed in {3} ms.",
-                                                          matchups.size(),
-                                                          sensorName,
-                                                          TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
-                                                          System.currentTimeMillis() - time));
+                            matchups.size(),
+                            sensorName,
+                            TimeUtil.formatCcsdsUtcFormat(new Date(chunkStopTime)),
+                            System.currentTimeMillis() - time));
                     time = System.currentTimeMillis();
                 }
                 getPersistenceManager().commit();
@@ -627,8 +617,8 @@ public class MatchupTool extends BasicTool {
                 getPersistenceManager().persist(c);
             }
             getLogger().info(MessageFormat.format("{0} coincidences stored in {1} ms.",
-                                                  coincidenceAccu.size(),
-                                                  System.currentTimeMillis() - time));
+                    coincidenceAccu.size(),
+                    System.currentTimeMillis() - time));
             coincidenceAccu.clear();
 
             getPersistenceManager().commit();
@@ -658,7 +648,7 @@ public class MatchupTool extends BasicTool {
             final String queryString = OBSERVATION_QUERY_MAP.get(observationClass);
             if (queryString == null) {
                 final String message = MessageFormat.format("No query for observation type ''{0}''",
-                                                            observationClass.getSimpleName());
+                        observationClass.getSimpleName());
                 throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
             }
             if (!sensorNames.contains(sensorName)) {
@@ -683,8 +673,8 @@ public class MatchupTool extends BasicTool {
     private Query createIncrementalQuery(String sensorName, String queryString) {
         final Query query = getPersistenceManager().createQuery(queryString);
         query.setParameter(1, sensorName);
-        query.setParameter(2, matchupStartTime);
-        query.setParameter(3, matchupStopTime);
+        query.setParameter(2, timeRange.getStartDate());
+        query.setParameter(3, timeRange.getStopDate());
         query.setMaxResults(CHUNK_SIZE);
         return query;
     }
@@ -730,7 +720,6 @@ public class MatchupTool extends BasicTool {
      *
      * @param refObs The reference observation.
      * @param sensor The sensor.
-     *
      * @return common observation of sensor with coincidence to reference observation
      * that is temporally closest to reference observation, null if no
      * observation of the specified sensor has a coincidence with the
@@ -750,7 +739,7 @@ public class MatchupTool extends BasicTool {
                                                   Class observationClass, String sensorName) {
         // since binding a date to a parameter failed ...
         final String queryString2 = queryString.replaceAll("\\?2",
-                                                           "'" + TimeUtil.formatCcsdsUtcFormat(refObs.getTime()) + "'");
+                "'" + TimeUtil.formatCcsdsUtcFormat(refObs.getTime()) + "'");
         final Query query = getPersistenceManager().createNativeQuery(queryString2, observationClass);
         query.setParameter(1, sensorName);
         //query.setParameter("time", refObs.getTime(), TemporalType.TIMESTAMP);
@@ -790,7 +779,6 @@ public class MatchupTool extends BasicTool {
      *
      * @param referenceObservation the reference observation constituting the matchup
      * @param pattern
-     *
      * @return the new Matchup for the reference observation
      */
     private Matchup createMatchup(ReferenceObservation referenceObservation, long pattern) {
@@ -809,7 +797,6 @@ public class MatchupTool extends BasicTool {
      * @param matchup     the matchup with the reference observation
      * @param observation the common observation that has a coincidence with
      *                    the reference and is temporally closest to it
-     *
      * @return newly created Coincidence relating matchup and common observation
      */
     static Coincidence createCoincidence(Matchup matchup, Observation observation) {
@@ -839,15 +826,17 @@ public class MatchupTool extends BasicTool {
     private void cleanupInterval() {
         getPersistenceManager().transaction();
 
+        final Date startDate = timeRange.getStartDate();
+        final Date stopDate = timeRange.getStopDate();
         Query delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_coincidence c where exists ( select r.id from mm_observation r where c.matchup_id = r.id and r.time >= ?1 and r.time < ?2 )");
-        delete.setParameter(1, matchupStartTime);
-        delete.setParameter(2, matchupStopTime);
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
         delete = getPersistenceManager().createNativeQuery(
                 "delete from mm_matchup m where exists ( select r from mm_observation r where m.refobs_id = r.id and r.time >= ?1 and r.time < ?2 )");
-        delete.setParameter(1, matchupStartTime);
-        delete.setParameter(2, matchupStopTime);
+        delete.setParameter(1, startDate);
+        delete.setParameter(2, stopDate);
         delete.executeUpdate();
 
         getPersistenceManager().commit();

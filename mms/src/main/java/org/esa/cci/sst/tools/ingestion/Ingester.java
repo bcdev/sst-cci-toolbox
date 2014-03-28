@@ -21,6 +21,9 @@ import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.BasicTool;
+import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.samplepoint.TimeRange;
+import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.IOException;
@@ -35,9 +38,14 @@ import java.util.logging.Logger;
 class Ingester {
 
     private final BasicTool tool;
+    private final TimeRange timeRange;
 
     Ingester(BasicTool tool) {
         this.tool = tool;
+
+        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_INGESTION_START_TIME,
+                Configuration.KEY_MMS_INGESTION_STOP_TIME,
+                tool.getConfig());
     }
 
     boolean persistObservation(final Observation observation, final int recordNo) throws IOException {
@@ -90,7 +98,7 @@ class Ingester {
             } else {
                 timeRadius = 0.0;
             }
-            return TimeUtil.checkTimeOverlap(time, tool.getSourceStartTime(), tool.getSourceStopTime(), timeRadius);
+            return TimeUtil.checkTimeOverlap(time, timeRange.getStartDate(), timeRange.getStopDate(), timeRadius);
         }
         // for MMD' ingestion no time is required if located=no.
         // This is represented by an observation of type Observation, not of RelatedObservation.

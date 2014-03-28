@@ -2,8 +2,11 @@ package org.esa.cci.sst.util;
 
 
 import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tools.samplepoint.TimeRange;
 
 import java.io.File;
+import java.util.Date;
 
 public class ConfigUtil {
 
@@ -18,5 +21,14 @@ public class ConfigUtil {
         }
 
         return archiveRootPath + File.separatorChar + usecase;
+    }
+
+    public static TimeRange getTimeRange(String startKey, String stopKey, Configuration config) {
+        final Date startDate = config.getDateValue(startKey);
+        final Date stopDate = config.getDateValue(stopKey);
+        if (!stopDate.after(startDate)) {
+            throw new ToolException("Configuration error: " + stopKey + " is before " + startKey, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+        return new TimeRange(startDate, stopDate);
     }
 }
