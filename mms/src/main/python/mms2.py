@@ -90,11 +90,13 @@ for (sensor, sensorstart, sensorstop) in sensors:
     else:
         prev_month_year, prev_month = prev_year_month_of(sensorstart[0:4], sensorstart[5:7])
     inputs.append('/obs/' + prev_month_year + '/' + prev_month)
+    inputs.append('/smp/' + sensor + '/' + prev_month_year + '/' + prev_month)
     if years[-1] + '-' + months[-1] <= sensorstop:
         next_month_year, next_month = next_year_month_of(years[-1], months[-1])
     else:
         next_month_year, next_month = next_year_month_of(sensorstop[0:4], sensorstop[5:7])
     inputs.append('/obs/' + next_month_year + '/' + next_month)
+    inputs.append('/smp/' + sensor + '/' + next_month_year + '/' + next_month)
 
 hosts = [('localhost', 240)]
 types = [('ingestion-start.sh', 120),
@@ -130,9 +132,7 @@ for year in years:
                        ['/obs/' + prev_month_year + '/' + prev_month,
                         '/obs/' + year + '/' + month,
                         '/obs/' + next_month_year + '/' + next_month],
-                       ['/smp/' + sensor + '/' + prev_month_year + '/' + prev_month,
-                        '/smp/' + sensor + '/' + year + '/' + month,
-                        '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
+                       ['/smp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
             skip += samplespermonth
 
