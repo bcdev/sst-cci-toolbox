@@ -21,7 +21,6 @@ import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
 import java.io.File;
@@ -124,10 +123,8 @@ public class MmdUpdater extends BasicTool {
 
     void parseVariables() {
         final String updateVariables = getConfig().getStringValue("mms.mmdupdate.variables");
-        final NetcdfFileWriter fileWriter = mmdWriter.getFileWriter();
         for (String updateVariable : updateVariables.split(",")) {
-            // @todo 1 tb/tb move to MmdWriter class tb 2014-03-12
-            final Variable variable = fileWriter.findVariable(NetcdfFile.makeValidPathName(updateVariable));
+            final Variable variable = mmdWriter.getVariable(updateVariable);
             if (variable == null) {
                 getLogger().warning("Variable '" + updateVariable + "' not found in mmd file.");
             }

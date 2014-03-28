@@ -30,7 +30,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({IoUtil.class, NetcdfFile.class, NetcdfFileWriter.class})
+@PrepareForTest({IoUtil.class, NetcdfFile.class, NetcdfFileWriter.class, NetcdfFile.class})
 @PowerMockIgnore("org.esa.cci.sst.data.*")
 public class MmdWriterTest {
 
@@ -162,6 +162,21 @@ public class MmdWriterTest {
         mmdWriter.write(variable, origin, array);
 
         verify(fileWriter, times(1)).write(variable, origin, array);
+        verifyNoMoreInteractions(fileWriter);
+    }
+
+    @Test
+    public void testFindVariable() {
+        final Variable variable = mock(Variable.class);
+        when(variable.getFullName()).thenReturn("test_variable");
+
+        when(fileWriter.findVariable("blubb")).thenReturn(variable);
+
+        final Variable variableFromFile = mmdWriter.getVariable("blubb");
+        assertNotNull(variableFromFile);
+        assertEquals("test_variable", variableFromFile.getFullName());
+
+        verify(fileWriter, times(1)).findVariable("blubb");
         verifyNoMoreInteractions(fileWriter);
     }
 }

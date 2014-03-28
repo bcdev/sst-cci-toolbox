@@ -144,7 +144,6 @@ public class InsituSamplePointGenerator {
         logInfo("Found insitu files: " + insituFiles.size());
 
         logInfo("Extracting files in time-range... :" + timeRange.getStartDate() + " - " + timeRange.getStopDate());
-        // @todo 1 rq/tb-20140217 - in the config file there are entries 'mms.source.44.filenamePattern' that could be used for filtering file names instead of 'nc'
         for (final File file : insituFiles) {
             try {
                 final TimeRange fileTimeRange = extractTimeRange(file.getName());

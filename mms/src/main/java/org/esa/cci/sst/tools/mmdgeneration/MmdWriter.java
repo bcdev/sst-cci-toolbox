@@ -47,13 +47,13 @@ class MmdWriter {
         return netcdfFile.getVariables();
     }
 
+    Variable getVariable(String variableName) {
+        final String validPathName = NetcdfFile.makeValidPathName(variableName);
+        return fileWriter.findVariable(validPathName);
+    }
 
     void write(Variable variable, int[] origin, Array array) throws IOException, InvalidRangeException {
         fileWriter.write(variable, origin, array);
-    }
-
-    NetcdfFileWriter getFileWriter() {
-        return fileWriter;  // @todo 2 tb/tb remove when code is migrated completely tb 2014-03-12
     }
 
     void close() throws IOException {
@@ -84,5 +84,4 @@ class MmdWriter {
             fileWriter.addDimension(null, dimensionName, dimensionSize);
         }
     }
-
 }
