@@ -61,6 +61,18 @@ public class SamplingPointTest {
     }
 
     @Test
+    public void testSetGetReference2Time() {
+         final long time_1 = 883457395L;
+         final long time_2 = 6567645L;
+
+        samplingPoint.setReference2Time(time_1);
+        assertEquals(time_1, samplingPoint.getReference2Time());
+
+        samplingPoint.setReference2Time(time_2);
+        assertEquals(time_2, samplingPoint.getReference2Time());
+    }
+
+    @Test
     public void testIsInsitu() {
         final SamplingPoint sobolPoint = new SamplingPoint(1, 2, 3, 56);
         assertFalse(sobolPoint.isInsitu());

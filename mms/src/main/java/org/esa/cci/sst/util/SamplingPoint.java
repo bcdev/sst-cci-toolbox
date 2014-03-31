@@ -23,6 +23,7 @@ public final class SamplingPoint {
     private double referenceLon;
     private InsituDatasetId insituDatasetId;
     private String datasetName;
+    private long reference2Time;
 
     public SamplingPoint() {
     }
@@ -159,5 +160,13 @@ public final class SamplingPoint {
 
     public String getDatasetName() {
         return datasetName;
+    }
+
+    public void setReference2Time(long reference2Time) {
+        this.reference2Time = reference2Time;
+    }
+
+    public long getReference2Time() {
+        return reference2Time;
     }
 }

@@ -54,16 +54,13 @@ public class SamplePointExporterIntegrationTest {
         assertTrue(targetDir.isDirectory());
 
         final File mayFile = new File(targetDir, "schnickschnack.4-smp-2011-05-a.json");
-        assertTrue(mayFile.isFile());
-        assertEquals(16265, mayFile.length());
+        assertIsFileWithLength(mayFile, 17386);
 
         final File juneFile = new File(targetDir, "schnickschnack.4-smp-2011-06-b.json");
-        assertTrue(juneFile.isFile());
-        assertEquals(25341, juneFile.length());
+        assertIsFileWithLength(juneFile, 27089);
 
         final File julyFile = new File(targetDir, "schnickschnack.4-smp-2011-07-c.json");
-        assertTrue(julyFile.isFile());
-        assertEquals(13511, julyFile.length());
+        assertIsFileWithLength(julyFile, 14442);
     }
 
     @Test
@@ -84,16 +81,13 @@ public class SamplePointExporterIntegrationTest {
         assertTrue(targetDir2011.isDirectory());
 
         final File decemberFile = new File(targetDir2010, "schnickschnack.4-smp-2010-12-a.json");
-        assertTrue(decemberFile.isFile());
-        assertEquals(15991, decemberFile.length());
+        assertIsFileWithLength(decemberFile, 17093);
 
         final File januaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-01-b.json");
-        assertTrue(januaryFile.isFile());
-        assertEquals(25888, januaryFile.length());
+        assertIsFileWithLength(januaryFile, 27674);
 
         final File februaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-02-c.json");
-        assertTrue(februaryFile.isFile());
-        assertEquals(13238, februaryFile.length());
+        assertIsFileWithLength(februaryFile, 14150);
     }
 
     @Test
@@ -113,16 +107,18 @@ public class SamplePointExporterIntegrationTest {
         assertTrue(targetDir.isDirectory());
 
         final File augustFile = new File(targetDir, "schnickschnack.4-smp-2008-08-a.json");
-        assertTrue(augustFile.isFile());
-        assertEquals(21, augustFile.length());
+        assertIsFileWithLength(augustFile, 21);
 
         final File septemberFile = new File(targetDir, "schnickschnack.4-smp-2008-09-b.json");
-        assertTrue(septemberFile.isFile());
-        assertEquals(250, septemberFile.length());
+        assertIsFileWithLength(septemberFile, 269);
 
         final File octoberFile = new File(targetDir, "schnickschnack.4-smp-2008-10-c.json");
-        assertTrue(octoberFile.isFile());
-        assertEquals(21, octoberFile.length());
+        assertIsFileWithLength(octoberFile, 21);
+    }
+
+    private void assertIsFileWithLength(File februaryFile, long lengthInBytes) {
+        assertTrue(februaryFile.isFile());
+        assertEquals(lengthInBytes, februaryFile.length());
     }
 
     private List<SamplingPoint> createSamplingPoints(Date startDate, Date stopDate) {

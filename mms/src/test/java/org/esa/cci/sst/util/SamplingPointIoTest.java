@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNotNull;
 public class SamplingPointIoTest {
 
     private static final String EMPTY_LIST_STRING = "{\"samplingPoints\":[]}";
-    private static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11,\"insituReference\":19,\"referenceTime\":20,\"referenceLat\":21.0,\"referenceLon\":22.0,\"insituDatasetId\":\"animal\",\"datasetName\":\"jippieh\"}]}";
+    private static final String SINGLE_POINT_LIST_STRING = "{\"samplingPoints\":[{\"random\":0.5,\"lon\":1.0,\"lat\":2.0,\"time\":1000,\"reference\":67,\"index\":1,\"reference2\":71,\"x\":17,\"y\":11,\"insituReference\":19,\"referenceTime\":20,\"referenceLat\":21.0,\"referenceLon\":22.0,\"insituDatasetId\":\"animal\",\"datasetName\":\"jippieh\",\"reference2Time\":23}]}";
 
     @Test
     public void testWriteEmptyList() throws IOException {
@@ -124,6 +124,7 @@ public class SamplingPointIoTest {
         point.setReferenceLon(22.0);
         point.setInsituDatasetId(InsituDatasetId.animal);
         point.setDatasetName("jippieh");
+        point.setReference2Time(23);
         list.add(point);
     }
 }
