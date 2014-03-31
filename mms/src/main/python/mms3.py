@@ -123,7 +123,7 @@ for year in years:
                    parameters=[year, month, usecase])
 
         for sensor, sensorstart, sensorstop in sensors:
-            if year + '-' + month < sensorstart or year + '-' + month > sensorstop:
+            if year + '-' + month < sensorstart[:7] or year + '-' + month > sensorstop[:7]:
                 continue
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
@@ -143,13 +143,13 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
 
             # 4. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'his', usecase])
-            continue
 
             # 5. Create single-sensor MMD with subscenes
             pm.execute('mmd-start.sh',
