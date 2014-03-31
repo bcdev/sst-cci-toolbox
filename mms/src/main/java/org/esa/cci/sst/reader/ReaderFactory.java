@@ -57,7 +57,7 @@ public class ReaderFactory {
         final File archiveRoot = new File(archiveRootPath);
 
         final Reader reader = createReader(readerSpec, sensorName);
-        reader.init(datafile, archiveRoot);
+        reader.open(datafile, archiveRoot);
 
         return reader;
     }

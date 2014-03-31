@@ -62,8 +62,8 @@ class MetopReader extends MdReader implements InsituSource {
     }
 
     @Override
-    public void init(DataFile datafile, File archiveRoot) throws IOException {
-        super.init(datafile, archiveRoot);
+    public void open(DataFile datafile, File archiveRoot) throws IOException {
+        super.open(datafile, archiveRoot);
         final NetcdfFile ncFile = getNetcdfFile();
         rowCount = ncFile.findDimension("ny").getLength();
         colCount = ncFile.findDimension("nx").getLength();

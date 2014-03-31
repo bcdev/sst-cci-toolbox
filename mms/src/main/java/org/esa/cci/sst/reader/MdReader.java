@@ -67,8 +67,8 @@ abstract class MdReader extends NetcdfReader {
     }
 
     @Override
-    public void init(DataFile datafile, File archiveRoot) throws IOException {
-        super.init(datafile, archiveRoot);
+    public void open(DataFile datafile, File archiveRoot) throws IOException {
+        super.open(datafile, archiveRoot);
 
         //noinspection LoopStatementThatDoesntLoop
         for (final Variable variable : getVariables()) {

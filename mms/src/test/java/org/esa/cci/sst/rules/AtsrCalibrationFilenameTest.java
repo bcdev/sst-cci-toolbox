@@ -64,7 +64,7 @@ public class AtsrCalibrationFilenameTest {
             public Reader getObservationReader() {
                 return new Reader() {
                     @Override
-                    public void init(DataFile dataFile, File archiveRoot) throws IOException {
+                    public void open(DataFile dataFile, File archiveRoot) throws IOException {
                     }
 
                     @Override

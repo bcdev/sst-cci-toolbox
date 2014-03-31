@@ -47,7 +47,7 @@ public interface Reader extends Closeable {
      *
      * @throws java.io.IOException when an error has occurred.
      */
-    void init(DataFile dataFile, File archiveRoot) throws IOException;  // @todo 3 tb/** rename to "open" tb 2014-02-17
+    void open(DataFile dataFile, File archiveRoot) throws IOException;
 
     /**
      * Closes observation file
@@ -67,7 +67,7 @@ public interface Reader extends Closeable {
      * Sets geo-location to polygon enclosing subscene.
      * Sets reference point to pixel corresponding to in-situ measurement.
      * The returned {@link org.esa.cci.sst.data.ReferenceObservation} instance shall have a reference to {@code dataFileEntry}
-     * passed into {@link #init(org.esa.cci.sst.data.DataFile,java.io.File)}.
+     * passed into {@link #open(org.esa.cci.sst.data.DataFile,java.io.File)}.
      *
      * @param recordNo index in observation file, must be between 0 and less than numRecords.
      *

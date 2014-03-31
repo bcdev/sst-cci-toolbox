@@ -208,7 +208,7 @@ public class MmdIngestionTool extends BasicTool {
         final GunzipDecorator decorator = new GunzipDecorator(reader);
         reader.setConfiguration(getConfig());
         try {
-            decorator.init(dataFile, archiveRoot);
+            decorator.open(dataFile, archiveRoot);
         } catch (IOException e) {
             final File filePath = new File(archiveRoot, dataFile.getPath());
             throw new ToolException("Error initializing Reader for MMD file '" + filePath + "'.", e,

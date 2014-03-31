@@ -58,8 +58,8 @@ class SeviriReader extends MdReader implements InsituSource {
     }
 
     @Override
-    public void init(DataFile datafile, File archiveRoot) throws IOException {
-        super.init(datafile, archiveRoot);
+    public void open(DataFile datafile, File archiveRoot) throws IOException {
+        super.open(datafile, archiveRoot);
         final NetcdfFile ncFile = getNetcdfFile();
         noOfLines = ncFile.findDimension("ny").getLength();
         noOfColumns = ncFile.findDimension("nx").getLength();

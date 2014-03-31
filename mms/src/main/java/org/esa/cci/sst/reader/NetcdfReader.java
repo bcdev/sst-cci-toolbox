@@ -55,7 +55,7 @@ abstract public class NetcdfReader implements Reader {
      * @throws IOException if file access fails.
      */
     @Override
-    public void init(DataFile datafile, File archiveRoot) throws IOException {
+    public void open(DataFile datafile, File archiveRoot) throws IOException {
         Assert.state(netcdfFile == null, "netcdfFile != null");
 
         this.datafile = datafile;

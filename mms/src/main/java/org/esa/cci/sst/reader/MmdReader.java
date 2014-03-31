@@ -57,7 +57,7 @@ public class MmdReader implements Reader {
     }
 
     @Override
-    public void init(final DataFile dataFile, File archiveRoot) throws IOException {
+    public void open(final DataFile dataFile, File archiveRoot) throws IOException {
         this.dataFile = dataFile;
         final String fileLocation;
         if (archiveRoot == null || dataFile.getPath().startsWith(File.separator)) {

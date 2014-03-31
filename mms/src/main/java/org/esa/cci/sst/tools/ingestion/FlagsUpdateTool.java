@@ -108,7 +108,7 @@ public class FlagsUpdateTool extends BasicTool {
         final DataFile dataFile = new DataFile(mmdFile, dummySensor);
         final MmdReader reader = new MmdReader(dummySensor.getName());
         reader.setConfiguration(getConfig());
-        reader.init(dataFile, archiveRoot);
+        reader.open(dataFile, archiveRoot);
         return reader;
     }
 }

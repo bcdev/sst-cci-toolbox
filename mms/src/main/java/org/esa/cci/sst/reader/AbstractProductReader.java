@@ -68,7 +68,7 @@ abstract class AbstractProductReader implements Reader {
     }
 
     @Override
-    public final void init(DataFile datafile, File archiveRoot) throws IOException {
+    public final void open(DataFile datafile, File archiveRoot) throws IOException {
         Assert.state(product == null, "product != null");
 
         this.datafile = datafile;

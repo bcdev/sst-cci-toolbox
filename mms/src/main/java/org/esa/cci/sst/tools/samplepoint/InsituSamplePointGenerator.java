@@ -123,7 +123,7 @@ public class InsituSamplePointGenerator {
             insituFilePath = insituFilePath.substring(archiveDir.getAbsolutePath().length() + 1);
         }
         final DataFile dataFile = new DataFile(insituFilePath, sensor);
-        reader.init(dataFile, archiveDir);
+        reader.open(dataFile, archiveDir);
     }
 
     private void extractPointsInTimeRange(List<SamplingPoint> samplingPoints, TimeRange timeRange) throws IOException {

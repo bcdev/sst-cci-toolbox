@@ -126,7 +126,7 @@ public class IngestionTool extends BasicTool {
                 sensor = ingester.createSensor(sensorName, observationType, pattern);
             }
             final DataFile dataFile = new DataFile(path, sensor);
-            reader.init(dataFile, archiveRoot);
+            reader.open(dataFile, archiveRoot);
 
             persistenceManager.persist(dataFile);
             ingester.persistColumns(sensorName, reader);

@@ -1153,7 +1153,7 @@ public class InsituReaderTest {
         dataFile.setSensor(sensor);
 
         final InsituReader reader = new InsituReader("history");
-        reader.init(dataFile, null);
+        reader.open(dataFile, null);
 
         return reader;
     }
