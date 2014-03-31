@@ -85,13 +85,13 @@ for year in years:
         inputs.append('/inp/' + year + '/' + month)
 # Add fulfilled preconditions for temporal boundary around mission start and end
 for (sensor, sensorstart, sensorstop) in sensors:
-    if years[0] + '-' + months[0] >= sensorstart:
+    if years[0] + '-' + months[0] >= sensorstart[:7]:
         prev_month_year, prev_month = prev_year_month_of(years[0], months[0])
     else:
         prev_month_year, prev_month = prev_year_month_of(sensorstart[0:4], sensorstart[5:7])
     inputs.append('/obs/' + prev_month_year + '/' + prev_month)
     inputs.append('/smp/' + sensor + '/' + prev_month_year + '/' + prev_month)
-    if years[-1] + '-' + months[-1] <= sensorstop:
+    if years[-1] + '-' + months[-1] <= sensorstop[:7]:
         next_month_year, next_month = next_year_month_of(years[-1], months[-1])
     else:
         next_month_year, next_month = next_year_month_of(sensorstop[0:4], sensorstop[5:7])
