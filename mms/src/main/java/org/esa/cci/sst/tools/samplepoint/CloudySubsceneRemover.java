@@ -143,13 +143,7 @@ public class CloudySubsceneRemover {
     public void removeSamples(List<SamplingPoint> samples) {
         logInfo("Starting removing cloudy samples...");
 
-        final String columnName = SensorNames.ensureOrbitName(sensorName) + "." + cloudFlagsVariableName;
-        final Column column = columnStorage.getColumn(columnName);
-        if (column == null) {
-            throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName),
-                    ToolException.TOOL_ERROR);
-        }
-        final Number fillValue = column.getFillValue();
+        final Number fillValue = getColumnFillValue(sensorName, cloudFlagsVariableName, columnStorage);
         final PixelCounter pixelCounter = new PixelCounter(cloudFlagsMask, fillValue);
 
         final Map<Integer, List<SamplingPoint>> samplesByDatafile = new HashMap<>();
@@ -225,5 +219,14 @@ public class CloudySubsceneRemover {
         if (logger != null && logger.isLoggable(Level.INFO)) {
             logger.info(message);
         }
+    }
+
+    static Number getColumnFillValue(String sensorName, String cloudFlagsVariableName, ColumnStorage columnStorage) {
+        final String columnName = SensorNames.ensureOrbitName(sensorName) + "." + cloudFlagsVariableName;
+        final Column column = columnStorage.getColumn(columnName);
+        if (column == null) {
+            throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName), ToolException.TOOL_ERROR);
+        }
+        return column.getFillValue();
     }
 }

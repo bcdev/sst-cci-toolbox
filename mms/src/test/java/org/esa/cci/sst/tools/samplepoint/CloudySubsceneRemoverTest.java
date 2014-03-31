@@ -14,10 +14,14 @@ package org.esa.cci.sst.tools.samplepoint;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.ColumnBuilder;
+import org.esa.cci.sst.orm.ColumnStorage;
+import org.esa.cci.sst.tools.ToolException;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class CloudySubsceneRemoverTest {
 
@@ -33,5 +37,49 @@ public class CloudySubsceneRemoverTest {
         final CloudySubsceneRemover remover = new CloudySubsceneRemover().primary(false);
 
         assertFalse(remover.getPrimary());
+    }
+
+    @Test
+    public void testGetColumnFillValue() {
+        final double expectedFill = 675.88;
+        final Column column = (Column) new ColumnBuilder().fillValue(expectedFill).build();
+        final ColumnStorage columnStorage = mock(ColumnStorage.class);
+
+        when(columnStorage.getColumn("orb_atsr.2.cloud_band")).thenReturn(column);
+
+        final Number fillValue = CloudySubsceneRemover.getColumnFillValue("atsr.2", "cloud_band", columnStorage);
+        assertEquals(expectedFill, fillValue.doubleValue(), 1e-8);
+
+        verify(columnStorage, times(1)).getColumn("orb_atsr.2.cloud_band");
+        verifyNoMoreInteractions(columnStorage);
+    }
+
+    @Test
+    public void testGetColumnFillValue_invalidSensorName() {
+        final ColumnStorage columnStorage = mock(ColumnStorage.class);
+
+        try {
+            CloudySubsceneRemover.getColumnFillValue("invalid", "cloud_band", columnStorage);
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException expected) {
+        }
+
+        verifyNoMoreInteractions(columnStorage);
+    }
+
+    @Test
+    public void testGetColumnFillValue_columnNotStored() {
+        final ColumnStorage columnStorage = mock(ColumnStorage.class);
+
+        when(columnStorage.getColumn("orb_atsr.2.cloud_band")).thenReturn(null);
+
+        try {
+            CloudySubsceneRemover.getColumnFillValue("atsr.2", "cloud_band", columnStorage);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+
+        verify(columnStorage, times(1)).getColumn("orb_atsr.2.cloud_band");
+        verifyNoMoreInteractions(columnStorage);
     }
 }
