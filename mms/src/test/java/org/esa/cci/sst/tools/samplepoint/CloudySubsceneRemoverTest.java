@@ -18,7 +18,12 @@ import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -81,5 +86,64 @@ public class CloudySubsceneRemoverTest {
 
         verify(columnStorage, times(1)).getColumn("orb_atsr.2.cloud_band");
         verifyNoMoreInteractions(columnStorage);
+    }
+
+    @Test
+    public void testSplitByFileId_oneFile_primary() {
+        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        points.add(createSamplingPointWithReference(19));
+        points.add(createSamplingPointWithReference(19));
+
+        final Map<Integer, List<SamplingPoint>> listByFileId = CloudySubsceneRemover.splitByFileId(points, true);
+        assertEquals(1, listByFileId.size());
+        final List<SamplingPoint> fileList = listByFileId.get(19);
+        assertNotNull(fileList);
+        assertEquals(2, fileList.size());
+    }
+
+    @Test
+    public void testSplitByFileId_oneFile_secondary() {
+        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        points.add(createSamplingPointWithSecondaryReference(21));
+        points.add(createSamplingPointWithSecondaryReference(21));
+        points.add(createSamplingPointWithSecondaryReference(21));
+
+        final Map<Integer, List<SamplingPoint>> listByFileId = CloudySubsceneRemover.splitByFileId(points, false);
+        assertEquals(1, listByFileId.size());
+        final List<SamplingPoint> fileList = listByFileId.get(21);
+        assertNotNull(fileList);
+        assertEquals(3, fileList.size());
+    }
+
+    @Test
+    public void testSplitByFileId_twoFiles_primary() {
+        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        points.add(createSamplingPointWithReference(22));
+        points.add(createSamplingPointWithReference(19));
+        points.add(createSamplingPointWithReference(22));
+        points.add(createSamplingPointWithReference(22));
+        points.add(createSamplingPointWithReference(19));
+
+        final Map<Integer, List<SamplingPoint>> listByFileId = CloudySubsceneRemover.splitByFileId(points, true);
+        assertEquals(2, listByFileId.size());
+         List<SamplingPoint> fileList = listByFileId.get(19);
+        assertNotNull(fileList);
+        assertEquals(2, fileList.size());
+
+        fileList = listByFileId.get(22);
+        assertNotNull(fileList);
+        assertEquals(3, fileList.size());
+    }
+
+    private SamplingPoint createSamplingPointWithReference(int reference) {
+        final SamplingPoint samplingPoint = new SamplingPoint();
+        samplingPoint.setReference(reference);
+        return samplingPoint;
+    }
+
+    private SamplingPoint createSamplingPointWithSecondaryReference(int reference) {
+        final SamplingPoint samplingPoint = new SamplingPoint();
+        samplingPoint.setReference2(reference);
+        return samplingPoint;
     }
 }

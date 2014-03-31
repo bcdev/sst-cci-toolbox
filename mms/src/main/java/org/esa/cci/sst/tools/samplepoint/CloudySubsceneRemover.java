@@ -57,9 +57,11 @@ public class CloudySubsceneRemover {
     private Storage storage;
     private ColumnStorage columnStorage;
     private Logger logger;
+    private int[] shape;
 
     public CloudySubsceneRemover() {
         primary = true;
+        shape = new int[]{1, subSceneHeight, subSceneWidth};
     }
 
     public CloudySubsceneRemover sensorName(String sensorName) {
@@ -143,70 +145,63 @@ public class CloudySubsceneRemover {
     public void removeSamples(List<SamplingPoint> samples) {
         logInfo("Starting removing cloudy samples...");
 
+        final Map<Integer, List<SamplingPoint>> samplesByDatafile = splitByFileId(samples, primary);
+
         final Number fillValue = getColumnFillValue(sensorName, cloudFlagsVariableName, columnStorage);
         final PixelCounter pixelCounter = new PixelCounter(cloudFlagsMask, fillValue);
 
-        final Map<Integer, List<SamplingPoint>> samplesByDatafile = new HashMap<>();
-        for (final SamplingPoint point : samples) {
-            final int id = primary ? point.getReference() : point.getReference2();
-            if (!samplesByDatafile.containsKey(id)) {
-                samplesByDatafile.put(id, new ArrayList<SamplingPoint>());
-            }
-            samplesByDatafile.get(id).add(point);
-        }
-
-        final int[] shape = {1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
-
         final List<SamplingPoint> clearSkySamples = new ArrayList<>(samples.size());
 
         for (final int id : samplesByDatafile.keySet()) {
             final List<SamplingPoint> points = samplesByDatafile.get(id);
             final Observation observation = storage.getObservation(id);
-            if (observation != null) {
-                final DataFile datafile = observation.getDatafile();
-                try (final Reader reader = ReaderFactory.open(datafile, config)) {
-                    logInfo(MessageFormat.format("Starting removing cloudy samples: data file ''{0}''...", datafile.getPath()));
+            if (observation == null) {
+                continue;
+            }
 
-                    for (final SamplingPoint point : points) {
-                        final double lat = point.getLat();
-                        final double lon = point.getLon();
+            final DataFile datafile = observation.getDatafile();
+            try (final Reader reader = ReaderFactory.open(datafile, config)) {
+                logInfo(MessageFormat.format("Starting removing cloudy samples: data file ''{0}''...", datafile.getPath()));
 
-                        final GeoCoding geoCoding = reader.getGeoCoding(0);
-                        final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
-                        final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
-                        final int pixelX = (int) Math.floor(pixelPos.getX());
-                        final int pixelY = (int) Math.floor(pixelPos.getY());
+                final int numCols = reader.getElementCount();
+                final int numRows = reader.getScanLineCount();
 
-                        final int numCols = reader.getElementCount();
-                        final int numRows = reader.getScanLineCount();
+                final GeoCoding geoCoding = reader.getGeoCoding(0);
+                for (final SamplingPoint point : points) {
+                    final double lat = point.getLat();
+                    final double lon = point.getLon();
 
-                        if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
-                            if (primary) {
-                                point.setX(pixelX);
-                                point.setY(pixelY);
-                                point.setReferenceTime(reader.getTime(0, pixelY));
-                                geoCoding.getGeoPos(pixelPos, geoPos);
-                                point.setReferenceLat(geoPos.getLat());
-                                point.setReferenceLon(geoPos.getLon());
-                            }
+                    final GeoPos geoPos = new GeoPos((float) lat, (float) lon);
+                    final PixelPos pixelPos = geoCoding.getPixelPos(geoPos, new PixelPos());
+                    final int pixelX = (int) Math.floor(pixelPos.getX());
+                    final int pixelY = (int) Math.floor(pixelPos.getY());
 
-                            final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
-                            final Array array = reader.read(cloudFlagsVariableName, extractDefinition);
-                            final int cloudyPixelCount = pixelCounter.count(array);
-                            if (cloudyPixelCount <= (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
-                                clearSkySamples.add(point);
-                            }
-                        } else {
-                            logInfo(MessageFormat.format("Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat, datafile.getPath()));
+                    if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
+                        if (primary) {
+                            point.setX(pixelX);
+                            point.setY(pixelY);
+                            point.setReferenceTime(reader.getTime(0, pixelY));
+                            geoCoding.getGeoPos(pixelPos, geoPos);
+                            point.setReferenceLat(geoPos.getLat());
+                            point.setReferenceLon(geoPos.getLon());
                         }
+
+                        final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
+                        final Array array = reader.read(cloudFlagsVariableName, extractDefinition);
+                        final int cloudyPixelCount = pixelCounter.count(array);
+                        if (cloudyPixelCount <= (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
+                            clearSkySamples.add(point);
+                        }
+                    } else {
+                        logInfo(MessageFormat.format("Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat, datafile.getPath()));
                     }
-                    logInfo(MessageFormat.format("Finished removing cloudy samples: data file ''{0}'' ({1} clear-sky samples)", datafile.getPath(), clearSkySamples.size()));
-                } catch (IOException e) {
-                    throw new ToolException(
-                            MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
-                            ToolException.TOOL_IO_ERROR);
                 }
+                logInfo(MessageFormat.format("Finished removing cloudy samples: data file ''{0}'' ({1} clear-sky samples)", datafile.getPath(), clearSkySamples.size()));
+            } catch (IOException e) {
+                throw new ToolException(
+                        MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
+                        ToolException.TOOL_IO_ERROR);
             }
         }
         samples.clear();
@@ -221,6 +216,20 @@ public class CloudySubsceneRemover {
         }
     }
 
+    // package access for testing only tb 2014-03-31
+    static Map<Integer, List<SamplingPoint>> splitByFileId(List<SamplingPoint> samples, boolean isPrimary) {
+        final Map<Integer, List<SamplingPoint>> samplesByDatafile = new HashMap<>();
+        for (final SamplingPoint point : samples) {
+            final int id = isPrimary ? point.getReference() : point.getReference2();
+            if (!samplesByDatafile.containsKey(id)) {
+                samplesByDatafile.put(id, new ArrayList<SamplingPoint>());
+            }
+            samplesByDatafile.get(id).add(point);
+        }
+        return samplesByDatafile;
+    }
+
+    // package access for testing only tb 2014-03-31
     static Number getColumnFillValue(String sensorName, String cloudFlagsVariableName, ColumnStorage columnStorage) {
         final String columnName = SensorNames.ensureOrbitName(sensorName) + "." + cloudFlagsVariableName;
         final Column column = columnStorage.getColumn(columnName);
