@@ -34,5 +34,4 @@ public class CloudySubsceneRemoverTest {
 
         assertFalse(remover.getPrimary());
     }
-
 }

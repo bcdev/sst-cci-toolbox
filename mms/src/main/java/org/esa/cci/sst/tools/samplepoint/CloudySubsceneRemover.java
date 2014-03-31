@@ -141,10 +141,8 @@ public class CloudySubsceneRemover {
     }
 
     public void removeSamples(List<SamplingPoint> samples) {
-        if (logger != null && logger.isLoggable(Level.INFO)) {
-            final String message = "Starting removing cloudy samples...";
-            logger.info(message);
-        }
+        logInfo("Starting removing cloudy samples...");
+
         final String columnName = SensorNames.ensureOrbitName(sensorName) + "." + cloudFlagsVariableName;
         final Column column = columnStorage.getColumn(columnName);
         if (column == null) {
@@ -174,10 +172,7 @@ public class CloudySubsceneRemover {
             if (observation != null) {
                 final DataFile datafile = observation.getDatafile();
                 try (final Reader reader = ReaderFactory.open(datafile, config)) {
-                    if (logger != null && logger.isLoggable(Level.INFO)) {
-                        final String message = MessageFormat.format("Starting removing cloudy samples: data file ''{0}''...", datafile.getPath());
-                        logger.info(message);
-                    }
+                    logInfo(MessageFormat.format("Starting removing cloudy samples: data file ''{0}''...", datafile.getPath()));
 
                     for (final SamplingPoint point : points) {
                         final double lat = point.getLat();
@@ -209,20 +204,10 @@ public class CloudySubsceneRemover {
                                 clearSkySamples.add(point);
                             }
                         } else {
-                            if (logger != null && logger.isLoggable(Level.FINE)) {
-                                final String message = MessageFormat.format(
-                                        "Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
-                                        datafile.getPath());
-                                logger.fine(message);
-                            }
+                            logInfo(MessageFormat.format("Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat, datafile.getPath()));
                         }
                     }
-                    if (logger != null && logger.isLoggable(Level.INFO)) {
-                        final String message = MessageFormat.format(
-                                "Finished removing cloudy samples: data file ''{0}'' ({1} clear-sky samples)",
-                                datafile.getPath(), clearSkySamples.size());
-                        logger.info(message);
-                    }
+                    logInfo(MessageFormat.format("Finished removing cloudy samples: data file ''{0}'' ({1} clear-sky samples)", datafile.getPath(), clearSkySamples.size()));
                 } catch (IOException e) {
                     throw new ToolException(
                             MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
@@ -232,9 +217,12 @@ public class CloudySubsceneRemover {
         }
         samples.clear();
         samples.addAll(clearSkySamples);
+
+        logInfo(MessageFormat.format("Finished removing cloudy samples: {0} clear-sky samples found in total", samples.size()));
+    }
+
+    private void logInfo(String message) {
         if (logger != null && logger.isLoggable(Level.INFO)) {
-            final String message = MessageFormat.format(
-                    "Finished removing cloudy samples: {0} clear-sky samples found in total", samples.size());
             logger.info(message);
         }
     }
