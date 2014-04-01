@@ -75,6 +75,71 @@ public class ObservationFinderTest {
         assertEquals(1041384411000L, samplingPoint.getReference2Time());
     }
 
+    @Test
+    public void testSetGetSensorName_parameterObject() {
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        final String sensorName_1 = "schnuckelchen";
+        final String sensorName_2 = "bratz";
+
+        parameter.setSensorName(sensorName_1);
+        assertEquals(sensorName_1, parameter.getSensorName());
+
+        parameter.setSensorName(sensorName_2);
+        assertEquals(sensorName_2, parameter.getSensorName());
+    }
+
+    @Test
+    public void testSetGetStartTime_parameterObject() {
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        final long start_1 = 78;
+        final long start_2 = 554;
+
+        parameter.setStartTime(start_1);
+        assertEquals(start_1, parameter.getStartTime());
+
+        parameter.setStartTime(start_2);
+        assertEquals(start_2, parameter.getStartTime());
+    }
+
+    @Test
+    public void testSetGetStopTime_parameterObject() {
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        final long stop_1 = 86;
+        final long stop_2 = 754;
+
+        parameter.setStopTime(stop_1);
+        assertEquals(stop_1, parameter.getStopTime());
+
+        parameter.setStopTime(stop_2);
+        assertEquals(stop_2, parameter.getStopTime());
+    }
+
+    @Test
+    public void testSetGetSearchTimeFuture_parameterObject() {
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        final int future_1 = 83;
+        final int future_2 = 713;
+
+        parameter.setSearchTimeFuture(future_1);
+        assertEquals(future_1, parameter.getSearchTimeFuture());
+
+        parameter.setSearchTimeFuture(future_2);
+        assertEquals(future_2, parameter.getSearchTimeFuture());
+    }
+
+    @Test
+    public void testSetGetSearchTimePast_parameterObject() {
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        final int past_1 = 72;
+        final int past_2 = 513;
+
+        parameter.setSearchTimePast(past_1);
+        assertEquals(past_1, parameter.getSearchTimePast());
+
+        parameter.setSearchTimePast(past_2);
+        assertEquals(past_2, parameter.getSearchTimePast());
+    }
+
     private static PolarOrbitingPolygon createPolarOrbitingPolygon(String time, Point[] points, int id) throws ParseException {
         final Geometry orbitGeometryAatsr = new Polygon(new LinearRing[]{new LinearRing(points)});
         final long orbitTimeAatsr = TimeUtil.parseCcsdsUtcFormat(time).getTime();

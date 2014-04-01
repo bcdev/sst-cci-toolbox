@@ -25,19 +25,28 @@ public class FindObservationsWorkflow extends Workflow {
         final String sensorName = workflowContext.getSensorName();
         final long startTime = workflowContext.getStartTime();
         final long stopTime = workflowContext.getStopTime();
-        final int searchTime = workflowContext.getSearchTime();
+        final int searchTimePast = workflowContext.getSearchTimePast();
+        final int searchTimeFuture = workflowContext.getSearchTimeFuture();
 
         logInfo("Starting associating samples with observations...");
+        // @todo 2 tb/tb encapsulate
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        parameter.setSensorName(sensorName);
+        parameter.setStartTime(startTime);
+        parameter.setStopTime(stopTime);
+        parameter.setSearchTimePast(searchTimePast);
+        parameter.setSearchTimeFuture(searchTimeFuture);
         persistenceManager.transaction();
-        observationFinder.findPrimarySensorObservations(samplingPoints, sensorName, startTime, stopTime, searchTime);
+        observationFinder.findPrimarySensorObservations(samplingPoints, parameter);
         persistenceManager.commit();
         logInfo(MessageFormat.format("Finished associating samples with observations ({0} samples left)", samplingPoints.size()));
 
         final String sensorName2 = workflowContext.getSensorName2();
         if (StringUtils.isNotBlank(sensorName2)) {
             logInfo("Starting associating samples with secondary observations...");
+            parameter.setSensorName(sensorName2);
             persistenceManager.transaction();
-            observationFinder.findSecondarySensorObservations(samplingPoints, sensorName2, startTime, stopTime, searchTime);
+            observationFinder.findSecondarySensorObservations(samplingPoints, parameter);
             persistenceManager.commit();
             logInfo(MessageFormat.format("Finished associating samples with secondary observations ({0} samples left)", samplingPoints.size()));
         }

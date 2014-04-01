@@ -27,41 +27,33 @@ public class ObservationFinder {
      * <p/>
      * To be used for single-sensor and dual-sensor matchups.
      *
-     * @param samples    The list of sampling points.
-     * @param sensor     The sensor name.
-     * @param startTime  The start time.
-     * @param stopTime   The stop time.
-     * @param searchTime May time delta between insitu and sensor
+     * @param samples   The list of sampling points.
+     * @param parameter The parameter object
      */
-    public void findPrimarySensorObservations(List<SamplingPoint> samples, String sensor,
-                                              long startTime, long stopTime, int searchTime) {
-        findObservations(samples, sensor, startTime, stopTime, searchTime, true);
+    public void findPrimarySensorObservations(List<SamplingPoint> samples, Parameter parameter) {
+        findObservations(samples, parameter, true);
     }
 
     /**
      * Finds related observations for each sampling point in a list of samples. On return any
      * sampling points, which could not be associated with a related observations are removed
      * from the list of samples.
-     * <p/>
+     * </p>
      * To be used for dual-sensor matchups only.
      *
-     * @param samples                The list of sampling points.
-     * @param sensorName             The sensor name.
-     * @param startTime              The start time.
-     * @param stopTime               The stop time.
-     * @param searchTimeDeltaSeconds The tolerable time difference (seconds).
+     * @param samples   The list of sampling points.
+     * @param parameter The parameter object
      */
-    public void findSecondarySensorObservations(List<SamplingPoint> samples, String sensorName,
-                                                long startTime, long stopTime, int searchTimeDeltaSeconds) {
-        findObservations(samples, sensorName, startTime, stopTime, searchTimeDeltaSeconds, false);
+    public void findSecondarySensorObservations(List<SamplingPoint> samples, Parameter parameter) {
+        findObservations(samples, parameter, false);
     }
 
-    public void findObservations(List<SamplingPoint> samples, String sensorName,
-                                 long startTime, long stopTime, int searchTimeDeltaSeconds, boolean primarySensor) {
-        final long halfRevisitTimeMillis = searchTimeDeltaSeconds * 1000;
-        final Date startDate = new Date(startTime - halfRevisitTimeMillis);
-        final Date stopDate = new Date(stopTime + halfRevisitTimeMillis);
-        final String orbitSensorName = SensorNames.ensureOrbitName(sensorName);
+    public void findObservations(List<SamplingPoint> samples, Parameter parameter, boolean primarySensor) {
+        final long searchTimePastMillis = parameter.getSearchTimePast() * 1000;
+        final long searchTimeFutureMillis = parameter.getSearchTimeFuture() * 1000;
+        final Date startDate = new Date(parameter.getStartTime() - searchTimePastMillis);
+        final Date stopDate = new Date(parameter.getStopTime() + searchTimeFutureMillis);
+        final String orbitSensorName = SensorNames.ensureOrbitName(parameter.getSensorName());
 
         final Storage storage = persistenceManager.getStorage();
         final List<RelatedObservation> orbitObservations = storage.getRelatedObservations(orbitSensorName, startDate, stopDate);
@@ -72,7 +64,7 @@ public class ObservationFinder {
                     orbitObservation.getTime().getTime(),
                     orbitObservation.getLocation().getGeometry());
         }
-        findObservations(samples, halfRevisitTimeMillis, primarySensor, polygons);
+        findObservations(samples, searchTimePastMillis, primarySensor, polygons);
     }
 
     public static void findObservations(List<SamplingPoint> samples, long halfRevisitTimeMillis, boolean primarySensor,
@@ -137,6 +129,54 @@ public class ObservationFinder {
         } else {
             point.setReference2(polygon.getId());
             point.setReference2Time(polygon.getTime());
+        }
+    }
+
+    public static class Parameter {
+        private String sensorName;
+        private long startTime;
+        private long stopTime;
+        private int searchTimeFuture;
+        private int searchTimePast;
+
+        public void setSensorName(String sensorName) {
+            this.sensorName = sensorName;
+        }
+
+        public String getSensorName() {
+            return sensorName;
+        }
+
+        public long getStartTime() {
+            return startTime;
+        }
+
+        public void setStartTime(long startTime) {
+            this.startTime = startTime;
+        }
+
+        public void setStopTime(long stopTime) {
+            this.stopTime = stopTime;
+        }
+
+        public long getStopTime() {
+            return stopTime;
+        }
+
+        public void setSearchTimeFuture(int searchTimeFuture) {
+            this.searchTimeFuture = searchTimeFuture;
+        }
+
+        public int getSearchTimeFuture() {
+            return searchTimeFuture;
+        }
+
+        public void setSearchTimePast(int searchTimePast) {
+            this.searchTimePast = searchTimePast;
+        }
+
+        public int getSearchTimePast() {
+            return searchTimePast;
         }
     }
 }

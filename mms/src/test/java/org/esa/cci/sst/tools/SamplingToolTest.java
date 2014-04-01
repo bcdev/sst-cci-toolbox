@@ -54,10 +54,16 @@ public class SamplingToolTest {
         SamplingTool.removeLandSamples(sampleList);
         SamplingTool.reduceByClearSkyStatistic(sampleList);
         final PersistenceManager persistenceManager = tool.getPersistenceManager();
+
+        final int quarterRepeatCycleInSeconds = 86400 * 175 / 20;
         final ObservationFinder observationFinder = new ObservationFinder(persistenceManager);
-        observationFinder.findPrimarySensorObservations(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3,
-                                                        tool.getStartTime(), tool.getStopTime(),
-                                                        86400 * 175 / 10);
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        parameter.setSensorName(Constants.SENSOR_NAME_ORB_ATSR_3);
+        parameter.setStartTime(tool.getStartTime());
+        parameter.setStopTime(tool.getStopTime());
+        parameter.setSearchTimePast(quarterRepeatCycleInSeconds);
+        parameter.setSearchTimeFuture(quarterRepeatCycleInSeconds);
+        observationFinder.findPrimarySensorObservations(sampleList, parameter);
 
         CloudySubsceneRemover.removeSamples(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3, true, 7, 7, tool.getConfig(),
                                             tool.getStorage(), tool.getColumnStorage(), tool.getLogger(), "cloud_flags_nadir", 3, 0.0);

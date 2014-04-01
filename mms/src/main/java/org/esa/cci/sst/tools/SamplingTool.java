@@ -103,10 +103,15 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Reducing clear samples..." + sampleList.size());
 
         getLogger().info("Finding reference observations...");
-        final int halfRepeatCycleInSeconds = 86400 * 175 / 10;
+        final int quarterRepeatCycleInSeconds = 86400 * 175 / 20;
         final ObservationFinder observationFinder = new ObservationFinder(getPersistenceManager());
-        observationFinder.findPrimarySensorObservations(sampleList, samplingSensor,
-                startTime, stopTime, halfRepeatCycleInSeconds);
+        final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
+        parameter.setSensorName(samplingSensor);
+        parameter.setStartTime(startTime);
+        parameter.setStopTime(stopTime);
+        parameter.setSearchTimePast(quarterRepeatCycleInSeconds);
+        parameter.setSearchTimeFuture(quarterRepeatCycleInSeconds);
+        observationFinder.findPrimarySensorObservations(sampleList, parameter);
         getLogger().info("Finding reference observations..." + sampleList.size());
         Collections.sort(sampleList, new Comparator<SamplingPoint>() {
             @Override
@@ -126,8 +131,10 @@ public class SamplingTool extends BasicTool {
         getLogger().info("Finding satellite sub-scenes..." + sampleList.size());
         if (samplingSensor2 != null) {
             getLogger().info("Finding " + samplingSensor2 + " observations...");
-            observationFinder.findSecondarySensorObservations(sampleList, samplingSensor2,
-                    startTime, stopTime, matchupDistanceSeconds);
+            parameter.setSensorName(samplingSensor2);
+            parameter.setSearchTimePast(matchupDistanceSeconds / 2);
+            parameter.setSearchTimeFuture(matchupDistanceSeconds / 2);
+            observationFinder.findSecondarySensorObservations(sampleList, parameter);
             getLogger().info("Finding " + samplingSensor2 + " observations..." + sampleList.size());
 
             getLogger().info("Finding " + samplingSensor2 + " sub-scenes...");

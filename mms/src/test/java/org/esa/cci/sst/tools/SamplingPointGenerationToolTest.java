@@ -23,7 +23,8 @@ public class SamplingPointGenerationToolTest {
         final Configuration configuration = new Configuration();
         configuration.put(Configuration.KEY_MMS_SAMPLING_START_TIME, "2007-01-01T00:00:00Z");
         configuration.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2007-01-01T12:00:00Z");
-        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME, "517");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST, "517");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE, "523");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR, "Mathilde");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SKIP, "518");
         configuration.put(Configuration.KEY_MMS_SAMPLING_COUNT, "519");
@@ -37,7 +38,8 @@ public class SamplingPointGenerationToolTest {
 
         assertEquals(1167609600000L, workflowContext.getStartTime());
         assertEquals(1167609599000L, workflowContext.getStopTime());
-        assertEquals(517, workflowContext.getSearchTime());
+        assertEquals(517, workflowContext.getSearchTimePast());
+        assertEquals(523, workflowContext.getSearchTimeFuture());
         assertEquals("Mathilde", workflowContext.getSensorName());
         assertEquals(518, workflowContext.getSampleSkip());
         assertEquals(519, workflowContext.getSampleCount());
@@ -57,7 +59,8 @@ public class SamplingPointGenerationToolTest {
         final Configuration configuration = new Configuration();
         configuration.put(Configuration.KEY_MMS_SAMPLING_START_TIME, "2008-02-02T00:00:00Z");
         configuration.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2008-02-03T12:00:00Z");
-        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME, "619");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST, "619");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE, "719");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR, "Herrmann");
         configuration.put(Configuration.KEY_MMS_SAMPLING_COUNT, "520");
         configuration.put(Configuration.KEY_MMS_ARCHIVE_ROOT, "/path/archive/root");

@@ -90,8 +90,11 @@ public class SamplingPointGenerationTool extends BasicTool {
         final Date endOfMonth = ensureEndOfMonth(config.getDateValue(Configuration.KEY_MMS_SAMPLING_STOP_TIME));
         workflowContext.setStopTime(endOfMonth.getTime());
 
-        int searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME);
-        workflowContext.setSearchtTime(searchTime);
+        int searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST);
+        workflowContext.setSearchTimePast(searchTime);
+
+        searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE);
+        workflowContext.setSearchTimeFuture(searchTime);
 
         String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
         workflowContext.setSensorName(sensorName);

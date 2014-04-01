@@ -44,15 +44,27 @@ public class WorkflowContextTest {
     }
 
     @Test
-    public void testSetGetSearchTime() {
+    public void testSetGetSearchTimePast() {
         final int searchTime_1 = 45;
         final int searchTime_2 = 1098876;
 
-        workflowContext.setSearchtTime(searchTime_1);
-        assertEquals(searchTime_1, workflowContext.getSearchTime());
+        workflowContext.setSearchTimePast(searchTime_1);
+        assertEquals(searchTime_1, workflowContext.getSearchTimePast());
 
-        workflowContext.setSearchtTime(searchTime_2);
-        assertEquals(searchTime_2, workflowContext.getSearchTime());
+        workflowContext.setSearchTimePast(searchTime_2);
+        assertEquals(searchTime_2, workflowContext.getSearchTimePast());
+    }
+
+    @Test
+    public void testSetGetSearchTimeFuture() {
+        final int searchTime_1 = 56;
+        final int searchTime_2 = 7765;
+
+        workflowContext.setSearchTimeFuture(searchTime_1);
+        assertEquals(searchTime_1, workflowContext.getSearchTimeFuture());
+
+        workflowContext.setSearchTimeFuture(searchTime_2);
+        assertEquals(searchTime_2, workflowContext.getSearchTimeFuture());
     }
 
     @Test
