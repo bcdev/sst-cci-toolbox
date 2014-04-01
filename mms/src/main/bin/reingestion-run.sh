@@ -14,17 +14,13 @@ usecase=$5
 
 . mymms
 
-d=`date +%s -u -d "$year-$month-01 00:00:00"`
+d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
-starttime=$year-$month-01T00:00:00Z
-stoptime=`date +%Y-%m -u -d @$d1`-01T00:00:00Z
 
 echo "`date -u +%Y%m%d-%H%M%S` reingestion ${year}/${month} sensor ${sensor} type ${mmdtype} pattern ${pattern}..."
 
 reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.db.useindex=true \
--Dmms.source.startTime=${starttime} \
--Dmms.source.stopTime=${stoptime} \
 -Dmms.reingestion.source=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
 -Dmms.reingestion.sensor=${mmdtype}_${sensor} \
 -Dmms.reingestion.pattern=0 \
@@ -36,8 +32,6 @@ if [ "${mmdtype}" == "nwp" ]
 then
 reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.db.useindex=true \
--Dmms.source.startTime=${starttime} \
--Dmms.source.stopTime=${stoptime} \
 -Dmms.reingestion.source=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-ecmwf-${year}-${month}.nc \
 -Dmms.reingestion.sensor=ecmwf \
 -Dmms.reingestion.pattern=0 \

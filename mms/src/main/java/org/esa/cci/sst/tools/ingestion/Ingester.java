@@ -16,7 +16,13 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Column;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.SensorBuilder;
+import org.esa.cci.sst.data.Timeable;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
@@ -38,14 +44,9 @@ import java.util.logging.Logger;
 class Ingester {
 
     private final BasicTool tool;
-    private final TimeRange timeRange;
 
     Ingester(BasicTool tool) {
         this.tool = tool;
-
-        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_INGESTION_START_TIME,
-                Configuration.KEY_MMS_INGESTION_STOP_TIME,
-                tool.getConfig());
     }
 
     boolean persistObservation(final Observation observation, final int recordNo) throws IOException {
@@ -57,9 +58,9 @@ class Ingester {
                 hasPersisted = true;
             } catch (IllegalArgumentException e) {
                 final String message = MessageFormat.format("Observation {0} {1} is incomplete: {2}",
-                        observation.getId(),
-                        recordNo,
-                        e.getMessage());
+                                                            observation.getId(),
+                                                            recordNo,
+                                                            e.getMessage());
                 tool.getErrorHandler().warn(e, message);
             }
         }
@@ -98,6 +99,9 @@ class Ingester {
             } else {
                 timeRadius = 0.0;
             }
+            final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_INGESTION_START_TIME,
+                                                                Configuration.KEY_MMS_INGESTION_STOP_TIME,
+                                                                tool.getConfig());
             return TimeUtil.checkTimeOverlap(time, timeRange.getStartDate(), timeRange.getStopDate(), timeRadius);
         }
         // for MMD' ingestion no time is required if located=no.
