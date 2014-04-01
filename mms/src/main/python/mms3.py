@@ -143,13 +143,13 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
 
             # 4. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'his', usecase])
+            continue
 
             # 5. Create single-sensor MMD with subscenes
             pm.execute('mmd-start.sh',
