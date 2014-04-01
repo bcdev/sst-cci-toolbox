@@ -17,16 +17,13 @@ let d1="d + 32 * 86400"
 starttime=${year}-${month}-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
-pattern=`cat ${MMS_HOME}/config/${usecase}-config.properties | awk "/mms.pattern.$sensor/ { print \\$3 }"`
-
 mkdir -p ${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}
 
-echo "`date -u +%Y%m%d-%H%M%S` mmd ${year}/${month} sensor ${sensor} type ${mmdtype} starttime ${starttime} stoptime ${stoptime} pattern ${pattern}..."
+echo "`date -u +%Y%m%d-%H%M%S` mmd ${year}/${month} sensor ${sensor} type ${mmdtype} starttime ${starttime} stoptime ${stoptime}..."
 
-mmd-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
+mmd-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties -c ${MMS_HOME}/config/${usecase}-${sensor}-${mmdtype}-config.properties \
 -Dmms.target.startTime=${starttime} \
 -Dmms.target.stopTime=${stoptime} \
--Dmms.target.pattern=${pattern} \
 -Dmms.db.useindex=false \
 -Dmms.target.dimensions=${MMS_HOME}/config/mmd-dimensions.properties \
 -Dmms.target.variables=${MMS_HOME}/config/${sensor}-${mmdtype}-variables.config \
