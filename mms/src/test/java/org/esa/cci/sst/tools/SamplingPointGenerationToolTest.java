@@ -31,6 +31,7 @@ public class SamplingPointGenerationToolTest {
         configuration.put("mms.source.45.sensor", "thermometer");
         configuration.put("mms.pattern.history", "4000000000000000");
         configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "Cool_One");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR_2, "Hieronimus");
 
         SamplingPointGenerationTool.assignFromConfig(workflowContext, configuration);
 
@@ -46,6 +47,24 @@ public class SamplingPointGenerationToolTest {
         assertEquals("thermometer", workflowContext.getInsituSensorName());
         assertEquals(4611686018427387904L, workflowContext.getInsituSensorPattern());
         assertEquals("Cool_One", workflowContext.getSampleGeneratorName());
+        assertEquals("Hieronimus", workflowContext.getSensorName2());
+    }
+
+    @Test
+    public void testAssignFromConfig_sensorName2IsNullWhenNotPresentInConfig() {
+        final WorkflowContext workflowContext = new WorkflowContext();
+
+        final Configuration configuration = new Configuration();
+        configuration.put(Configuration.KEY_MMS_SAMPLING_START_TIME, "2008-02-02T00:00:00Z");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2008-02-03T12:00:00Z");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME, "619");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR, "Herrmann");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_COUNT, "520");
+        configuration.put(Configuration.KEY_MMS_ARCHIVE_ROOT, "/path/archive/root");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "Yes");
+
+        SamplingPointGenerationTool.assignFromConfig(workflowContext, configuration);
+        assertNull(workflowContext.getSensorName2());
     }
 
     @Test

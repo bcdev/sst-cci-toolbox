@@ -22,6 +22,7 @@ public class WorkflowContext {
     private String insituSensorName;
     private String sampleGeneratorName;
     private String insituInputPath;
+    private String sensorName2;
 
     public void setStartTime(long startTime) {
         this.startTime = startTime;
@@ -133,5 +134,13 @@ public class WorkflowContext {
 
     public String getInsituInputPath() {
         return insituInputPath;
+    }
+
+    public void setSensorName2(String sensorName2) {
+        this.sensorName2 = sensorName2;
+    }
+
+    public String getSensorName2() {
+        return sensorName2;
     }
 }

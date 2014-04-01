@@ -116,6 +116,9 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         final String sampleGeneratorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR);
         workflowContext.setSampleGeneratorName(sampleGeneratorName);
+
+        final String sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
+        workflowContext.setSensorName2(sensorName2);
     }
 
     private static Date ensureEndOfMonth(Date stopDate) {

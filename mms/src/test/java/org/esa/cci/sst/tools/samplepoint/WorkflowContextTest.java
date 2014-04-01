@@ -147,6 +147,18 @@ public class WorkflowContextTest {
         assertEquals(generatorName_2, workflowContext.getSampleGeneratorName());
     }
 
+    @Test
+    public void testSetGetSensorName2() {
+         final String name_1 = "Charly";
+         final String name_2 = "Rene";
+
+        workflowContext.setSensorName2(name_1);
+        assertEquals(name_1, workflowContext.getSensorName2());
+
+        workflowContext.setSensorName2(name_2);
+        assertEquals(name_2, workflowContext.getSensorName2());
+    }
+
     private static void assertSameAbsolutePath(File rootDir, File archiveRootDir) {
         assertEquals(rootDir.getAbsolutePath(), archiveRootDir.getAbsolutePath());
     }
