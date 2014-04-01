@@ -32,7 +32,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Tool to ingest new input files containing records of observations into the MMS database.
@@ -45,7 +49,6 @@ public class IngestionTool extends BasicTool {
     // todo - invert dependency: the ingester uses the tool as strategy for persistence, logging etc. (rq-20110507)
     // todo - strategy pattern: the tool shall use the ingester as strategy for ingesting (rq-20110507)
     private Ingester ingester;
-    private TimeRange timeRange;
 
     public static void main(String[] args) {
         final IngestionTool tool = new IngestionTool();
@@ -80,10 +83,6 @@ public class IngestionTool extends BasicTool {
     @Override
     public void initialize() {
         super.initialize();
-
-        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_INGESTION_START_TIME,
-                Configuration.KEY_MMS_INGESTION_STOP_TIME,
-                getConfig());
     }
 
     IngestionTool() {
@@ -135,7 +134,7 @@ public class IngestionTool extends BasicTool {
             // make changes in database
             persistenceManager.commit();
             getLogger().info(MessageFormat.format("{0} {1} records in time interval.", sensorName,
-                    recordsInTimeInterval));
+                                                  recordsInTimeInterval));
         } catch (Exception e) {
             // do not make any change in case of errors
             try {
@@ -195,7 +194,7 @@ public class IngestionTool extends BasicTool {
                 inputFileList = getInputFiles(filenamePattern + "\\.gz", inputDir);
                 if (inputFileList.isEmpty()) {
                     getLogger().warning(MessageFormat.format("No matching input files found in directory ''{0}/{1}''.",
-                            archiveRootPath, inputDirPath));
+                                                             archiveRootPath, inputDirPath));
                 }
             }
             for (final File inputFile : inputFileList) {
@@ -245,7 +244,7 @@ public class IngestionTool extends BasicTool {
             } catch (Exception e) {
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.append(MessageFormat.format("Ignoring observation for record number {0}: {1}.\n",
-                        recordNo, e.getMessage()));
+                                                           recordNo, e.getMessage()));
                 for (StackTraceElement stackTraceElement : e.getStackTrace()) {
                     messageBuilder.append(stackTraceElement.toString());
                     messageBuilder.append('\n');
@@ -268,6 +267,9 @@ public class IngestionTool extends BasicTool {
     }
 
     private void cleanupInterval() {
+        final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_INGESTION_START_TIME,
+                                                            Configuration.KEY_MMS_INGESTION_STOP_TIME,
+                                                            getConfig());
         final Date startDate = timeRange.getStartDate();
         final Date stopDate = timeRange.getStopDate();
         getLogger().info("Cleaning up database for time range: " + startDate.toString() + " - " + stopDate.toString());
