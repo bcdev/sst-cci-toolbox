@@ -100,14 +100,7 @@ public class ObservationFinder {
                                     point.getTime() < polygons[i0].getTime() ||
                                     point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
                         if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                            if (primarySensor) {
-                                point.setReference(polygons[i0].getId());
-                                // original time and orbit time may fall into different months
-                                // we need the orbit time (and not the original time) when exporting samples
-                                point.setReferenceTime(polygons[i0].getTime());
-                            } else {
-                                point.setReference2(polygons[i0].getId());
-                            }
+                            assignToSamplingPoint(primarySensor, point, polygons[i0]);
                             accu.add(point);
                             break;
                         }
@@ -117,14 +110,7 @@ public class ObservationFinder {
                         if (i1 < polygons.length &&
                                 Math.abs(point.getTime() - polygons[i1].getTime()) <= halfRevisitTimeMillis) {
                             if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                                if (primarySensor) {
-                                    point.setReference(polygons[i1].getId());
-                                    // original time and orbit time may fall into different months
-                                    // we need the orbit time (and not the original time) when exporting samples
-                                    point.setReferenceTime(polygons[i1].getTime());
-                                } else {
-                                    point.setReference2(polygons[i1].getId());
-                                }
+                                assignToSamplingPoint(primarySensor, point, polygons[i1]);
                                 accu.add(point);
                                 break;
                             }
@@ -139,5 +125,18 @@ public class ObservationFinder {
         }
         samples.clear();
         samples.addAll(accu);
+    }
+
+    // package access for testing only tb 2014-04-01
+    static void assignToSamplingPoint(boolean primarySensor, SamplingPoint point, PolarOrbitingPolygon polygon) {
+        if (primarySensor) {
+            point.setReference(polygon.getId());
+            // original time and orbit time may fall into different months
+            // we need the orbit time (and not the original time) when exporting samples
+            point.setReferenceTime(polygon.getTime());
+        } else {
+            point.setReference2(polygon.getId());
+            point.setReference2Time(polygon.getTime());
+        }
     }
 }
