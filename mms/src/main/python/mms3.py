@@ -182,6 +182,6 @@ for year in years:
             pm.execute('mmd-start.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
                        ['/mmd/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'mmd2', usecase])
+                       parameters=[year, month, sensor, 'mmd3', usecase])
 
 pm.wait_for_completion()
