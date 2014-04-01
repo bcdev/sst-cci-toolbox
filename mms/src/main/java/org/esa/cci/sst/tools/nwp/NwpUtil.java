@@ -63,11 +63,14 @@ class NwpUtil {
             if (currentTime != fillValue.intValue()) {
                 if (currentTime < startTime) {
                     startTime = currentTime;
-                } else if (currentTime > endTime) {
+                }
+                if (currentTime > endTime) { // using else if results is not correct, if there is a single time step only
                     endTime = currentTime;
                 }
             }
         }
+
+        // TODO - throw exception, if start time or end time are invalid
 
         final int seventyTwoHours = 72 * 60 * 60;
         final int fortyEightHours = 48 * 60 * 60;
