@@ -209,6 +209,7 @@ public class InsituSamplePointGenerator {
     }
 
     private int persist(File insituFile) {
+        // TODO - discuss with TB
         final EntityTransaction transaction = persistenceManager.transaction();
         final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
 
