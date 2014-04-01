@@ -20,7 +20,7 @@ class InsituMohcId extends AbstractImplicitRule {
     @Override
     protected final void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
         targetColumnBuilder.type(DATA_TYPE);
-        targetColumnBuilder.fillValue(Short.MIN_VALUE);
+        targetColumnBuilder.fillValue(Integer.MIN_VALUE);
     }
 
     @Override
