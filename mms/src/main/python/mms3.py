@@ -11,9 +11,6 @@ months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'
 sensors = [('atsr.1', '1991-08-01', '1997-12-17'),
            ('atsr.2', '1995-06-01', '2003-06-22'),
            ('atsr.3', '2002-05-20', '2012-04-08')]
-# 300000 leads to about 2500 surviving samples per month
-samplespermonth = 300000
-skip = 0
 
 # archiving rules
 # mms/archive/atsr.3/v2.1/2003/01/17/ATS_TOA_1P...N1
@@ -133,8 +130,7 @@ for year in years:
                         '/obs/' + year + '/' + month,
                         '/obs/' + next_month_year + '/' + next_month],
                        ['/smp/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
-            skip += samplespermonth
+                       parameters=[year, month, sensor, '0', '0', usecase])
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-start.sh',
