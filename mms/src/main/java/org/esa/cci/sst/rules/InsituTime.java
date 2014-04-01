@@ -62,6 +62,7 @@ class InsituTime extends AbstractImplicitRule {
             if (observationReader != null) {
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
                         .shape(historyShape)
+                        // TODO .halfExtractDuration(something)
                         .referenceObservation(refObs)
                         .build();
                 final Array insituTimes = observationReader.read("insitu.time", extractDefinition);
