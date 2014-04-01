@@ -9,7 +9,7 @@ set -e
 year=$1
 month=$2
 sensor=$3
-mmdtype=$4
+mmdtype=$4 # not used
 usecase=$5
 
 . mymms
@@ -17,12 +17,12 @@ usecase=$5
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
 
-echo "`date -u +%Y%m%d-%H%M%S` reingestion ${year}/${month} sensor ${sensor} type ${mmdtype} pattern ${pattern}..."
+echo "`date -u +%Y%m%d-%H%M%S` matchup-reingestion ${year}/${month} sensor ${sensor} type ${mmdtype}..."
 
 reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.db.useindex=true \
--Dmms.reingestion.source=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}/${sensor}-${mmdtype}-${year}-${month}.nc \
--Dmms.reingestion.sensor=${mmdtype}_${sensor} \
+-Dmms.reingestion.source=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-ecmwf-${year}-${month}.nc \
+-Dmms.reingestion.sensor=ecmwf \
 -Dmms.reingestion.pattern=0 \
 -Dmms.reingestion.located=false \
 -Dmms.reingestion.overwrite=true
