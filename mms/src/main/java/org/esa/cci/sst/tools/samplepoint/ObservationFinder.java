@@ -68,6 +68,7 @@ public class ObservationFinder {
     }
 
     // package access for testing only tb 2014-04-02
+    // @todo 1 tb/tb use both parameters for time delta
     static void findObservations(List<SamplingPoint> samples, long halfRevisitTimeMillis, boolean primarySensor,
                                  PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
