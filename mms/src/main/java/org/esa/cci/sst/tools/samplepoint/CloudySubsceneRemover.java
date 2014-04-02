@@ -192,8 +192,9 @@ public class CloudySubsceneRemover {
 
                         final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                         final Array array = reader.read(cloudFlagsVariableName, extractDefinition);
+                        logInfo(array.toString());
                         final int cloudyPixelCount = pixelCounter.count(array);
-                        logInfo(MessageFormat.format("Found {0} cloudy pixels in sub-scene.", cloudyPixelCount));
+                        logInfo(MessageFormat.format("Found {0} cloudy pixels in sub-scene at ({1}, {2}).", cloudyPixelCount, lon, lat));
                         if (cloudyPixelCount <= (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
                             clearSkySamples.add(point);
                         }
