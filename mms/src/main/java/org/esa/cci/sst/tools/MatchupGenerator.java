@@ -169,9 +169,8 @@ public class MatchupGenerator extends BasicTool {
                     secondCoincidence.setMatchup(matchup);
                     secondCoincidence.setObservation(o2);
                     final Date matchupTime = matchup.getRefObs().getTime();
-                    final Date relatedTime = o2.getTime();
+                    final Date relatedTime = new Date(p.getReference2Time());
                     secondCoincidence.setTimeDifference(TimeUtil.getTimeDifferenceInSeconds(matchupTime, relatedTime));
-
                     coincidences.add(secondCoincidence);
                 }
                 if (p.getInsituReference() != 0) {

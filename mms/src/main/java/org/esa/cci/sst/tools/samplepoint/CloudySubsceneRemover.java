@@ -186,6 +186,8 @@ public class CloudySubsceneRemover {
                             geoCoding.getGeoPos(pixelPos, geoPos);
                             point.setReferenceLat(geoPos.getLat());
                             point.setReferenceLon(geoPos.getLon());
+                        } else {
+                            point.setReference2Time(reader.getTime(0, pixelY));
                         }
 
                         final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
