@@ -57,11 +57,9 @@ public class CloudySubsceneRemover {
     private Storage storage;
     private ColumnStorage columnStorage;
     private Logger logger;
-    private int[] shape;
 
     public CloudySubsceneRemover() {
         primary = true;
-        shape = new int[]{1, subSceneHeight, subSceneWidth};
     }
 
     public CloudySubsceneRemover sensorName(String sensorName) {
@@ -151,6 +149,7 @@ public class CloudySubsceneRemover {
         final Number fillValue = getColumnFillValue(sensorName, cloudFlagsVariableName, columnStorage);
         final PixelCounter pixelCounter = new PixelCounter(cloudFlagsMask, fillValue);
 
+        final int[] shape = new int[]{1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
         final List<SamplingPoint> clearSkySamples = new ArrayList<>(samples.size());
 
@@ -192,7 +191,6 @@ public class CloudySubsceneRemover {
 
                         final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                         final Array array = reader.read(cloudFlagsVariableName, extractDefinition);
-                        logInfo(array.toString());
                         final int cloudyPixelCount = pixelCounter.count(array);
                         logInfo(MessageFormat.format("Found {0} cloudy pixels in sub-scene at ({1}, {2}).", cloudyPixelCount, lon, lat));
                         if (cloudyPixelCount <= (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
