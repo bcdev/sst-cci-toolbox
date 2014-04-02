@@ -64,51 +64,53 @@ public class ObservationFinder {
                     orbitObservation.getTime().getTime(),
                     orbitObservation.getLocation().getGeometry());
         }
-        findObservations(samples, searchTimePastMillis, primarySensor, polygons);
+        findObservations(samples, searchTimePastMillis, searchTimeFutureMillis, primarySensor, polygons);
     }
 
     // package access for testing only tb 2014-04-02
     // @todo 1 tb/tb use both parameters for time delta
-    static void findObservations(List<SamplingPoint> samples, long halfRevisitTimeMillis, boolean primarySensor,
+    static void findObservations(List<SamplingPoint> samples, long searchTimePast, long searchTimeFuture, boolean primarySensor,
                                  PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
         if (polygons.length > 0) {
             for (final SamplingPoint point : samples) {
+                final long pointTime = getPointTime(point, primarySensor);
+
                 // look for orbit temporally before (i0) and after (i1) point with binary search
-                int i0 = 0;
-                int i1 = polygons.length - 1;
-                while (i0 + 1 < i1) {
-                    int i = (i1 + i0) / 2;
-                    if (point.getTime() < polygons[i].getTime()) {
-                        i1 = i;
+                int iBefore = 0;
+                int iAfter = polygons.length - 1;
+                while (iBefore + 1 < iAfter) {
+                    int i = (iAfter + iBefore) / 2;
+                    if (pointTime < polygons[i].getTime()) {
+                        iAfter = i;
                     } else {
-                        i0 = i;
+                        iBefore = i;
                     }
                 }
                 // check orbitObservations temporally closest to point first for spatial overlap
                 while (true) {
                     // the next polygon in the past is closer to the sample than the next polygon in the future
-                    if (i0 >= 0 &&
-                            Math.abs(point.getTime() - polygons[i0].getTime()) <= halfRevisitTimeMillis &&
-                            (i1 >= polygons.length ||
-                                    point.getTime() < polygons[i0].getTime() ||
-                                    point.getTime() - polygons[i0].getTime() < polygons[i1].getTime() - point.getTime())) {
-                        if (polygons[i0].isPointInPolygon(point.getLat(), point.getLon())) {
-                            assignToSamplingPoint(primarySensor, point, polygons[i0]);
+                    if (iBefore >= 0 &&
+                            Math.abs(pointTime - polygons[iBefore].getTime()) <= 2 * searchTimePast &&
+                            (iAfter >= polygons.length ||
+                                    pointTime < polygons[iBefore].getTime() ||
+                                    pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime)) {
+                        if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
+                            assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
                             accu.add(point);
                             break;
                         }
-                        --i0;
+                        --iBefore;
                     } else
                         // the next polygon in the future is closer than the next polygon in the past
-                        if (i1 < polygons.length &&
-                                Math.abs(point.getTime() - polygons[i1].getTime()) <= halfRevisitTimeMillis) {
-                            if (polygons[i1].isPointInPolygon(point.getLat(), point.getLon())) {
-                                assignToSamplingPoint(primarySensor, point, polygons[i1]);
+                        if (iAfter < polygons.length &&
+                                Math.abs(pointTime - polygons[iAfter].getTime()) <= 2 * searchTimeFuture) {
+                            if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
+                                assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
                                 accu.add(point);
                                 break;
                             }
-                            ++i1;
+                            ++iAfter;
                         } else
                         // there is no next polygon in the past and no next polygon in the future
                         {
@@ -132,6 +134,14 @@ public class ObservationFinder {
             point.setReference2(polygon.getId());
             point.setReference2Time(polygon.getTime());
         }
+    }
+
+    // package access for testing only tb 2014-04-02
+    static long getPointTime(SamplingPoint samplingPoint, boolean primarySensor) {
+        if (primarySensor) {
+            return samplingPoint.getTime();
+        }
+        return samplingPoint.getReferenceTime();
     }
 
     public static class Parameter {

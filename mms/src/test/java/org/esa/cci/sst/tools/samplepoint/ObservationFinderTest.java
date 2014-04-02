@@ -28,15 +28,15 @@ public class ObservationFinderTest {
         assertEquals(10000, samples.size());
 
         final PolarOrbitingPolygon orbitPolygonAatsr = createAtsrPolygon(1);
-        final int seventeenDaysTwelveHoursInMillis = 86400 * 175 / 10 * 1000;
-        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillis, true, orbitPolygonAatsr);
+        final int seventeenDaysTwelveHoursInMillisHalf = 86400 * 175 / 20 * 1000;
+        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillisHalf, seventeenDaysTwelveHoursInMillisHalf, true, orbitPolygonAatsr);
 
         assertEquals(518, samples.size());
 
         final PolarOrbitingPolygon orbitPolygonAtsr2 = createAtsr2Polygon();
 
-        final int twentyfiveHoursInMillis = 90000 * 1000;
-        ObservationFinder.findObservations(samples, twentyfiveHoursInMillis, false, orbitPolygonAtsr2);
+        final int twelfAndAHalfHour = 90000 * 500;
+        ObservationFinder.findObservations(samples, twelfAndAHalfHour, twelfAndAHalfHour, false, orbitPolygonAtsr2);
 
         assertEquals(471, samples.size());
     }
@@ -47,8 +47,8 @@ public class ObservationFinderTest {
         final ArrayList<SamplingPoint> samples = new ArrayList<>();
         samples.add(new SamplingPoint());
 
-        final int seventeenDaysTwelveHoursInMillis = 86400 * 175 / 10 * 1000;
-        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillis, true);
+        final int seventeenDaysTwelveHoursInMillisHalf = 86400 * 175 / 10 * 1000;
+        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillisHalf, seventeenDaysTwelveHoursInMillisHalf, true);
 
         assertTrue(samples.isEmpty());
     }
@@ -138,6 +138,16 @@ public class ObservationFinderTest {
 
         parameter.setSearchTimePast(past_2);
         assertEquals(past_2, parameter.getSearchTimePast());
+    }
+
+    @Test
+    public void testGetPointTime_primarySensor() {
+        final SamplingPoint samplingPoint = new SamplingPoint();
+        samplingPoint.setTime(8756);
+        samplingPoint.setReferenceTime(6654);
+
+        assertEquals(8756, ObservationFinder.getPointTime(samplingPoint, true));
+        assertEquals(6654, ObservationFinder.getPointTime(samplingPoint, false));
     }
 
     private static PolarOrbitingPolygon createPolarOrbitingPolygon(String time, Point[] points, int id) throws ParseException {
