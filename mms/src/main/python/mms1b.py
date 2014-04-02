@@ -1,13 +1,12 @@
 from pmonitor import PMonitor
 
-usecase = 'mms1'
+usecase = 'mms1b'
 
-years = ['1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003']
+years = ['2002', '2003']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-sensors = [('atsr.2', '1995-06-01', '1997-12-17'),
-           ('atsr.3', '2002-05-20', '2003-06-22')]
+sensors = [('atsr.3', '2002-05-20', '2003-06-22')]
 # 300000 leads to about 2500 surviving samples per month
-samplespermonth = 400000
+samplespermonth = 3000000
 skip = 0
 
 # archiving rules
@@ -95,18 +94,18 @@ for (sensor, sensorstart, sensorstop) in sensors:
 
 hosts = [('localhost', 240)]
 types = [('ingestion-start.sh', 120),
-         ('sampling-start.sh', 24),
+         ('sampling-start.sh', 48),
          ('clearsky-start.sh', 120),
          ('mmd-start.sh', 120),
-         ('coincidence-start.sh', 24),
+         ('coincidence-start.sh', 48),
          ('nwp-start.sh', 240),
          ('matchup-nwp-start.sh', 240),
          ('gbcs-start.sh', 240),
-         ('matchup-reingestion-start.sh', 24),
-         ('reingestion-start.sh', 24)]
+         ('matchup-reingestion-start.sh', 48),
+         ('reingestion-start.sh', 48)]
 
 pm = PMonitor(inputs,
-              request='mms1',
+              request='mms1b',
               logdir='trace',
               hosts=hosts,
               types=types)
@@ -124,6 +123,8 @@ for year in years:
                 continue
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
+
+            sensor2 = 'atsr.2'
 
             # 2. Generate sampling points per month and sensor
             pm.execute('sampling-start.sh',
@@ -147,11 +148,6 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'dum', usecase])
-
-            if sensor == 'atsr.3':
-                sensor2 = 'atsr.2'
-            else:
-                sensor2 = 'atsr.1'
 
             # 5. Create single-sensor MMD with sub-scenes
             pm.execute('mmd-start.sh',
@@ -192,10 +188,6 @@ for year in years:
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            pm.execute('matchup-reingestion-start.sh',
-                       ['/sub/' + sensor + '/' + year + '/' + month],
-                       ['/con/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'sub', usecase])
             pm.execute('reingestion-start.sh',
                        ['/sub/' + sensor2 + '/' + year + '/' + month],
                        ['/con/' + sensor2 + '/' + year + '/' + month],
@@ -206,6 +198,10 @@ for year in years:
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
+            pm.execute('matchup-reingestion-start.sh',
+                       ['/nwp/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'sub', usecase])
             pm.execute('reingestion-start.sh',
                        ['/nwp/' + sensor2 + '/' + year + '/' + month],
                        ['/con/' + sensor2 + '/' + year + '/' + month],
