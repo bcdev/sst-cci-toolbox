@@ -153,7 +153,6 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            continue
 
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-start.sh',
@@ -170,6 +169,8 @@ for year in years:
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+
+            continue
 
             # 8. Re-ingest sensor sub-scenes into database
             pm.execute('reingestion-start.sh',
