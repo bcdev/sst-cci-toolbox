@@ -79,7 +79,7 @@ final class MatchupPattern extends AbstractImplicitRule {
             "avhrr_noaa_17 " +
             "avhrr_noaa_18 " +
             "avhrr_noaa_19 " +
-            "avhrr_metop_02 ";
+            "avhrr_metop_02";
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
