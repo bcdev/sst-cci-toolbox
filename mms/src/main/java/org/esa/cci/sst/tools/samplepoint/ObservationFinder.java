@@ -68,7 +68,6 @@ public class ObservationFinder {
     }
 
     // package access for testing only tb 2014-04-02
-    // @todo 1 tb/tb use both parameters for time delta
     static void findObservations(List<SamplingPoint> samples, long searchTimePast, long searchTimeFuture, boolean primarySensor,
                                  PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
@@ -87,28 +86,31 @@ public class ObservationFinder {
                         iBefore = i;
                     }
                 }
+
                 // check orbitObservations temporally closest to point first for spatial overlap
                 while (true) {
                     // the next polygon in the past is closer to the sample than the next polygon in the future
-                    if (iBefore >= 0 &&
-                            Math.abs(pointTime - polygons[iBefore].getTime()) <= 2 * searchTimePast &&
-                            (iAfter >= polygons.length ||
-                                    pointTime < polygons[iBefore].getTime() ||
-                                    pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime)) {
-                        if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
-                            assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
-                            accu.add(point);
-                            break;
+                    if (iBefore >= 0) {
+                        if (pointTime - polygons[iBefore].getTime() <= searchTimePast &&
+                                (iAfter >= polygons.length ||
+                                        pointTime < polygons[iBefore].getTime() ||
+                                        pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime)) {
+                            if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
+                                assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
+                                accu.add(point);
+                                break;
+                            }
                         }
                         --iBefore;
                     } else
                         // the next polygon in the future is closer than the next polygon in the past
-                        if (iAfter < polygons.length &&
-                                Math.abs(pointTime - polygons[iAfter].getTime()) <= 2 * searchTimeFuture) {
-                            if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
-                                assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
-                                accu.add(point);
-                                break;
+                        if (iAfter < polygons.length) {
+                            if (polygons[iAfter].getTime() - pointTime <= searchTimeFuture) {
+                                if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
+                                    assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
+                                    accu.add(point);
+                                    break;
+                                }
                             }
                             ++iAfter;
                         } else
