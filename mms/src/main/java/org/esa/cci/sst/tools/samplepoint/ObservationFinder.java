@@ -67,8 +67,9 @@ public class ObservationFinder {
         findObservations(samples, searchTimePastMillis, primarySensor, polygons);
     }
 
-    public static void findObservations(List<SamplingPoint> samples, long halfRevisitTimeMillis, boolean primarySensor,
-                                        PolarOrbitingPolygon... polygons) {
+    // package access for testing only tb 2014-04-02
+    static void findObservations(List<SamplingPoint> samples, long halfRevisitTimeMillis, boolean primarySensor,
+                                 PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
         if (polygons.length > 0) {
             for (final SamplingPoint point : samples) {
