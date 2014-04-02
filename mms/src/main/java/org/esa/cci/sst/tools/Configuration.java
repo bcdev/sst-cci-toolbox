@@ -48,6 +48,7 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
     public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
     public static final String KEY_MMS_SAMPLING_REFERENCE_SENSOR = "mms.sampling.referencesensor";
+    public static final String KEY_MMS_SAMPLING_EXTRACTION_TIME = "mms.sampling.time.insituextraction";
 
     public static final String KEY_MMS_MAPPLOT_STATEGY = "mms.mapplot.strategy";
     public static final String KEY_MMS_MAPPLOT_TARGET_DIR = "mms.mapplot.target.dir";

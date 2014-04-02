@@ -357,7 +357,7 @@ public class MmdTool extends BasicTool {
         try {
             final Reader reader = readerCache.getReader(observation.getDatafile(), true);
             final String role = sourceColumn.getRole();
-            final int halfExtractDuration = getConfig().getIntValue("mms.sampling.time.insituextraction");
+            final int halfExtractDuration = getConfig().getIntValue(Configuration.KEY_MMS_SAMPLING_EXTRACTION_TIME);
             final ExtractDefinition extractDefinition =
                     new ExtractDefinitionBuilder()
                             .referenceObservation(refObs)

@@ -62,7 +62,7 @@ class InsituTime extends AbstractImplicitRule {
         try {
             if (observationReader != null) {
                 final Configuration configuration = context.getConfiguration();
-                final int halfExtractionTimeRangeInSeconds = configuration.getIntValue("mms.sampling.time.insituextraction");
+                final int halfExtractionTimeRangeInSeconds = configuration.getIntValue(Configuration.KEY_MMS_SAMPLING_EXTRACTION_TIME);
 
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
                         .shape(historyShape)
