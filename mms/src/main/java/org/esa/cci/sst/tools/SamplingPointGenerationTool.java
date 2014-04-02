@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools;
 
+import org.apache.commons.lang.StringUtils;
 import org.esa.cci.sst.tools.samplepoint.*;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
@@ -122,6 +123,14 @@ public class SamplingPointGenerationTool extends BasicTool {
 
         final String sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
         workflowContext.setSensorName2(sensorName2);
+
+        if (StringUtils.isNotBlank(sensorName2)) {
+            searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST_2);
+            workflowContext.setSearchTimePast2(searchTime);
+
+            searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE_2);
+            workflowContext.setSearchTimeFuture2(searchTime);
+        }
     }
 
     private static Date ensureEndOfMonth(Date stopDate) {

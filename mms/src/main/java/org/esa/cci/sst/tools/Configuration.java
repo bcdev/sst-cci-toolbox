@@ -41,6 +41,8 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
     public static final String KEY_MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     public static final String KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE = "mms.sampling.searchtime.future";
+    public static final String KEY_MMS_SAMPLING_SEARCH_TIME_PAST_2 = "mms.sampling.searchtime.past.2";
+    public static final String KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE_2 = "mms.sampling.searchtime.future.2";
     public static final String KEY_MMS_SAMPLING_SEARCH_TIME_PAST = "mms.sampling.searchtime.past";
     public static final String KEY_MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
     public static final String KEY_MMS_SAMPLING_CLEANUP_INTERVAL = "mms.sampling.cleanupinterval";

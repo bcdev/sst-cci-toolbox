@@ -33,6 +33,8 @@ public class SamplingPointGenerationToolTest {
         configuration.put("mms.pattern.history", "4000000000000000");
         configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "Cool_One");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR_2, "Hieronimus");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST_2, "1517");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE_2, "1523");
 
         SamplingPointGenerationTool.assignFromConfig(workflowContext, configuration);
 
@@ -50,6 +52,8 @@ public class SamplingPointGenerationToolTest {
         assertEquals(4611686018427387904L, workflowContext.getInsituSensorPattern());
         assertEquals("Cool_One", workflowContext.getSampleGeneratorName());
         assertEquals("Hieronimus", workflowContext.getSensorName2());
+        assertEquals(1517, workflowContext.getSearchTimePast2());
+        assertEquals(1523, workflowContext.getSearchTimeFuture2());
     }
 
     @Test
