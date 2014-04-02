@@ -68,6 +68,30 @@ public class WorkflowContextTest {
     }
 
     @Test
+    public void testSetGetSearchTimePast2() {
+        final int searchTime_1 = 47;
+        final int searchTime_2 = 1044876;
+
+        workflowContext.setSearchTimePast2(searchTime_1);
+        assertEquals(searchTime_1, workflowContext.getSearchTimePast2());
+
+        workflowContext.setSearchTimePast2(searchTime_2);
+        assertEquals(searchTime_2, workflowContext.getSearchTimePast2());
+    }
+
+    @Test
+    public void testSetGetSearchTimeFuture2() {
+        final int searchTime_1 = 57;
+        final int searchTime_2 = 7722;
+
+        workflowContext.setSearchTimeFuture2(searchTime_1);
+        assertEquals(searchTime_1, workflowContext.getSearchTimeFuture2());
+
+        workflowContext.setSearchTimeFuture2(searchTime_2);
+        assertEquals(searchTime_2, workflowContext.getSearchTimeFuture2());
+    }
+
+    @Test
     public void testSetGetLogger() {
         final Logger logger = Logger.getAnonymousLogger();
 

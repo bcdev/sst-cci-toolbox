@@ -24,6 +24,8 @@ public class WorkflowContext {
     private String sampleGeneratorName;
     private String insituInputPath;
     private String sensorName2;
+    private int searchTimePast2;
+    private int searchTimeFuture2;
 
     public void setStartTime(long startTime) {
         this.startTime = startTime;
@@ -151,5 +153,21 @@ public class WorkflowContext {
 
     public String getSensorName2() {
         return sensorName2;
+    }
+
+    public void setSearchTimePast2(int searchTimePast2) {
+        this.searchTimePast2 = searchTimePast2;
+    }
+
+    public int getSearchTimePast2() {
+        return searchTimePast2;
+    }
+
+    public void setSearchTimeFuture2(int searchTimeFuture2) {
+        this.searchTimeFuture2 = searchTimeFuture2;
+    }
+
+    public int getSearchTimeFuture2() {
+        return searchTimeFuture2;
     }
 }
