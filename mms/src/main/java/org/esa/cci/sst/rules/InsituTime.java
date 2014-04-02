@@ -23,6 +23,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
@@ -60,9 +61,12 @@ class InsituTime extends AbstractImplicitRule {
         final Reader observationReader = context.getObservationReader();
         try {
             if (observationReader != null) {
+                final Configuration configuration = context.getConfiguration();
+                final int halfExtractionTimeRangeInSeconds = configuration.getIntValue("mms.sampling.time.insituextraction");
+
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
                         .shape(historyShape)
-                        // TODO .halfExtractDuration(something)
+                        .halfExtractDuration(halfExtractionTimeRangeInSeconds)
                         .referenceObservation(refObs)
                         .build();
                 final Array insituTimes = observationReader.read("insitu.time", extractDefinition);
