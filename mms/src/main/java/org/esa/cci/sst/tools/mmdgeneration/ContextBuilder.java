@@ -20,6 +20,7 @@ import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.util.ReaderCache;
 import ucar.nc2.Variable;
 
@@ -40,6 +41,7 @@ public class ContextBuilder {
     private Variable targetVariable;
     private Observation observation;
     private Map<String, Integer> dimensionConfiguration;
+    private Configuration configuration;
 
 
     public ContextBuilder() {
@@ -69,6 +71,12 @@ public class ContextBuilder {
         return this;
     }
 
+    // @todo 2 tb/tb write test tb 2014-04-02
+    public ContextBuilder configuration(Configuration configuration) {
+        this.configuration = configuration;
+        return this;
+    }
+
     @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
     public Context build() {
         final ContextImpl context = new ContextImpl();
@@ -77,6 +85,7 @@ public class ContextBuilder {
         context.observation = observation;
         context.targetVariable = targetVariable;
         context.dimensionConfiguration = dimensionConfiguration;
+        context.configuration = configuration;
         return context;
     }
 
@@ -87,6 +96,7 @@ public class ContextBuilder {
         private Variable targetVariable;
         private Map<String, Integer> dimensionConfiguration;
         private ReaderCache readerCache;
+        private Configuration configuration;
 
         @Override
         public Matchup getMatchup() {
@@ -116,6 +126,11 @@ public class ContextBuilder {
         @Override
         public Map<String, Integer> getDimensionConfiguration() {
             return Collections.unmodifiableMap(dimensionConfiguration);
+        }
+
+        @Override
+        public Configuration getConfiguration() {
+            return configuration;
         }
 
         private Reader getReader(Observation observation) {

@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.tools.Configuration;
 import ucar.nc2.Variable;
 
 import java.util.Map;
@@ -41,4 +42,6 @@ public interface Context {
     Variable getTargetVariable();
 
     Map<String, Integer> getDimensionConfiguration();
+
+    Configuration getConfiguration();
 }

@@ -206,6 +206,7 @@ public class MmdTool extends BasicTool {
                                     .observation(observation)
                                     .targetVariable(variable)
                                     .dimensionConfiguration(dimensionConfiguration)
+                                    .configuration(getConfig())
                                     .build();
                             writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
                         } else {
