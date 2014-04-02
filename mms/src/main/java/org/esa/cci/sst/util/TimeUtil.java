@@ -60,10 +60,6 @@ public final class TimeUtil {
         INSITU_FILE_NAME_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    private TimeUtil() {
-        // prevent instantiation
-    }
-
     public static String formatCompactUtcFormat(Date time) {
         if (time == null) {
             return "";
@@ -236,5 +232,9 @@ public final class TimeUtil {
         final int maxDay = utcCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         utcCalendar.set(Calendar.DAY_OF_MONTH, maxDay);
         return getEndOfDay(utcCalendar.getTime());
+    }
+
+    private TimeUtil() {
+        // prevent instantiation
     }
 }

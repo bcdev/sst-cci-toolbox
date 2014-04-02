@@ -243,6 +243,11 @@ public class TimeUtilTest {
     }
 
     @Test
+    public void testFormatCcsdsUtcMillisFormat_nullInput() {
+        assertEquals("", TimeUtil.formatCcsdsUtcMillisFormat(null));
+    }
+
+    @Test
     public void testDateToSecondsSinceEpoch() {
         final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.set(Calendar.YEAR, 2010);
@@ -253,6 +258,34 @@ public class TimeUtilTest {
         calendar.set(Calendar.MILLISECOND, 83019029);
 
         assertEquals(1038697419.029, TimeUtil.dateToSecondsSinceEpoch(calendar.getTime()), 1e-8);
+    }
+
+    @Test
+    public void testFormatCompactUtcFormat()      {
+        final Calendar calendar = createCalendar(2011, 9, 22, 19, 45, 12);
+
+        final String utcFormat = TimeUtil.formatCompactUtcFormat(calendar.getTime());
+        assertEquals("20111022194512", utcFormat);
+    }
+
+    @Test
+    public void testFormatCompactUtcFormat_nullInput()      {
+        final String utcFormat = TimeUtil.formatCompactUtcFormat(null);
+        assertEquals("", utcFormat);
+    }
+
+    @Test
+    public void testFormatCcsdsUtcFormat()      {
+        final Calendar calendar = createCalendar(2012, 10, 23, 20, 46, 13);
+
+        final String ccsdsUtcFormat = TimeUtil.formatCcsdsUtcFormat(calendar.getTime());
+        assertEquals("2012-11-23T20:46:13Z", ccsdsUtcFormat);
+    }
+
+    @Test
+    public void testFormatCcsdsUtcFormat_nullInput()      {
+        final String ccsdsUtcFormat = TimeUtil.formatCcsdsUtcFormat(null);
+        assertEquals("", ccsdsUtcFormat);
     }
 
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
