@@ -127,7 +127,7 @@ public class CloudySubsceneRemover {
                                      int subSceneWidth, int subSceneHeight,
                                      Configuration config, Storage storage, ColumnStorage columnStorage, Logger logger, String cloudFlagsName,
                                      int pixelMask, double cloudyPixelFraction) {
-        new CloudySubsceneRemover()
+        final CloudySubsceneRemover remover = new CloudySubsceneRemover()
                 .sensorName(sensorName)
                 .primary(primarySensor)
                 .subSceneWidth(subSceneWidth)
@@ -138,8 +138,9 @@ public class CloudySubsceneRemover {
                 .config(config)
                 .storage(storage)
                 .columnStorage(columnStorage)
-                .logger(logger)
-                .removeSamples(samples);
+                .logger(logger);
+
+        remover.removeSamples(samples);
     }
 
     public void removeSamples(List<SamplingPoint> samples) {
@@ -237,5 +238,11 @@ public class CloudySubsceneRemover {
             throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName), ToolException.TOOL_ERROR);
         }
         return column.getFillValue();
+    }
+
+    // package access for testing only tb 2014-04-02
+    static boolean isInsituCase(Configuration configuration) {
+        final String generatorName = configuration.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR, null);
+        return "insitu".equalsIgnoreCase(generatorName);
     }
 }

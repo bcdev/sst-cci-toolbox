@@ -17,6 +17,7 @@ package org.esa.cci.sst.tools.samplepoint;/*
 import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.orm.ColumnStorage;
+import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
@@ -133,6 +134,18 @@ public class CloudySubsceneRemoverTest {
         fileList = listByFileId.get(22);
         assertNotNull(fileList);
         assertEquals(3, fileList.size());
+    }
+
+    @Test
+    public void testIsInsituCase() {
+        final Configuration configuration = new Configuration();
+        assertFalse(CloudySubsceneRemover.isInsituCase(configuration));
+
+        configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "sobol");
+        assertFalse(CloudySubsceneRemover.isInsituCase(configuration));
+
+        configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "insitu");
+        assertTrue(CloudySubsceneRemover.isInsituCase(configuration));
     }
 
     private SamplingPoint createSamplingPointWithReference(int reference) {
