@@ -126,6 +126,7 @@ for year in years:
                 continue
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
+
             # 2. Generate sampling points per month and sensor
             pm.execute('sampling-start.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,
@@ -186,7 +187,7 @@ for year in years:
             pm.execute('matchup-reingestion-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, sensor, 'sub', usecase])
+                       parameters=[year, month, sensor, 'nwp', usecase])
 
             # 10. Re-ingest sensor sub-scene ARC results into database
             pm.execute('reingestion-start.sh',

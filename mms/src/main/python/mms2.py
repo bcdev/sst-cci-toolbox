@@ -127,6 +127,7 @@ for year in years:
                 continue
             prev_month_year, prev_month = prev_year_month_of(year, month)
             next_month_year, next_month = next_year_month_of(year, month)
+
             # 2. Generate sampling points per month and sensor
             pm.execute('sampling-start.sh',
                        ['/obs/' + prev_month_year + '/' + prev_month,
@@ -143,41 +144,57 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+
             # 4. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'dum', usecase])
-            # 5. Create single-sensor MMD with subscenes
+
+            # 5. Create single-sensor MMD with sub-scenes
             pm.execute('mmd-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
+
             # 6. Extract NWP data for sub-scenes
             pm.execute('nwp-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            pm.execute('matchup-nwp-start.sh',
+                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       ['/nwp/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, usecase])
+
             # 7. Conduct GBCS processing
             pm.execute('gbcs-start.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+
             # 8. Re-ingest sensor sub-scenes into database
             pm.execute('reingestion-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'sub', usecase])
-            # 9. Ingest sensor NWP data into database
+
+            # 9. Re-ingest sensor NWP data into database
             pm.execute('reingestion-start.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
-            # 10. Ingest sensor sub-scene ARC results into database
+            pm.execute('matchup-reingestion-start.sh',
+                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, sensor, 'nwp', usecase])
+
+            # 10. Re-ingest sensor sub-scene ARC results into database
             pm.execute('reingestion-start.sh',
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
+
             # 11. Produce final single-sensor MMD file
             pm.execute('mmd-start.sh',
                        ['/con/' + sensor + '/' + year + '/' + month],
