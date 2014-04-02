@@ -1,6 +1,12 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
@@ -8,7 +14,11 @@ import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
-import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.GeometryUtil;
+import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SensorNames;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 
 import javax.persistence.EntityTransaction;
@@ -33,7 +43,6 @@ public class MatchupGenerator extends BasicTool {
     private double cloudyPixelFraction;
     private long referenceSensorPattern;
     private String referenceSensorName;
-    private TimeRange timeRange;
 
     public MatchupGenerator() {
         super("matchup-generator", "1.0");
@@ -63,10 +72,6 @@ public class MatchupGenerator extends BasicTool {
         super.initialize();
 
         final Configuration config = getConfig();
-
-        timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                config);
 
         sensorName1 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
         sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
@@ -106,7 +111,9 @@ public class MatchupGenerator extends BasicTool {
             logInfo(logger, "Starting creating reference observations...");
             rollbackStack.push(pm.transaction());
             final String sensorShortname = createSensorShortName(referenceSensorName, primarySensorName);
-            final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples, sensorShortname, storage);
+            final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
+                                                                                                 sensorShortname,
+                                                                                                 storage);
             pm.commit();
             logInfo(logger, "Finished creating reference observations");
 
@@ -124,8 +131,8 @@ public class MatchupGenerator extends BasicTool {
             final long matchupPattern;
             if (secondarySensorName != null) {
                 matchupPattern = referenceSensorPattern |
-                        storage.getSensor(SensorNames.ensureOrbitName(primarySensorName)).getPattern() |
-                        storage.getSensor(SensorNames.ensureOrbitName(secondarySensorName)).getPattern();
+                                 storage.getSensor(SensorNames.ensureOrbitName(primarySensorName)).getPattern() |
+                                 storage.getSensor(SensorNames.ensureOrbitName(secondarySensorName)).getPattern();
             } else {
                 matchupPattern = referenceSensorPattern | storage.getSensor(
                         SensorNames.ensureOrbitName(primarySensorName)).getPattern();
@@ -248,12 +255,14 @@ public class MatchupGenerator extends BasicTool {
     }
 
     // package access for testing only tb 2014-03-19
-    static ReferenceObservation createReferenceObservation(String referenceSensorName, SamplingPoint samplingPoint, DataFile datafile) {
+    static ReferenceObservation createReferenceObservation(String referenceSensorName, SamplingPoint samplingPoint,
+                                                           DataFile datafile) {
         final ReferenceObservation r = new ReferenceObservation();
         r.setName(String.valueOf(samplingPoint.getIndex()));
         r.setSensor(referenceSensorName);
 
-        final PGgeometry location = GeometryUtil.createPointGeometry(samplingPoint.getReferenceLon(), samplingPoint.getReferenceLat());
+        final PGgeometry location = GeometryUtil.createPointGeometry(samplingPoint.getReferenceLon(),
+                                                                     samplingPoint.getReferenceLat());
         r.setLocation(location);
         r.setPoint(location);
 
@@ -304,6 +313,9 @@ public class MatchupGenerator extends BasicTool {
     private void cleanupInterval() {
         getPersistenceManager().transaction();
 
+        final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
+                                                            Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                                                            getConfig());
         final Date startDate = timeRange.getStartDate();
         final Date stopDate = timeRange.getStopDate();
         Query delete = getPersistenceManager().createNativeQuery(
@@ -331,7 +343,7 @@ public class MatchupGenerator extends BasicTool {
     private void createMatchups(Logger logger, List<SamplingPoint> samples) {
         logInfo(logger, "Starting creating matchups...");
         createMatchups(samples, referenceSensorName, sensorName1, sensorName2, referenceSensorPattern,
-                getPersistenceManager(), getStorage(), logger);
+                       getPersistenceManager(), getStorage(), logger);
         logInfo(logger, "Finished creating matchups...");
     }
 
