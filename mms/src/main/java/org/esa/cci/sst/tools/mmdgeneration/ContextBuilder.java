@@ -26,6 +26,7 @@ import ucar.nc2.Variable;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -45,6 +46,7 @@ public class ContextBuilder {
 
 
     public ContextBuilder() {
+        dimensionConfiguration = new HashMap<>();
     }
 
     ContextBuilder(ReaderCache readerCache) {
@@ -71,13 +73,11 @@ public class ContextBuilder {
         return this;
     }
 
-    // @todo 2 tb/tb write test tb 2014-04-02
     public ContextBuilder configuration(Configuration configuration) {
         this.configuration = configuration;
         return this;
     }
 
-    @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
     public Context build() {
         final ContextImpl context = new ContextImpl();
         context.readerCache = readerCache;
@@ -110,6 +110,9 @@ public class ContextBuilder {
 
         @Override
         public Reader getReferenceObservationReader() {
+            if (matchup == null) {
+                return null;
+            }
             return getReader(getMatchup().getRefObs());
         }
 
@@ -134,6 +137,9 @@ public class ContextBuilder {
         }
 
         private Reader getReader(Observation observation) {
+            if (observation == null) {
+                return null;
+            }
             try {
                 return readerCache.getReader(observation.getDatafile(), true);
             } catch (IOException e) {
