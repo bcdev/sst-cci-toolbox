@@ -62,7 +62,7 @@ public class TimeRangeTest {
     }
 
     @Test
-    public void testIntersectsWith_intersectingRange() {
+    public void testIntersectsWith_intersectingRange_beginning() {
         final Date startDate = createDate(2010, 0, 1, 0, 0, 0);
         final Date endDate = createDate(2010, 11, 31, 23, 59, 59);
         final TimeRange timeRange = new TimeRange(startDate, endDate);
@@ -72,6 +72,32 @@ public class TimeRangeTest {
         TimeRange contained = new TimeRange(compareStart, compareStop);
 
         assertTrue(timeRange.intersectsWith(contained));
+    }
+
+    @Test
+    public void testIntersectsWith_intersectingRange_end() {
+        final Date startDate = createDate(2010, 0, 1, 0, 0, 0);
+        final Date endDate = createDate(2010, 11, 31, 23, 59, 59);
+        final TimeRange timeRange = new TimeRange(startDate, endDate);
+
+        Date compareStart = createDate(2010, 11, 12, 0, 0, 0);
+        Date compareStop = createDate(2011, 1, 1, 23, 59, 59);
+        TimeRange contained = new TimeRange(compareStart, compareStop);
+
+        assertTrue(timeRange.intersectsWith(contained));
+    }
+
+    @Test
+    public void testIntersectsWith_containedInIntersectingRange() {
+        final Date startDate = createDate(2010, 5, 1, 0, 0, 0);
+        final Date endDate = createDate(2010, 5, 31, 23, 59, 59);
+        final TimeRange timeRange = new TimeRange(startDate, endDate);
+
+        Date compareStart = createDate(2010, 2, 1, 0, 0, 0);
+        Date compareStop = createDate(2010, 7, 31, 23, 59, 59);
+        TimeRange containing = new TimeRange(compareStart, compareStop);
+
+        assertTrue(timeRange.intersectsWith(containing));
     }
 
     @Test

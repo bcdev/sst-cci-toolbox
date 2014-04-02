@@ -34,7 +34,7 @@ public class TimeRange {
     }
 
     public boolean intersectsWith(TimeRange other) {
-        return includes(other.getStartDate()) || includes(other.getStopDate());
+        return includes(other.getStartDate()) || includes(other.getStopDate()) || other.includes(startDate) || other.includes(stopDate);
     }
 
     public TimeRange getCenterMonth() {

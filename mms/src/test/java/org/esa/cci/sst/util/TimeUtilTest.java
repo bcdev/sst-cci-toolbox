@@ -255,16 +255,6 @@ public class TimeUtilTest {
         assertEquals(1038697419.029, TimeUtil.dateToSecondsSinceEpoch(calendar.getTime()), 1e-8);
     }
 
-    @Test
-    public void testDeleteMe() {
-        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-        calendar.setTime(new Date(1041379488000L));
-        System.out.println(calendar.getTime());
-
-        calendar.setTime(new Date(1041372339380L));
-        System.out.println(calendar.getTime());
-    }
-
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {
         final GregorianCalendar c = createUtcCalendar();
         c.clear();
