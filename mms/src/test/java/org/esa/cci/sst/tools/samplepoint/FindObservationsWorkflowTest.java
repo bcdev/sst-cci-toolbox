@@ -30,8 +30,8 @@ public class FindObservationsWorkflowTest {
         final WorkflowContext workflowContext = new WorkflowContext();
         workflowContext.setStartTime(5);
         workflowContext.setStopTime(6);
-        workflowContext.setSearchTimePast(7);
-        workflowContext.setSearchTimeFuture(8);
+        workflowContext.setSearchTimePast2(7);
+        workflowContext.setSearchTimeFuture2(8);
         workflowContext.setSensorName2("thermometer");
 
         final ObservationFinder.Parameter parameter = FindObservationsWorkflow.createFromContextForSecondary(workflowContext);

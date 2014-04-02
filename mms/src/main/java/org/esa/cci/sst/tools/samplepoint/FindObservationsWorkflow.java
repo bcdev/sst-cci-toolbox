@@ -48,6 +48,8 @@ public class FindObservationsWorkflow extends Workflow {
     // package access for testing only tb 2014-04-02
     static ObservationFinder.Parameter createFromContextForPrimary(WorkflowContext workflowContext) {
         final ObservationFinder.Parameter parameter = createWithTimeParameters(workflowContext);
+        parameter.setSearchTimePast(workflowContext.getSearchTimePast());
+        parameter.setSearchTimeFuture(workflowContext.getSearchTimeFuture());
         parameter.setSensorName(workflowContext.getSensorName());
         return parameter;
     }
@@ -55,6 +57,8 @@ public class FindObservationsWorkflow extends Workflow {
     // package access for testing only tb 2014-04-02
     static ObservationFinder.Parameter createFromContextForSecondary(WorkflowContext workflowContext) {
         final ObservationFinder.Parameter parameter = createWithTimeParameters(workflowContext);
+        parameter.setSearchTimePast(workflowContext.getSearchTimePast2());
+        parameter.setSearchTimeFuture(workflowContext.getSearchTimeFuture2  ());
         parameter.setSensorName(workflowContext.getSensorName2());
         return parameter;
     }
@@ -63,8 +67,7 @@ public class FindObservationsWorkflow extends Workflow {
         final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
         parameter.setStartTime(workflowContext.getStartTime());
         parameter.setStopTime(workflowContext.getStopTime());
-        parameter.setSearchTimePast(workflowContext.getSearchTimePast());
-        parameter.setSearchTimeFuture(workflowContext.getSearchTimeFuture());
+
         return parameter;
     }
 }

@@ -6,6 +6,7 @@ import org.esa.cci.sst.tools.samplepoint.GenerateInsituPointsWorkflow;
 import org.esa.cci.sst.tools.samplepoint.GenerateSobolPointsWorkflow;
 import org.esa.cci.sst.tools.samplepoint.Workflow;
 import org.esa.cci.sst.tools.samplepoint.WorkflowContext;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -16,10 +17,15 @@ import static org.mockito.Mockito.when;
 
 public class SamplingPointGenerationToolTest {
 
+    private WorkflowContext workflowContext;
+
+    @Before
+    public void setUp(){
+        workflowContext = new WorkflowContext();
+    }
+
     @Test
     public void testAssignFromConfig() {
-        final WorkflowContext workflowContext = new WorkflowContext();
-
         final Configuration configuration = new Configuration();
         configuration.put(Configuration.KEY_MMS_SAMPLING_START_TIME, "2007-01-01T00:00:00Z");
         configuration.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2007-01-01T12:00:00Z");
@@ -58,8 +64,6 @@ public class SamplingPointGenerationToolTest {
 
     @Test
     public void testAssignFromConfig_sensorName2IsNullWhenNotPresentInConfig() {
-        final WorkflowContext workflowContext = new WorkflowContext();
-
         final Configuration configuration = new Configuration();
         configuration.put(Configuration.KEY_MMS_SAMPLING_START_TIME, "2008-02-02T00:00:00Z");
         configuration.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2008-02-03T12:00:00Z");
@@ -76,7 +80,6 @@ public class SamplingPointGenerationToolTest {
 
     @Test
     public void testCreatePointGeneratorWorkflow() {
-        final WorkflowContext workflowContext = new WorkflowContext();
         workflowContext.setInsituSensorName("wtf");
         final Storage storage = mock(Storage.class);
         final PersistenceManager persistenceManager = mock(PersistenceManager.class);
@@ -94,7 +97,6 @@ public class SamplingPointGenerationToolTest {
 
     @Test
     public void testCreatePointGeneratorWorkflow_invalidParameter() {
-        final WorkflowContext workflowContext = new WorkflowContext();
         workflowContext.setSampleGeneratorName("STRANGE_NAME");
 
         try {
