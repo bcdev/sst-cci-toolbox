@@ -56,4 +56,9 @@ public class FindObservationsWorkflow extends Workflow {
     public List<SamplingPoint> execute() throws IOException {
         return null;    // nothing to do here
     }
+
+    // package access for testing only tb 2014-04-02
+     static ObservationFinder.Parameter createFromContextForPrimary(WorkflowContext workflowContext) {
+        return new ObservationFinder.Parameter();
+    }
 }

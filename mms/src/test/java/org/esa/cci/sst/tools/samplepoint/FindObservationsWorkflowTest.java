@@ -1,14 +1,16 @@
 package org.esa.cci.sst.tools.samplepoint;
 
-import org.esa.cci.sst.tools.Configuration;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 public class FindObservationsWorkflowTest {
 
     @Test
-    public void testCreateFromContext() {
-        final Configuration configuration = new Configuration();
+    public void testCreateFromContextForPrimary() {
+        final WorkflowContext workflowContext = new WorkflowContext();
 
-        // @todo 1 tb/tb continue here tb 2014-04-01
+        final ObservationFinder.Parameter parameter = FindObservationsWorkflow.createFromContextForPrimary(workflowContext);
+        assertNotNull(parameter);
     }
 }

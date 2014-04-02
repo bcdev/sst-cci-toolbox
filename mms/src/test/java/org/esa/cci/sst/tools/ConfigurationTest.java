@@ -358,4 +358,12 @@ public class ConfigurationTest {
         configuration.put("mms.pattern.mysensor", "100");
         assertEquals(256, configuration.getPattern("mysensor", 8L));
     }
+
+    @Test
+    public void testContainsValue() {
+         assertFalse(configuration.containsValue("nasenmann.org"));
+
+        configuration.put("nasenmann.org", "any value");
+        assertTrue(configuration.containsValue("nasenmann.org"));
+    }
 }

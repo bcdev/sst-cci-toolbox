@@ -249,6 +249,10 @@ public class Configuration {
         }
     }
 
+    public boolean containsValue(String key) {
+        return properties.containsKey(key);
+    }
+
     private long parsePattern(String key, String value) {
         final long pattern;
         try {
