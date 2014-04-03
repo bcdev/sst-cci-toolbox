@@ -71,11 +71,9 @@ class InsituTime extends AbstractImplicitRule {
                 final Array targetArray = observationReader.read("insitu.time", extractDefinition);
                 final Item sourceColumn = observationReader.getColumn("insitu.time");
                 final Number sourceFillValue = sourceColumn.getFillValue();
-                System.out.println("sourceFillValue = " + sourceFillValue);
                 for (int i = 0; i < targetArray.getSize(); i++) {
                     final int insituTime = targetArray.getInt(i);
-                    System.out.println("insituTime = " + insituTime);
-                    if (sourceFillValue == null || sourceFillValue != insituTime) {
+                    if (sourceFillValue == null || sourceFillValue.intValue() != insituTime) {
                         targetArray.setDouble(i, insituTime - referenceTime);
                     } else {
                         targetArray.setInt(i, FILL_VALUE);
