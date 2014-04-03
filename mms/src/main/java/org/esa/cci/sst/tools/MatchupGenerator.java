@@ -115,7 +115,6 @@ public class MatchupGenerator extends BasicTool {
 
             // create matchups and coincidences
             logInfo(logger, "Starting creating matchups and coincidences...");
-
             rollbackStack.push(pm.transaction());
             final List<Matchup> matchups = new ArrayList<>(referenceObservations.size());
             final List<Coincidence> coincidences = new ArrayList<>(samples.size());
@@ -207,7 +206,8 @@ public class MatchupGenerator extends BasicTool {
         return matchupPattern;
     }
 
-    private static InsituObservation createInsituObservation(SamplingPoint p, DataFile insituDatafile) {
+    // package access for testing only tb 2014-04-03
+    static InsituObservation createInsituObservation(SamplingPoint p, DataFile insituDatafile) {
         final InsituObservation insituObservation = new InsituObservation();
         insituObservation.setName(p.getDatasetName());
         insituObservation.setDatafile(insituDatafile);

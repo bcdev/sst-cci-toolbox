@@ -1,14 +1,12 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.common.InsituDatasetId;
-import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.data.Sensor;
-import org.esa.cci.sst.data.SensorBuilder;
+import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
+import org.postgis.Geometry;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 
@@ -185,5 +183,34 @@ public class MatchupGeneratorTest {
 
         assertEquals(1, transactionStack.size());
         assertSame(transaction, transactionStack.pop());
+    }
+
+    @Test
+    public void testCreateInsituObservation() {
+        final SamplingPoint samplingPoint = new SamplingPoint();
+        samplingPoint.setDatasetName("ds_name");
+        samplingPoint.setIndex(45);
+        samplingPoint.setLon(33.89);
+        samplingPoint.setLat(-11.88);
+        samplingPoint.setTime(889834759837L);
+        samplingPoint.setReferenceTime(889835759837L);
+        final DataFile dataFile = new DataFile();
+
+        final InsituObservation observation = MatchupGenerator.createInsituObservation(samplingPoint, dataFile);
+        assertNotNull(observation);
+        assertEquals(samplingPoint.getDatasetName(), observation.getName());
+        assertSame(dataFile, observation.getDatafile());
+        assertEquals(samplingPoint.getIndex(), observation.getRecordNo());
+        assertEquals(Constants.SENSOR_NAME_HISTORY, observation.getSensor());
+
+        final PGgeometry location = observation.getLocation();
+        assertNotNull(location);
+        final Geometry geometry = location.getGeometry();
+        final Point firstPoint = geometry.getFirstPoint();
+        assertEquals(samplingPoint.getLat(), firstPoint.getY(), 1e-8);
+        assertEquals(samplingPoint.getLon(), firstPoint.getX(), 1e-8);
+
+        assertEquals(samplingPoint.getTime(), observation.getTime().getTime());
+        assertEquals(1000.0, observation.getTimeRadius(), 1e-8);
     }
 }
