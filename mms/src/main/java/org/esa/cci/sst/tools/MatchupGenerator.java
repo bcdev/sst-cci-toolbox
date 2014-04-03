@@ -122,11 +122,10 @@ public class MatchupGenerator extends BasicTool {
             for (int i = 0; i < samples.size(); i++) {
                 final SamplingPoint p = samples.get(i);
                 final ReferenceObservation r = referenceObservations.get(i);
-                final Matchup matchup = new Matchup();
-                matchup.setId(r.getId());
-                matchup.setRefObs(r);
-                matchup.setPattern(matchupPattern);
+
+                final Matchup matchup = createMatchup(matchupPattern, r);
                 matchups.add(matchup);
+
                 final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
 
                 final Coincidence coincidence = new Coincidence();
@@ -185,6 +184,15 @@ public class MatchupGenerator extends BasicTool {
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
+    }
+
+    // package access for testing only tb 2014-04-03
+    static Matchup createMatchup(long matchupPattern, ReferenceObservation r) {
+        final Matchup matchup = new Matchup();
+        matchup.setId(r.getId());
+        matchup.setRefObs(r);
+        matchup.setPattern(matchupPattern);
+        return matchup;
     }
 
     // package access for testing only tb 2014-04-03

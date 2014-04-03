@@ -21,8 +21,8 @@ public class MatchupGeneratorTest {
 
     @Test
     public void testCreateSensorShortName() {
-         assertEquals("his_avhrr.n13", MatchupGenerator.createSensorShortName("history", "avhrr.n13"));
-         assertEquals("ins_atsr.2", MatchupGenerator.createSensorShortName("insitu", "atsr.2"));
+        assertEquals("his_avhrr.n13", MatchupGenerator.createSensorShortName("history", "avhrr.n13"));
+        assertEquals("ins_atsr.2", MatchupGenerator.createSensorShortName("insitu", "atsr.2"));
     }
 
     @Test
@@ -171,7 +171,7 @@ public class MatchupGeneratorTest {
 
         final long pattern = MatchupGenerator.defineMatchupPattern(primarySensorname, null, 1000000L, persistenceManager, transactionStack);
 
-        assertEquals(1000000L | 10L , pattern);
+        assertEquals(1000000L | 10L, pattern);
 
         verify(persistenceManager, times(1)).getStorage();
         verify(persistenceManager, times(1)).transaction();
@@ -212,5 +212,18 @@ public class MatchupGeneratorTest {
 
         assertEquals(samplingPoint.getTime(), observation.getTime().getTime());
         assertEquals(1000.0, observation.getTimeRadius(), 1e-8);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testCreateMatchup() {
+        final ReferenceObservation referenceObservation = new ReferenceObservation();
+        referenceObservation.setId(45);
+
+        final Matchup matchup = MatchupGenerator.createMatchup(7765L, referenceObservation);
+        assertNotNull(matchup);
+        assertEquals(45, matchup.getId());
+        assertSame(referenceObservation, matchup.getRefObs());
+        assertEquals(7765L, matchup.getPattern());
     }
 }
