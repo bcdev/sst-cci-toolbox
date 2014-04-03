@@ -2,8 +2,6 @@ from pmonitor import PMonitor
 
 usecase = 'mms2'
 
-# TODO for testing only, remove this line when producing
-#years = ['2003']
 years = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000',
          '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010',
          '2011', '2012']
@@ -105,8 +103,10 @@ types = [('ingestion-start.sh', 120),
          ('mmd-start.sh', 120),
          ('coincidence-start.sh', 48),
          ('nwp-start.sh', 240),
+         ('matchup-nwp-start.sh', 240),
          ('gbcs-start.sh', 240),
-         ('reingestion-start.sh', 48)]
+         ('reingestion-start.sh', 48),
+         ('matchup-reingestion-start.sh', 48)]
 
 pm = PMonitor(inputs,
               request='mms2',
