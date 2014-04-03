@@ -21,7 +21,6 @@ import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
@@ -41,7 +40,6 @@ class InsituTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
     private static final int FILL_VALUE = Integer.MIN_VALUE;
-    private static final int[] SINGLE_VALUE_SHAPE = {1, 1};
     // package access for testing only tb 2014-03-13
     int[] historyShape;
 
@@ -57,35 +55,39 @@ class InsituTime extends AbstractImplicitRule {
     public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
         final Context context = getContext();
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
-        final double refTime = TimeUtil.dateToSecondsSinceEpoch(refObs.getTime());
+        final double referenceTime = TimeUtil.dateToSecondsSinceEpoch(refObs.getTime());
         final Reader observationReader = context.getObservationReader();
-        try {
-            if (observationReader != null) {
-                final Configuration configuration = context.getConfiguration();
-                final int halfExtractionTimeRangeInSeconds = configuration.getIntValue(Configuration.KEY_MMS_SAMPLING_EXTRACTION_TIME);
 
+        if (observationReader != null) {
+            try {
+                final Configuration configuration = context.getConfiguration();
+                final int halfExtractionTimeRangeInSeconds = configuration.getIntValue(
+                        Configuration.KEY_MMS_SAMPLING_EXTRACTION_TIME);
                 final ExtractDefinition extractDefinition = new ExtractDefinitionBuilder()
                         .shape(historyShape)
                         .halfExtractDuration(halfExtractionTimeRangeInSeconds)
                         .referenceObservation(refObs)
                         .build();
-                final Array insituTimes = observationReader.read("insitu.time", extractDefinition);
-                for (int i = 0; i < insituTimes.getSize(); i++) {
-                    final double insituTime = insituTimes.getDouble(i);
-                    insituTimes.setDouble(i, insituTime - refTime);
+                final Array targetArray = observationReader.read("insitu.time", extractDefinition);
+                final int sourceFillValue = sourceColumn.getFillValue().intValue();
+                for (int i = 0; i < targetArray.getSize(); i++) {
+                    if (targetArray.getInt(i) != sourceFillValue) {
+                        final int insituTime = targetArray.getInt(i);
+                        targetArray.setDouble(i, insituTime - referenceTime);
+                    } else {
+                        targetArray.setInt(i, FILL_VALUE);
+                    }
                 }
-                return insituTimes;
-            } else {
-                final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
-                final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
-                if (insituSource != null) {
-                    final double insituTime = insituSource.readInsituTime(refObs.getRecordNo());
-                    array.setDouble(0, insituTime - refTime);
-                }
-                return array;
+                return targetArray;
+            } catch (IOException e) {
+                throw new RuleException("Unable to read in-situ time", e);
             }
-        } catch (IOException e) {
-            throw new RuleException("Unable to read in-situ time", e);
+        } else {
+            final Array targetArray = Array.factory(DATA_TYPE, historyShape);
+            for (int i = 0; i < targetArray.getSize(); i++) {
+                targetArray.setInt(i, FILL_VALUE);
+            }
+            return targetArray;
         }
     }
 
