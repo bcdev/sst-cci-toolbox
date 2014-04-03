@@ -52,7 +52,7 @@ class InsituTime extends AbstractImplicitRule {
     }
 
     @Override
-    public final Array apply(Array sourceArray, Item sourceColumn) throws RuleException {
+    public final Array apply(Array _, Item __) throws RuleException {
         final Context context = getContext();
         final ReferenceObservation refObs = context.getMatchup().getRefObs();
         final double referenceTime = TimeUtil.dateToSecondsSinceEpoch(refObs.getTime());
@@ -69,9 +69,10 @@ class InsituTime extends AbstractImplicitRule {
                         .referenceObservation(refObs)
                         .build();
                 final Array targetArray = observationReader.read("insitu.time", extractDefinition);
-                final int sourceFillValue = sourceColumn.getFillValue().intValue();
+                final Item sourceColumn = observationReader.getColumn("insitu.time");
+                final Number sourceFillValue = sourceColumn.getFillValue();
                 for (int i = 0; i < targetArray.getSize(); i++) {
-                    if (targetArray.getInt(i) != sourceFillValue) {
+                    if (sourceFillValue == null || sourceFillValue != targetArray.getInt(i)) {
                         final int insituTime = targetArray.getInt(i);
                         targetArray.setDouble(i, insituTime - referenceTime);
                     } else {
