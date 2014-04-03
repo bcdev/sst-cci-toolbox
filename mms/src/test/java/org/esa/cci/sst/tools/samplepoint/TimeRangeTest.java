@@ -49,13 +49,26 @@ public class TimeRangeTest {
     }
 
     @Test
-    public void testIntersectsWith_outsideRange() {
+    public void testIntersectsWith_outsideRange_before() {
         final Date startDate = createDate(2010, 0, 1, 0, 0, 0);
         final Date endDate = createDate(2010, 11, 31, 23, 59, 59);
         final TimeRange timeRange = new TimeRange(startDate, endDate);
 
         Date compareStart = createDate(1998, 5, 1, 0, 0, 0);
         Date compareStop = createDate(1998, 6, 31, 23, 59, 59);
+        TimeRange contained = new TimeRange(compareStart, compareStop);
+
+        assertFalse(timeRange.intersectsWith(contained));
+    }
+
+    @Test
+    public void testIntersectsWith_outsideRange_after() {
+        final Date startDate = createDate(2010, 0, 1, 0, 0, 0);
+        final Date endDate = createDate(2010, 11, 31, 23, 59, 59);
+        final TimeRange timeRange = new TimeRange(startDate, endDate);
+
+        Date compareStart = createDate(2011, 5, 1, 0, 0, 0);
+        Date compareStop = createDate(2011, 6, 31, 23, 59, 59);
         TimeRange contained = new TimeRange(compareStart, compareStop);
 
         assertFalse(timeRange.intersectsWith(contained));
