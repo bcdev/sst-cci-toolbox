@@ -90,12 +90,10 @@ public class MatchupGenerator extends BasicTool {
         final Logger logger = getLogger();
 
         final List<SamplingPoint> samples = loadSamplePoints(logger);
-        removeCloudySamples(logger, samples);
+        removeCloudySamples(logger, samples, sensorName1, true);
 
         if (sensorName2 != null) {
-            // todo - find observations for secondary sensor
-            // todo - remove observations for secondary sensor
-            // subsceneRemover.sensorName(sensorName2).primary(false).removeSamples(samples);
+            removeCloudySamples(logger, samples, sensorName2, false);
         }
 
         removeOverlappingSamples(logger, samples);
@@ -119,11 +117,7 @@ public class MatchupGenerator extends BasicTool {
 
             // persist reference observations, because we need the ID
             logInfo(logger, "Starting persisting reference observations...");
-            rollbackStack.push(pm.transaction());
-            for (final ReferenceObservation r : referenceObservations) {
-                pm.persist(r);
-            }
-            pm.commit();
+            persistReferenceObservations(referenceObservations, pm, rollbackStack);
             logInfo(logger, "Finished persisting reference observations");
 
             // define matchup pattern
@@ -226,6 +220,15 @@ public class MatchupGenerator extends BasicTool {
         insituObservation.setTime(new Date(p.getTime()));
         insituObservation.setTimeRadius(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
         return insituObservation;
+    }
+
+    // package access for testing only tb 2014-04-03
+    static void persistReferenceObservations(List<ReferenceObservation> referenceObservations, PersistenceManager pm, Stack<EntityTransaction> rollbackStack) {
+        rollbackStack.push(pm.transaction());
+        for (final ReferenceObservation r : referenceObservations) {
+            pm.persist(r);
+        }
+        pm.commit();
     }
 
     static String createSensorShortName(String referenceSensorName, String primarySensorName) {
@@ -353,11 +356,11 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
     }
 
-    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples) {
+    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples, String sensorName, boolean isPrimary) {
         final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
         final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
-        subsceneRemover.sensorName(sensorName1)
-                .primary(true)
+        subsceneRemover.sensorName(sensorName)
+                .primary(isPrimary)
                 .subSceneWidth(subSceneWidth)
                 .subSceneHeight(subSceneHeight)
                 .cloudFlagsVariableName(cloudFlagsVariableName)

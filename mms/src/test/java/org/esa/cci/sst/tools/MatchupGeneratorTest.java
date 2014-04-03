@@ -3,12 +3,18 @@ package org.esa.cci.sst.tools;
 import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 
+import javax.persistence.EntityTransaction;
+import java.util.ArrayList;
+import java.util.Stack;
+
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class MatchupGeneratorTest {
 
@@ -87,5 +93,28 @@ public class MatchupGeneratorTest {
         assertEquals(0, referenceObservation.getRecordNo());
         assertEquals(InsituDatasetId.radiometer.getValue(), referenceObservation.getDataset());
         assertEquals(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED, referenceObservation.getReferenceFlag());
+    }
+
+    @Test
+    public void testPersistReferenceObservations() {
+        final Stack<EntityTransaction> transactionStack = new Stack<>();
+        final EntityTransaction transaction = mock(EntityTransaction.class);
+        final PersistenceManager persistenceManager = mock(PersistenceManager.class);
+
+        final ArrayList<ReferenceObservation> observations = new ArrayList<>();
+        observations.add(new ReferenceObservation());
+        observations.add(new ReferenceObservation());
+
+        when(persistenceManager.transaction()).thenReturn(transaction);
+
+        MatchupGenerator.persistReferenceObservations(observations, persistenceManager, transactionStack);
+
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(2)).persist(any(ReferenceObservation.class));
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+
+        assertEquals(1, transactionStack.size());
+        assertSame(transaction, transactionStack.pop());
     }
 }
