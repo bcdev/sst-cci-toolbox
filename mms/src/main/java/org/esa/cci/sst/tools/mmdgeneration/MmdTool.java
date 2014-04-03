@@ -501,7 +501,7 @@ public class MmdTool extends BasicTool {
 
     // package access for testing only tb 2014-03-12
     static List<Item> extractVariableList(List<String> targetNames, ColumnRegistry columnRegistry) {
-        final ArrayList<Item> variableList = new ArrayList<>();
+        final List<Item> variableList = new ArrayList<>();
 
         for (String targetName : targetNames) {
             variableList.add(columnRegistry.getColumn(targetName));

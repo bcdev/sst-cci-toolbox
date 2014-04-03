@@ -52,7 +52,7 @@ public class JpaColumnStorageTest {
     @Test
     public void testGetAllColumns() {
         final String sql = "select c from Column c order by c.name";
-        final ArrayList<Column> columnList = new ArrayList<>();
+        final List<Column> columnList = new ArrayList<>();
         columnList.add((Column) new ColumnBuilder().name("test_me").build());
 
         final Query query = mock(Query.class);
@@ -74,7 +74,7 @@ public class JpaColumnStorageTest {
     @Test
     public void testGetAllColumnsWithTransaction() {
         final String sql = "select c from Column c order by c.name";
-        final ArrayList<Column> columnList = new ArrayList<>();
+        final List<Column> columnList = new ArrayList<>();
         columnList.add((Column) new ColumnBuilder().name("test_me").build());
 
         final Query query = mock(Query.class);
@@ -120,7 +120,7 @@ public class JpaColumnStorageTest {
     @Test
     public void testGetAllColumnNames() {
         final String sql = "select c.name from Column c";
-        final ArrayList<String> columnNameList = new ArrayList<>();
+        final List<String> columnNameList = new ArrayList<>();
         columnNameList.add("Johanna");
         columnNameList.add("Uwe");
 
@@ -141,7 +141,7 @@ public class JpaColumnStorageTest {
     @Test
     public void testGetAllColumnNamesWithTransaction() {
         final String sql = "select c.name from Column c";
-        final ArrayList<String> columnNameList = new ArrayList<>();
+        final List<String> columnNameList = new ArrayList<>();
         columnNameList.add("Johanna");
         columnNameList.add("Uwe");
 

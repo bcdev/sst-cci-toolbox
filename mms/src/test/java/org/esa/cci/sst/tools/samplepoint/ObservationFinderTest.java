@@ -44,7 +44,7 @@ public class ObservationFinderTest {
 
     @Test
     public void testFindObservations_withNoPolygon() throws Exception {
-        final ArrayList<SamplingPoint> samples = new ArrayList<>();
+        final List<SamplingPoint> samples = new ArrayList<>();
         samples.add(new SamplingPoint());
 
         final int seventeenDaysTwelveHoursInMillisHalf = 86400 * 175 / 10 * 1000;

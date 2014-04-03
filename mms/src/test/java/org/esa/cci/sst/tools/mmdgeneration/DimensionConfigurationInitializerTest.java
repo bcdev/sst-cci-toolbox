@@ -8,6 +8,7 @@ import org.esa.cci.sst.tools.ToolException;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -40,7 +41,7 @@ public class DimensionConfigurationInitializerTest {
 
     @Test
     public void testParseDimensions() {
-        final ArrayList<String> dimensionNames = new ArrayList<>();
+        final List<String> dimensionNames = new ArrayList<>();
         dimensionNames.add("upwards");
         final Properties dimensionProps = new Properties();
         dimensionProps.put("upwards", "72");
@@ -54,7 +55,7 @@ public class DimensionConfigurationInitializerTest {
 
     @Test
     public void testParseDimensions_matchupDimensionIsSkipped() {
-        final ArrayList<String> dimensionNames = new ArrayList<>();
+        final List<String> dimensionNames = new ArrayList<>();
         dimensionNames.add(Constants.DIMENSION_NAME_MATCHUP);
         dimensionNames.add("left");
         final Properties dimensionProps = new Properties();
@@ -70,7 +71,7 @@ public class DimensionConfigurationInitializerTest {
 
     @Test
     public void testParseDimensions_missingDimensionInPropertiesThrows() {
-        final ArrayList<String> dimensionNames = new ArrayList<>();
+        final List<String> dimensionNames = new ArrayList<>();
         dimensionNames.add("right");
         final Properties dimensionProps = new Properties();
 
@@ -84,7 +85,7 @@ public class DimensionConfigurationInitializerTest {
 
     @Test
     public void testParseDimensions_unparseableDimensionValueThrows() {
-        final ArrayList<String> dimensionNames = new ArrayList<>();
+        final List<String> dimensionNames = new ArrayList<>();
         dimensionNames.add("down");
         final Properties dimensionProps = new Properties();
         dimensionProps.put("down", "weired_value");

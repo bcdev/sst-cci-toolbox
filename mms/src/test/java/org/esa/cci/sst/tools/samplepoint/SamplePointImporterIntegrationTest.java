@@ -74,7 +74,7 @@ public class SamplePointImporterIntegrationTest {
 
         final SamplePointImporter importer = new SamplePointImporter(config);
 
-        final ArrayList<SamplingPoint> listB = new ArrayList<>();
+        final List<SamplingPoint> listB = new ArrayList<>();
         final SamplingPoint pointWritten = new SamplingPoint(34.5, 65.4, TimeUtil.parseCcsdsUtcFormat("2007-01-14T11:16:23Z").getTime(), 0.4533);
         listB.add(pointWritten);
 
@@ -99,13 +99,13 @@ public class SamplePointImporterIntegrationTest {
 
         final SamplePointImporter importer = new SamplePointImporter(config);
 
-        final ArrayList<SamplingPoint> listA = new ArrayList<>();
+        final List<SamplingPoint> listA = new ArrayList<>();
         listA.add(new SamplingPoint(34.5, 65.4, TimeUtil.parseCcsdsUtcFormat("2007-01-14T11:16:23Z").getTime(), 0.4533));
 
-        final ArrayList<SamplingPoint> listB = new ArrayList<>();
+        final List<SamplingPoint> listB = new ArrayList<>();
         listB.add(new SamplingPoint(34.5, 65.4, TimeUtil.parseCcsdsUtcFormat("2007-01-15T11:16:23Z").getTime(), 0.4533));
 
-        final ArrayList<SamplingPoint> listC = new ArrayList<>();
+        final List<SamplingPoint> listC = new ArrayList<>();
         listC.add(new SamplingPoint(34.5, 65.4, TimeUtil.parseCcsdsUtcFormat("2007-01-16T11:16:23Z").getTime(), 0.4533));
 
         writePoints(listA, SENSOR + "-smp-" + YEAR + "-01-a.json");

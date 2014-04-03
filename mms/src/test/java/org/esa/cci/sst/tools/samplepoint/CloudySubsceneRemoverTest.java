@@ -91,7 +91,7 @@ public class CloudySubsceneRemoverTest {
 
     @Test
     public void testSplitByFileId_oneFile_primary() {
-        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        final List<SamplingPoint> points = new ArrayList<>();
         points.add(createSamplingPointWithReference(19));
         points.add(createSamplingPointWithReference(19));
 
@@ -104,7 +104,7 @@ public class CloudySubsceneRemoverTest {
 
     @Test
     public void testSplitByFileId_oneFile_secondary() {
-        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        final List<SamplingPoint> points = new ArrayList<>();
         points.add(createSamplingPointWithSecondaryReference(21));
         points.add(createSamplingPointWithSecondaryReference(21));
         points.add(createSamplingPointWithSecondaryReference(21));
@@ -118,7 +118,7 @@ public class CloudySubsceneRemoverTest {
 
     @Test
     public void testSplitByFileId_twoFiles_primary() {
-        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        final List<SamplingPoint> points = new ArrayList<>();
         points.add(createSamplingPointWithReference(22));
         points.add(createSamplingPointWithReference(19));
         points.add(createSamplingPointWithReference(22));

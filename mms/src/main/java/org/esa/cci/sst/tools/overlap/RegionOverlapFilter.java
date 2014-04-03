@@ -70,7 +70,7 @@ public class RegionOverlapFilter {
             return clusterList;
         } else {
             // copy to wrapper list
-            final ArrayList<IntersectionWrapper> intersectionWrappers = wrapList(clusterList);
+            final List<IntersectionWrapper> intersectionWrappers = wrapList(clusterList);
 
             // calculate intersection counts
             int sumIntersections = Integer.MAX_VALUE;
@@ -93,7 +93,7 @@ public class RegionOverlapFilter {
 
     // package access for testing only tb 2014-01-17
     List<List<SamplingPoint>> splitByOrbit(List<SamplingPoint> pointList) {
-        final ArrayList<List<SamplingPoint>> orbitLists = new ArrayList<>();
+        final List<List<SamplingPoint>> orbitLists = new ArrayList<>();
         if (pointList.size() > 0) {
 
             while (pointList.size() > 0) {
@@ -122,7 +122,7 @@ public class RegionOverlapFilter {
             clusterList.add(intersectPoint);
             sampleList.remove(intersectPoint);
 
-            final ArrayList<SamplingPoint> subIntersecting = ic.getAllThatIntersect(intersectPoint, sampleList);
+            final List<SamplingPoint> subIntersecting = ic.getAllThatIntersect(intersectPoint, sampleList);
             intersecting.addAll(subIntersecting);
             sampleList.removeAll(subIntersecting);
         }

@@ -38,7 +38,7 @@ import java.util.*;
 abstract public class NetcdfReader implements Reader {
 
     private final String sensorName;
-    private final HashMap<String, Variable> variableMap = new HashMap<>();
+    private final Map<String, Variable> variableMap = new HashMap<>();
 
     private DataFile datafile;
     private NetcdfFile netcdfFile;

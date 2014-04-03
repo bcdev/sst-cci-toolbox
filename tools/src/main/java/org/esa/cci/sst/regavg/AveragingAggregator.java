@@ -289,7 +289,7 @@ public class AveragingAggregator extends AbstractAggregator {
                                                                        int regionCount,
                                                                        AggregationFactory<MultiMonthAggregation<RegionalAggregation>> aggregationFactory) {
         final MultiMonthAggregation aggregation = aggregationFactory.createAggregation();
-        final ArrayList<RegionalAggregation> resultList = new ArrayList<RegionalAggregation>();
+        final List<RegionalAggregation> resultList = new ArrayList<>();
 
         for (int regionIndex = 0; regionIndex < regionCount; regionIndex++) {
             for (final AveragingTimeStep timeStep : monthlyTimeSteps) {

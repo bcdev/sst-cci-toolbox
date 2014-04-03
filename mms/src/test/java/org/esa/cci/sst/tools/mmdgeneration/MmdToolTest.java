@@ -50,9 +50,9 @@ public class MmdToolTest {
     @Test
     public void testInitializeDimensionNames_emptyNameList() {
         final ColumnRegistry columnRegistry = new ColumnRegistry();
-        final ArrayList<String> nameList = new ArrayList<>();
+        final List<String> nameList = new ArrayList<>();
 
-        final TreeSet<String> dimensionNames = MmdTool.initializeDimensionNames(nameList, columnRegistry);
+        final Set<String> dimensionNames = MmdTool.initializeDimensionNames(nameList, columnRegistry);
         assertNotNull(dimensionNames);
         assertEquals(0, dimensionNames.size());
     }
@@ -63,7 +63,7 @@ public class MmdToolTest {
         columnRegistry.register(new ColumnBuilder().name("Heike").dimensions("a b c").rank(3).build());
         columnRegistry.register(new ColumnBuilder().name("Klaus").dimensions("left right").rank(2).build());
 
-        final ArrayList<String> nameList = new ArrayList<>();
+        final List<String> nameList = new ArrayList<>();
         nameList.add("Klaus");
         nameList.add("Heike");
 
@@ -79,7 +79,7 @@ public class MmdToolTest {
         final ColumnRegistry columnRegistry = new ColumnRegistry();
         columnRegistry.register(new ColumnBuilder().name("Heike").dimensions("").rank(0).build());
 
-        final ArrayList<String> nameList = new ArrayList<>();
+        final List<String> nameList = new ArrayList<>();
         nameList.add("Heike");
 
         try {
@@ -217,7 +217,7 @@ public class MmdToolTest {
         columnRegistry.register(new ColumnBuilder().name("Klaus").dimensions("left right").rank(2).build());
         columnRegistry.register(new ColumnBuilder().name("Carmen").dimensions("up down").rank(2).build());
 
-        final ArrayList<String> targetNames = new ArrayList<>();
+        final List<String> targetNames = new ArrayList<>();
         targetNames.add("Heike");
         targetNames.add("Carmen");
 
@@ -230,7 +230,7 @@ public class MmdToolTest {
 
     @Test
     public void testCreateOrderedSensorNameArray() {
-        final HashMap<String, List<Variable>> sensorMap = new HashMap<>();
+        final Map<String, List<Variable>> sensorMap = new HashMap<>();
         sensorMap.put("Zenzi", null);
         sensorMap.put("Franz", null);
         sensorMap.put("Kevin", null);

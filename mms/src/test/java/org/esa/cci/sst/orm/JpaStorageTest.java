@@ -214,7 +214,7 @@ public class JpaStorageTest {
         final String sensorName = "thermometer";
         final String sql = "select o.id from mm_observation o where o.sensor = ?1 and o.time >= timestamp '2010-01-01T13:00:00Z' and o.time < timestamp '2010-01-05T17:00:00Z' order by o.time, o.id";
 
-        final ArrayList<RelatedObservation> observations = new ArrayList<>();
+        final List<RelatedObservation> observations = new ArrayList<>();
         final RelatedObservation observation = new RelatedObservation();
         observation.setName("tested thing");
         observations.add(observation);

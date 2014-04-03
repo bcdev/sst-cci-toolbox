@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,7 +25,7 @@ public class TimeLatMapStrategyTest {
     @Test
     public void testInitializeAndMap_onePoint() throws ParseException {
         final SamplingPoint samplingPoint = createPoint("2010-06-02T00:00:00Z", 23.0);
-        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        final List<SamplingPoint> points = new ArrayList<>();
         points.add(samplingPoint);
 
         strategy.initialize(points);
@@ -36,7 +37,7 @@ public class TimeLatMapStrategyTest {
 
     @Test
     public void testInitializeAndMap_threePoints() throws ParseException {
-        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        final List<SamplingPoint> points = new ArrayList<>();
         points.add(createPoint("2009-11-08T00:00:00Z", 23.0));
         points.add(createPoint("2009-11-22T00:00:00Z", 34.0));
         points.add(createPoint("2009-11-11T00:00:00Z", -45.0));
@@ -61,7 +62,7 @@ public class TimeLatMapStrategyTest {
 
     @Test
     public void testExtractTimeRangeInFullMoths_onePoint() throws ParseException {
-        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        final List<SamplingPoint> points = new ArrayList<>();
         points.add(createPoint("2011-06-02T00:00:00Z", 19.0)) ;
 
         final TimeRange timeRange = TimeLatMapStrategy.extractTimeRangeInFullMonths(points);
@@ -72,7 +73,7 @@ public class TimeLatMapStrategyTest {
 
     @Test
     public void testExtractTimeRangeInFullMoths_threePoints() throws ParseException {
-        final ArrayList<SamplingPoint> points = new ArrayList<>();
+        final List<SamplingPoint> points = new ArrayList<>();
         points.add(createPoint("2010-05-11T00:00:00Z", 19.0)) ;
         points.add(createPoint("2010-05-08T11:00:00Z", 19.0)) ;
         points.add(createPoint("2010-05-17T14:00:00Z", 19.0)) ;

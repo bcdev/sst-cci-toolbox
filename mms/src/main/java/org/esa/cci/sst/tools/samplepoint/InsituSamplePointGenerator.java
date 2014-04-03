@@ -53,12 +53,12 @@ public class InsituSamplePointGenerator {
     }
 
     public List<SamplingPoint> generate(long startTime, long stopTime) throws ParseException {
-        final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
+        final List<SamplingPoint> samplingPoints = new LinkedList<>();
         final TimeRange timeRange = new TimeRange(new Date(startTime), new Date(stopTime));
 
         ensureSensorStoredInDb();
 
-        final LinkedList<File> filesInRange = findFilesInTimeRange(timeRange);
+        final List<File> filesInRange = findFilesInTimeRange(timeRange);
         for (File insituFile : filesInRange) {
             final LinkedList<SamplingPoint> pointsInFile = new LinkedList<>();
             try {

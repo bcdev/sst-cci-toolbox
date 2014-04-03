@@ -175,8 +175,8 @@ public class PolarOrbitingPolygon {
         return middle2;
     }
 
-    private ArrayList<Point> collectFirstRing(Geometry geometry, int middle1, int middle2) {
-        final ArrayList<Point> ring1 = new ArrayList<>(middle2 - middle1 + 2);
+    private List<Point> collectFirstRing(Geometry geometry, int middle1, int middle2) {
+        final List<Point> ring1 = new ArrayList<>(middle2 - middle1 + 2);
         for (int i = middle1; i <= middle2; ++i) {
             ring1.add(new Point(geometry.getPoint(i).getY(), geometry.getPoint(i).getX()));
         }
@@ -184,8 +184,8 @@ public class PolarOrbitingPolygon {
         return ring1;
     }
 
-    private ArrayList<Point> collectSecondRing(Geometry geometry, int middle1, int middle2) {
-        final ArrayList<Point> ring2 = new ArrayList<>(middle1 + 1 + geometry.numPoints() - middle2);
+    private List<Point> collectSecondRing(Geometry geometry, int middle1, int middle2) {
+        final List<Point> ring2 = new ArrayList<>(middle1 + 1 + geometry.numPoints() - middle2);
         for (int i = 0; i <= middle1; ++i) {
             ring2.add(new Point(geometry.getPoint(i).getY(), geometry.getPoint(i).getX()));
         }

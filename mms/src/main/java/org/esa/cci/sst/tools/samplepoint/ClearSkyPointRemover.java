@@ -24,7 +24,7 @@ import java.util.List;
 public class ClearSkyPointRemover {
 
     public void removeSamples(List<SamplingPoint> samples) {
-        final ArrayList<SamplingPoint> remainingSamples = new ArrayList<>(samples.size());
+        final List<SamplingPoint> remainingSamples = new ArrayList<>(samples.size());
         final ClearSkyProbability clearSkyProbability = Container.CLEAR_SKY_PROBABILITY;
         final double minimumClearSkyProbability = 0.05;
 

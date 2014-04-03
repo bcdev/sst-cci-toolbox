@@ -20,7 +20,7 @@ public class SamplingPointIoTest {
     @Test
     public void testWriteEmptyList() throws IOException {
         final ByteArrayOutputStream outputStream = createEmptyStream();
-        final ArrayList<SamplingPoint> emptyList = new ArrayList<>();
+        final List<SamplingPoint> emptyList = new ArrayList<>();
 
         SamplingPointIO.write(emptyList, outputStream);
 
@@ -73,7 +73,7 @@ public class SamplingPointIoTest {
     @Test
     public void testWriteReadMultiPointList() throws IOException {
         final ByteArrayOutputStream outputStream = createEmptyStream();
-        final ArrayList<SamplingPoint> list1 = new ArrayList<>();
+        final List<SamplingPoint> list1 = new ArrayList<>();
         list1.add(new SamplingPoint(1.0, 1.0, 1, 0.1));
         list1.add(new SamplingPoint(2.0, 2.0, 2, 0.2));
         list1.add(new SamplingPoint(3.0, 3.0, 3, 0.3));
@@ -111,7 +111,7 @@ public class SamplingPointIoTest {
         return new ByteArrayInputStream(SINGLE_POINT_LIST_STRING.getBytes());
     }
 
-    private void createSinglePointList(ArrayList<SamplingPoint> list) {
+    private void createSinglePointList(List<SamplingPoint> list) {
         final SamplingPoint point = new SamplingPoint(1.0, 2.0, 1000, 0.5);
         point.setIndex(1);
         point.setReference(67);

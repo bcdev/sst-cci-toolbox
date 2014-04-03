@@ -64,7 +64,7 @@ public class ContextBuilderTest {
     @Test
     public void testBuild_dimensionConfiguration() {
         final ContextBuilder contextBuilder = new ContextBuilder();
-        final HashMap<String, Integer> dimensionMap = new HashMap<>();
+        final Map<String, Integer> dimensionMap = new HashMap<>();
         final Context context = contextBuilder.dimensionConfiguration(dimensionMap).build();
 
         final Map<String, Integer> dimensionConfiguration = context.getDimensionConfiguration();

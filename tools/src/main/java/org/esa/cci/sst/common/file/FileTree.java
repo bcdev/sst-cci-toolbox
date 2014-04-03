@@ -84,7 +84,7 @@ public class FileTree {
             return Collections.emptyList();
         }
 
-        ArrayList<File> entries = new ArrayList<File>();
+        List<File> entries = new ArrayList<>();
         for (Map<Integer, List<File>> dayLists : monthMaps.values()) {
             for (List<File> dayList : dayLists.values()) {
                 entries.addAll(dayList);
@@ -105,7 +105,7 @@ public class FileTree {
             return Collections.emptyList();
         }
 
-        ArrayList<File> entries = new ArrayList<File>();
+        List<File> entries = new ArrayList<>();
         for (List<File> dayList : dayLists.values()) {
             entries.addAll(dayList);
         }

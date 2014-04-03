@@ -88,7 +88,7 @@ public class MmdUpdater extends BasicTool {
             }
             int noOfRecords = matchupIds.getShape()[0];
             final Array matchupId = matchupIds.read(new int[]{0}, matchupIds.getShape());
-            final HashMap<Integer, Integer> recordOfMatchupMap = new HashMap<>();
+            final Map<Integer, Integer> recordOfMatchupMap = new HashMap<>();
             for (int recordNo = 0; recordNo < noOfRecords; ++recordNo) {
                 int matchupIdx = matchupId.getInt(recordNo);
                 recordOfMatchupMap.put(matchupIdx, recordNo);

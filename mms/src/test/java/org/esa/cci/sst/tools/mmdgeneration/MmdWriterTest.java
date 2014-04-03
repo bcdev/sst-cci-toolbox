@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -47,7 +48,7 @@ public class MmdWriterTest {
 
     @Test
     public void testInitialize() throws IOException {
-        final HashMap<String, Integer> dimensionConfig = new HashMap<>();
+        final Map<String, Integer> dimensionConfig = new HashMap<>();
         dimensionConfig.put("left", 67);
         dimensionConfig.put("right", 108);
         final int matchupCount = 34;

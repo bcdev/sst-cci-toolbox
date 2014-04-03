@@ -23,7 +23,7 @@ import java.util.List;
 public class LandPointRemover {
 
     public void removeSamples(List<SamplingPoint> samples) {
-        final ArrayList<SamplingPoint> waterSamples = new ArrayList<>(samples.size());
+        final List<SamplingPoint> waterSamples = new ArrayList<>(samples.size());
         final Watermask watermask = Container.WATERMASK;
         for (final SamplingPoint point : samples) {
             if (watermask.isWater(point.getLon(), point.getLat())) {

@@ -8,17 +8,14 @@ import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 class Insitu_CCI_1_Accessor implements InsituAccessor {
 
     private static final double SECS_TO_FRACTIONAL_JD = 1.0 / 86400.0;
 
     private final NetcdfReader netcdfReader;
-    private final HashMap<String, String> variableNamesMap;
+    private final Map<String, String> variableNamesMap;
     private Array historyTimes;
     private Array lon;
     private Array lat;

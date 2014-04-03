@@ -13,6 +13,7 @@ import org.postgis.Point;
 import javax.persistence.EntityTransaction;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Stack;
 
 import static org.junit.Assert.*;
@@ -103,7 +104,7 @@ public class MatchupGeneratorTest {
         final EntityTransaction transaction = mock(EntityTransaction.class);
         final PersistenceManager persistenceManager = mock(PersistenceManager.class);
 
-        final ArrayList<ReferenceObservation> observations = new ArrayList<>();
+        final List<ReferenceObservation> observations = new ArrayList<>();
         observations.add(new ReferenceObservation());
         observations.add(new ReferenceObservation());
 

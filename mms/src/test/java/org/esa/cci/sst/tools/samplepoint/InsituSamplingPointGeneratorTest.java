@@ -174,7 +174,7 @@ public class InsituSamplingPointGeneratorTest {
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
         when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
-        final ArrayList<String> columnNamesInDb = new ArrayList<>();
+        final List<String> columnNamesInDb = new ArrayList<>();
         columnNamesInDb.add("history.insitu.time");
         columnNamesInDb.add("history.insitu.lat");
         columnNamesInDb.add("history.insitu.lon");
@@ -196,7 +196,7 @@ public class InsituSamplingPointGeneratorTest {
         final Date stopDate = parseDate("2013-08-22T00:00:00Z");
         when(mockStorage.getDatafileWithTransaction(anyString())).thenReturn(null);
 
-        final ArrayList<String> columnNamesInDb = new ArrayList<>();
+        final List<String> columnNamesInDb = new ArrayList<>();
         columnNamesInDb.add("history.insitu.time");
         columnNamesInDb.add("history.insitu.lon");
         columnNamesInDb.add("history.insitu.sst_uncertainty");

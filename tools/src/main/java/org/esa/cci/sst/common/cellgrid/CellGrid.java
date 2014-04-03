@@ -103,7 +103,7 @@ public class CellGrid<C extends Cell> {
     }
 
     public List<C> getCells(CellFilter<C> filter) {
-        final ArrayList<C> cellList = new ArrayList<C>(getWidth() * getHeight());
+        final List<C> cellList = new ArrayList<C>(getWidth() * getHeight());
         for (C cell : cells) {
             if (cell != null && filter.accept(cell)) {
                 cellList.add(cell);
