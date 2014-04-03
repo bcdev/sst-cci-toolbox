@@ -226,4 +226,16 @@ public class MatchupGeneratorTest {
         assertSame(referenceObservation, matchup.getRefObs());
         assertEquals(7765L, matchup.getPattern());
     }
+
+    @Test
+    public void testCreatePrimaryCoincidence() {
+        final Matchup matchup = new Matchup();
+        final RelatedObservation relatedObservation = new RelatedObservation();
+
+        final Coincidence coincidence = MatchupGenerator.createPrimaryCoincidence(matchup, relatedObservation);
+        assertNotNull(coincidence);
+        assertSame(matchup, coincidence.getMatchup());
+        assertSame(relatedObservation, coincidence.getObservation());
+        assertEquals(0.0, coincidence.getTimeDifference(), 1e-8);
+    }
 }

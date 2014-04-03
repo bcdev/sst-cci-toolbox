@@ -128,10 +128,7 @@ public class MatchupGenerator extends BasicTool {
 
                 final RelatedObservation o1 = storage.getRelatedObservation(p.getReference());
 
-                final Coincidence coincidence = new Coincidence();
-                coincidence.setMatchup(matchup);
-                coincidence.setObservation(o1);
-                coincidence.setTimeDifference(0.0);
+                final Coincidence coincidence = createPrimaryCoincidence(matchup, o1);
                 coincidences.add(coincidence);
 
                 if (secondarySensorName != null) {
@@ -184,6 +181,15 @@ public class MatchupGenerator extends BasicTool {
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
+    }
+
+    // package access for testing only tb 2014-04-03
+    static Coincidence createPrimaryCoincidence(Matchup matchup, RelatedObservation o1) {
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setMatchup(matchup);
+        coincidence.setObservation(o1);
+        coincidence.setTimeDifference(0.0);
+        return coincidence;
     }
 
     // package access for testing only tb 2014-04-03
