@@ -12,6 +12,7 @@ import org.postgis.Point;
 
 import javax.persistence.EntityTransaction;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Stack;
 
 import static org.junit.Assert.*;
@@ -237,5 +238,22 @@ public class MatchupGeneratorTest {
         assertSame(matchup, coincidence.getMatchup());
         assertSame(relatedObservation, coincidence.getObservation());
         assertEquals(0.0, coincidence.getTimeDifference(), 1e-8);
+    }
+
+    @Test
+    public void testCreateSecondaryCoincidence() {
+        final Matchup matchup = new Matchup();
+        final ReferenceObservation referenceObservation = new ReferenceObservation();
+        referenceObservation.setTime(new Date(1000000000L));
+        matchup.setRefObs(referenceObservation);
+        final RelatedObservation relatedObservation = new RelatedObservation();
+        final SamplingPoint samplingPoint = new SamplingPoint();
+        samplingPoint.setReference2Time(1005000000L);
+
+        final Coincidence coincidence = MatchupGenerator.createSecondaryCoincidence(samplingPoint, matchup, relatedObservation);
+        assertNotNull(coincidence);
+        assertSame(matchup, coincidence.getMatchup());
+        assertSame(relatedObservation, coincidence.getObservation());
+        assertEquals(5000, coincidence.getTimeDifference(), 1e-8);
     }
 }

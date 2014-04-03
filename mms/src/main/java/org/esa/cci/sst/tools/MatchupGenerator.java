@@ -133,12 +133,7 @@ public class MatchupGenerator extends BasicTool {
 
                 if (secondarySensorName != null) {
                     final RelatedObservation o2 = storage.getRelatedObservation(p.getReference2());
-                    final Coincidence secondCoincidence = new Coincidence();
-                    secondCoincidence.setMatchup(matchup);
-                    secondCoincidence.setObservation(o2);
-                    final Date matchupTime = matchup.getRefObs().getTime();
-                    final Date relatedTime = new Date(p.getReference2Time());
-                    secondCoincidence.setTimeDifference(TimeUtil.getTimeDifferenceInSeconds(matchupTime, relatedTime));
+                    final Coincidence secondCoincidence = createSecondaryCoincidence(p, matchup, o2);
                     coincidences.add(secondCoincidence);
                 }
                 if (p.getInsituReference() != 0) {
@@ -147,9 +142,7 @@ public class MatchupGenerator extends BasicTool {
                     final InsituObservation insituObservation = createInsituObservation(p, insituDatafile);
                     insituObservations.add(insituObservation);
 
-                    final Coincidence insituCoincidence = new Coincidence();
-                    insituCoincidence.setMatchup(matchup);
-                    insituCoincidence.setObservation(insituObservation);
+                    final Coincidence insituCoincidence = createCoincidence(matchup, insituObservation);
                     insituCoincidence.setTimeDifference(Math.abs(p.getReferenceTime() - p.getTime()) / 1000.0);
 
                     coincidences.add(insituCoincidence);
@@ -184,10 +177,17 @@ public class MatchupGenerator extends BasicTool {
     }
 
     // package access for testing only tb 2014-04-03
+    static Coincidence createSecondaryCoincidence(SamplingPoint p, Matchup matchup, RelatedObservation o2) {
+        final Coincidence coincidence = createCoincidence(matchup, o2);
+        final Date matchupTime = matchup.getRefObs().getTime();
+        final Date relatedTime = new Date(p.getReference2Time());
+        coincidence.setTimeDifference(TimeUtil.getTimeDifferenceInSeconds(matchupTime, relatedTime));
+        return coincidence;
+    }
+
+    // package access for testing only tb 2014-04-03
     static Coincidence createPrimaryCoincidence(Matchup matchup, RelatedObservation o1) {
-        final Coincidence coincidence = new Coincidence();
-        coincidence.setMatchup(matchup);
-        coincidence.setObservation(o1);
+        final Coincidence coincidence = createCoincidence(matchup, o1);
         coincidence.setTimeDifference(0.0);
         return coincidence;
     }
@@ -247,27 +247,6 @@ public class MatchupGenerator extends BasicTool {
         return referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName);
     }
 
-    private static void logInfo(Logger logger, String message) {
-        if (logger != null && logger.isLoggable(Level.INFO)) {
-            logger.info(message);
-        }
-    }
-
-    private static List<ReferenceObservation> createReferenceObservations(List<SamplingPoint> samples,
-                                                                          String referenceSensorName,
-                                                                          Storage storage) {
-        final List<ReferenceObservation> referenceObservations = new ArrayList<>(samples.size());
-        for (final SamplingPoint samplingPoint : samples) {
-            final Observation o = storage.getObservation(samplingPoint.getReference());
-            final DataFile datafile = o.getDatafile();
-
-            final ReferenceObservation r = createReferenceObservation(referenceSensorName, samplingPoint, datafile);
-
-            referenceObservations.add(r);
-        }
-        return referenceObservations;
-    }
-
     // package access for testing only tb 2014-03-19
     static ReferenceObservation createReferenceObservation(String referenceSensorName, SamplingPoint samplingPoint,
                                                            DataFile datafile) {
@@ -293,6 +272,34 @@ public class MatchupGenerator extends BasicTool {
         r.setDataset(samplingPoint.getInsituDatasetId().getValue());
         r.setReferenceFlag(Constants.MATCHUP_REFERENCE_FLAG_UNDEFINED);
         return r;
+    }
+
+    private static Coincidence createCoincidence(Matchup matchup, RelatedObservation o2) {
+        final Coincidence coincidence = new Coincidence();
+        coincidence.setMatchup(matchup);
+        coincidence.setObservation(o2);
+        return coincidence;
+    }
+
+    private static void logInfo(Logger logger, String message) {
+        if (logger != null && logger.isLoggable(Level.INFO)) {
+            logger.info(message);
+        }
+    }
+
+    private static List<ReferenceObservation> createReferenceObservations(List<SamplingPoint> samples,
+                                                                          String referenceSensorName,
+                                                                          Storage storage) {
+        final List<ReferenceObservation> referenceObservations = new ArrayList<>(samples.size());
+        for (final SamplingPoint samplingPoint : samples) {
+            final Observation o = storage.getObservation(samplingPoint.getReference());
+            final DataFile datafile = o.getDatafile();
+
+            final ReferenceObservation r = createReferenceObservation(referenceSensorName, samplingPoint, datafile);
+
+            referenceObservations.add(r);
+        }
+        return referenceObservations;
     }
 
     private OverlapRemover createOverlapRemover() {
