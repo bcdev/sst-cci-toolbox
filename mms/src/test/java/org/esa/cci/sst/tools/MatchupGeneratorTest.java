@@ -3,7 +3,10 @@ package org.esa.cci.sst.tools;
 import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.Sensor;
+import org.esa.cci.sst.data.SensorBuilder;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
 import org.postgis.PGgeometry;
@@ -113,6 +116,72 @@ public class MatchupGeneratorTest {
         verify(persistenceManager, times(2)).persist(any(ReferenceObservation.class));
         verify(persistenceManager, times(1)).commit();
         verifyNoMoreInteractions(persistenceManager);
+
+        assertEquals(1, transactionStack.size());
+        assertSame(transaction, transactionStack.pop());
+    }
+
+    @Test
+    public void testDefineMatchupPattern_twoSensors() {
+        final String primarySensorname = "atsr.3";
+        final String secondarySensorname = "atsr.2";
+        final Stack<EntityTransaction> transactionStack = new Stack<>();
+        final Sensor primarySensor = new SensorBuilder().name(primarySensorname).pattern(10).build();
+        final Sensor secondarySensor = new SensorBuilder().name(secondarySensorname).pattern(100).build();
+
+        final EntityTransaction transaction = mock(EntityTransaction.class);
+        final Storage storage = mock(Storage.class);
+        final PersistenceManager persistenceManager = mock(PersistenceManager.class);
+
+        when(persistenceManager.transaction()).thenReturn(transaction);
+        when(persistenceManager.getStorage()).thenReturn(storage);
+
+        when(storage.getSensor("orb_atsr.3")).thenReturn(primarySensor);
+        when(storage.getSensor("orb_atsr.2")).thenReturn(secondarySensor);
+
+        final long pattern = MatchupGenerator.defineMatchupPattern(primarySensorname, secondarySensorname, 1000000L, persistenceManager, transactionStack);
+
+        assertEquals(1000000L | 10L | 100L, pattern);
+
+        verify(persistenceManager, times(1)).getStorage();
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(storage, times(1)).getSensor("orb_atsr.3");
+        verify(storage, times(1)).getSensor("orb_atsr.2");
+        verifyNoMoreInteractions(storage);
+
+        assertEquals(1, transactionStack.size());
+        assertSame(transaction, transactionStack.pop());
+    }
+
+    @Test
+    public void testDefineMatchupPattern_onlyPrimarySensor() {
+        final String primarySensorname = "atsr.3";
+        final Stack<EntityTransaction> transactionStack = new Stack<>();
+        final Sensor primarySensor = new SensorBuilder().name(primarySensorname).pattern(10).build();
+
+        final EntityTransaction transaction = mock(EntityTransaction.class);
+        final Storage storage = mock(Storage.class);
+        final PersistenceManager persistenceManager = mock(PersistenceManager.class);
+
+        when(persistenceManager.transaction()).thenReturn(transaction);
+        when(persistenceManager.getStorage()).thenReturn(storage);
+
+        when(storage.getSensor("orb_atsr.3")).thenReturn(primarySensor);
+
+        final long pattern = MatchupGenerator.defineMatchupPattern(primarySensorname, null, 1000000L, persistenceManager, transactionStack);
+
+        assertEquals(1000000L | 10L , pattern);
+
+        verify(persistenceManager, times(1)).getStorage();
+        verify(persistenceManager, times(1)).transaction();
+        verify(persistenceManager, times(1)).commit();
+        verifyNoMoreInteractions(persistenceManager);
+
+        verify(storage, times(1)).getSensor("orb_atsr.3");
+        verifyNoMoreInteractions(storage);
 
         assertEquals(1, transactionStack.size());
         assertSame(transaction, transactionStack.pop());
