@@ -171,8 +171,6 @@ for year in years:
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
 
-            continue
-
             # 8. Re-ingest sensor sub-scenes into database
             pm.execute('reingestion-start.sh',
                        ['/sub/' + sensor + '/' + year + '/' + month],
@@ -194,6 +192,7 @@ for year in years:
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
+            continue
 
             # 11. Produce final single-sensor MMD file
             pm.execute('mmd-start.sh',
