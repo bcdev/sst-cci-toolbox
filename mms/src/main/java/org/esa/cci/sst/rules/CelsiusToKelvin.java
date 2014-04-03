@@ -7,7 +7,7 @@ import org.esa.cci.sst.tools.Constants;
 /**
  * @author Ralf Quast
  */
-public class ToKelvin extends AbstractAttributeModification {
+public class CelsiusToKelvin extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
@@ -15,11 +15,11 @@ public class ToKelvin extends AbstractAttributeModification {
         if (addOffset == null) {
             targetColumnBuilder.
                     unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE).
-                    addOffset(-273.15);
+                    addOffset(273.15);
         } else {
             targetColumnBuilder.
                     unit(Constants.UNIT_SEA_SURFACE_TEMPERATURE).
-                    addOffset(sourceColumn.getAddOffset().doubleValue() - 273.15);
+                    addOffset(sourceColumn.getAddOffset().doubleValue() + 273.15);
         }
     }
 }

@@ -9,17 +9,17 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Ralf Quast
  */
-public class ToKelvinTest extends AbstractRuleTest {
+public class CelsiusToKelvinTest extends AbstractRuleTest {
 
     @Override
     protected ColumnBuilder configureSourceColumn(ColumnBuilder columnBuilder) {
-        return columnBuilder.unit("Celsius").addOffset(20.0);
+        return columnBuilder.unit("Celsius").addOffset(0.0);
     }
 
     @Override
     protected void assertTargetColumn(Item targetColumn) {
         assertEquals(Constants.UNIT_SEA_SURFACE_TEMPERATURE, targetColumn.getUnit());
-        assertEquals(-253.15, targetColumn.getAddOffset().doubleValue(), 1.0e-10);
+        assertEquals(273.15, targetColumn.getAddOffset().doubleValue(), 1.0e-10);
     }
 
     @Override
