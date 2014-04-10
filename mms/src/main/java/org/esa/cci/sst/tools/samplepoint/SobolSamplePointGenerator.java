@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools.samplepoint;
 
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SobolSequenceGenerator;
 
@@ -27,6 +28,8 @@ public class SobolSamplePointGenerator {
 
             final SamplingPoint p = new SamplingPoint(lon, lat, time, random);
             p.setIndex(index);
+            p.setInsituDatasetId(InsituDatasetId.dummy_bc);
+
             sampleList.add(p);
         }
 

@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools.samplepoint;
 
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
 
@@ -7,6 +8,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class SobolSamplingPointGeneratorTest {
@@ -28,6 +30,9 @@ public class SobolSamplingPointGeneratorTest {
 
             final long time = point.getTime();
             assertTrue(time >= 0 && time <= 1000);
+
+            final InsituDatasetId insituDatasetId = point.getInsituDatasetId();
+            assertSame(InsituDatasetId.dummy_bc, insituDatasetId);
         }
     }
 }
