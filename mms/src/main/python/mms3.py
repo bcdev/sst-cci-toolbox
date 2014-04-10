@@ -183,7 +183,7 @@ for year in years:
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
             pm.execute('matchup-reingestion-start.sh',
-                       ['/sub/' + sensor + '/' + year + '/' + month],
+                       ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
 
