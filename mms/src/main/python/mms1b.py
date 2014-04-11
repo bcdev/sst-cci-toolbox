@@ -6,7 +6,7 @@ years = ['2002', '2003']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 sensors = [('atsr.3', '2002-05-20', '2003-06-22')]
 # 300000 leads to about 2500 surviving samples per month
-samplespermonth = 3000000
+samplespermonth = 5000000
 skip = 0
 
 # archiving rules
@@ -92,17 +92,17 @@ for (sensor, sensorstart, sensorstop) in sensors:
     inputs.append('/obs/' + next_month_year + '/' + next_month)
     inputs.append('/smp/' + sensor + '/' + next_month_year + '/' + next_month)
 
-hosts = [('localhost', 240)]
-types = [('ingestion-start.sh', 120),
-         ('sampling-start.sh', 48),
-         ('clearsky-start.sh', 120),
-         ('mmd-start.sh', 120),
-         ('coincidence-start.sh', 48),
-         ('nwp-start.sh', 240),
-         ('matchup-nwp-start.sh', 240),
-         ('gbcs-start.sh', 240),
-         ('matchup-reingestion-start.sh', 48),
-         ('reingestion-start.sh', 48)]
+hosts = [('localhost', 24)]
+types = [('ingestion-start.sh', 12),
+         ('sampling-start.sh', 12),
+         ('clearsky-start.sh', 12),
+         ('mmd-start.sh', 12),
+         ('coincidence-start.sh', 12),
+         ('nwp-start.sh', 12),
+         ('matchup-nwp-start.sh', 12),
+         ('gbcs-start.sh', 12),
+         ('matchup-reingestion-start.sh', 12),
+         ('reingestion-start.sh', 12)]
 
 pm = PMonitor(inputs,
               request='mms1b',
@@ -117,6 +117,7 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
+        continue
 
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart[:7] or year + '-' + month > sensorstop[:7]:
