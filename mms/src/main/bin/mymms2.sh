@@ -21,7 +21,7 @@ export MMS_LOG=${MMS_INST}/log
 export TMPDIR=${MMS_INST}/tmp
 
 export PYTHONPATH=${MMS_INST}:${MMS_HOME}/python:${PYTHONPATH}
-export PATH=${MMS_INST}:${MMS_HOME}/bin:${PATH}
+export PATH=${MMS_HOME}/bin:${PATH}
 
 echo "using MMS instance $MMS_INST"
 echo "using MMS software $MMS_HOME"
