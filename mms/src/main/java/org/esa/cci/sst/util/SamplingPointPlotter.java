@@ -16,6 +16,9 @@
 
 package org.esa.cci.sst.util;
 
+import org.esa.cci.sst.tools.samplepoint.GenerateSobolPointsWorkflow;
+import org.esa.cci.sst.tools.samplepoint.WorkflowContext;
+
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -64,7 +67,7 @@ public final class SamplingPointPlotter {
         return this;
     }
 
-    public SamplingPointPlotter series(boolean series) {
+    private SamplingPointPlotter series(boolean series) {
         this.series = series;
         return this;
     }
@@ -133,7 +136,6 @@ public final class SamplingPointPlotter {
                 }
             }
         }
-        // a movie can be created from the image series with 'ffmpeg -i %04d.png sampling.mpg'
         return image;
     }
 
@@ -177,5 +179,24 @@ public final class SamplingPointPlotter {
         } else {
             return new LonLatMapStrategy(WIDTH, HEIGHT);
         }
+    }
+
+    // for creating a movie
+    public static void main(String[] args) throws IOException {
+        final WorkflowContext context = new WorkflowContext();
+        context.setSampleCount(100000);
+        context.setSampleSkip(0);
+        context.setStartTime(0L);
+        context.setStopTime(2592000000L); // 30 days
+
+        final GenerateSobolPointsWorkflow workflow = new GenerateSobolPointsWorkflow(context);
+        final List<SamplingPoint> samples = workflow.execute();
+
+        new SamplingPointPlotter()
+                .samples(samples)
+                .mapStrategyName("lonlat")
+                .series(true)
+                .plot();
+        // a movie can be created from the image series with 'ffmpeg -i %04d.png sampling.mpg'
     }
 }
