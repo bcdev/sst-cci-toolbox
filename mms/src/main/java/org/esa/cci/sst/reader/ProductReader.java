@@ -23,7 +23,12 @@ import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
 import org.esa.beam.dataio.envisat.EnvisatProductReader;
 import org.esa.beam.framework.dataio.ProductFlipper;
-import org.esa.beam.framework.datamodel.*;
+import org.esa.beam.framework.datamodel.BasicPixelGeoCoding;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
+import org.esa.beam.framework.datamodel.MetadataElement;
+import org.esa.beam.framework.datamodel.PixelGeoCodingWrapper;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.framework.gpf.OperatorSpi;
 import org.esa.cci.sst.data.DataFile;
@@ -31,6 +36,8 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.util.BoundaryCalculator;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,11 +56,11 @@ class ProductReader extends AbstractProductReader {
 
     ProductReader(String sensorName) {
         super(sensorName,
-                EnvisatConstants.ENVISAT_FORMAT_NAME,
-                HdfOsiProductReaderPlugIn.FORMAT_NAME,
-                NcOsiProductReaderPlugIn.FORMAT_NAME,
-                PmwProductReaderPlugIn.FORMAT_NAME,
-                AvhrrReaderPlugIn.FORMAT_NAME);
+              EnvisatConstants.ENVISAT_FORMAT_NAME,
+              HdfOsiProductReaderPlugIn.FORMAT_NAME,
+              NcOsiProductReaderPlugIn.FORMAT_NAME,
+              PmwProductReaderPlugIn.FORMAT_NAME,
+              AvhrrReaderPlugIn.FORMAT_NAME);
         this.bc = new BoundaryCalculator();
     }
 
@@ -68,11 +75,11 @@ class ProductReader extends AbstractProductReader {
             }
         }
         if (product.getName().startsWith("AT1")) {
-            // TODO - use Owen's new offsets product = shiftForwardBands(3, 0, product);
+            product = shiftForwardViewBands(product);
         } else if (product.getName().startsWith("AT2")) {
-            // TODO - use Owen's new offsets product = shiftForwardBands(1, -1, product);
+            product = shiftForwardViewBands(product);
         } else if (product.getName().startsWith("ATS")) {
-            // TODO - use Owen's new offsets product = shiftForwardBands(-1, -2, product);
+            shiftForwardViewBands(product);
         }
         if (product.getGeoCoding() instanceof BasicPixelGeoCoding) {
             product.setGeoCoding(new PixelGeoCodingWrapper((BasicPixelGeoCoding) product.getGeoCoding()));
@@ -80,12 +87,17 @@ class ProductReader extends AbstractProductReader {
         return product;
     }
 
-    private Product shiftForwardBands(int xi, int yi, Product product) {
+    private Product shiftForwardViewBands(Product product) {
+        final String productName = product.getName();
+        final int productYear = product.getStartTime().getAsCalendar().get(Calendar.YEAR);
+        final AtsrForwardViewOffsetFactory offsetFactory = new AtsrForwardViewOffsetFactory();
+        final AtsrForwardViewOffsetFactory.Offset offset = offsetFactory.createOffset(productName, productYear);
         final Map<String, Object> params = new HashMap<String, Object>();
-        params.put("shiftX", xi);
-        params.put("shiftY", yi);
+        params.put("shiftX", offset.getAcrossTrackOffset());
+        params.put("shiftY", offset.getAlongTrackOffset());
         params.put("bandNamesPattern", ".*_fward_.*");
         params.put("fillValue", product.getBand("btemp_fward_1200").getNoDataValue());
+
         return GPF.createProduct(OperatorSpi.getOperatorAlias(ShiftOp.class), params, product);
     }
 
@@ -122,10 +134,10 @@ class ProductReader extends AbstractProductReader {
         final ProductData.UTC startTime = product.getStartTime();
         final ProductData.UTC endTime = product.getEndTime();
         product = ProductFlipper.createFlippedProduct(product,
-                true,
-                ProductFlipper.FLIP_HORIZONTAL,
-                product.getName(),
-                product.getDescription());
+                                                      true,
+                                                      ProductFlipper.FLIP_HORIZONTAL,
+                                                      product.getName(),
+                                                      product.getDescription());
         product.setStartTime(startTime);
         product.setEndTime(endTime);
         return product;
