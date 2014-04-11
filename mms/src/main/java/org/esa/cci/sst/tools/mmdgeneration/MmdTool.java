@@ -22,7 +22,13 @@ import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Item;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.orm.MatchupStorage;
@@ -47,7 +53,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 
 /**
@@ -143,7 +156,8 @@ public class MmdTool extends BasicTool {
             final Item column = columnRegistry.getColumn(name);
             final String dimensions = column.getDimensions();
             if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format("Expected at least one dimension for target column ''{0}''.", name);
+                final String message = MessageFormat.format(
+                        "Expected at least one dimension for target column ''{0}''.", name);
                 throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
             }
             dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
@@ -178,7 +192,8 @@ public class MmdTool extends BasicTool {
                 try {
                     final Integer recordNo = recordOfMatchup.get(matchup.getId());
                     if (recordNo == null) {
-                        getLogger().warning(String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
+                        getLogger().warning(
+                                String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
                         continue;
                     }
 
@@ -186,7 +201,7 @@ public class MmdTool extends BasicTool {
                     final ReferenceObservation referenceObservation = matchup.getRefObs();
                     final Observation observation = findObservation(sensorName, matchup);
                     if (observation != null && observation.getDatafile() != null &&
-                            !observation.getDatafile().equals(previousDataFile)) {
+                        !observation.getDatafile().equals(previousDataFile)) {
                         if (previousDataFile != null) {
                             readerCache.closeReader(previousDataFile);
                         }
@@ -211,8 +226,9 @@ public class MmdTool extends BasicTool {
                             writeImplicitColumn(mmdWriter, variable, targetRecordNo, targetColumn, context);
                         } else {
                             if (observation != null) {
-                                writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn, observation,
-                                        referenceObservation);
+                                writeColumn(mmdWriter, variable, targetRecordNo, targetColumn, sourceColumn,
+                                            observation,
+                                            referenceObservation);
                             }
                         }
                     }
@@ -225,8 +241,8 @@ public class MmdTool extends BasicTool {
                     }
                 } catch (IOException e) {
                     final String message = MessageFormat.format("matchup {0}: {1}",
-                            matchup.getId(),
-                            e.getMessage());
+                                                                matchup.getId(),
+                                                                e.getMessage());
                     throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
                 }
             }
@@ -292,7 +308,8 @@ public class MmdTool extends BasicTool {
 
     private void initializeColumns() {
         final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
-        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry, columnStorage);
+        final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry,
+                                                                                                  columnStorage);
         columnRegistryInitializer.initialize();
 
         registerTargetColumns();
@@ -342,11 +359,11 @@ public class MmdTool extends BasicTool {
             }
         } catch (IOException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                    e.getMessage());
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_IO_ERROR);
         } catch (RuleException | InvalidRangeException e) {
             final String message = MessageFormat.format("matchup {0}: {1}", context.getMatchup().getId(),
-                    e.getMessage());
+                                                        e.getMessage());
             throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
@@ -358,19 +375,20 @@ public class MmdTool extends BasicTool {
             final Reader reader = readerCache.getReader(observation.getDatafile(), true);
             final String role = sourceColumn.getRole();
             final int halfExtractDuration = getConfig().getIntValue(Configuration.KEY_MMS_SAMPLING_EXTRACTION_TIME);
-            final ExtractDefinition extractDefinition =
-                    new ExtractDefinitionBuilder()
-                            .referenceObservation(refObs)
-                            .recordNo(observation.getRecordNo())
-                            .shape(variable.getShape())
-                            .fillValue(targetColumn.getFillValue())
-                            .halfExtractDuration(halfExtractDuration)
-                            .build();
+            final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder()
+                    .referenceObservation(refObs)
+                    .recordNo(observation.getRecordNo())
+                    .shape(variable.getShape())
+                    .fillValue(targetColumn.getFillValue());
+            if (observation instanceof InsituObservation) {
+                builder.halfExtractDuration(halfExtractDuration);
+            }
+            final ExtractDefinition extractDefinition = builder.build();
             final Array sourceArray = reader.read(role, extractDefinition);
             if (sourceArray != null) {
                 if (getLogger().isLoggable(Level.FINE)) {
                     getLogger().fine(MessageFormat.format("source column: {0}, {1}", sourceColumn.getName(),
-                            sourceColumn.getRole()));
+                                                          sourceColumn.getRole()));
                 }
                 sourceColumn = reader.getColumn(role);
                 if (sourceColumn == null) {
@@ -446,7 +464,7 @@ public class MmdTool extends BasicTool {
             return pattern;
         } catch (NumberFormatException e) {
             throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
-                    ToolException.TOOL_CONFIGURATION_ERROR);
+                                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
