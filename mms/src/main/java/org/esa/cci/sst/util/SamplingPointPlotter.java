@@ -28,7 +28,6 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -41,8 +40,9 @@ public final class SamplingPointPlotter {
 
     private List<SamplingPoint> samples;
     private String filePath;
-    private boolean show = true;
+    private boolean show = false;
     private boolean live = false;
+    private boolean series = false;
     private String windowTitle;
     private String mapStrategyName;
 
@@ -61,6 +61,11 @@ public final class SamplingPointPlotter {
 
     public SamplingPointPlotter live(boolean live) {
         this.live = live;
+        return this;
+    }
+
+    public SamplingPointPlotter series(boolean series) {
+        this.series = series;
         return this;
     }
 
@@ -104,29 +109,41 @@ public final class SamplingPointPlotter {
         }
         final Graphics2D graphics = image.createGraphics();
 
-        for (final SamplingPoint p : samples) {
+        for (int i = 0, k = 0; i < samples.size(); i++) {
+            final SamplingPoint p = samples.get(i);
             final PlotPoint mapPoint = strategy.map(p);
 
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    @Override
-                    public void run() {
-                        graphics.fill(new Rectangle(mapPoint.getX(), mapPoint.getY(), 1, 1));
+            graphics.fill(new Rectangle(mapPoint.getX(), mapPoint.getY(), 1, 1));
+            if (series) {
+                if (i % 50 == 0 || i == samples.size() - 1) {
+                    try {
+                        final File file = createImageFile(k, false);
+                        ImageIO.write(image, "png", file);
+                        k++;
+                    } catch (IOException ignored) {
                     }
-                });
-            } catch (InterruptedException | InvocationTargetException ignored) {
+                }
             }
 
             if (component != null) {
                 component.repaint();
-
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException ignored) {
                 }
             }
         }
+        // a movie can be created from the image series with 'ffmpeg -i %04d.png sampling.mpg'
         return image;
+    }
+
+    private File createImageFile(int count, boolean deleteOnExit) throws IOException {
+        final String filename = String.format("%04d.png", count);
+        final File file = new File(filename);
+        if (deleteOnExit) {
+            file.deleteOnExit();
+        }
+        return file;
     }
 
     private JComponent showImage(BufferedImage image) {
@@ -152,13 +169,13 @@ public final class SamplingPointPlotter {
     }
 
     private MapStrategy getMapStrategy() {
-        switch (mapStrategyName) {
-            case "timlat":
-                return new TimeLatMapStrategy(WIDTH, HEIGHT);
-            case "lonlat":
-                return new LonLatMapStrategy(WIDTH, HEIGHT);
-            default:
-                return new LonLatMapStrategy(WIDTH, HEIGHT);
+        //noinspection IfCanBeSwitch
+        if ("timlat".equals(mapStrategyName)) {
+            return new TimeLatMapStrategy(WIDTH, HEIGHT);
+        } else if ("lonlat".equals(mapStrategyName)) {
+            return new LonLatMapStrategy(WIDTH, HEIGHT);
+        } else {
+            return new LonLatMapStrategy(WIDTH, HEIGHT);
         }
     }
 }
