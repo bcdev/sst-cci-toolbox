@@ -134,7 +134,6 @@ for year in years:
                        ['/smp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, str(samplespermonth), str(skip), usecase])
             skip += samplespermonth
-            continue
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-start.sh',
@@ -143,6 +142,7 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
 
             # 4. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-start.sh',
