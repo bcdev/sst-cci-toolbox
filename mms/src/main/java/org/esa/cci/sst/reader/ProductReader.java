@@ -37,7 +37,6 @@ import org.esa.cci.sst.util.BoundaryCalculator;
 
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,16 +69,11 @@ class ProductReader extends AbstractProductReader {
         if (product.getProductReader() instanceof EnvisatProductReader) {
             if (product.getName().startsWith("AT1") || product.getName().startsWith(
                     "AT2") || product.getName().startsWith("ATS")) {
-                // we need pixels arranged in scan direction, so flip the product horizontally when it is read by the Envisat reader
+                // we need pixels arranged in scan direction, so flip the product horizontally
                 product = createHorizontallyFlippedProduct(product);
+                // we need to shift the forward view
+                product = shiftForwardViewBands(product);
             }
-        }
-        if (product.getName().startsWith("AT1")) {
-            product = shiftForwardViewBands(product);
-        } else if (product.getName().startsWith("AT2")) {
-            product = shiftForwardViewBands(product);
-        } else if (product.getName().startsWith("ATS")) {
-            shiftForwardViewBands(product);
         }
         if (product.getGeoCoding() instanceof BasicPixelGeoCoding) {
             product.setGeoCoding(new PixelGeoCodingWrapper((BasicPixelGeoCoding) product.getGeoCoding()));
@@ -93,8 +87,8 @@ class ProductReader extends AbstractProductReader {
         final AtsrForwardViewOffsetFactory offsetFactory = new AtsrForwardViewOffsetFactory();
         final AtsrForwardViewOffsetFactory.Offset offset = offsetFactory.createOffset(productName, productYear);
         final Map<String, Object> params = new HashMap<String, Object>();
-        params.put("shiftX", offset.getAcrossTrackOffset());
-        params.put("shiftY", offset.getAlongTrackOffset());
+        params.put("shiftX", -offset.getAcrossTrackOffset());
+        params.put("shiftY", -offset.getAlongTrackOffset());
         params.put("bandNamesPattern", ".*_fward_.*");
         params.put("fillValue", product.getBand("btemp_fward_1200").getNoDataValue());
 
