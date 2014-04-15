@@ -77,7 +77,7 @@ public class ObservationFinder {
             for (final SamplingPoint point : samples) {
                 final long pointTime = getPointTime(point, primarySensor);
 
-                // look for orbit temporally before (iBefore) and after (iAfter) point with binary search
+                // binary search for orbit temporally before (iBefore) and after (iAfter) point
                 int iBefore = 0;
                 int iAfter = polygons.length - 1;
                 while (iBefore + 1 < iAfter) {
@@ -98,30 +98,32 @@ public class ObservationFinder {
                     }
                     --iBefore;
                 }
+                final boolean foundBefore = iBefore >= 0;
                 while (iAfter < polygons.length) {
-                    if (polygons[iAfter].getTime() - pointTime <= searchTimeFuture) {
-                        if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
-                            break;
+                    final long timeDifference = polygons[iAfter].getTime() - pointTime;
+                    if (timeDifference <= searchTimeFuture) {
+                        if (foundBefore) {
+                            final long timeDifferenceBefore = pointTime - polygons[iBefore].getTime();
+                            if (timeDifference < timeDifferenceBefore) {
+                                if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
+                                    assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
+                                    accu.add(point);
+                                    break;
+                                }
+                            } else {
+                                assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
+                                accu.add(point);
+                                break;
+                            }
+                        } else {
+                            if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
+                                assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
+                                accu.add(point);
+                                break;
+                            }
                         }
                     }
                     ++iAfter;
-                }
-                final boolean foundBefore = iBefore >= 0;
-                final boolean foundAfter = iAfter < polygons.length;
-                if (foundBefore) {
-                    if (foundAfter) {
-                        if (pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime) {
-                            assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
-                        } else {
-                            assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
-                        }
-                    } else {
-                        assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
-                    }
-                    accu.add(point);
-                } else if (foundAfter) {
-                    assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
-                    accu.add(point);
                 }
             }
         }
