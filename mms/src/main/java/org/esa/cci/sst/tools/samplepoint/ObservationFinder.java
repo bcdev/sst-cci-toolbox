@@ -56,26 +56,28 @@ public class ObservationFinder {
         final String orbitSensorName = SensorNames.ensureOrbitName(parameter.getSensorName());
 
         final Storage storage = persistenceManager.getStorage();
-        final List<RelatedObservation> orbitObservations = storage.getRelatedObservations(orbitSensorName, startDate, stopDate);
+        final List<RelatedObservation> orbitObservations = storage.getRelatedObservations(orbitSensorName, startDate,
+                                                                                          stopDate);
         final PolarOrbitingPolygon[] polygons = new PolarOrbitingPolygon[orbitObservations.size()];
         for (int i = 0; i < orbitObservations.size(); ++i) {
             final RelatedObservation orbitObservation = orbitObservations.get(i);
             polygons[i] = new PolarOrbitingPolygon(orbitObservation.getId(),
-                    orbitObservation.getTime().getTime(),
-                    orbitObservation.getLocation().getGeometry());
+                                                   orbitObservation.getTime().getTime(),
+                                                   orbitObservation.getLocation().getGeometry());
         }
         findObservations(samples, searchTimePastMillis, searchTimeFutureMillis, primarySensor, polygons);
     }
 
     // package access for testing only tb 2014-04-02
-    static void findObservations(List<SamplingPoint> samples, long searchTimePast, long searchTimeFuture, boolean primarySensor,
+    static void findObservations(List<SamplingPoint> samples, long searchTimePast, long searchTimeFuture,
+                                 boolean primarySensor,
                                  PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
         if (polygons.length > 0) {
             for (final SamplingPoint point : samples) {
                 final long pointTime = getPointTime(point, primarySensor);
 
-                // look for orbit temporally before (i0) and after (i1) point with binary search
+                // look for orbit temporally before (iBefore) and after (iAfter) point with binary search
                 int iBefore = 0;
                 int iAfter = polygons.length - 1;
                 while (iBefore + 1 < iAfter) {
@@ -87,37 +89,39 @@ public class ObservationFinder {
                     }
                 }
 
-                // check orbitObservations temporally closest to point first for spatial overlap
-                while (true) {
-                    // the next polygon in the past is closer to the sample than the next polygon in the future
-                    if (iBefore >= 0) {
-                        if (pointTime - polygons[iBefore].getTime() <= searchTimePast &&
-                                (iAfter >= polygons.length ||
-                                        pointTime < polygons[iBefore].getTime() ||
-                                        pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime)) {
-                            if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
-                                assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
-                                accu.add(point);
-                                break;
-                            }
-                        }
-                        --iBefore;
-                    } else
-                        // the next polygon in the future is closer than the next polygon in the past
-                        if (iAfter < polygons.length) {
-                            if (polygons[iAfter].getTime() - pointTime <= searchTimeFuture) {
-                                if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
-                                    assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
-                                    accu.add(point);
-                                    break;
-                                }
-                            }
-                            ++iAfter;
-                        } else
-                        // there is no next polygon in the past and no next polygon in the future
-                        {
+                // find overlapping orbit that is closest in time to the sampling point
+                while (iBefore >= 0) {
+                    if (pointTime - polygons[iBefore].getTime() <= searchTimePast) {
+                        if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
                             break;
                         }
+                    }
+                    --iBefore;
+                }
+                while (iAfter < polygons.length) {
+                    if (polygons[iAfter].getTime() - pointTime <= searchTimeFuture) {
+                        if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
+                            break;
+                        }
+                    }
+                    ++iAfter;
+                }
+                final boolean foundBefore = iBefore >= 0;
+                final boolean foundAfter = iAfter < polygons.length;
+                if (foundBefore) {
+                    if (foundAfter) {
+                        if (pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime) {
+                            assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
+                        } else {
+                            assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
+                        }
+                    } else {
+                        assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
+                    }
+                    accu.add(point);
+                } else if (foundAfter) {
+                    assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
+                    accu.add(point);
                 }
             }
         }
@@ -147,6 +151,7 @@ public class ObservationFinder {
     }
 
     public static class Parameter {
+
         private String sensorName;
         private long startTime;
         private long stopTime;
