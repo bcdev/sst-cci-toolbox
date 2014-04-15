@@ -9,6 +9,8 @@ import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SensorNames;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -74,10 +76,25 @@ public class ObservationFinder {
                                  PolarOrbitingPolygon... polygons) {
         final List<SamplingPoint> accu = new ArrayList<>(samples.size());
         if (polygons.length > 0) {
+            // do not trust database sorting
+            Arrays.sort(polygons, new Comparator<PolarOrbitingPolygon>() {
+                @Override
+                public int compare(PolarOrbitingPolygon o1, PolarOrbitingPolygon o2) {
+                    return Long.compare(o1.getTime(), o2.getTime());
+                }
+            });
+            final long[] polygonTimes = new long[polygons.length];
+            for (int i = 0; i < polygons.length; i++) {
+                polygonTimes[i] = polygons[i].getTime();
+            }
+
             for (final SamplingPoint point : samples) {
                 final long pointTime = getPointTime(point, primarySensor);
 
                 // binary search for orbit temporally before (iBefore) and after (iAfter) point
+                int iBefore = binarySearch(polygonTimes, pointTime);
+                int iAfter = iBefore + 1;
+                /*
                 int iBefore = 0;
                 int iAfter = polygons.length - 1;
                 while (iBefore + 1 < iAfter) {
@@ -88,10 +105,11 @@ public class ObservationFinder {
                         iBefore = i;
                     }
                 }
+                */
 
                 // find overlapping orbit that is closest in time to the sampling point
                 while (iBefore >= 0) {
-                    if (pointTime - polygons[iBefore].getTime() <= searchTimePast) {
+                    if (pointTime - polygonTimes[iBefore] <= searchTimePast) {
                         if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
                             break;
                         }
@@ -100,10 +118,10 @@ public class ObservationFinder {
                 }
                 final boolean foundBefore = iBefore >= 0;
                 while (iAfter < polygons.length) {
-                    final long timeDifference = polygons[iAfter].getTime() - pointTime;
+                    final long timeDifference = polygonTimes[iAfter] - pointTime;
                     if (timeDifference <= searchTimeFuture) {
                         if (foundBefore) {
-                            final long timeDifferenceBefore = pointTime - polygons[iBefore].getTime();
+                            final long timeDifferenceBefore = pointTime - polygonTimes[iBefore];
                             if (timeDifference < timeDifferenceBefore) {
                                 if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
                                     assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
@@ -150,6 +168,24 @@ public class ObservationFinder {
             return samplingPoint.getTime();
         }
         return samplingPoint.getReferenceTime();
+    }
+
+    // package access for testing only rq 2014-04-15
+    static int binarySearch(long[] values, long value) {
+        int low = 0;
+        int high = values.length - 1;
+
+        while (low <= high) {
+            final int mid = (high + low) >> 1;
+            final long midValue = values[mid];
+            if (midValue <= value) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return high;
     }
 
     public static class Parameter {

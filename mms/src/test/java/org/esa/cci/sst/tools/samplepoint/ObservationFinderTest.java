@@ -23,22 +23,25 @@ public class ObservationFinderTest {
         final long startTime = TimeUtil.parseCcsdsUtcFormat("2003-01-01T00:00:00Z").getTime();
         final long stopTime = TimeUtil.parseCcsdsUtcFormat("2003-01-02T00:00:00Z").getTime();
         final List<SamplingPoint> samples = new SobolSamplePointGenerator().createSamples(10000, 0, startTime,
-                stopTime);
+                                                                                          stopTime);
 
         assertEquals(10000, samples.size());
 
         final PolarOrbitingPolygon orbitPolygonAatsr = createAtsrPolygon(1);
         final int seventeenDaysTwelveHoursInMillisHalf = 86400 * 175 / 20 * 1000;
-        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillisHalf, seventeenDaysTwelveHoursInMillisHalf, true, orbitPolygonAatsr);
+        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillisHalf,
+                                           seventeenDaysTwelveHoursInMillisHalf, true, orbitPolygonAatsr);
 
-        assertEquals(518, samples.size());
+        assertEquals(29, samples.size());
+        //assertEquals(518, samples.size());
 
         final PolarOrbitingPolygon orbitPolygonAtsr2 = createAtsr2Polygon();
 
         final int twelfAndAHalfHour = 90000 * 500;
         ObservationFinder.findObservations(samples, twelfAndAHalfHour, twelfAndAHalfHour, false, orbitPolygonAtsr2);
 
-        assertEquals(471, samples.size());
+        assertEquals(26, samples.size());
+        //assertEquals(471, samples.size());
     }
 
 
@@ -48,7 +51,8 @@ public class ObservationFinderTest {
         samples.add(new SamplingPoint());
 
         final int seventeenDaysTwelveHoursInMillisHalf = 86400 * 175 / 10 * 1000;
-        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillisHalf, seventeenDaysTwelveHoursInMillisHalf, true);
+        ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillisHalf,
+                                           seventeenDaysTwelveHoursInMillisHalf, true);
 
         assertTrue(samples.isEmpty());
     }
@@ -115,6 +119,34 @@ public class ObservationFinderTest {
     }
 
     @Test
+    public void testBinarySearch() throws Exception {
+        final long[] values = {2, 3, 4, 6, 9, 11, 12};
+
+        // value in array
+        assertEquals(0, ObservationFinder.binarySearch(values, 2));
+        assertEquals(1, ObservationFinder.binarySearch(values, 3));
+        assertEquals(2, ObservationFinder.binarySearch(values, 4));
+        assertEquals(3, ObservationFinder.binarySearch(values, 6));
+        assertEquals(4, ObservationFinder.binarySearch(values, 9));
+        assertEquals(5, ObservationFinder.binarySearch(values, 11));
+        assertEquals(6, ObservationFinder.binarySearch(values, 12));
+
+        // value in range of array values
+        assertEquals(2, ObservationFinder.binarySearch(values, 5));
+        assertEquals(3, ObservationFinder.binarySearch(values, 7));
+        assertEquals(3, ObservationFinder.binarySearch(values, 8));
+        assertEquals(4, ObservationFinder.binarySearch(values, 10));
+
+        // values greater than the greatest value in array
+        assertEquals(6, ObservationFinder.binarySearch(values, 13));
+        assertEquals(6, ObservationFinder.binarySearch(values, 14));
+
+        // values less than the least value in array
+        assertEquals(-1, ObservationFinder.binarySearch(values, 0));
+        assertEquals(-1, ObservationFinder.binarySearch(values, 1));
+    }
+
+    @Test
     public void testSetGetSearchTimeFuture_parameterObject() {
         final ObservationFinder.Parameter parameter = new ObservationFinder.Parameter();
         final int future_1 = 83;
@@ -150,7 +182,8 @@ public class ObservationFinderTest {
         assertEquals(6654, ObservationFinder.getPointTime(samplingPoint, false));
     }
 
-    private static PolarOrbitingPolygon createPolarOrbitingPolygon(String time, Point[] points, int id) throws ParseException {
+    private static PolarOrbitingPolygon createPolarOrbitingPolygon(String time, Point[] points, int id) throws
+                                                                                                        ParseException {
         final Geometry orbitGeometryAatsr = new Polygon(new LinearRing[]{new LinearRing(points)});
         final long orbitTimeAatsr = TimeUtil.parseCcsdsUtcFormat(time).getTime();
 
