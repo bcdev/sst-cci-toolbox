@@ -94,22 +94,10 @@ public class ObservationFinder {
                 // binary search for orbit temporally before (iBefore) and after (iAfter) point
                 int iBefore = binarySearch(polygonTimes, pointTime);
                 int iAfter = iBefore + 1;
-                /*
-                int iBefore = 0;
-                int iAfter = polygons.length - 1;
-                while (iBefore + 1 < iAfter) {
-                    int i = (iAfter + iBefore) / 2;
-                    if (pointTime < polygons[i].getTime()) {
-                        iAfter = i;
-                    } else {
-                        iBefore = i;
-                    }
-                }
-                */
 
                 // find overlapping orbit that is closest in time to the sampling point
                 while (iBefore >= 0) {
-                    if (pointTime - polygons[iBefore].getTime() <= searchTimePast) {
+                    if (pointTime - polygonTimes[iBefore] <= searchTimePast) {
                         if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
                             break;
                         }
@@ -117,7 +105,7 @@ public class ObservationFinder {
                     --iBefore;
                 }
                 while (iAfter < polygons.length) {
-                    if (polygons[iAfter].getTime() - pointTime <= searchTimeFuture) {
+                    if (polygonTimes[iAfter] - pointTime <= searchTimeFuture) {
                         if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
                             break;
                         }
@@ -128,7 +116,7 @@ public class ObservationFinder {
                 final boolean foundAfter = iAfter < polygons.length;
                 if (foundBefore) {
                     if (foundAfter) {
-                        if (pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime) {
+                        if (pointTime - polygonTimes[iBefore] < polygonTimes[iAfter] - pointTime) {
                             assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
                         } else {
                             assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
