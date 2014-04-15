@@ -91,7 +91,7 @@ public class ObservationFinder {
             for (final SamplingPoint point : samples) {
                 final long pointTime = getPointTime(point, primarySensor);
 
-                // binary search for orbit temporally before (iBefore) and after (iAfter) point
+                // binary search for orbit temporally before or at the same time (iBefore) and after (iAfter) point
                 int iBefore = binarySearch(polygonTimes, pointTime);
                 int iAfter = iBefore + 1;
 
