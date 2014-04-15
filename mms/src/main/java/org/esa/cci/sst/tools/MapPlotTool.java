@@ -35,9 +35,9 @@ public class MapPlotTool extends BasicTool {
 
     private static final String SQL_GET_REFERENCE_OBSERVATIONS =
             "select o"
-                    + " from ReferenceObservation o"
-                    + " where o.sensor = ?1 and o.time >= ?2 and o.time < ?3"
-                    + " order by o.time";
+            + " from ReferenceObservation o"
+            + " where o.sensor = ?1 and o.time >= ?2 and o.time < ?3"
+            + " order by o.time";
 
     private String sensor;
     private boolean show;
@@ -77,10 +77,10 @@ public class MapPlotTool extends BasicTool {
         final Configuration config = getConfig();
         sensor = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_SENSOR);
         timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_MAPPLOT_START_TIME,
-                Configuration.KEY_MMS_MAPPLOT_STOP_TIME,
-                config);
+                                            Configuration.KEY_MMS_MAPPLOT_STOP_TIME,
+                                            config);
         show = config.getBooleanValue(Configuration.KEY_MMS_MAPPLOT_SHOW, false);
-        mapStrategyName = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_STATEGY, "latlon");
+        mapStrategyName = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_STATEGY, "lonlat");
         targetDir = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_DIR);
         targetFilename = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TARGET_FILENAME);
         title = config.getStringValue(Configuration.KEY_MMS_MAPPLOT_TITLE, null);
@@ -100,7 +100,7 @@ public class MapPlotTool extends BasicTool {
 
             getLogger().info(
                     MessageFormat.format("querying samples: sensor = {0}, start time = {1}, stop time = {2}", sensor,
-                            startDate, stopDate)
+                                         startDate, stopDate)
             );
             @SuppressWarnings("unchecked")
             final List<ReferenceObservation> referenceObservations = query.getResultList();
