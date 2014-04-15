@@ -197,6 +197,6 @@ public final class SamplingPointPlotter {
                 .mapStrategyName("lonlat")
                 .series(true)
                 .plot();
-        // a movie can be created from the image series with 'ffmpeg -i %04d.png sampling.mpg'
+        // a movie can be created from the image series with 'ffmpeg -i %04d.png -q 1 sampling.mpg'
     }
 }
