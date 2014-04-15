@@ -32,16 +32,14 @@ public class ObservationFinderTest {
         ObservationFinder.findObservations(samples, seventeenDaysTwelveHoursInMillisHalf,
                                            seventeenDaysTwelveHoursInMillisHalf, true, orbitPolygonAatsr);
 
-        assertEquals(29, samples.size());
-        //assertEquals(518, samples.size());
+        assertEquals(518, samples.size());
 
         final PolarOrbitingPolygon orbitPolygonAtsr2 = createAtsr2Polygon();
 
         final int twelfAndAHalfHour = 90000 * 500;
         ObservationFinder.findObservations(samples, twelfAndAHalfHour, twelfAndAHalfHour, false, orbitPolygonAtsr2);
 
-        assertEquals(26, samples.size());
-        //assertEquals(471, samples.size());
+        assertEquals(471, samples.size());
     }
 
 
