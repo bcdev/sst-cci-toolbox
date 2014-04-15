@@ -145,7 +145,7 @@ for year in years:
             pm.execute('mapplot-start.sh',
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/plt/' + sensor + '/' + year + '/' + month],
-                       parameters=[year, month, 'dum' + sensor, 'lonlat', usecase])
+                       parameters=[year, month, 'dum_' + sensor, 'lonlat', usecase])
             continue
 
             # 4. Add coincidences from Sea Ice and Aerosol data
