@@ -96,9 +96,11 @@ public class ObservationFinder {
                 int iAfter = iBefore + 1;
 
                 // find overlapping orbit that is closest in time to the sampling point
+                final double pointLat = point.getLat();
+                final double pointLon = point.getLon();
                 while (iBefore >= 0) {
                     if (pointTime - polygonTimes[iBefore] <= searchTimePast) {
-                        if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
+                        if (polygons[iBefore].isPointInPolygon(pointLat, pointLon)) {
                             break;
                         }
                     }
@@ -106,7 +108,7 @@ public class ObservationFinder {
                 }
                 while (iAfter < polygons.length) {
                     if (polygonTimes[iAfter] - pointTime <= searchTimeFuture) {
-                        if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
+                        if (polygons[iAfter].isPointInPolygon(pointLat, pointLon)) {
                             break;
                         }
                     }
