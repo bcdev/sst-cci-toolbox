@@ -109,39 +109,37 @@ public class ObservationFinder {
 
                 // find overlapping orbit that is closest in time to the sampling point
                 while (iBefore >= 0) {
-                    if (pointTime - polygonTimes[iBefore] <= searchTimePast) {
+                    if (pointTime - polygons[iBefore].getTime() <= searchTimePast) {
                         if (polygons[iBefore].isPointInPolygon(point.getLat(), point.getLon())) {
                             break;
                         }
                     }
                     --iBefore;
                 }
-                final boolean foundBefore = iBefore >= 0;
                 while (iAfter < polygons.length) {
-                    final long timeDifference = polygonTimes[iAfter] - pointTime;
-                    if (timeDifference <= searchTimeFuture) {
-                        if (foundBefore) {
-                            final long timeDifferenceBefore = pointTime - polygonTimes[iBefore];
-                            if (timeDifference < timeDifferenceBefore) {
-                                if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
-                                    assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
-                                    accu.add(point);
-                                    break;
-                                }
-                            } else {
-                                assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
-                                accu.add(point);
-                                break;
-                            }
-                        } else {
-                            if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
-                                assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
-                                accu.add(point);
-                                break;
-                            }
+                    if (polygons[iAfter].getTime() - pointTime <= searchTimeFuture) {
+                        if (polygons[iAfter].isPointInPolygon(point.getLat(), point.getLon())) {
+                            break;
                         }
                     }
                     ++iAfter;
+                }
+                final boolean foundBefore = iBefore >= 0;
+                final boolean foundAfter = iAfter < polygons.length;
+                if (foundBefore) {
+                    if (foundAfter) {
+                        if (pointTime - polygons[iBefore].getTime() < polygons[iAfter].getTime() - pointTime) {
+                            assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
+                        } else {
+                            assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
+                        }
+                    } else {
+                        assignToSamplingPoint(primarySensor, point, polygons[iBefore]);
+                    }
+                    accu.add(point);
+                } else if (foundAfter) {
+                    assignToSamplingPoint(primarySensor, point, polygons[iAfter]);
+                    accu.add(point);
                 }
             }
         }
