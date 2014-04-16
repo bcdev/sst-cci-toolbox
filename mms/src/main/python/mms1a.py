@@ -223,7 +223,8 @@ for year in years:
 
             # 11. Produce final single-sensor MMD file
             pm.execute('mmd-start.sh',
-                       ['/con/' + sensor + '/' + year + '/' + month],
+                       ['/con/' + sensor + '/' + year + '/' + month,
+                        '/con/' + sensor2 + '/' + year + '/' + month],
                        ['/mmd/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'mmd1', usecase])
 
