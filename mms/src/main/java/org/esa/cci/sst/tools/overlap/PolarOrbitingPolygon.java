@@ -1,6 +1,5 @@
 package org.esa.cci.sst.tools.overlap;
 
-import org.esa.beam.util.math.SphericalDistance;
 import org.esa.cci.sst.util.GeometryUtil;
 import org.postgis.Geometry;
 
@@ -114,7 +113,8 @@ public class PolarOrbitingPolygon {
                     firstEquatorCrossingLonPlus90 = GeometryUtil.normalizeLongitude(crossingLon + 90.0);
                     transformedSampleLon = GeometryUtil.normalizeLongitude(sampleLon - firstEquatorCrossingLonPlus90);
                 }
-                final double transformedCrossingLon = GeometryUtil.normalizeLongitude(crossingLon - firstEquatorCrossingLonPlus90);
+                final double transformedCrossingLon = GeometryUtil.normalizeLongitude(
+                        crossingLon - firstEquatorCrossingLonPlus90);
                 // TODO - why is isBetween() but not isEdgeCrossingMeridian() used here?
                 // see class comment for an explanation (the question here is whether the equator crossing is between the sample projected to the equator and the new 90 degree point)
                 if (isBetween(transformedCrossingLon, 0.0, transformedSampleLon)) {
@@ -151,7 +151,8 @@ public class PolarOrbitingPolygon {
 
     private int findCorrespondingPoint(Geometry geometry, int middle1, int middle2) {
         final org.postgis.Point middle1Point = geometry.getPoint(middle1);
-        final SphericalDistance middle1DistanceCalculator = new SphericalDistance(middle1Point.getX(), middle1Point.getY());
+        final SphericalDistance middle1DistanceCalculator = new SphericalDistance(middle1Point.getX(),
+                                                                                  middle1Point.getY());
         org.postgis.Point point2 = geometry.getPoint(middle2);
         double distance = middle1DistanceCalculator.distance(point2.getX(), point2.getY());
         while (middle2 + 2 < geometry.numPoints()) {
@@ -200,4 +201,41 @@ public class PolarOrbitingPolygon {
     static boolean isEdgeCrossingEquator(double lat1, double lat2) {
         return (lat1 <= 0.0 && lat2 > 0.0) || (lat1 >= 0.0 && lat2 < 0.0);
     }
+
+    ///// TODO: stripped-down BEAM5 classes below, to be replaced with BEAM5 classes when BEAM5 is established /////
+
+    private static final class SphericalDistance {
+
+        private final double lon;
+        private final double si;
+        private final double co;
+
+        /**
+         * Creates a new instance of this class.
+         *
+         * @param lon The reference longitude of this distance calculator.
+         * @param lat The reference latitude of this distance calculator.
+         */
+        private SphericalDistance(double lon, double lat) {
+            this.lon = lon;
+            this.si = Math.sin(Math.toRadians(lat));
+            this.co = Math.cos(Math.toRadians(lat));
+        }
+
+        /**
+         * Returns the spherical distance (in Radian) of a given (lon, lat) point to
+         * the reference (lon, lat) point.
+         *
+         * @param lon The longitude.
+         * @param lat The latitude.
+         *
+         * @return the spherical distance (in Radian) of the given (lon, lat) point
+         * to the reference (lon, lat) point.
+         */
+        private double distance(double lon, double lat) {
+            final double phi = Math.toRadians(lat);
+            return Math.acos(si * Math.sin(phi) + co * Math.cos(phi) * Math.cos(Math.toRadians(lon - this.lon)));
+        }
+    }
+
 }
