@@ -146,7 +146,6 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/plt/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, 'dum_' + sensor, 'lonlat', usecase])
-            continue
 
             # 4. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-start.sh',
