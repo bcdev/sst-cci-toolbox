@@ -16,36 +16,22 @@
 
 <module>
     <manifestVersion>1.0.0</manifestVersion>
-    <symbolicName>sst-cci-toolbox</symbolicName>
-    <version>1.0</version>
+    <symbolicName>sst-cci-mms</symbolicName>
+    <version>2.0</version>
     <name>SST CCI Toolbox</name>
     <description>
-        Multi-sensor matchup system with a database of observations and
-        matchups, several product readers for data used by the SST CCI
-        project, and an MMD NetcCDF format to generate and re-ingest
-        matchup datasets
+        Several product readers for data used by the SST CCI project.
     </description>
 
     <vendor>Brockmann Consult GmbH</vendor>
     <contactAddress>
         Max Planck Str. 2, 21502 Geesthacht (Germany)
     </contactAddress>
-    <copyright>(C) 2011 by Brockmann Consult GmbH</copyright>
+    <copyright>(C) 2014 by Brockmann Consult GmbH</copyright>
     <url>http://www.brockmann-consult.de/</url>
     <licenseUrl>http://www.gnu.org/licenses/gpl.html</licenseUrl>
 
     <changelog>
-        <![CDATA[
-        <p>Changes in 1.0<br/>
-        [sst-cci-23] provide software package for G. Corlett to process the remaining 12 years<br/>
-        <p>
-        Changes in 1.1<br/>
-        [sst-cci-27] atsr.2 detector_temperature_12 shall not be set<br/>
-        <p>
-        Changes in 1.1<br/>
-        [sst-cci-28] avhrr.n18 nwp and arc3 processing shall not use high latitude observations<br/>
-        <p>
-        ]]>
     </changelog>
 
     <dependency>
@@ -65,6 +51,6 @@
         <optional>true</optional>
     </dependency>
 
-    <categories>Reader,Matchup,CCI,SST,MMS</categories>
+    <categories>Reader,CCI,SST</categories>
 
 </module>
