@@ -374,13 +374,13 @@ public class MmdTool extends BasicTool {
         try {
             final Reader reader = readerCache.getReader(observation.getDatafile(), true);
             final String role = sourceColumn.getRole();
-            final int halfExtractDuration = getConfig().getIntValue(Configuration.KEY_MMS_SAMPLING_EXTRACTION_TIME);
             final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder()
                     .referenceObservation(refObs)
                     .recordNo(observation.getRecordNo())
                     .shape(variable.getShape())
                     .fillValue(targetColumn.getFillValue());
             if (observation instanceof InsituObservation) {
+                final int halfExtractDuration = getConfig().getIntValue(Configuration.KEY_MMS_SAMPLING_EXTRACTION_TIME);
                 builder.halfExtractDuration(halfExtractDuration);
             }
             final ExtractDefinition extractDefinition = builder.build();
