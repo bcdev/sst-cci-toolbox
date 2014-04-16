@@ -16,8 +16,6 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.dataio.avhrr.AvhrrReaderPlugIn;
-import org.esa.beam.dataio.cci.sst.HdfOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
