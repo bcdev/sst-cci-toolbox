@@ -53,10 +53,6 @@
     </dependency>
 
     <dependency>
-        <module>beam-avhrr-reader</module>
-    </dependency>
-
-    <dependency>
         <module>beam-envisat-reader</module>
     </dependency>
 
