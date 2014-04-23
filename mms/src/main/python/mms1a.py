@@ -6,7 +6,7 @@ years = ['1995', '1996', '1997']
 months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 sensors = [('atsr.2', '1995-06-01', '1997-12-17')]
 # 300000 leads to about 2500 surviving samples per month
-samplespermonth = 3000000
+samplespermonth = 9000000
 skip = 0
 
 # archiving rules
