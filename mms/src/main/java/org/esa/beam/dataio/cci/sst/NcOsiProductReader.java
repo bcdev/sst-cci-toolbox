@@ -99,11 +99,7 @@ public class NcOsiProductReader extends NetcdfProductReaderTemplate {
             final CoordinateReferenceSystem crs = CRS.decode(code);
             final GeoCoding gc = new CrsGeoCoding(crs, w, h, easting, northing, sizeX, sizeY, 0.5, 0.5);
             product.setGeoCoding(gc);
-        } catch (InvalidRangeException e) {
-            throw new IllegalStateException(e);
-        } catch (FactoryException e) {
-            throw new IllegalStateException(e);
-        } catch (TransformException e) {
+        } catch (InvalidRangeException | FactoryException | TransformException e) {
             throw new IllegalStateException(e);
         }
     }
