@@ -165,9 +165,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
 
             product.setStartTime(startTime);
             product.setEndTime(endTime);
-        } catch (InvalidRangeException e) {
-            throw new IllegalStateException(e);
-        } catch (IOException e) {
+        } catch (InvalidRangeException | IOException e) {
             throw new IllegalStateException(e);
         }
     }
