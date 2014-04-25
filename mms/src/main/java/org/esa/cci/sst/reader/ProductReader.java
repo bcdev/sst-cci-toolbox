@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import org.esa.beam.dataio.cci.sst.NcAvhrrGacProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
 import org.esa.beam.dataio.envisat.EnvisatConstants;
@@ -55,7 +56,8 @@ class ProductReader extends AbstractProductReader {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
               NcOsiProductReaderPlugIn.FORMAT_NAME,
-              PmwProductReaderPlugIn.FORMAT_NAME);
+              PmwProductReaderPlugIn.FORMAT_NAME,
+              NcAvhrrGacProductReaderPlugIn.FORMAT_NAME);
         this.bc = new BoundaryCalculator();
     }
 
