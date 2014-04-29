@@ -92,17 +92,17 @@ for (sensor, sensorstart, sensorstop) in sensors:
     inputs.append('/obs/' + next_month_year + '/' + next_month)
     inputs.append('/smp/' + sensor + '/' + next_month_year + '/' + next_month)
 
-hosts = [('localhost', 24)]
-types = [('ingestion-start.sh', 12),
-         ('sampling-start.sh', 12),
-         ('clearsky-start.sh', 12),
-         ('mmd-start.sh', 12),
-         ('coincidence-start.sh', 12),
-         ('nwp-start.sh', 12),
-         ('matchup-nwp-start.sh', 12),
-         ('gbcs-start.sh', 12),
-         ('matchup-reingestion-start.sh', 12),
-         ('reingestion-start.sh', 12)]
+hosts = [('localhost', 48)]
+types = [('ingestion-start.sh', 24),
+         ('sampling-start.sh', 24),
+         ('clearsky-start.sh', 24),
+         ('mmd-start.sh', 24),
+         ('coincidence-start.sh', 24),
+         ('nwp-start.sh', 24),
+         ('matchup-nwp-start.sh', 24),
+         ('gbcs-start.sh', 24),
+         ('matchup-reingestion-start.sh', 24),
+         ('reingestion-start.sh', 24)]
 
 pm = PMonitor(inputs,
               request='mms1b',
