@@ -248,6 +248,10 @@
                 <mms.archive.root>/group_workspaces/cems/esacci_sst/mms/archive</mms.archive.root>
                 <mms.pg.host>172.16.150.238</mms.pg.host>
                 <mms.pg.port>5423</mms.pg.port>
+                <mms.nwp.cdo.home>/group_workspaces/cems/esacci_sst/software/cdo/1.6.3</mms.nwp.cdo.home>
+                <mms.gbcs.home>/group_workspaces/cems/esacci_sst/software/gbcs</mms.gbcs.home>
+                <mms.gbcs.version>v2.1.1</mms.gbcs.version>
+                <mms.gbcs.intelversion>12.1.5</mms.gbcs.intelversion>
             </properties>
         </profile>
     </profiles>
