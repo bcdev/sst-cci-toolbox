@@ -47,16 +47,18 @@ import java.io.IOException;
  */
 public class PmwProductReader extends NetcdfProductReaderTemplate {
 
-    private static final Invalidator AMS_LAT_INVALIDATOR = new Invalidator() {
+    private static final NumberInvalidator AMS_LAT_INVALIDATOR = new NumberInvalidator() {
         @Override
-        public final boolean isInvalid(double value) {
-            return value > 90.0 || value < -90.0 || Double.isNaN(value);
+        public final boolean isInvalid(Number value) {
+            final double d = value.doubleValue();
+            return d > 90.0 || d < -90.0 || Double.isNaN(d);
         }
     };
-    private static final Invalidator TMI_LAT_INVALIDATOR = new Invalidator() {
+    private static final NumberInvalidator TMI_LAT_INVALIDATOR = new NumberInvalidator() {
         @Override
-        public final boolean isInvalid(double value) {
-            return value > 90.0 || value < -90.0 || value == 0;
+        public final boolean isInvalid(Number value) {
+            final double d = value.doubleValue();
+            return d > 90.0 || d < -90.0 || value == 0;
         }
     };
 
@@ -149,7 +151,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
     }
 
     @Override
-    protected final void setTime(Product product) {
+    protected final void setTime(Product product) throws IOException {
         try {
             final double referenceTime = findVariable("time").read().getDouble(0);
             final Variable variable = findVariable("sst_dtime");
@@ -165,14 +167,13 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
 
             product.setStartTime(startTime);
             product.setEndTime(endTime);
-        } catch (InvalidRangeException | IOException e) {
-            throw new IllegalStateException(e);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
         }
     }
 
 
-
-    private void invalidateLines(Invalidator invalidator) throws IOException {
+    private void invalidateLines(NumberInvalidator invalidator) throws IOException {
         final Variable variable = findVariable("lat");
         final int[] shape = columnShape(variable);
         try {
@@ -202,11 +203,6 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
             shape[i] = 1;
         }
         return shape;
-    }
-
-    private interface Invalidator {
-
-        boolean isInvalid(double value);
     }
 
 }
