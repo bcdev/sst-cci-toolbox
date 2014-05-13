@@ -47,7 +47,7 @@ public class NcAaiProductReaderTest {
         reader = new NcAaiProductReader(new NcAaiProductReaderPlugIn()) {
 
             @Override
-            protected NetcdfFile getNetcdfFile() {
+            public NetcdfFile getNetcdfFile() {
                 final String location = getInput();
                 try {
                     return NetcdfFile.open(location);

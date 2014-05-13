@@ -17,12 +17,15 @@
 package org.esa.beam.dataio.cci.sst;
 
 import com.bc.ceres.core.ProgressMonitor;
+import org.esa.beam.dataio.netcdf.ProfileReadContext;
+import org.esa.beam.dataio.netcdf.util.RasterDigest;
 import org.esa.beam.framework.dataio.AbstractProductReader;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.framework.datamodel.VirtualBand;
+import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -39,7 +42,7 @@ import java.text.MessageFormat;
  *
  * @author Ralf Quast
  */
-abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
+abstract class NetcdfProductReaderTemplate extends AbstractProductReader implements ProfileReadContext {
 
     private NetcdfFile netcdfFile;
 
@@ -47,7 +50,8 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
         super(readerPlugIn);
     }
 
-    protected NetcdfFile getNetcdfFile() {
+    @Override
+    public NetcdfFile getNetcdfFile() {
         return netcdfFile;
     }
 
@@ -60,6 +64,7 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
         product.setFileLocation(inputFile);
         addMetadata(product);
         addBands(product);
+        addSampleCodings(product);
         addGeoCoding(product);
         for (final Band band : product.getBands()) {
             if (band instanceof VirtualBand) {
@@ -110,6 +115,9 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
 
     protected abstract void setTime(Product product) throws IOException;
 
+    protected void addSampleCodings(Product product) throws IOException {
+    }
+
     protected final Dimension findDimension(String name) throws IOException {
         final Dimension dimension = getNetcdfFile().findDimension(name);
         if (dimension == null) {
@@ -125,4 +133,33 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader {
         }
         return variable;
     }
+
+    protected static Number getAttribute(Variable variable, String name) {
+        final Attribute attribute = variable.findAttribute(name);
+        if (attribute == null) {
+            return null;
+        }
+        return attribute.getNumericValue();
+    }
+
+    @Override
+    public void setRasterDigest(RasterDigest rasterDigest) {
+        throw new RuntimeException("Method not implemented.");
+    }
+
+    @Override
+    public RasterDigest getRasterDigest() {
+        throw new RuntimeException("Method not implemented.");
+    }
+
+    @Override
+    public void setProperty(String name, Object value) {
+        throw new RuntimeException("Method not implemented.");
+    }
+
+    @Override
+    public Object getProperty(String name) {
+        throw new RuntimeException("Method not implemented.");
+    }
+
 }
