@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-core</artifactId>
-            <version>4.11</version>
+            <version>5.0</version>
         </dependency>
 
         <!-- Scope: Test -->
