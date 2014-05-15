@@ -31,7 +31,7 @@ public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
 
     private final PixelLocator pixelLocator;
 
-    public PixelGeoCodingWrapper(PixelGeoCoding pixelGeoCoding) {
+    public PixelGeoCodingWrapper(BasicPixelGeoCoding pixelGeoCoding) {
         super(pixelGeoCoding);
         final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand());
         final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand());
