@@ -182,5 +182,4 @@ public class SimplePixelLocator implements PixelLocator {
 
         return p;
     }
-
 }
