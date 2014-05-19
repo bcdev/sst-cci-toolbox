@@ -20,7 +20,7 @@ import org.esa.beam.framework.dataop.maptransf.Datum;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
-public class ForwardingGeoCoding implements GeoCoding {
+class ForwardingGeoCoding implements GeoCoding {
 
     private final GeoCoding delegate;
 
