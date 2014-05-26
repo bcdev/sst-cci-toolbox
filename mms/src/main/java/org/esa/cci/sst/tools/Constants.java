@@ -81,6 +81,7 @@ public class Constants {
     public static final byte MATCHUP_REFERENCE_FLAG_VALIDATION = 3;
     public static final byte MATCHUP_REFERENCE_FLAG_UNDEFINED = 4;
     public static final byte MATCHUP_REFERENCE_FLAG_DUPLICATE = 5;
+    public static final String DIMENSION_NAME_INSITU_NTIME = "insitu.ntime";
 
     private Constants() {
     }

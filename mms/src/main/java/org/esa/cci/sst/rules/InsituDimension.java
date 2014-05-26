@@ -16,8 +16,10 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.tools.Constants;
+
 /**
- * Replaces the second dimension with the 'insitu.time' dimension.
+ * Replaces the second dimension with the 'insitu.ntime' dimension.
  *
  * @author Thomas Storm
  */
@@ -25,6 +27,6 @@ class InsituDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "insitu.ntime");
+        builder.replace(1, Constants.DIMENSION_NAME_INSITU_NTIME);
     }
 }
