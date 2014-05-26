@@ -7,7 +7,7 @@ class InsituHelper {
 
     static int[] getShape(Context context) {
         final Map<String, Integer> dimensionConfiguration = context.getDimensionConfiguration();
-        final Integer yDimension = dimensionConfiguration.get("insitu.time");
+        final Integer yDimension = dimensionConfiguration.get("insitu.ntime");
 
         return new int[]{1, yDimension};
     }
