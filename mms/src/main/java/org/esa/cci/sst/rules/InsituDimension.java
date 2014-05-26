@@ -25,6 +25,6 @@ class InsituDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {
-        builder.replace(1, "insitu.time");
+        builder.replace(1, "insitu.ntime");
     }
 }

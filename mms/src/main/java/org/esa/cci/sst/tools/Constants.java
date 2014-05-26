@@ -33,7 +33,7 @@ public class Constants {
     public static final String UNIT_SEA_SURFACE_TEMPERATURE = "K";
     public static final String UNIT_DTIME = "milliseconds";
     public static final String UNIT_TIME = "seconds since 1978-01-01 00:00:00";
-    public static final String UNIT_INSITU_TIME = "seconds from matchup.time";
+    public static final String UNIT_INSITU_DTIME = "seconds from matchup.time";
 
     public static final String VARIABLE_NAME_MATCHUP_ID = "matchup.id";
     public static final String VARIABLE_NAME_ARC2_MATCHUP_ID = "matchup_id";

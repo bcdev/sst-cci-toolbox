@@ -48,7 +48,7 @@ class InsituTime extends AbstractImplicitRule {
         targetColumnBuilder
                 .type(DATA_TYPE)
                 .fillValue(FILL_VALUE)
-                .unit(Constants.UNIT_INSITU_TIME);
+                .unit(Constants.UNIT_INSITU_DTIME);
     }
 
     @Override
