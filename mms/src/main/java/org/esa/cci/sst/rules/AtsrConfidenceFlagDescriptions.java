@@ -27,20 +27,16 @@ import org.esa.cci.sst.data.Item;
 @SuppressWarnings({"UnusedDeclaration"})
 public class AtsrConfidenceFlagDescriptions extends AbstractAttributeModification {
 
-    private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    private static final String FLAG_MEANINGS = "Over_land " +
-                                                "Cloudy " +
-                                                "Sunglint " +
-                                                "1.6_micron_reflectance_histogram_cloudy " +
-                                                "1.6_micron_spatial_coherence_cloudy " +
-                                                "11_micron_spatial_coherence_cloudy " +
-                                                "12_micron_gross_cloud_cloudy " +
-                                                "11_12_micron_thin_cirrus_cloudy " +
-                                                "3.7_12_micron_medium_high_level_cloudy " +
-                                                "11_3.7_micron_fog_low_stratus_cloudy " +
-                                                "11_12_micron_view_difference_cloudy " +
-                                                "3.7_11_micron_view_difference_cloudy " +
-                                                "11_12_micron_thermal_histogram_cloudy";
+    private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    private static final String FLAG_MEANINGS = "Blanking_Pulse Cosmetic_Fill_Pixel " +
+                                                "Entire_scan_absent_from_telemetry " +
+                                                "Pixel_absent_from_telemetry " +
+                                                "Pixel_not_decompressed_owing_to_error_in_packet_validation " +
+                                                "No_signal_in_some_channel " +
+                                                "Saturation_in_some_channel " +
+                                                "Derived_radiance_of_some_channel_outside_range_of_calibration " +
+                                                "Calibration_Parameters_unavailable_for_pixel " +
+                                                "Pixel_unfilled";
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {
