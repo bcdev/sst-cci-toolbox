@@ -403,13 +403,13 @@ public class InsituReaderTest {
             assertEquals(793257, samplingPoints.size());
 
             SamplingPoint samplingPoint = samplingPoints.get(0);
-            assertCorrectSamplingPoint(-10.0, 350.0, 873957599000L, 0, samplingPoint);
+            assertCorrectSamplingPoint(-10.0, -10.0, 873957599000L, 0, samplingPoint);
 
             samplingPoint = samplingPoints.get(187554);
-            assertCorrectSamplingPoint(-10.0, 350.0, 1005371999000L, 187554, samplingPoint);
+            assertCorrectSamplingPoint(-10.0, -10.0, 1005371999000L, 187554, samplingPoint);
 
             samplingPoint = samplingPoints.get(793256);
-            assertCorrectSamplingPoint(-10.0, 350.0, 1369072799000L, 793256, samplingPoint);
+            assertCorrectSamplingPoint(-10.0, -10.0, 1369072799000L, 793256, samplingPoint);
         }
     }
 

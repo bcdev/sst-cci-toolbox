@@ -31,7 +31,7 @@ public final class SamplingPoint {
     public SamplingPoint(double lon, double lat, long time, double random) {
         this.random = random;
 
-        this.lon = lon;
+        this.lon = GeometryUtil.normalizeLongitude(lon);
         this.lat = lat;
         this.time = time;
     }
@@ -51,7 +51,7 @@ public final class SamplingPoint {
     }
 
     public void setLon(double lon) {
-        this.lon = lon;
+        this.lon = GeometryUtil.normalizeLongitude(lon);
     }
 
     public double getLat() {
@@ -139,7 +139,7 @@ public final class SamplingPoint {
     }
 
     public void setReferenceLon(double referenceLon) {
-        this.referenceLon = referenceLon;
+        this.referenceLon = GeometryUtil.normalizeLongitude(referenceLon);
     }
 
     public double getReferenceLon() {

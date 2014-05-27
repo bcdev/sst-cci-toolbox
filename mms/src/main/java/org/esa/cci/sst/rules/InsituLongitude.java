@@ -16,13 +16,14 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.common.ExtractDefinition;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
-import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.common.ExtractDefinitionBuilder;
+import org.esa.cci.sst.util.GeometryUtil;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -58,7 +59,11 @@ class InsituLongitude extends AbstractImplicitRule {
                         .shape(historyShape)
                         .referenceObservation(referenceObservation)
                         .build();
-                return observationReader.read("insitu.lon", extractDefinition);
+                final Array targetArray = observationReader.read("insitu.lon", extractDefinition);
+                for (int i = 0; i < targetArray.getSize(); i++) {
+                    targetArray.setDouble(i, GeometryUtil.normalizeLongitude(targetArray.getDouble(i)));
+                }
+                return targetArray;
             } else {
                 final Array array = Array.factory(DATA_TYPE, SINGLE_VALUE_SHAPE);
                 final InsituSource insituSource = context.getReferenceObservationReader().getInsituSource();
