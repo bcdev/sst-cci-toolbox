@@ -110,7 +110,7 @@ public class SamplePointExporterIntegrationTest {
         assertIsFileWithLength(augustFile, 21);
 
         final File septemberFile = new File(targetDir, "schnickschnack.4-smp-2008-09-b.json");
-        assertIsFileWithLength(septemberFile, 269);
+        assertIsFileWithLength(septemberFile, 283);
 
         final File octoberFile = new File(targetDir, "schnickschnack.4-smp-2008-10-c.json");
         assertIsFileWithLength(octoberFile, 21);
