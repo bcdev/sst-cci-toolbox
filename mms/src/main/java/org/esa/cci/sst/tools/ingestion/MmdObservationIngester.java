@@ -43,9 +43,6 @@ class MmdObservationIngester {
     private final Ingester ingester;
     private final MmdReader reader;
     private final long pattern;
-    static final String GET_MATCHUP = "SELECT m " +
-                                      "FROM Matchup m " +
-                                      "WHERE m.id = %d";
 
     MmdObservationIngester(BasicTool tool, Ingester ingester, MmdReader reader, long pattern) {
         this.tool = tool;

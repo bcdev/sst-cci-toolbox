@@ -65,13 +65,13 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader impleme
         addMetadata(product);
         addBands(product);
         addSampleCodings(product);
-        addGeoCoding(product);
         for (final Band band : product.getBands()) {
             if (band instanceof VirtualBand) {
                 continue;
             }
             band.setSourceImage(createSourceImage(band));
         }
+        addGeoCoding(product);
         setTime(product);
 
         return product;

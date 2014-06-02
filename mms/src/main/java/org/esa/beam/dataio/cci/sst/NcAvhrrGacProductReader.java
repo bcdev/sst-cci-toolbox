@@ -7,9 +7,7 @@ import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfIndexCodingPart;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
-import org.esa.beam.framework.datamodel.Band;
-import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.datamodel.*;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.cci.sst.util.TimeUtil;
@@ -82,7 +80,10 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected void addGeoCoding(Product product) throws IOException {
-
+        final Band latBand = product.getBand("lat");
+        final Band lonBand = product.getBand("lon");
+        final BasicPixelGeoCoding pixelGeoCoding = GeoCodingFactory.createPixelGeoCoding(latBand, lonBand, "", 5);
+        product.setGeoCoding(pixelGeoCoding);
     }
 
     @Override
