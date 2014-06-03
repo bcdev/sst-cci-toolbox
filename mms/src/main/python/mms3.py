@@ -100,12 +100,12 @@ types = [('ingestion-start.sh', 120),
          ('sampling-start.sh', 1),
          ('clearsky-start.sh', 120),
          ('mmd-start.sh', 120),
-         ('coincidence-start.sh', 48),
+         ('coincidence-start.sh', 24),
          ('nwp-start.sh', 240),
          ('matchup-nwp-start.sh', 240),
          ('gbcs-start.sh', 240),
-         ('reingestion-start.sh', 48),
-         ('matchup-reingestion-start.sh', 48)]
+         ('reingestion-start.sh', 24),
+         ('matchup-reingestion-start.sh', 24)]
 
 pm = PMonitor(inputs,
               request='mms3',
