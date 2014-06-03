@@ -58,14 +58,11 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
                     final Number validMax = getAttribute(v, "valid_max");
 
                     if (validMin != null && validMax != null) {
-                        band.setValidPixelExpression(
-                                String.format("%s >= %s && %s <= %s", bandName, validMin, bandName, validMax));
+                        band.setValidPixelExpression(String.format("%s >= %s && %s <= %s", bandName, validMin, bandName, validMax));
                     } else if (validMin != null) {
-                        band.setValidPixelExpression(
-                                String.format("%s >= %s", bandName, validMin));
+                        band.setValidPixelExpression(String.format("%s >= %s", bandName, validMin));
                     } else if (validMax != null) {
-                        band.setValidPixelExpression(
-                                String.format("%s <= %s", bandName, validMax));
+                        band.setValidPixelExpression(String.format("%s <= %s", bandName, validMax));
                     }
                 }
             }
