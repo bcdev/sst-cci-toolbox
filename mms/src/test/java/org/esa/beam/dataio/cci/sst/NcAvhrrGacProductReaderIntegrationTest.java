@@ -1,6 +1,7 @@
 package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.FlagCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.IoTestRunner;
@@ -66,7 +67,10 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             final Band cloudMaskBand = product.getBand("cloud_mask");
             assertNotNull(cloudMaskBand);
             assertEquals(7.0, ProductUtils.getGeophysicalSampleDouble(cloudMaskBand, 6, 6, 0), 1e-8);
-            // todo 1 tb/tb check for flag coding of this band tb 2014-06-04
+            // todo 1 tb/tb continue with checking the indexcoding when the file format has been changed tb 2014-06-05
+//            final IndexCoding indexCoding = cloudMaskBand.getIndexCoding();
+//            assertNotNull(indexCoding);
+
 
             final Band cloudProbabilityBand = product.getBand("cloud_probability");
             assertNotNull(cloudProbabilityBand);
@@ -90,6 +94,8 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             final Band qualFlagsBand = product.getBand("qual_flags");
             assertNotNull(qualFlagsBand);
             assertEquals(9.0, ProductUtils.getGeophysicalSampleDouble(qualFlagsBand, 11, 11, 0), 1e-8);
+            final FlagCoding flagCoding = qualFlagsBand.getFlagCoding();
+            //assertNotNull(flagCoding);
             // todo 1 tb/tb check for flag coding of this band tb 2014-06-04
 
             final Band relativeAzimuthAngleBand = product.getBand("relative_azimuth_angle");
