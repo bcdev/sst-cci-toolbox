@@ -95,15 +95,15 @@ for (sensor, sensorstart, sensorstop) in sensors:
     inputs.append('/obs/' + next_month_year + '/' + next_month)
     inputs.append('/smp/' + sensor + '/' + next_month_year + '/' + next_month)
 
-hosts = [('localhost', 240)]
+hosts = [('localhost', 180)]
 types = [('ingestion-start.sh', 120),
          ('sampling-start.sh', 1),
          ('clearsky-start.sh', 120),
          ('mmd-start.sh', 120),
          ('coincidence-start.sh', 24),
-         ('nwp-start.sh', 240),
+         ('nwp-start.sh', 180),
          ('matchup-nwp-start.sh', 240),
-         ('gbcs-start.sh', 240),
+         ('gbcs-start.sh', 180),
          ('reingestion-start.sh', 24),
          ('matchup-reingestion-start.sh', 24)]
 
