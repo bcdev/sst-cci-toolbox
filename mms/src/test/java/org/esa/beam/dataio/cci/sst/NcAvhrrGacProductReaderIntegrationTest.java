@@ -2,6 +2,7 @@ package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.FlagCoding;
+import org.esa.beam.framework.datamodel.IndexCoding;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.IoTestRunner;
@@ -10,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -60,10 +62,16 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             final Band cloudMaskBand = product.getBand("cloud_mask");
             assertNotNull(cloudMaskBand);
             assertEquals(7.0, ProductUtils.getGeophysicalSampleDouble(cloudMaskBand, 6, 6, 0), 1e-8);
-            // todo 1 tb/tb continue with checking the indexcoding when the file format has been changed tb 2014-06-05
-//            final IndexCoding indexCoding = cloudMaskBand.getIndexCoding();
-//            assertNotNull(indexCoding);
-
+            final IndexCoding indexCoding = cloudMaskBand.getIndexCoding();
+            assertNotNull(indexCoding);
+            final String[] indexNames = indexCoding.getIndexNames();
+            assertNotNull(indexNames);
+            assertArrayEquals(new String[]{"clear", "probably_clear", "probably_cloudy", "cloudy", "unprocessed"}, indexNames);
+            assertEquals(0, indexCoding.getIndexValue("clear"));
+            assertEquals(1, indexCoding.getIndexValue("probably_clear"));
+            assertEquals(2, indexCoding.getIndexValue("probably_cloudy"));
+            assertEquals(3, indexCoding.getIndexValue("cloudy"));
+            assertEquals(7, indexCoding.getIndexValue("unprocessed"));
 
             final Band cloudProbabilityBand = product.getBand("cloud_probability");
             assertNotNull(cloudProbabilityBand);
@@ -88,8 +96,14 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             assertNotNull(qualFlagsBand);
             assertEquals(0.0, ProductUtils.getGeophysicalSampleDouble(qualFlagsBand, 11, 11, 0), 1e-8);
             final FlagCoding flagCoding = qualFlagsBand.getFlagCoding();
-            //assertNotNull(flagCoding);
-            // todo 1 tb/tb check for flag coding of this band tb 2014-06-04
+            assertNotNull(flagCoding);
+            final String[] flagNames = flagCoding.getFlagNames();
+            assertArrayEquals(new String[] {"bad_navigation", "bad_calibration", "bad_timing", "missing_line", "bad_data"}, flagNames);
+            assertEquals(1, flagCoding.getFlagMask("bad_navigation"));
+            assertEquals(2, flagCoding.getFlagMask("bad_calibration"));
+            assertEquals(4, flagCoding.getFlagMask("bad_timing"));
+            assertEquals(8, flagCoding.getFlagMask("missing_line"));
+            assertEquals(16, flagCoding.getFlagMask("bad_data"));
 
             final Band relativeAzimuthAngleBand = product.getBand("relative_azimuth_angle");
             assertNotNull(relativeAzimuthAngleBand);
