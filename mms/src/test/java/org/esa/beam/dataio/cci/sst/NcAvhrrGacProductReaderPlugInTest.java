@@ -17,7 +17,7 @@ public class NcAvhrrGacProductReaderPlugInTest {
     @Test
     public void testGetDecodeQualification() throws Exception {
         final NcAvhrrGacProductReaderPlugIn plugIn = new NcAvhrrGacProductReaderPlugIn();
-        final File file = getResourceAsFile("19940101000100-AVHRR-L1b-AVHRR11_G-v02.0-fv01.0.nc");
+        final File file = getResourceAsFile("19890205073700-AVHRR-L1b-AVHRR10_G-v02.0-fv01.0.nc");
 
         assertEquals(DecodeQualification.INTENDED, plugIn.getDecodeQualification(file));
         assertEquals(DecodeQualification.INTENDED, plugIn.getDecodeQualification(file.getPath()));
@@ -30,7 +30,7 @@ public class NcAvhrrGacProductReaderPlugInTest {
 
     @Test
     public void testMatches() throws Exception {
-        assertTrue(NcAvhrrGacProductReaderPlugIn.matches("19940101000100-AVHRR-L1b-AVHRR11_G-v02.0-fv01.0.nc"));
+        assertTrue(NcAvhrrGacProductReaderPlugIn.matches("19890205073700-AVHRR-L1b-AVHRR10_G-v02.0-fv01.0.nc"));
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {
