@@ -25,7 +25,7 @@ public class NcAvhrrGacProductReaderIntegrationTest {
 
     @Test
     public void testReadL1B_11_TestProduct() throws Exception {
-        final String path = TestHelper.getResourcePath(NcAvhrrGacProductReaderIntegrationTest.class, "19940101000100-AVHRR-L1b-AVHRR11_G-v02.0-fv01.0.nc");
+        final String path = TestHelper.getResourcePath(NcAvhrrGacProductReaderIntegrationTest.class, "19890205073700-AVHRR-L1b-AVHRR10_G-v02.0-fv01.0.nc");
         assertNotNull(path);
 
         final Product product = reader.readProductNodes(path, null);
@@ -35,13 +35,13 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             assertNotNull(ch1Band);
             assertEquals(1e-4, ch1Band.getScalingFactor(), 1e-8);
             assertEquals("reflectance", ch1Band.getUnit());
-            assertEquals(-3.2767999172210693, ProductUtils.getGeophysicalSampleDouble(ch1Band, 1, 1, 0), 1e-8);
+            assertEquals(0.0, ProductUtils.getGeophysicalSampleDouble(ch1Band, 1, 1, 0), 1e-8);
 
             final Band ch2Band = product.getBand("ch2");
             assertNotNull(ch2Band);
             assertEquals(1e-4, ch2Band.getScalingFactor(), 1e-8);
             assertEquals("reflectance", ch2Band.getUnit());
-            assertEquals(-3.2767999172210693, ProductUtils.getGeophysicalSampleDouble(ch2Band, 2, 2, 0), 1e-8);
+            assertEquals(0.002499999936844688, ProductUtils.getGeophysicalSampleDouble(ch2Band, 2, 2, 0), 1e-8);
 
             final Band ch3bBand = product.getBand("ch3b");
             assertNotNull(ch3bBand);
@@ -55,7 +55,7 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             assertEquals(0.01, ch4Band.getScalingFactor(), 1e-8);
             assertEquals(273.15, ch4Band.getScalingOffset(), 1e-5);
             assertEquals("kelvin", ch4Band.getUnit());
-            assertEquals(-54.529998779296875, ProductUtils.getGeophysicalSampleDouble(ch4Band, 4, 4, 0), 1e-8);
+            assertEquals(233.56999478116632, ProductUtils.getGeophysicalSampleDouble(ch4Band, 4, 4, 0), 1e-8);
 
             final Band ch5Band = product.getBand("ch5");
             assertNotNull(ch5Band);
