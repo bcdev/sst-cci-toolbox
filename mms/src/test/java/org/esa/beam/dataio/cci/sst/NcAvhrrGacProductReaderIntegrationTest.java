@@ -57,13 +57,6 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             assertEquals("kelvin", ch4Band.getUnit());
             assertEquals(233.56999478116632, ProductUtils.getGeophysicalSampleDouble(ch4Band, 4, 4, 0), 1e-8);
 
-            final Band ch5Band = product.getBand("ch5");
-            assertNotNull(ch5Band);
-            assertEquals(0.01, ch5Band.getScalingFactor(), 1e-8);
-            assertEquals(273.15, ch5Band.getScalingOffset(), 1e-5);
-            assertEquals("kelvin", ch5Band.getUnit());
-            assertEquals(-54.529998779296875, ProductUtils.getGeophysicalSampleDouble(ch5Band, 5, 5, 0), 1e-8);
-
             final Band cloudMaskBand = product.getBand("cloud_mask");
             assertNotNull(cloudMaskBand);
             assertEquals(7.0, ProductUtils.getGeophysicalSampleDouble(cloudMaskBand, 6, 6, 0), 1e-8);
@@ -79,21 +72,21 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             final Band dtimeBand = product.getBand("dtime");
             assertNotNull(dtimeBand);
             assertEquals("seconds", dtimeBand.getUnit());
-            assertEquals(4.0, ProductUtils.getGeophysicalSampleDouble(dtimeBand, 8, 8, 0), 1e-8);
+            assertEquals(0.0, ProductUtils.getGeophysicalSampleDouble(dtimeBand, 8, 8, 0), 1e-8);
 
             final Band latBand = product.getBand("lat");
             assertNotNull(latBand);
             assertEquals("degrees_north", latBand.getUnit());
-            assertEquals(-9.999999394896025E29, ProductUtils.getGeophysicalSampleDouble(latBand, 9, 9, 0), 1e-8);
+            assertEquals(48.35000228881836, ProductUtils.getGeophysicalSampleDouble(latBand, 9, 9, 0), 1e-8);
 
             final Band lonBand = product.getBand("lon");
             assertNotNull(lonBand);
             assertEquals("degrees_east", lonBand.getUnit());
-            assertEquals(-9.999999394896025E29, ProductUtils.getGeophysicalSampleDouble(lonBand, 10, 10, 0), 1e-8);
+            assertEquals(-173.11300659179688, ProductUtils.getGeophysicalSampleDouble(lonBand, 10, 10, 0), 1e-8);
 
             final Band qualFlagsBand = product.getBand("qual_flags");
             assertNotNull(qualFlagsBand);
-            assertEquals(9.0, ProductUtils.getGeophysicalSampleDouble(qualFlagsBand, 11, 11, 0), 1e-8);
+            assertEquals(0.0, ProductUtils.getGeophysicalSampleDouble(qualFlagsBand, 11, 11, 0), 1e-8);
             final FlagCoding flagCoding = qualFlagsBand.getFlagCoding();
             //assertNotNull(flagCoding);
             // todo 1 tb/tb check for flag coding of this band tb 2014-06-04
@@ -108,13 +101,13 @@ public class NcAvhrrGacProductReaderIntegrationTest {
             assertNotNull(satelliteZenithAngleBand);
             assertEquals("angular_degree", satelliteZenithAngleBand.getUnit());
             assertEquals(0.01, satelliteZenithAngleBand.getScalingFactor(), 1e-8);
-            assertEquals(-327.67999267578125, ProductUtils.getGeophysicalSampleDouble(satelliteZenithAngleBand, 13, 13, 0), 1e-8);
+            assertEquals(61.869998617097735, ProductUtils.getGeophysicalSampleDouble(satelliteZenithAngleBand, 13, 13, 0), 1e-8);
 
             final Band solarZenithAngleBand = product.getBand("solar_zenith_angle");
             assertNotNull(solarZenithAngleBand);
             assertEquals("angular_degree", solarZenithAngleBand.getUnit());
             assertEquals(0.01, solarZenithAngleBand.getScalingFactor(), 1e-8);
-            assertEquals(-327.67999267578125, ProductUtils.getGeophysicalSampleDouble(solarZenithAngleBand, 14, 14, 0), 1e-8);
+            assertEquals(119.24999733455479, ProductUtils.getGeophysicalSampleDouble(solarZenithAngleBand, 14, 14, 0), 1e-8);
         } finally {
             product.dispose();
         }
