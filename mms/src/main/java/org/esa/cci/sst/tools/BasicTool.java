@@ -143,7 +143,7 @@ public abstract class BasicTool {
             synchronized (this) {
                 if (logger == null) {
                     logger = Logger.getLogger("org.esa.cci.sst");
-                    logger.setLevel(Level.ALL);
+                    logger.setLevel(Level.INFO);
                     final ConsoleHandler consoleHandler = new ConsoleHandler();
                     final Formatter formatter = new SstLogFormatter();
                     consoleHandler.setFormatter(formatter);
