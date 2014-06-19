@@ -5,7 +5,7 @@
 
 java \
     -Dmms.home="$MMS_HOME" \
-    -Xmx12G $MMS_OPTIONS \
+    -Xmx14G $MMS_OPTIONS \
     -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpaversion}.jar" \
     -classpath "$MMS_HOME/lib/*" \
     org.esa.cci.sst.tools.mmdgeneration.MmdTool "$@"
