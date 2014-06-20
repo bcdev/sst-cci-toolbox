@@ -344,7 +344,7 @@ class NwpTool extends BasicTool {
                                             String targetMmdLocation,
                                             int targetFcTimeStepCount,
                                             int targetAnTimeStepCount) throws IOException {
-        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4,
+        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic,
                                                                       targetMmdLocation);
         NetcdfFile sourceMmd = null;
         NetcdfFile forecastFile = null;
@@ -465,7 +465,7 @@ class NwpTool extends BasicTool {
 
     private static void merge(NetcdfFile sourceMmd, NetcdfFile sourceNwp, String sensorName,
                               String targetPath) throws IOException {
-        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, targetPath);
+        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, targetPath);
         try {
             // copy MMD structure
             final Dimension sourceMatchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");

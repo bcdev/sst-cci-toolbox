@@ -416,7 +416,7 @@ public class MmdTool extends BasicTool {
         final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME, "mmd.nc");
         final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
 
-        final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4, mmdFilePath);
+        final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, mmdFilePath);
         mmd.setLargeFile(true);
 
         return mmd;
