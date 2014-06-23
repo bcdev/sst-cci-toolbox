@@ -132,8 +132,8 @@ public class InsituReaderTest {
         try (InsituReader reader = createReader("insitu_WMOID_11851_20071123_20080111.nc")) {
             final Item[] columns = reader.getColumns();
             assertEquals(5, columns.length);
-            assertEquals("history.insitu.time", columns[2].getName());
-            assertEquals("history.insitu.latitude", columns[4].getName());
+            assertEquals("history.insitu.time", columns[0].getName());
+            assertEquals("history.insitu.latitude", columns[1].getName());
         }
     }
 
@@ -1021,8 +1021,8 @@ public class InsituReaderTest {
         try (InsituReader reader = createReader("insitu_13_WMOID_856160_19850120_19850212.nc")) {
             final Item[] columns = reader.getColumns();
             assertEquals(6, columns.length);
-            assertEquals("history.insitu.lon", columns[1].getName());
-            assertEquals("history.insitu.mohc_id", columns[3].getName());
+            assertEquals("history.insitu.lon", columns[2].getName());
+            assertEquals("history.insitu.mohc_id", columns[5].getName());
         }
     }
 
