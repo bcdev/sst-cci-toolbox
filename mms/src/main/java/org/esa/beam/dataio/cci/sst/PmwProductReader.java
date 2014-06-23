@@ -58,7 +58,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         @Override
         public final boolean isInvalid(Number value) {
             final double d = value.doubleValue();
-            return d > 90.0 || d < -90.0 || value == 0;
+            return d > 90.0 || d < -90.0 || d == 0;
         }
     };
 
