@@ -90,7 +90,10 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         final int w = findDimension("ni").getLength();
         final int h = findDimension("nj").getLength();
 
-        return new Product(productName, NcAvhrrGacProductReaderPlugIn.FORMAT_NAME, w, h);
+        final Product product = new Product(productName, NcAvhrrGacProductReaderPlugIn.FORMAT_NAME, w, h);
+        product.setPreferredTileSize(w, w);
+
+        return product;
     }
 
     @Override
