@@ -7,7 +7,12 @@ import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfIndexCodingPart;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;
 import org.esa.beam.framework.dataio.ProductReaderPlugIn;
-import org.esa.beam.framework.datamodel.*;
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.FlagCoding;
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoCodingFactory;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
 import org.esa.beam.util.StringUtils;
@@ -74,8 +79,11 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     protected void addGeoCoding(Product product) throws IOException {
         final Band latBand = product.getBand("lat");
         final Band lonBand = product.getBand("lon");
-        final BasicPixelGeoCoding pixelGeoCoding = GeoCodingFactory.createPixelGeoCoding(latBand, lonBand, "", 5);
-        product.setGeoCoding(pixelGeoCoding);
+        final String validMaskExpression = String.format("(%s) && (%s)",
+                                                         lonBand.getValidMaskExpression(),
+                                                         latBand.getValidMaskExpression());
+        final GeoCoding geoCoding = GeoCodingFactory.createPixelGeoCoding(latBand, lonBand, validMaskExpression, 5);
+        product.setGeoCoding(geoCoding);
     }
 
     @Override
@@ -151,7 +159,8 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
             final String bandName = band.getName();
             if (validMin != null && validMax != null) {
-                band.setValidPixelExpression(String.format("%s >= %s && %s <= %s", bandName, validMin, bandName, validMax));
+                band.setValidPixelExpression(
+                        String.format("%s >= %s && %s <= %s", bandName, validMin, bandName, validMax));
             } else if (validMin != null) {
                 band.setValidPixelExpression(String.format("%s >= %s", bandName, validMin));
             } else if (validMax != null) {
@@ -178,7 +187,7 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         final FlagCoding flagCoding = new FlagCoding(variableFullName);
         for (int i = 0; i < flagMeanings.length; i++) {
             final Number maskNumerical = masksAttribute.getNumericValue(i);
-            flagCoding.addFlag(flagMeanings[i],  DataType.unsignedShortToInt(maskNumerical.shortValue()), null);
+            flagCoding.addFlag(flagMeanings[i], DataType.unsignedShortToInt(maskNumerical.shortValue()), null);
         }
 
         band.setSampleCoding(flagCoding);
