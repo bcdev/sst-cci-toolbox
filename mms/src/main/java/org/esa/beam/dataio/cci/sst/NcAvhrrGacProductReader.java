@@ -82,6 +82,7 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         final String validMaskExpression = String.format("(%s) && (%s)",
                                                          lonBand.getValidMaskExpression(),
                                                          latBand.getValidMaskExpression());
+        // TODO - make pixel geo-coding with estimator as in PodAvhrrGeoCoding
         final GeoCoding geoCoding = GeoCodingFactory.createPixelGeoCoding(latBand, lonBand, validMaskExpression, 5);
         product.setGeoCoding(geoCoding);
     }
