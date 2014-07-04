@@ -1,25 +1,16 @@
 #!/bin/bash
 
-currentdir=`pwd`
-
-# change to source tree
-cd ${mms.github}
-
 # fetch changes from github
-git pull
+git -C ${mms.github} pull
 
 # build new software version
-mvn clean package assembly:assembly
+mvn -f ${mms.github}/pom.xml clean package assembly:assembly
 
 # change file permissions manually because maven assembly does not do this
-chmod -R ug+X target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version}
+chmod -R ug+X ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version}
 
 # remove current software
-echo rm -rf ${mms.home}
 rm -rf ${mms.home}
 
 # move assembly to target directory
-echo mv target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software.root}
-mv target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software.root}
-
-cd ${currentdir}
+mv ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software.root}
