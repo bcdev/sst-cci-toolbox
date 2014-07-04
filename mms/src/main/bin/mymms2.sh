@@ -6,16 +6,16 @@ umask 007
 
 export PGPORT=${mms.pg.port}
 export PGHOST=${mms.pg.host}
-export PGDATA=/data/mboettcher/mms/db/mmdb
+export PGDATA=${mms.pg.data}
 
 export PATH=${mms.jdk.home}/bin:${PATH}
-export PATH=/group_workspaces/cems/esacci_sst/mms/software/bin:${PATH}
-export LD_LIBRARY_PATH=/group_workspaces/cems/esacci_sst/mms/software/lib:/group_workspaces/cems/esacci_sst/software/common/lib:${LD_LIBRARY_PATH}
+export PATH=${mms.software.root}/bin:${PATH}
+export LD_LIBRARY_PATH=${mms.software.root}/lib:${mms.software.root}/common/lib:${LD_LIBRARY_PATH}
 
 export MMS_HOME=${mms.home}
 export MMS_ARCHIVE=${mms.archive.root}
 
-export MMS_INST=/group_workspaces/cems/esacci_sst/mms/inst-mms2
+export MMS_INST=${mms.work}/inst-mms2
 export MMS_TASKS=${MMS_INST}/tasks
 export MMS_LOG=${MMS_INST}/log
 export TMPDIR=${MMS_INST}/tmp
