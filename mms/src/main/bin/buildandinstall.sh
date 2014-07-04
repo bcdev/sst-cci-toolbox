@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # fetch changes from github
-git -C ${mms.github} pull
+git --work-tree=${mms.github} pull
 
 # build new software version
 mvn -f ${mms.github}/pom.xml clean package assembly:assembly
