@@ -15,9 +15,11 @@ mvn clean package assembly:assembly
 chmod -R ug+X target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version}
 
 # remove current software
+echo rm -rf ${mms.home}
 rm -rf ${mms.home}
 
 # move assembly to target directory
+echo mv target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software.root}
 mv target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software.root}
 
 cd ${currentdir}
