@@ -18,6 +18,6 @@ chmod -R ug+X target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.ve
 rm -rf ${mms.home}
 
 # move assembly to target directory
-mv target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software}
+mv target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software.root}
 
 cd ${currentdir}
