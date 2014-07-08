@@ -256,9 +256,9 @@
                 <mms.pg.host>172.16.150.238</mms.pg.host>
                 <mms.pg.port>5423</mms.pg.port>
                 <mms.pg.data>/data/mboettcher/mms/db/mmdb</mms.pg.data>
+                <mms.pg.home>/data/mboettcher/mms/software</mms.pg.home>
                 <mms.pg.log>/data/mboettcher/mms/db/log/mms.log</mms.pg.log>
                 <mms.pg.backup>/group_workspaces/cems2/esacci_sst/mms/backup</mms.pg.backup>
-                <mms.pg.software>/data/mboettcher/mms/software</mms.pg.software>
             </properties>
         </profile>
     </profiles>

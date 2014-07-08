@@ -5,7 +5,7 @@
 now=`date +'%Y-%m-%dT%H-%M-%S'`
 
 # stop database from writing into tablespaces
-${mms.pg.software}/bin/psql template1 << EOF
+${mms.pg.home}/bin/psql template1 << EOF
 select pg_start_backup('full-backup-$now');
 EOF
 
@@ -18,7 +18,7 @@ cd $(dirname ${mms.pg.data})
 tar cjf ${mms.pg.backup}/base/${now}-mmdb-backup.tar.bz2 mmdb
 
 # synchronize tablespaces
-${mms.pg.software}/bin/psql template1 << EOF
+${mms.pg.home}/bin/psql template1 << EOF
 select pg_stop_backup();
 EOF
 

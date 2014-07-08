@@ -8,6 +8,7 @@ export PGPORT=${mms.pg.port}
 export PGHOST=${mms.pg.host}
 export PGDATA=${mms.pg.data}
 
+export PATH=${mms.pg.home}/bin:${PATH}
 export PATH=${mms.jdk.home}/bin:${PATH}
 export PATH=${cci.software.root}/bin:${PATH}
 export LD_LIBRARY_PATH=${cci.software.root}/lib:${cci.software.root}/common/lib:${LD_LIBRARY_PATH}
