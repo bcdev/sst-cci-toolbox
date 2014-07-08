@@ -1,2 +1,2 @@
 #!/bin/bash
-${mms.pg.software}/bin/pg_ctl -D ${mms.pg.data}/.. status
+${mms.pg.software}/bin/pg_ctl -D $(dirname ${mms.pg.data}) status

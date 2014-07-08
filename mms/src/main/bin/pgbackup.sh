@@ -14,7 +14,7 @@ mv ${mms.pg.backup}/full_wal ${mms.pg.backup}/full_wal-$now
 mkdir ${mms.pg.backup}/full_wal
 
 # create base backup
-cd ${mms.pg.data}/..
+cd $(dirname ${mms.pg.data})
 tar cjf ${mms.pg.backup}/base/${now}-mmdb-backup.tar.bz2 mmdb
 
 # synchronize tablespaces
