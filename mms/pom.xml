@@ -247,7 +247,7 @@
                 <mms.github>/group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox/mms</mms.github>
                 <mms.work>/group_workspaces/cems2/esacci_sst/mms</mms.work>
                 <mms.archive.root>/group_workspaces/cems2/esacci_sst/mms/archive</mms.archive.root>
-                <mms.software.root>/group_workspaces/cems2/esacci_sst/mms/software</mms.software.root>
+                <cci.software.root>/group_workspaces/cems2/esacci_sst/software</cci.software.root>
                 <mms.gbcs.home>/group_workspaces/cems2/esacci_sst/software/gbcs</mms.gbcs.home>
                 <mms.gbcs.version>v2.1.1</mms.gbcs.version>
                 <mms.gbcs.intelversion>12.1.5</mms.gbcs.intelversion>
@@ -256,6 +256,9 @@
                 <mms.pg.host>172.16.150.238</mms.pg.host>
                 <mms.pg.port>5423</mms.pg.port>
                 <mms.pg.data>/data/mboettcher/mms/db/mmdb</mms.pg.data>
+                <mms.pg.log>/data/mboettcher/mms/db/log/mms.log</mms.pg.log>
+                <mms.pg.backup>/group_workspaces/cems2/esacci_sst/mms/backup</mms.pg.backup>
+                <mms.pg.software>/data/mboettcher/mms/software</mms.pg.software>
             </properties>
         </profile>
     </profiles>

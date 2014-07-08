@@ -15,4 +15,4 @@ chmod -R ug+X ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mm
 rm -rf ${mms.home}
 
 # move assembly to target directory
-mv ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.software.root}
+mv -f ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} ${mms.home}/..

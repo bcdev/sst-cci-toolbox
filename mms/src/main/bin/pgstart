@@ -1,2 +1,2 @@
 #!/bin/bash
-/group_workspaces/cems/esacci_sst/mms/software/bin/pg_ctl -D ~/mms/db/mmdb -l ~/mms/db/log/mms.log start
+${mms.pg.software}/bin/pg_ctl -D ${mms.pg.data}/.. -l ${mms.pg.log} start

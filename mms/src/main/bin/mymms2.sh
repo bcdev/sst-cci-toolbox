@@ -9,8 +9,8 @@ export PGHOST=${mms.pg.host}
 export PGDATA=${mms.pg.data}
 
 export PATH=${mms.jdk.home}/bin:${PATH}
-export PATH=${mms.software.root}/bin:${PATH}
-export LD_LIBRARY_PATH=${mms.software.root}/lib:${mms.software.root}/common/lib:${LD_LIBRARY_PATH}
+export PATH=${cci.software.root}/bin:${PATH}
+export LD_LIBRARY_PATH=${cci.software.root}/lib:${cci.software.root}/common/lib:${LD_LIBRARY_PATH}
 
 export MMS_HOME=${mms.home}
 export MMS_ARCHIVE=${mms.archive.root}
