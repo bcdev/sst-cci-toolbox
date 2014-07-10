@@ -11,7 +11,13 @@ export PGDATA=${mms.pg.data}
 export PATH=${mms.pg.home}/bin:${PATH}
 export PATH=${mms.jdk.home}/bin:${PATH}
 export PATH=${mms.usr.local}/bin:${PATH}
-export LD_LIBRARY_PATH=${mms.usr.local}/lib:${LD_LIBRARY_PATH}
+
+if [-n "${LD_LIBRARY_PATH}"]
+then
+    export LD_LIBRARY_PATH=${mms.pg.home}/lib:${mms.usr.local}/lib:${LD_LIBRARY_PATH}
+else
+    export LD_LIBRARY_PATH=${mms.pg.home}/lib:${mms.usr.local}/lib
+fi
 
 export MMS_HOME=${mms.home}
 export MMS_ARCHIVE=${mms.archive.root}
