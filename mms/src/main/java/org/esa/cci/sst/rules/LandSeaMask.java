@@ -19,7 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
-import org.esa.beam.util.PixelLocator;
+import org.esa.beam.framework.datamodel.PixelLocator;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.reader.Reader;

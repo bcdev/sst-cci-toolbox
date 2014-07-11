@@ -24,11 +24,14 @@ import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
-import org.esa.beam.framework.datamodel.PixelGeoCoding;
+import org.esa.beam.framework.datamodel.PixelLocatorAdapter;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
+import org.esa.beam.util.DefaultPixelLocator;
+import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.util.RasterDataNodeSampleSource;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -100,7 +103,11 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         final Band lonBand = product.getBand("lon");
         final Band latBand = product.getBand("lat");
         if (latBand != null && lonBand != null) {
-            final GeoCoding geoCoding = new PixelGeoCoding(latBand, lonBand, latBand.getValidMaskExpression(), 5);
+            final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
+            final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(latBand);
+            final PixelLocator pixelLocator = DefaultPixelLocator.create(lonSource, latSource, 0.05);
+            final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
+
             product.setGeoCoding(geoCoding);
         }
     }

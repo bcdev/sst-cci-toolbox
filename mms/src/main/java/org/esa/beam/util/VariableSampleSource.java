@@ -26,7 +26,7 @@ import ucar.nc2.Variable;
  *
  * @author Ralf Quast
  */
-public class VariableSampleSource implements SampleSource {
+public final class VariableSampleSource implements SampleSource {
 
     private final Array data;
     private final int width;
@@ -56,13 +56,14 @@ public class VariableSampleSource implements SampleSource {
 
     @Override
     public double getSample(int x, int y) {
-        final double value = data.getDouble(x + y * width);
-        return value != fillValue ? value * scalingFactor + addOffset : Double.NaN;
+        final double sample = data.getDouble(x + y * width);
+        return sample != fillValue ? sample * scalingFactor + addOffset : Double.NaN;
     }
 
     @Override
-    public Number getFillValue() {
-        return fillValue;
+    public boolean isFillValue(int x, int y) {
+        final double sample = data.getDouble(x + y * width);
+        return sample == fillValue || Double.isNaN(sample);
     }
 
     // @todo 3 tb/** duplicated code? I'm sure this functionality already exists in the project tb 2015-05-19

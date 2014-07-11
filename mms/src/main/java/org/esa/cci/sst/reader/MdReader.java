@@ -16,9 +16,9 @@
 
 package org.esa.cci.sst.reader;
 
-import org.esa.beam.util.PixelLocator;
+import org.esa.beam.framework.datamodel.PixelLocator;
 import org.esa.beam.util.SampleSource;
-import org.esa.beam.util.SimplePixelLocator;
+import org.esa.beam.util.SubscenePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
@@ -373,7 +373,7 @@ abstract class MdReader extends NetcdfReader {
         final SampleSource lonSource = new VariableSampleSource(lon, lonArray);
         final SampleSource latSource = new VariableSampleSource(lat, latArray);
         cachedRecordNo = recordNo;
-        return cachedPixelLocator = new SimplePixelLocator(lonSource, latSource);
+        return cachedPixelLocator = new SubscenePixelLocator(lonSource, latSource);
     }
 
     private Variable validateArguments(String role, int expectedRank, DataType expectedDataType, int recordNo) {

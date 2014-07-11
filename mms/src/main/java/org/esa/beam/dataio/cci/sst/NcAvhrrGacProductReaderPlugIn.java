@@ -56,7 +56,7 @@ public class NcAvhrrGacProductReaderPlugIn implements ProductReaderPlugIn {
 
     @Override
     public String getDescription(Locale locale) {
-        return "Converted AVHRR-GAC L1b data products.";
+        return "SST-CCI AVHRR-GAC L1c data products";
     }
 
     @Override

@@ -10,11 +10,16 @@ import org.esa.beam.framework.dataio.ProductReaderPlugIn;
 import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.FlagCoding;
 import org.esa.beam.framework.datamodel.GeoCoding;
-import org.esa.beam.framework.datamodel.GeoCodingFactory;
+import org.esa.beam.framework.datamodel.MetadataAttribute;
+import org.esa.beam.framework.datamodel.MetadataElement;
+import org.esa.beam.framework.datamodel.PixelLocator;
+import org.esa.beam.framework.datamodel.PixelLocatorAdapter;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
+import org.esa.beam.util.DefaultPixelLocator;
+import org.esa.beam.util.RasterDataNodeSampleSource;
 import org.esa.beam.util.StringUtils;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
@@ -38,6 +43,9 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
     private final ProfilePartReader flagCodingReader;
     private final ProfilePartReader indexCodingReader;
+
+    private int leadLineSkip;
+    private int tailLineSkip;
 
     private static final NumberInvalidator TIMING_INVALIDATOR = new NumberInvalidator() {
         @Override
@@ -79,25 +87,39 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     protected void addGeoCoding(Product product) throws IOException {
         final Band latBand = product.getBand("lat");
         final Band lonBand = product.getBand("lon");
-        final String validMaskExpression = String.format("(%s) && (%s)",
-                                                         lonBand.getValidMaskExpression(),
-                                                         latBand.getValidMaskExpression());
-        // TODO - make pixel geo-coding with estimator as in PodAvhrrGeoCoding
-        final GeoCoding geoCoding = GeoCodingFactory.createPixelGeoCoding(latBand, lonBand, validMaskExpression, 5);
+        final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
+        final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(latBand);
+        final PixelLocator pixelLocator = DefaultPixelLocator.create(lonSource, latSource, 0.025);
+        final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
+
         product.setGeoCoding(geoCoding);
     }
 
     @Override
     protected void addMetadata(Product product) {
-        MetadataUtils.readNetcdfMetadata(getNetcdfFile(), product.getMetadataRoot());
+        final MetadataElement metadataRoot = product.getMetadataRoot();
+        MetadataUtils.readNetcdfMetadata(getNetcdfFile(), metadataRoot);
+
+        final MetadataElement generated = new MetadataElement("reader_generated");
+        generated.addAttribute(new MetadataAttribute("lead_line_skip",
+                                                     ProductData.createInstance(new int[]{leadLineSkip}), true));
+        generated.addAttribute(new MetadataAttribute("tail_line_skip",
+                                                     ProductData.createInstance(new int[]{tailLineSkip}), true));
+        metadataRoot.addElement(generated);
     }
 
     @Override
     protected Product createPlainProduct() throws IOException {
+        final Variable flags = findVariable(VAR_NAME_QUALITY_FLAGS);
+        final int[] shape = columnShape(flags);
+        final LineInvalidator lineInvalidator = new LineInvalidator(flags, TIMING_INVALIDATOR, shape);
+        leadLineSkip = lineInvalidator.getLeadLineSkip();
+        tailLineSkip = lineInvalidator.getTailLineSkip();
+
         final File inputFile = new File(getNetcdfFile().getLocation());
         final String productName = inputFile.getName();
         final int w = findDimension("ni").getLength();
-        final int h = findDimension("nj").getLength();
+        final int h = findDimension("nj").getLength() - leadLineSkip - tailLineSkip;
 
         final Product product = new Product(productName, NcAvhrrGacProductReaderPlugIn.FORMAT_NAME, w, h);
         product.setPreferredTileSize(w, w);
@@ -123,6 +145,11 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
             protected final int getIndexY(int rank) {
                 return rank - 2;
             }
+
+            @Override
+            protected int getSourceOriginY() {
+                return leadLineSkip;
+            }
         };
     }
 
@@ -130,9 +157,6 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     protected void setTime(Product product) throws IOException {
         final Variable flags = findVariable(VAR_NAME_QUALITY_FLAGS);
         final int[] shape = columnShape(flags);
-        final LineInvalidator lineInvalidator = new LineInvalidator(flags, TIMING_INVALIDATOR, shape);
-        final int leadLineSkip = lineInvalidator.getLeadLineSkip();
-        final int tailLineSkip = lineInvalidator.getTailLineSkip();
 
         try {
             final int referenceTime = findVariable(VAR_NAME_TIME).read().getInt(0);

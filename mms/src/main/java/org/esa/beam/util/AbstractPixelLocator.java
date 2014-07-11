@@ -1,52 +1,19 @@
-/*
- * Copyright (C) 2011 Brockmann Consult GmbH (info@brockmann-consult.de)
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 3 of the License, or (at your option)
- * any later version.
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, see http://www.gnu.org/licenses/
- */
-
 package org.esa.beam.util;
 
+import org.esa.beam.framework.datamodel.PixelLocator;
 import org.esa.beam.util.math.MathUtils;
 
 import java.awt.geom.Point2D;
 
 /**
- * A {@link org.esa.beam.util.PixelLocator} implementation using a quad-tree algorithm.
- *
- * @author Martin Boettcher
  * @author Ralf Quast
- * @author Thomas Storm
  */
-public class SimplePixelLocator implements PixelLocator {
-
-    private static final double DEG_TO_RAD = Math.PI / 180.0;
+abstract class AbstractPixelLocator implements PixelLocator {
 
     private final SampleSource lonSource;
     private final SampleSource latSource;
 
-    private Point2D cachedPoint = null;
-    private double cachedLon = Double.MAX_VALUE;
-    private double cachedLat = Double.MAX_VALUE;
-
-    /**
-     * Constructs a new instance of this class.
-     *
-     * @param lonSource The source of longitude samples.
-     * @param latSource The source of latitude samples.
-     *
-     * @throws IllegalArgumentException when the dimension of the sample sources are different.
-     */
-    public SimplePixelLocator(SampleSource lonSource, SampleSource latSource) {
+    protected AbstractPixelLocator(SampleSource lonSource, SampleSource latSource) {
         if (lonSource.getWidth() != latSource.getWidth()) {
             throw new IllegalArgumentException("lonSource.getMaxX() != latSource.getMaxX()");
         }
@@ -57,9 +24,8 @@ public class SimplePixelLocator implements PixelLocator {
         this.latSource = latSource;
     }
 
-
     @Override
-    public boolean getGeoLocation(double x, double y, Point2D g) {
+    public final boolean getGeoLocation(double x, double y, Point2D g) {
         final int w = lonSource.getWidth();
         final int h = lonSource.getHeight();
 
@@ -91,47 +57,7 @@ public class SimplePixelLocator implements PixelLocator {
         return false;
     }
 
-    @Override
-    public boolean getPixelLocation(double lon, double lat, Point2D p) {
-        if (lon == cachedLon && lat == cachedLat) {
-            p.setLocation(cachedPoint);
-            return true;
-        }
-
-        final int w = latSource.getWidth();
-        final int h = latSource.getHeight();
-
-        final double cosineFactor = Math.cos(lat * DEG_TO_RAD);
-        int bestX = 0;
-        int bestY = 0;
-        double minDelta = Double.MAX_VALUE;
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                final double sourceLat = getLat(x, y) + 90.0;
-                if(latSource.getFillValue() != null && sourceLat == latSource.getFillValue().doubleValue()) {
-                    continue;
-                }
-                final double sourceLon = getLon(x, y) + 180.0;
-                if(lonSource.getFillValue() != null && sourceLon == lonSource.getFillValue().doubleValue()) {
-                    continue;
-                }
-                final double delta = (sourceLat - (lat + 90.0)) * (sourceLat - (lat + 90.0)) +
-                                     (sourceLon - (lon + 180.0)) * (sourceLon - (lon + 180.0)) * cosineFactor;
-                if (delta < minDelta) {
-                    bestX = x;
-                    bestY = y;
-                    minDelta = delta;
-                }
-            }
-        }
-        p.setLocation(bestX, bestY);
-        cachedLat = lat;
-        cachedLon = lon;
-        cachedPoint = p;
-        return true;
-    }
-
-    private double getLon(int x, int y) {
+    protected final double getLon(int x, int y) {
         final double lon = lonSource.getSample(x, y);
         if (lon > 180.0) {
             return lon - 360.0;
@@ -139,8 +65,16 @@ public class SimplePixelLocator implements PixelLocator {
         return lon;
     }
 
-    private double getLat(int x, int y) {
+    protected final double getLat(int x, int y) {
         return latSource.getSample(x, y);
+    }
+
+    protected final SampleSource getLonSource() {
+        return lonSource;
+    }
+
+    protected final SampleSource getLatSource() {
+        return latSource;
     }
 
     private Point2D interpolate(int x0, int y0, double wx, double wy) {

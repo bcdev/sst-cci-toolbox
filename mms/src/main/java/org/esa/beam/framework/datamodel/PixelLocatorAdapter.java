@@ -16,50 +16,73 @@
 
 package org.esa.beam.framework.datamodel;
 
-import org.esa.beam.util.PixelLocator;
-import org.esa.beam.util.RasterDataNodeSampleSource;
-import org.esa.beam.util.SampleSource;
-import org.esa.beam.util.SimplePixelLocator;
+import org.esa.beam.framework.dataio.ProductSubsetDef;
+import org.esa.beam.framework.dataop.maptransf.Datum;
 
 import java.awt.geom.Point2D;
 
 /**
- * A geo-coding working around BEAM-1240 and providing sub-pixel precision.
+ * An accurate geo-coding.
  *
  * @author Ralf Quast
  */
-public class PixelGeoCodingWrapper extends ForwardingGeoCoding {
+public final class PixelLocatorAdapter extends AbstractGeoCoding {
 
     private final PixelLocator pixelLocator;
 
-    public PixelGeoCodingWrapper(BasicPixelGeoCoding pixelGeoCoding) {
-        super(pixelGeoCoding);
-        final SampleSource lonSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLonBand());
-        final SampleSource latSource = new RasterDataNodeSampleSource(pixelGeoCoding.getLatBand());
-        pixelLocator = new SimplePixelLocator(lonSource, latSource);
+    public PixelLocatorAdapter(PixelLocator pixelLocator) {
+        this.pixelLocator = pixelLocator;
     }
 
     @Override
-    public final GeoPos getGeoPos(PixelPos pixelPos, GeoPos geoPos) {
-        if (geoPos == null) {
-            geoPos = new GeoPos();
+    public GeoPos getGeoPos(PixelPos p, GeoPos g) {
+        if (g == null) {
+            g = new GeoPos();
         }
-        if (!pixelPos.isValid() || !pixelLocator.getGeoLocation(pixelPos.getX(), pixelPos.getY(),
-                new GeoPoint(geoPos))) {
-            geoPos.setInvalid();
+        if (!p.isValid() || !pixelLocator.getGeoLocation(p.getX(), p.getY(), new GeoPoint(g))) {
+            g.setInvalid();
         }
-        return geoPos;
+        return g;
     }
 
     @Override
-    public final PixelPos getPixelPos(GeoPos geoPos, PixelPos pixelPos) {
-        if (pixelPos == null) {
-            pixelPos = new PixelPos();
+    public Datum getDatum() {
+        return Datum.WGS_84;
+    }
+
+    @Override
+    public void dispose() {
+    }
+
+    @Override
+    public boolean isCrossingMeridianAt180() {
+        return false;
+    }
+
+    @Override
+    public boolean canGetPixelPos() {
+        return true;
+    }
+
+    @Override
+    public boolean canGetGeoPos() {
+        return true;
+    }
+
+    @Override
+    public PixelPos getPixelPos(GeoPos g, PixelPos p) {
+        if (p == null) {
+            p = new PixelPos();
         }
-        if (!geoPos.isValid() || !pixelLocator.getPixelLocation(geoPos.getLon(), geoPos.getLat(), pixelPos)) {
-            pixelPos.setInvalid();
+        if (!g.isValid() || !pixelLocator.getPixelLocation(g.getLon(), g.getLat(), p)) {
+            p.setInvalid();
         }
-        return pixelPos;
+        return p;
+    }
+
+    @Override
+    public boolean transferGeoCoding(Scene srcScene, Scene destScene, ProductSubsetDef subsetDef) {
+        return false;
     }
 
     private static class GeoPoint extends Point2D {

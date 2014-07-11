@@ -26,10 +26,11 @@ import java.awt.image.Raster;
  *
  * @author Ralf Quast
  */
-public class RasterDataNodeSampleSource implements SampleSource {
+public final class RasterDataNodeSampleSource implements SampleSource {
 
     private final RasterDataNode node;
     private final Raster data;
+    private final double fillValue;
 
     /**
      * Construct a new instance of this class.
@@ -39,6 +40,7 @@ public class RasterDataNodeSampleSource implements SampleSource {
     public RasterDataNodeSampleSource(RasterDataNode node) {
         this.node = node;
         this.data = node.getSourceImage().getImage(0).getData();
+        this. fillValue = node.isNoDataValueSet() ? node.getNoDataValue() : Double.NEGATIVE_INFINITY;
     }
 
     /**
@@ -73,17 +75,18 @@ public class RasterDataNodeSampleSource implements SampleSource {
             sample = data.getSampleDouble(x, y, 0);
         }
         if (node.isScalingApplied()) {
-            return node.scale(sample);
+            return sample != fillValue ? node.scale(sample) : Double.NaN;
         }
         return sample;
     }
 
     @Override
-    public Number getFillValue() {
-        if(node.isNoDataValueSet()) {
-            return node.getNoDataValue();
-        }
-        return null;
+    public boolean isFillValue(int x, int y) {
+        final double sample = data.getSampleDouble(x, y, 0);
+        return sample == fillValue || Double.isNaN(sample);
     }
 
+    public RasterDataNode getNode() {
+        return node;
+    }
 }

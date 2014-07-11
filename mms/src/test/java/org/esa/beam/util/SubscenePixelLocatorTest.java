@@ -7,9 +7,9 @@ import java.awt.geom.Point2D;
 
 import static org.junit.Assert.*;
 
-public class SimplePixelLocatorTest {
+public class SubscenePixelLocatorTest {
 
-    private SimplePixelLocator locator;
+    private SubscenePixelLocator locator;
 
     @Before
     public void setUp() {
@@ -17,7 +17,7 @@ public class SimplePixelLocatorTest {
         final double[][] lat = {{20.0, 20.0}, {21.0, 21.0}};
         final TestSampleSource lonSource = new TestSampleSource(lon);
         final TestSampleSource latSource = new TestSampleSource(lat);
-        locator = new SimplePixelLocator(lonSource, latSource);
+        locator = new SubscenePixelLocator(lonSource, latSource);
     }
 
     @Test
@@ -26,9 +26,9 @@ public class SimplePixelLocatorTest {
         final TestSampleSource latSource = new TestSampleSource(new double[][]{{3.0}, {4.0}, {5.0}});
 
         try {
-            new SimplePixelLocator(latSource, lonSource);
-            fail("IllegalArgumentException expeced");
-        } catch(IllegalArgumentException expeced) {
+            new SubscenePixelLocator(latSource, lonSource);
+            fail("IllegalArgumentException expected");
+        } catch(IllegalArgumentException expected) {
         }
     }
 
@@ -38,9 +38,9 @@ public class SimplePixelLocatorTest {
         final TestSampleSource latSource = new TestSampleSource(new double[][]{{3.0}, {4.0}});
 
         try {
-            new SimplePixelLocator(latSource, lonSource);
-            fail("IllegalArgumentException expeced");
-        } catch(IllegalArgumentException expeced) {
+            new SubscenePixelLocator(latSource, lonSource);
+            fail("IllegalArgumentException expected");
+        } catch(IllegalArgumentException expected) {
         }
     }
 
@@ -82,7 +82,7 @@ public class SimplePixelLocatorTest {
         final double[][] lat = {{20.0, 20.0}, {21.0, 21.0}};
         final TestSampleSource lonSource = new TestSampleSource(lon);
         final TestSampleSource latSource = new TestSampleSource(lat);
-        final SimplePixelLocator wrappingLocator = new SimplePixelLocator(lonSource, latSource);
+        final SubscenePixelLocator wrappingLocator = new SubscenePixelLocator(lonSource, latSource);
 
         final Point2D.Double geoLocation = new Point2D.Double();
 
@@ -101,7 +101,7 @@ public class SimplePixelLocatorTest {
         final double[][] lat = {{20.0, 20.0}, {Double.NaN, 21.0}};
         final TestSampleSource lonSource = new TestSampleSource(lon);
         final TestSampleSource latSource = new TestSampleSource(lat);
-        final SimplePixelLocator nanLocator = new SimplePixelLocator(lonSource, latSource);
+        final SubscenePixelLocator nanLocator = new SubscenePixelLocator(lonSource, latSource);
 
         final Point2D.Double geoLocation = new Point2D.Double();
 
@@ -166,8 +166,8 @@ public class SimplePixelLocatorTest {
         }
 
         @Override
-        public Number getFillValue() {
-            return null;
+        public boolean isFillValue(int x, int y) {
+            return false;
         }
     }
 }

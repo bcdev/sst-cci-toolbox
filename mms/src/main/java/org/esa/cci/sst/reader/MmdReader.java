@@ -18,7 +18,9 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.PixelLocatorAdapter;
 import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.util.SubscenePixelLocator;
 import org.esa.beam.util.VariableSampleSource;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
@@ -121,7 +123,7 @@ public class MmdReader implements Reader {
         }
         final VariableSampleSource lonSampleSource = getVariableSampleSource(recordNo, "longitude");
         final VariableSampleSource latSampleSource = getVariableSampleSource(recordNo, "latitude");
-        return new PixelLocatorGeoCoding(lonSampleSource, latSampleSource);
+        return new PixelLocatorAdapter(new SubscenePixelLocator(lonSampleSource, latSampleSource));
     }
 
     private VariableSampleSource getVariableSampleSource(int recordNo, String variableName) throws IOException {

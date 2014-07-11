@@ -51,5 +51,5 @@ public interface SampleSource {
      */
     double getSample(int x, int y);
 
-    Number getFillValue();
+    boolean isFillValue(int x, int y);
 }
