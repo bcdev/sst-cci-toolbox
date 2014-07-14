@@ -26,7 +26,7 @@ import java.awt.image.Raster;
  *
  * @author Ralf Quast
  */
-public final class RasterDataNodeSampleSource implements SampleSource {
+final class RasterDataNodeSampleSource implements SampleSource {
 
     private final RasterDataNode node;
     private final Raster data;
@@ -37,7 +37,7 @@ public final class RasterDataNodeSampleSource implements SampleSource {
      *
      * @param node The raster data node to be wrapped.
      */
-    public RasterDataNodeSampleSource(RasterDataNode node) {
+    RasterDataNodeSampleSource(RasterDataNode node) {
         this.node = node;
         this.data = node.getSourceImage().getImage(0).getData();
         this. fillValue = node.isNoDataValueSet() ? node.getNoDataValue() : Double.NEGATIVE_INFINITY;

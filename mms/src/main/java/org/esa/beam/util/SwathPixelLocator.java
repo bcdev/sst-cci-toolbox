@@ -15,14 +15,14 @@ import static java.lang.Math.min;
 /**
  * @author Ralf Quast
  */
-public class DefaultPixelLocator extends AbstractPixelLocator {
+class SwathPixelLocator extends AbstractPixelLocator {
 
     private final PixelLocationEstimator estimator;
     private final PixelLocationSearcher searcher;
 
-    public static PixelLocator create(RasterDataNodeSampleSource lonSource,
-                                      RasterDataNodeSampleSource latSource,
-                                      double angularTolerance) {
+    static PixelLocator create(RasterDataNodeSampleSource lonSource,
+                               RasterDataNodeSampleSource latSource,
+                               double angularTolerance) {
         final PlanarImage lonImage = lonSource.getNode().getGeophysicalImage();
         final PlanarImage latImage = latSource.getNode().getGeophysicalImage();
         final PlanarImage maskImage = lonSource.getNode().getValidMaskImage();
@@ -42,11 +42,11 @@ public class DefaultPixelLocator extends AbstractPixelLocator {
                                                                          maskSource,
                                                                          angularTolerance);
 
-        return new DefaultPixelLocator(lonSource, latSource, estimator, searcher);
+        return new SwathPixelLocator(lonSource, latSource, estimator, searcher);
     }
 
-    private DefaultPixelLocator(SampleSource lonSource, SampleSource latSource,
-                                PixelLocationEstimator estimator, PixelLocationSearcher searcher) {
+    private SwathPixelLocator(SampleSource lonSource, SampleSource latSource,
+                              PixelLocationEstimator estimator, PixelLocationSearcher searcher) {
         super(lonSource, latSource);
         this.estimator = estimator;
         this.searcher = searcher;
@@ -76,7 +76,7 @@ public class DefaultPixelLocator extends AbstractPixelLocator {
         public boolean estimatePixelLocation(double lon, double lat, Point2D p) {
             GeoApproximation approximation = null;
             if (approximations != null) {
-                approximation = GeoApproximation.findMostSuitable(approximations, lat, lon);
+                approximation = findMostSuitable(approximations, lat, lon);
                 if (approximation != null) {
                     p.setLocation(lon, lat);
                     g2p(approximation, p);
@@ -90,6 +90,27 @@ public class DefaultPixelLocator extends AbstractPixelLocator {
                 }
             }
             return true;
+        }
+
+        private static GeoApproximation findMostSuitable(GeoApproximation[] approximations, double lat, double lon) {
+            GeoApproximation bestApproximation = null;
+            if (approximations.length == 1) {
+                GeoApproximation a = approximations[0];
+                final double distance = a.getDistance(lat, lon);
+                if (distance < a.getMaxDistance()) {
+                    bestApproximation = a;
+                }
+            } else {
+                double minDistance = Double.MAX_VALUE;
+                for (final GeoApproximation a : approximations) {
+                    final double distance = a.getDistance(lat, lon);
+                    if (distance < minDistance && distance < a.getMaxDistance()) {
+                        minDistance = distance;
+                        bestApproximation = a;
+                    }
+                }
+            }
+            return bestApproximation;
         }
 
         private static void g2p(GeoApproximation geoApproximation, Point2D g) {

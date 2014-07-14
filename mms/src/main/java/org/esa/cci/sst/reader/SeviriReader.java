@@ -18,8 +18,9 @@ package org.esa.cci.sst.reader;
 
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.PixelLocatorAdapter;
-import org.esa.beam.util.SubscenePixelLocator;
-import org.esa.beam.util.VariableSampleSource;
+import org.esa.beam.util.PixelLocatorFactory;
+import org.esa.beam.util.SampleSource;
+import org.esa.beam.util.SampleSourceFactory;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.tools.Constants;
@@ -162,11 +163,11 @@ class SeviriReader extends MdReader implements InsituSource {
         final Variable lat = getVariable("lat");
         final Array lonArray = getData(lon, recordNo);
         final Array latArray = getData(lat, recordNo);
-        final VariableSampleSource lonSource = new VariableSampleSource(lon, lonArray);
-        final VariableSampleSource latSource = new VariableSampleSource(lat, latArray);
+        final SampleSource lonSource = SampleSourceFactory.forVariable(lon, lonArray);
+        final SampleSource latSource = SampleSourceFactory.forVariable(lat, latArray);
 
         cachedRecordNo = recordNo;
-        return cachedGeoCoding = new PixelLocatorAdapter(new SubscenePixelLocator(lonSource, latSource));
+        return cachedGeoCoding = new PixelLocatorAdapter(PixelLocatorFactory.forSubscene(lonSource, latSource));
     }
 
     @Override

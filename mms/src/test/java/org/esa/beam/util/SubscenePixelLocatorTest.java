@@ -1,15 +1,19 @@
 package org.esa.beam.util;
 
+import org.esa.beam.framework.datamodel.PixelLocator;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.awt.geom.Point2D;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SubscenePixelLocatorTest {
 
-    private SubscenePixelLocator locator;
+    private PixelLocator locator;
 
     @Before
     public void setUp() {
@@ -17,7 +21,7 @@ public class SubscenePixelLocatorTest {
         final double[][] lat = {{20.0, 20.0}, {21.0, 21.0}};
         final TestSampleSource lonSource = new TestSampleSource(lon);
         final TestSampleSource latSource = new TestSampleSource(lat);
-        locator = new SubscenePixelLocator(lonSource, latSource);
+        locator = SubscenePixelLocator.create(lonSource, latSource);
     }
 
     @Test
@@ -26,9 +30,9 @@ public class SubscenePixelLocatorTest {
         final TestSampleSource latSource = new TestSampleSource(new double[][]{{3.0}, {4.0}, {5.0}});
 
         try {
-            new SubscenePixelLocator(latSource, lonSource);
+            SubscenePixelLocator.create(latSource, lonSource);
             fail("IllegalArgumentException expected");
-        } catch(IllegalArgumentException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -38,9 +42,9 @@ public class SubscenePixelLocatorTest {
         final TestSampleSource latSource = new TestSampleSource(new double[][]{{3.0}, {4.0}});
 
         try {
-            new SubscenePixelLocator(latSource, lonSource);
+            SubscenePixelLocator.create(latSource, lonSource);
             fail("IllegalArgumentException expected");
-        } catch(IllegalArgumentException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -82,7 +86,7 @@ public class SubscenePixelLocatorTest {
         final double[][] lat = {{20.0, 20.0}, {21.0, 21.0}};
         final TestSampleSource lonSource = new TestSampleSource(lon);
         final TestSampleSource latSource = new TestSampleSource(lat);
-        final SubscenePixelLocator wrappingLocator = new SubscenePixelLocator(lonSource, latSource);
+        final PixelLocator wrappingLocator = SubscenePixelLocator.create(lonSource, latSource);
 
         final Point2D.Double geoLocation = new Point2D.Double();
 
@@ -101,7 +105,7 @@ public class SubscenePixelLocatorTest {
         final double[][] lat = {{20.0, 20.0}, {Double.NaN, 21.0}};
         final TestSampleSource lonSource = new TestSampleSource(lon);
         final TestSampleSource latSource = new TestSampleSource(lat);
-        final SubscenePixelLocator nanLocator = new SubscenePixelLocator(lonSource, latSource);
+        final PixelLocator nanLocator = SubscenePixelLocator.create(lonSource, latSource);
 
         final Point2D.Double geoLocation = new Point2D.Double();
 
@@ -142,7 +146,7 @@ public class SubscenePixelLocatorTest {
     }
 
 
-    private class TestSampleSource implements SampleSource{
+    private class TestSampleSource implements SampleSource {
 
         private double[][] data;
 

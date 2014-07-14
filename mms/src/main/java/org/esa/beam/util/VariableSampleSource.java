@@ -26,7 +26,7 @@ import ucar.nc2.Variable;
  *
  * @author Ralf Quast
  */
-public final class VariableSampleSource implements SampleSource {
+final class VariableSampleSource implements SampleSource {
 
     private final Array data;
     private final int width;
@@ -35,7 +35,7 @@ public final class VariableSampleSource implements SampleSource {
     private final double scalingFactor;
     private final double fillValue;
 
-    public VariableSampleSource(Variable variable, Array slice) {
+    VariableSampleSource(Variable variable, Array slice) {
         data = slice;
         width = variable.getShape(variable.getRank() - 1);
         height = variable.getShape(variable.getRank() - 2);

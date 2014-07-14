@@ -16,6 +16,8 @@
 
 package org.esa.beam.util;
 
+import org.esa.beam.framework.datamodel.PixelLocator;
+
 import java.awt.geom.Point2D;
 
 /**
@@ -25,13 +27,17 @@ import java.awt.geom.Point2D;
  * @author Ralf Quast
  * @author Thomas Storm
  */
-public final class SubscenePixelLocator extends AbstractPixelLocator {
+final class SubscenePixelLocator extends AbstractPixelLocator {
 
     private static final double DEG_TO_RAD = Math.PI / 180.0;
 
     private Point2D cachedPoint = null;
     private double cachedLon = Double.MAX_VALUE;
     private double cachedLat = Double.MAX_VALUE;
+
+    static PixelLocator create(SampleSource lonSource, SampleSource latSource) {
+        return new SubscenePixelLocator(lonSource, latSource);
+    }
 
     /**
      * Constructs a new instance of this class.
@@ -41,7 +47,7 @@ public final class SubscenePixelLocator extends AbstractPixelLocator {
      *
      * @throws IllegalArgumentException when the dimension of the sample sources are different.
      */
-    public SubscenePixelLocator(SampleSource lonSource, SampleSource latSource) {
+    private SubscenePixelLocator(SampleSource lonSource, SampleSource latSource) {
         super(lonSource, latSource);
     }
 

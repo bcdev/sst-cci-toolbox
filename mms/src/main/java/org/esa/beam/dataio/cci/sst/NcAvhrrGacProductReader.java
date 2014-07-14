@@ -18,8 +18,7 @@ import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
 import org.esa.beam.jai.ImageManager;
 import org.esa.beam.jai.ResolutionLevel;
-import org.esa.beam.util.DefaultPixelLocator;
-import org.esa.beam.util.RasterDataNodeSampleSource;
+import org.esa.beam.util.PixelLocatorFactory;
 import org.esa.beam.util.StringUtils;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
@@ -87,9 +86,7 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     protected void addGeoCoding(Product product) throws IOException {
         final Band latBand = product.getBand("lat");
         final Band lonBand = product.getBand("lon");
-        final RasterDataNodeSampleSource lonSource = new RasterDataNodeSampleSource(lonBand);
-        final RasterDataNodeSampleSource latSource = new RasterDataNodeSampleSource(latBand);
-        final PixelLocator pixelLocator = DefaultPixelLocator.create(lonSource, latSource, 0.025);
+        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, 0.025);
         final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
 
         product.setGeoCoding(geoCoding);

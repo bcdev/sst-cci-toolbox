@@ -20,8 +20,9 @@ import com.bc.ceres.core.Assert;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.PixelLocatorAdapter;
 import org.esa.beam.framework.datamodel.Product;
-import org.esa.beam.util.SubscenePixelLocator;
-import org.esa.beam.util.VariableSampleSource;
+import org.esa.beam.util.PixelLocatorFactory;
+import org.esa.beam.util.SampleSource;
+import org.esa.beam.util.SampleSourceFactory;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
@@ -121,12 +122,12 @@ public class MmdReader implements Reader {
         if (ncFile.findVariable("longitude") == null || ncFile.findVariable("latitude") == null) {
             return null;
         }
-        final VariableSampleSource lonSampleSource = getVariableSampleSource(recordNo, "longitude");
-        final VariableSampleSource latSampleSource = getVariableSampleSource(recordNo, "latitude");
-        return new PixelLocatorAdapter(new SubscenePixelLocator(lonSampleSource, latSampleSource));
+        final SampleSource lonSampleSource = getVariableSampleSource(recordNo, "longitude");
+        final SampleSource latSampleSource = getVariableSampleSource(recordNo, "latitude");
+        return new PixelLocatorAdapter(PixelLocatorFactory.forSubscene(lonSampleSource, latSampleSource));
     }
 
-    private VariableSampleSource getVariableSampleSource(int recordNo, String variableName) throws IOException {
+    private SampleSource getVariableSampleSource(int recordNo, String variableName) throws IOException {
         final Variable variable = ncFile.findVariable(variableName);
         final int[] origin = {recordNo, 0, 0};
         final int[] shape = variable.getShape();
@@ -137,7 +138,7 @@ public class MmdReader implements Reader {
         } catch (InvalidRangeException e) {
             throw new IOException(e);
         }
-        return new VariableSampleSource(variable, slice);
+        return SampleSourceFactory.forVariable(variable, slice);
     }
 
     @Override
