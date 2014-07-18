@@ -97,11 +97,21 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         final MetadataElement metadataRoot = product.getMetadataRoot();
         MetadataUtils.readNetcdfMetadata(getNetcdfFile(), metadataRoot);
 
+        int leadLinesTruncated = 0;
+        int tailLinesTruncated = 0;
+        final MetadataElement globalAttributes = metadataRoot.getElement("Global_Attributes");
+        if (globalAttributes != null) {
+            leadLinesTruncated = Integer.parseInt(
+                    globalAttributes.getAttributeString("lines_truncated_start", "0"));
+            tailLinesTruncated = Integer.parseInt(
+                    globalAttributes.getAttributeString("lines_truncated_end", "0"));
+        }
+
         final MetadataElement generated = new MetadataElement("reader_generated");
         generated.addAttribute(new MetadataAttribute("lead_line_skip",
-                                                     ProductData.createInstance(new int[]{leadLineSkip}), true));
+                                                     ProductData.createInstance(new int[]{leadLineSkip + leadLinesTruncated}), true));
         generated.addAttribute(new MetadataAttribute("tail_line_skip",
-                                                     ProductData.createInstance(new int[]{tailLineSkip}), true));
+                                                     ProductData.createInstance(new int[]{tailLineSkip + tailLinesTruncated}), true));
         metadataRoot.addElement(generated);
     }
 
