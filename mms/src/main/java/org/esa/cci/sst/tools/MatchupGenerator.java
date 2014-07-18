@@ -372,6 +372,7 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Starting removing overlapping samples...");
         final OverlapRemover overlapRemover = createOverlapRemover();
         overlapRemover.removeSamples(samples);
+        // TODO - remove duplicated samples (i.e. samples that have the same in-situ measurement)
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
     }
 
