@@ -122,7 +122,7 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
         final int sourceHeight = band.getSceneRasterHeight();
         final Dimension tileSize = band.getProduct().getPreferredTileSize();
 
-        return new VariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
+        return new ImageVariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
             @Override
             protected final int getIndexX(int rank) {
                 return rank - 2;

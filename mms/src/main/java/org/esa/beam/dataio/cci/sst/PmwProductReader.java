@@ -130,7 +130,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         final int sourceHeight = band.getSceneRasterHeight();
         final Dimension tileSize = band.getProduct().getPreferredTileSize();
 
-        return new VariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
+        return new ImageVariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
 
             @Override
             protected int getIndexX(int rank) {

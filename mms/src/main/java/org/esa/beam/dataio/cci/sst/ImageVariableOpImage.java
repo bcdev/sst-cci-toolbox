@@ -30,18 +30,17 @@ import java.awt.image.WritableRaster;
 import java.io.IOException;
 
 /**
- * Used for creating rendered images from a variable in OSI and
- * PMW netCDF files.
+ * Used for creating rendered images from an image variable in
+ * netCDF files.
  *
  * @author Ralf Quast
- * @see org.esa.beam.dataio.netcdf.util.NetcdfOpImage
  */
-abstract class VariableOpImage extends SingleBandedOpImage {
+abstract class ImageVariableOpImage extends SingleBandedOpImage {
 
     private final VariableIF variable;
 
-    protected VariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
-                              Dimension tileSize, ResolutionLevel level) {
+    protected ImageVariableOpImage(VariableIF variable, int dataBufferType, int sourceWidth, int sourceHeight,
+                                   Dimension tileSize, ResolutionLevel level) {
         super(dataBufferType, sourceWidth, sourceHeight, tileSize, null, level);
         this.variable = variable;
     }
@@ -75,9 +74,7 @@ abstract class VariableOpImage extends SingleBandedOpImage {
             try {
                 final Section section = new Section(origin, shape, stride);
                 array = variable.read(section);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidRangeException e) {
+            } catch (IOException | InvalidRangeException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -140,7 +137,7 @@ abstract class VariableOpImage extends SingleBandedOpImage {
      * @param array An array.
      *
      * @return the transformed primitive storage of the array supplied as
-     *         argument.
+     * argument.
      */
     protected Object transformStorage(Array array) {
         return array.getStorage();

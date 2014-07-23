@@ -79,9 +79,7 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
             final Rectangle imageBounds = new Rectangle(width, height);
             final CrsGeoCoding geoCoding = new CrsGeoCoding(DefaultGeographicCRS.WGS84, imageBounds, transform);
             product.setGeoCoding(geoCoding);
-        } catch (FactoryException e) {
-            throw new IllegalStateException(e);
-        } catch (TransformException e) {
+        } catch (FactoryException | TransformException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -111,7 +109,7 @@ public class NcAaiProductReader extends NetcdfProductReaderTemplate {
         final int sourceHeight = band.getSceneRasterHeight();
         final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
 
-        return new VariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
+        return new ImageVariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
             @Override
             protected final int getIndexX(int rank) {
                 return rank - 1;

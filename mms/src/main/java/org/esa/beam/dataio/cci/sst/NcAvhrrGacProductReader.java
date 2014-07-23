@@ -27,6 +27,7 @@ import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
 
+import java.awt.Dimension;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     protected void addBands(Product product) throws IOException {
         for (final Variable variable : getNetcdfFile().getVariables()) {
             final String dimensionsString = variable.getDimensionsString();
-            if (dimensionsString.contains("nj ni")) {
+            if (dimensionsString.contains("nj ni") || dimensionsString.contains("nj")) {
                 final String bandName = variable.getShortName();
                 final int rasterDataType = DataTypeUtils.getRasterDataType(variable);
                 final Band band = product.addBand(bandName, rasterDataType);
@@ -109,9 +110,11 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
         final MetadataElement generated = new MetadataElement("reader_generated");
         generated.addAttribute(new MetadataAttribute("lead_line_skip",
-                                                     ProductData.createInstance(new int[]{leadLineSkip + leadLinesTruncated}), true));
+                                                     ProductData.createInstance(
+                                                             new int[]{leadLineSkip + leadLinesTruncated}), true));
         generated.addAttribute(new MetadataAttribute("tail_line_skip",
-                                                     ProductData.createInstance(new int[]{tailLineSkip + tailLinesTruncated}), true));
+                                                     ProductData.createInstance(
+                                                             new int[]{tailLineSkip + tailLinesTruncated}), true));
         metadataRoot.addElement(generated);
     }
 
@@ -142,22 +145,11 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         final int sourceHeight = band.getSceneRasterHeight();
         final java.awt.Dimension tileSize = band.getProduct().getPreferredTileSize();
 
-        return new VariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
-            @Override
-            protected final int getIndexX(int rank) {
-                return rank - 1;
-            }
-
-            @Override
-            protected final int getIndexY(int rank) {
-                return rank - 2;
-            }
-
-            @Override
-            protected int getSourceOriginY() {
-                return leadLineSkip;
-            }
-        };
+        if (variable.getRank() > 2) {
+            return new ImageVariableOpImageImpl(variable, bufferType, sourceWidth, sourceHeight, tileSize);
+        } else {
+            return new ScanLineVariableOpImageImpl(variable, bufferType, sourceWidth, sourceHeight, tileSize);
+        }
     }
 
     @Override
@@ -236,4 +228,44 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
         return shape;
     }
 
+    private class ImageVariableOpImageImpl extends ImageVariableOpImage {
+
+        public ImageVariableOpImageImpl(Variable variable, int bufferType, int sourceWidth, int sourceHeight,
+                                        Dimension tileSize) {
+            super(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES);
+        }
+
+        @Override
+        protected final int getIndexX(int rank) {
+            return rank - 1;
+        }
+
+        @Override
+        protected final int getIndexY(int rank) {
+            return rank - 2;
+        }
+
+        @Override
+        protected int getSourceOriginY() {
+            return leadLineSkip;
+        }
+    }
+
+    private class ScanLineVariableOpImageImpl extends ScanLineVariableOpImage {
+
+        public ScanLineVariableOpImageImpl(Variable variable, int bufferType, int sourceWidth, int sourceHeight,
+                                           Dimension tileSize) {
+            super(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES);
+        }
+
+        @Override
+        protected final int getIndexY(int rank) {
+            return rank - 1;
+        }
+
+        @Override
+        protected int getSourceOriginY() {
+            return leadLineSkip;
+        }
+    }
 }
