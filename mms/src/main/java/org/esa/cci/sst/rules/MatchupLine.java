@@ -37,7 +37,7 @@ import java.io.IOException;
 @SuppressWarnings({"UnusedDeclaration"})
 class MatchupLine extends Rule {
 
-   private static final short FILL_VALUE = -1;
+    private static final int FILL_VALUE = -1;
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {
@@ -62,7 +62,7 @@ class MatchupLine extends Rule {
         final double lon = point.getX();
         final double lat = point.getY();
         final Reader observationReader = context.getObservationReader();
-        if(observationReader == null) {
+        if (observationReader == null) {
             return FILL_VALUE;
         }
         final GeoCoding geoCoding;
@@ -72,6 +72,7 @@ class MatchupLine extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
-        return (int) pixelPos.getY();
+
+        return (int) (pixelPos.getY() + observationReader.getLineSkip());
     }
 }

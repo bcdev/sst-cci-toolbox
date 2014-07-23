@@ -61,7 +61,7 @@ class MatchupElem extends Rule {
         final double lon = point.getX();
         final double lat = point.getY();
         final Reader observationReader = context.getObservationReader();
-        if(observationReader == null) {
+        if (observationReader == null) {
             return FILL_VALUE;
         }
         final GeoCoding geoCoding;
@@ -71,7 +71,6 @@ class MatchupElem extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
-        pixelPos.x += observationReader.getLineSkip();
         return (short) pixelPos.getX();
     }
 
