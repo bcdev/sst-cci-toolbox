@@ -17,11 +17,11 @@
 package org.esa.cci.sst.rules;
 
 /**
- * Replaces the column's second dimension with "atsr.nj".
+ * Replaces the column's second dimension with "atsr.ny".
  *
  * @author Thomas Storm
  */
-public class AtsrYDimension extends AbstractDimensionReplacement {
+final class AtsrYDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {

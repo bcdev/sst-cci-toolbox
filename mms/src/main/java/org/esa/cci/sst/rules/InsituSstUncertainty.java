@@ -11,7 +11,7 @@ import ucar.ma2.DataType;
 
 import java.io.IOException;
 
-class InsituSstUncertainty extends AbstractImplicitRule {
+final class InsituSstUncertainty extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
     // package access for testing only tb 2014-03-13

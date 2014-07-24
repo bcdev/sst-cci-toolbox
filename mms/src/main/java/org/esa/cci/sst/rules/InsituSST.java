@@ -34,7 +34,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class InsituSST extends AbstractImplicitRule {
+final class InsituSST extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
     private static final int[] SINGLE_VALUE_SHAPE = {1, 1};

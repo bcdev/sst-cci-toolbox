@@ -26,7 +26,7 @@ import ucar.ma2.DataType;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class CorrectCalibrationError extends Rule {
+final class CorrectCalibrationError extends Rule {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {

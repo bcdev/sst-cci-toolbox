@@ -36,7 +36,7 @@ import java.util.Arrays;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class DTime extends AbstractImplicitRule {
+final class DTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.SHORT;
     private static final short FILL_VALUE = Short.MIN_VALUE;

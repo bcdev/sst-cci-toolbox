@@ -6,7 +6,7 @@ import org.esa.cci.sst.data.Item;
 /**
  * @author Ralf Quast
  */
-public final class NoStandardName extends AbstractAttributeModification {
+final class NoStandardName extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {

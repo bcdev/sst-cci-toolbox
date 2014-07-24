@@ -38,7 +38,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class LandSeaMask extends AbstractImplicitRule {
+final class LandSeaMask extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.BYTE;
     private final Watermask classifier;

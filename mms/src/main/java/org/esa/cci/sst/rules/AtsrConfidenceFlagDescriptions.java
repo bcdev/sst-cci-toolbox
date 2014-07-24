@@ -25,7 +25,7 @@ import org.esa.cci.sst.data.Item;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-public class AtsrConfidenceFlagDescriptions extends AbstractAttributeModification {
+final class AtsrConfidenceFlagDescriptions extends AbstractAttributeModification {
 
     private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     private static final String FLAG_MEANINGS = "Blanking_Pulse Cosmetic_Fill_Pixel " +

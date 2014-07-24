@@ -36,7 +36,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class InsituTime extends AbstractImplicitRule {
+final class InsituTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
     private static final int FILL_VALUE = Integer.MIN_VALUE;

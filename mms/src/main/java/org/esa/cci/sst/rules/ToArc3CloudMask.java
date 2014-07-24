@@ -22,7 +22,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class ToArc3CloudMask extends AbstractRescalingToShort {
+final class ToArc3CloudMask extends AbstractRescalingToShort {
 
     protected ToArc3CloudMask() {
         super(100.0, 0.0);

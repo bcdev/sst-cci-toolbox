@@ -31,7 +31,7 @@ import java.io.File;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class ObservationFilename extends Rule {
+final class ObservationFilename extends Rule {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {

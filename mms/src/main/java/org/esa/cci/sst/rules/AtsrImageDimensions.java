@@ -22,7 +22,7 @@ package org.esa.cci.sst.rules;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree"})
-class AtsrImageDimensions extends AbstractDimensionReplacement {
+final class AtsrImageDimensions extends AbstractDimensionReplacement {
 
     static final String DIMENSIONS_NAME_ATSR_NY = "atsr.ny";
     static final String DIMENSIONS_NAME_ATSR_NX = "atsr.nx";

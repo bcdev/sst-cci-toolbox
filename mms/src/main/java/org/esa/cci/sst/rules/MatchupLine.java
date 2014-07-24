@@ -35,7 +35,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class MatchupLine extends Rule {
+final class MatchupLine extends Rule {
 
     private static final int FILL_VALUE = -1;
 

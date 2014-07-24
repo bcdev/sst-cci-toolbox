@@ -27,24 +27,23 @@ import ucar.ma2.IndexIterator;
  *
  * @author Thomas Storm
  */
-class IntToShort extends AbstractReformat<Integer, Short> {
+final class IntToShort extends AbstractReformat<Integer, Short> {
 
     protected IntToShort() {
         super(Integer.class, Short.class);
     }
 
     @Override
-    protected void apply(Array sourceArray, Array targetArray, Number scaleFactor, Number addOffset) {
-        IndexIterator sourceIterator = sourceArray.getIndexIterator();
-        IndexIterator targetIterator = targetArray.getIndexIterator();
-        while(sourceIterator.hasNext() && targetIterator.hasNext()) {
-            short value = (short) sourceIterator.getIntNext();
-            targetIterator.setShortNext(value);
-        }
+    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
+        targetColumnBuilder.type(DataType.SHORT);
     }
 
     @Override
-    protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
-        targetColumnBuilder.type(DataType.SHORT);
+    protected void apply(Array sourceArray, Array targetArray, Number scaleFactor, Number addOffset) {
+        final IndexIterator sourceIterator = sourceArray.getIndexIterator();
+        final IndexIterator targetIterator = targetArray.getIndexIterator();
+        while(sourceIterator.hasNext() && targetIterator.hasNext()) {
+            targetIterator.setShortNext(sourceIterator.getShortNext());
+        }
     }
 }

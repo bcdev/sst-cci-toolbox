@@ -30,7 +30,7 @@ import java.text.MessageFormat;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class MatchupPrimarySensor extends AbstractImplicitRule {
+final class MatchupPrimarySensor extends AbstractImplicitRule {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {

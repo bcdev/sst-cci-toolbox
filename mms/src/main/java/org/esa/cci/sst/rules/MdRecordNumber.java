@@ -28,7 +28,7 @@ import ucar.ma2.DataType;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class MdRecordNumber extends Rule {
+final class MdRecordNumber extends Rule {
 
     private static final short FILL_VALUE = (short) -1;
 

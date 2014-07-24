@@ -25,7 +25,7 @@ import ucar.ma2.DataType;
  *
  * @author Thomas Storm
  */
-public class ElevationToSolzen extends Rule {
+final class ElevationToSolzen extends Rule {
 
     @Override
     public Item apply(Item sourceColumn) throws RuleException {

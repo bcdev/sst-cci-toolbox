@@ -24,7 +24,7 @@ import org.esa.cci.sst.tools.Constants;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class Atsr2Sensor extends SensorRule {
+final class Atsr2Sensor extends SensorRule {
 
     Atsr2Sensor() {
         super(Constants.SENSOR_NAME_ORB_ATSR_2);

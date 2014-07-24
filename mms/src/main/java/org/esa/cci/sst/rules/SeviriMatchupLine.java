@@ -35,7 +35,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class SeviriMatchupLine extends Rule {
+final class SeviriMatchupLine extends Rule {
 
    private static final short FILL_VALUE = Short.MIN_VALUE;
 

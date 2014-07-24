@@ -28,7 +28,7 @@ import ucar.ma2.DataType;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class MatchupValid extends AbstractImplicitRule {
+final class MatchupValid extends AbstractImplicitRule {
 
     private static final byte[] FLAG_VALUES = new byte[]{0, 1};
     private static final String FLAG_MEANINGS = "valid invalid";

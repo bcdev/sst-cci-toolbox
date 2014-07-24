@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
-class AvhrrScanlineDimension extends AbstractDimensionReplacement {
+final class AvhrrYDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {

@@ -25,7 +25,7 @@ import org.esa.cci.sst.data.Item;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-public class AtsrCloudFlagDescriptions extends AbstractAttributeModification {
+final class AtsrCloudFlagDescriptions extends AbstractAttributeModification {
 
     private static final byte[] FLAG_VALUES = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     private static final String FLAG_MEANINGS = "Over_land " +

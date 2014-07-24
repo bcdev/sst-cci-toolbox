@@ -22,7 +22,7 @@ package org.esa.cci.sst.rules;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class AvhrrHl12Sensor extends SensorRule {
+final class AvhrrHl12Sensor extends SensorRule {
 
     AvhrrHl12Sensor() {
         super("avhrr_hl.n12");

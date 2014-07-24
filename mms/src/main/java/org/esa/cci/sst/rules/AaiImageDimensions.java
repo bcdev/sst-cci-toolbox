@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
-class AaiImageDimensions extends AbstractDimensionReplacement {
+final class AaiImageDimensions extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {

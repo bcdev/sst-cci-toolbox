@@ -34,7 +34,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class InsituLatitude extends AbstractImplicitRule {
+final class InsituLatitude extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.FLOAT;
     private static final int[] SINGLE_VALUE_SHAPE = new int[]{1, 1};

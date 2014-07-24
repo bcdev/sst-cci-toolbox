@@ -36,7 +36,7 @@ import java.util.Map;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class ShortFillValue extends Rule {
+final class ShortFillValue extends Rule {
 
     private static final short FILL_VALUE = Short.MIN_VALUE;
     private static final DataType DATA_TYPE = DataType.SHORT;

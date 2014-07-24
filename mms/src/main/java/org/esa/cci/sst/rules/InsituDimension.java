@@ -23,7 +23,7 @@ import org.esa.cci.sst.tools.Constants;
  *
  * @author Thomas Storm
  */
-class InsituDimension extends AbstractDimensionReplacement {
+final class InsituDimension extends AbstractDimensionReplacement {
 
     @Override
     protected void replaceDimensions(DimensionStringBuilder builder) throws RuleException {

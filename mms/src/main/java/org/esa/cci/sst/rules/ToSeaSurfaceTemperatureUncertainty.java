@@ -6,7 +6,7 @@ import org.esa.cci.sst.tools.Constants;
 /**
  * @author Ralf Quast
  */
-public class ToSeaSurfaceTemperatureUncertainty extends AbstractRescalingToShort {
+final class ToSeaSurfaceTemperatureUncertainty extends AbstractRescalingToShort {
 
     ToSeaSurfaceTemperatureUncertainty() {
         super(0.001, 0.0);

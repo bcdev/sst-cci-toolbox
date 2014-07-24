@@ -37,7 +37,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class InsituReferenceTime extends AbstractImplicitRule {
+final class InsituReferenceTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
     private static final int INSITU_DIMENSION = 48;

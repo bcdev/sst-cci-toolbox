@@ -25,7 +25,7 @@ import ucar.ma2.DataType;
  * Matchup longitude.
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class MatchupLat extends AbstractImplicitRule {
+final class MatchupLat extends AbstractImplicitRule {
 
 
     private static final DataType DATA_TYPE = DataType.FLOAT;

@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Ralf Quast
  */
-public abstract class CompositeRule extends Rule {
+abstract class CompositeRule extends Rule {
 
     abstract CompositeRule append(Rule rule);
 

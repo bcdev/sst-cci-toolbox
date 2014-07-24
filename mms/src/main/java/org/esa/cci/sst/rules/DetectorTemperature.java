@@ -22,6 +22,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.reader.Reader;
+import org.esa.cci.sst.tools.mmdgeneration.DetectorTemperatureProvider;
 import org.postgis.Point;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -36,7 +37,7 @@ import java.util.Map;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class DetectorTemperature extends Rule {
+final class DetectorTemperature extends Rule {
 
     private static final int SCALE_FACTOR = 100;
     private static final short FILL_VALUE = Short.MIN_VALUE;

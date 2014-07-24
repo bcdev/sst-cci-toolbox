@@ -21,7 +21,7 @@ package org.esa.cci.sst.rules;
  *
  * @author Thomas Storm
  */
-public class G1cFilename extends AtsrCalibrationFilenames {
+final class G1cFilename extends AtsrCalibrationFilenames {
 
     protected G1cFilename() {
         super("DSD.32");

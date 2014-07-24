@@ -24,7 +24,7 @@ import org.esa.cci.sst.data.Item;
  *
  * @author Thomas Storm
  */
-class DegreeUnit extends AbstractAttributeModification {
+final class DegreeUnit extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {

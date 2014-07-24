@@ -25,7 +25,7 @@ import org.esa.cci.sst.data.Item;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class FillValueShortMin extends AbstractAttributeModification {
+final class FillValueShortMin extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {

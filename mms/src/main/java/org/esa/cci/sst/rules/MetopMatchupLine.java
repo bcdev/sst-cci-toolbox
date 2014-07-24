@@ -35,7 +35,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class MetopMatchupLine extends Rule {
+final class MetopMatchupLine extends Rule {
 
    private static final short FILL_VALUE = Short.MIN_VALUE;
 

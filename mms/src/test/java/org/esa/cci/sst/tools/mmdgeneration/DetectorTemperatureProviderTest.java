@@ -14,32 +14,23 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.rules;
+package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.util.TimeUtil;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Thomas Storm
  */
 public class DetectorTemperatureProviderTest {
 
-    private MyDetectorTemperatureProvider provider;
-    private DetectorTemperatureProvider provider2;
-
-    @Before
-    public void setUp() throws Exception {
-        provider = new MyDetectorTemperatureProvider("test_detector_temperature.dat");
-        provider2 = new DetectorTemperatureProvider("detector_temperature.dat");
-    }
-
     @Test
     public void testReadMetaInfo() throws Exception {
+        final DetectorTemperatureProvider provider = getDetectorTemperatureProviderForTesting();
         assertEquals(2 * 365 * 24 * 60 * 60 + 366 * 24 * 60 * 60 + 333849750, provider.startTime);
         assertEquals(300, provider.step);
         assertEquals(36, provider.temperatures.length);
@@ -47,6 +38,7 @@ public class DetectorTemperatureProviderTest {
 
     @Test
     public void testReadTemperatures() throws Exception {
+        final DetectorTemperatureProvider provider = getDetectorTemperatureProviderForTesting();
         assertEquals(257.02, provider.temperatures[0], 0.001);
         assertEquals(255.81, provider.temperatures[11], 0.001);
         assertEquals(256.18, provider.temperatures[23], 0.001);
@@ -55,9 +47,10 @@ public class DetectorTemperatureProviderTest {
 
     @Test
     public void testGetTemperature() throws Exception {
-        long secondsSince1981 = 333849750;
-        long milliSecondsSince1981 = secondsSince1981 * 1000;
-        long milliSecondsSince1970 = milliSecondsSince1981 + TimeUtil.MILLIS_1981;
+        final DetectorTemperatureProvider provider = getDetectorTemperatureProviderForTesting();
+        final long secondsSince1981 = 333849750;
+        final long milliSecondsSince1981 = secondsSince1981 * 1000;
+        final long milliSecondsSince1970 = milliSecondsSince1981 + TimeUtil.MILLIS_1981;
         final Date firstDate = new Date(milliSecondsSince1970);
         final Date secondDate = new Date(milliSecondsSince1970 + 300000);
         final Date thirdDate = new Date(milliSecondsSince1970 + 600000);
@@ -73,13 +66,18 @@ public class DetectorTemperatureProviderTest {
 
     @Test
     public void testAtsr1Temperature() throws Exception {
-        assertEquals(104.04, provider2.getDetectorTemperature(TimeUtil.parseCcsdsUtcFormat("1995-01-01T00:00:00Z")), 0.001);
+        final DetectorTemperatureProvider provider = getDetectorTemperatureProviderForProduction();
+
+        final Date date = TimeUtil.parseCcsdsUtcFormat("1995-01-01T00:00:00Z");
+        assertEquals(104.04, provider.getDetectorTemperature(date), 0.001);
     }
 
-    private static class MyDetectorTemperatureProvider extends DetectorTemperatureProvider {
-
-        MyDetectorTemperatureProvider(String detectorTemperatureFile) {
-            super(detectorTemperatureFile);
-        }
+    private DetectorTemperatureProvider getDetectorTemperatureProviderForProduction() {
+        return new DetectorTemperatureProvider("detector_temperature.dat");
     }
+
+    private DetectorTemperatureProvider getDetectorTemperatureProviderForTesting() {
+        return new DetectorTemperatureProvider("test_detector_temperature.dat");
+    }
+
 }

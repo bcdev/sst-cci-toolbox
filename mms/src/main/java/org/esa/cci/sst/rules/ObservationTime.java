@@ -33,7 +33,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class ObservationTime extends AbstractImplicitRule {
+final class ObservationTime extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.INT;
 

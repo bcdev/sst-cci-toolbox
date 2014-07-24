@@ -22,7 +22,7 @@ package org.esa.cci.sst.rules;
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class MetopSensor extends SensorRule {
+final class MetopSensor extends SensorRule {
 
     MetopSensor() {
         super("metop");

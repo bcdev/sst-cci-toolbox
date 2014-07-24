@@ -21,7 +21,7 @@ import org.esa.cci.sst.data.ColumnBuilder;
 /**
  * @author Thomas Storm
  */
-public class ToSaharanDustIndex extends AbstractRescalingToShort {
+final class ToSaharanDustIndex extends AbstractRescalingToShort {
 
     protected ToSaharanDustIndex() {
         super(1.0, 0.0);

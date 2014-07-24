@@ -16,15 +16,17 @@
 
 package org.esa.cci.sst.rules;
 
+import org.esa.cci.sst.tools.Constants;
+
 /**
  * Sets the sensor to 'avhrr.n10'.
  *
  * @author Thomas Storm
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class Avhrr10Sensor extends SensorRule {
+final class Avhrr10Sensor extends SensorRule {
 
     Avhrr10Sensor() {
-        super("avhrr.n10");
+        super(Constants.SENSOR_NAME_ORB_AVHRR_N10);
     }
 }

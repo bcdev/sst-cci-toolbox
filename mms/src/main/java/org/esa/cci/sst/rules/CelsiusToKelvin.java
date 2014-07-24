@@ -7,7 +7,7 @@ import org.esa.cci.sst.tools.Constants;
 /**
  * @author Ralf Quast
  */
-public class CelsiusToKelvin extends AbstractAttributeModification {
+final class CelsiusToKelvin extends AbstractAttributeModification {
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) throws RuleException {

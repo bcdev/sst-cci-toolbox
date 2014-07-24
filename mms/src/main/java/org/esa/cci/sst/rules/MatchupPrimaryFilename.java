@@ -27,7 +27,7 @@ import java.io.File;
  * Matchup filename.
  */
 @SuppressWarnings({"ClassTooDeepInInheritanceTree", "UnusedDeclaration"})
-class MatchupPrimaryFilename extends AbstractImplicitRule {
+final class MatchupPrimaryFilename extends AbstractImplicitRule {
 
     private static final DataType DATA_TYPE = DataType.CHAR;
     private static final int[] SHAPE = new int[]{1, 80};

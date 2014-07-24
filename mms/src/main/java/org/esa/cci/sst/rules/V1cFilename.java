@@ -22,7 +22,7 @@ package org.esa.cci.sst.rules;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-public class V1cFilename extends AtsrCalibrationFilenames {
+final class V1cFilename extends AtsrCalibrationFilenames {
 
     public V1cFilename() {
         super("DSD.31");

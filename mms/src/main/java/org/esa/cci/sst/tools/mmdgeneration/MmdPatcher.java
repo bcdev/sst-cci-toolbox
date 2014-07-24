@@ -16,7 +16,6 @@
 
 package org.esa.cci.sst.tools.mmdgeneration;
 
-import org.esa.cci.sst.rules.DetectorTemperatureProvider;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.TimeUtil;

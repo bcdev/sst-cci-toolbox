@@ -35,7 +35,7 @@ import java.io.IOException;
  * @author Thomas Storm
  */
 @SuppressWarnings({"UnusedDeclaration"})
-class MatchupElem extends Rule {
+final class MatchupElem extends Rule {
 
     private static final short FILL_VALUE = -1;
 
