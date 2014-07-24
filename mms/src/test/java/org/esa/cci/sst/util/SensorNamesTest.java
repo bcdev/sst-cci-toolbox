@@ -40,7 +40,11 @@ public class SensorNamesTest {
         assertTrue(SensorNames.isOrbitName("orb_avhrr.n17"));
         assertTrue(SensorNames.isOrbitName("orb_avhrr.n18"));
         assertTrue(SensorNames.isOrbitName("orb_avhrr.n19"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.m01"));
         assertTrue(SensorNames.isOrbitName("orb_avhrr.m02"));
+
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.m01f"));
+        assertTrue(SensorNames.isOrbitName("orb_avhrr.m02f"));
 
         assertFalse(SensorNames.isOrbitName("orb_aai"));
         assertFalse(SensorNames.isOrbitName("orb_seaice"));
@@ -62,7 +66,11 @@ public class SensorNamesTest {
         assertTrue(SensorNames.isStandardName("avhrr.n17"));
         assertTrue(SensorNames.isStandardName("avhrr.n18"));
         assertTrue(SensorNames.isStandardName("avhrr.n19"));
+        assertTrue(SensorNames.isStandardName("avhrr.m01"));
         assertTrue(SensorNames.isStandardName("avhrr.m02"));
+
+        assertTrue(SensorNames.isStandardName("avhrr.m01f"));
+        assertTrue(SensorNames.isStandardName("avhrr.m02f"));
 
         assertFalse(SensorNames.isStandardName("orb_atsr.1"));
         assertFalse(SensorNames.isStandardName("orb_atsr.2"));
@@ -78,7 +86,11 @@ public class SensorNamesTest {
         assertFalse(SensorNames.isStandardName("orb_avhrr.n17"));
         assertFalse(SensorNames.isStandardName("orb_avhrr.n18"));
         assertFalse(SensorNames.isStandardName("orb_avhrr.n19"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.m01"));
         assertFalse(SensorNames.isStandardName("orb_avhrr.m02"));
+
+        assertFalse(SensorNames.isStandardName("orb_avhrr.m01f"));
+        assertFalse(SensorNames.isStandardName("orb_avhrr.m02f"));
 
         assertFalse(SensorNames.isStandardName("aai"));
         assertFalse(SensorNames.isStandardName("seaice"));
@@ -102,18 +114,24 @@ public class SensorNamesTest {
         assertEquals("orb_atsr.3", SensorNames.ensureOrbitName("atsr.3"));
 
         assertEquals("orb_avhrr.n10", SensorNames.ensureOrbitName("avhrr.n10"));
+        assertEquals("orb_avhrr.m01", SensorNames.ensureOrbitName("avhrr.m01"));
         assertEquals("orb_avhrr.m02", SensorNames.ensureOrbitName("avhrr.m02"));
+
+        assertEquals("orb_avhrr.m01f", SensorNames.ensureOrbitName("avhrr.m01f"));
+        assertEquals("orb_avhrr.m02f", SensorNames.ensureOrbitName("avhrr.m02f"));
 
         try {
             SensorNames.ensureOrbitName("aai");
             fail();
         } catch (IllegalArgumentException expected) {
+            //
         }
 
         try {
             SensorNames.ensureOrbitName("seaice");
             fail();
         } catch (IllegalArgumentException expected) {
+            //
         }
     }
 
@@ -135,18 +153,24 @@ public class SensorNamesTest {
         assertEquals("atsr.3", SensorNames.ensureStandardName("orb_atsr.3"));
 
         assertEquals("avhrr.n10", SensorNames.ensureStandardName("orb_avhrr.n10"));
+        assertEquals("avhrr.m01", SensorNames.ensureStandardName("orb_avhrr.m01"));
         assertEquals("avhrr.m02", SensorNames.ensureStandardName("orb_avhrr.m02"));
+
+        assertEquals("avhrr.m01f", SensorNames.ensureStandardName("orb_avhrr.m01f"));
+        assertEquals("avhrr.m02f", SensorNames.ensureStandardName("orb_avhrr.m02f"));
 
         try {
             SensorNames.ensureStandardName("aai");
             fail();
         } catch (IllegalArgumentException expected) {
+            //
         }
 
         try {
             SensorNames.ensureStandardName("seaice");
             fail();
         } catch (IllegalArgumentException expected) {
+            //
         }
     }
 
