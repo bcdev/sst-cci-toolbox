@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class Insitu_CCI_2_Accessor implements InsituAccessor {
 
@@ -118,14 +120,19 @@ class Insitu_CCI_2_Accessor implements InsituAccessor {
     // package access for testing only tb 2014-02-06
     static String extractWMOID(DataFile dataFile) {
         final String path = dataFile.getPath();
-        int wmoidStartIndex = path.indexOf(WMOID_TAG);
-        if (wmoidStartIndex < 0) {
+        final int wmoidTagStart = path.indexOf(WMOID_TAG);
+        if (wmoidTagStart < 0) {
             return null;
         }
 
-        wmoidStartIndex += WMOID_TAG.length();
-        final int wmoidEndIndex = path.indexOf("_", wmoidStartIndex + 1);
-        return path.substring(wmoidStartIndex, wmoidEndIndex);
+        final String wmoidPart = path.substring(wmoidTagStart + WMOID_TAG.length());
+        final Matcher matcher = Pattern.compile("_[0-9]{8}_[0-9]{8}\\..*").matcher(wmoidPart);
+        final boolean found = matcher.find();
+        if (!found) {
+            return null;
+        }
+        final int wmoidEnd = matcher.start();
+        return wmoidPart.substring(0, wmoidEnd);
     }
 
     private void ensureLon() throws IOException {
