@@ -218,15 +218,17 @@ abstract class AbstractProductReader implements Reader {
     // currently not used, replaced by start time to align with file name time
     // used as filter during ingestion [boe, 09.08.2011]
     protected final Date getCenterTimeAsDate() throws IOException {
-        final ProductData.UTC startTime = product.getStartTime();
-        if (startTime == null) {
+        final ProductData.UTC startUtc = product.getStartTime();
+        if (startUtc == null) {
             throw new IOException("Unable to get start time for product '" + product.getName() + "'.");
         }
-        final ProductData.UTC endTime = product.getEndTime();
-        if (endTime == null) {
-            return startTime.getAsDate();
+        final ProductData.UTC endUtc = product.getEndTime();
+        if (endUtc == null) {
+            return startUtc.getAsDate();
         }
-        return new Date((long) (0.5 * (startTime.getAsDate().getTime() + endTime.getAsDate().getTime())));
+        final long startTime = startUtc.getAsDate().getTime();
+        final long endTime = endUtc.getAsDate().getTime();
+        return new Date((startTime + endTime) /  2);
     }
 
     protected final Date getStartTimeAsDate() throws IOException {
@@ -301,7 +303,7 @@ abstract class AbstractProductReader implements Reader {
     }
 
     private static Rectangle createSubsceneRectangle(Point2D p, int[] shape) {
-        final int w = shape[2];
+        final int w = shape.length > 2 ? shape[2] : 1;
         final int h = shape[1];
         final int x = (int) Math.floor(p.getX()) - w / 2;
         final int y = (int) Math.floor(p.getY()) - h / 2;
