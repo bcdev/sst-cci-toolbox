@@ -74,6 +74,16 @@ public class Constants {
     public static final String SENSOR_NAME_ORB_ATSR_1 = "orb_atsr.1";
     public static final String SENSOR_NAME_ORB_ATSR_2 = "orb_atsr.2";
     public static final String SENSOR_NAME_ORB_ATSR_3 = "orb_atsr.3";
+    public static final String SENSOR_NAME_ORB_AVHRR_N10 = "orb_avhrr.n10";
+    public static final String SENSOR_NAME_ORB_AVHRR_N11 = "orb_avhrr.n11";
+    public static final String SENSOR_NAME_ORB_AVHRR_N12 = "orb_avhrr.n12";
+    public static final String SENSOR_NAME_ORB_AVHRR_N13 = "orb_avhrr.n13";
+    public static final String SENSOR_NAME_ORB_AVHRR_N14 = "orb_avhrr.n14";
+    public static final String SENSOR_NAME_ORB_AVHRR_N15 = "orb_avhrr.n15";
+    public static final String SENSOR_NAME_ORB_AVHRR_N16 = "orb_avhrr.n16";
+    public static final String SENSOR_NAME_ORB_AVHRR_N17 = "orb_avhrr.n17";
+    public static final String SENSOR_NAME_ORB_AVHRR_N18 = "orb_avhrr.n18";
+    public static final String SENSOR_NAME_ORB_AVHRR_N19 = "orb_avhrr.n19";
 
     public static final byte MATCHUP_REFERENCE_FLAG_INVALID = 0;
     public static final byte MATCHUP_REFERENCE_FLAG_ALGORITHM = 1;
