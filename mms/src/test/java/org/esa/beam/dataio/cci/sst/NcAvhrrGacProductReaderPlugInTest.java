@@ -30,7 +30,7 @@ public class NcAvhrrGacProductReaderPlugInTest {
 
     @Test
     public void testMatches() throws Exception {
-        assertTrue(NcAvhrrGacProductReaderPlugIn.matches("19890205073700-AVHRR-L1b-AVHRR10_G-v02.0-fv01.0.nc"));
+        assertTrue(NcAvhrrGacProductReaderPlugIn.matches("19910101000100-ESACCI-L1C-AVHRR11_G-fv01.0.nc"));
     }
 
     private static File getResourceAsFile(String name) throws URISyntaxException {

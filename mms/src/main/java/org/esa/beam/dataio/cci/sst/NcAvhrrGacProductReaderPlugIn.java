@@ -31,7 +31,7 @@ public class NcAvhrrGacProductReaderPlugIn implements ProductReaderPlugIn {
 
     // package public for testing only
     static boolean matches(String filename) {
-        return filename.matches("[0-9]{14}-AVHRR-L1b-AVHRR.._G-v02\\.0-fv..\\..*\\.nc");
+        return filename.matches("[0-9]{14}-ESACCI-L1C-AVHRR.._G-fv..\\..\\.nc");
     }
 
     @Override
