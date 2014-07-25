@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 public class ReaderFactory {
 
     public static final String DEFAULT_READER_SPEC = "GunzipDecorator,ProductReader";
+    public static final String DEFAULT_MASK_SPEC = "";
 
     private static final String READER_PACKAGE_NAME = ReaderFactory.class.getPackage().getName();
 
@@ -53,10 +54,11 @@ public class ReaderFactory {
     public static Reader open(DataFile datafile, Configuration configuration) throws IOException {
         final String sensorName = datafile.getSensor().getName();
         final String readerSpec = configuration.getStringValue("mms.reader." + sensorName, DEFAULT_READER_SPEC);
+        final String dirtyMaskExpression = configuration.getDirtyMaskExpression(sensorName);
         final String archiveRootPath = configuration.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT, ".");
         final File archiveRoot = new File(archiveRootPath);
 
-        final Reader reader = createReader(readerSpec, sensorName);
+        final Reader reader = createReader(readerSpec, sensorName, dirtyMaskExpression);
         reader.open(datafile, archiveRoot);
 
         return reader;
@@ -75,14 +77,27 @@ public class ReaderFactory {
     public static Reader createReader(String readerSpec, String sensorName) {
         Assert.argument(readerSpec != null, "readerSpec == null");
         Assert.argument(sensorName != null, "sensorName == null");
+        return createReader(readerSpec, sensorName, null);
+    }
+
+    // package public for testing only
+    static Reader createReader(String readerSpec, String sensorName, String dirtyMaskExpression) {
+        Assert.argument(readerSpec != null, "readerSpec == null");
+        Assert.argument(sensorName != null, "sensorName == null");
         final String[] readerClassNames = readerSpec.split(",");
         Reader reader = null;
         try {
             for (int i = readerClassNames.length - 1; i >= 0; i--) {
                 final Class<? extends Reader> readerClass = (Class<? extends Reader>) Class.forName(READER_PACKAGE_NAME + '.' + readerClassNames[i]);
                 if (reader == null) {
-                    final Constructor<? extends Reader> constructor = readerClass.getDeclaredConstructor(String.class);
-                    reader = constructor.newInstance(sensorName);
+                    Constructor<? extends Reader> constructor;
+                    try {
+                        constructor = readerClass.getDeclaredConstructor(String.class, String.class);
+                        reader = constructor.newInstance(sensorName, dirtyMaskExpression);
+                    } catch (NoSuchMethodException e) {
+                        constructor = readerClass.getDeclaredConstructor(String.class);
+                        reader = constructor.newInstance(sensorName);
+                    }
                 } else {
                     final Constructor<? extends Reader> constructor = readerClass.getDeclaredConstructor(Reader.class);
                     reader = constructor.newInstance(reader);
@@ -90,15 +105,7 @@ public class ReaderFactory {
             }
         } catch (ClassCastException e) {
             throw new IllegalArgumentException(e);
-        } catch (NoSuchMethodException e) {
-            throw new IllegalStateException(e);
-        } catch (InstantiationException e) {
-            throw new IllegalStateException(e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException(e);
-        } catch (InvocationTargetException e) {
-            throw new IllegalStateException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
             throw new IllegalStateException(e);
         }
 

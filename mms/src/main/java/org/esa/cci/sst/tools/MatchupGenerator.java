@@ -1,10 +1,9 @@
 package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.data.*;
-import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
-import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
+import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
@@ -28,9 +27,7 @@ public class MatchupGenerator extends BasicTool {
     private String sensorName2;
     private int subSceneWidth;
     private int subSceneHeight;
-    private String cloudFlagsVariableName;
-    private int cloudFlagsMask;
-    private double cloudyPixelFraction;
+    private double dirtyPixelFraction;
     private long referenceSensorPattern;
     private String referenceSensorName;
 
@@ -67,9 +64,7 @@ public class MatchupGenerator extends BasicTool {
         sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
         subSceneWidth = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_WIDTH, 7);
         subSceneHeight = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
-        cloudFlagsVariableName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME);
-        cloudFlagsMask = config.getIntValue(Configuration.KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK);
-        cloudyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION, 0.0);
+        dirtyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION, 0.0);
         referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
         referenceSensorPattern = config.getPattern(referenceSensorName, 0);
     }
@@ -80,10 +75,10 @@ public class MatchupGenerator extends BasicTool {
         final Logger logger = getLogger();
 
         final List<SamplingPoint> samples = loadSamplePoints(logger);
-        removeCloudySamples(logger, samples, sensorName1, true);
+        removeCloudySamples(logger, samples, true);
 
         if (sensorName2 != null) {
-            removeCloudySamples(logger, samples, sensorName2, false);
+            removeCloudySamples(logger, samples, false);
         }
 
         removeOverlappingSamples(logger, samples);
@@ -377,19 +372,14 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
     }
 
-    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples, String sensorName, boolean isPrimary) {
-        final CloudySubsceneRemover subsceneRemover = new CloudySubsceneRemover();
-        final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
-        subsceneRemover.sensorName(sensorName)
-                .primary(isPrimary)
+    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples, boolean isPrimary) {
+        final DirtySubsceneRemover subsceneRemover = new DirtySubsceneRemover();
+        subsceneRemover.primary(isPrimary)
                 .subSceneWidth(subSceneWidth)
                 .subSceneHeight(subSceneHeight)
-                .cloudFlagsVariableName(cloudFlagsVariableName)
-                .cloudFlagsMask(cloudFlagsMask)
-                .cloudyPixelFraction(cloudyPixelFraction)
+                .dirtyPixelFraction(dirtyPixelFraction)
                 .config(getConfig())
                 .storage(getStorage())
-                .columnStorage(columnStorage)
                 .logger(logger)
                 .removeSamples(samples);
     }

@@ -1,0 +1,24 @@
+#!/bin/sh
+
+if [ -d log ]; then
+  rm -rf log
+fi
+mkdir log
+
+if [ -d tasks ]; then
+  rm -rf tasks
+fi
+mkdir tasks
+
+if [ -d tmp ]; then
+  rm -rf tmp/*.*
+fi
+mkdir tmp
+
+if [ -d trace ]; then
+  rm -rf trace
+fi
+mkdir trace
+
+rm ${usecase}.report ${usecase}.status ${usecase}.pid ${usecase}.out
+rm  log/*.* tasks/*.* tmp/*.* trace/*.*

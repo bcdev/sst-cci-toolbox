@@ -17,6 +17,7 @@ public class Configuration {
     public static final String KEY_MMS_CONFIGURATION = "mms.configuration";
     public static final String KEY_MMS_IO_TMPDELETEONEXIT = "mms.io.tmpdeleteonexit";
     public static final String KEY_MMS_PATTERN_PREFIX = "mms.pattern.";
+    public static final String KEY_MMS_DIRTY_MASK_PREFIX = "mms.dirty.";
     public static final String KEY_MMS_USECASE = "mms.usecase";
 
     public static final String KEY_MMS_INGESTION_CLEANUPINTERVAL = "mms.ingestion.cleanupinterval";
@@ -46,9 +47,7 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_SEARCH_TIME_PAST = "mms.sampling.searchtime.past";
     public static final String KEY_MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
     public static final String KEY_MMS_SAMPLING_CLEANUP_INTERVAL = "mms.sampling.cleanupinterval";
-    public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_VARIABLE_NAME = "mms.sampling.cloudflags.variable";
-    public static final String KEY_MMS_SAMPLING_CLOUD_FLAGS_MASK = "mms.sampling.cloudflags.mask";
-    public static final String KEY_MMS_SAMPLING_CLOUDY_PIXEL_FRACTION = "mms.sampling.cloudypixelfraction";
+    public static final String KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION = "mms.sampling.dirtypixelfraction";
     public static final String KEY_MMS_SAMPLING_REFERENCE_SENSOR = "mms.sampling.referencesensor";
     public static final String KEY_MMS_SAMPLING_EXTRACTION_TIME = "mms.sampling.time.insituextraction";
 
@@ -217,6 +216,12 @@ public class Configuration {
 
     public Properties getAsProperties() {
         return properties;
+    }
+
+    public String getDirtyMaskExpression(String sensorName) {
+        final String key = KEY_MMS_DIRTY_MASK_PREFIX + sensorName;
+
+        return getStringValue(key, null);
     }
 
     public long getPattern(String sensorName) {

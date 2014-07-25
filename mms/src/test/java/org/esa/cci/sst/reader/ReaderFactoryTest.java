@@ -26,43 +26,68 @@ import static junit.framework.Assert.assertTrue;
  */
 public class ReaderFactoryTest {
 
-    @SuppressWarnings({"ReuseOfLocalVariable"})
     @Test
-    public void testCreateReader() throws Exception {
-        Reader handler = ReaderFactory.createReader("GunzipDecorator,ProductReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof GunzipDecorator);
+    public void testCreateDecoratedProductReader() throws Exception {
+        final Reader reader = ReaderFactory.createReader("GunzipDecorator,ProductReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof GunzipDecorator);
+    }
 
-        handler = ReaderFactory.createReader("GunzipDecorator,AaiProductReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof GunzipDecorator);
+    @Test
+    public void testCreateDecoratedAaiProductReader() throws Exception {
+        final Reader reader = ReaderFactory.createReader("GunzipDecorator,AaiProductReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof GunzipDecorator);
+    }
 
-        handler = ReaderFactory.createReader("ProductReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof AbstractProductReader);
+    @Test
+    public void testCreateAaiProductReader() throws Exception {
+        final Reader reader = ReaderFactory.createReader("AaiProductReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof AaiProductReader);
+    }
 
-        handler = ReaderFactory.createReader("AaiProductReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof AaiProductReader);
+    @Test
+    public void testCreateMdReaders() throws Exception {
+        Reader reader = ReaderFactory.createReader("MetopReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof MetopReader);
 
-        handler = ReaderFactory.createReader("MetopReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof MetopReader);
+        reader = ReaderFactory.createReader("AtsrMdReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof AtsrMdReader);
 
-        handler = ReaderFactory.createReader("AtsrMdReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof AtsrMdReader);
+        reader = ReaderFactory.createReader("SeviriReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof SeviriReader);
 
-        handler = ReaderFactory.createReader("SeviriReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof SeviriReader);
+        reader = ReaderFactory.createReader("AvhrrMdReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof AvhrrMdReader);
 
-        handler = ReaderFactory.createReader("AvhrrMdReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof AvhrrMdReader);
+        reader = ReaderFactory.createReader("InsituReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof InsituReader);
+    }
 
-        handler = ReaderFactory.createReader("InsituReader", "");
-        assertNotNull(handler);
-        assertTrue(handler instanceof InsituReader);
+    @Test
+    public void testCreateInsituReader() throws Exception {
+        final Reader reader = ReaderFactory.createReader("InsituReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof InsituReader);
+    }
+
+    @Test
+    public void testCreateProductReader() throws Exception {
+        final Reader reader = ReaderFactory.createReader("ProductReader", "");
+        assertNotNull(reader);
+        assertTrue(reader instanceof ProductReader);
+    }
+
+    @Test
+    public void testCreateProductReader_with_dirty_mask() throws Exception {
+        final Reader reader = ReaderFactory.createReader("ProductReader", "", "false");
+        assertNotNull(reader);
+        assertTrue(reader instanceof ProductReader);
     }
 }

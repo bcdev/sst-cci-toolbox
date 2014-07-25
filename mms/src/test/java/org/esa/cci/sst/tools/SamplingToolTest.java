@@ -16,7 +16,7 @@ package org.esa.cci.sst.tools;/*
 
 import org.esa.cci.sst.DatabaseTestRunner;
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.tools.samplepoint.CloudySubsceneRemover;
+import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.ObservationFinder;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointPlotter;
@@ -65,8 +65,9 @@ public class SamplingToolTest {
         parameter.setSearchTimeFuture(quarterRepeatCycleInSeconds);
         observationFinder.findPrimarySensorObservations(sampleList, parameter);
 
-        CloudySubsceneRemover.removeSamples(sampleList, Constants.SENSOR_NAME_ORB_ATSR_3, true, 7, 7, tool.getConfig(),
-                                            tool.getStorage(), tool.getColumnStorage(), tool.getLogger(), "cloud_flags_nadir", 3, 0.0);
+        DirtySubsceneRemover.removeSamples(sampleList, true, 7, 7, tool.getConfig(),
+                                           tool.getStorage(), tool.getLogger(),
+                                           0.0);
         tool.removeOverlappingSamples(sampleList);
 
         assertEquals(77, sampleList.size());

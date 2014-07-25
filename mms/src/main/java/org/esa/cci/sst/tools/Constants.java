@@ -22,10 +22,12 @@ public class Constants {
      * Name of persistence unit in META-INF/persistence.xml
      */
     public static final String PERSISTENCE_UNIT_NAME = "matchupdb";
+    public static final int PERSISTENCE_RETRY_COUNT = 7;
 
     public static final String DIMENSION_NAME_MATCHUP = "matchup";
     public static final String DIMENSION_NAME_CALLSIGN_LENGTH = "callsign_length";
     public static final String DIMENSION_NAME_FILENAME_LENGTH = "filename_length";
+    public static final String DIMENSION_NAME_INSITU_NTIME = "insitu.ntime";
 
     public static final String UNIT_BRIGHTNESS_TEMPERATURE = "K";
     public static final String UNIT_LAT = "degrees_north";
@@ -63,7 +65,6 @@ public class Constants {
 
     public static final String PROPERTY_NWP_ARC3_START_TIME = "mms.nwp_arc3.startTime";
     public static final String PROPERTY_NWP_ARC3_STOP_TIME = "mms.nwp_arc3.stopTime";
-    public static final int PERSISTENCE_RETRY_COUNT = 7;
 
     public static final String SENSOR_NAME_ATSR_MD = "atsr_md";
     public static final String SENSOR_NAME_AVHRR_MD = "avhrr_md";
@@ -85,13 +86,14 @@ public class Constants {
     public static final String SENSOR_NAME_ORB_AVHRR_N18 = "orb_avhrr.n18";
     public static final String SENSOR_NAME_ORB_AVHRR_N19 = "orb_avhrr.n19";
 
+    public static final String MASK_NAME_MMS_DIRTY = "mms_dirty";
+
     public static final byte MATCHUP_REFERENCE_FLAG_INVALID = 0;
     public static final byte MATCHUP_REFERENCE_FLAG_ALGORITHM = 1;
     public static final byte MATCHUP_REFERENCE_FLAG_BLIND = 2;
     public static final byte MATCHUP_REFERENCE_FLAG_VALIDATION = 3;
     public static final byte MATCHUP_REFERENCE_FLAG_UNDEFINED = 4;
     public static final byte MATCHUP_REFERENCE_FLAG_DUPLICATE = 5;
-    public static final String DIMENSION_NAME_INSITU_NTIME = "insitu.ntime";
 
     private Constants() {
     }

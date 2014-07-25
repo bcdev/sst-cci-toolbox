@@ -22,67 +22,35 @@ import static org.junit.Assert.assertEquals;
 public class PixelCounterTest {
 
     @Test
-    public void testCountPixels_bit_one_set() throws Exception {
-        final PixelCounter pixelCounter = new PixelCounter(0b0001);
+    public void testCountPixels_all_pixels_valid() throws Exception {
+        final PixelCounter pixelCounter = new PixelCounter();
 
-        final Array array = Array.factory(new int[][]{
+        final Array array = Array.factory(new byte[][]{
+                {0b0000, 0b0000, 0b0000},
+                {0b0000, 0b0000, 0b0000},
+                {0b0000, 0b0000, 0b0000}
+        });
+
+        assertEquals(0, pixelCounter.count(array));
+    }
+
+    @Test
+    public void testCountPixels_all_pixels_invalid() throws Exception {
+        final PixelCounter pixelCounter = new PixelCounter();
+
+        final Array mask = Array.factory(new byte[][]{
                 {0b0001, 0b0010, 0b0011},
                 {0b0100, 0b0101, 0b0110},
                 {0b0111, 0b1000, 0b1001}
         });
 
-        assertEquals(5, pixelCounter.count(array));
+        assertEquals(9, pixelCounter.count(mask));
     }
 
     @Test
-    public void testCountPixels_bit_two_set() throws Exception {
-        final PixelCounter pixelCounter = new PixelCounter(0b0010);
+    public void testCountPixels_with_null_argument() throws Exception {
+        final PixelCounter pixelCounter = new PixelCounter();
 
-        final Array array = Array.factory(new int[][]{
-                {0b0001, 0b0010, 0b0011},
-                {0b0100, 0b0101, 0b0110},
-                {0b0111, 0b1000, 0b1001}
-        });
-
-        assertEquals(4, pixelCounter.count(array));
-    }
-
-    @Test
-    public void testCountPixels_bit_one_or_two_set() throws Exception {
-        final PixelCounter pixelCounter = new PixelCounter(0b0011);
-
-        final Array array = Array.factory(new int[][]{
-                {0b0001, 0b0010, 0b0011},
-                {0b0100, 0b0101, 0b0110},
-                {0b0111, 0b1000, 0b1001}
-        });
-
-        assertEquals(7, pixelCounter.count(array));
-    }
-
-    @Test
-    public void testCountPixels_bit_three_set() throws Exception {
-        final PixelCounter pixelCounter = new PixelCounter(0b0100, Integer.MIN_VALUE);
-
-        final Array array = Array.factory(new int[][]{
-                {0b0001, 0b0010, 0b0011},
-                {0b0100, 0b0101, 0b0110},
-                {0b0111, 0b1000, 0b1001}
-        });
-
-        assertEquals(4, pixelCounter.count(array));
-    }
-
-    @Test
-    public void testCountPixels_bit_three_set_or_fill_value() throws Exception {
-        final PixelCounter pixelCounter = new PixelCounter(0b0100, Integer.MIN_VALUE);
-
-        final Array array = Array.factory(new int[][]{
-                {0b0001, 0b0010, 0b0011},
-                {0b0100, 0b0101, 0b0110},
-                {0b0111, 0b1000, Integer.MIN_VALUE}
-        });
-
-        assertEquals(5, pixelCounter.count(array));
+        assertEquals(0, pixelCounter.count(null));
     }
 }

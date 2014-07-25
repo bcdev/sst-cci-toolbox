@@ -29,64 +29,20 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-public class CloudySubsceneRemoverTest {
+public class DirtySubsceneRemoverTest {
 
     @Test
     public void testPrimaryIsDefault() throws Exception {
-        final CloudySubsceneRemover remover = new CloudySubsceneRemover();
+        final DirtySubsceneRemover remover = new DirtySubsceneRemover();
 
         assertTrue(remover.getPrimary());
     }
 
     @Test
     public void testSetPrimary() throws Exception {
-        final CloudySubsceneRemover remover = new CloudySubsceneRemover().primary(false);
+        final DirtySubsceneRemover remover = new DirtySubsceneRemover().primary(false);
 
         assertFalse(remover.getPrimary());
-    }
-
-    @Test
-    public void testGetColumnFillValue() {
-        final double expectedFill = 675.88;
-        final Column column = (Column) new ColumnBuilder().fillValue(expectedFill).build();
-        final ColumnStorage columnStorage = mock(ColumnStorage.class);
-
-        when(columnStorage.getColumn("orb_atsr.2.cloud_band")).thenReturn(column);
-
-        final Number fillValue = CloudySubsceneRemover.getColumnFillValue("atsr.2", "cloud_band", columnStorage);
-        assertEquals(expectedFill, fillValue.doubleValue(), 1e-8);
-
-        verify(columnStorage, times(1)).getColumn("orb_atsr.2.cloud_band");
-        verifyNoMoreInteractions(columnStorage);
-    }
-
-    @Test
-    public void testGetColumnFillValue_invalidSensorName() {
-        final ColumnStorage columnStorage = mock(ColumnStorage.class);
-
-        try {
-            CloudySubsceneRemover.getColumnFillValue("invalid", "cloud_band", columnStorage);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException expected) {
-        }
-
-        verifyNoMoreInteractions(columnStorage);
-    }
-
-    @Test
-    public void testGetColumnFillValue_columnNotStored() {
-        final ColumnStorage columnStorage = mock(ColumnStorage.class);
-
-        when(columnStorage.getColumn("orb_atsr.2.cloud_band")).thenReturn(null);
-
-        try {
-            CloudySubsceneRemover.getColumnFillValue("atsr.2", "cloud_band", columnStorage);
-            fail("ToolException expected");
-        } catch (ToolException expected) {
-        }
-
-        verify(columnStorage, times(1)).getColumn("orb_atsr.2.cloud_band");
-        verifyNoMoreInteractions(columnStorage);
     }
 
     @Test
@@ -95,7 +51,7 @@ public class CloudySubsceneRemoverTest {
         points.add(createSamplingPointWithReference(19));
         points.add(createSamplingPointWithReference(19));
 
-        final Map<Integer, List<SamplingPoint>> listByFileId = CloudySubsceneRemover.splitByFileId(points, true);
+        final Map<Integer, List<SamplingPoint>> listByFileId = DirtySubsceneRemover.splitByFileId(points, true);
         assertEquals(1, listByFileId.size());
         final List<SamplingPoint> fileList = listByFileId.get(19);
         assertNotNull(fileList);
@@ -109,7 +65,7 @@ public class CloudySubsceneRemoverTest {
         points.add(createSamplingPointWithSecondaryReference(21));
         points.add(createSamplingPointWithSecondaryReference(21));
 
-        final Map<Integer, List<SamplingPoint>> listByFileId = CloudySubsceneRemover.splitByFileId(points, false);
+        final Map<Integer, List<SamplingPoint>> listByFileId = DirtySubsceneRemover.splitByFileId(points, false);
         assertEquals(1, listByFileId.size());
         final List<SamplingPoint> fileList = listByFileId.get(21);
         assertNotNull(fileList);
@@ -125,7 +81,7 @@ public class CloudySubsceneRemoverTest {
         points.add(createSamplingPointWithReference(22));
         points.add(createSamplingPointWithReference(19));
 
-        final Map<Integer, List<SamplingPoint>> listByFileId = CloudySubsceneRemover.splitByFileId(points, true);
+        final Map<Integer, List<SamplingPoint>> listByFileId = DirtySubsceneRemover.splitByFileId(points, true);
         assertEquals(2, listByFileId.size());
          List<SamplingPoint> fileList = listByFileId.get(19);
         assertNotNull(fileList);
@@ -134,18 +90,6 @@ public class CloudySubsceneRemoverTest {
         fileList = listByFileId.get(22);
         assertNotNull(fileList);
         assertEquals(3, fileList.size());
-    }
-
-    @Test
-    public void testIsInsituCase() {
-        final Configuration configuration = new Configuration();
-        assertFalse(CloudySubsceneRemover.isInsituCase(configuration));
-
-        configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "sobol");
-        assertFalse(CloudySubsceneRemover.isInsituCase(configuration));
-
-        configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "insitu");
-        assertTrue(CloudySubsceneRemover.isInsituCase(configuration));
     }
 
     private SamplingPoint createSamplingPointWithReference(int reference) {

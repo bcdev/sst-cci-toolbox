@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.reader;
 
+import com.bc.jexp.ParseException;
 import org.esa.beam.dataio.cci.sst.NcAvhrrGacProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.NcOsiProductReaderPlugIn;
 import org.esa.beam.dataio.cci.sst.PmwProductReaderPlugIn;
@@ -26,12 +27,15 @@ import org.esa.beam.framework.datamodel.MetadataAttribute;
 import org.esa.beam.framework.datamodel.MetadataElement;
 import org.esa.beam.framework.datamodel.Product;
 import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.dataop.barithm.BandArithmetic;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.framework.gpf.OperatorSpi;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.util.BoundaryCalculator;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -49,13 +53,19 @@ import java.util.Map;
 class ProductReader extends AbstractProductReader {
 
     private final BoundaryCalculator bc;
+    private final String dirtyMaskExpression;
 
     ProductReader(String sensorName) {
+        this(sensorName, null);
+    }
+
+    ProductReader(String sensorName, String dirtyMaskExpression) {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
               NcOsiProductReaderPlugIn.FORMAT_NAME,
               PmwProductReaderPlugIn.FORMAT_NAME,
               NcAvhrrGacProductReaderPlugIn.FORMAT_NAME);
+        this.dirtyMaskExpression = dirtyMaskExpression;
         this.bc = new BoundaryCalculator();
     }
 
@@ -70,6 +80,14 @@ class ProductReader extends AbstractProductReader {
                 // we need to shift the forward view
                 product = shiftForwardViewBands(product);
             }
+        }
+        if (dirtyMaskExpression != null && !dirtyMaskExpression.isEmpty()) {
+            try {
+                BandArithmetic.parseExpression(dirtyMaskExpression, new Product[]{product}, 0);
+            } catch (ParseException e) {
+                throw new IOException(e);
+            }
+            product.addMask(Constants.MASK_NAME_MMS_DIRTY, dirtyMaskExpression, "Marked dirty by MMS", Color.RED, 0.5);
         }
         return product;
     }

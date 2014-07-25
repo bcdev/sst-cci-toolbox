@@ -21,18 +21,16 @@ import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
-import org.esa.cci.sst.data.Column;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.SamplingPoint;
-import org.esa.cci.sst.util.SensorNames;
 import ucar.ma2.Array;
 
 import java.io.IOException;
@@ -44,75 +42,55 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CloudySubsceneRemover {
+public class DirtySubsceneRemover {
 
-    private String sensorName;
     private boolean primary;
     private int subSceneWidth;
     private int subSceneHeight;
-    private String cloudFlagsVariableName;
-    private int cloudFlagsMask;
-    private double cloudyPixelFraction;
+    private double dirtyPixelFraction;
     private Configuration config;
     private Storage storage;
-    private ColumnStorage columnStorage;
     private Logger logger;
 
-    public CloudySubsceneRemover() {
+    public DirtySubsceneRemover() {
         primary = true;
     }
 
-    public CloudySubsceneRemover sensorName(String sensorName) {
-        this.sensorName = sensorName;
+    public DirtySubsceneRemover sensorName() {
         return this;
     }
 
-    public CloudySubsceneRemover primary(boolean primary) {
+    public DirtySubsceneRemover primary(boolean primary) {
         this.primary = primary;
         return this;
     }
 
-    public CloudySubsceneRemover subSceneWidth(int subSceneWidth) {
+    public DirtySubsceneRemover subSceneWidth(int subSceneWidth) {
         this.subSceneWidth = subSceneWidth;
         return this;
     }
 
-    public CloudySubsceneRemover subSceneHeight(int subSceneHeight) {
+    public DirtySubsceneRemover subSceneHeight(int subSceneHeight) {
         this.subSceneHeight = subSceneHeight;
         return this;
     }
 
-    public CloudySubsceneRemover cloudFlagsVariableName(String cloudFlagsVariableName) {
-        this.cloudFlagsVariableName = cloudFlagsVariableName;
+    public DirtySubsceneRemover dirtyPixelFraction(double dirtyPixelFraction) {
+        this.dirtyPixelFraction = dirtyPixelFraction;
         return this;
     }
 
-    public CloudySubsceneRemover cloudFlagsMask(int cloudFlagsMask) {
-        this.cloudFlagsMask = cloudFlagsMask;
-        return this;
-    }
-
-    public CloudySubsceneRemover cloudyPixelFraction(double cloudyPixelFraction) {
-        this.cloudyPixelFraction = cloudyPixelFraction;
-        return this;
-    }
-
-    public CloudySubsceneRemover config(Configuration config) {
+    public DirtySubsceneRemover config(Configuration config) {
         this.config = config;
         return this;
     }
 
-    public CloudySubsceneRemover storage(Storage storage) {
+    public DirtySubsceneRemover storage(Storage storage) {
         this.storage = storage;
         return this;
     }
 
-    public CloudySubsceneRemover columnStorage(ColumnStorage columnStorage) {
-        this.columnStorage = columnStorage;
-        return this;
-    }
-
-    public CloudySubsceneRemover logger(Logger logger) {
+    public DirtySubsceneRemover logger(Logger logger) {
         this.logger = logger;
         return this;
     }
@@ -121,37 +99,31 @@ public class CloudySubsceneRemover {
         return primary;
     }
 
-    public static void removeSamples(List<SamplingPoint> samples, String sensorName, boolean primarySensor,
+    public static void removeSamples(List<SamplingPoint> samples, boolean primarySensor,
                                      int subSceneWidth, int subSceneHeight,
-                                     Configuration config, Storage storage, ColumnStorage columnStorage, Logger logger, String cloudFlagsName,
-                                     int pixelMask, double cloudyPixelFraction) {
-        final CloudySubsceneRemover remover = new CloudySubsceneRemover()
-                .sensorName(sensorName)
+                                     Configuration config, Storage storage, Logger logger,
+                                     double dirtyPixelFraction) {
+        final DirtySubsceneRemover remover = new DirtySubsceneRemover()
                 .primary(primarySensor)
                 .subSceneWidth(subSceneWidth)
                 .subSceneHeight(subSceneHeight)
-                .cloudFlagsVariableName(cloudFlagsName)
-                .cloudFlagsMask(pixelMask)
-                .cloudyPixelFraction(cloudyPixelFraction)
+                .dirtyPixelFraction(dirtyPixelFraction)
                 .config(config)
                 .storage(storage)
-                .columnStorage(columnStorage)
                 .logger(logger);
 
         remover.removeSamples(samples);
     }
 
     public void removeSamples(List<SamplingPoint> samples) {
-        logInfo("Starting removing cloudy samples...");
+        logInfo("Starting removing dirty samples...");
 
         final Map<Integer, List<SamplingPoint>> samplesByDatafile = splitByFileId(samples, primary);
-
-        final Number fillValue = getColumnFillValue(sensorName, cloudFlagsVariableName, columnStorage);
-        final PixelCounter pixelCounter = new PixelCounter(cloudFlagsMask, fillValue);
+        final PixelCounter pixelCounter = new PixelCounter();
 
         final int[] shape = new int[]{1, subSceneHeight, subSceneWidth};
-        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape).fillValue(fillValue);
-        final List<SamplingPoint> clearSkySamples = new ArrayList<>(samples.size());
+        final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape);
+        final List<SamplingPoint> validSamples = new ArrayList<>(samples.size());
 
         for (final int id : samplesByDatafile.keySet()) {
             final List<SamplingPoint> points = samplesByDatafile.get(id);
@@ -162,7 +134,8 @@ public class CloudySubsceneRemover {
 
             final DataFile datafile = observation.getDatafile();
             try (final Reader reader = ReaderFactory.open(datafile, config)) {
-                logInfo(MessageFormat.format("Starting removing cloudy samples: data file ''{0}''...", datafile.getPath()));
+                logInfo(MessageFormat.format("Starting removing dirty samples: data file ''{0}''...",
+                                             datafile.getPath()));
 
                 final int numCols = reader.getElementCount();
                 final int numRows = reader.getScanLineCount();
@@ -190,19 +163,23 @@ public class CloudySubsceneRemover {
                         }
 
                         final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
-                        final Array array = reader.read(cloudFlagsVariableName, extractDefinition);
-                        final int cloudyPixelCount = pixelCounter.count(array);
+                        final Array maskArray = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
+                        final int dirtyPixelCount = pixelCounter.count(maskArray);
                         if (logger != null && logger.isLoggable(Level.FINE)) {
-                            logger.info(MessageFormat.format("Found {0} cloudy pixels in sub-scene at ({1}, {2}).", cloudyPixelCount, lon, lat));
+                            logger.info(MessageFormat.format("Found {0} dirty pixels in sub-scene at ({1}, {2}).",
+                                                             dirtyPixelCount, lon, lat));
                         }
-                        if (cloudyPixelCount <= (subSceneWidth * subSceneHeight) * cloudyPixelFraction) {
-                            clearSkySamples.add(point);
+                        if (dirtyPixelCount <= (subSceneWidth * subSceneHeight) * dirtyPixelFraction) {
+                            validSamples.add(point);
                         }
                     } else {
-                        logInfo(MessageFormat.format("Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat, datafile.getPath()));
+                        logInfo(MessageFormat.format("Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
+                                                     datafile.getPath()));
                     }
                 }
-                logInfo(MessageFormat.format("Finished removing cloudy samples: data file ''{0}'' ({1} clear-sky samples)", datafile.getPath(), clearSkySamples.size()));
+                logInfo(MessageFormat.format(
+                        "Finished removing dirty samples: data file ''{0}'' ({1} clear-sky samples)",
+                        datafile.getPath(), validSamples.size()));
             } catch (IOException e) {
                 throw new ToolException(
                         MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
@@ -210,9 +187,10 @@ public class CloudySubsceneRemover {
             }
         }
         samples.clear();
-        samples.addAll(clearSkySamples);
+        samples.addAll(validSamples);
 
-        logInfo(MessageFormat.format("Finished removing cloudy samples: {0} clear-sky samples found in total", samples.size()));
+        logInfo(MessageFormat.format("Finished removing dirty samples: {0} clear-sky samples found in total",
+                                     samples.size()));
     }
 
     private void logInfo(String message) {
@@ -234,19 +212,4 @@ public class CloudySubsceneRemover {
         return samplesByDatafile;
     }
 
-    // package access for testing only tb 2014-03-31
-    static Number getColumnFillValue(String sensorName, String cloudFlagsVariableName, ColumnStorage columnStorage) {
-        final String columnName = SensorNames.ensureOrbitName(sensorName) + "." + cloudFlagsVariableName;
-        final Column column = columnStorage.getColumn(columnName);
-        if (column == null) {
-            throw new ToolException(MessageFormat.format("Unable to find column ''{0}''.", columnName), ToolException.TOOL_ERROR);
-        }
-        return column.getFillValue();
-    }
-
-    // package access for testing only tb 2014-04-02
-    static boolean isInsituCase(Configuration configuration) {
-        final String generatorName = configuration.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR, null);
-        return "insitu".equalsIgnoreCase(generatorName);
-    }
 }

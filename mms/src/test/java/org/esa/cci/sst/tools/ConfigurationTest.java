@@ -10,7 +10,11 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ConfigurationTest {
 
@@ -57,6 +61,7 @@ public class ConfigurationTest {
             configuration.getDateValue("date.key");
             fail("ToolException expected");
         } catch (ToolException expected) {
+            //
         }
     }
 
@@ -232,8 +237,8 @@ public class ConfigurationTest {
     @Test
     public void testLoad() throws IOException {
         final String configFileContent = "key.1 = value.1\n" +
-                "date.key = 1979-01-01T00:00:00Z\n" +
-                "key.2 = value.2";
+                                         "date.key = 1979-01-01T00:00:00Z\n" +
+                                         "key.2 = value.2";
 
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(configFileContent.getBytes());
         final InputStreamReader reader = new InputStreamReader(inputStream);
@@ -290,6 +295,7 @@ public class ConfigurationTest {
             configuration.getStringValue("appended_key");
             fail("ToolException expected");
         } catch (ToolException expected) {
+            //
         }
     }
 
@@ -308,6 +314,7 @@ public class ConfigurationTest {
             configuration.getPattern("mysensor");
             fail();
         } catch (Exception expected) {
+            //
         }
 
         configuration.put("mysensor", "8000000000000000");
@@ -315,6 +322,7 @@ public class ConfigurationTest {
             configuration.getPattern("mysensor");
             fail();
         } catch (Exception expected) {
+            //
         }
 
         configuration.put("mms.pattern.mysensor", "8000000000000000");
@@ -328,6 +336,7 @@ public class ConfigurationTest {
             configuration.getPattern("mysensor");
             fail();
         } catch (Exception expexted) {
+            //
         }
     }
 
@@ -338,6 +347,7 @@ public class ConfigurationTest {
             configuration.getPattern("mysensor");
             fail();
         } catch (Exception expexted) {
+            //
         }
     }
 
@@ -348,6 +358,7 @@ public class ConfigurationTest {
             configuration.getPattern("mysensor");
             fail("ToolException expected");
         } catch (ToolException expected) {
+            //
         }
     }
 
@@ -361,9 +372,30 @@ public class ConfigurationTest {
 
     @Test
     public void testContainsValue() {
-         assertFalse(configuration.containsValue("nasenmann.org"));
+        assertFalse(configuration.containsValue("nasenmann.org"));
 
         configuration.put("nasenmann.org", "any value");
         assertTrue(configuration.containsValue("nasenmann.org"));
+    }
+
+    @Test
+    public void testGetDirtyMaskExpression() throws Exception {
+        final Properties properties = new Properties();
+        properties.load(getClass().getResourceAsStream("config.properties"));
+
+        configuration.add(properties);
+        assertTrue(configuration.containsValue("mms.dirty.atsr.1"));
+        assertTrue(configuration.containsValue("mms.dirty.atsr.2"));
+        assertTrue(configuration.containsValue("mms.dirty.atsr.3"));
+
+        assertEquals(
+                "(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
+                configuration.getDirtyMaskExpression("atsr.1"));
+        assertEquals(
+                "(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
+                configuration.getDirtyMaskExpression("atsr.2"));
+        assertEquals(
+                "(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
+                configuration.getDirtyMaskExpression("atsr.3"));
     }
 }

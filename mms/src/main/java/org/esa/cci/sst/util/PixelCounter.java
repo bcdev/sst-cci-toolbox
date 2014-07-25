@@ -23,26 +23,14 @@ import ucar.ma2.Array;
  */
 public class PixelCounter {
 
-    private final int mask;
-    private final Number fillValue;
-
-    public PixelCounter(int mask) {
-        this(mask, null);
-    }
-
-    public PixelCounter(int mask, Number fillValue) {
-        this.mask = mask;
-        this.fillValue = fillValue;
-    }
-
-    public int count(Array flagsArray) {
+    public int count(Array maskArray) {
         int count = 0;
-        for (int i = 0; i < flagsArray.getSize(); i++) {
-            final int value = flagsArray.getInt(i);
-            if (fillValue != null && value == fillValue.intValue()) {
-                count++;
-            } else if ((value & mask) != 0) {
-                count++;
+        if (maskArray != null) {
+            for (int i = 0; i < maskArray.getSize(); i++) {
+                final byte value = maskArray.getByte(i);
+                if (value != 0) {
+                    count++;
+                }
             }
         }
         return count;
