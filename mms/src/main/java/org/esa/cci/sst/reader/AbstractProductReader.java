@@ -121,8 +121,10 @@ abstract class AbstractProductReader implements Reader {
         final RasterDataNode node;
         if (product.containsBand(role)) {
             node = product.getBand(role);
-        } else {
+        } else if (product.containsTiePointGrid(role)) {
             node = product.getTiePointGrid(role);
+        } else {
+            node = product.getMaskGroup().get(role);
         }
         if (node == null) {
             return null;
