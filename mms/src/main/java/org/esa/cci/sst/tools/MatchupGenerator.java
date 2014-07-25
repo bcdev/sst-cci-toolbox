@@ -251,6 +251,7 @@ public class MatchupGenerator extends BasicTool {
     static ReferenceObservation createReferenceObservation(String referenceSensorName, SamplingPoint samplingPoint,
                                                            DataFile datafile) {
         final ReferenceObservation r = new ReferenceObservation();
+        // TODO - use samplingPoint.getDatasetName() here for in-situ points
         r.setName(String.valueOf(samplingPoint.getIndex()));
         r.setSensor(referenceSensorName);
 
