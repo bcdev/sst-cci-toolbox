@@ -69,7 +69,6 @@ public class DatabaseTestRunner extends BlockJUnit4ClassRunner {
             configuration.load(is);
         } catch (IOException e) {
             System.out.println("Test" + klass.getName() + " suppressed - no configuration file found.");
-            e.printStackTrace();
         } finally {
             if (is != null) {
                 try {
@@ -83,7 +82,6 @@ public class DatabaseTestRunner extends BlockJUnit4ClassRunner {
             canPersist = true;
         } catch (Throwable t) {
             System.out.println("Test" + klass.getName() + " suppressed - JPA persistence not available.");
-            t.printStackTrace();
         }
     }
 }
