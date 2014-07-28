@@ -81,11 +81,6 @@ public class Configuration {
     public static final String KEY_MMS_REINGESTION_SENSOR = "mms.reingestion.sensor";
     public static final String KEY_MMS_REINGESTION_SOURCE = "mms.reingestion.source";
 
-    // yet unclear properties
-    public static final String KEY_ARC3_DESTDIR = "mms.arc3.destdir";
-    public static final String KEY_NWP_ARC3_SENSOR = "mms.nwp_arc3.sensor";
-    public static final String KEY_NWP_DESTDIR = "mms.nwp.destdir";
-
     private final Properties properties;
 
     public Configuration() {
