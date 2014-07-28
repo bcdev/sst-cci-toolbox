@@ -180,7 +180,7 @@ public class IngestionTool extends BasicTool {
 
             final String observationTypeKey = String.format("mms.observationType.%s", sensor);
             final String observationType = config.getStringValue(observationTypeKey, "RelatedObservation");
-            if (inputDirPath == null || sensor == null) {
+            if (sensor == null || inputDirPath == null) {
                 continue;
             }
             final long pattern = config.getPattern(sensor);

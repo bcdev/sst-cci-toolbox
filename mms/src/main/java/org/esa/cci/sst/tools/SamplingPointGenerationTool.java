@@ -109,13 +109,13 @@ public class SamplingPointGenerationTool extends BasicTool {
         final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         workflowContext.setArchiveRootDir(new File(archiveRootPath));
 
-        final String insituInputPath = config.getStringValue("mms.source.45.inputDirectory", null);
-        workflowContext.setInsituInputPath(insituInputPath);
+        final String insituSourcePath = config.getStringValue(Configuration.KEY_MMS_SAMPLING_INSITU_SOURCE_DIR, null);
+        workflowContext.setInsituInputPath(insituSourcePath);
 
-        final String insituSensorName = config.getStringValue("mms.source.45.sensor", null);
+        final String insituSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_INSITU_SENSOR, null);
         workflowContext.setInsituSensorName(insituSensorName);
 
-        final long insituPattern = config.getPattern("history", 0);
+        final long insituPattern = config.getPattern(insituSensorName, 0);
         workflowContext.setInsituSensorPattern(insituPattern);
 
         final String sampleGeneratorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR);

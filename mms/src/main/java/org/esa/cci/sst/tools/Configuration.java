@@ -50,6 +50,8 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION = "mms.sampling.dirtypixelfraction";
     public static final String KEY_MMS_SAMPLING_REFERENCE_SENSOR = "mms.sampling.referencesensor";
     public static final String KEY_MMS_SAMPLING_EXTRACTION_TIME = "mms.sampling.time.insituextraction";
+    public static final String KEY_MMS_SAMPLING_INSITU_SENSOR = "mms.sampling.insitu.sensor";
+    public static final String KEY_MMS_SAMPLING_INSITU_SOURCE_DIR = "mms.sampling.insitu.inputdirectory";
 
     public static final String KEY_MMS_MAPPLOT_STATEGY = "mms.mapplot.strategy";
     public static final String KEY_MMS_MAPPLOT_TARGET_DIR = "mms.mapplot.target.dir";
