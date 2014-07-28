@@ -39,7 +39,7 @@ import java.util.Map;
 @SuppressWarnings({"UnusedDeclaration"})
 final class DetectorTemperature extends Rule {
 
-    private static final int SCALE_FACTOR = 100;
+    private static final double SCALE_FACTOR = 0.01;
     private static final short FILL_VALUE = Short.MIN_VALUE;
     private static final DataType DATA_TYPE = DataType.SHORT;
 
@@ -48,6 +48,7 @@ final class DetectorTemperature extends Rule {
         return new ColumnBuilder(sourceColumn)
                 .type(DATA_TYPE)
                 .scaleFactor(SCALE_FACTOR)
+                .addOffset(0.0)
                 .fillValue(FILL_VALUE)
                 .unit("K")
                 .build();
@@ -70,7 +71,7 @@ final class DetectorTemperature extends Rule {
         if (detectorTemperature == DetectorTemperatureProvider.FILL_VALUE) {
             result.setShort(0, FILL_VALUE);
         } else {
-            detectorTemperature *= SCALE_FACTOR;
+            detectorTemperature /= SCALE_FACTOR;
             result.setShort(0, (short) detectorTemperature);
         }
         return result;
