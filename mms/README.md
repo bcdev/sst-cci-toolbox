@@ -53,28 +53,19 @@ Install [Homebrew](http://mxcl.github.com/homebrew/). Then from the Terminal typ
     brew install postgis  
     mkdir -p /any/path/postgres 
     cd /any/path/postgres  
-    initdb mydb 
-    pg_ctl -D mydb -l logfile start
-    createdb mydb   
-    psql -d mydb -f /usr/local/share/postgis/postgis.sql  
-    psql -d mydb -f /usr/local/share/postgis/spatial_ref_sys.sql
+    initdb mmdb 
+    pg_ctl -D mmdb -l mmdb.log start
+    createdb mms   
+    psql -d mms -c "CREATE EXTENSION postgis;"  
+    psql -d mms -c "CREATE EXTENSION postgis_topology;"
 
 In order to automatically start your database on log-in, type
 
     ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
     launchctl load ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
 
-Then open `~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist` and in the entry following `-D` replace the existing path with the actual path to your database.
+Then open `~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist` and in the entry following `-D` replace the existing path with the actual path to `/any/path/postgres/mmdb`.
 
-## Installation and database server startup on Eddie VM
-
-mkdir ~/pgdata
-/usr/pgsql-9.0/bin/initdb -D ~/pgdata/mms
-mkdir ~/pgdata/mms/logs
-/usr/pgsql-9.0/bin/pg_ctl -D /home/v1mbottc/pgdata/mms -l ~/pgdata/mms/logs/mms.log start
-psql -d mms -f /usr/pgsql-9.0/share/contrib/postgis-1.5/postgis.sql
-
-(failed with /usr/pgsql-9.0/lib/postgis-1.5.so: undefined symbol: GEOSHausdorffDistance; new version of GEOS has cured the problem.)
 
 ## How to copy data to CEMS?
 
