@@ -27,7 +27,7 @@ public class NcAvhrrGacProductReaderIntegrationTest {
 
     @Test
     public void testReadL1B_11_TestProduct() throws Exception {
-        final String path = TestHelper.getResourcePath(NcAvhrrGacProductReaderIntegrationTest.class, "19890205073700-AVHRR-L1b-AVHRR10_G-v02.0-fv01.0.nc");
+        final String path = TestHelper.getResourcePath(NcAvhrrGacProductReaderIntegrationTest.class, "19890205073700-ESACCI-L1C-AVHRR10_G-fv01.0.nc");
         assertNotNull(path);
 
         final Product product = reader.readProductNodes(path, null);
