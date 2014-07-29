@@ -76,7 +76,7 @@
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-core</artifactId>
-            <version>5.0.2-SNAPSHOT</version>
+            <version>5.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.esa.beam</groupId>

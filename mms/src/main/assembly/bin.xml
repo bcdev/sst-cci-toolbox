@@ -28,6 +28,7 @@
     <fileSets>
         <fileSet>
             <directory>src/main/bin</directory>
+            <directoryMode>0770</directoryMode>
             <includes>
                 <include>*.sh</include>
                 <include>pg*</include>
@@ -40,6 +41,7 @@
 
         <fileSet>
             <directory>src/main/python</directory>
+            <directoryMode>0770</directoryMode>
             <includes>
                 <include>*.py</include>
             </includes>
@@ -50,6 +52,7 @@
 
         <fileSet>
             <directory>src/main/config</directory>
+            <directoryMode>0660</directoryMode>
             <includes>
                 <include>*.properties</include>
                 <include>*.config</include>
@@ -58,7 +61,6 @@
                 <exclude>*-TEMPLATE.properties</exclude>
             </excludes>
             <outputDirectory>config</outputDirectory>
-            <directoryMode>0774</directoryMode>
             <fileMode>0660</fileMode>
             <filtered>true</filtered>
         </fileSet>
@@ -70,6 +72,7 @@
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>false</useTransitiveFiltering>
             <outputDirectory>lib</outputDirectory>
+            <directoryMode>0664</directoryMode>
             <outputFileNameMapping>
                 ${artifact.artifactId}-${artifact.version}.${artifact.extension}
             </outputFileNameMapping>
