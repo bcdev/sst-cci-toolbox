@@ -2,7 +2,6 @@ import glob
 import os
 import sys
 import threading
-from time import sleep
 import time
 import threadpool
 import subprocess
