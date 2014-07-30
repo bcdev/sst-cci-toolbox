@@ -128,7 +128,6 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
-        continue
 
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart[:7] or year + '-' + month > sensorstop[:7]:
@@ -143,6 +142,7 @@ for year in years:
                         '/obs/' + next_month_year + '/' + next_month],
                        ['/smp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, '0', '0', usecase])
+            continue
 
             # 3. Remove cloudy sub-scenes, remove overlapping sub-scenes, create matchup entries in database
             pm.execute('clearsky-run.sh',
@@ -151,6 +151,10 @@ for year in years:
                         '/smp/' + sensor + '/' + next_month_year + '/' + next_month],
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            pm.execute('mapplot-start.sh',
+                       ['/clr/' + sensor + '/' + year + '/' + month],
+                       ['/plt/' + sensor + '/' + year + '/' + month],
+                       parameters=[year, month, 'his_' + sensor, 'lonlat', usecase])
 
             # 4. Add coincidences from Sea Ice and Aerosol data
             pm.execute('coincidence-run.sh',
