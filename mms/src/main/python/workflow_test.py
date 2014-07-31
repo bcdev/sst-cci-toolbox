@@ -116,15 +116,6 @@ class WorkflowTests(unittest.TestCase):
         w = Workflow('mms11')
         self.assertEqual('mms11', w.get_usecase())
 
-    def test_add_years_to_workflow(self):
-        w = Workflow('mms11')
-        w.add_year(2007)
-        self.assertEqual(1, len(w.get_years()))
-        w.add_year(2007)
-        self.assertEqual(1, len(w.get_years()))
-        w.add_year(2008)
-        self.assertEqual(2, len(w.get_years()))
-
     def test_add_primary_sensors_to_workflow(self):
         w = Workflow('mms11')
         w.add_primary_sensor('atsr.3', (2007, 1, 1), (2008, 1, 1))
@@ -147,7 +138,7 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n12', (2008, 1, 1), (2009, 1, 1))
         self.assertEqual(3, len(w.get_secondary_sensors()))
 
-    def test_get_dual_sensor_pairs(self):
+    def test_get_sensor_pairs(self):
         w = Workflow('mms11')
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -169,21 +160,19 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-        w.add_year(1991)
 
         period = w.get_sensor_data_period()
         self.assertEqual(datetime.date(1988, 11, 8), period.get_start_date())
         self.assertEqual(datetime.date(1994, 12, 31), period.get_end_date())
 
     def test_get_preconditions_for_single_year(self):
-        w = Workflow('mms11')
+        w = Workflow('mms11', Period('1991-01-01', '1992-01-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
         w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-        w.add_year(1991)
 
         preconditions = w.get_preconditions()
         self.assertEqual(12, len(preconditions))

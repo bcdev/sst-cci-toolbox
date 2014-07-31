@@ -148,17 +148,11 @@ class SensorPair:
 
 
 class Workflow:
-    def __init__(self, usecase):
+    def __init__(self, usecase, production_period=None):
         self.usecase = usecase
+        self.production_period = production_period
         self.primary_sensors = set()
         self.secondary_sensors = set()
-        self.years = set()
-
-    def add_year(self, year):
-        self.years.add(year)
-
-    def get_years(self):
-        return sorted(list(self.years))
 
     def add_primary_sensor(self, name, start_date, end_date):
         self.primary_sensors.add(Sensor(name, Period(start_date, end_date)))
