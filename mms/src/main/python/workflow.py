@@ -1,30 +1,49 @@
 __author__ = 'Ralf Quast'
 
 import datetime
+import exceptions
 
 
 class Period:
     def __init__(self, start_date, end_date):
         if isinstance(start_date, datetime.date):
-            self.start_date = start_date
-        elif isinstance(start_date, basestring):
-            self.start_date = self.__from_iso_format(start_date)
+            a = start_date
+        elif isinstance(start_date, str):
+            a = self.__from_iso_format(start_date)
         else:
-            self.start_date = datetime.date(start_date[0], start_date[1], start_date[2])
+            a = datetime.date(start_date[0], start_date[1], start_date[2])
         if isinstance(end_date, datetime.date):
-            self.end_date = end_date
-        elif isinstance(end_date, basestring):
-            self.end_date = self.__from_iso_format(end_date)
+            b = end_date
+        elif isinstance(end_date, str):
+            b = self.__from_iso_format(end_date)
         else:
-            self.end_date = datetime.date(end_date[0], end_date[1], end_date[2])
+            b = datetime.date(end_date[0], end_date[1], end_date[2])
+        assert a < b
+        if a < b:
+            self.start_date = a
+            self.end_date = b
+        else:
+            raise exceptions.RuntimeError, "The start date must be less than the end date"
 
     def get_start_date(self):
+        """
+
+        :rtype : datetime.date
+        """
         return self.start_date
 
     def get_end_date(self):
+        """
+
+        :rtype : datetime.date
+        """
         return self.end_date
 
     def get_intersection(self, other):
+        """
+
+        :rtype : Period
+        """
         if self.get_start_date() >= other.get_end_date():
             return None
         if other.get_start_date() >= self.get_end_date():
@@ -57,9 +76,17 @@ class Sensor:
         self.period = period
 
     def get_name(self):
+        """
+
+        :rtype : str
+        """
         return self.name
 
     def get_period(self):
+        """
+
+        :rtype : Period
+        """
         return self.period
 
     def __eq__(self, other):
@@ -71,6 +98,9 @@ class Sensor:
     def __hash__(self):
         return self.get_name().__hash__()
 
+    def __ge__(self, other):
+        return self.get_name() >= other.get_name()
+
 
 class SensorPair:
     def __init__(self, primary_sensor, secondary_sensor):
@@ -79,12 +109,24 @@ class SensorPair:
         self.period = primary_sensor.get_period().get_intersection(secondary_sensor.get_period())
 
     def get_primary(self):
+        """
+
+        :rtype : str
+        """
         return self.primary_sensor.get_name()
 
     def get_secondary(self):
+        """
+
+        :rtype : str
+        """
         return self.secondary_sensor.get_name()
 
     def get_period(self):
+        """
+
+        :rtype : Period
+        """
         return self.period
 
     def __eq__(self, other):
@@ -100,6 +142,10 @@ class SensorPair:
         else:
             return (self.get_secondary() + self.get_primary()).__hash__()
 
+    def __ge__(self, other):
+        return self == other or self.get_primary() > other.get_primary() or (
+            self.get_primary() == other.get_primary() and self.get_secondary() > other.get_secondary())
+
 
 class Workflow:
     def __init__(self, usecase):
@@ -112,30 +158,71 @@ class Workflow:
         self.years.add(year)
 
     def get_years(self):
-        return self.years
+        return sorted(list(self.years))
 
     def add_primary_sensor(self, name, start_date, end_date):
         self.primary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
-    def get_primary_sensors(self):
-        return self.primary_sensors
-
     def add_secondary_sensor(self, name, start_date, end_date):
         self.secondary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
+    def get_primary_sensors(self):
+        """
+
+        :rtype : list
+        """
+        return sorted(list(self.primary_sensors))
+
     def get_secondary_sensors(self):
-        return self.secondary_sensors
+        """
+
+        :rtype : list
+        """
+        return sorted(list(self.secondary_sensors))
 
     def get_usecase(self):
+        """
+
+        :rtype : str
+        """
         return self.usecase
 
     def get_sensor_pairs(self):
+        """
+
+        :rtype : list
+        """
         sensor_pairs = set()
-        for p in self.primary_sensors:
-            for s in self.secondary_sensors:
+        primary_sensors = self.get_primary_sensors()
+        secondary_sensors = self.get_secondary_sensors()
+        for p in primary_sensors:
+            for s in secondary_sensors:
                 if p != s:
                     sensor_pair = SensorPair(p, s)
                     if not (sensor_pair.get_period() is None):
                         sensor_pairs.add(sensor_pair)
-        return sensor_pairs
+        return sorted(list(sensor_pairs))
+
+    def get_sensor_data_period(self):
+        """
+
+        :rtype : Period
+        """
+        sensor_pairs = self.get_sensor_pairs()
+        start_date = datetime.date.max
+        end_date = datetime.date.min
+        for sensor_pair in sensor_pairs:
+            period = sensor_pair.get_period()
+            if period.get_start_date() < start_date:
+                start_date = period.get_start_date()
+            if period.get_end_date() > end_date:
+                end_date = period.get_end_date()
+        if start_date < end_date:
+            return Period(start_date, end_date)
+        else:
+            return None
+
+    def get_preconditions(self):
+        pass
+
 
