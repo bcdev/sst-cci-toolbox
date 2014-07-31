@@ -31,7 +31,7 @@ final class DimensionStringBuilder {
     private final List<String> dimensions;
 
     DimensionStringBuilder(String dimensionsString) {
-        dimensions = new ArrayList<String>(7);
+        dimensions = new ArrayList<>(7);
         dimensions.addAll(Arrays.asList(dimensionsString.split("\\s")));
     }
 
@@ -49,9 +49,17 @@ final class DimensionStringBuilder {
         return this;
     }
 
+    void remove(int i) throws RuleException {
+        if (i > dimensions.size()) {
+            throw new RuleException(
+                    MessageFormat.format("Expected {0} or more dimensions, but actual number of dimensions is {1}.",
+                                         i, dimensions.size()));
+        }
+        dimensions.remove(i);
+    }
+
     int getDimensionCount() {
         return dimensions.size();
-
     }
 
     @Override
