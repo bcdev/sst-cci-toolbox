@@ -11,8 +11,8 @@ import ucar.ma2.IndexIterator;
  */
 final class ShortToByte extends AbstractReformat<Short, Byte> {
 
-    protected ShortToByte(Class<Short> sourceType, Class<Byte> targetType) {
-        super(sourceType, targetType);
+    protected ShortToByte() {
+        super(Short.class, Byte.class);
     }
 
     @Override
