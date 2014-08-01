@@ -56,7 +56,8 @@ class Period:
             end_date = other.get_end_date()
         return Period(start_date, end_date)
 
-    def __from_iso_format(self, iso_string):
+    @staticmethod
+    def __from_iso_format(iso_string):
         iso_parts = iso_string.split('-')
         return datetime.date(int(iso_parts[0]), int(iso_parts[1]), int(iso_parts[2]))
 
@@ -93,13 +94,22 @@ class Sensor:
         return self.get_name() == other.get_name()
 
     def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return self.get_name().__hash__()
+        return self.get_name() != other.get_name()
 
     def __ge__(self, other):
         return self.get_name() >= other.get_name()
+
+    def __gt__(self, other):
+        return self.get_name() > other.get_name()
+
+    def __le__(self, other):
+        return self.get_name() <= other.get_name()
+
+    def __lt__(self, other):
+        return self.get_name() < other.get_name()
+
+    def __hash__(self):
+        return self.get_name().__hash__()
 
 
 class SensorPair:
@@ -136,15 +146,25 @@ class SensorPair:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __ge__(self, other):
+        return self.__eq__(other) or self.__gt__(other)
+
+    def __gt__(self, other):
+        return self.__ne__(other) and (self.get_primary() > other.get_primary() or (
+            self.get_primary() == other.get_primary() and self.get_secondary() > other.get_secondary()))
+
+    def __le__(self, other):
+        return self.__eq__(other) or self.__lt__(other)
+
+    def __lt__(self, other):
+        return self.__ne__(other) and (self.get_primary() < other.get_primary() or (
+            self.get_primary() == other.get_primary() and self.get_secondary() < other.get_secondary()))
+
     def __hash__(self):
         if self.get_primary() < self.get_secondary():
             return (self.get_primary() + self.get_secondary()).__hash__()
         else:
             return (self.get_secondary() + self.get_primary()).__hash__()
-
-    def __ge__(self, other):
-        return self == other or self.get_primary() > other.get_primary() or (
-            self.get_primary() == other.get_primary() and self.get_secondary() > other.get_secondary())
 
 
 class Workflow:
@@ -181,6 +201,13 @@ class Workflow:
         """
         return self.usecase
 
+    def get_production_period(self):
+        """
+
+        :rtype : Period
+        """
+        return self.production_period
+
     def get_sensor_pairs(self):
         """
 
@@ -197,7 +224,7 @@ class Workflow:
                         sensor_pairs.add(sensor_pair)
         return sorted(list(sensor_pairs))
 
-    def get_sensor_data_period(self):
+    def get_data_period(self):
         """
 
         :rtype : Period
@@ -217,6 +244,33 @@ class Workflow:
             return None
 
     def get_preconditions(self):
-        pass
+        data_period = self.get_data_period()
+        if data_period is None:
+            return None
+        production_period = self.get_production_period()
+        if production_period is None:
+            production_period = data_period
+        else:
+            production_period = production_period.get_intersection(data_period)
+        date = production_period.get_start_date().replace(day=1)
+        end_date = production_period.get_end_date()
+        preconditions = list()
+        while date < end_date:
+            (year, month, day) = (date.isoformat()).split('-')
+            preconditions.append('/inp/' + year + '/' + month)
+            date = self.add_month(date)
+        return preconditions
+
+    @staticmethod
+    def add_month(date):
+        """
+
+        :rtype : datetime.date
+        """
+        if date.month != 12:
+            return datetime.date(date.year, date.month + 1, date.day)
+        else:
+            return datetime.date(date.year + 1, 1, date.day)
+
 
 
