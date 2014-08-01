@@ -176,13 +176,13 @@ for year in years:
                        ['/sub/' + sensor + '/' + year + '/' + month],
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
-            continue
 
             # 7. Conduct GBCS processing
             pm.execute('gbcs-run.sh',
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, usecase])
+            continue
 
             # 8. Re-ingest sensor sub-scenes into database
             pm.execute('reingestion-run.sh',
