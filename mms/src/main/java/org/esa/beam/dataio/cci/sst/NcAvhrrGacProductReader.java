@@ -37,6 +37,8 @@ import java.io.IOException;
  */
 public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
+    public static final String ELEMENT_NAME_GLOBAL_ATTRIBUTES = "Global_Attributes";
+
     private static final String VAR_NAME_QUALITY_FLAGS = "qual_flags";
     private static final String VAR_NAME_TIME = "time";
     private static final String VAR_NAME_DTIME = "dtime";
@@ -100,7 +102,7 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
         int leadLinesTruncated = 0;
         int tailLinesTruncated = 0;
-        final MetadataElement globalAttributes = metadataRoot.getElement("Global_Attributes");
+        final MetadataElement globalAttributes = metadataRoot.getElement(ELEMENT_NAME_GLOBAL_ATTRIBUTES);
         if (globalAttributes != null) {
             leadLinesTruncated = Integer.parseInt(
                     globalAttributes.getAttributeString("lines_truncated_start", "0"));
