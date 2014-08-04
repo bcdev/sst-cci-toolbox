@@ -257,7 +257,7 @@
                 <!-- Path to the GBCS installation to use -->
                 <mms.gbcs.home>/group_workspaces/cems2/esacci_sst/software/gbcs</mms.gbcs.home>
                 <!-- The GBCS version to use -->
-                <mms.gbcs.version>v2.1.1</mms.gbcs.version>
+                <mms.gbcs.version>v2.1.1-80-g6b2e6bf</mms.gbcs.version>
                 <!-- The Intel compiler version to use -->
                 <mms.gbcs.intelversion>12.1.5</mms.gbcs.intelversion>
                 <!-- Path to the CDO installation to use -->
