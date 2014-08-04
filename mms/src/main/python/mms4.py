@@ -198,13 +198,13 @@ for year in years:
                        ['/nwp/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'nwp', usecase])
-            continue
 
             # 10. Re-ingest sensor sub-scene ARC results into database
             pm.execute('reingestion-run.sh',
                        ['/arc/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'arc', usecase])
+            continue
 
             # 11. Produce final single-sensor MMD file
             pm.execute('mmd-run.sh',
