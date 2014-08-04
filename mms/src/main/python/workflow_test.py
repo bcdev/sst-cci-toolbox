@@ -165,7 +165,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(datetime.date(1988, 11, 8), data_period.get_start_date())
         self.assertEqual(datetime.date(1994, 12, 31), data_period.get_end_date())
 
-    def test_get_preconditions_for_one_month(self):
+    def test_get_input_preconditions_for_one_month(self):
         w = Workflow('test', Period('1991-01-01', '1991-02-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -174,11 +174,11 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(1, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
 
-    def test_get_preconditions_for_one_month_odd(self):
+    def test_get_input_preconditions_for_one_month_odd(self):
         w = Workflow('test', Period('1991-01-02', '1991-02-02'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -187,12 +187,12 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(2, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1991/02', preconditions[1])
 
-    def test_get_preconditions_for_one_month_plus_one_day(self):
+    def test_get_input_preconditions_for_one_month_plus_one_day(self):
         w = Workflow('test', Period('1991-01-01', '1991-02-02'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -201,12 +201,12 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(2, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1991/02', preconditions[1])
 
-    def test_get_preconditions_for_one_month_minus_one_day(self):
+    def test_get_input_preconditions_for_one_month_minus_one_day(self):
         w = Workflow('test', Period('1991-01-02', '1991-02-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -215,12 +215,12 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(1, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
 
-    def test_get_preconditions_for_one_year(self):
-        w = Workflow('mms11', Period('1991-01-01', '1992-01-01'))
+    def test_get_input_preconditions_for_one_year(self):
+        w = Workflow('test', Period('1991-01-01', '1992-01-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
@@ -228,13 +228,13 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(12, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1991/12', preconditions[11])
 
-    def test_get_preconditions_for_one_year_odd(self):
-        w = Workflow('mms11', Period('1991-01-02', '1992-01-02'))
+    def test_get_input_preconditions_for_one_year_odd(self):
+        w = Workflow('test', Period('1991-01-02', '1992-01-02'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
@@ -242,13 +242,13 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(13, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1992/01', preconditions[12])
 
-    def test_get_preconditions_for_one_year_plus_one_day(self):
-        w = Workflow('mms11', Period('1991-01-01', '1992-01-02'))
+    def test_get_input_preconditions_for_one_year_plus_one_day(self):
+        w = Workflow('test', Period('1991-01-01', '1992-01-02'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
@@ -256,13 +256,13 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(13, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1992/01', preconditions[12])
 
-    def test_get_preconditions_for_one_year_minus_one_day(self):
-        w = Workflow('mms11', Period('1991-01-02', '1992-01-01'))
+    def test_get_inp_preconditions_for_one_year_minus_one_day(self):
+        w = Workflow('test', Period('1991-01-02', '1992-01-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
@@ -270,10 +270,88 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        preconditions = w.get_preconditions()
+        preconditions = w.get_inp_preconditions()
         self.assertEqual(12, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1991/12', preconditions[11])
+
+    def test_get_inp_preconditions_for_all_years(self):
+        w = Workflow('test')
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        preconditions = w.get_inp_preconditions()
+        self.assertEqual(74, len(preconditions))
+        self.assertEqual('/inp/1988/11', preconditions[0])
+        self.assertEqual('/inp/1994/12', preconditions[73])
+
+    def test_add_obs_preconditions_for_one_year(self):
+        w = Workflow('test', Period('1991-01-01', '1992-01-01'))
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        preconditions = list()
+        preconditions = w.add_obs_preconditions(preconditions)
+        self.assertEqual(2, len(preconditions))
+        self.assertEqual('/obs/1990/12', preconditions[0])
+        self.assertEqual('/obs/1992/01', preconditions[1])
+
+    def test_add_obs_preconditions_for_one_year_and_one_day(self):
+        w = Workflow('test', Period('1991-01-01', '1992-01-02'))
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        preconditions = list()
+        preconditions = w.add_obs_preconditions(preconditions)
+        self.assertEqual(2, len(preconditions))
+        self.assertEqual('/obs/1990/12', preconditions[0])
+        self.assertEqual('/obs/1992/02', preconditions[1])
+
+    def test_add_obs_preconditions_for_all_years(self):
+        w = Workflow('test')
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        preconditions = list()
+        preconditions = w.add_obs_preconditions(preconditions)
+        self.assertEqual(2, len(preconditions))
+        self.assertEqual('/obs/1988/10', preconditions[0])
+        self.assertEqual('/obs/1995/01', preconditions[1])
+
+    def test_add_smp_preconditions_for_one_year(self):
+        w = Workflow('test', Period('1991-01-01', '1992-01-01'))
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        preconditions = list()
+        preconditions = w.add_smp_preconditions(preconditions)
+        self.assertEqual(6, len(preconditions))
+        self.assertEqual('/smp/avhrr.10/1990/12', preconditions[0])
+        self.assertEqual('/smp/avhrr.10/1991/10', preconditions[1])
+        self.assertEqual('/smp/avhrr.11/1990/12', preconditions[0])
+        self.assertEqual('/smp/avhrr.11/1992/01', preconditions[1])
+        self.assertEqual('/smp/avhrr.12/1991/08', preconditions[0])
+        self.assertEqual('/smp/avhrr.12/1992/01', preconditions[1])
 
 
 

@@ -42,6 +42,7 @@ class Period:
     def get_intersection(self, other):
         """
 
+        :type other: Period
         :rtype : Period
         """
         if self.get_start_date() >= other.get_end_date():
@@ -58,13 +59,28 @@ class Period:
 
     @staticmethod
     def __from_iso_format(iso_string):
+        """
+
+        :type iso_string: str
+        :return:
+        """
         iso_parts = iso_string.split('-')
         return datetime.date(int(iso_parts[0]), int(iso_parts[1]), int(iso_parts[2]))
 
     def __eq__(self, other):
+        """
+
+        :type other: Period
+        :rtype : bool
+        """
         return self.get_start_date() == other.get_start_date() and self.get_end_date() == other.get_end_date()
 
     def __ne__(self, other):
+        """
+
+        :type other: Period
+        :return: bool
+        """
         return not self.__eq__(other)
 
     def __hash__(self):
@@ -91,21 +107,51 @@ class Sensor:
         return self.period
 
     def __eq__(self, other):
+        """
+
+        :type other: Sensor
+        :return: boolean
+        """
         return self.get_name() == other.get_name()
 
     def __ne__(self, other):
+        """
+
+        :type other: Sensor
+        :return: boolean
+        """
         return self.get_name() != other.get_name()
 
     def __ge__(self, other):
+        """
+
+        :type other: Sensor
+        :return: boolean
+        """
         return self.get_name() >= other.get_name()
 
     def __gt__(self, other):
+        """
+
+        :type other: Sensor
+        :return: boolean
+        """
         return self.get_name() > other.get_name()
 
     def __le__(self, other):
+        """
+
+        :type other: Sensor
+        :return: boolean
+        """
         return self.get_name() <= other.get_name()
 
     def __lt__(self, other):
+        """
+
+        :type other: Sensor
+        :return: boolean
+        """
         return self.get_name() < other.get_name()
 
     def __hash__(self):
@@ -114,6 +160,11 @@ class Sensor:
 
 class SensorPair:
     def __init__(self, primary_sensor, secondary_sensor):
+        """
+
+        :type primary_sensor: Sensor
+        :type secondary_sensor: Sensor
+        """
         self.primary_sensor = primary_sensor
         self.secondary_sensor = secondary_sensor
         self.period = primary_sensor.get_period().get_intersection(secondary_sensor.get_period())
@@ -140,23 +191,53 @@ class SensorPair:
         return self.period
 
     def __eq__(self, other):
+        """
+
+        :type other: SensorPair
+        :return: bool
+        """
         return (self.get_primary() == other.get_primary() and self.get_secondary() == other.get_secondary()) or (
             self.get_primary() == other.get_secondary() and self.get_secondary() == other.get_primary())
 
     def __ne__(self, other):
+        """
+
+        :type other: SensorPair
+        :return: bool
+        """
         return not self.__eq__(other)
 
     def __ge__(self, other):
+        """
+
+        :type other: SensorPair
+        :return: bool
+        """
         return self.__eq__(other) or self.__gt__(other)
 
     def __gt__(self, other):
+        """
+
+        :type other: SensorPair
+        :return: bool
+        """
         return self.__ne__(other) and (self.get_primary() > other.get_primary() or (
             self.get_primary() == other.get_primary() and self.get_secondary() > other.get_secondary()))
 
     def __le__(self, other):
+        """
+
+        :type other: SensorPair
+        :return: bool
+        """
         return self.__eq__(other) or self.__lt__(other)
 
     def __lt__(self, other):
+        """
+
+        :type other: SensorPair
+        :return: bool
+        """
         return self.__ne__(other) and (self.get_primary() < other.get_primary() or (
             self.get_primary() == other.get_primary() and self.get_secondary() < other.get_secondary()))
 
@@ -169,15 +250,28 @@ class SensorPair:
 
 class Workflow:
     def __init__(self, usecase, production_period=None):
+        """
+
+        :type usecase: str
+        :type production_period: Period
+        """
         self.usecase = usecase
         self.production_period = production_period
         self.primary_sensors = set()
         self.secondary_sensors = set()
 
     def add_primary_sensor(self, name, start_date, end_date):
+        """
+
+        :type name: str
+        """
         self.primary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
     def add_secondary_sensor(self, name, start_date, end_date):
+        """
+
+        :type name: str
+        """
         self.secondary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
     def get_primary_sensors(self):
@@ -243,34 +337,95 @@ class Workflow:
         else:
             return None
 
-    def get_preconditions(self):
+    def get_effective_production_period(self):
+        """
+
+        :rtype : Period
+        """
         data_period = self.get_data_period()
         if data_period is None:
             return None
         production_period = self.get_production_period()
         if production_period is None:
-            production_period = data_period
+            return data_period
         else:
-            production_period = production_period.get_intersection(data_period)
-        date = production_period.get_start_date().replace(day=1)
+            return production_period.get_intersection(data_period)
+
+    def get_inp_preconditions(self):
+        """
+
+        :rtype : list
+        """
+        production_period = self.get_effective_production_period()
+        if production_period is None:
+            return list()
+        date = production_period.get_start_date()
         end_date = production_period.get_end_date()
         preconditions = list()
         while date < end_date:
-            (year, month, day) = (date.isoformat()).split('-')
-            preconditions.append('/inp/' + year + '/' + month)
-            date = self.add_month(date)
+            preconditions.append('/inp/' + self.pathformat_no_day(date))
+            date = self.next_month(date)
         return preconditions
 
-    @staticmethod
-    def add_month(date):
+    def add_obs_preconditions(self, preconditions):
         """
 
+        :type preconditions: list
+        :return: list
+        """
+        production_period = self.get_effective_production_period()
+        if production_period is None:
+            return preconditions
+        pre_start_date = self.prev_month(production_period.get_start_date())
+        end_date = production_period.get_end_date()
+        preconditions.append('/obs/' + self.pathformat_no_day(pre_start_date))
+        if end_date.day > 1:
+            post_end_date = self.next_month(end_date)
+            preconditions.append('/obs/' + self.pathformat_no_day(post_end_date))
+        else:
+            preconditions.append('/obs/' + self.pathformat_no_day(end_date))
+        return preconditions
+
+    def add_smp_preconditions(self, preconditions):
+        """
+
+        :type preconditions: list
+        :return: list
+        """
+        return list
+
+    @staticmethod
+    def pathformat_no_day(date):
+        """
+
+        :type date: datetime.date
+        :return: str
+        """
+        return date.isoformat()[:7].replace('-', '/')
+
+    @staticmethod
+    def next_month(date):
+        """
+
+        :type date: datetime.date
         :rtype : datetime.date
         """
         if date.month != 12:
-            return datetime.date(date.year, date.month + 1, date.day)
+            return datetime.date(date.year, date.month + 1, 1)
         else:
-            return datetime.date(date.year + 1, 1, date.day)
+            return datetime.date(date.year + 1, 1, 1)
+
+    @staticmethod
+    def prev_month(date):
+        """
+
+        :type date: datetime.date
+        :rtype : datetime.date
+        """
+        if date.month != 1:
+            return datetime.date(date.year, date.month - 1, 1)
+        else:
+            return datetime.date(date.year - 1, 12, 1)
 
 
 
