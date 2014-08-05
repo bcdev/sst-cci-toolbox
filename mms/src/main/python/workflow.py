@@ -3,9 +3,15 @@ __author__ = 'Ralf Quast'
 import datetime
 import exceptions
 
+from pmonitor import PMonitor
+
 
 class Period:
     def __init__(self, start_date, end_date):
+        """
+
+        :raise exceptions.RuntimeError: if the start date is not less than the end date
+        """
         if isinstance(start_date, datetime.date):
             a = start_date
         elif isinstance(start_date, str):
@@ -21,9 +27,11 @@ class Period:
         assert a < b
         if a < b:
             self.start_date = a
+            """:type : datetime.date"""
             self.end_date = b
+            """:type : datetime.date"""
         else:
-            raise exceptions.RuntimeError, "The start date must be less than the end date"
+            raise exceptions.RuntimeError, "The start date must be less than the end date."
 
     def get_start_date(self):
         """
@@ -89,6 +97,11 @@ class Period:
 
 class Sensor:
     def __init__(self, name, period=None):
+        """
+
+        :type name: str
+        :type period: Period
+        """
         self.name = name
         self.period = period
 
@@ -248,17 +261,63 @@ class SensorPair:
             return (self.get_secondary() + self.get_primary()).__hash__()
 
 
+class MMonitor:
+    def __init__(self, preconditions, request, logdir, hosts, types):
+        """
+
+        :type preconditions: list
+        :type request: str
+        :type logdir: str
+        :type hosts: list
+        :type types: list
+        """
+        pass
+
+    def execute(self, call, preconditions, postconditions, parameters):
+        """
+
+        :param call: str
+        :param preconditions: list
+        :param postconditions: list
+        :param parameters: list
+        """
+        pass
+
+
 class Workflow:
-    def __init__(self, usecase, production_period=None):
+    def __init__(self, usecase, production_period=None, simulation=False):
         """
 
         :type usecase: str
         :type production_period: Period
+        :type simulation: bool
         """
         self.usecase = usecase
         self.production_period = production_period
+        self.simulation = simulation
         self.primary_sensors = set()
         self.secondary_sensors = set()
+
+    def get_usecase(self):
+        """
+
+        :rtype : str
+        """
+        return self.usecase
+
+    def get_production_period(self):
+        """
+
+        :rtype : Period
+        """
+        return self.production_period
+
+    def is_simulation(self):
+        """
+
+        :rtype : bool
+        """
+        return self.simulation
 
     def add_primary_sensor(self, name, start_date, end_date):
         """
@@ -288,20 +347,6 @@ class Workflow:
         """
         return sorted(list(self.secondary_sensors))
 
-    def get_usecase(self):
-        """
-
-        :rtype : str
-        """
-        return self.usecase
-
-    def get_production_period(self):
-        """
-
-        :rtype : Period
-        """
-        return self.production_period
-
     def get_sensor_pairs(self):
         """
 
@@ -318,15 +363,14 @@ class Workflow:
                         sensor_pairs.add(sensor_pair)
         return sorted(list(sensor_pairs))
 
-    def get_data_period(self):
+    def _get_data_period(self):
         """
 
         :rtype : Period
         """
-        sensor_pairs = self.get_sensor_pairs()
         start_date = datetime.date.max
         end_date = datetime.date.min
-        for sensor_pair in sensor_pairs:
+        for sensor_pair in self.get_sensor_pairs():
             period = sensor_pair.get_period()
             if period.get_start_date() < start_date:
                 start_date = period.get_start_date()
@@ -337,12 +381,12 @@ class Workflow:
         else:
             return None
 
-    def get_effective_production_period(self):
+    def __get_effective_production_period(self):
         """
 
         :rtype : Period
         """
-        data_period = self.get_data_period()
+        data_period = self._get_data_period()
         if data_period is None:
             return None
         production_period = self.get_production_period()
@@ -351,51 +395,127 @@ class Workflow:
         else:
             return production_period.get_intersection(data_period)
 
-    def get_inp_preconditions(self):
+    def _add_inp_preconditions(self, preconditions):
         """
 
+        :type preconditions: list
         :rtype : list
         """
-        production_period = self.get_effective_production_period()
-        if production_period is None:
-            return list()
-        date = production_period.get_start_date()
-        end_date = production_period.get_end_date()
-        preconditions = list()
+        period = self.__get_effective_production_period()
+        if period is None:
+            return preconditions
+        date = period.get_start_date()
+        end_date = period.get_end_date()
         while date < end_date:
-            preconditions.append('/inp/' + self.pathformat_no_day(date))
-            date = self.next_month(date)
+            preconditions.append('/inp/' + self.__pathformat(date))
+            date = self.__next_month(date)
         return preconditions
 
-    def add_obs_preconditions(self, preconditions):
+    def _add_obs_preconditions(self, preconditions):
         """
 
         :type preconditions: list
         :return: list
         """
-        production_period = self.get_effective_production_period()
+        production_period = self.__get_effective_production_period()
         if production_period is None:
             return preconditions
-        pre_start_date = self.prev_month(production_period.get_start_date())
+        pre_start_date = self.__prev_month(production_period.get_start_date())
         end_date = production_period.get_end_date()
-        preconditions.append('/obs/' + self.pathformat_no_day(pre_start_date))
+        preconditions.append('/obs/' + self.__pathformat(pre_start_date))
         if end_date.day > 1:
-            post_end_date = self.next_month(end_date)
-            preconditions.append('/obs/' + self.pathformat_no_day(post_end_date))
+            post_end_date = self.__next_month(end_date)
+            preconditions.append('/obs/' + self.__pathformat(post_end_date))
         else:
-            preconditions.append('/obs/' + self.pathformat_no_day(end_date))
+            preconditions.append('/obs/' + self.__pathformat(end_date))
         return preconditions
 
-    def add_smp_preconditions(self, preconditions):
+    def _add_smp_preconditions(self, preconditions):
         """
 
         :type preconditions: list
         :return: list
         """
-        return list
+        production_period = self.get_production_period()
+        for sensor_pair in self.get_sensor_pairs():
+            if production_period is None:
+                period = sensor_pair.get_period()
+            else:
+                period = sensor_pair.get_period().get_intersection(production_period)
+            pre_start_date = self.__prev_month(period.get_start_date())
+            end_date = period.get_end_date()
+            preconditions.append('/smp/' + sensor_pair.get_primary() + '/' + self.__pathformat(pre_start_date))
+            if end_date.day > 1:
+                post_end_date = self.__next_month(end_date)
+                preconditions.append('/smp/' + sensor_pair.get_primary() + '/' + self.__pathformat(post_end_date))
+            else:
+                preconditions.append('/smp/' + sensor_pair.get_primary() + '/' + self.__pathformat(end_date))
+        return preconditions
+
+    def _get_monitor(self, hosts, types, log_dir='trace'):
+        """
+
+        :type hosts: list
+        :type types: list
+        :type log_dir: str
+        :rtype : MMonitor
+        """
+        preconditions = list()
+        self._add_inp_preconditions(preconditions)
+        self._add_obs_preconditions(preconditions)
+        self._add_smp_preconditions(preconditions)
+        if self.is_simulation():
+            return MMonitor(preconditions, self.get_usecase(), log_dir, hosts, types)
+        else:
+            return PMonitor(preconditions, self.get_usecase(), log_dir, hosts, types)
+
+    def _execute_ingestion(self, monitor):
+        """
+
+        :type monitor: MMonitor
+        """
+        period = self.__get_effective_production_period()
+        date = period.get_start_date()
+        end_date = period.get_end_date()
+        while date < end_date:
+            (year, month) = self.__year_month(date)
+            monitor.execute('ingestion-start.sh',
+                            ['/inp/' + year + '/' + month],
+                            ['/obs/' + year + '/' + month],
+                            parameters=[year, month, self.get_usecase()])
+            date = self.__next_month(date)
+
+    def _execute_sampling(self, monitor):
+        """
+
+        :type monitor: MMonitor
+        """
+        samples_per_month = 300000
+        skip = 0
+        production_period = self.get_production_period()
+        for sensor_pair in self.get_sensor_pairs():
+            if production_period is None:
+                period = sensor_pair.get_period()
+            else:
+                period = sensor_pair.get_period().get_intersection(production_period)
+            date = period.get_start_date()
+            end_date = period.get_end_date()
+            while date < end_date:
+                (year, month) = self.__year_month(date)
+                (prev_year, prev_month) = self.__year_month(self.__prev_month(date))
+                (next_year, next_month) = self.__year_month(self.__next_month(date))
+                sensor = sensor_pair.get_primary()
+                monitor.execute('sampling-start.sh',
+                                ['/obs/' + prev_year + '/' + prev_month,
+                                 '/obs/' + year + '/' + month,
+                                 '/obs/' + next_year + '/' + next_month],
+                                ['/smp/' + sensor + '/' + year + '/' + month],
+                                parameters=[year, month, sensor, str(samples_per_month), str(skip), self.get_usecase()])
+                skip += samples_per_month
+                date = self.__next_month(date)
 
     @staticmethod
-    def pathformat_no_day(date):
+    def __pathformat(date):
         """
 
         :type date: datetime.date
@@ -404,7 +524,7 @@ class Workflow:
         return date.isoformat()[:7].replace('-', '/')
 
     @staticmethod
-    def next_month(date):
+    def __next_month(date):
         """
 
         :type date: datetime.date
@@ -416,7 +536,7 @@ class Workflow:
             return datetime.date(date.year + 1, 1, 1)
 
     @staticmethod
-    def prev_month(date):
+    def __prev_month(date):
         """
 
         :type date: datetime.date
@@ -426,6 +546,15 @@ class Workflow:
             return datetime.date(date.year, date.month - 1, 1)
         else:
             return datetime.date(date.year - 1, 12, 1)
+
+    @staticmethod
+    def __year_month(date):
+        """
+
+        :type date: datetime.date
+        :return: tuple
+        """
+        return Workflow.__pathformat(date).split('/', 1)
 
 
 
