@@ -82,12 +82,7 @@ wait_for_task_jobs_completion() {
 submit_job() {
     jobname=$1
     command=$2
-    if [ -n "${mms.hosts}" ]
-    then
-      bsubmit="bsub -R rusage[mem=8192] -q lotus -n 1 -W 8:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
-    else
-      bsubmit="bsub -R rusage[mem=8192] -q lotus -m ${mms.hosts} -n 1 -W 8:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
-    fi
+    bsubmit='bsub -R rusage[mem=8192] -q lotus -m "host017 host018 host019 host021 host022 host023 host024 host025 host026 host027 host028 host040 host041 host042 host043 host044 host045" -n 1 -W 8:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}'
 
     rm -f ${MMS_LOG}/${jobname}.out
     rm -f ${MMS_LOG}/${jobname}.err
