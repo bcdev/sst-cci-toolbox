@@ -128,7 +128,6 @@ for year in years:
                    ['/inp/' + year + '/' + month],
                    ['/obs/' + year + '/' + month],
                    parameters=[year, month, usecase])
-        continue
 
         for sensor, sensorstart, sensorstop in sensors:
             if year + '-' + month < sensorstart[:7] or year + '-' + month > sensorstop[:7]:
@@ -161,6 +160,7 @@ for year in years:
                        ['/clr/' + sensor + '/' + year + '/' + month],
                        ['/con/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'his', usecase])
+            continue
 
             # 5. Create single-sensor MMD with subscenes
             pm.execute('mmd-start.sh',
