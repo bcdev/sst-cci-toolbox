@@ -292,7 +292,7 @@
                 <!-- Path to the root directory of the MMS data archive -->
                 <mms.archive.root>/Users/ralf/scratch/mms/archive</mms.archive.root>
                 <!-- If the MMS shall employ all hosts, comment out the following line -->
-                <mms.hosts>host017 host018 host019 host021 host022 host023 host024 host025 host026 host027 host028 host040 host041 host042 host043 host044 host045</mms.hosts>
+                <mms.hosts>"host017 host018 host019 host021 host022 host023 host024 host025 host026 host027 host028 host040 host041 host042 host043 host044 host045"</mms.hosts>
 
                 <!-- Path to the JDK -->
                 <mms.jdk.home>/Library/Java/JavaVirtualMachines/jdk1.8.0_11.jdk/Contents/Home</mms.jdk.home>
