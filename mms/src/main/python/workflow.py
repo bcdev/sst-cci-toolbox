@@ -65,12 +65,44 @@ class Period:
             end_date = other.get_end_date()
         return Period(start_date, end_date)
 
+    def is_intersecting(self, other):
+        """
+
+        :type other: Period
+        :rtype : bool
+        """
+        return self.get_start_date() < other.get_end_date() and self.get_end_date() > other.get_start_date()
+
+    def is_connected_with(self, other):
+        """
+
+        :type other: Period
+        :rtype : bool
+        """
+        return self.get_start_date() == other.get_end_date() or self.get_end_date() == other.get_start_date()
+
+    def grow(self, other):
+        """
+
+        :type other: Period
+        :rtype : bool
+        """
+        grown = False
+        if self != other and (self.is_intersecting(other) or self.is_connected_with(other)):
+            if other.get_start_date() < self.get_start_date():
+                self.start_date = other.get_start_date()
+                grown = True
+            if other.get_end_date() > self.get_end_date():
+                self.end_date = other.get_end_date()
+                grown = True
+        return grown
+
     @staticmethod
     def __from_iso_format(iso_string):
         """
 
         :type iso_string: str
-        :return:
+        :rtype: datetime.date
         """
         iso_parts = iso_string.split('-')
         return datetime.date(int(iso_parts[0]), int(iso_parts[1]), int(iso_parts[2]))
@@ -87,12 +119,85 @@ class Period:
         """
 
         :type other: Period
-        :return: bool
+        :rtype: bool
         """
         return not self.__eq__(other)
 
+    def __gt__(self, other):
+        """
+
+        :type other: Period
+        :rtype: bool
+        """
+        return self.get_start_date() > other.get_start_date() or (
+            self.get_start_date() == other.get_start_date() and self.get_end_date() > other.get_end_date())
+
+    def __ge__(self, other):
+        """
+
+        :type other: Period
+        :rtype: bool
+        """
+        return self.__eq__(other) or self.__gt__(other)
+
+    def __lt__(self, other):
+        """
+
+        :type other: Period
+        :rtype: bool
+        """
+        return self.get_start_date() < other.get_start_date() or (
+            self.get_start_date() == other.get_start_date() and self.get_end_date() < other.get_end_date())
+
+    def __le__(self, other):
+        """
+
+        :type other: Period
+        :rtype: bool
+        """
+        return self.__eq__(other) or self.__lt__(other)
+
     def __hash__(self):
         return self.get_start_date().__hash__() + 17 * self.get_end_date().__hash__()
+
+
+class MultiPeriod:
+    def __init__(self):
+        self.periods = list()
+
+    def add(self, new_period):
+        """
+
+        :type new_period: Period
+        """
+        added = False
+        for period in self.periods:
+            added = period == new_period
+            if not added:
+                added = period.grow(new_period)
+                if added:
+                    self.__maintain_disjunctive_state(period)
+                    break
+        if not added:
+            self.periods.append(new_period)
+
+    def get_periods(self):
+        """
+
+        :rtype : list
+        """
+        return sorted(self.periods)
+
+
+    def __maintain_disjunctive_state(self, p):
+        remove = list()
+        for q in self.periods:
+            if p != q:
+                if p.is_intersecting(q) or p.is_connected_with(q):
+                    p.grow(q)
+                    remove.append(q)
+        for p in remove:
+            self.periods.remove(p)
 
 
 class Sensor:
@@ -261,29 +366,6 @@ class SensorPair:
             return (self.get_secondary() + self.get_primary()).__hash__()
 
 
-class MMonitor:
-    def __init__(self, preconditions, request, logdir, hosts, types):
-        """
-
-        :type preconditions: list
-        :type request: str
-        :type logdir: str
-        :type hosts: list
-        :type types: list
-        """
-        pass
-
-    def execute(self, call, preconditions, postconditions, parameters):
-        """
-
-        :param call: str
-        :param preconditions: list
-        :param postconditions: list
-        :param parameters: list
-        """
-        pass
-
-
 class Workflow:
     def __init__(self, usecase, production_period=None, simulation=False):
         """
@@ -411,6 +493,17 @@ class Workflow:
         else:
             return None
 
+    def _get_data_periods_by_sensor(self):
+        data_periods = dict
+        sensor_pairs = self._get_sensor_pairs()
+        for sensor_pair in sensor_pairs:
+            sensor = sensor_pair.get_primary()
+            if not sensor in data_periods:
+                data_periods[sensor] = list()
+            new_period = sensor_pair.get_period()
+            for period in data_periods[sensor]:
+                pass
+
     def __get_effective_production_period(self):
         """
 
@@ -488,21 +581,21 @@ class Workflow:
         :type hosts: list
         :type types: list
         :type log_dir: str
-        :rtype : MMonitor
+        :rtype : PMonitor
         """
         preconditions = list()
         self._add_inp_preconditions(preconditions)
         self._add_obs_preconditions(preconditions)
         self._add_smp_preconditions(preconditions)
         if self.is_simulation():
-            return MMonitor(preconditions, self.get_usecase(), log_dir, hosts, types)
+            return PMonitor(preconditions, self.get_usecase(), hosts, types, logdir=log_dir, simulation=True)
         else:
-            return PMonitor(preconditions, self.get_usecase(), log_dir, hosts, types)
+            return PMonitor(preconditions, self.get_usecase(), hosts, types, logdir=log_dir)
 
     def _execute_ingestion(self, monitor):
         """
 
-        :type monitor: MMonitor
+        :type monitor: PMonitor
         """
         period = self.__get_effective_production_period()
         date = period.get_start_date()
@@ -512,13 +605,13 @@ class Workflow:
             monitor.execute('ingestion-start.sh',
                             ['/inp/' + year + '/' + month],
                             ['/obs/' + year + '/' + month],
-                            parameters=[year, month, self.get_usecase()])
+                            [year, month, self.get_usecase()])
             date = _next_month(date)
 
     def _execute_sampling(self, monitor):
         """
 
-        :type monitor: MMonitor
+        :type monitor: PMonitor
         """
         samples_per_month = self.samples_per_month
         skip = self.samples_skip
@@ -541,6 +634,59 @@ class Workflow:
                                 [year, month, sensor, str(samples_per_month), str(skip), self.get_usecase()])
                 skip += samples_per_month
                 date = _next_month(date)
+
+    def _execute_clearing(self, monitor):
+        """
+
+        :param monitor: PMonitor
+        """
+        production_period = self.get_production_period()
+        for sensor_pair in self._get_sensor_pairs():
+            sensor = sensor_pair.get_primary()
+            if production_period is None:
+                period = sensor_pair.get_period()
+            else:
+                period = sensor_pair.get_period().get_intersection(production_period)
+            date = period.get_start_date()
+            end_date = period.get_end_date()
+            while date < end_date:
+                (year, month) = _year_month(date)
+                monitor.execute('clearsky-start.sh',
+                                ['/smp/' + sensor + '/' + _pathformat(_prev_month(date)),
+                                 '/smp/' + sensor + '/' + _pathformat(date),
+                                 '/smp/' + sensor + '/' + _pathformat(_next_month(date))],
+                                ['/clr/' + sensor + '/' + _pathformat(date)],
+                                [year, month, sensor, self.get_usecase()])
+                monitor.execute('mapplot-start.sh',
+                                ['/clr/' + sensor + '/' + _pathformat(date)],
+                                ['/plt/' + sensor + '/' + _pathformat(date)],
+                                [year, month, 'dum_' + sensor, 'lonlat', self.get_usecase()])
+                date = _next_month(date)
+
+    def _execute_add_coincidences(self, monitor):
+        production_period = self.get_production_period()
+        for sensor_pair in self._get_sensor_pairs():
+            sensor = sensor_pair.get_primary()
+            if production_period is None:
+                period = sensor_pair.get_period()
+            else:
+                period = sensor_pair.get_period().get_intersection(production_period)
+            date = period.get_start_date()
+            end_date = period.get_end_date()
+            while date < end_date:
+                (year, month) = _year_month(date)
+                monitor.execute('coincidence-start.sh',
+                                ['/clr/' + sensor + '/' + _pathformat(date)],
+                                ['/con/' + sensor + '/' + _pathformat(date)],
+                                [year, month, sensor, 'dum', self.get_usecase()])
+                date = _next_month(date)
+
+    def _execute_create_sub_mmd_files(self, monitor):
+        """
+
+        :param monitor: PMonitor
+        """
+        pass
 
 
 def _pathformat(date):

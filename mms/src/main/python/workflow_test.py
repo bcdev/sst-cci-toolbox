@@ -3,7 +3,7 @@ __author__ = 'Ralf Quast'
 import datetime
 import unittest
 
-from workflow import Period
+from workflow import Period, MultiPeriod
 from workflow import Sensor
 from workflow import SensorPair
 from workflow import Workflow
@@ -42,6 +42,57 @@ class WorkflowTests(unittest.TestCase):
         period_1 = Period((2007, 1, 1), (2008, 1, 1))
         period_2 = Period((2007, 1, 1), (2009, 1, 1))
         self.assertTrue(period_1 != period_2)
+
+    def test_multi_period(self):
+        multi_period = MultiPeriod()
+        period_1 = Period('2007-01-01', '2007-02-01')
+        period_2 = Period('2007-02-01', '2007-03-01')
+        period_3 = Period('2006-12-01', '2007-01-01')
+        period_4 = Period('2006-11-01', '2007-01-01')
+        period_5 = Period('2007-02-01', '2007-04-01')
+        period_6 = Period('2007-05-01', '2007-06-01')
+        period_7 = Period('2007-04-01', '2007-05-01')
+
+        multi_period.add(period_1)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(period_1, periods[0])
+
+        multi_period.add(period_1)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(period_1, periods[0])
+
+        multi_period.add(period_2)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(Period('2007-01-01', '2007-03-01'), periods[0])
+
+        multi_period.add(period_3)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(Period('2006-12-01', '2007-03-01'), periods[0])
+
+        multi_period.add(period_4)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(Period('2006-11-01', '2007-03-01'), periods[0])
+
+        multi_period.add(period_5)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(Period('2006-11-01', '2007-04-01'), periods[0])
+
+        multi_period.add(period_6)
+        periods = multi_period.get_periods()
+        self.assertEqual(2, len(periods))
+        self.assertEqual(Period('2006-11-01', '2007-04-01'), periods[0])
+        self.assertEqual(period_6, periods[1])
+
+        multi_period.add(period_7)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(Period('2006-11-01', '2007-06-01'), periods[0])
 
     def test_get_sensor_name(self):
         sensor = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
@@ -177,7 +228,25 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(datetime.date(1988, 11, 8), data_period.get_start_date())
         self.assertEqual(datetime.date(1994, 12, 31), data_period.get_end_date())
 
-    def test_get_input_preconditions_for_one_month(self):
+    def test_get_data_periods_by_sensors(self):
+        w = Workflow('test')
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        sensors = w._get_data_periods_by_sensor()
+        self.assertEqual(3, len(sensors))
+        self.assertEqual('avhrr.n10', sensors[0].get_name())
+        self.assertEqual(Period('1988-11-08', '1991-09-16'), sensors[0].get_period())
+        self.assertEqual('avhrr.n11', sensors[1].get_name())
+        self.assertEqual(Period('1986-11-17', '1988-11-09'), sensors[1].get_period())
+        self.assertEqual('avhrr.n12', sensors[2].get_name())
+        self.assertEqual(Period('1986-11-17', '1988-11-09'), sensors[2].get_period())
+
+    def test_get_inp_preconditions_for_one_month(self):
         w = Workflow('test', Period('1991-01-01', '1991-02-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -191,7 +260,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(1, len(preconditions))
         self.assertEqual('/inp/1991/01', preconditions[0])
 
-    def test_get_input_preconditions_for_one_month_odd(self):
+    def test_get_inp_preconditions_for_one_month_odd(self):
         w = Workflow('test', Period('1991-01-02', '1991-02-02'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -206,7 +275,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1991/02', preconditions[1])
 
-    def test_get_input_preconditions_for_one_month_plus_one_day(self):
+    def test_get_inp_preconditions_for_one_month_plus_one_day(self):
         w = Workflow('test', Period('1991-01-01', '1991-02-02'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -221,7 +290,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual('/inp/1991/01', preconditions[0])
         self.assertEqual('/inp/1991/02', preconditions[1])
 
-    def test_get_input_preconditions_for_one_month_minus_one_day(self):
+    def test_get_inp_preconditions_for_one_month_minus_one_day(self):
         w = Workflow('test', Period('1991-01-02', '1991-02-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -412,6 +481,12 @@ class WorkflowTests(unittest.TestCase):
         self.assertFalse(m is None)
 
         w._execute_ingestion(m)
+        w._execute_sampling(m)
+        w._execute_clearing(m)
+        w._execute_add_coincidences(m)
+        w._execute_create_sub_mmd_files(m)
+
+        m.wait_for_completion()
 
 
 if __name__ == '__main__':
