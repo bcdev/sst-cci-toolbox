@@ -131,24 +131,24 @@ class WorkflowTests(unittest.TestCase):
     def test_add_primary_sensors_to_workflow(self):
         w = Workflow('test')
         w.add_primary_sensor('atsr.3', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(1, len(w.get_primary_sensors()))
+        self.assertEqual(1, len(w._get_primary_sensors()))
         w.add_primary_sensor('atsr.3', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(1, len(w.get_primary_sensors()))
+        self.assertEqual(1, len(w._get_primary_sensors()))
         w.add_primary_sensor('atsr.2', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(2, len(w.get_primary_sensors()))
+        self.assertEqual(2, len(w._get_primary_sensors()))
         w.add_primary_sensor('atsr.3', (2008, 1, 1), (2009, 1, 1))
-        self.assertEqual(2, len(w.get_primary_sensors()))
+        self.assertEqual(2, len(w._get_primary_sensors()))
 
     def test_add_secondary_sensors_to_workflow(self):
         w = Workflow('test')
         w.add_secondary_sensor('avhrr.n10', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(1, len(w.get_secondary_sensors()))
+        self.assertEqual(1, len(w._get_secondary_sensors()))
         w.add_secondary_sensor('avhrr.n10', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(1, len(w.get_secondary_sensors()))
+        self.assertEqual(1, len(w._get_secondary_sensors()))
         w.add_secondary_sensor('avhrr.n11', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(2, len(w.get_secondary_sensors()))
+        self.assertEqual(2, len(w._get_secondary_sensors()))
         w.add_secondary_sensor('avhrr.n12', (2008, 1, 1), (2009, 1, 1))
-        self.assertEqual(3, len(w.get_secondary_sensors()))
+        self.assertEqual(3, len(w._get_secondary_sensors()))
 
     def test_get_sensor_pairs(self):
         w = Workflow('test')
@@ -159,7 +159,7 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        sensor_pairs = w.get_sensor_pairs()
+        sensor_pairs = w._get_sensor_pairs()
         self.assertEqual(2, len(sensor_pairs))
         self.assertEqual('avhrr.n10', sensor_pairs[0].get_primary())
         self.assertEqual('avhrr.n11', sensor_pairs[1].get_primary())
