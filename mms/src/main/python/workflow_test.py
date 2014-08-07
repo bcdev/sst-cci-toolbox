@@ -1,6 +1,7 @@
 __author__ = 'Ralf Quast'
 
 import datetime
+import exceptions
 import unittest
 
 from workflow import Period, MultiPeriod
@@ -9,9 +10,9 @@ from workflow import SensorPair
 from workflow import Workflow
 
 
+
 # noinspection PyProtectedMember
 class WorkflowTests(unittest.TestCase):
-
     def test_period_construction(self):
         period_1 = Period((2007, 1, 1), '2008-01-01')
         period_2 = Period('2007-01-01', (2008, 1, 1))
@@ -153,20 +154,21 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual('atsr.2', sensor_pair.get_secondary())
         self.assertEqual(Period((2007, 7, 1), (2008, 1, 1)), sensor_pair.get_period())
 
-        sensor_pair = SensorPair(sensor_1, sensor_3)
-        self.assertEqual('atsr.3', sensor_pair.get_primary())
-        self.assertEqual('atsr.1', sensor_pair.get_secondary())
-        self.assertTrue(sensor_pair.get_period() is None)
-
-        sensor_pair = SensorPair(sensor_3, sensor_1)
-        self.assertEqual('atsr.1', sensor_pair.get_primary())
-        self.assertEqual('atsr.3', sensor_pair.get_secondary())
-        self.assertTrue(sensor_pair.get_period() is None)
-
         sensor_pair = SensorPair(sensor_3, sensor_2)
         self.assertEqual('atsr.1', sensor_pair.get_primary())
         self.assertEqual('atsr.2', sensor_pair.get_secondary())
         self.assertEqual(Period((2008, 1, 1), (2008, 7, 1)), sensor_pair.get_period())
+
+        try:
+            SensorPair(sensor_1, sensor_3)
+            self.fail()
+        except exceptions.ValueError:
+            pass
+
+        try:
+            SensorPair(sensor_3, sensor_1)
+        except exceptions.ValueError:
+            pass
 
     def test_sensor_pair_equality(self):
         sensor_1 = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
@@ -182,13 +184,14 @@ class WorkflowTests(unittest.TestCase):
         sensor_3 = Sensor('atsr.1', Period((2008, 1, 1), (2009, 1, 1)))
 
         sensor_pair_1 = SensorPair(sensor_1, sensor_2)
-        sensor_pair_2 = SensorPair(sensor_1, sensor_3)
+        sensor_pair_2 = SensorPair(sensor_2, sensor_3)
         self.assertTrue(sensor_pair_1 != sensor_pair_2)
+        self.assertTrue(sensor_pair_2 != sensor_pair_1)
 
     def test_sensor_pair_ge(self):
         sensor_1 = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
         sensor_2 = Sensor('atsr.2', Period((2007, 7, 1), (2008, 7, 1)))
-        sensor_3 = Sensor('atsr.1', Period((2008, 1, 1), (2009, 1, 1)))
+        sensor_3 = Sensor('atsr.1', Period((2007, 10, 1), (2008, 10, 1)))
 
         sensor_pair_1 = SensorPair(sensor_1, sensor_2)
         sensor_pair_2 = SensorPair(sensor_2, sensor_3)
@@ -249,7 +252,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(datetime.date(1988, 11, 8), data_period.get_start_date())
         self.assertEqual(datetime.date(1994, 12, 31), data_period.get_end_date())
 
-    def test_get_data_periods_by_sensors(self):
+    def test_get_sensors_by_period(self):
         w = Workflow('test')
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -258,14 +261,21 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        sensors = w._get_data_periods_by_sensor()
+        sensors = w._get_sensors_by_period()
+        """:type : list"""
         self.assertEqual(3, len(sensors))
-        self.assertEqual('avhrr.n10', sensors[0].get_name())
-        self.assertEqual(Period('1988-11-08', '1991-09-16'), sensors[0].get_period())
-        self.assertEqual('avhrr.n11', sensors[1].get_name())
-        self.assertEqual(Period('1986-11-17', '1988-11-09'), sensors[1].get_period())
-        self.assertEqual('avhrr.n12', sensors[2].get_name())
-        self.assertEqual(Period('1986-11-17', '1988-11-09'), sensors[2].get_period())
+        sensor_1 = sensors[0]
+        """:type : Sensor"""
+        sensor_2 = sensors[1]
+        """:type : Sensor"""
+        sensor_3 = sensors[2]
+        """:type : Sensor"""
+        self.assertEqual("avhrr.n10", sensor_1.get_name())
+        self.assertEqual(Period('1988-11-08', '1991-09-16'), sensor_1.get_period())
+        self.assertEqual("avhrr.n11", sensor_2.get_name())
+        self.assertEqual(Period('1988-11-08', '1994-12-31'), sensor_2.get_period())
+        self.assertEqual("avhrr.n12", sensor_3.get_name())
+        self.assertEqual(Period('1991-09-16', '1994-12-31'), sensor_3.get_period())
 
     def test_get_inp_preconditions_for_one_month(self):
         w = Workflow('test', Period('1991-01-01', '1991-02-01'))
@@ -480,7 +490,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual('/smp/avhrr.n11/1991/10', preconditions[3])
 
     def test_run(self):
-        w = Workflow('test', Period('1991-01-01', '1992-01-01'), True)
+        w = Workflow('test', Period('1991-01-01', '1992-01-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
@@ -498,14 +508,20 @@ class WorkflowTests(unittest.TestCase):
                  ('gbcs-start.sh', 30),
                  ('matchup-reingestion-start.sh', 30),
                  ('reingestion-start.sh', 30)]
-        m = w._get_monitor(hosts, types)
+        m = w.get_monitor(hosts, types, simulation=True)
         self.assertFalse(m is None)
 
-        w._execute_ingestion(m)
+        w._execute_ingest_sensor_data(m)
         w._execute_sampling(m)
         w._execute_clearing(m)
-        w._execute_add_coincidences(m)
+        w._execute_plotting(m)
+        w._execute_ingest_coincidences(m)
         w._execute_create_sub_mmd_files(m)
+        w._execute_create_nwp_mmd_files(m)
+        w._execute_create_arc_mmd_files(m)
+        w._execute_ingest_sub_mmd_files(m)
+        w._execute_ingest_nwp_mmd_files(m)
+        w._execute_ingest_arc_mmd_files(m)
 
         m.wait_for_completion()
 
