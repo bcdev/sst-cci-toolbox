@@ -11,6 +11,7 @@ from workflow import Workflow
 
 # noinspection PyProtectedMember
 class WorkflowTests(unittest.TestCase):
+
     def test_period_construction(self):
         period_1 = Period((2007, 1, 1), '2008-01-01')
         period_2 = Period('2007-01-01', (2008, 1, 1))
@@ -52,6 +53,8 @@ class WorkflowTests(unittest.TestCase):
         period_5 = Period('2007-02-01', '2007-04-01')
         period_6 = Period('2007-05-01', '2007-06-01')
         period_7 = Period('2007-04-01', '2007-05-01')
+        period_8 = Period('2007-11-01', '2007-12-01')
+        period_9 = Period('2007-09-01', '2007-10-01')
 
         multi_period.add(period_1)
         periods = multi_period.get_periods()
@@ -93,6 +96,24 @@ class WorkflowTests(unittest.TestCase):
         periods = multi_period.get_periods()
         self.assertEqual(1, len(periods))
         self.assertEqual(Period('2006-11-01', '2007-06-01'), periods[0])
+
+        multi_period.add(period_5)
+        periods = multi_period.get_periods()
+        self.assertEqual(1, len(periods))
+        self.assertEqual(Period('2006-11-01', '2007-06-01'), periods[0])
+
+        multi_period.add(period_8)
+        periods = multi_period.get_periods()
+        self.assertEqual(2, len(periods))
+        self.assertEqual(Period('2006-11-01', '2007-06-01'), periods[0])
+        self.assertEqual(period_8, periods[1])
+
+        multi_period.add(period_9)
+        periods = multi_period.get_periods()
+        self.assertEqual(3, len(periods))
+        self.assertEqual(Period('2006-11-01', '2007-06-01'), periods[0])
+        self.assertEqual(period_9, periods[1])
+        self.assertEqual(period_8, periods[2])
 
     def test_get_sensor_name(self):
         sensor = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
@@ -212,7 +233,7 @@ class WorkflowTests(unittest.TestCase):
 
         sensor_pairs = w._get_sensor_pairs()
         self.assertEqual(2, len(sensor_pairs))
-        self.assertEqual('avhrr.n10', sensor_pairs[0].get_primary())
+        self.assertEqual('avhrr.n12', sensor_pairs[0].get_primary())
         self.assertEqual('avhrr.n11', sensor_pairs[1].get_primary())
 
     def test_get_data_period(self):
@@ -436,10 +457,10 @@ class WorkflowTests(unittest.TestCase):
         preconditions = list()
         preconditions = w._add_smp_preconditions(preconditions)
         self.assertEqual(4, len(preconditions))
-        self.assertEqual('/smp/avhrr.n10/1988/10', preconditions[0])
-        self.assertEqual('/smp/avhrr.n10/1991/10', preconditions[1])
-        self.assertEqual('/smp/avhrr.n11/1991/08', preconditions[2])
-        self.assertEqual('/smp/avhrr.n11/1995/01', preconditions[3])
+        self.assertEqual('/smp/avhrr.n12/1991/08', preconditions[0])
+        self.assertEqual('/smp/avhrr.n12/1995/01', preconditions[1])
+        self.assertEqual('/smp/avhrr.n11/1988/10', preconditions[2])
+        self.assertEqual('/smp/avhrr.n11/1991/10', preconditions[3])
 
     def test_add_smp_preconditions_for_one_year(self):
         w = Workflow('test', Period('1991-01-01', '1992-01-01'))
@@ -453,10 +474,10 @@ class WorkflowTests(unittest.TestCase):
         preconditions = list()
         preconditions = w._add_smp_preconditions(preconditions)
         self.assertEqual(4, len(preconditions))
-        self.assertEqual('/smp/avhrr.n10/1990/12', preconditions[0])
-        self.assertEqual('/smp/avhrr.n10/1991/10', preconditions[1])
-        self.assertEqual('/smp/avhrr.n11/1991/08', preconditions[2])
-        self.assertEqual('/smp/avhrr.n11/1992/01', preconditions[3])
+        self.assertEqual('/smp/avhrr.n12/1991/08', preconditions[0])
+        self.assertEqual('/smp/avhrr.n12/1992/01', preconditions[1])
+        self.assertEqual('/smp/avhrr.n11/1990/12', preconditions[2])
+        self.assertEqual('/smp/avhrr.n11/1991/10', preconditions[3])
 
     def test_run(self):
         w = Workflow('test', Period('1991-01-01', '1992-01-01'), True)

@@ -65,6 +65,14 @@ class Period:
             end_date = other.get_end_date()
         return Period(start_date, end_date)
 
+    def is_including(self, other):
+        """
+
+        :type other: Period
+        :rtype : bool
+        """
+        return self.get_start_date() <= other.get_start_date() and self.get_end_date() >= other.get_end_date()
+
     def is_intersecting(self, other):
         """
 
@@ -73,7 +81,7 @@ class Period:
         """
         return self.get_start_date() < other.get_end_date() and self.get_end_date() > other.get_start_date()
 
-    def is_connected_with(self, other):
+    def is_connecting(self, other):
         """
 
         :type other: Period
@@ -88,7 +96,7 @@ class Period:
         :rtype : bool
         """
         grown = False
-        if self != other and (self.is_intersecting(other) or self.is_connected_with(other)):
+        if self.is_intersecting(other) or self.is_connecting(other):
             if other.get_start_date() < self.get_start_date():
                 self.start_date = other.get_start_date()
                 grown = True
@@ -165,21 +173,23 @@ class MultiPeriod:
     def __init__(self):
         self.periods = list()
 
-    def add(self, new_period):
+    def add(self, other):
         """
 
-        :type new_period: Period
+        :type other: Period
         """
         added = False
         for period in self.periods:
-            added = period == new_period
-            if not added:
-                added = period.grow(new_period)
+            added = period.is_including(other)
+            if added:
+                break
+            else:
+                added = period.grow(other)
                 if added:
                     self.__maintain_disjunctive_state(period)
                     break
         if not added:
-            self.periods.append(new_period)
+            self.periods.append(other)
 
     def get_periods(self):
         """
@@ -188,15 +198,19 @@ class MultiPeriod:
         """
         return sorted(self.periods)
 
+    def __maintain_disjunctive_state(self, g):
+        """
 
-    def __maintain_disjunctive_state(self, p):
-        remove = list()
-        for q in self.periods:
-            if p != q:
-                if p.is_intersecting(q) or p.is_connected_with(q):
-                    p.grow(q)
-                    remove.append(q)
-        for p in remove:
+        :param g: The grown period.
+        :type g: Period
+        """
+        trash = list()
+        for p in self.periods:
+            if g != p:
+                if g.is_intersecting(p) or g.is_connecting(p):
+                    g.grow(p)
+                    trash.append(p)
+        for p in trash:
             self.periods.remove(p)
 
 
@@ -450,14 +464,14 @@ class Workflow:
 
         :rtype : list
         """
-        return sorted(list(self.primary_sensors))
+        return sorted(list(self.primary_sensors), reverse=True)
 
     def _get_secondary_sensors(self):
         """
 
         :rtype : list
         """
-        return sorted(list(self.secondary_sensors))
+        return sorted(list(self.secondary_sensors), reverse=True)
 
     def _get_sensor_pairs(self):
         """
@@ -473,7 +487,7 @@ class Workflow:
                     sensor_pair = SensorPair(p, s)
                     if not (sensor_pair.get_period() is None):
                         sensor_pairs.add(sensor_pair)
-        return sorted(list(sensor_pairs))
+        return sorted(list(sensor_pairs), reverse=True)
 
     def _get_data_period(self):
         """
