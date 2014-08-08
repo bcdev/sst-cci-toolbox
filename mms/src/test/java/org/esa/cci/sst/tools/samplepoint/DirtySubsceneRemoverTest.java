@@ -14,11 +14,6 @@ package org.esa.cci.sst.tools.samplepoint;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.data.Column;
-import org.esa.cci.sst.data.ColumnBuilder;
-import org.esa.cci.sst.orm.ColumnStorage;
-import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Test;
 
@@ -27,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 public class DirtySubsceneRemoverTest {
 
@@ -35,14 +29,14 @@ public class DirtySubsceneRemoverTest {
     public void testPrimaryIsDefault() throws Exception {
         final DirtySubsceneRemover remover = new DirtySubsceneRemover();
 
-        assertTrue(remover.getPrimary());
+        assertTrue(remover.isPrimary());
     }
 
     @Test
     public void testSetPrimary() throws Exception {
         final DirtySubsceneRemover remover = new DirtySubsceneRemover().primary(false);
 
-        assertFalse(remover.getPrimary());
+        assertFalse(remover.isPrimary());
     }
 
     @Test

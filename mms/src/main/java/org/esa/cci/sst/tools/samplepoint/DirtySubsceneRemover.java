@@ -95,24 +95,8 @@ public class DirtySubsceneRemover {
         return this;
     }
 
-    public boolean getPrimary() {
+    public boolean isPrimary() {
         return primary;
-    }
-
-    public static void removeSamples(List<SamplingPoint> samples, boolean primarySensor,
-                                     int subSceneWidth, int subSceneHeight,
-                                     Configuration config, Storage storage, Logger logger,
-                                     double dirtyPixelFraction) {
-        final DirtySubsceneRemover remover = new DirtySubsceneRemover()
-                .primary(primarySensor)
-                .subSceneWidth(subSceneWidth)
-                .subSceneHeight(subSceneHeight)
-                .dirtyPixelFraction(dirtyPixelFraction)
-                .config(config)
-                .storage(storage)
-                .logger(logger);
-
-        remover.removeSamples(samples);
     }
 
     public void removeSamples(List<SamplingPoint> samples) {
