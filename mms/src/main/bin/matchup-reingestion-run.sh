@@ -17,7 +17,7 @@ usecase=$5
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
 
-echo "`date -u +%Y%m%d-%H%M%S` matchup-reingestion ${year}/${month} sensor ${sensor} type ${mmdtype}..."
+echo "`date -u +%Y%m%d-%H%M%S` matchup-reingestion ${year}/${month} sensor ${sensor} ..."
 
 reingestion-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
 -Dmms.db.useindex=true \
