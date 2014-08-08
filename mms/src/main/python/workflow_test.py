@@ -10,7 +10,6 @@ from workflow import SensorPair
 from workflow import Workflow
 
 
-
 # noinspection PyProtectedMember
 class WorkflowTests(unittest.TestCase):
     def test_period_construction(self):
@@ -239,7 +238,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual('avhrr.n12', sensor_pairs[0].get_primary())
         self.assertEqual('avhrr.n11', sensor_pairs[1].get_primary())
 
-    def test_get_data_period(self):
+    def test_get_all_sensors_by_period(self):
         w = Workflow('test')
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -248,20 +247,7 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
 
-        data_period = w._get_data_period()
-        self.assertEqual(datetime.date(1988, 11, 8), data_period.get_start_date())
-        self.assertEqual(datetime.date(1994, 12, 31), data_period.get_end_date())
-
-    def test_get_sensors_by_period(self):
-        w = Workflow('test')
-        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
-        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
-        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
-        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
-        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-
-        sensors = w._get_sensors_by_period()
+        sensors = w._get_all_sensors_by_period()
         """:type : list"""
         self.assertEqual(3, len(sensors))
         sensor_1 = sensors[0]
@@ -276,6 +262,40 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(Period('1988-11-08', '1994-12-31'), sensor_2.get_period())
         self.assertEqual("avhrr.n12", sensor_3.get_name())
         self.assertEqual(Period('1991-09-16', '1994-12-31'), sensor_3.get_period())
+
+    def test_get_primary_sensors_by_period(self):
+        w = Workflow('test')
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        sensors = w._get_primary_sensors_by_period()
+        """:type : list"""
+        self.assertEqual(2, len(sensors))
+        sensor_1 = sensors[0]
+        """:type : Sensor"""
+        sensor_2 = sensors[1]
+        """:type : Sensor"""
+        self.assertEqual("avhrr.n11", sensor_1.get_name())
+        self.assertEqual(Period('1988-11-08', '1991-09-16'), sensor_1.get_period())
+        self.assertEqual("avhrr.n12", sensor_2.get_name())
+        self.assertEqual(Period('1991-09-16', '1994-12-31'), sensor_2.get_period())
+
+    def test_get_data_period(self):
+        w = Workflow('test')
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+
+        data_period = w._get_data_period()
+        self.assertEqual(datetime.date(1988, 11, 8), data_period.get_start_date())
+        self.assertEqual(datetime.date(1994, 12, 31), data_period.get_end_date())
 
     def test_get_inp_preconditions_for_one_month(self):
         w = Workflow('test', Period('1991-01-01', '1991-02-01'))
@@ -467,10 +487,10 @@ class WorkflowTests(unittest.TestCase):
         preconditions = list()
         preconditions = w._add_smp_preconditions(preconditions)
         self.assertEqual(4, len(preconditions))
-        self.assertEqual('/smp/avhrr.n12/1991/08', preconditions[0])
-        self.assertEqual('/smp/avhrr.n12/1995/01', preconditions[1])
-        self.assertEqual('/smp/avhrr.n11/1988/10', preconditions[2])
-        self.assertEqual('/smp/avhrr.n11/1991/10', preconditions[3])
+        self.assertEqual('/smp/avhrr.n12,avhrr.n11/1991/08', preconditions[0])
+        self.assertEqual('/smp/avhrr.n12,avhrr.n11/1995/01', preconditions[1])
+        self.assertEqual('/smp/avhrr.n11,avhrr.n10/1988/10', preconditions[2])
+        self.assertEqual('/smp/avhrr.n11,avhrr.n10/1991/10', preconditions[3])
 
     def test_add_smp_preconditions_for_one_year(self):
         w = Workflow('test', Period('1991-01-01', '1992-01-01'))
@@ -484,10 +504,10 @@ class WorkflowTests(unittest.TestCase):
         preconditions = list()
         preconditions = w._add_smp_preconditions(preconditions)
         self.assertEqual(4, len(preconditions))
-        self.assertEqual('/smp/avhrr.n12/1991/08', preconditions[0])
-        self.assertEqual('/smp/avhrr.n12/1992/01', preconditions[1])
-        self.assertEqual('/smp/avhrr.n11/1990/12', preconditions[2])
-        self.assertEqual('/smp/avhrr.n11/1991/10', preconditions[3])
+        self.assertEqual('/smp/avhrr.n12,avhrr.n11/1991/08', preconditions[0])
+        self.assertEqual('/smp/avhrr.n12,avhrr.n11/1992/01', preconditions[1])
+        self.assertEqual('/smp/avhrr.n11,avhrr.n10/1990/12', preconditions[2])
+        self.assertEqual('/smp/avhrr.n11,avhrr.n10/1991/10', preconditions[3])
 
     def test_run(self):
         w = Workflow('test', Period('1991-01-01', '1992-01-01'))
@@ -508,22 +528,7 @@ class WorkflowTests(unittest.TestCase):
                  ('gbcs-start.sh', 30),
                  ('matchup-reingestion-start.sh', 30),
                  ('reingestion-start.sh', 30)]
-        m = w.get_monitor(hosts, types, simulation=True)
-        self.assertFalse(m is None)
-
-        w._execute_ingest_sensor_data(m)
-        w._execute_sampling(m)
-        w._execute_clearing(m)
-        w._execute_plotting(m)
-        w._execute_ingest_coincidences(m)
-        w._execute_create_sub_mmd_files(m)
-        w._execute_create_nwp_mmd_files(m)
-        w._execute_create_arc_mmd_files(m)
-        w._execute_ingest_sub_mmd_files(m)
-        w._execute_ingest_nwp_mmd_files(m)
-        w._execute_ingest_arc_mmd_files(m)
-
-        m.wait_for_completion()
+        w.run(hosts, types, simulation=True)
 
 
 if __name__ == '__main__':
