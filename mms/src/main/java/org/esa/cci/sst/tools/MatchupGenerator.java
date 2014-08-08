@@ -372,9 +372,9 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
     }
 
-    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples, boolean isPrimary) {
+    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples, boolean primary) {
         final DirtySubsceneRemover subsceneRemover = new DirtySubsceneRemover();
-        subsceneRemover.primary(isPrimary)
+        subsceneRemover.primary(primary)
                 .subSceneWidth(subSceneWidth)
                 .subSceneHeight(subSceneHeight)
                 .dirtyPixelFraction(dirtyPixelFraction)
