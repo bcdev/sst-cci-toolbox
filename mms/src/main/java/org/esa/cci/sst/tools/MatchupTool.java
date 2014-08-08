@@ -175,7 +175,7 @@ public class MatchupTool extends BasicTool {
         metopSensor = storage.getSensor(METOP);
         seviriSensor = storage.getSensor(SEVIRI);
         avhrrSensor = storage.getSensor(AVHRR_MD);
-        loadMatchupStartAndStopTimes();
+        setTimeRange();
     }
 
     private void run() {
@@ -323,7 +323,7 @@ public class MatchupTool extends BasicTool {
         }
     }
 
-    private void loadMatchupStartAndStopTimes() {
+    private void setTimeRange() {
         timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_MATCHUP_START_TIME,
                 Configuration.KEY_MMS_MATCHUP_STOP_TIME,
                 getConfig());
