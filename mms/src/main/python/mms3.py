@@ -109,7 +109,7 @@ types = [('ingestion-start.sh', 120),
 
 pm = PMonitor(inputs,
               request='mms3',
-              logdir='trace',
+              log_dir='trace',
               hosts=hosts,
               types=types)
 
@@ -199,4 +199,4 @@ for year in years:
                        ['/mmd/' + sensor + '/' + year + '/' + month],
                        parameters=[year, month, sensor, 'mmd3', usecase])
 
-pm.wait_for_completion()
+pm.wait_for_completion_and_terminate()
