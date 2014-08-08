@@ -27,7 +27,7 @@ types  = [('staging-start.sh',4), \
 pm = PMonitor(inputs, \
               request='mms', \
               swd='/exports/home/v1mbottc/sst-cci-toolbox-1.2-SNAPSHOT/bin', \
-              logdir='/exports/home/v1mbottc/inst/trash', \
+              log_dir='/exports/home/v1mbottc/inst/trash', \
               hosts=hosts, \
               types=types)
 
@@ -107,4 +107,4 @@ for year in years:
 #                                         ['/nas/'+prev_year], parameters=[year, month])
         pm.execute('destaging-start.sh', ['/mmd/'+year+'/'+month ], ['/nas/'+prev_year], parameters=[year, month])
 
-pm.wait_for_completion()
+pm.wait_for_completion_and_terminate()
