@@ -1,12 +1,14 @@
+__author__ = 'boe'
+
 import glob
 import os
 import sys
 import threading
 import time
-import threadpool
 import subprocess
 
-__author__ = 'boe'
+import threadpool
+
 
 class PMonitor:
     """
@@ -41,10 +43,12 @@ class PMonitor:
         name = None
         capacity = None
         load = None
-        def __init__(self,name,capacity):
+
+        def __init__(self, name, capacity):
             self.name = name
             self.capacity = capacity
             self.load = 0
+
         def __cmp__(self, other):
             if self.load > other.load:
                 return 1
@@ -68,30 +72,31 @@ class PMonitor:
     _typeConstraints = []
     _weightConstraints = []
     _swd = None
-    _logdir = '.'
+    _log_dir = '.'
     _cache = None
     _mutex = threading.Lock()
     _request = None
     _delay = None
     _simulation = False
 
-    def __init__(self, inputs, request='', hosts=[('localhost',4)], types=[], weights=[], swd=None, cache=None, logdir='.', simulation=False, delay=None):
+    def __init__(self, inputs, request, hosts, types=list(), weights=list(), swd=None, cache=None,
+                 log_dir='.', simulation=False, delay=None):
         """
         Initiates monitor, marks inputs, reads report, creates thread pool
         """
         try:
-            os.system('mkdir -p ' + logdir)
+            os.system('mkdir -p ' + log_dir)
             self._mutex.acquire()
-            self._hostConstraints = self._constraints_of(hosts)
-            self._typeConstraints = self._constraints_of(types)
-            self._weightConstraints = self._constraints_of(weights)
+            self._hostConstraints = PMonitor._constraints_of(hosts)
+            self._typeConstraints = PMonitor._constraints_of(types)
+            self._weightConstraints = PMonitor._constraints_of(weights)
             self._swd = swd
-            self._logdir = logdir
+            self._log_dir = log_dir
             self._cache = cache
             self._mark_inputs(inputs)
             self._maybe_read_report(request + '.report')
             self._status = open(request + '.status', 'w')
-            concurrency = sum(map(lambda host:host[1], hosts))
+            concurrency = sum(map(lambda host: host[1], hosts))
             self._pool = threadpool.ThreadPool(concurrency)
             self._request = request
             self._delay = delay
@@ -99,40 +104,42 @@ class PMonitor:
         finally:
             self._mutex.release()
 
-    def execute(self, call, inputs, outputs, parameters=[], priority=1, collating=True, logprefix=None):
+    def execute(self, call, inputs, outputs, parameters=list(), priority=1, collating=True, log_prefix=None):
         """
         Schedules task `call parameters inputs outputs`, either a single collating call or one call per input
         """
         try:
             self._mutex.acquire()
-            if logprefix is None:
-                logprefix = call[call.rfind('/')+1:]
-                if logprefix.endswith('.sh'):
-                    logprefix = logprefix[:-3]
+            if log_prefix is None:
+                log_prefix = call[call.rfind('/') + 1:]
+                if log_prefix.endswith('.sh'):
+                    log_prefix = log_prefix[:-3]
             self._created += 1
-            request = threadpool.WorkRequest(None, [call, self._created, parameters, None, outputs, None, logprefix], priority=priority, requestID=self._created)
+            request = threadpool.WorkRequest(None, [call, self._created, parameters, None, outputs, None, log_prefix],
+                                             priority=priority, requestID=self._created)
             if outputs[0] in self._counts:
                 self._counts[outputs[0]] += 1
             else:
                 self._counts[outputs[0]] = 1
-            
+
             if self._all_inputs_available(inputs) and self._constraints_fulfilled(request):
-                inputPaths = self._paths_of(inputs)
+                input_paths = self._paths_of(inputs)
                 if collating:
                     request.callable = self._process_step
-                    request.args[3] = inputPaths
+                    request.args[3] = input_paths
                     self._pool.putRequest(request)
                     if self._delay is not None:
                         time.sleep(self._delay)
                 else:
-                    for i in range(len(inputPaths)):
+                    for i in range(len(input_paths)):
                         if i == 0:
                             request.callable = self._process_step
-                            request.args[3] = inputPaths[0:1]
+                            request.args[3] = input_paths[0:1]
                         else:
                             self._created += 1
                             request = threadpool.WorkRequest(self._process_step,
-                                                             [call, self._created, parameters, inputPaths[i:i+1], outputs, None, logprefix],
+                                                             [call, self._created, parameters, input_paths[i:i + 1],
+                                                              outputs, None, log_prefix],
                                                              priority=priority, requestID=self._created)
                             self._counts[outputs[0]] += 1
                         if i == 0 or self._constraints_fulfilled(request):
@@ -155,7 +162,7 @@ class PMonitor:
         """
         Waits until all scheduled tasks are run, then returns
         """
-        self._write_status(withBacklog=False)
+        self._write_status(with_backlog=False)
         while True:
             self._pool.wait()
             try:
@@ -164,27 +171,29 @@ class PMonitor:
                     break
             finally:
                 self._mutex.release()
-        self._write_status(withBacklog=True)
-        self._status.close()
+        self._write_status(with_backlog=True)
         return int(bool(self._failed or self._backlog))
 
+    def wait_for_completion_and_terminate(self):
+        exit_code = self.wait_for_completion()
+        self._status.close()
+        return exit_code
 
-    def _constraints_of(self, config):
+    @staticmethod
+    def _constraints_of(config):
         """
         Converts configuration into list of constraints
         """
-        constraints = map(lambda (name,limit): PMonitor.Constraint(name, limit), config)
+        constraints = map(lambda (name, limit): PMonitor.Constraint(name, limit), config)
         constraints.sort()
         return constraints
 
-    def _maybe_read_report(self, reportPath):
+    def _maybe_read_report(self, report_path):
         """
-        Reads report containing lines with command line calls and lines with an output path of a product name, e.g.
-          bin/meris-l3.sh /home/boe/eodata/MER_WV__2P/v01/2010/01/25 /home/boe/eodata/MER_WV__3P/v01/2010/01/25/meris-l3-daily-25.dat
-          #output /home/boe/eodata/MER_WV__3P/v01/2010/01/25/meris-l3-daily-25.dat /home/boe/eodata/MER_WV__3P/v01/2010/01/25/meris-l3-daily-25.dat.real
+        Reads report containing lines with command line calls and lines with an output path of a product name.
         """
-        if glob.glob(reportPath):
-            self._report = open(reportPath, 'r+')
+        if glob.glob(report_path):
+            self._report = open(report_path, 'r+')
             for line in self._report.readlines():
                 if line.startswith('#output '):
                     w = line.split()
@@ -194,53 +203,55 @@ class PMonitor:
                 else:
                     self._commands.add(line[:-1])
         else:
-            self._report = open(reportPath, 'w')
+            self._report = open(report_path, 'w')
 
-    def _write_status(self, withBacklog=False):
+    def _write_status(self, with_backlog=False):
         self._status.seek(0)
-        #pending = len(self._pool.workRequests) - len(self._running)
-        self._status.write('{0} created, {1} running, {2} backlog, {3} processed, {4} failed\n'.\
-        format(self._created, len(self._running), len(self._backlog), self._processed, len(self._failed)))
+        self._status.write('{0} created, {1} running, {2} backlog, {3} processed, {4} failed\n'.
+                           format(self._created, len(self._running), len(self._backlog), self._processed,
+                                  len(self._failed)))
         for l in self._failed:
             self._status.write('f {0}\n'.format(l))
         for l in self._running:
             self._status.write('r {0}\n'.format(l))
-        if withBacklog:
+        if with_backlog:
             for r in self._backlog:
-                self._status.write('b {0} {1} {2} {3}\n'.format(r.args[0], ' '.join(r.args[2]), ' '.join(r.args[3]), ' '.join(r.args[4])))
+                self._status.write('b {0} {1} {2} {3}\n'.format(r.args[0], ' '.join(r.args[2]), ' '.join(r.args[3]),
+                                                                ' '.join(r.args[4])))
         self._status.truncate()
         self._status.flush()
 
-    def _expand_step(self, call, taskId, parameters, inputs, outputs, host, logprefix):
+    def _expand_step(self, call, task_id, parameters, inputs, outputs, host, log_prefix):
         """
         Marker for non-collating tasks, formal callable
         """
         raise NotImplementedError('must never be called')
 
-    def _translate_step(self, call, taskId, parameters, inputs, outputs, host, logprefix):
+    def _translate_step(self, call, task_id, parameters, inputs, outputs, host, log_prefix):
         """
         Marker for tasks that require input path translation, formal callable
         """
         raise NotImplementedError('must never be called')
 
-    def _process_step(self, call, taskId, parameters, inputs, outputs, host, logprefix):
+    def _process_step(self, call, task_id, parameters, inputs, outputs, host, log_prefix):
         """
         Callable for tasks, marker for simple or collating tasks.
         looks up call in commands from report, maybe skips execution
         executes call by os call, scans process stdout for `output=...`
         updates report, maintains products, and schedules mature tasks
         """
-        command = '{0} {1} {2} {3}'.format(self._path_of_call(call), ' '.join(parameters), ' '.join(inputs), ' '.join(outputs))
+        command = '{0} {1} {2} {3}'.format(self._path_of_call(call), ' '.join(parameters), ' '.join(inputs),
+                                           ' '.join(outputs))
         if command in self._commands:
             self._skip_step(call, command, outputs, host)
         else:
             self._prepare_step(command)
-            outputPaths = []
+            output_paths = []
             if not self._simulation:
-                code = self._run_step(taskId, host, command, outputPaths, logprefix)
+                code = self._run_step(task_id, host, command, output_paths, log_prefix)
             else:
-                code = 1
-            self._finalise_step(call, code, command, host, outputPaths, outputs)
+                code = 0
+            self._finalise_step(call, code, command, host, output_paths, outputs)
 
     def _skip_step(self, call, command, outputs, host):
         """
@@ -267,20 +278,20 @@ class PMonitor:
         finally:
             self._mutex.release()
 
-    def _run_step(self, taskId, host, command, outputPaths, logprefix):
+    def _run_step(self, task_id, host, command, output_paths, log_prefix):
         """
         Executes command on host, collects output paths if any, returns exit code
         """
-        wd = self._prepare_working_dir(taskId)
-        process = self._start_processor(command, host, wd)
-        self._trace_processor_output(outputPaths, process, taskId, wd, logprefix)
+        wd = self._prepare_working_dir(task_id)
+        process = PMonitor._start_processor(command, host, wd)
+        self._trace_processor_output(output_paths, process, task_id, wd, log_prefix)
         process.stdout.close()
         code = process.wait()
-        if code == 0 and self._cache != None and 'cache' in wd:
+        if code == 0 and not self._cache is None and 'cache' in wd:
             subprocess.call(['rm', '-rf', wd])
         return code
 
-    def _finalise_step(self, call, code, command, host, outputPaths, outputs):
+    def _finalise_step(self, call, code, command, host, output_paths, outputs):
         """
         releases host and type resources, updates report, schedules mature steps, handles failure
         """
@@ -290,7 +301,7 @@ class PMonitor:
             self._running.remove(command)
             if code == 0:
                 self._report.write(command + '\n')
-                self._report_and_bind_outputs(outputs, outputPaths)
+                self._report_and_bind_outputs(outputs, output_paths)
                 self._report.flush()
                 self._processed += 1
             else:
@@ -301,17 +312,18 @@ class PMonitor:
         finally:
             self._mutex.release()
 
-    def _prepare_working_dir(self, taskId):
+    def _prepare_working_dir(self, task_id):
         """Creates working directory in .../cache/request-id/task-id"""
         if self._cache is None:
             wd = '.'
         else:
-            wd = self._cache + '/' + self._request + '/' + '{0:04d}'.format(taskId)
+            wd = self._cache + '/' + self._request + '/' + '{0:04d}'.format(task_id)
         if not os.path.exists(wd):
             os.makedirs(wd)
         return wd
 
-    def _start_processor(self, command, host, wd):
+    @staticmethod
+    def _start_processor(command, host, wd):
         """starts subprocess either locally or via ssh, returns process handle"""
         if host == 'localhost':
             cmd = command
@@ -321,15 +333,15 @@ class PMonitor:
         process = subprocess.Popen(cmd, shell=True, bufsize=1, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         return process
 
-    def _trace_processor_output(self, outputPaths, process, taskId, wd, logprefix):
+    def _trace_processor_output(self, output_paths, process, task_id, wd, log_prefix):
         """traces processor output, recognises 'output=' lines, writes all lines to trace file in working dir"""
-        if self._cache is None or self._logdir != '.':
-            trace = open('{0}/{1}-{2:04d}.out'.format(self._logdir, logprefix, taskId), 'w')
+        if self._cache is None or self._log_dir != '.':
+            trace = open('{0}/{1}-{2:04d}.out'.format(self._log_dir, log_prefix, task_id), 'w')
         else:
-            trace = open('{0}/{1}-{2:04d}.out'.format(wd, logprefix, taskId), 'w')
+            trace = open('{0}/{1}-{2:04d}.out'.format(wd, log_prefix, task_id), 'w')
         for line in process.stdout:
             if line.startswith('output='):
-                outputPaths.append(line[7:].strip())
+                output_paths.append(line[7:].strip())
             trace.write(line)
             trace.flush()
         trace.close()
@@ -341,32 +353,33 @@ class PMonitor:
         distinguishes collating and non-collating tasks by the callable used
         generates one task per input for non-collating tasks
         """
-        matureTasks = []
+        mature_tasks = []
         for task in self._backlog:
-            if (task.callable == self._process_step or self._all_inputs_available(task.args[3])):
+            if task.callable == self._process_step or self._all_inputs_available(task.args[3]):
                 if self._constraints_fulfilled(task):
-                    matureTasks.append(task)
+                    mature_tasks.append(task)
                     if task.callable == self._process_step:
-                        inputPaths = task.args[3]
+                        input_paths = task.args[3]
                     else:
-                        inputPaths = self._paths_of(task.args[3])
+                        input_paths = self._paths_of(task.args[3])
                     if task.callable == self._translate_step or task.callable == self._process_step:
                         task.callable = self._process_step
-                        task.args[3] = inputPaths
+                        task.args[3] = input_paths
                         self._pool.putRequest(task)
                         if self._delay is not None:
                             time.sleep(self._delay)
                     else:
-                        newTasks = []
+                        new_tasks = []
                         pos = self._backlog.index(task)
-                        for i in range(len(inputPaths)):
+                        for i in range(len(input_paths)):
                             if i == 0:
                                 task.callable = self._process_step
-                                task.args[3] = inputPaths[0:1]
+                                task.args[3] = input_paths[0:1]
                             else:
                                 self._created += 1
-                                task = threadpool.WorkRequest(self._process_step, \
-                                    [task.args[0], self._created, task.args[2], inputPaths[i:i+1], task.args[4], None, task.args[6]], \
+                                task = threadpool.WorkRequest(self._process_step,
+                                                              [task.args[0], self._created, task.args[2],
+                                                               input_paths[i:i + 1], task.args[4], None, task.args[6]],
                                                               priority=task.priority, requestID=self._created)
                                 self._counts[task.args[4][0]] += 1
                             if i == 0 or self._constraints_fulfilled(task):
@@ -374,62 +387,61 @@ class PMonitor:
                                 if self._delay is not None:
                                     time.sleep(self._delay)
                             else:
-                                newTasks.insert(0, task)
-                        if len(newTasks) > 0:
-                            for newTask in newTasks:
-                                self._backlog.insert(pos+1, newTask)
+                                new_tasks.insert(0, task)
+                        if len(new_tasks) > 0:
+                            for newTask in new_tasks:
+                                self._backlog.insert(pos + 1, newTask)
                             # be fair!
                             break
                 else:
                     # be fair!
                     break
-        for task in matureTasks:
+        for task in mature_tasks:
             self._backlog.remove(task)
 
     def _constraints_fulfilled(self, request):
         """looks for host with sufficient capacity and updates host load, type load, and request host"""
         call = request.args[0]
-        typeConstraint = None
-        for type in self._typeConstraints:
-            if type.name == call:
-                if type.load < type.capacity:
-                    typeConstraint = type
+        type_constraint = None
+        for constraint in self._typeConstraints:
+            if constraint.name == call:
+                if constraint.load < constraint.capacity:
+                    type_constraint = constraint
                     break
                 else:
                     return False
         weight = 1
-        for type in self._weightConstraints:
-            if type.name == call:
-                weight = type.capacity
+        for constraint in self._weightConstraints:
+            if constraint.name == call:
+                weight = constraint.capacity
                 break
         for host in self._hostConstraints:
             if host.load + weight <= host.capacity:
                 host.load += weight
                 request.args[5] = host.name
                 self._hostConstraints.sort()
-                if typeConstraint:
-                    typeConstraint.load += 1
+                if type_constraint:
+                    type_constraint.load += 1
                 return True
         return False
 
     def _release_constraint(self, call, hostname):
         """updates host load"""
         weight = 1
-        for type in self._weightConstraints:
-            if type.name == call:
-                weight = type.capacity
+        for constraint in self._weightConstraints:
+            if constraint.name == call:
+                weight = constraint.capacity
                 break
-        for type in self._typeConstraints:
-            if type.name == call:
-                type.load -= 1
+        for constraint in self._typeConstraints:
+            if constraint.name == call:
+                constraint.load -= 1
                 break
-        for host in self._hostConstraints:
-            if host.name == hostname:
-                host.load -= weight
+        for constraint in self._hostConstraints:
+            if constraint.name == hostname:
+                constraint.load -= weight
                 self._hostConstraints.sort()
                 return
         raise Exception('cannot find ' + hostname + ' in ' + str(self._hostConstraints))
-
 
     def _all_inputs_available(self, inputs):
         """
@@ -464,28 +476,28 @@ class PMonitor:
                 else:
                     self._counts[o] = n - 1
 
-    def _report_and_bind_outputs(self, outputs, outputPaths):
+    def _report_and_bind_outputs(self, outputs, output_paths):
         """
         Binds outputs in products map to None, a path or a set of paths, maintains report
         """
         self._mark_outputs(outputs)
-        if len(outputPaths) == 0:
+        if len(output_paths) == 0:
             pass
-        elif len(outputs) == len(outputPaths):
+        elif len(outputs) == len(output_paths):
             for i in range(len(outputs)):
-                if outputPaths[i] != outputs[i]:
-                    self._report_and_bind_output(outputs[i], [outputPaths[i]])
+                if output_paths[i] != outputs[i]:
+                    self._report_and_bind_output(outputs[i], [output_paths[i]])
         elif len(outputs) == 1:
-            self._report_and_bind_output(outputs[0], outputPaths)
+            self._report_and_bind_output(outputs[0], output_paths)
         else:
-            raise RuntimeError('no output expected: found {1}'.format(' '.join(outputPaths)))
+            raise RuntimeError('no output expected: found {1}'.format(' '.join(output_paths)))
 
-    def _report_and_bind_output(self, output, outputPaths):
+    def _report_and_bind_output(self, output, output_paths):
         """
         Binds output in products map to set of paths, maintains report
         """
-        self._bind_output(output, outputPaths)
-        self._report.write('#output {0} {1}\n'.format(output, ' '.join(outputPaths)))
+        self._bind_output(output, output_paths)
+        self._report.write('#output {0} {1}\n'.format(output, ' '.join(output_paths)))
 
     def _bind_output(self, name, paths):
         """
@@ -507,7 +519,8 @@ class PMonitor:
 
     def _path_of(self, product):
         """
-        Returns paths a product is bound to, or a single entry list with the product name if the product bound to its own name
+        Returns paths a product is bound to, or a single entry list with the product name if the product bound to its
+        own name
         """
         paths = self._paths[product]
         if paths is None:
