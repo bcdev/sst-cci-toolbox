@@ -254,9 +254,9 @@ abstract class AbstractProductReader implements Reader {
         }
         if (node instanceof Band) {
             final Band band = (Band) node;
-            final FlagCoding flagCoding = band.getFlagCoding();
-            if (flagCoding != null) {
-                final String[] meanings = flagCoding.getFlagNames();
+            final SampleCoding sampleCoding = band.getSampleCoding();
+            if (sampleCoding != null) {
+                final String[] meanings = sampleCoding.getAttributeNames();
                 final StringBuilder masksStringBuilder = new StringBuilder();
                 final StringBuilder meaningsStringBuilder = new StringBuilder();
                 for (final String meaning : meanings) {
@@ -264,11 +264,15 @@ abstract class AbstractProductReader implements Reader {
                         masksStringBuilder.append(" ");
                         meaningsStringBuilder.append(" ");
                     }
-                    final int flagMask = flagCoding.getFlagMask(meaning);
+                    final int flagMask = sampleCoding.getAttributeInt(meaning);
                     masksStringBuilder.append(Integer.toString(flagMask));
                     meaningsStringBuilder.append(meaning);
                 }
-                builder.flagMasks(masksStringBuilder.toString());
+                if (sampleCoding instanceof FlagCoding) {
+                    builder.flagMasks(masksStringBuilder.toString());
+                } else {
+                    builder.flagValues(masksStringBuilder.toString());
+                }
                 builder.flagMeanings(meaningsStringBuilder.toString());
             }
         }

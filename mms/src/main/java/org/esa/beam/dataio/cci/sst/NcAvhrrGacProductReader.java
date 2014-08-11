@@ -81,7 +81,6 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
     @Override
     protected void addSampleCodings(Product product) throws IOException {
-        flagCodingReader.decode(this, product);
         indexCodingReader.decode(this, product);
     }
 
