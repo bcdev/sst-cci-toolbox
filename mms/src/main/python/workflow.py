@@ -829,9 +829,9 @@ class Workflow:
 
         :type monitor: Monitor
         """
-        for sensor_pair in self._get_sensor_pairs():
-            name = sensor_pair.get_name()
-            period = sensor_pair.get_period()
+        for sensor in self._get_primary_sensors_by_period():
+            name = sensor.get_name()
+            period = sensor.get_period()
             date = period.get_start_date()
             end_date = period.get_end_date()
             while date < end_date:
