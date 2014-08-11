@@ -96,9 +96,9 @@ public class MatchupGenerator extends BasicTool {
             // create reference observations
             logInfo(logger, "Starting creating reference observations...");
             rollbackStack.push(pm.transaction());
-            final String sensorShortname = createSensorShortName(referenceSensorName, primarySensorName);
+            final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
             final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                    sensorShortname,
+                    sensorShortName,
                     storage);
             pm.commit();
             logInfo(logger, "Finished creating reference observations");
