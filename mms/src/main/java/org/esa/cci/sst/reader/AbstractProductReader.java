@@ -264,8 +264,8 @@ abstract class AbstractProductReader implements Reader {
                         masksStringBuilder.append(" ");
                         meaningsStringBuilder.append(" ");
                     }
-                    final int flagMask = sampleCoding.getAttributeInt(meaning);
-                    masksStringBuilder.append(Integer.toString(flagMask));
+                    final int sampleValue = sampleCoding.getAttributeInt(meaning);
+                    masksStringBuilder.append(Integer.toString(sampleValue));
                     meaningsStringBuilder.append(meaning);
                 }
                 if (sampleCoding instanceof FlagCoding) {
