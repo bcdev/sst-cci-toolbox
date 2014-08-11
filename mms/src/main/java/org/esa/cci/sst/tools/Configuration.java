@@ -34,7 +34,6 @@ public class Configuration {
 
     public static final String KEY_MMS_SAMPLING_GENERATOR = "mms.sampling.generator";
     public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
-    public static final String KEY_MMS_SAMPLING_SENSOR_2 = "mms.sampling.sensor.2";
     public static final String KEY_MMS_SAMPLING_START_TIME = "mms.sampling.startTime";
     public static final String KEY_MMS_SAMPLING_STOP_TIME = "mms.sampling.stopTime";
     public static final String KEY_MMS_SAMPLING_COUNT = "mms.sampling.count";

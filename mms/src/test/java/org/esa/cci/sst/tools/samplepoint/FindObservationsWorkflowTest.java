@@ -14,7 +14,7 @@ public class FindObservationsWorkflowTest {
         workflowContext.setStopTime(2);
         workflowContext.setSearchTimePast(3);
         workflowContext.setSearchTimeFuture(4);
-        workflowContext.setSensorName("sensi");
+        workflowContext.setSensorNames("sensi");
 
         final ObservationFinder.Parameter parameter = FindObservationsWorkflow.createFromContextForPrimary(workflowContext);
         assertNotNull(parameter);
@@ -32,7 +32,7 @@ public class FindObservationsWorkflowTest {
         workflowContext.setStopTime(6);
         workflowContext.setSearchTimePast2(7);
         workflowContext.setSearchTimeFuture2(8);
-        workflowContext.setSensorName2("thermometer");
+        workflowContext.setSensorNames("anything,thermometer");
 
         final ObservationFinder.Parameter parameter = FindObservationsWorkflow.createFromContextForSecondary(workflowContext);
         assertNotNull(parameter);

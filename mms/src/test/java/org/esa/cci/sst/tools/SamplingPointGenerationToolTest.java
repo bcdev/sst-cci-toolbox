@@ -31,14 +31,13 @@ public class SamplingPointGenerationToolTest {
         configuration.put(Configuration.KEY_MMS_SAMPLING_STOP_TIME, "2007-01-01T12:00:00Z");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST, "517");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE, "523");
-        configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR, "Mathilde");
+        configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR, "Mathilde,Hieronimus");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SKIP, "518");
         configuration.put(Configuration.KEY_MMS_SAMPLING_COUNT, "519");
         configuration.put(Configuration.KEY_MMS_ARCHIVE_ROOT, "/path/archive");
         configuration.put(Configuration.KEY_MMS_SAMPLING_INSITU_SENSOR, "thermometer");
         configuration.put("mms.pattern.thermometer", "4000000000000000");
         configuration.put(Configuration.KEY_MMS_SAMPLING_GENERATOR, "Cool_One");
-        configuration.put(Configuration.KEY_MMS_SAMPLING_SENSOR_2, "Hieronimus");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST_2, "1517");
         configuration.put(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE_2, "1523");
 
@@ -48,7 +47,7 @@ public class SamplingPointGenerationToolTest {
         assertEquals(1167609599000L, workflowContext.getStopTime());
         assertEquals(517, workflowContext.getSearchTimePast());
         assertEquals(523, workflowContext.getSearchTimeFuture());
-        assertEquals("Mathilde", workflowContext.getSensorName());
+        assertEquals("Mathilde", workflowContext.getSensorName1());
         assertEquals(518, workflowContext.getSampleSkip());
         assertEquals(519, workflowContext.getSampleCount());
         final File archiveRootDir = workflowContext.getArchiveRootDir();

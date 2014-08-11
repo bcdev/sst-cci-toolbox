@@ -98,7 +98,7 @@ public class SamplingPointGenerationTool extends BasicTool {
         workflowContext.setSearchTimeFuture(searchTime);
 
         String sensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
-        workflowContext.setSensorName(sensorName);
+        workflowContext.setSensorNames(sensorName);
 
         int sampleSkip = config.getBigIntegerValue(Configuration.KEY_MMS_SAMPLING_SKIP, BigInteger.valueOf(0)).intValue();
         workflowContext.setSampleSkip(sampleSkip);
@@ -121,10 +121,7 @@ public class SamplingPointGenerationTool extends BasicTool {
         final String sampleGeneratorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_GENERATOR);
         workflowContext.setSampleGeneratorName(sampleGeneratorName);
 
-        final String sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
-        workflowContext.setSensorName2(sensorName2);
-
-        if (StringUtils.isNotBlank(sensorName2)) {
+        if (StringUtils.isNotBlank(workflowContext.getSensorName2())) {
             searchTime = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SEARCH_TIME_PAST_2);
             workflowContext.setSearchTimePast2(searchTime);
 

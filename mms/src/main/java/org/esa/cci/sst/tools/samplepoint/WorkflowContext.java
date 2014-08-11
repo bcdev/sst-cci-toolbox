@@ -15,11 +15,11 @@ public class WorkflowContext {
     private Logger logger;
     private Configuration config;
     private PersistenceManager persistenceManager;
-    private String sensorName;
+    private String sensorName1;
     private int sampleCount;
     private int sampleSkip;
     private File archiveRootDir;
-    private long inistuSensorPattern;
+    private long insituSensorPattern;
     private String insituSensorName;
     private String sampleGeneratorName;
     private String insituInputPath;
@@ -59,8 +59,8 @@ public class WorkflowContext {
         return config;
     }
 
-    public void setSearchTimePast(int searchtTime) {
-        this.searchTimePast = searchtTime;
+    public void setSearchTimePast(int searchTime) {
+        this.searchTimePast = searchTime;
     }
 
     public int getSearchTimePast() {
@@ -83,12 +83,18 @@ public class WorkflowContext {
         this.persistenceManager = persistenceManager;
     }
 
-    public void setSensorName(String sensorName) {
-        this.sensorName = sensorName;
+    public void setSensorNames(String sensorNames) {
+        final String[] parts = sensorNames.split(",", 2);
+        this.sensorName1 = parts[0];
+        if (parts.length > 1) {
+            this.sensorName2 = parts[1];
+        } else {
+            this.sensorName2 = null;
+        }
     }
 
-    public String getSensorName() {
-        return sensorName;
+    public String getSensorName1() {
+        return sensorName1;
     }
 
     public void setSampleCount(int sampleCount) {
@@ -116,11 +122,11 @@ public class WorkflowContext {
     }
 
     public void setInsituSensorPattern(long sensorPattern) {
-        this.inistuSensorPattern = sensorPattern;
+        this.insituSensorPattern = sensorPattern;
     }
 
     public long getInsituSensorPattern() {
-        return inistuSensorPattern;
+        return insituSensorPattern;
     }
 
     public void setInsituSensorName(String insituSensorName) {
@@ -145,10 +151,6 @@ public class WorkflowContext {
 
     public String getInsituInputPath() {
         return insituInputPath;
-    }
-
-    public void setSensorName2(String sensorName2) {
-        this.sensorName2 = sensorName2;
     }
 
     public String getSensorName2() {

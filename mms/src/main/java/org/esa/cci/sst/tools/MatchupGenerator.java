@@ -60,8 +60,11 @@ public class MatchupGenerator extends BasicTool {
 
         final Configuration config = getConfig();
 
-        sensorName1 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR);
-        sensorName2 = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR_2, null);
+        final String[] sensorNames = config.getStringValue(Configuration.KEY_MMS_SAMPLING_SENSOR).split(",", 2);
+        sensorName1 = sensorNames[0];
+        if (sensorNames.length > 1) {
+            sensorName2 = sensorNames[1];
+        }
         subSceneWidth = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_WIDTH, 7);
         subSceneHeight = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
         dirtyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION, 0.0);

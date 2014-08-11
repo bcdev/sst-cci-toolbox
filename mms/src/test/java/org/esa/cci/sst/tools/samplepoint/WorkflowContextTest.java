@@ -111,8 +111,8 @@ public class WorkflowContextTest {
     public void testSetGetSensorName() {
         final String sensorName = "odometer";
 
-        workflowContext.setSensorName(sensorName);
-        assertEquals(sensorName, workflowContext.getSensorName());
+        workflowContext.setSensorNames(sensorName);
+        assertEquals(sensorName, workflowContext.getSensorName1());
     }
 
     @Test
@@ -188,10 +188,10 @@ public class WorkflowContextTest {
          final String name_1 = "Charly";
          final String name_2 = "Rene";
 
-        workflowContext.setSensorName2(name_1);
+        workflowContext.setSensorNames("anything," + name_1);
         assertEquals(name_1, workflowContext.getSensorName2());
 
-        workflowContext.setSensorName2(name_2);
+        workflowContext.setSensorNames("anything," + name_2);
         assertEquals(name_2, workflowContext.getSensorName2());
     }
 

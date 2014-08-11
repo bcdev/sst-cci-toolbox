@@ -50,7 +50,7 @@ public class FindObservationsWorkflow extends Workflow {
         final ObservationFinder.Parameter parameter = createWithTimeParameters(workflowContext);
         parameter.setSearchTimePast(workflowContext.getSearchTimePast());
         parameter.setSearchTimeFuture(workflowContext.getSearchTimeFuture());
-        parameter.setSensorName(workflowContext.getSensorName());
+        parameter.setSensorName(workflowContext.getSensorName1());
         return parameter;
     }
 
