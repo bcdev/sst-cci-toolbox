@@ -518,7 +518,7 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
         hosts = [('localhost', 60)]
-        types = [('ingestion-start.sh', 30),
+        calls = [('ingestion-start.sh', 30),
                  ('sampling-start.sh', 30),
                  ('clearsky-start.sh', 30),
                  ('mmd-start.sh', 30),
@@ -528,7 +528,8 @@ class WorkflowTests(unittest.TestCase):
                  ('gbcs-start.sh', 30),
                  ('matchup-reingestion-start.sh', 30),
                  ('reingestion-start.sh', 30)]
-        w.run(hosts, types, simulation=True)
+        mmd_type = 'mmd'
+        w.run(mmd_type, hosts, calls, simulation=True)
 
 
 if __name__ == '__main__':

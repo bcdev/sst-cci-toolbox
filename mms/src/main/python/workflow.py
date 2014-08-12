@@ -448,17 +448,17 @@ class Job:
 
 
 class Monitor:
-    def __init__(self, preconditions, usecase, hosts, types, log_dir, simulation):
+    def __init__(self, preconditions, usecase, hosts, calls, log_dir, simulation):
         """
 
         :type preconditions: list
         :type usecase: str
         :type hosts: list
-        :type types: list
+        :type calls: list
         :type log_dir: str
         :type simulation: bool
         """
-        self.pm = PMonitor(preconditions, usecase, hosts, types, log_dir=log_dir, simulation=simulation)
+        self.pm = PMonitor(preconditions, usecase, hosts, calls, log_dir=log_dir, simulation=simulation)
 
     def execute(self, job):
         """
@@ -544,15 +544,16 @@ class Workflow:
         """
         self.secondary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
-    def run(self, hosts, types=list(), log_dir='trace', simulation=False):
+    def run(self, mmd_type, hosts, calls=list(), log_dir='trace', simulation=False):
         """
 
+        :type mmd_type: str
         :type hosts: list
-        :type types: list
+        :type calls: list
         :type log_dir: str
         :type simulation: bool
         """
-        m = self.__get_monitor(hosts, types, log_dir, simulation)
+        m = self.__get_monitor(hosts, calls, log_dir, simulation)
         self._execute_ingest_sensor_data(m)
         m.wait_for_completion()
         self._execute_sampling(m)
@@ -573,7 +574,7 @@ class Workflow:
         m.wait_for_completion()
         self._execute_ingest_arc_mmd_files(m)
         m.wait_for_completion()
-        self._execute_create_final_mmd_files(m)
+        self._execute_create_final_mmd_files(m, mmd_type)
         m.wait_for_completion_and_terminate()
 
     def _get_primary_sensors(self):
@@ -674,11 +675,11 @@ class Workflow:
         else:
             return None
 
-    def __get_monitor(self, hosts, types, log_dir, simulation):
+    def __get_monitor(self, hosts, calls, log_dir, simulation):
         """
 
         :type hosts: list
-        :type types: list
+        :type calls: list
         :type log_dir: str
         :type simulation: bool
         :rtype : Monitor
@@ -687,7 +688,7 @@ class Workflow:
         self._add_inp_preconditions(preconditions)
         self._add_obs_preconditions(preconditions)
         self._add_smp_preconditions(preconditions)
-        return Monitor(preconditions, self.get_usecase(), hosts, types, log_dir, simulation)
+        return Monitor(preconditions, self.get_usecase(), hosts, calls, log_dir, simulation)
 
     def __get_effective_production_period(self):
         """
@@ -865,7 +866,7 @@ class Workflow:
     def _execute_create_sub_mmd_files(self, monitor):
         """
 
-        :param monitor: Monitor
+        :type monitor: Monitor
         """
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
@@ -884,7 +885,7 @@ class Workflow:
     def _execute_create_nwp_mmd_files(self, monitor):
         """
 
-        :param monitor: Monitor
+        :type monitor: Monitor
         """
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
@@ -916,7 +917,7 @@ class Workflow:
     def _execute_create_arc_mmd_files(self, monitor):
         """
 
-        :param monitor: Monitor
+        :type monitor: Monitor
         """
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
@@ -935,8 +936,9 @@ class Workflow:
     def _execute_ingest_sub_mmd_files(self, monitor):
         """
 
-        :param monitor: Monitor
+        :type monitor: Monitor
         """
+        mmd_type = 'sub'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -947,15 +949,16 @@ class Workflow:
                 job = Job('reingestion-start.sh',
                           ['/sub/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, 'sub', self.get_usecase()])
+                          [year, month, name, mmd_type, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
     def _execute_ingest_nwp_mmd_files(self, monitor):
         """
 
-        :param monitor: Monitor
+        :type monitor: Monitor
         """
+        mmd_type = 'nwp'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -966,7 +969,7 @@ class Workflow:
                 job = Job('reingestion-start.sh',
                           ['/nwp/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, 'nwp', self.get_usecase()])
+                          [year, month, name, mmd_type, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
         for sensor in self._get_primary_sensors_by_period():
@@ -979,15 +982,16 @@ class Workflow:
                 job = Job('matchup-reingestion-start.sh',
                           ['/nwp/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, 'nwp', self.get_usecase()])
+                          [year, month, name, mmd_type, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
     def _execute_ingest_arc_mmd_files(self, monitor):
         """
 
-        :param monitor: Monitor
+        :type monitor: Monitor
         """
+        mmd_type = 'arc'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -998,14 +1002,15 @@ class Workflow:
                 job = Job('reingestion-start.sh',
                           ['/arc/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, 'arc', self.get_usecase()])
+                          [year, month, name, mmd_type, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
-    def _execute_create_final_mmd_files(self, monitor):
+    def _execute_create_final_mmd_files(self, monitor, mmd_type):
         """
 
-        :param monitor: Monitor
+        :type monitor: Monitor
+        :type mmd_type: str
         """
         for sensor_pair in self._get_sensor_pairs():
             sensor_1 = sensor_pair.get_primary()
@@ -1020,7 +1025,7 @@ class Workflow:
                           ['/con/' + sensor_1 + '/' + _pathformat(date),
                            '/con/' + sensor_2 + '/' + _pathformat(date)],
                           ['/mmd/' + name + '/' + _pathformat(date)],
-                          [year, month, name, 'mmd', self.get_usecase()])
+                          [year, month, name, mmd_type, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
