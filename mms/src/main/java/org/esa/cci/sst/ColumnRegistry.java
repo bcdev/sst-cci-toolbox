@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.function.Predicate;
 
 /**
  * A registry for column {@link Item}s.
@@ -47,6 +48,13 @@ import java.util.Scanner;
  * @author Ralf Quast
  */
 public class ColumnRegistry {
+
+    private static final Predicate<String> ALL = new Predicate<String>() {
+        @Override
+        public boolean test(String s) {
+            return true;
+        }
+    };
 
     private final Map<String, Item> columnsByName;
     private final Map<Item, Rule> rulesByTarget;
@@ -73,10 +81,15 @@ public class ColumnRegistry {
      * @throws ParseException        if the configuration could not be parsed.
      */
     public List<String> registerColumns(File file) throws FileNotFoundException, ParseException {
+        return registerColumns(file, ALL);
+    }
+
+    public List<String> registerColumns(File file, Predicate<String> predicate) throws FileNotFoundException,
+                                                                                       ParseException {
         InputStream is = null;
         try {
             is = new FileInputStream(file);
-            return registerColumns(is);
+            return registerColumns(is, predicate);
         } finally {
             if (is != null) {
                 try {
@@ -97,6 +110,10 @@ public class ColumnRegistry {
      * @throws ParseException if the configuration could not be parsed.
      */
     public List<String> registerColumns(InputStream is) throws ParseException {
+        return registerColumns(is, ALL);
+    }
+
+    private List<String> registerColumns(InputStream is, Predicate<String> predicate) throws ParseException {
         synchronized (this) {
             final Scanner scanner = new Scanner(is, "US-ASCII");
             scanner.useLocale(Locale.ENGLISH);
@@ -106,27 +123,31 @@ public class ColumnRegistry {
                 for (int lineNumber = 0; scanner.hasNextLine(); lineNumber++) {
                     final String line = stripComment(scanner.nextLine()).trim();
                     final String[] tokens = line.split("\\s+");
-                    try {
-                        switch (tokens.length) {
-                            case 1:
-                                if (tokens[0].isEmpty()) {
+                    final String targetColumnName = tokens[0];
+                    if (predicate.test(targetColumnName)) {
+                        try {
+                            switch (tokens.length) {
+                                case 1:
+                                    if (targetColumnName.isEmpty()) {
+                                        break;
+                                    }
+                                    // identity
+                                    parseIdentity(nameList, targetColumnName);
                                     break;
-                                }
-                                // identity
-                                parseIdentity(nameList, tokens[0]);
-                                break;
-                            case 2:
-                                // variable renaming
-                                parseRenaming(nameList, tokens[0], tokens[1]);
-                                break;
-                            default:
-                                // more complex rule
-                                parseRule(nameList, tokens[0], tokens[1], tokens[2]);
-                                break;
+                                case 2:
+                                    // variable renaming
+                                    parseRenaming(nameList, targetColumnName, tokens[1]);
+                                    break;
+                                default:
+                                    // more complex rule
+                                    parseRule(nameList, targetColumnName, tokens[1], tokens[2]);
+                                    break;
+                            }
+                        } catch (Exception e) {
+                            throw new ParseException(
+                                    MessageFormat.format("Line ''{0}'': {1}", lineNumber + 1, e.getMessage()),
+                                    lineNumber);
                         }
-                    } catch (Exception e) {
-                        throw new ParseException(
-                                MessageFormat.format("Line ''{0}'': {1}", lineNumber + 1, e.getMessage()), lineNumber);
                     }
                 }
                 return nameList;
@@ -212,7 +233,7 @@ public class ColumnRegistry {
      * @param targetColumn The target column.
      *
      * @return a converter suitable for numeric conversions into numbers complying
-     *         with the target column.
+     * with the target column.
      */
     public Converter getConverter(Item targetColumn) {
         return getConverter(targetColumn, columnsByTarget.get(targetColumn));
@@ -227,7 +248,7 @@ public class ColumnRegistry {
      * @param sourceColumn The source column.
      *
      * @return a converter suitable for numeric conversions into numbers complying
-     *         with the target column.
+     * with the target column.
      */
     public Converter getConverter(Item targetColumn, Item sourceColumn) {
         synchronized (this) {
@@ -254,7 +275,7 @@ public class ColumnRegistry {
      * @param name The column name.
      *
      * @return {@code true} if a column has been registered with the name supplied,
-     *         {@code false} otherwise.
+     * {@code false} otherwise.
      */
     private boolean hasColumn(String name) {
         synchronized (columnsByName) {

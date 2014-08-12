@@ -509,7 +509,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual('/smp/avhrr.n11,avhrr.n10/1990/12', preconditions[2])
         self.assertEqual('/smp/avhrr.n11,avhrr.n10/1991/10', preconditions[3])
 
-    def test_run(self):
+    def test_run_dual_sensor_usecase(self):
         w = Workflow('test', Period('1991-01-01', '1992-01-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
@@ -521,6 +521,7 @@ class WorkflowTests(unittest.TestCase):
         calls = [('ingestion-start.sh', 30),
                  ('sampling-start.sh', 30),
                  ('clearsky-start.sh', 30),
+                 ('sub-start.sh', 30),
                  ('mmd-start.sh', 30),
                  ('coincidence-start.sh', 30),
                  ('nwp-start.sh', 30),
@@ -530,6 +531,26 @@ class WorkflowTests(unittest.TestCase):
                  ('reingestion-start.sh', 30)]
         mmd_type = 'mmd'
         w.run(mmd_type, hosts, calls, simulation=True)
+
+    def test_run_single_sensor_usecase(self):
+        w = Workflow('test', Period('1991-01-01', '1992-01-01'))
+        w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
+        w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
+        w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
+        hosts = [('localhost', 60)]
+        calls = [('ingestion-start.sh', 30),
+                 ('sampling-start.sh', 30),
+                 ('clearsky-start.sh', 30),
+                 ('sub-start.sh', 30),
+                 ('mmd-start.sh', 30),
+                 ('coincidence-start.sh', 30),
+                 ('nwp-start.sh', 30),
+                 ('matchup-nwp-start.sh', 30),
+                 ('gbcs-start.sh', 30),
+                 ('matchup-reingestion-start.sh', 30),
+                 ('reingestion-start.sh', 30)]
+        mmd_type = 'mmd'
+        w.run(mmd_type, hosts, calls, with_history=True, simulation=True)
 
 
 if __name__ == '__main__':

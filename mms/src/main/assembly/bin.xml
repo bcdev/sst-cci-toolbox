@@ -45,6 +45,9 @@
             <includes>
                 <include>*.py</include>
             </includes>
+            <excludes>
+                <exclude>*_test.py</exclude>
+            </excludes>
             <outputDirectory>python</outputDirectory>
             <fileMode>0770</fileMode>
             <filtered>true</filtered>

@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -99,14 +100,12 @@ public class MmdTool extends BasicTool {
     public void initialize() {
         super.initialize();
 
-        initializeColumns();
-
         final Configuration config = getConfig();
-
+        initializeTargetColumns(config, getPersistenceManager().getColumnStorage());
         final Set<String> dimensionNames = initializeDimensionNames(targetColumnNames, columnRegistry);
         dimensionConfiguration = DimensionConfigurationInitializer.initalize(dimensionNames, config);
 
-        final int readerCacheSize = config.getIntValue(Constants.PROPERTY_TARGET_READERCACHESIZE, 10);
+        final int readerCacheSize = config.getIntValue(Configuration.KEY_MMS_MMD_READER_CACHE_SIZE, 10);
         readerCache = new ReaderCache(readerCacheSize, config, getLogger());
     }
 
@@ -121,19 +120,18 @@ public class MmdTool extends BasicTool {
 
             initialize();
 
-            matchupCount = getMatchupCount();
+            matchupCount = getMatchupCountFromDb();
             if (matchupCount == 0) {
                 return;
             }
 
             final Configuration config = getConfig();
+            final NetcdfFileWriter writer = createNetCDFWriter(config);
+            mmdWriter = prepareMmdWriter(writer);
 
-            final NetcdfFileWriter fileWriter = createNetCDFWriter(config);
-            mmdWriter = prepareMmdWriter(fileWriter);
+            final Map<Integer, Integer> matchupIdToRecordIndexMap = createMatchupIdToRecordIndexMap();
 
-            final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups();
-
-            writeMmdShuffled(mmdWriter, recordOfMatchupMap);
+            writeMmdFile(mmdWriter, matchupIdToRecordIndexMap);
         } catch (ToolException e) {
             getErrorHandler().terminate(e);
         } catch (Throwable t) {
@@ -150,33 +148,17 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    static TreeSet<String> initializeDimensionNames(List<String> targetColumnNames, ColumnRegistry columnRegistry) {
-        final TreeSet<String> dimensionNames = new TreeSet<>();
-        for (final String name : targetColumnNames) {
-            final Item column = columnRegistry.getColumn(name);
-            final String dimensions = column.getDimensions();
-            if (dimensions.isEmpty()) {
-                final String message = MessageFormat.format(
-                        "Expected at least one dimension for target column ''{0}''.", name);
-                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
-            }
-            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
-        }
-
-        return dimensionNames;
-    }
-
     /**
      * Writes MMD by having the input files in the outermost loop to avoid re-opening them.
      *
-     * @param mmdWriter       the mmd writer
-     * @param recordOfMatchup inverted index of matchups and their (foreseen or existing) record numbers in the mmd
+     * @param mmdWriter                 The MMD writer.
+     * @param matchupIdToRecordIndexMap The mapping from matchup ID to MMD record index.
      */
-    void writeMmdShuffled(MmdWriter mmdWriter, Map<Integer, Integer> recordOfMatchup) {
+    void writeMmdFile(MmdWriter mmdWriter, Map<Integer, Integer> matchupIdToRecordIndexMap) {
         final List<Variable> mmdVariables = mmdWriter.getVariables();
 
         // group variables by sensors
-        Map<String, List<Variable>> sensorMap = createSensorMap(mmdVariables);
+        Map<String, List<Variable>> sensorMap = createVariableSensorMap(mmdVariables);
         final String[] sensorNames = createOrderedSensorNameArray(sensorMap);
 
         // loop over sensors, matchups ordered by sensor files, variables of sensor
@@ -190,7 +172,7 @@ public class MmdTool extends BasicTool {
 
             for (final Matchup matchup : matchups) {
                 try {
-                    final Integer recordNo = recordOfMatchup.get(matchup.getId());
+                    final Integer recordNo = matchupIdToRecordIndexMap.get(matchup.getId());
                     if (recordNo == null) {
                         getLogger().warning(
                                 String.format("skipping matchup %s for update - not found in MMD", matchup.getId()));
@@ -249,15 +231,6 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    // package access for testing only tb 2014-03-18
-    static String[] createOrderedSensorNameArray(Map<String, List<Variable>> sensorMap) {
-        final Set<String> keys = sensorMap.keySet();
-        final String[] sensorNames = keys.toArray(new String[keys.size()]);
-        Arrays.sort(sensorNames);
-        return sensorNames;
-    }
-
-
     private List<Matchup> getMatchupsFromDb(MatchupStorage matchupStorage, Configuration config, String sensorName) {
         getLogger().info(String.format("going to retrieve matchups for %s", sensorName));
 
@@ -274,8 +247,8 @@ public class MmdTool extends BasicTool {
         return matchups;
     }
 
-    private Map<Integer, Integer> createInvertedIndexOfMatchups() {
-        final Map<Integer, Integer> recordOfMatchup = new HashMap<>();
+    private Map<Integer, Integer> createMatchupIdToRecordIndexMap() {
+        final Map<Integer, Integer> matchupIdToRecordIndexMap = new HashMap<>();
 
         final Configuration config = getConfig();
         final PersistenceManager persistenceManager = getPersistenceManager();
@@ -286,33 +259,30 @@ public class MmdTool extends BasicTool {
         getLogger().info(String.format("%d matchups retrieved", matchups.size()));
 
         for (int i = 0; i < matchups.size(); ++i) {
-            recordOfMatchup.put(matchups.get(i).getId(), i);
+            matchupIdToRecordIndexMap.put(matchups.get(i).getId(), i);
         }
-        return recordOfMatchup;
+        return matchupIdToRecordIndexMap;
     }
 
-    private Map<String, List<Variable>> createSensorMap(List<Variable> mmdVariables) {
-        Map<String, List<Variable>> sensorMap = new HashMap<>();
+
+    private Map<String, List<Variable>> createVariableSensorMap(List<Variable> mmdVariables) {
+        final Map<String, List<Variable>> variableSensorMap = new HashMap<>();
         for (final Variable variable : mmdVariables) {
             final Item targetColumn = columnRegistry.getColumn(variable.getShortName());
             final String sensorName = targetColumn.getSensor().getName();
-            List<Variable> variables = sensorMap.get(sensorName);
-            if (variables == null) {
-                variables = new ArrayList<>();
-                sensorMap.put(sensorName, variables);
+            if (!variableSensorMap.containsKey(sensorName)) {
+                variableSensorMap.put(sensorName, new ArrayList<Variable>());
             }
-            variables.add(variable);
+            variableSensorMap.get(sensorName).add(variable);
         }
-        return sensorMap;
+        return variableSensorMap;
     }
 
-    private void initializeColumns() {
-        final ColumnStorage columnStorage = getPersistenceManager().getColumnStorage();
+    private void initializeTargetColumns(Configuration config, ColumnStorage columnStorage) {
         final ColumnRegistryInitializer columnRegistryInitializer = new ColumnRegistryInitializer(columnRegistry,
                                                                                                   columnStorage);
         columnRegistryInitializer.initialize();
-
-        registerTargetColumns();
+        registerTargetColumns(config);
     }
 
     private boolean testCoincidenceAccurately(ReferenceObservation refObs, Observation observation) throws IOException {
@@ -368,7 +338,6 @@ public class MmdTool extends BasicTool {
         }
     }
 
-
     private void writeColumn(MmdWriter mmdWriter, Variable variable, int i, Item targetColumn, Item sourceColumn,
                              Observation observation, ReferenceObservation refObs) {
         try {
@@ -410,16 +379,20 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    // package access for testing only tb 2014-03-10
-    static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
-        final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIR, ".");
-        final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME, "mmd.nc");
-        final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
+    static TreeSet<String> initializeDimensionNames(List<String> targetColumnNames, ColumnRegistry columnRegistry) {
+        final TreeSet<String> dimensionNames = new TreeSet<>();
+        for (final String name : targetColumnNames) {
+            final Item column = columnRegistry.getColumn(name);
+            final String dimensions = column.getDimensions();
+            if (dimensions.isEmpty()) {
+                final String message = MessageFormat.format(
+                        "Expected at least one dimension for target column ''{0}''.", name);
+                throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
+            }
+            dimensionNames.addAll(Arrays.asList(dimensions.split("\\s")));
+        }
 
-        final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, mmdFilePath);
-        mmd.setLargeFile(true);
-
-        return mmd;
+        return dimensionNames;
     }
 
 
@@ -432,7 +405,7 @@ public class MmdTool extends BasicTool {
         return mmdWriter;
     }
 
-    private int getMatchupCount() {
+    private int getMatchupCountFromDb() {
         final Configuration config = getConfig();
         final PersistenceManager persistenceManager = getPersistenceManager();
         final MatchupStorage matchupStorage = persistenceManager.getMatchupStorage();
@@ -445,44 +418,15 @@ public class MmdTool extends BasicTool {
         return matchupCount;
     }
 
-    // package access for testing only tb 2014-03-11
-    static String getCondition(Configuration config) {
-        return config.getStringValue("mms.target.condition", null);
-    }
 
-    // package access for testing only tb 2014-03-10
-    static long getPattern(Configuration config) {
-        try {
-            long pattern = Long.parseLong(config.getStringValue("mms.target.pattern", "0"), 16);
-
-            final String referenceSensor = config.getStringValue("mms.sampling.referencesensor", null);
-            if ("history".equalsIgnoreCase(referenceSensor)) {
-                final String historyPatternString = config.getStringValue("mms.pattern.history");
-                pattern = pattern | Long.parseLong(historyPatternString, 16);
-            }
-
-            return pattern;
-        } catch (NumberFormatException e) {
-            throw new ToolException("Property 'mms.target.pattern' must be set to an integral number.", e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
-        }
-    }
-
-    // package access for testing only tb 2014-03-11
-    static Date getStartTime(Configuration configuration) {
-        return configuration.getDateValue(Constants.PROPERTY_TARGET_START_TIME);
-    }
-
-    // package access for testing only tb 2014-03-11
-    static Date getStopTime(Configuration configuration) {
-        return configuration.getDateValue(Constants.PROPERTY_TARGET_STOP_TIME);
-    }
-
-    private void registerTargetColumns() {
+    private void registerTargetColumns(Configuration config) {
         // @todo 3 tb/tb move to initializer class - need to discuss. tb 2014-03-10
-        final String configFilePath = getConfig().getStringValue("mms.target.variables");
+        final String[] sensorNames = getSensorNames(config);
+        final Predicate<String> predicate = new SensorPredicate(sensorNames);
+        final String configFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_VARIABLES);
         try {
-            targetColumnNames.addAll(columnRegistry.registerColumns(new File(configFilePath)));
+            final List<String> names = columnRegistry.registerColumns(new File(configFilePath), predicate);
+            targetColumnNames.addAll(names);
         } catch (FileNotFoundException e) {
             throw new ToolException(e.getMessage(), e, ToolException.CONFIGURATION_FILE_NOT_FOUND_ERROR);
         } catch (ParseException e) {
@@ -507,6 +451,60 @@ public class MmdTool extends BasicTool {
         return null;
     }
 
+    // package access for testing only tb 2014-03-18
+    static String[] createOrderedSensorNameArray(Map<String, List<Variable>> sensorMap) {
+        final Set<String> keys = sensorMap.keySet();
+        final String[] sensorNames = keys.toArray(new String[keys.size()]);
+        Arrays.sort(sensorNames);
+        return sensorNames;
+    }
+
+    // package access for testing only tb 2014-03-10
+    static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
+        final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIR, ".");
+        final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME);
+        final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
+
+        final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, mmdFilePath);
+        mmd.setLargeFile(true);
+
+        return mmd;
+    }
+
+    // package access for testing only tb 2014-03-11
+    static String getCondition(Configuration config) {
+        return config.getStringValue("mms.target.condition", null);
+    }
+
+    // package access for testing only tb 2014-03-10
+    static long getPattern(Configuration config) {
+        final String[] sensorNames = getSensorNames(config);
+        long pattern = 0;
+        for (final String sensorName : sensorNames) {
+            pattern |= config.getPattern(sensorName, 0);
+        }
+        final String referenceSensor = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR, null);
+        if (Constants.SENSOR_NAME_HISTORY.equalsIgnoreCase(referenceSensor)) {
+            pattern |= config.getPattern(Constants.SENSOR_NAME_HISTORY);
+        }
+        return pattern;
+    }
+
+    // package access for testing only rq 2014-08-12
+    static String[] getSensorNames(Configuration config) {
+        return config.getStringValue(Configuration.KEY_MMS_MMD_SENSORS).split(",", 2);
+    }
+
+    // package access for testing only tb 2014-03-11
+    static Date getStartTime(Configuration configuration) {
+        return configuration.getDateValue(Configuration.KEY_MMS_MMD_TARGET_START_TIME);
+    }
+
+    // package access for testing only tb 2014-03-11
+    static Date getStopTime(Configuration configuration) {
+        return configuration.getDateValue(Configuration.KEY_MMS_MMD_TARGET_STOP_TIME);
+    }
+
     // package access for testing only tb 2014-03-11
     static MatchupQueryParameter createMatchupQueryParameter(Configuration config) {
         final MatchupQueryParameter parameter = new MatchupQueryParameter();
@@ -527,4 +525,5 @@ public class MmdTool extends BasicTool {
 
         return variableList;
     }
+
 }

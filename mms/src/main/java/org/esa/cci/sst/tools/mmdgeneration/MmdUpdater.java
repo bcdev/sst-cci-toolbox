@@ -68,7 +68,7 @@ public class MmdUpdater extends BasicTool {
         mmdTool.initialize();
         final String mmdLocation = getConfig().getStringValue("mms.mmdupdate.mmd");
         final Map<Integer, Integer> recordOfMatchupMap = createInvertedIndexOfMatchups(mmdLocation, null);
-        mmdTool.writeMmdShuffled(mmdWriter, recordOfMatchupMap);
+        mmdTool.writeMmdFile(mmdWriter, recordOfMatchupMap);
     }
 
     private Map<Integer, Integer> createInvertedIndexOfMatchups(String path, File archiveRoot) {

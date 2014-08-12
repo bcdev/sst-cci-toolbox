@@ -6,11 +6,12 @@ cd ${MMS_INST}
 year=$1
 month=$2
 sensor=$3
-usecase=$4
+mmdtype=$4
+usecase=$5
 
-task="coincidence"
-jobname="${task}-${year}-${month}-${sensor}"
-command="${task}-run.sh ${year} ${month} ${sensor} ${usecase}"
+task="sub"
+jobname="${task}-${year}-${month}-${sensor}-${mmdtype}"
+command="${task}-run.sh ${year} ${month} ${sensor} ${mmdtype} ${usecase}"
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '${jobname}' for usecase ${usecase}"
 

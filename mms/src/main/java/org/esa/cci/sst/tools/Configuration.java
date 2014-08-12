@@ -31,6 +31,11 @@ public class Configuration {
     public static final String KEY_MMS_MMD_DIMENSIONS = "mms.target.dimensions";
     public static final String KEY_MMS_MMD_TARGET_DIR = "mms.target.dir";
     public static final String KEY_MMS_MMD_TARGET_FILENAME = "mms.target.filename";
+    public static final String KEY_MMS_MMD_TARGET_VARIABLES = "mms.target.variables";
+    public static final String KEY_MMS_MMD_SENSORS = "mms.mmd.sensors";
+    public static final String KEY_MMS_MMD_READER_CACHE_SIZE = "mms.target.readercachesize";
+    public static final String KEY_MMS_MMD_TARGET_START_TIME = "mms.target.startTime";
+    public static final String KEY_MMS_MMD_TARGET_STOP_TIME = "mms.target.stopTime";
 
     public static final String KEY_MMS_SAMPLING_GENERATOR = "mms.sampling.generator";
     public static final String KEY_MMS_SAMPLING_SENSOR = "mms.sampling.sensor";
@@ -41,9 +46,9 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_SUBSCENE_WIDTH = "mms.sampling.subscene.width";
     public static final String KEY_MMS_SAMPLING_SUBSCENE_HEIGHT = "mms.sampling.subscene.height";
     public static final String KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE = "mms.sampling.searchtime.future";
-    public static final String KEY_MMS_SAMPLING_SEARCH_TIME_PAST_2 = "mms.sampling.searchtime.past.2";
     public static final String KEY_MMS_SAMPLING_SEARCH_TIME_FUTURE_2 = "mms.sampling.searchtime.future.2";
     public static final String KEY_MMS_SAMPLING_SEARCH_TIME_PAST = "mms.sampling.searchtime.past";
+    public static final String KEY_MMS_SAMPLING_SEARCH_TIME_PAST_2 = "mms.sampling.searchtime.past.2";
     public static final String KEY_MMS_SAMPLING_CLEANUP = "mms.sampling.cleanup";
     public static final String KEY_MMS_SAMPLING_CLEANUP_INTERVAL = "mms.sampling.cleanupinterval";
     public static final String KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION = "mms.sampling.dirtypixelfraction";

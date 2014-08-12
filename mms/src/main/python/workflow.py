@@ -308,7 +308,10 @@ class SensorPair:
                 raise exceptions.ValueError, "The periods of secondary sensor and production do not overlap."
         self.primary_sensor = primary_sensor
         self.secondary_sensor = secondary_sensor
-        self.name = primary_sensor.get_name() + ',' + secondary_sensor.get_name()
+        if primary_sensor.get_name() != secondary_sensor.get_name():
+            self.name = primary_sensor.get_name() + ',' + secondary_sensor.get_name()
+        else:
+            self.name = primary_sensor.get_name()
         self.period = primary_sensor.get_period().get_intersection(secondary_sensor.get_period())
         if not production_period is None:
             self.period = self.period.get_intersection(production_period)
@@ -474,6 +477,16 @@ class Monitor:
         self.pm.wait_for_completion_and_terminate()
 
 
+# archiving rules
+# mms/archive/atsr.3/v2.1/2003/01/17/ATS_TOA_1P...N1
+# mms/archive/mms2/smp/atsr.3/2003/atsr.3-smp-2003-01-b.txt
+# mms/archive/mms2/sub/atsr.3/2003/atsr.3-sub-2003-01.nc
+# mms/archive/mms2/nwp/atsr.3/2003/atsr.3-nwp-2003-01.nc
+# mms/archive/mms2/nwp/atsr.3/2003/atsr.3-nwpAn-2003-01.nc
+# mms/archive/mms2/nwp/atsr.3/2003/atsr.3-nwpFc-2003-01.nc
+# mms/archive/mms2/arc/atsr.3/2003/atsr.3-arc-2003-01.nc
+# mms/archive/mms2/mmd/atsr.3/2003/atsr.3-mmd-2003-01.nc
+
 class Workflow:
     def __init__(self, usecase, production_period=None):
         """
@@ -483,7 +496,7 @@ class Workflow:
         """
         self.usecase = usecase
         self.production_period = production_period
-        self.samples_per_month = 5000000
+        self.samples_per_month = 300000
         self.samples_skip = 0
         self.primary_sensors = set()
         self.secondary_sensors = set()
@@ -544,15 +557,20 @@ class Workflow:
         """
         self.secondary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
-    def run(self, mmd_type, hosts, calls=list(), log_dir='trace', simulation=False):
+    def run(self, mmdtype, hosts, calls=list(), log_dir='trace', with_history=False, simulation=False):
         """
 
-        :type mmd_type: str
+        :type mmdtype: str
         :type hosts: list
         :type calls: list
         :type log_dir: str
+        :type with_history: bool
         :type simulation: bool
         """
+        if with_history:
+            sampling_prefix = 'his'
+        else:
+            sampling_prefix = 'dum'
         m = self.__get_monitor(hosts, calls, log_dir, simulation)
         self._execute_ingest_sensor_data(m)
         m.wait_for_completion()
@@ -560,21 +578,27 @@ class Workflow:
         m.wait_for_completion()
         self._execute_clearing(m)
         m.wait_for_completion()
-        self._execute_plotting(m)
+        self._execute_plotting(m, sampling_prefix)
         m.wait_for_completion()
-        self._execute_ingest_coincidences(m)
+        self._execute_ingest_coincidences(m, sampling_prefix)
         m.wait_for_completion()
         self._execute_create_sub_mmd_files(m)
+        m.wait_for_completion()
         self._execute_create_nwp_mmd_files(m)
+        m.wait_for_completion()
+        self._execute_create_matchup_nwp_mmd_files(m)
+        m.wait_for_completion()
         self._execute_create_arc_mmd_files(m)
         m.wait_for_completion()
         self._execute_ingest_sub_mmd_files(m)
         m.wait_for_completion()
         self._execute_ingest_nwp_mmd_files(m)
         m.wait_for_completion()
+        self._execute_ingest_matchup_nwp_mmd_files(m)
+        m.wait_for_completion()
         self._execute_ingest_arc_mmd_files(m)
         m.wait_for_completion()
-        self._execute_create_final_mmd_files(m, mmd_type)
+        self._execute_create_final_mmd_files(m, mmdtype)
         m.wait_for_completion_and_terminate()
 
     def _get_primary_sensors(self):
@@ -599,14 +623,22 @@ class Workflow:
         sensor_pairs = set()
         primary_sensors = self._get_primary_sensors()
         secondary_sensors = self._get_secondary_sensors()
-        for p in primary_sensors:
-            for s in secondary_sensors:
-                if p != s:
-                    try:
-                        sensor_pair = SensorPair(p, s, self.get_production_period())
-                        sensor_pairs.add(sensor_pair)
-                    except exceptions.ValueError:
-                        pass
+        if len(secondary_sensors) > 0:
+            for p in primary_sensors:
+                for s in secondary_sensors:
+                    if p != s:
+                        try:
+                            sensor_pair = SensorPair(p, s, self.get_production_period())
+                            sensor_pairs.add(sensor_pair)
+                        except exceptions.ValueError:
+                            pass
+        else:
+            for p in primary_sensors:
+                try:
+                    sensor_pair = SensorPair(p, p, self.get_production_period())
+                    sensor_pairs.add(sensor_pair)
+                except exceptions.ValueError:
+                    pass
         return sorted(list(sensor_pairs), reverse=True)
 
     def _get_all_sensors_by_period(self):
@@ -825,10 +857,11 @@ class Workflow:
                 monitor.execute(job)
                 date = _next_month(date)
 
-    def _execute_plotting(self, monitor):
+    def _execute_plotting(self, monitor, sampling_prefix):
         """
 
         :type monitor: Monitor
+        :type sampling_prefix: str
         """
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
@@ -840,14 +873,15 @@ class Workflow:
                 job = Job('mapplot-start.sh',
                           ['/clr/' + name + '/' + _pathformat(date)],
                           ['/plt/' + name + '/' + _pathformat(date)],
-                          [year, month, 'dum_' + name, 'lonlat', self.get_usecase()])
+                          [year, month, sampling_prefix + '_' + name, 'lonlat', self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
-    def _execute_ingest_coincidences(self, monitor):
+    def _execute_ingest_coincidences(self, monitor, sampling_prefix):
         """
 
         :type monitor: Monitor
+        :type sampling_prefix: str
         """
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
@@ -859,7 +893,7 @@ class Workflow:
                 job = Job('coincidence-start.sh',
                           ['/clr/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, 'dum', self.get_usecase()])
+                          [year, month, sampling_prefix + '_' + name, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
@@ -875,7 +909,7 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('mmd-start.sh',
+                job = Job('sub-start.sh',
                           ['/clr/' + name + '/' + _pathformat(date)],
                           ['/sub/' + name + '/' + _pathformat(date)],
                           [year, month, name, 'sub', self.get_usecase()])
@@ -900,6 +934,12 @@ class Workflow:
                           [year, month, name, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
+
+    def _execute_create_matchup_nwp_mmd_files(self, monitor):
+        """
+
+        :type monitor: Monitor
+        """
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -972,6 +1012,13 @@ class Workflow:
                           [year, month, name, mmd_type, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
+
+    def _execute_ingest_matchup_nwp_mmd_files(self, monitor):
+        """
+
+        :type monitor: Monitor
+        """
+        mmd_type = 'nwp'
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()

@@ -39,7 +39,7 @@ public class MmdToolTest {
     @Test
     public void testCreateNetCDFWriter_withConfigurationDefaultValues() throws IOException {
         final Configuration configuration = new Configuration();
-
+        configuration.put("mms.target.filename", "mmd.nc");
         final NetcdfFileWriter netCDFWriter = MmdTool.createNetCDFWriter(configuration);
         assertNotNull(netCDFWriter);
         assertEquals(NetcdfFileWriter.Version.netcdf4_classic, netCDFWriter.getVersion());
@@ -86,47 +86,63 @@ public class MmdToolTest {
             MmdTool.initializeDimensionNames(nameList, columnRegistry);
             fail("ToolException expected");
         } catch (ToolException expected) {
+            //
         }
     }
 
     @Test
     public void testGetPattern() {
         final Configuration config = new Configuration();
-        config.put("mms.target.pattern", "10000");
+        config.put("mms.pattern.atsr.3", "10000");
+        config.put(Configuration.KEY_MMS_MMD_SENSORS, "atsr.3");
 
         final long pattern = MmdTool.getPattern(config);
-        assertEquals(0x10000, pattern);
+        assertEquals(0x10000L, pattern);
     }
 
     @Test
-    public void testGetPattern_orsWithHistoryWhenSamplingReferenceSensorIsSet() {
+    public void testGetPattern_forSensorPair() {
         final Configuration config = new Configuration();
-        config.put("mms.target.pattern", "10000");
-        config.put("mms.sampling.referencesensor", "history");
+        config.put("mms.pattern.atsr.2", "08000");
+        config.put("mms.pattern.atsr.3", "10000");
+        config.put(Configuration.KEY_MMS_MMD_SENSORS, "atsr.3,atsr.2");
+
+        final long pattern = MmdTool.getPattern(config);
+        assertEquals(0x18000L, pattern);
+    }
+
+    @Test
+    public void testGetPattern_withHistoryWhenSamplingReferenceSensorIsSet() {
+        final Configuration config = new Configuration();
+        config.put("mms.pattern.atsr.3", "10000");
+        config.put(Configuration.KEY_MMS_MMD_SENSORS, "atsr.3");
+        config.put(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR, Constants.SENSOR_NAME_HISTORY);
         config.put("mms.pattern.history", "4000000000000000");
 
         final long pattern = MmdTool.getPattern(config);
-        assertEquals(0x10000 | 0x4000000000000000L, pattern);
+        assertEquals(0x10000L | 0x4000000000000000L, pattern);
     }
 
     @Test
     public void testGetPattern_usesDefaultWhenValueInConfigNotSet() {
         final Configuration config = new Configuration();
+        config.put(Configuration.KEY_MMS_MMD_SENSORS, "atsr.3");
 
         final long pattern = MmdTool.getPattern(config);
         assertEquals(0, pattern);
     }
 
     @Test
-    public void testGetPattern_throwsWhenValueIsUnparseable() {
+    public void testGetPattern_throwsWhenValueCannotBeParsed() {
         final Configuration config = new Configuration();
-        config.put("mms.target.pattern", "oooopsi");
+        config.put("mms.pattern.atsr.3", "oooopsi");
+        config.put(Configuration.KEY_MMS_MMD_SENSORS, "atsr.3");
 
         try {
             MmdTool.getPattern(config);
             fail("ToolException expected");
         } catch (ToolException expected) {
-            assertEquals("Property 'mms.target.pattern' must be set to an integral number.", expected.getMessage());
+            //
         }
     }
 
@@ -150,7 +166,7 @@ public class MmdToolTest {
     @Test
     public void testGetStartTime() {
         final Configuration configuration = new Configuration();
-        configuration.put(Constants.PROPERTY_TARGET_START_TIME, "1992-02-03T00:00:00Z");
+        configuration.put(Configuration.KEY_MMS_MMD_TARGET_START_TIME, "1992-02-03T00:00:00Z");
 
         final Date startTime = MmdTool.getStartTime(configuration);
         assertNotNull(startTime);
@@ -171,7 +187,7 @@ public class MmdToolTest {
     @Test
     public void testGetStopTime() {
         final Configuration configuration = new Configuration();
-        configuration.put(Constants.PROPERTY_TARGET_STOP_TIME, "1993-03-04T00:00:00Z");
+        configuration.put(Configuration.KEY_MMS_MMD_TARGET_STOP_TIME, "1993-03-04T00:00:00Z");
 
         final Date stopTime = MmdTool.getStopTime(configuration);
         assertNotNull(stopTime);
@@ -186,16 +202,19 @@ public class MmdToolTest {
             MmdTool.getStopTime(configuration);
             fail("ToolException expected");
         } catch (ToolException expected) {
+            //
         }
     }
 
     @Test
     public void testCreateMatchupQueryParameter() {
         final Configuration config = new Configuration();
-        config.put(Constants.PROPERTY_TARGET_START_TIME, "1993-03-04T00:00:00Z");
-        config.put(Constants.PROPERTY_TARGET_STOP_TIME, "1994-05-05T00:00:00Z");
+        config.put(Configuration.KEY_MMS_MMD_TARGET_START_TIME, "1993-03-04T00:00:00Z");
+        config.put(Configuration.KEY_MMS_MMD_TARGET_STOP_TIME, "1994-05-05T00:00:00Z");
+        config.put("mms.pattern.papa", "100");
+        config.put("mms.pattern.mama", "008");
+        config.put(Configuration.KEY_MMS_MMD_SENSORS, "papa,mama");
         config.put("mms.target.condition", "another_condition");
-        config.put("mms.target.pattern", "108");
 
         final MatchupQueryParameter parameter = MmdTool.createMatchupQueryParameter(config);
         assertNotNull(parameter);

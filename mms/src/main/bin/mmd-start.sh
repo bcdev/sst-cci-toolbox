@@ -5,13 +5,13 @@ cd ${MMS_INST}
 
 year=$1
 month=$2
-sensor=$3
+sensors=$3
 mmdtype=$4
 usecase=$5
 
 task="mmd"
-jobname="${task}-${year}-${month}-${sensor}-${mmdtype}"
-command="${task}-run.sh ${year} ${month} ${sensor} ${mmdtype} ${usecase}"
+jobname="${task}-${year}-${month}-${sensors}-${mmdtype}"
+command="${task}-run.sh ${year} ${month} ${sensors} ${mmdtype} ${usecase}"
 
 echo "`date -u +%Y%m%d-%H%M%S` submitting job '${jobname}' for usecase ${usecase}"
 
