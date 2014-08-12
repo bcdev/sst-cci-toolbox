@@ -20,6 +20,7 @@ import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
 import org.esa.cci.sst.ColumnRegistry;
+import org.esa.cci.sst.Predicate;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.Coincidence;
@@ -61,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -422,7 +422,7 @@ public class MmdTool extends BasicTool {
     private void registerTargetColumns(Configuration config) {
         // @todo 3 tb/tb move to initializer class - need to discuss. tb 2014-03-10
         final String[] sensorNames = getSensorNames(config);
-        final Predicate<String> predicate = new SensorPredicate(sensorNames);
+        final Predicate predicate = new SensorPredicate(sensorNames);
         final String configFilePath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_VARIABLES);
         try {
             final List<String> names = columnRegistry.registerColumns(new File(configFilePath), predicate);

@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.Predicate;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -12,7 +13,7 @@ public class SensorPredicateTest {
 
     @Test
     public void testSensorPredicates_withoutSensors() throws Exception {
-        final SensorPredicate predicate = new SensorPredicate(new String[]{});
+        final Predicate predicate = new SensorPredicate(new String[]{});
 
         assertTrue(predicate.test("matchup.id"));
         assertTrue(predicate.test("aai.absorbing_aerosol_index"));
@@ -29,7 +30,7 @@ public class SensorPredicateTest {
 
     @Test
     public void testSensorPredicates_withSensors() throws Exception {
-        final SensorPredicate predicate = new SensorPredicate(new String[]{"avhrr.n12", "avhrr.n11"});
+        final Predicate predicate = new SensorPredicate(new String[]{"avhrr.n12", "avhrr.n11"});
 
         assertTrue(predicate.test("matchup.id"));
         assertTrue(predicate.test("aai.absorbing_aerosol_index"));

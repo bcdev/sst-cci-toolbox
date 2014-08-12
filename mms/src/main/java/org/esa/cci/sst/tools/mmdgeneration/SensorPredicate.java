@@ -1,15 +1,16 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
+import org.esa.cci.sst.Predicate;
+
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * Predicate used for filtering target variables in MMD variable configuration files.
  *
  * @author Ralf Quast
  */
-final class SensorPredicate implements Predicate<String> {
+final class SensorPredicate implements Predicate {
 
     private final Set<String> prefixSet;
 

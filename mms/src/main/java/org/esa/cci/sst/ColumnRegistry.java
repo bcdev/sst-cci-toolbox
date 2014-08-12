@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.function.Predicate;
 
 /**
  * A registry for column {@link Item}s.
@@ -49,7 +48,7 @@ import java.util.function.Predicate;
  */
 public class ColumnRegistry {
 
-    private static final Predicate<String> ALL = new Predicate<String>() {
+    private static final Predicate ALL = new Predicate() {
         @Override
         public boolean test(String s) {
             return true;
@@ -84,8 +83,8 @@ public class ColumnRegistry {
         return registerColumns(file, ALL);
     }
 
-    public List<String> registerColumns(File file, Predicate<String> predicate) throws FileNotFoundException,
-                                                                                       ParseException {
+    public List<String> registerColumns(File file, Predicate predicate) throws FileNotFoundException,
+                                                                               ParseException {
         InputStream is = null;
         try {
             is = new FileInputStream(file);
@@ -113,7 +112,7 @@ public class ColumnRegistry {
         return registerColumns(is, ALL);
     }
 
-    private List<String> registerColumns(InputStream is, Predicate<String> predicate) throws ParseException {
+    private List<String> registerColumns(InputStream is, Predicate predicate) throws ParseException {
         synchronized (this) {
             final Scanner scanner = new Scanner(is, "US-ASCII");
             scanner.useLocale(Locale.ENGLISH);
