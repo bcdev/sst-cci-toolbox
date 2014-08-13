@@ -567,14 +567,14 @@ class Workflow:
         """
         self.secondary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
-    def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), trace_dir='trace', with_history=False,
+    def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace', with_history=False,
             simulation=False):
         """
 
         :type mmdtype: str
         :type hosts: list
         :type calls: list
-        :type trace_dir: str
+        :type log_dir: str
         :type with_history: bool
         :type simulation: bool
         """
@@ -582,7 +582,7 @@ class Workflow:
             sampling_prefix = 'his'
         else:
             sampling_prefix = 'dum'
-        m = self.__get_monitor(hosts, calls, trace_dir, simulation)
+        m = self.__get_monitor(hosts, calls, log_dir, simulation)
         self._execute_ingest_sensor_data(m)
         m.wait_for_completion()
         self._execute_sampling(m)
@@ -718,12 +718,12 @@ class Workflow:
         else:
             return None
 
-    def __get_monitor(self, hosts, calls, trace_dir, simulation):
+    def __get_monitor(self, hosts, calls, log_dir, simulation):
         """
 
         :type hosts: list
         :type calls: list
-        :type trace_dir: str
+        :type log_dir: str
         :type simulation: bool
         :rtype : Monitor
         """
@@ -731,7 +731,7 @@ class Workflow:
         self._add_inp_preconditions(preconditions)
         self._add_obs_preconditions(preconditions)
         self._add_smp_preconditions(preconditions)
-        return Monitor(preconditions, self.get_usecase(), hosts, calls, trace_dir, simulation)
+        return Monitor(preconditions, self.get_usecase(), hosts, calls, log_dir, simulation)
 
     def __get_effective_production_period(self):
         """

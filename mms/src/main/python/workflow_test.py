@@ -520,7 +520,7 @@ class WorkflowTests(unittest.TestCase):
         w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-        w.run(mmdtype, simulation=True)
+        w.run(mmdtype, log_dir='.', simulation=True)
 
         with open('mms1.status', 'r') as status:
             self.assertEqual('253 created, 0 running, 0 backlog, 253 processed, 0 failed\n', status.readline())
@@ -537,7 +537,7 @@ class WorkflowTests(unittest.TestCase):
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-        w.run(mmdtype, with_history=True, simulation=True)
+        w.run(mmdtype, log_dir='.', with_history=True, simulation=True)
 
         with open('mms3.status', 'r') as status:
             self.assertEqual('337 created, 0 running, 0 backlog, 337 processed, 0 failed\n', status.readline())
