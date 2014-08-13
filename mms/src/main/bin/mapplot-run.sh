@@ -18,7 +18,7 @@ let d1="d + 32 * 86400"
 starttime=${year}-${month}-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
-mkdir -p ${MMS_ARCHIVE}/${usecase}/plt/${sensor}/${year}
+mkdir -p ${mms.archive.root}/${usecase}/plt/${sensor}/${year}
 
 echo "`date -u +%Y%m%d-%H%M%S` mapplot ${year}/${month} sensor ${sensor} strategy ${strategy} starttime ${starttime} stoptime ${stoptime}..."
 
@@ -28,5 +28,5 @@ mapplot-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.mapplot.sensor=${sensor} \
 -Dmms.mapplot.show=false \
 -Dmms.mapplot.strategy=${strategy} \
--Dmms.mapplot.target.dir=${MMS_ARCHIVE}/${usecase}/plt/${sensor}/${year} \
+-Dmms.mapplot.target.dir=${mms.archive.root}/${usecase}/plt/${sensor}/${year} \
 -Dmms.mapplot.target.filename=${sensor}-${strategy}-${year}-${month}.png

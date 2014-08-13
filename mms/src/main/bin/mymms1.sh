@@ -19,8 +19,6 @@ else
     export LD_LIBRARY_PATH=${mms.pg.home}/lib:${mms.usr.local}/lib
 fi
 
-export MMS_ARCHIVE=${mms.archive.root}
-
 export MMS_INST=${mms.work}/inst-mms1
 export MMS_TASKS=${MMS_INST}/tasks
 export MMS_LOG=${MMS_INST}/log

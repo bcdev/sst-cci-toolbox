@@ -17,7 +17,7 @@ let d1="d + 32 * 86400"
 starttime=${year}-${month}-01T00:00:00Z
 stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
-mkdir -p ${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensors}/${year}
+mkdir -p ${mms.archive.root}/${usecase}/${mmdtype}/${sensors}/${year}
 
 echo "`date -u +%Y%m%d-%H%M%S` mmd ${year}/${month} sensors ${sensors} type ${mmdtype} starttime ${starttime} stoptime ${stoptime}..."
 
@@ -27,5 +27,5 @@ mmd-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.mmd.sensors=${sensors} \
 -Dmms.db.useindex=false \
 -Dmms.target.variables=${mms.home}/config/${mmdtype}-variables.config \
--Dmms.target.dir=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensors}/${year} \
+-Dmms.target.dir=${mms.archive.root}/${usecase}/${mmdtype}/${sensors}/${year} \
 -Dmms.target.filename=${sensors}-${mmdtype}-${year}-${month}.nc
