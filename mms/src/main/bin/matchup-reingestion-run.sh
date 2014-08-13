@@ -9,8 +9,7 @@ set -e
 year=$1
 month=$2
 sensor=$3
-mmdtype=$4 # not used
-usecase=$5
+usecase=$4
 
 . mymms
 

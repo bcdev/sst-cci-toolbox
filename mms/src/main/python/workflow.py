@@ -403,14 +403,16 @@ class SensorPair:
 
 
 class Job:
-    def __init__(self, call, preconditions, postconditions, parameters):
+    def __init__(self, name, call, preconditions, postconditions, parameters):
         """
 
+        :type name: str
         :type call: str
         :type preconditions: list
         :type postconditions: list
         :type parameters: list
         """
+        self.name = name
         self.call = call
         self.preconditions = preconditions
         self.postconditions = postconditions
@@ -420,6 +422,13 @@ class Job:
                 self.parameters.append(p)
             else:
                 self.parameters.append(str(p))
+
+    def get_name(self):
+        """
+
+        :rtype : str
+        """
+        return self.name
 
     def get_call(self):
         """
@@ -468,7 +477,8 @@ class Monitor:
 
         :type job: Job
         """
-        self.pm.execute(job.get_call(), job.get_preconditions(), job.get_postconditions(), job.get_parameters())
+        self.pm.execute(job.get_call(), job.get_preconditions(), job.get_postconditions(), job.get_parameters(),
+                        log_prefix=job.get_name())
 
     def wait_for_completion(self):
         self.pm.wait_for_completion()
@@ -800,7 +810,8 @@ class Workflow:
         end_date = period.get_end_date()
         while date < end_date:
             (year, month) = _year_month(date)
-            job = Job('ingestion-start.sh',
+            job = Job('ingestion-start' + '-' + year + '-' + month,
+                      'ingestion-start.sh',
                       ['/inp/' + _pathformat(date)],
                       ['/obs/' + _pathformat(date)],
                       [year, month, self.get_usecase()])
@@ -822,7 +833,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('sampling-start.sh',
+                job = Job('sampling-start' + '-' + year + '-' + month + '-' + name,
+                          'sampling-start.sh',
                           ['/obs/' + _pathformat(_prev_month(date)),
                            '/obs/' + _pathformat(date),
                            '/obs/' + _pathformat(_next_month(date))],
@@ -847,7 +859,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('clearsky-start.sh',
+                job = Job('clearsky-start' + '-' + year + '-' + month + '-' + name,
+                          'clearsky-start.sh',
                           ['/smp/' + name + '/' + _pathformat(_prev_month(date)),
                            '/smp/' + name + '/' + _pathformat(date),
                            '/smp/' + name + '/' + _pathformat(_next_month(date))],
@@ -871,7 +884,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('mapplot-start.sh',
+                job = Job('mapplot-start' + '-' + year + '-' + month + '-' + name,
+                          'mapplot-start.sh',
                           ['/clr/' + name + '/' + _pathformat(date)],
                           ['/plt/' + name + '/' + _pathformat(date)],
                           [year, month, sampling_prefix + '_' + name, 'lonlat', self.get_usecase()])
@@ -891,7 +905,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('coincidence-start.sh',
+                job = Job('coincidence-start' + '-' + year + '-' + month + '-' + name,
+                          'coincidence-start.sh',
                           ['/clr/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
                           [year, month, sampling_prefix + '_' + name, self.get_usecase()])
@@ -910,7 +925,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('sub-start.sh',
+                job = Job('sub-start' + '-' + year + '-' + month + '-' + name,
+                          'sub-start.sh',
                           ['/clr/' + name + '/' + _pathformat(date)],
                           ['/sub/' + name + '/' + _pathformat(date)],
                           [year, month, name, 'sub', self.get_usecase()])
@@ -929,7 +945,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('nwp-start.sh',
+                job = Job('nwp-start' + '-' + year + '-' + month + '-' + name,
+                          'nwp-start.sh',
                           ['/sub/' + name + '/' + _pathformat(date)],
                           ['/nwp/' + name + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
@@ -948,7 +965,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('matchup-nwp-start.sh',
+                job = Job('matchup_nwp' + '-' + year + '-' + month + '-' + name,
+                          'matchup-nwp-start.sh',
                           ['/sub/' + name + '/' + _pathformat(date)],
                           ['/nwp/' + name + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
@@ -967,7 +985,8 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('gbcs-start.sh',
+                job = Job('gbcs-start' + '-' + year + '-' + month + '-' + name,
+                          'gbcs-start.sh',
                           ['/nwp/' + name + '/' + _pathformat(date)],
                           ['/arc/' + name + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
@@ -979,7 +998,7 @@ class Workflow:
 
         :type monitor: Monitor
         """
-        mmd_type = 'sub'
+        mmdtype = 'sub'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -987,10 +1006,11 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('reingestion-start.sh',
+                job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                          'reingestion-start.sh',
                           ['/sub/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmd_type, self.get_usecase()])
+                          [year, month, name, mmdtype, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
@@ -999,7 +1019,7 @@ class Workflow:
 
         :type monitor: Monitor
         """
-        mmd_type = 'nwp'
+        mmdtype = 'nwp'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -1007,10 +1027,11 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('reingestion-start.sh',
+                job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                          'reingestion-start.sh',
                           ['/nwp/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmd_type, self.get_usecase()])
+                          [year, month, name, mmdtype, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
@@ -1019,7 +1040,6 @@ class Workflow:
 
         :type monitor: Monitor
         """
-        mmd_type = 'nwp'
         for sensor in self._get_primary_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -1027,10 +1047,11 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('matchup-reingestion-start.sh',
+                job = Job('matchup-reingestion-start' + '-' + year + '-' + month + '-' + name,
+                          'matchup-reingestion-start.sh',
                           ['/nwp/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmd_type, self.get_usecase()])
+                          [year, month, name, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
@@ -1039,7 +1060,7 @@ class Workflow:
 
         :type monitor: Monitor
         """
-        mmd_type = 'arc'
+        mmdtype = 'arc'
         for sensor in self._get_all_sensors_by_period():
             name = sensor.get_name()
             period = sensor.get_period()
@@ -1047,18 +1068,19 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('reingestion-start.sh',
+                job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                          'reingestion-start.sh',
                           ['/arc/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmd_type, self.get_usecase()])
+                          [year, month, name, mmdtype, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
-    def _execute_create_final_mmd_files(self, monitor, mmd_type):
+    def _execute_create_final_mmd_files(self, monitor, mmdtype):
         """
 
         :type monitor: Monitor
-        :type mmd_type: str
+        :type mmdtype: str
         """
         for sensor_pair in self._get_sensor_pairs():
             sensor_1 = sensor_pair.get_primary()
@@ -1069,11 +1091,12 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('mmd-start.sh',
+                job = Job('mmd-start' + '-' +  year + '-' + month + '-' + name + '-' + mmdtype,
+                          'mmd-start.sh',
                           ['/con/' + sensor_1 + '/' + _pathformat(date),
                            '/con/' + sensor_2 + '/' + _pathformat(date)],
                           ['/mmd/' + name + '/' + _pathformat(date)],
-                          [year, month, name, mmd_type, self.get_usecase()])
+                          [year, month, name, mmdtype, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
 
