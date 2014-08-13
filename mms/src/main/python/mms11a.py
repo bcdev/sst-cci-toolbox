@@ -1,7 +1,7 @@
 from workflow import Period
 from workflow import Workflow
 
-usecase = 'mms11'
+usecase = 'mms11a'
 mmdtype = 'mmd11'
 
 w = Workflow(usecase, Period('1991-01-01', '1992-01-01'))
