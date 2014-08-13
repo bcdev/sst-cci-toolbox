@@ -965,7 +965,7 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('matchup_nwp' + '-' + year + '-' + month + '-' + name,
+                job = Job('matchup_nwp-start' + '-' + year + '-' + month + '-' + name,
                           'matchup-nwp-start.sh',
                           ['/sub/' + name + '/' + _pathformat(date)],
                           ['/nwp/' + name + '/' + _pathformat(date)],
