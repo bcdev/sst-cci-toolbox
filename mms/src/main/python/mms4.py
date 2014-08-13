@@ -10,17 +10,4 @@ w.add_primary_sensor('avhrr.n11', '1988-11-08', '1995-01-01')
 w.add_primary_sensor('avhrr.n12', '1991-09-16', '1998-12-15')
 w.set_samples_per_month(0)
 
-hosts = [('localhost', 60)]
-calls = [('ingestion-start.sh', 30),
-         ('sampling-start.sh', 30),
-         ('clearsky-start.sh', 30),
-         ('sub-start.sh', 30),
-         ('coincidence-start.sh', 30),
-         ('nwp-start.sh', 30),
-         ('matchup-nwp-start.sh', 30),
-         ('gbcs-start.sh', 30),
-         ('matchup-reingestion-start.sh', 30),
-         ('reingestion-start.sh', 30),
-         ('mmd-start.sh', 30)]
-
-w.run(mmdtype, hosts, calls, with_history=True)
+w.run(mmdtype, with_history=True)

@@ -2,6 +2,7 @@ __author__ = 'Ralf Quast'
 
 import datetime
 import exceptions
+import os
 import unittest
 
 from workflow import Period, MultiPeriod
@@ -510,47 +511,41 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual('/smp/avhrr.n11,avhrr.n10/1991/10', preconditions[3])
 
     def test_run_dual_sensor_usecase(self):
-        w = Workflow('test', Period('1991-01-01', '1992-01-01'))
+        usecase = 'mms1'
+        mmdtype = 'mmd1'
+        w = Workflow(usecase, Period('1991-01-01', '1992-01-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
         w.add_secondary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_secondary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_secondary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-        hosts = [('localhost', 60)]
-        calls = [('ingestion-start.sh', 30),
-                 ('sampling-start.sh', 30),
-                 ('clearsky-start.sh', 30),
-                 ('sub-start.sh', 30),
-                 ('mmd-start.sh', 30),
-                 ('coincidence-start.sh', 30),
-                 ('nwp-start.sh', 30),
-                 ('matchup-nwp-start.sh', 30),
-                 ('gbcs-start.sh', 30),
-                 ('matchup-reingestion-start.sh', 30),
-                 ('reingestion-start.sh', 30)]
-        mmd_type = 'mmd'
-        w.run(mmd_type, hosts, calls, simulation=True)
+        w.run(mmdtype, simulation=True)
+
+        with open('mms1.status', 'r') as status:
+            self.assertEqual('253 created, 0 running, 0 backlog, 253 processed, 0 failed\n', status.readline())
+        with open('mms1.report', 'r') as report:
+            self.assertEqual(253, len(report.readlines()))
+
+        os.remove('mms1.status')
+        os.remove('mms1.report')
 
     def test_run_single_sensor_usecase(self):
-        w = Workflow('test', Period('1991-01-01', '1992-01-01'))
+        usecase = 'mms3'
+        mmdtype = 'mmd3'
+        w = Workflow(usecase, Period('1991-01-01', '1992-01-01'))
         w.add_primary_sensor('avhrr.n10', (1986, 11, 17), (1991, 9, 16))
         w.add_primary_sensor('avhrr.n11', (1988, 11, 8), (1994, 12, 31))
         w.add_primary_sensor('avhrr.n12', (1991, 9, 16), (1998, 12, 14))
-        hosts = [('localhost', 60)]
-        calls = [('ingestion-start.sh', 30),
-                 ('sampling-start.sh', 30),
-                 ('clearsky-start.sh', 30),
-                 ('sub-start.sh', 30),
-                 ('mmd-start.sh', 30),
-                 ('coincidence-start.sh', 30),
-                 ('nwp-start.sh', 30),
-                 ('matchup-nwp-start.sh', 30),
-                 ('gbcs-start.sh', 30),
-                 ('matchup-reingestion-start.sh', 30),
-                 ('reingestion-start.sh', 30)]
-        mmd_type = 'mmd'
-        w.run(mmd_type, hosts, calls, with_history=True, simulation=True)
+        w.run(mmdtype, with_history=True, simulation=True)
+
+        with open('mms3.status', 'r') as status:
+            self.assertEqual('337 created, 0 running, 0 backlog, 337 processed, 0 failed\n', status.readline())
+        with open('mms3.report', 'r') as report:
+            self.assertEqual(337, len(report.readlines()))
+
+        os.remove('mms3.status')
+        os.remove('mms3.report')
 
 
 if __name__ == '__main__':

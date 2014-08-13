@@ -79,8 +79,8 @@ class PMonitor:
     _delay = None
     _simulation = False
 
-    def __init__(self, inputs, request, hosts, types=list(), weights=list(), swd=None, cache=None,
-                 log_dir='.', simulation=False, delay=None):
+    def __init__(self, inputs, request, hosts=list([('localhost', 4)]), types=list(), weights=list(), swd=None,
+                 cache=None, log_dir='.', simulation=False, delay=None):
         """
         Initiates monitor, marks inputs, reads report, creates thread pool
         """
