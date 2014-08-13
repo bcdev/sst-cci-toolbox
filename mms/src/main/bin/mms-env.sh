@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # MMS function definitions
-# useag${step}$MMS_HOME/bin/mms-env.sh  (in xxx-start.sh and xxx-run.sh)
+# useage ${mms.home}/bin/mms-env.sh  (in xxx-start.sh and xxx-run.sh)
 
 set -e # one fa${step}all fail
 #set -a # auto-export variables
@@ -82,7 +82,7 @@ wait_for_task_jobs_completion() {
 submit_job() {
     jobname=$1
     command=$2
-    bsubmit="bsub -R rusage[mem=8192] -q lotus -n 1 -W 8:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${MMS_HOME}/bin/${command} ${@:3}"
+    bsubmit="bsub -R rusage[mem=8192] -q lotus -n 1 -W 8:00 -P esacci_sst -cwd ${MMS_INST} -oo ${MMS_LOG}/${jobname}.out -eo ${MMS_LOG}/${jobname}.err -J ${jobname} ${mms.home}/bin/${command} ${@:3}"
 
     rm -f ${MMS_LOG}/${jobname}.out
     rm -f ${MMS_LOG}/${jobname}.err

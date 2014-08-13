@@ -1,11 +1,11 @@
 #! /bin/sh
 
 . $MMS_INST/mymms
-. $MMS_HOME/bin/mms-env.sh
+. ${mms.home}/bin/mms-env.sh
 
 java \
-    -Dmms.home="$MMS_HOME" \
+    -Dmms.home="${mms.home}" \
     -Xmx1024M $MMS_OPTIONS \
     -Djava.io.tmpdir=$TMPDIR \
-    -classpath "$MMS_HOME/lib/*" \
+    -classpath "${mms.home}/lib/*" \
     org.esa.cci.sst.tools.PlotSamplingPointFileTool "$@"

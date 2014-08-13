@@ -19,7 +19,6 @@ else
     export LD_LIBRARY_PATH=${mms.pg.home}/lib:${mms.usr.local}/lib
 fi
 
-export MMS_HOME=${mms.home}
 export MMS_ARCHIVE=${mms.archive.root}
 
 export MMS_INST=${mms.work}/inst-mms2
@@ -27,8 +26,8 @@ export MMS_TASKS=${MMS_INST}/tasks
 export MMS_LOG=${MMS_INST}/log
 export TMPDIR=${MMS_INST}/tmp
 
-export PYTHONPATH=${MMS_INST}:${MMS_HOME}/python:${PYTHONPATH}
-export PATH=${MMS_HOME}/bin:${PATH}
+export PYTHONPATH=${MMS_INST}:${mms.home}/python:${PYTHONPATH}
+export PATH=${mms.home}/bin:${PATH}
 
 echo "using MMS instance $MMS_INST"
-echo "using MMS software $MMS_HOME"
+echo "using MMS software ${mms.home}"

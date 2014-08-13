@@ -22,7 +22,7 @@ mkdir -p ${MMS_ARCHIVE}/${usecase}/plt/${sensor}/${year}
 
 echo "`date -u +%Y%m%d-%H%M%S` mapplot ${year}/${month} sensor ${sensor} strategy ${strategy} starttime ${starttime} stoptime ${stoptime}..."
 
-mapplot-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
+mapplot-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.mapplot.starttime=${starttime} \
 -Dmms.mapplot.stoptime=${stoptime} \
 -Dmms.mapplot.sensor=${sensor} \

@@ -1,12 +1,12 @@
 #! /bin/sh
 
 . $MMS_INST/mymms
-. $MMS_HOME/bin/mms-env.sh
+. ${mms.home}/bin/mms-env.sh
 
 java \
-    -Dmms.home="$MMS_HOME" \
+    -Dmms.home="${mms.home}" \
     -Djava.io.tmpdir=${TMPDIR} \
     -Xmx1G $MMS_OPTIONS \
-    -javaagent:"$MMS_HOME/lib/openjpa-all-${openjpaversion}.jar" \
-    -classpath "$MMS_HOME/lib/*" \
+    -javaagent:"${mms.home}/lib/openjpa-all-${openjpaversion}.jar" \
+    -classpath "${mms.home}/lib/*" \
     org.esa.cci.sst.tools.nwp.NwpTool $@

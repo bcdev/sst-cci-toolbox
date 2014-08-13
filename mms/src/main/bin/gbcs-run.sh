@@ -16,7 +16,7 @@ mkdir -p ${MMS_ARCHIVE}/${usecase}/arc/${sensor}/${year}
 
 echo "`date -u +%Y%m%d-%H%M%S` gbcs ${year}/${month} sensor ${sensor}..."
 
-gbcs-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
+gbcs-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.gbcs.sensor=${sensor} \
 -Dmms.gbcs.mmd.source=${MMS_ARCHIVE}/${usecase}/sub/${sensor}/${year}/${sensor}-sub-${year}-${month}.nc \
 -Dmms.gbcs.nwp.source=${MMS_ARCHIVE}/${usecase}/nwp/${sensor}/${year}/${sensor}-nwp-${year}-${month}.nc \

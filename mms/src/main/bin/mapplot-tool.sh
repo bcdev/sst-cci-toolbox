@@ -1,12 +1,12 @@
 #! /bin/sh
 
 . ${MMS_INST}/mymms
-. ${MMS_HOME}/bin/mms-env.sh
+. ${mms.home}/bin/mms-env.sh
 
 java \
-    -Dmms.home="${MMS_HOME}" \
+    -Dmms.home="${mms.home}" \
     -Xmx8G ${MMS_OPTIONS} \
-    -javaagent:"${MMS_HOME}/lib/openjpa-all-${openjpaversion}.jar" \
+    -javaagent:"${mms.home}/lib/openjpa-all-${openjpaversion}.jar" \
     -Djava.io.tmpdir=${TMPDIR} \
-    -classpath "${MMS_HOME}/lib/*" \
+    -classpath "${mms.home}/lib/*" \
     org.esa.cci.sst.tools.MapPlotTool "$@"

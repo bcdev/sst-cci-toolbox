@@ -21,12 +21,12 @@ mkdir -p ${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year}
 
 echo "`date -u +%Y%m%d-%H%M%S` sub ${year}/${month} sensor ${sensor} mmdtype ${mmdtype} starttime ${starttime} stoptime ${stoptime}..."
 
-mmd-tool.sh -c ${MMS_HOME}/config/${usecase}-config.properties \
+mmd-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.target.startTime=${starttime} \
 -Dmms.target.stopTime=${stoptime} \
 -Dmms.mmd.sensors=${sensor} \
 -Dmms.db.useindex=false \
--Dmms.target.dimensions=${MMS_HOME}/config/mmd-dimensions.properties \
--Dmms.target.variables=${MMS_HOME}/config/${sensor}-${mmdtype}-variables.config \
+-Dmms.target.dimensions=${mms.home}/config/mmd-dimensions.properties \
+-Dmms.target.variables=${mms.home}/config/${sensor}-${mmdtype}-variables.config \
 -Dmms.target.dir=${MMS_ARCHIVE}/${usecase}/${mmdtype}/${sensor}/${year} \
 -Dmms.target.filename=${sensor}-${mmdtype}-${year}-${month}.nc

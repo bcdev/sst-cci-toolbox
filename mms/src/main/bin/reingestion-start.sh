@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-. ${MMS_HOME}/bin/mms-env.sh
+. ${mms.home}/bin/mms-env.sh
 cd ${MMS_INST}
 
 year=$1
