@@ -11,13 +11,11 @@ month=$2
 sensor=$3
 usecase=$4
 
-. mymms
-
 mkdir -p ${mms.archive.root}/${usecase}/nwp/${sensor}/${year}
 
 echo "`date -u +%Y%m%d-%H%M%S` nwp ${year}/${month} sensor ${sensor}..."
 
-nwp-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
+${mms.home}/bin/nwp-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.target.dimensions=${mms.home}/config/mmd-dimensions.properties \
 -Dmms.nwp.forsensor=true \
 -Dmms.nwp.sensor=${sensor} \

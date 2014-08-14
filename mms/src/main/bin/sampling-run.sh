@@ -11,8 +11,6 @@ count=$4
 skip=$5
 usecase=$6
 
-. mymms
-
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
 starttime=${year}-${month}-01T00:00:00Z
@@ -20,7 +18,7 @@ stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
 echo "`date -u +%Y%m%d-%H%M%S` sampling ${year}/${month} sensor ${sensor} starttime ${starttime} stoptime ${stoptime}..."
 
-sampling-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
+${mms.home}/bin/sampling-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.usecase=${usecase} \
 -Dmms.sampling.startTime=${starttime} \
 -Dmms.sampling.stopTime=${stoptime} \

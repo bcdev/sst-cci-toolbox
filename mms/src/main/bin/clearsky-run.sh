@@ -9,8 +9,6 @@ month=$2
 sensor=$3
 usecase=$4
 
-. mymms
-
 d=`date +%s -u -d "${year}-${month}-01 00:00:00"`
 let d1="d + 32 * 86400"
 starttime=${year}-${month}-01T00:00:00Z
@@ -18,7 +16,7 @@ stoptime=`date +%Y-%m -u -d @${d1}`-01T00:00:00Z
 
 echo "`date -u +%Y%m%d-%H%M%S` clearsky ${year}/${month} sensor ${sensor} starttime ${starttime} stoptime ${stoptime}..."
 
-clearsky-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
+${mms.home}/bin/clearsky-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.usecase=${usecase} \
 -Dmms.sampling.startTime=${starttime} \
 -Dmms.sampling.stopTime=${stoptime} \
