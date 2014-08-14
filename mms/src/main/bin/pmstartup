@@ -1,8 +1,7 @@
 #!/bin/bash
 
-if [ -z "$MMS_INST" ]; then
+if [ -z "${MMS_INST}" ]; then
     MMS_INST=`pwd`
-    . $MMS_INST/mymms
 fi
 
 if [ -z "$1" ]; then
@@ -24,7 +23,7 @@ then
     fi
 fi
 
-nohup python $MMS_INST/${workflow}.py > $MMS_INST/${workflow}.out 2>&1 &
-echo $! > $MMS_INST/${workflow}.pid
+nohup python ${mms.home}/python/${workflow}.py > ${MMS_INST}/${workflow}.out 2>&1 &
+echo $! > ${MMS_INST}/${workflow}.pid
 sleep 2
-cat $MMS_INST/${workflow}.status
+cat ${MMS_INST}/${workflow}.status
