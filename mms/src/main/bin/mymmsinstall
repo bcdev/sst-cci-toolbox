@@ -15,4 +15,4 @@ rm -rf ${mms.home}
 mv ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} $(dirname ${mms.home})
 
 # change file permissions manually because maven assembly does not do this
-chmod -R ug+X $(dirname ${mms.home})
+chmod -R ug+X ${mms.home}
