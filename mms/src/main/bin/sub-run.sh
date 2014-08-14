@@ -26,7 +26,6 @@ mmd-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.target.stopTime=${stoptime} \
 -Dmms.mmd.sensors=${sensor} \
 -Dmms.db.useindex=false \
--Dmms.target.dimensions=${mms.home}/config/mmd-dimensions.properties \
 -Dmms.target.variables=${mms.home}/config/${sensor}-${mmdtype}-variables.config \
 -Dmms.target.dir=${mms.archive.root}/${usecase}/${mmdtype}/${sensor}/${year} \
 -Dmms.target.filename=${sensor}-${mmdtype}-${year}-${month}.nc
