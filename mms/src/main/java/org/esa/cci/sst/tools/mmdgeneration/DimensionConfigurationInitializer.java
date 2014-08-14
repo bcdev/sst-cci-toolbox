@@ -17,7 +17,7 @@ import java.util.Properties;
 
 public class DimensionConfigurationInitializer {
 
-    static Map<String, Integer> initalize(Collection<String> dimensionNames, Configuration configuration) {
+    public static Map<String, Integer> initialize(Collection<String> dimensionNames, Configuration configuration) {
         final Properties dimensionProperties = readDimensionProperties(configuration);
 
         return parseDimensionConfiguration(dimensionNames, dimensionProperties);
