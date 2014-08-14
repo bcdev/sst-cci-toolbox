@@ -31,6 +31,7 @@
             <directoryMode>0770</directoryMode>
             <includes>
                 <include>*.sh</include>
+                <include>my*</include>
                 <include>pg*</include>
                 <include>pm*</include>
             </includes>
