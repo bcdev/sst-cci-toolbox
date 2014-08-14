@@ -1,0 +1,14 @@
+#!/bin/sh
+
+export PGPORT=${mms.pg.port}
+export PGHOST=${mms.pg.host}
+export PGDATA=${mms.pg.data}
+
+export PATH=${mms.pg.home}/bin:${PATH}
+
+if [ -n "${LD_LIBRARY_PATH}" ]
+then
+    export LD_LIBRARY_PATH=${mms.pg.home}/lib:${LD_LIBRARY_PATH}
+else
+    export LD_LIBRARY_PATH=${mms.pg.home}/lib
+fi
