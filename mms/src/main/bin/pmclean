@@ -1,5 +1,12 @@
 #!/bin/sh
 
+if [ -z "$1" ]; then
+    echo "usage: pmclean <usecase>"
+    exit 1
+fi
+
+usecase=$1
+
 if [ -d log ]; then
   rm -rf log
 fi
@@ -20,5 +27,4 @@ if [ -d trace ]; then
 fi
 mkdir trace
 
-rm ${usecase}.report ${usecase}.status ${usecase}.pid ${usecase}.out
-rm  log/*.* tasks/*.* tmp/*.* trace/*.*
+rm -f ${usecase}.report ${usecase}.status ${usecase}.pid ${usecase}.out
