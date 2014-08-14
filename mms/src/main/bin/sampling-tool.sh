@@ -11,6 +11,6 @@ ${mms.jdk.home}/bin/java \
     -Dmms.home="${mms.home}" \
     -Xmx8G ${MMS_OPTIONS} \
     -javaagent:"${mms.home}/lib/openjpa-all-${openjpaversion}.jar" \
-    -Djava.io.tmpdir=${TMPDIR} \
+    -Djava.io.tmpdir=${mms.tmpdir} \
     -classpath "${mms.home}/lib/*" \
     org.esa.cci.sst.tools.SamplingPointGenerationTool "$@"
