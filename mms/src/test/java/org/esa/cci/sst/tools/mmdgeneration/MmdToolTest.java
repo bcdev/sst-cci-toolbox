@@ -52,7 +52,7 @@ public class MmdToolTest {
         final ColumnRegistry columnRegistry = new ColumnRegistry();
         final List<String> nameList = new ArrayList<>();
 
-        final Set<String> dimensionNames = MmdTool.initializeDimensionNames(nameList, columnRegistry);
+        final Set<String> dimensionNames = MmdTool.getDimensionNames(nameList, columnRegistry);
         assertNotNull(dimensionNames);
         assertEquals(0, dimensionNames.size());
     }
@@ -67,7 +67,7 @@ public class MmdToolTest {
         nameList.add("Klaus");
         nameList.add("Heike");
 
-        final TreeSet<String> dimensionNames = MmdTool.initializeDimensionNames(nameList, columnRegistry);
+        final TreeSet<String> dimensionNames = MmdTool.getDimensionNames(nameList, columnRegistry);
         assertNotNull(dimensionNames);
         assertEquals(5, dimensionNames.size());
         assertThat(dimensionNames, hasItem("left"));
@@ -83,7 +83,7 @@ public class MmdToolTest {
         nameList.add("Heike");
 
         try {
-            MmdTool.initializeDimensionNames(nameList, columnRegistry);
+            MmdTool.getDimensionNames(nameList, columnRegistry);
             fail("ToolException expected");
         } catch (ToolException expected) {
             //

@@ -102,8 +102,8 @@ public class MmdTool extends BasicTool {
 
         final Configuration config = getConfig();
         initializeTargetColumns(config, getPersistenceManager().getColumnStorage());
-        final Set<String> dimensionNames = initializeDimensionNames(targetColumnNames, columnRegistry);
-        dimensionConfiguration = DimensionConfigurationInitializer.initalize(dimensionNames, config);
+        final Set<String> dimensionNames = getDimensionNames(targetColumnNames, columnRegistry);
+        dimensionConfiguration = DimensionConfigurationInitializer.initialize(dimensionNames, config);
 
         final int readerCacheSize = config.getIntValue(Configuration.KEY_MMS_MMD_READER_CACHE_SIZE, 10);
         readerCache = new ReaderCache(readerCacheSize, config, getLogger());
@@ -379,7 +379,7 @@ public class MmdTool extends BasicTool {
         }
     }
 
-    static TreeSet<String> initializeDimensionNames(List<String> targetColumnNames, ColumnRegistry columnRegistry) {
+    static TreeSet<String> getDimensionNames(List<String> targetColumnNames, ColumnRegistry columnRegistry) {
         final TreeSet<String> dimensionNames = new TreeSet<>();
         for (final String name : targetColumnNames) {
             final Item column = columnRegistry.getColumn(name);
