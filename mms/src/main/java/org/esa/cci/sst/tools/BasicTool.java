@@ -25,7 +25,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.util.logging.BeamLogManager;
-import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
 import org.esa.cci.sst.util.TimeUtil;
@@ -36,6 +35,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
@@ -226,25 +226,22 @@ public abstract class BasicTool {
                 printHelp();
                 return false;
             }
-            final String[] configurationFilePaths = commandLine.getOptionValues(CONFIG_FILE_OPTION_NAME);
-            if (configurationFilePaths == null) {
-                final File configurationFile = new File(DEFAULT_CONFIGURATION_FILE_NAME);
-                if (configurationFile.exists()) {
-                    addConfigurationProperties(configurationFile);
-                    config.put(Configuration.KEY_MMS_CONFIGURATION, configurationFile.getPath());
-                }
-            } else {
-                for (final String configurationFilePath : configurationFilePaths) {
-                    final File configurationFile = new File(configurationFilePath);
-                    addConfigurationProperties(configurationFile);
-                    config.put(Configuration.KEY_MMS_CONFIGURATION, configurationFile.getPath());
-                }
+            final String configurationFilePath = commandLine.getOptionValue(CONFIG_FILE_OPTION_NAME);
+            if (configurationFilePath != null) {
+                final File configurationFile = new File(configurationFilePath);
+                addConfigurationProperties(configurationFile);
+                config.put(Configuration.KEY_MMS_CONFIGURATION, configurationFile.getPath());
             }
-
             final Properties optionProperties = commandLine.getOptionProperties("D");
             config.add(optionProperties);
+
+            final Properties privateProperties = new Properties();
+            privateProperties.load(BasicTool.class.getResourceAsStream("PRIVATE.properties"));
+            config.add(privateProperties);
         } catch (ParseException e) {
             throw new ToolException(e.getMessage(), e, ToolException.COMMAND_LINE_ARGUMENTS_PARSE_ERROR);
+        } catch (IOException e) {
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
 
         return true;
@@ -252,10 +249,6 @@ public abstract class BasicTool {
 
     public Storage getStorage() {
         return toolStorage;
-    }
-
-    public ColumnStorage getColumnStorage() {
-        return getPersistenceManager().getColumnStorage();
     }
 
     public void initialize() {

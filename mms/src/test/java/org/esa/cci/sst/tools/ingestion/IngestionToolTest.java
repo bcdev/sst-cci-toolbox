@@ -46,7 +46,7 @@ public class IngestionToolTest {
                 configOnly.getConfig().getStringValue("openjpa.ConnectionURL");
                 fail("ToolException expected");
             } catch (ToolException expected) {
-
+                //
             }
         }
 
