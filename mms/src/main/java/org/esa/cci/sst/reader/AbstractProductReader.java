@@ -217,28 +217,18 @@ abstract class AbstractProductReader implements Reader {
         return product;
     }
 
-    // currently not used, replaced by start time to align with file name time
-    // used as filter during ingestion [boe, 09.08.2011]
     protected final Date getCenterTimeAsDate() throws IOException {
         final ProductData.UTC startUtc = product.getStartTime();
         if (startUtc == null) {
-            throw new IOException("Unable to get start time for product '" + product.getName() + "'.");
+            throw new IOException("Unable to get center time for product '" + product.getName() + "'.");
         }
         final ProductData.UTC endUtc = product.getEndTime();
         if (endUtc == null) {
-            return startUtc.getAsDate();
+            throw new IOException("Unable to get center time for product '" + product.getName() + "'.");
         }
         final long startTime = startUtc.getAsDate().getTime();
         final long endTime = endUtc.getAsDate().getTime();
         return new Date((startTime + endTime) /  2);
-    }
-
-    protected final Date getStartTimeAsDate() throws IOException {
-        final ProductData.UTC startTime = product.getStartTime();
-        if (startTime == null) {
-            throw new IOException("Unable to get start time for product '" + product.getName() + "'.");
-        }
-        return startTime.getAsDate();
     }
 
     private Item createColumn(final RasterDataNode node) {

@@ -36,7 +36,7 @@ class AaiProductReader extends AbstractProductReader {
     @Override
     public final GlobalObservation readObservation(int recordNo) throws IOException {
         final GlobalObservation globalObservation = new GlobalObservation();
-        globalObservation.setTime(getStartTimeAsDate());
+        globalObservation.setTime(getCenterTimeAsDate());
         globalObservation.setDatafile(getDatafile());
         globalObservation.setRecordNo(0);
         globalObservation.setSensor(getSensorName());
