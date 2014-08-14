@@ -1,7 +1,5 @@
 #! /bin/sh
 
-. $MMS_INST/mymms
-
 MMS_OPTIONS=""
 if [ ! -z ${MMS_DEBUG} ]; then
     MMS_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=y"
