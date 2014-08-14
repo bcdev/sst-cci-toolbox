@@ -247,8 +247,6 @@
                 <mms.home>/group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}</mms.home>
                 <!-- Path to the MMS source code -->
                 <mms.github>/group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox/mms</mms.github>
-                <!-- Path to the MMS working directory -->
-                <mms.work>/group_workspaces/cems2/esacci_sst/mms</mms.work>
                 <!-- Path to the root directory of the MMS data archive -->
                 <mms.archive.root>/group_workspaces/cems2/esacci_sst/mms/archive</mms.archive.root>
                 <!-- Path to the root directory of the MMS data archive -->
