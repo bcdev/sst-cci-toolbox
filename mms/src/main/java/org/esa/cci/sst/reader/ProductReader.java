@@ -114,7 +114,7 @@ class ProductReader extends AbstractProductReader {
         } catch (Exception e) {
             throw new IOException(e);
         }
-        observation.setTime(getStartTimeAsDate());
+        observation.setTime(getCenterTimeAsDate());
 
         observation.setDatafile(getDatafile());
         observation.setRecordNo(0);
