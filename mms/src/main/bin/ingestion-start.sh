@@ -1,7 +1,6 @@
 #!/bin/bash
 
 . ${mms.home}/bin/mms-env.sh
-cd ${MMS_INST}
 
 year=$1
 month=$2
