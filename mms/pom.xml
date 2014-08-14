@@ -262,8 +262,6 @@
                 <mms.gbcs.intelversion>12.1.5</mms.gbcs.intelversion>
                 <!-- Path to the CDO installation to use -->
                 <mms.nwp.cdo.home>/group_workspaces/cems2/esacci_sst/software/cdo/1.6.4</mms.nwp.cdo.home>
-                <!-- Path to other software installed locally -->
-                <mms.usr.local>/group_workspaces/cems2/esacci_sst/software/common</mms.usr.local>
 
                 <!-- Properties related to the PostgreSQL database -->
                 <mms.pg.host>130.246.142.93</mms.pg.host>
