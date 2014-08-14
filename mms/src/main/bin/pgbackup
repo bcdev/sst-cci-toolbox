@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# TODO - replace paths with properties?
-
 now=`date +'%Y-%m-%dT%H-%M-%S'`
 
 # stop database from writing into tablespaces
