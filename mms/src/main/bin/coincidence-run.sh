@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-# coincidence-run.sh 2003 01 atsr.3 mms2
+# example usage: coincidence-run.sh 2003 01 atsr.3 mms2
 
 year=$1
 month=$2

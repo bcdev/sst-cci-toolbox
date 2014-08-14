@@ -12,3 +12,5 @@ then
 else
     export LD_LIBRARY_PATH=${mms.pg.home}/lib
 fi
+
+export PATH=${mms.home}/bin:${PATH}

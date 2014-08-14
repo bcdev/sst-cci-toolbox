@@ -3,8 +3,14 @@
 # MMS function definitions
 # useage ${mms.home}/bin/mms-env.sh  (in xxx-start.sh and xxx-run.sh)
 
-set -e # one fa${step}all fail
-#set -a # auto-export variables
+set -e
+
+if [ -z "${MMS_INST}" ]; then
+    MMS_INST=`pwd`
+fi
+
+MMS_TASKS=${MMS_INST}/tasks
+MMS_LOG=${MMS_INST}/log
 
 read_task_jobs() {
     jobname=$1
@@ -32,20 +38,22 @@ wait_for_task_jobs_completion() {
     jobname=$1
     while true
     do
-        sleep 60
+        sleep 10
         
         echo "`date -u +%Y%m%d-%H%M%S` inquiring jobs ${jobs} for ${jobname}"
-        # output of bjobs command
-        # jobs=7948
+        # output of bjobs command:
         # JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
-        # 7948    mboettc RUN   lotus      lotus.jc.rl host045.jc. *g-2003-01 Feb 13 13:13
-        #if ssh -A lotus.jc.rl.ac.uk bjobs -P esacci_sst | egrep -q "^$jobs\\>"
+        # 619450  rquast  RUN   lotus      lotus.jc.rl host042.jc. *r.n10-sub Aug 14 10:15
+        # 619464  rquast  RUN   lotus      lotus.jc.rl host087.jc. *r.n11-sub Aug 14 10:15
+        # 619457  rquast  RUN   lotus      lotus.jc.rl host209.jc. *r.n12-sub Aug 14 10:15
+        # 619458  rquast  RUN   lotus      lotus.jc.rl host209.jc. *r.n11-sub Aug 14 10:15
+        # 619452  rquast  RUN   lotus      lotus.jc.rl host043.jc. *r.n10-sub Aug 14 10:15
         if bjobs -P esacci_sst | egrep -q "^$jobs\\>"
         then
             continue
         fi
 
-        sleep 60
+        sleep 10
 
         if [ -s ${MMS_TASKS}/${jobname}.tasks ]
         then

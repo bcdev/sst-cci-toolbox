@@ -1,13 +1,13 @@
 #!/bin/bash
 
-if [ -z "${MMS_INST}" ]; then
-    MMS_INST=`pwd`
-fi
-
 if [ -z "$1" ]; then
     echo "call   : pmstartup <workflow>"
     echo "example: pmstartup modis.py"
     exit 1
+fi
+
+if [ -z "${MMS_INST}" ]; then
+    MMS_INST=`pwd`
 fi
 
 workflow=$(basename ${1%.py})

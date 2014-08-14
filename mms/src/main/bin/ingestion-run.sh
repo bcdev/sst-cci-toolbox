@@ -1,6 +1,7 @@
 #!/bin/bash
 set -x
-# ingestion-run.sh 2003 01 mms2
+# example usage: ingestion-run.sh 2003 01 mms2
+
 year=$1
 month=$2
 usecase=$3
