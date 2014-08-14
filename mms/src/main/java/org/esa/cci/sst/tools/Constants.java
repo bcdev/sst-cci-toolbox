@@ -40,29 +40,6 @@ public class Constants {
     public static final String VARIABLE_NAME_MATCHUP_ID = "matchup.id";
     public static final String VARIABLE_NAME_ARC2_MATCHUP_ID = "matchup_id";
 
-    public static final String PROPERTY_LOCATIONFILE = "mms.pixelpos.locationfile";
-    public static final String PROPERTY_LATLONFILE = "mms.pixelpos.latlonfile";
-
-    public static final String PROPERTY_OUTPUT_START_TIME = "mms.arc1x2.startTime";
-    public static final String PROPERTY_OUTPUT_STOP_TIME = "mms.arc1x2.stopTime";
-    public static final String PROPERTY_OUTPUT_TMPDIR = "mms.arc1x2.tmpdir";
-    public static final String PROPERTY_OUTPUT_DESTDIR = "mms.arc1x2.destdir";
-    public static final String PROPERTY_ARC1x2_CONDITION = "mms.arc1x2.condition";
-
-    public static final String PROPERTY_OUTPUT_SENSOR = "mms.arc1x2.sensor";
-    public static final String PROPERTY_NWP_ARC3_TMPDIR = "mms.nwp_arc3.tmpdir";
-    public static final String PROPERTY_MMS_NWP_ARC3_INPUT_PATTERN = "mms.nwp_arc3.pattern";
-
-    public static final String PROPERTY_MMS_NWP_PATTERN = "mms.nwp.pattern";
-    public static final String PROPERTY_MMS_NWP_SOURCEDIR = "mms.nwp.sourceDir";
-    public static final String PROPERTY_MMS_ARC3_PATTERN = "mms.arc3.pattern";
-
-    public static final String PROPERTY_MMS_ARC3_HOME = "mms.arc3.home";
-    public static final String PROPERTY_MMS_ARC3_CONFIG_FILE = "mms.arc3.configFile";
-
-    public static final String PROPERTY_NWP_ARC3_START_TIME = "mms.nwp_arc3.startTime";
-    public static final String PROPERTY_NWP_ARC3_STOP_TIME = "mms.nwp_arc3.stopTime";
-
     public static final String SENSOR_NAME_ATSR_MD = "atsr_md";
     public static final String SENSOR_NAME_AVHRR_MD = "avhrr_md";
     public static final String SENSOR_NAME_METOP_MD = "metop";
