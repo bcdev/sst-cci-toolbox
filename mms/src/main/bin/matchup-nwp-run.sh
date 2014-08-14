@@ -12,7 +12,6 @@ mkdir -p ${mms.archive.root}/${usecase}/nwp/${sensor}/${year}
 echo "`date -u +%Y%m%d-%H%M%S` matchup-nwp ${year}/${month} sensor ${sensor}..."
 
 ${mms.home}/bin/nwp-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
--Dmms.target.dimensions=${mms.home}/config/mmd-dimensions.properties \
 -Dmms.nwp.forsensor=false \
 -Dmms.nwp.mmd.source=${mms.archive.root}/${usecase}/sub/${sensor}/${year}/${sensor}-sub-${year}-${month}.nc \
 -Dmms.nwp.nwp.source=${mms.archive.root}/era-interim/v1 \
