@@ -7,7 +7,7 @@ if [ ! -z ${MMS_DEBUG} ]; then
     MMS_OPTIONS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=y"
 fi
 
-java \
+${mms.jdk.home}/bin/java \
     -Dmms.home="${mms.home}" \
     -Xmx8G $MMS_OPTIONS \
     -javaagent:"${mms.home}/lib/openjpa-all-${openjpaversion}.jar" \
