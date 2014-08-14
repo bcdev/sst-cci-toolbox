@@ -55,7 +55,7 @@ public class ObservationFinder {
         final long searchTimeFutureMillis = parameter.getSearchTimeFuture() * 1000;
         final Date startDate = new Date(parameter.getStartTime() - searchTimePastMillis);
         final Date stopDate = new Date(parameter.getStopTime() + searchTimeFutureMillis);
-        final String orbitSensorName = SensorNames.ensureOrbitName(parameter.getSensorName());
+        final String orbitSensorName = SensorNames.getOrbitName(parameter.getSensorName());
 
         final Storage storage = persistenceManager.getStorage();
         final List<RelatedObservation> orbitObservations = storage.getRelatedObservations(orbitSensorName, startDate,
