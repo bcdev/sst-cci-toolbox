@@ -97,38 +97,38 @@ public class SensorNamesTest {
     }
 
     @Test
-    public void testEnsureOrbitName() throws Exception {
+    public void testGetOrbitName() throws Exception {
         String sensorName;
 
         sensorName = "orb_atsr.1";
-        assertSame(sensorName, SensorNames.ensureOrbitName(sensorName));
+        assertSame(sensorName, SensorNames.getOrbitName(sensorName));
 
         sensorName = "orb_atsr.2";
-        assertSame(sensorName, SensorNames.ensureOrbitName(sensorName));
+        assertSame(sensorName, SensorNames.getOrbitName(sensorName));
 
         sensorName = "orb_atsr.3";
-        assertSame(sensorName, SensorNames.ensureOrbitName(sensorName));
+        assertSame(sensorName, SensorNames.getOrbitName(sensorName));
 
-        assertEquals("orb_atsr.1", SensorNames.ensureOrbitName("atsr.1"));
-        assertEquals("orb_atsr.2", SensorNames.ensureOrbitName("atsr.2"));
-        assertEquals("orb_atsr.3", SensorNames.ensureOrbitName("atsr.3"));
+        assertEquals("orb_atsr.1", SensorNames.getOrbitName("atsr.1"));
+        assertEquals("orb_atsr.2", SensorNames.getOrbitName("atsr.2"));
+        assertEquals("orb_atsr.3", SensorNames.getOrbitName("atsr.3"));
 
-        assertEquals("orb_avhrr.n10", SensorNames.ensureOrbitName("avhrr.n10"));
-        assertEquals("orb_avhrr.m01", SensorNames.ensureOrbitName("avhrr.m01"));
-        assertEquals("orb_avhrr.m02", SensorNames.ensureOrbitName("avhrr.m02"));
+        assertEquals("orb_avhrr.n10", SensorNames.getOrbitName("avhrr.n10"));
+        assertEquals("orb_avhrr.m01", SensorNames.getOrbitName("avhrr.m01"));
+        assertEquals("orb_avhrr.m02", SensorNames.getOrbitName("avhrr.m02"));
 
-        assertEquals("orb_avhrr.m01f", SensorNames.ensureOrbitName("avhrr.m01f"));
-        assertEquals("orb_avhrr.m02f", SensorNames.ensureOrbitName("avhrr.m02f"));
+        assertEquals("orb_avhrr.m01f", SensorNames.getOrbitName("avhrr.m01f"));
+        assertEquals("orb_avhrr.m02f", SensorNames.getOrbitName("avhrr.m02f"));
 
         try {
-            SensorNames.ensureOrbitName("aai");
+            SensorNames.getOrbitName("aai");
             fail();
         } catch (IllegalArgumentException expected) {
             //
         }
 
         try {
-            SensorNames.ensureOrbitName("seaice");
+            SensorNames.getOrbitName("seaice");
             fail();
         } catch (IllegalArgumentException expected) {
             //
@@ -136,42 +136,86 @@ public class SensorNamesTest {
     }
 
     @Test
-    public void testEnsureStandardName() throws Exception {
+    public void testGetStandardName() throws Exception {
         String sensorName;
 
         sensorName = "atsr.1";
-        assertSame(sensorName, SensorNames.ensureStandardName(sensorName));
+        assertSame(sensorName, SensorNames.getStandardName(sensorName));
 
         sensorName = "atsr.2";
-        assertSame(sensorName, SensorNames.ensureStandardName(sensorName));
+        assertSame(sensorName, SensorNames.getStandardName(sensorName));
 
         sensorName = "atsr.3";
-        assertSame(sensorName, SensorNames.ensureStandardName(sensorName));
+        assertSame(sensorName, SensorNames.getStandardName(sensorName));
 
-        assertEquals("atsr.1", SensorNames.ensureStandardName("orb_atsr.1"));
-        assertEquals("atsr.2", SensorNames.ensureStandardName("orb_atsr.2"));
-        assertEquals("atsr.3", SensorNames.ensureStandardName("orb_atsr.3"));
+        assertEquals("atsr.1", SensorNames.getStandardName("orb_atsr.1"));
+        assertEquals("atsr.2", SensorNames.getStandardName("orb_atsr.2"));
+        assertEquals("atsr.3", SensorNames.getStandardName("orb_atsr.3"));
 
-        assertEquals("avhrr.n10", SensorNames.ensureStandardName("orb_avhrr.n10"));
-        assertEquals("avhrr.m01", SensorNames.ensureStandardName("orb_avhrr.m01"));
-        assertEquals("avhrr.m02", SensorNames.ensureStandardName("orb_avhrr.m02"));
+        assertEquals("avhrr.n10", SensorNames.getStandardName("orb_avhrr.n10"));
+        assertEquals("avhrr.m01", SensorNames.getStandardName("orb_avhrr.m01"));
+        assertEquals("avhrr.m02", SensorNames.getStandardName("orb_avhrr.m02"));
 
-        assertEquals("avhrr.m01f", SensorNames.ensureStandardName("orb_avhrr.m01f"));
-        assertEquals("avhrr.m02f", SensorNames.ensureStandardName("orb_avhrr.m02f"));
+        assertEquals("avhrr.m01f", SensorNames.getStandardName("orb_avhrr.m01f"));
+        assertEquals("avhrr.m02f", SensorNames.getStandardName("orb_avhrr.m02f"));
 
         try {
-            SensorNames.ensureStandardName("aai");
+            SensorNames.getStandardName("aai");
             fail();
         } catch (IllegalArgumentException expected) {
             //
         }
 
         try {
-            SensorNames.ensureStandardName("seaice");
+            SensorNames.getStandardName("seaice");
             fail();
         } catch (IllegalArgumentException expected) {
             //
         }
     }
 
+    @Test
+    public void testGetBasename() throws Exception {
+        assertEquals("atsr", SensorNames.getBasename("atsr.1"));
+        assertEquals("atsr", SensorNames.getBasename("atsr.2"));
+        assertEquals("atsr", SensorNames.getBasename("atsr.3"));
+        assertEquals("atsr", SensorNames.getBasename("orb_atsr.1"));
+        assertEquals("atsr", SensorNames.getBasename("orb_atsr.2"));
+        assertEquals("atsr", SensorNames.getBasename("orb_atsr.3"));
+
+        assertEquals("avhrr", SensorNames.getBasename("orb_avhrr.n10"));
+        assertEquals("avhrr", SensorNames.getBasename("orb_avhrr.m01"));
+        assertEquals("avhrr", SensorNames.getBasename("orb_avhrr.m02"));
+
+        assertEquals("avhrr", SensorNames.getBasename("orb_avhrr.m01f"));
+        assertEquals("avhrr", SensorNames.getBasename("orb_avhrr.m02f"));
+
+        try {
+            SensorNames.getBasename("aai");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            //
+        }
+
+        try {
+            SensorNames.getBasename("seaice");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            //
+        }
+    }
+
+    @Test
+    public void testGetDimensionNameX() throws Exception {
+        assertEquals("avhrr.nx", SensorNames.getDimensionNameX("avhrr.n10"));
+        assertEquals("avhrr.nx", SensorNames.getDimensionNameX("avhrr.n11"));
+        assertEquals("avhrr.nx", SensorNames.getDimensionNameX("avhrr.n12"));
+    }
+
+    @Test
+    public void testGetDimensionNameY() throws Exception {
+        assertEquals("avhrr.ny", SensorNames.getDimensionNameY("avhrr.n10"));
+        assertEquals("avhrr.ny", SensorNames.getDimensionNameY("avhrr.n11"));
+        assertEquals("avhrr.ny", SensorNames.getDimensionNameY("avhrr.n12"));
+    }
 }

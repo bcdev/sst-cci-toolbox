@@ -1,13 +1,25 @@
 package org.esa.cci.sst.tools;
 
-import org.esa.cci.sst.data.*;
+import org.esa.cci.sst.data.Coincidence;
+import org.esa.cci.sst.data.DataFile;
+import org.esa.cci.sst.data.InsituObservation;
+import org.esa.cci.sst.data.Matchup;
+import org.esa.cci.sst.data.Observation;
+import org.esa.cci.sst.data.ReferenceObservation;
+import org.esa.cci.sst.data.RelatedObservation;
+import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.tools.mmdgeneration.DimensionConfigurationInitializer;
 import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;
 import org.esa.cci.sst.tools.samplepoint.OverlapRemover;
 import org.esa.cci.sst.tools.samplepoint.SamplePointImporter;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
-import org.esa.cci.sst.util.*;
+import org.esa.cci.sst.util.ConfigUtil;
+import org.esa.cci.sst.util.GeometryUtil;
+import org.esa.cci.sst.util.SamplingPoint;
+import org.esa.cci.sst.util.SensorNames;
+import org.esa.cci.sst.util.TimeUtil;
 import org.postgis.PGgeometry;
 
 import javax.persistence.EntityTransaction;
@@ -17,7 +29,10 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,8 +40,10 @@ public class MatchupGenerator extends BasicTool {
 
     private String sensorName1;
     private String sensorName2;
-    private int subSceneWidth;
-    private int subSceneHeight;
+    private int subSceneWidth1;
+    private int subSceneWidth2;
+    private int subSceneHeight1;
+    private int subSceneHeight2;
     private double dirtyPixelFraction;
     private long referenceSensorPattern;
     private String referenceSensorName;
@@ -65,11 +82,24 @@ public class MatchupGenerator extends BasicTool {
         if (sensorNames.length > 1) {
             sensorName2 = sensorNames[1];
         }
-        subSceneWidth = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_WIDTH, 7);
-        subSceneHeight = config.getIntValue(Configuration.KEY_MMS_SAMPLING_SUBSCENE_HEIGHT, 7);
         dirtyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION, 0.0);
         referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
         referenceSensorPattern = config.getPattern(referenceSensorName, 0);
+
+        final Set<String> dimensionNames = new TreeSet<>();
+        dimensionNames.add(SensorNames.getDimensionNameX(sensorName1));
+        dimensionNames.add(SensorNames.getDimensionNameY(sensorName1));
+        if (sensorName2 != null) {
+            dimensionNames.add(SensorNames.getDimensionNameX(sensorName2));
+            dimensionNames.add(SensorNames.getDimensionNameY(sensorName2));
+        }
+        final Map<String, Integer> map = DimensionConfigurationInitializer.initialize(dimensionNames, getConfig());
+        subSceneWidth1 = map.get(SensorNames.getDimensionNameX(sensorName1));
+        subSceneHeight1 = map.get(SensorNames.getDimensionNameY(sensorName1));
+        if (sensorName2 != null) {
+            subSceneWidth2 = map.get(SensorNames.getDimensionNameX(sensorName2));
+            subSceneHeight2 = map.get(SensorNames.getDimensionNameY(sensorName2));
+        }
     }
 
     private void run() throws IOException {
@@ -98,8 +128,8 @@ public class MatchupGenerator extends BasicTool {
             rollbackStack.push(pm.transaction());
             final String sensorShortName = createSensorShortName(referenceSensorName, primarySensorName);
             final List<ReferenceObservation> referenceObservations = createReferenceObservations(samples,
-                    sensorShortName,
-                    storage);
+                                                                                                 sensorShortName,
+                                                                                                 storage);
             pm.commit();
             logInfo(logger, "Finished creating reference observations");
 
@@ -108,7 +138,8 @@ public class MatchupGenerator extends BasicTool {
             logInfo(logger, "Finished persisting reference observations");
 
             logInfo(logger, "Starting creating matchup pattern ...");
-            final long matchupPattern = defineMatchupPattern(primarySensorName, secondarySensorName, referenceSensorPattern, pm, rollbackStack);
+            final long matchupPattern = defineMatchupPattern(primarySensorName, secondarySensorName,
+                                                             referenceSensorPattern, pm, rollbackStack);
             logInfo(logger, MessageFormat.format("Matchup pattern: {0}", Long.toHexString(matchupPattern)));
 
             // create matchups and coincidences
@@ -200,15 +231,16 @@ public class MatchupGenerator extends BasicTool {
     }
 
     // package access for testing only tb 2014-04-03
-    static long defineMatchupPattern(String primarySensorName, String secondarySensorName, long referenceSensorPattern, PersistenceManager pm, Stack<EntityTransaction> rollbackStack) {
+    static long defineMatchupPattern(String primarySensorName, String secondarySensorName, long referenceSensorPattern,
+                                     PersistenceManager pm, Stack<EntityTransaction> rollbackStack) {
         long matchupPattern;
         final Storage storage = pm.getStorage();
         rollbackStack.push(pm.transaction());
 
-        final String primaryOrbitName = SensorNames.ensureOrbitName(primarySensorName);
+        final String primaryOrbitName = SensorNames.getOrbitName(primarySensorName);
         final Sensor primarySensor = storage.getSensor(primaryOrbitName);
         if (secondarySensorName != null) {
-            final String secondaryOrbitName = SensorNames.ensureOrbitName(secondarySensorName);
+            final String secondaryOrbitName = SensorNames.getOrbitName(secondarySensorName);
             final Sensor secondarySensor = storage.getSensor(secondaryOrbitName);
             matchupPattern = referenceSensorPattern | primarySensor.getPattern() | secondarySensor.getPattern();
         } else {
@@ -233,7 +265,8 @@ public class MatchupGenerator extends BasicTool {
     }
 
     // package access for testing only tb 2014-04-03
-    static void persistReferenceObservations(List<ReferenceObservation> referenceObservations, PersistenceManager pm, Stack<EntityTransaction> rollbackStack) {
+    static void persistReferenceObservations(List<ReferenceObservation> referenceObservations, PersistenceManager pm,
+                                             Stack<EntityTransaction> rollbackStack) {
         rollbackStack.push(pm.transaction());
         for (final ReferenceObservation r : referenceObservations) {
             pm.persist(r);
@@ -242,7 +275,7 @@ public class MatchupGenerator extends BasicTool {
     }
 
     static String createSensorShortName(String referenceSensorName, String primarySensorName) {
-        return referenceSensorName.substring(0, 3) + "_" + SensorNames.ensureStandardName(primarySensorName);
+        return referenceSensorName.substring(0, 3) + "_" + SensorNames.getStandardName(primarySensorName);
     }
 
     // package access for testing only tb 2014-03-19
@@ -254,7 +287,7 @@ public class MatchupGenerator extends BasicTool {
         r.setSensor(referenceSensorName);
 
         final PGgeometry location = GeometryUtil.createPointGeometry(samplingPoint.getReferenceLon(),
-                samplingPoint.getReferenceLat());
+                                                                     samplingPoint.getReferenceLat());
         r.setLocation(location);
         r.setPoint(location);
 
@@ -302,7 +335,7 @@ public class MatchupGenerator extends BasicTool {
     }
 
     private OverlapRemover createOverlapRemover() {
-        return new OverlapRemover(subSceneWidth, subSceneHeight);
+        return new OverlapRemover(subSceneWidth1, subSceneHeight1);
     }
 
     private void cleanupIfRequested() {
@@ -334,8 +367,8 @@ public class MatchupGenerator extends BasicTool {
         getPersistenceManager().transaction();
 
         final TimeRange timeRange = ConfigUtil.getTimeRange(Configuration.KEY_MMS_SAMPLING_START_TIME,
-                Configuration.KEY_MMS_SAMPLING_STOP_TIME,
-                getConfig());
+                                                            Configuration.KEY_MMS_SAMPLING_STOP_TIME,
+                                                            getConfig());
         final Date startDate = timeRange.getStartDate();
         final Date stopDate = timeRange.getStopDate();
         Query delete = getPersistenceManager().createNativeQuery(
@@ -363,7 +396,7 @@ public class MatchupGenerator extends BasicTool {
     private void createMatchups(Logger logger, List<SamplingPoint> samples) {
         logInfo(logger, "Starting creating matchups...");
         createMatchups(samples, referenceSensorName, sensorName1, sensorName2, referenceSensorPattern,
-                getPersistenceManager(), getStorage(), logger);
+                       getPersistenceManager(), getStorage(), logger);
         logInfo(logger, "Finished creating matchups...");
     }
 
@@ -377,14 +410,25 @@ public class MatchupGenerator extends BasicTool {
 
     private void removeCloudySamples(Logger logger, List<SamplingPoint> samples, boolean primary) {
         final DirtySubsceneRemover subsceneRemover = new DirtySubsceneRemover();
-        subsceneRemover.primary(primary)
-                .subSceneWidth(subSceneWidth)
-                .subSceneHeight(subSceneHeight)
-                .dirtyPixelFraction(dirtyPixelFraction)
-                .config(getConfig())
-                .storage(getStorage())
-                .logger(logger)
-                .removeSamples(samples);
+        if (primary) {
+            subsceneRemover.primary(true)
+                    .subSceneWidth(subSceneWidth1)
+                    .subSceneHeight(subSceneHeight1)
+                    .dirtyPixelFraction(dirtyPixelFraction)
+                    .config(getConfig())
+                    .storage(getStorage())
+                    .logger(logger)
+                    .removeSamples(samples);
+        } else {
+            subsceneRemover.primary(false)
+                    .subSceneWidth(subSceneWidth2)
+                    .subSceneHeight(subSceneHeight2)
+                    .dirtyPixelFraction(dirtyPixelFraction)
+                    .config(getConfig())
+                    .storage(getStorage())
+                    .logger(logger)
+                    .removeSamples(samples);
+        }
     }
 
     private List<SamplingPoint> loadSamplePoints(Logger logger) throws IOException {

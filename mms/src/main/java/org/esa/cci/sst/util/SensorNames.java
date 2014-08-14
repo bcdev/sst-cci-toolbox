@@ -20,7 +20,7 @@ public class SensorNames {
     }
 
 
-    public static String ensureOrbitName(String sensorName) {
+    public static String getOrbitName(String sensorName) {
         if (isOrbitName(sensorName)) {
             return sensorName;
         }
@@ -30,7 +30,7 @@ public class SensorNames {
         throw new IllegalArgumentException("Sensor name '" + sensorName + "' does not match expected name patterns.");
     }
 
-    public static String ensureStandardName(String sensorName) {
+    public static String getStandardName(String sensorName) {
         if (isStandardName(sensorName)) {
             return sensorName;
         }
@@ -38,6 +38,19 @@ public class SensorNames {
             return sensorName.substring(4);
         }
         throw new IllegalArgumentException("Sensor name '" + sensorName + "' does not match expected name patterns.");
+    }
+
+    public static String getBasename(String sensorName) {
+        final String standardName = getStandardName(sensorName);
+        return standardName.substring(0, standardName.indexOf("."));
+    }
+
+    public static String getDimensionNameX(String sensorName) {
+        return getBasename(sensorName) + ".nx";
+    }
+
+    public static String getDimensionNameY(String sensorName) {
+        return getBasename(sensorName) + ".ny";
     }
 
     public static boolean isOrbitName(String sensorName) {
