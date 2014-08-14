@@ -17,11 +17,6 @@ if [ -d tasks ]; then
 fi
 mkdir tasks
 
-if [ -d tmp ]; then
-  rm -rf tmp/*.*
-fi
-mkdir tmp
-
 if [ -d trace ]; then
   rm -rf trace
 fi
