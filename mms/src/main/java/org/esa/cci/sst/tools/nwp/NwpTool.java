@@ -119,7 +119,6 @@ class NwpTool extends BasicTool {
         forSensor = config.getBooleanValue(Configuration.KEY_MMS_NWP_FOR_SENSOR);
         if (forSensor) {
             sensorName = SensorNames.getStandardName(config.getStringValue(Configuration.KEY_MMS_NWP_SENSOR));
-            // TODO - check for AVHRRs, patterns of orbit files and sub-scene files are different (rq-20140304)
             sensorPattern = (int) config.getPattern(sensorName);
         }
     }
