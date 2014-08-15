@@ -64,6 +64,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 
+import static ucar.nc2.NetcdfFileWriter.Version;
+
 /**
  * Tool for writing the matchup data file.
  *
@@ -463,12 +465,12 @@ public class MmdTool extends BasicTool {
     static NetcdfFileWriter createNetCDFWriter(Configuration config) throws IOException {
         final String mmdDirPath = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_DIR, ".");
         final String mmdFileName = config.getStringValue(Configuration.KEY_MMS_MMD_TARGET_FILENAME);
-        final String mmdFilePath = new File(mmdDirPath, mmdFileName).getPath();
+        final File mmdFile = new File(mmdDirPath, mmdFileName);
+        if (mmdFile.exists()) {
+            mmdFile.delete();
+        }
 
-        final NetcdfFileWriter mmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, mmdFilePath);
-        mmd.setLargeFile(true);
-
-        return mmd;
+        return NetcdfFileWriter.createNew(Version.netcdf4_classic, mmdFile.getPath());
     }
 
     // package access for testing only tb 2014-03-11
