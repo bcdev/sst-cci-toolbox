@@ -43,7 +43,6 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     private static final String VAR_NAME_TIME = "time";
     private static final String VAR_NAME_DTIME = "dtime";
 
-    private final ProfilePartReader flagCodingReader;
     private final ProfilePartReader indexCodingReader;
 
     private int leadLineSkip;
@@ -58,7 +57,6 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
 
     protected NcAvhrrGacProductReader(ProductReaderPlugIn readerPlugIn) {
         super(readerPlugIn);
-        flagCodingReader = new CfFlagCodingPart();
         indexCodingReader = new CfIndexCodingPart();
     }
 
@@ -185,11 +183,11 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
             final String bandName = band.getName();
             if (validMin != null && validMax != null) {
                 band.setValidPixelExpression(
-                        String.format("%s >= %s && %s <= %s", bandName, validMin, bandName, validMax));
+                        String.format("%s.raw >= %s && %s.raw <= %s", bandName, validMin, bandName, validMax));
             } else if (validMin != null) {
-                band.setValidPixelExpression(String.format("%s >= %s", bandName, validMin));
+                band.setValidPixelExpression(String.format("%s.raw >= %s", bandName, validMin));
             } else if (validMax != null) {
-                band.setValidPixelExpression(String.format("%s <= %s", bandName, validMax));
+                band.setValidPixelExpression(String.format("%s.raw <= %s", bandName, validMax));
             }
         }
     }
