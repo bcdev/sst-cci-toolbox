@@ -49,7 +49,7 @@ public class NcAvhrrGacReaderTest {
 
         NcAvhrrGacProductReader.addValidPixelExpression(variable, testBand);
 
-        assertEquals("test >= 20.0", testBand.getValidPixelExpression());
+        assertEquals("test.raw >= 20.0", testBand.getValidPixelExpression());
     }
 
     @Test
@@ -59,7 +59,7 @@ public class NcAvhrrGacReaderTest {
 
         NcAvhrrGacProductReader.addValidPixelExpression(variable, testBand);
 
-        assertEquals("test <= 21.0", testBand.getValidPixelExpression());
+        assertEquals("test.raw <= 21.0", testBand.getValidPixelExpression());
     }
 
     @Test
@@ -71,7 +71,7 @@ public class NcAvhrrGacReaderTest {
 
         NcAvhrrGacProductReader.addValidPixelExpression(variable, testBand);
 
-        assertEquals("test >= 17.0 && test <= 22.0", testBand.getValidPixelExpression());
+        assertEquals("test.raw >= 17.0 && test.raw <= 22.0", testBand.getValidPixelExpression());
     }
 
     @Test
