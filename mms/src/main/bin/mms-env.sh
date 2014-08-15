@@ -39,9 +39,7 @@ wait_for_task_jobs_completion() {
     while true
     do
         sleep 10
-        
-        echo "`date -u +%Y%m%d-%H%M%S` inquiring jobs ${jobs} for ${jobname}"
-        # output of bjobs command:
+        # Output of bjobs command:
         # JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
         # 619450  rquast  RUN   lotus      lotus.jc.rl host042.jc. *r.n10-sub Aug 14 10:15
         # 619464  rquast  RUN   lotus      lotus.jc.rl host087.jc. *r.n11-sub Aug 14 10:15
@@ -52,8 +50,6 @@ wait_for_task_jobs_completion() {
         then
             continue
         fi
-
-        sleep 10
 
         if [ -s ${MMS_TASKS}/${jobname}.tasks ]
         then
@@ -68,14 +64,14 @@ wait_for_task_jobs_completion() {
                     then
                         echo "tail -n10 ${log}"
                         tail -n10 ${log}
-                        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed (reason: see ${log})"
+                        echo "`date -u +%Y%m%d-%H%M%S`: tasks for ${jobname} failed (reason: see ${log})"
                         exit 1
                     else
-                        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} done"
+                        echo "`date -u +%Y%m%d-%H%M%S`: tasks for ${jobname} done"
                         exit 0
                     fi
                 else
-                        echo "`date -u +%Y%m%d-%H%M%S` logfile ${log} for job ${job} not found"
+                        echo "`date -u +%Y%m%d-%H%M%S`: logfile ${log} for job ${job} not found"
                 fi
             done
         fi
@@ -105,7 +101,7 @@ submit_job() {
         jobs=`echo ${line} | awk '{ print substr($2,2,length($2)-2) }'`
         echo "${MMS_LOG}/${jobname}.out/${jobs}" > ${MMS_TASKS}/${jobname}.tasks
     else
-        echo "`date -u +%Y%m%d-%H%M%S` tasks for ${jobname} failed (reason: was not submitted)"
+        echo "`date -u +%Y%m%d-%H%M%S`: tasks for ${jobname} failed (reason: was not submitted)"
         exit 1
     fi
 }
