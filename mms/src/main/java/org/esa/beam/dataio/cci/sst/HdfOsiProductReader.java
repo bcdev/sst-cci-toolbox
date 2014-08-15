@@ -52,8 +52,8 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
     static final String NORTHERN_HEMISPHERE = "OSISAF_NH";
     static final String SOUTHERN_HEMISPHERE = "OSISAF_SH";
 
-    private static final String SEA_ICE_PARAMETER_BANDNAME = "sea_ice_concentration";
-    private static final String QUALITY_FLAG_BANDNAME = "quality_flag";
+    private static final String SEA_ICE_PARAMETER_BAND_NAME = "sea_ice_concentration";
+    private static final String QUALITY_FLAG_BAND_NAME = "quality_flag";
     private static final String VARIABLE_NAME = "Data/" + NetcdfFile.makeValidPathName("data[00]");
     private static final String DESCRIPTION_SEA_ICE = "A data product containing information about sea ice " +
                                                       "concentration: it indicates the areal fraction of a given grid " +
@@ -85,12 +85,12 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
     @Override
     protected final void addBands(Product product) {
         if (isSeaIceFile(product.getFileLocation())) {
-            final Band band = product.addBand(SEA_ICE_PARAMETER_BANDNAME, ProductData.TYPE_FLOAT32);
+            final Band band = product.addBand(SEA_ICE_PARAMETER_BAND_NAME, ProductData.TYPE_FLOAT32);
             band.setNoDataValue(-32767.0);
             band.setNoDataValueUsed(true);
             product.setDescription(DESCRIPTION_SEA_ICE);
         } else {
-            final Band band = product.addBand(QUALITY_FLAG_BANDNAME, ProductData.TYPE_INT16);
+            final Band band = product.addBand(QUALITY_FLAG_BAND_NAME, ProductData.TYPE_INT16);
             band.setNoDataValue(-32767);
             band.setNoDataValueUsed(true);
             product.setDescription(DESCRIPTION_QUALITY_FLAG);
@@ -122,7 +122,8 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
         final int sourceHeight = band.getSceneRasterHeight();
         final Dimension tileSize = band.getProduct().getPreferredTileSize();
 
-        return new ImageVariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize, ResolutionLevel.MAXRES) {
+        return new ImageVariableOpImage(variable, bufferType, sourceWidth, sourceHeight, tileSize,
+                                        ResolutionLevel.MAXRES) {
             @Override
             protected final int getIndexX(int rank) {
                 return rank - 2;
@@ -195,16 +196,19 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
         final int h = findVariable(header, "ih").readScalarInt();
         final String area = findVariable(header, "area").readScalarString();
         final String code;
-        if (NORTHERN_HEMISPHERE.equals(area)) {
-            code = "EPSG:3411";
-        } else if (SOUTHERN_HEMISPHERE.equals(area)) {
-            code = "EPSG:3412";
-        } else {
-            // code for computing math transform for higher latitude grid is to be found
-            // in commit e9a32d1c6d18670c358f8e9434a7d2becb149449
-            throw new IllegalStateException(
-                    "Grid support for grids different from 'Northern Hemisphere Grid' and " +
-                    "'Southern Hemisphere Grid' not yet implemented.");
+        switch (area) {
+            case NORTHERN_HEMISPHERE:
+                code = "EPSG:3411";
+                break;
+            case SOUTHERN_HEMISPHERE:
+                code = "EPSG:3412";
+                break;
+            default:
+                // code for computing math transform for higher latitude grid is to be found
+                // in commit e9a32d1c6d18670c358f8e9434a7d2becb149449
+                throw new IllegalStateException(
+                        "Grid support for grids different from 'Northern Hemisphere Grid' and " +
+                        "'Southern Hemisphere Grid' not yet implemented.");
         }
         try {
             final CoordinateReferenceSystem crs = CRS.decode(code);
@@ -214,9 +218,7 @@ public class HdfOsiProductReader extends NetcdfProductReaderTemplate {
             final double pixelSizeY = findVariable(header, "Ay").readScalarFloat() * KM;
 
             return new CrsGeoCoding(crs, w, h, easting, northing, pixelSizeX, pixelSizeY, 0.0, 0.0);
-        } catch (FactoryException e) {
-            throw new IllegalStateException(e);
-        } catch (TransformException e) {
+        } catch (FactoryException | TransformException e) {
             throw new IllegalStateException(e);
         }
     }
