@@ -1,2 +1,2 @@
 #!/bin/bash
-${mms.pg.home}/bin/pg_ctl -D $(dirname ${mms.pg.data}) -l ${mms.pg.log} start
+${mms.pg.home}/bin/pg_ctl -D ${mms.pg.data} -l ${mms.pg.log} start
