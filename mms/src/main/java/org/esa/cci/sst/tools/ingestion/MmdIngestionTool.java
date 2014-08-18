@@ -105,18 +105,19 @@ public class MmdIngestionTool extends BasicTool {
             getPersistenceManager().transaction();
             final Storage storage = getStorage();
             Sensor sensor = storage.getSensor(sensorName);
-            final boolean persistSensor = (sensor == null);
-            if (persistSensor) {
+            final boolean sensorNotPersisted = sensor == null;
+            if (sensorNotPersisted) {
                 try {
                     sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
                     // make sensor entry visible to concurrent processes to avoid duplicate creation
+                    getPersistenceManager().commit();
+                    getPersistenceManager().transaction();
                 } catch (EntityExistsException e) {
+                    getPersistenceManager().transaction();
                     sensor = storage.getSensor(sensorName);
                 }
             }
-            getPersistenceManager().commit();
 
-            getPersistenceManager().transaction();
             if (overwrite) {
                 dataFile = storage.getDatafile(mmdFileRelativePath);
                 if (dataFile != null) {
