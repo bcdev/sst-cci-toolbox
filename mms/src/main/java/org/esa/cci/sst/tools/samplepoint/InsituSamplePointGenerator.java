@@ -15,6 +15,7 @@ import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 
+import javax.persistence.EntityExistsException;
 import javax.persistence.EntityTransaction;
 import java.io.File;
 import java.io.IOException;
@@ -209,18 +210,20 @@ public class InsituSamplePointGenerator {
     }
 
     private int persist(File insituFile) {
-        // TODO - discuss with TB
-        final EntityTransaction transaction = persistenceManager.transaction();
-        final DataFile storageDatafile = storage.getDatafile(insituFile.getPath());
+        EntityTransaction transaction = persistenceManager.transaction();
+        DataFile datafile = storage.getDatafile(insituFile.getPath());
 
-        if (storageDatafile == null) {
-            final DataFile dataFile = createDataFile(insituFile, sensor);
-            storage.store(dataFile);
-            transaction.commit();
-            return dataFile.getId();
-        } else {
-            transaction.commit();
-            return storageDatafile.getId();
+        if (datafile == null) {
+            datafile = createDataFile(insituFile, sensor);
+            try {
+                storage.store(datafile);
+                transaction.commit();
+            } catch (EntityExistsException e) {
+                transaction = persistenceManager.transaction();
+                datafile = storage.getDatafile(insituFile.getPath());
+            }
         }
+        transaction.commit();
+        return datafile.getId();
     }
 }
