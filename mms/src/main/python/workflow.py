@@ -166,7 +166,7 @@ class Period:
         return self.__eq__(other) or self.__lt__(other)
 
     def __hash__(self):
-        return self.get_start_date().__hash__() + 17 * self.get_end_date().__hash__()
+        return self.get_start_date().__hash__() + 31 * self.get_end_date().__hash__()
 
 
 class MultiPeriod:
@@ -244,7 +244,7 @@ class Sensor:
         :type other: Sensor
         :return: boolean
         """
-        return self.get_name() == other.get_name()
+        return self.get_name() == other.get_name() and self.get_period() == other.get_period()
 
     def __ne__(self, other):
         """
@@ -252,7 +252,7 @@ class Sensor:
         :type other: Sensor
         :return: boolean
         """
-        return self.get_name() != other.get_name()
+        return self.get_name() != other.get_name() or self.get_period() != other.get_period()
 
     def __ge__(self, other):
         """
@@ -260,7 +260,8 @@ class Sensor:
         :type other: Sensor
         :return: boolean
         """
-        return self.get_name() >= other.get_name()
+        return self.get_name() >= other.get_name() or (
+            self.get_name() == other.get_name() and self.get_period() >= other.get_period())
 
     def __gt__(self, other):
         """
@@ -268,7 +269,8 @@ class Sensor:
         :type other: Sensor
         :return: boolean
         """
-        return self.get_name() > other.get_name()
+        return self.get_name() > other.get_name() or (
+            self.get_name() == other.get_name() and self.get_period() > other.get_period())
 
     def __le__(self, other):
         """
@@ -276,7 +278,8 @@ class Sensor:
         :type other: Sensor
         :return: boolean
         """
-        return self.get_name() <= other.get_name()
+        return self.get_name() <= other.get_name() or (
+            self.get_name() == other.get_name() and self.get_period() <= other.get_period())
 
     def __lt__(self, other):
         """
@@ -284,10 +287,11 @@ class Sensor:
         :type other: Sensor
         :return: boolean
         """
-        return self.get_name() < other.get_name()
+        return self.get_name() < other.get_name() or (
+            self.get_name() == other.get_name() and self.get_period() < other.get_period())
 
     def __hash__(self):
-        return self.get_name().__hash__()
+        return self.get_name().__hash__() * 31 + self.get_period().__hash__()
 
 
 class SensorPair:
@@ -1104,7 +1108,7 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                job = Job('mmd-start' + '-' +  year + '-' + month + '-' + name + '-' + mmdtype,
+                job = Job('mmd-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
                           'mmd-start.sh',
                           ['/con/' + sensor_1 + '/' + _pathformat(date),
                            '/con/' + sensor_2 + '/' + _pathformat(date)],

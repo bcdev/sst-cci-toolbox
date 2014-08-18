@@ -127,13 +127,15 @@ class WorkflowTests(unittest.TestCase):
 
     def test_sensor_equality(self):
         sensor_1 = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
-        sensor_2 = Sensor('atsr.3', Period((2008, 1, 1), (2009, 1, 1)))
+        sensor_2 = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
         self.assertTrue(sensor_1 == sensor_2)
 
     def test_sensor_inequality(self):
         sensor_1 = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
-        sensor_2 = Sensor('atsr.2', Period((2008, 1, 1), (2009, 1, 1)))
+        sensor_2 = Sensor('atsr.2', Period((2007, 1, 1), (2008, 1, 1)))
+        sensor_3 = Sensor('atsr.3', Period((2008, 1, 1), (2009, 1, 1)))
         self.assertTrue(sensor_1 != sensor_2)
+        self.assertTrue(sensor_1 != sensor_3)
 
     def test_sensor_ge(self):
         sensor_1 = Sensor('atsr.3', Period((2007, 1, 1), (2008, 1, 1)))
@@ -212,7 +214,7 @@ class WorkflowTests(unittest.TestCase):
         w.add_primary_sensor('atsr.2', (2007, 1, 1), (2008, 1, 1))
         self.assertEqual(2, len(w._get_primary_sensors()))
         w.add_primary_sensor('atsr.3', (2008, 1, 1), (2009, 1, 1))
-        self.assertEqual(2, len(w._get_primary_sensors()))
+        self.assertEqual(3, len(w._get_primary_sensors()))
 
     def test_add_secondary_sensors_to_workflow(self):
         w = Workflow('test')
@@ -527,8 +529,8 @@ class WorkflowTests(unittest.TestCase):
         with open('mms1.report', 'r') as report:
             self.assertEqual(253, len(report.readlines()))
 
-        #os.remove('mms1.status')
-        #os.remove('mms1.report')
+        os.remove('mms1.status')
+        os.remove('mms1.report')
 
     def test_run_single_sensor_usecase(self):
         usecase = 'mms3'
