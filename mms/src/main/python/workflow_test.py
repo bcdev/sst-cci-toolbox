@@ -209,8 +209,19 @@ class WorkflowTests(unittest.TestCase):
         w = Workflow('test')
         w.add_primary_sensor('atsr.3', (2007, 1, 1), (2008, 1, 1))
         self.assertEqual(1, len(w._get_primary_sensors()))
-        w.add_primary_sensor('atsr.3', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(1, len(w._get_primary_sensors()))
+
+        try:
+            w.add_primary_sensor('atsr.3', (2007, 1, 1), (2008, 1, 1))
+            self.fail()
+        except exceptions.ValueError:
+            pass
+
+        try:
+            w.add_primary_sensor('atsr.3', (2007, 7, 1), (2008, 1, 1))
+            self.fail()
+        except exceptions.ValueError:
+            pass
+
         w.add_primary_sensor('atsr.2', (2007, 1, 1), (2008, 1, 1))
         self.assertEqual(2, len(w._get_primary_sensors()))
         w.add_primary_sensor('atsr.3', (2008, 1, 1), (2009, 1, 1))
@@ -220,8 +231,19 @@ class WorkflowTests(unittest.TestCase):
         w = Workflow('test')
         w.add_secondary_sensor('avhrr.n10', (2007, 1, 1), (2008, 1, 1))
         self.assertEqual(1, len(w._get_secondary_sensors()))
-        w.add_secondary_sensor('avhrr.n10', (2007, 1, 1), (2008, 1, 1))
-        self.assertEqual(1, len(w._get_secondary_sensors()))
+
+        try:
+            w.add_secondary_sensor('avhrr.n10', (2007, 1, 1), (2008, 1, 1))
+            self.fail()
+        except exceptions.ValueError:
+            pass
+
+        try:
+            w.add_secondary_sensor('avhrr.n10', (2007, 7, 1), (2008, 1, 1))
+            self.fail()
+        except exceptions.ValueError:
+            pass
+
         w.add_secondary_sensor('avhrr.n11', (2007, 1, 1), (2008, 1, 1))
         self.assertEqual(2, len(w._get_secondary_sensors()))
         w.add_secondary_sensor('avhrr.n12', (2008, 1, 1), (2009, 1, 1))

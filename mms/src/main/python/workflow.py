@@ -547,6 +547,10 @@ class Workflow:
 
         :type name: str
         """
+        period = Period(start_date, end_date)
+        for sensor in self._get_primary_sensors():
+            if sensor.get_name() == name and sensor.get_period().is_intersecting(period):
+                raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
         self.primary_sensors.add(Sensor(name, Period(start_date, end_date)))
 
     def add_secondary_sensor(self, name, start_date, end_date):
@@ -554,7 +558,11 @@ class Workflow:
 
         :type name: str
         """
-        self.secondary_sensors.add(Sensor(name, Period(start_date, end_date)))
+        period = Period(start_date, end_date)
+        for sensor in self._get_secondary_sensors():
+            if sensor.get_name() == name and sensor.get_period().is_intersecting(period):
+                raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
+        self.secondary_sensors.add(Sensor(name, period))
 
     def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace', with_history=False,
             simulation=False):
