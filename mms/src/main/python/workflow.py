@@ -507,7 +507,6 @@ class Workflow:
         self.usecase = usecase
         self.production_period = production_period
         self.samples_per_month = 300000
-        self.samples_skip = 0
         self.primary_sensors = set()
         self.secondary_sensors = set()
 
@@ -538,20 +537,6 @@ class Workflow:
         :type samples_per_month: int
         """
         self.samples_per_month = samples_per_month
-
-    def get_samples_skip(self):
-        """
-
-        :rtype : int
-        """
-        return self.samples_skip
-
-    def set_samples_skip(self, samples_skip):
-        """
-
-        :type samples_skip: int
-        """
-        self.samples_skip = samples_skip
 
     def add_primary_sensor(self, name, start_date, end_date):
         """
@@ -818,21 +803,34 @@ class Workflow:
             monitor.execute(job)
             date = _next_month(date)
 
+    @staticmethod
+    def __compute_samples_index(name, date, m):
+        """
+
+
+        :type name: str
+        :type date: datetime.date
+        :type m: int
+        :rtype : int
+        """
+        return abs((name.__hash__() * 31 + date.year * 31) + date.month) * m
+
     def _execute_sampling(self, monitor):
         """
 
         :type monitor: Monitor
         """
         m = self.samples_per_month
-        n = self.samples_skip
 
         for sensor_pair in self._get_sensor_pairs():
             name = sensor_pair.get_name()
+            """:type : str"""
             period = sensor_pair.get_period()
             date = period.get_start_date()
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
+                n = self.__compute_samples_index(name, date, m)
                 job = Job('sampling-start' + '-' + year + '-' + month + '-' + name,
                           'sampling-start.sh',
                           ['/obs/' + _pathformat(_prev_month(date)),
@@ -844,8 +842,6 @@ class Workflow:
                           [year, month, name, m, n, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
-
-                n += m
 
     def _execute_clearing(self, monitor):
         """

@@ -527,8 +527,8 @@ class WorkflowTests(unittest.TestCase):
         with open('mms1.report', 'r') as report:
             self.assertEqual(253, len(report.readlines()))
 
-        os.remove('mms1.status')
-        os.remove('mms1.report')
+        #os.remove('mms1.status')
+        #os.remove('mms1.report')
 
     def test_run_single_sensor_usecase(self):
         usecase = 'mms3'
