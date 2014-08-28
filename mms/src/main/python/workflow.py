@@ -326,19 +326,33 @@ class SensorPair:
         """
         return self.name
 
-    def get_primary(self):
+    def get_primary_name(self):
         """
 
         :rtype : str
         """
         return self.primary_sensor.get_name()
 
-    def get_secondary(self):
+    def get_secondary_name(self):
         """
 
         :rtype : str
         """
         return self.secondary_sensor.get_name()
+
+    def get_primary(self):
+        """
+
+        :rtype : Sensor
+        """
+        return self.primary_sensor
+
+    def get_secondary(self):
+        """
+
+        :rtype : Sensor
+        """
+        return self.secondary_sensor
 
     def get_period(self):
         """
@@ -400,9 +414,9 @@ class SensorPair:
 
     def __hash__(self):
         if self.get_primary() < self.get_secondary():
-            return (self.get_primary() + self.get_secondary()).__hash__()
+            return self.get_primary().__hash__() * 31 + self.get_secondary().__hash__()
         else:
-            return (self.get_secondary() + self.get_primary()).__hash__()
+            return self.get_secondary().__hash__() * 31 + self.get_primary().__hash__()
 
 
 class Job:
@@ -550,7 +564,7 @@ class Workflow:
         for sensor in self._get_primary_sensors():
             if sensor.get_name() == name and sensor.get_period().is_intersecting(period):
                 raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
-        self.primary_sensors.add(Sensor(name, Period(start_date, end_date)))
+        self.primary_sensors.add(Sensor(name, period))
 
     def add_secondary_sensor(self, name, start_date, end_date):
         """
@@ -654,10 +668,10 @@ class Workflow:
         """
         multi_periods = dict()
         for sensor_pair in self._get_sensor_pairs():
-            sensor = sensor_pair.get_primary()
+            sensor = sensor_pair.get_primary_name()
             period = sensor_pair.get_period()
             Workflow.__add_period(multi_periods, sensor, period)
-            sensor = sensor_pair.get_secondary()
+            sensor = sensor_pair.get_secondary_name()
             Workflow.__add_period(multi_periods, sensor, period)
         sensors = list()
         for name in sorted(multi_periods.keys()):
@@ -672,7 +686,7 @@ class Workflow:
         """
         multi_periods = dict()
         for sensor_pair in self._get_sensor_pairs():
-            sensor = sensor_pair.get_primary()
+            sensor = sensor_pair.get_primary_name()
             period = sensor_pair.get_period()
             Workflow.__add_period(multi_periods, sensor, period)
         sensors = list()
@@ -860,8 +874,8 @@ class Workflow:
         :type monitor: Monitor
         """
         for sensor_pair in self._get_sensor_pairs():
-            sensor_1 = sensor_pair.get_primary()
-            sensor_2 = sensor_pair.get_secondary()
+            sensor_1 = sensor_pair.get_primary_name()
+            sensor_2 = sensor_pair.get_secondary_name()
             name = sensor_pair.get_name()
             period = sensor_pair.get_period()
             date = period.get_start_date()
@@ -1107,8 +1121,8 @@ class Workflow:
         :type mmdtype: str
         """
         for sensor_pair in self._get_sensor_pairs():
-            sensor_1 = sensor_pair.get_primary()
-            sensor_2 = sensor_pair.get_secondary()
+            sensor_1 = sensor_pair.get_primary_name()
+            sensor_2 = sensor_pair.get_secondary_name()
             name = sensor_pair.get_name()
             period = sensor_pair.get_period()
             date = period.get_start_date()

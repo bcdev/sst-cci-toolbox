@@ -152,13 +152,13 @@ class WorkflowTests(unittest.TestCase):
         sensor_3 = Sensor('atsr.1', Period((2008, 1, 1), (2009, 1, 1)))
 
         sensor_pair = SensorPair(sensor_1, sensor_2)
-        self.assertEqual('atsr.3', sensor_pair.get_primary())
-        self.assertEqual('atsr.2', sensor_pair.get_secondary())
+        self.assertEqual('atsr.3', sensor_pair.get_primary_name())
+        self.assertEqual('atsr.2', sensor_pair.get_secondary_name())
         self.assertEqual(Period((2007, 7, 1), (2008, 1, 1)), sensor_pair.get_period())
 
         sensor_pair = SensorPair(sensor_3, sensor_2)
-        self.assertEqual('atsr.1', sensor_pair.get_primary())
-        self.assertEqual('atsr.2', sensor_pair.get_secondary())
+        self.assertEqual('atsr.1', sensor_pair.get_primary_name())
+        self.assertEqual('atsr.2', sensor_pair.get_secondary_name())
         self.assertEqual(Period((2008, 1, 1), (2008, 7, 1)), sensor_pair.get_period())
 
         try:
@@ -260,8 +260,8 @@ class WorkflowTests(unittest.TestCase):
 
         sensor_pairs = w._get_sensor_pairs()
         self.assertEqual(2, len(sensor_pairs))
-        self.assertEqual('avhrr.n12', sensor_pairs[0].get_primary())
-        self.assertEqual('avhrr.n11', sensor_pairs[1].get_primary())
+        self.assertEqual('avhrr.n12', sensor_pairs[0].get_primary_name())
+        self.assertEqual('avhrr.n11', sensor_pairs[1].get_primary_name())
 
     def test_get_all_sensors_by_period(self):
         w = Workflow('test')
