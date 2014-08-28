@@ -5,6 +5,9 @@ currentdir=`pwd`
 cd ${mms.github} && git pull
 cd ${currentdir}
 
+#commithash=`git log --abbrev-commit -1 --pretty=%H`
+#commithash=`git log --abbrev-commit -1 --pretty=%h`
+
 # build new software version
 mvn -f ${mms.github}/pom.xml clean package assembly:assembly
 

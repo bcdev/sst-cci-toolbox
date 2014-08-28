@@ -829,16 +829,16 @@ class Workflow:
             date = _next_month(date)
 
     @staticmethod
-    def __compute_samples_index(name, date, m):
+    def __compute_samples_index(sensor_pair, date, m):
         """
 
 
-        :type name: str
+        :type sensor_pair: SensorPair
         :type date: datetime.date
         :type m: int
         :rtype : int
         """
-        return abs((name.__hash__() * 31 + date.year * 31) + date.month) * m
+        return abs((sensor_pair.__hash__() * 31 + date.year) * 31 + date.month) * m
 
     def _execute_sampling(self, monitor):
         """
@@ -855,7 +855,7 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                n = self.__compute_samples_index(name, date, m)
+                n = self.__compute_samples_index(sensor_pair, date, m)
                 job = Job('sampling-start' + '-' + year + '-' + month + '-' + name,
                           'sampling-start.sh',
                           ['/obs/' + _pathformat(_prev_month(date)),
