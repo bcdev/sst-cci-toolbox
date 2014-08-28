@@ -60,7 +60,7 @@ public class MmdIngestionTool extends BasicTool {
 
     private MmdReader reader;
     private Ingester ingester;
-    private DataFile dataFile;
+    private DataFile datafile;
 
     private MmdIngestionTool() {
         super("reingestion-tool.sh", "1.0");
@@ -105,8 +105,7 @@ public class MmdIngestionTool extends BasicTool {
             getPersistenceManager().transaction();
             final Storage storage = getStorage();
             Sensor sensor = storage.getSensor(sensorName);
-            final boolean sensorNotPersisted = sensor == null;
-            if (sensorNotPersisted) {
+            if (sensor == null) {
                 try {
                     sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
                     // make sensor entry visible to concurrent processes to avoid duplicate creation
@@ -119,27 +118,31 @@ public class MmdIngestionTool extends BasicTool {
             }
 
             if (overwrite) {
-                dataFile = storage.getDatafile(mmdFileRelativePath);
-                if (dataFile != null) {
-                    deleteObservationsAndCoincidences(dataFile);
+                datafile = storage.getDatafile(mmdFileRelativePath);
+                if (datafile != null) {
+                    deleteObservationsAndCoincidences(datafile);
                 }
                 getPersistenceManager().commit();
             }
 
-            boolean datafileNotPersisted = dataFile == null;
+            boolean datafileNotPersisted = datafile == null;
             if (datafileNotPersisted) {
                 createDataFile(sensor, mmdFileRelativePath);
             }
 
-            initReader(dataFile, archiveRoot);
+            initReader(datafile, archiveRoot);
 
             getPersistenceManager().transaction();
-            persistColumns(sensorName);
-            getPersistenceManager().commit();
+            try {
+                persistColumns(sensorName);
+                getPersistenceManager().commit();
+            } catch (EntityExistsException ignored) {
+                //
+            }
 
             getPersistenceManager().transaction();
             if (datafileNotPersisted) {
-                storeDataFile(dataFile, storage);
+                datafile = storeDataFile(datafile, storage);
             }
             ingestObservations(pattern);
             getPersistenceManager().commit();
@@ -181,26 +184,25 @@ public class MmdIngestionTool extends BasicTool {
         try {
             ingester.persistColumns(sensorName, reader);
         } catch (IOException e) {
-            throw new ToolException(
-                    MessageFormat.format("Unable to persist columns for sensor ''{0}''.", sensorName),
-                    e,
-                    ToolException.TOOL_ERROR);
+            final String message = MessageFormat.format("Unable to persist columns for sensor ''{0}''.", sensorName);
+            throw new ToolException(message, e, ToolException.TOOL_ERROR);
         }
     }
 
     private DataFile createDataFile(Sensor sensor, String path) {
         final File mmdFile = new File(path);
-        dataFile = new DataFile(mmdFile, sensor);
-        return dataFile;
+        datafile = new DataFile(mmdFile, sensor);
+        return datafile;
     }
 
     // package access for testing only tb 2014-03-05
-    static void storeDataFile(DataFile dataFile, Storage storage) {
-        final DataFile datafileFromDb = storage.getDatafile(dataFile.getPath());
-        if (datafileFromDb == null) {
-            storage.store(dataFile);
+    static DataFile storeDataFile(DataFile datafile, Storage storage) {
+        final DataFile persistedDatafile = storage.getDatafile(datafile.getPath());
+        if (persistedDatafile == null) {
+            storage.store(datafile);
+            return datafile;
         } else {
-            throw new IllegalStateException("Trying to ingest duplicate datafile.");
+            return persistedDatafile;
         }
     }
 
