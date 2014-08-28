@@ -213,7 +213,9 @@ public class InsituSamplePointGenerator {
         EntityTransaction transaction = persistenceManager.transaction();
         DataFile datafile = storage.getDatafile(insituFile.getPath());
 
-        if (datafile == null) {
+        if (datafile != null) {
+            transaction.commit();
+        } else {
             datafile = createDataFile(insituFile, sensor);
             try {
                 storage.store(datafile);
@@ -221,9 +223,9 @@ public class InsituSamplePointGenerator {
             } catch (EntityExistsException e) {
                 transaction = persistenceManager.transaction();
                 datafile = storage.getDatafile(insituFile.getPath());
+                transaction.commit();
             }
         }
-        transaction.commit();
         return datafile.getId();
     }
 }
