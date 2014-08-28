@@ -137,12 +137,12 @@ public class MmdIngestionTool extends BasicTool {
                 persistColumns(sensorName);
                 getPersistenceManager().commit();
             } catch (EntityExistsException ignored) {
-                //
+                // columns have already been persisted
             }
 
             getPersistenceManager().transaction();
             if (datafileNotPersisted) {
-                datafile = storeDataFile(datafile, storage);
+                storeDataFile(datafile, storage);
             }
             ingestObservations(pattern);
             getPersistenceManager().commit();
@@ -196,16 +196,14 @@ public class MmdIngestionTool extends BasicTool {
     }
 
     // package access for testing only tb 2014-03-05
-    static DataFile storeDataFile(DataFile datafile, Storage storage) {
-        final DataFile persistedDatafile = storage.getDatafile(datafile.getPath());
+    static void storeDataFile(DataFile dataFile, Storage storage) {
+        final DataFile persistedDatafile = storage.getDatafile(dataFile.getPath());
         if (persistedDatafile == null) {
-            storage.store(datafile);
-            return datafile;
+            storage.store(dataFile);
         } else {
-            return persistedDatafile;
+            throw new IllegalStateException("Trying to ingest duplicate datafile.");
         }
     }
-
     private void initReader(final DataFile dataFile, File archiveRoot) {
         reader = new MmdReader(dataFile.getSensor().getName());
         final GunzipDecorator decorator = new GunzipDecorator(reader);
