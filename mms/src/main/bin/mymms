@@ -12,3 +12,6 @@ else
 fi
 
 export PATH=${mms.home}/bin:${mms.pg.home}/bin:${PATH}
+
+echo "using MMS software in ${mms.home}. Path is"
+echo ${PATH}
