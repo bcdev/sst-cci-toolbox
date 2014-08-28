@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.openjpa.persistence.PersistenceException;
 import org.esa.beam.util.StringUtils;
 import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.Column;
@@ -15,7 +16,6 @@ import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 
-import javax.persistence.EntityExistsException;
 import javax.persistence.EntityTransaction;
 import java.io.File;
 import java.io.IOException;
@@ -220,7 +220,7 @@ public class InsituSamplePointGenerator {
             try {
                 storage.store(datafile);
                 transaction.commit();
-            } catch (EntityExistsException e) {
+            } catch (PersistenceException e) {
                 transaction = persistenceManager.transaction();
                 datafile = storage.getDatafile(insituFile.getPath());
                 transaction.commit();
