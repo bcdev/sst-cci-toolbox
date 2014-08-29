@@ -16,6 +16,7 @@
 
 package org.esa.cci.sst.tools.ingestion;
 
+import org.apache.openjpa.persistence.PersistenceException;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.Storage;
@@ -25,7 +26,6 @@ import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
 
-import javax.persistence.EntityExistsException;
 import javax.persistence.Query;
 import java.io.File;
 import java.io.IOException;
@@ -89,9 +89,10 @@ public class MmdIngestionTool extends BasicTool {
             throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         if (!mmdFile.getAbsolutePath().startsWith(archiveRootPath)) {
-            final String message = MessageFormat.format("Property key {0}: absolute path within archive root {1} expected.",
-                                                        Configuration.KEY_MMS_REINGESTION_SOURCE,
-                                                        archiveRootPath);
+            final String message = MessageFormat.format(
+                    "Property key {0}: absolute path within archive root {1} expected.",
+                    Configuration.KEY_MMS_REINGESTION_SOURCE,
+                    archiveRootPath);
             throw new ToolException(message, ToolException.TOOL_CONFIGURATION_ERROR);
         }
         if (!mmdFile.isFile()) {
@@ -111,7 +112,7 @@ public class MmdIngestionTool extends BasicTool {
                     // make sensor entry visible to concurrent processes to avoid duplicate creation
                     getPersistenceManager().commit();
                     getPersistenceManager().transaction();
-                } catch (EntityExistsException e) {
+                } catch (PersistenceException e) {
                     getPersistenceManager().transaction();
                     sensor = storage.getSensor(sensorName);
                 }
@@ -136,7 +137,7 @@ public class MmdIngestionTool extends BasicTool {
             try {
                 persistColumns(sensorName);
                 getPersistenceManager().commit();
-            } catch (EntityExistsException ignored) {
+            } catch (PersistenceException ignored) {
                 // columns have already been persisted
             }
 
@@ -149,7 +150,7 @@ public class MmdIngestionTool extends BasicTool {
         } catch (Exception e) {
             try {
                 getPersistenceManager().rollback();
-            } catch (Exception ignored) {
+            } catch (PersistenceException ignored) {
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
@@ -204,6 +205,7 @@ public class MmdIngestionTool extends BasicTool {
             throw new IllegalStateException("Trying to ingest duplicate datafile.");
         }
     }
+
     private void initReader(final DataFile dataFile, File archiveRoot) {
         reader = new MmdReader(dataFile.getSensor().getName());
         final GunzipDecorator decorator = new GunzipDecorator(reader);
