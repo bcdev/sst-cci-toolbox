@@ -50,4 +50,6 @@ public interface PixelLocator {
      * @return {@code true} if the pixel location was found, {@code false} otherwise.
      */
     boolean getPixelLocation(double lon, double lat, Point2D p);
+
+    void dispose();
 }

@@ -147,5 +147,10 @@ final class LandSeaMask extends AbstractImplicitRule {
             }
             return false;
         }
+
+        @Override
+        public void dispose() {
+
+        }
     }
 }

@@ -28,8 +28,8 @@ import java.awt.image.Raster;
  */
 final class RasterDataNodeSampleSource implements SampleSource {
 
-    private final RasterDataNode node;
-    private final Raster data;
+    private RasterDataNode node;
+    private Raster data;
     private final double fillValue;
 
     /**
@@ -84,6 +84,12 @@ final class RasterDataNodeSampleSource implements SampleSource {
     public boolean isFillValue(int x, int y) {
         final double sample = data.getSampleDouble(x, y, 0);
         return sample == fillValue || Double.isNaN(sample);
+    }
+
+    @Override
+    public void dispose() {
+        node = null;
+        data = null;
     }
 
     public RasterDataNode getNode() {

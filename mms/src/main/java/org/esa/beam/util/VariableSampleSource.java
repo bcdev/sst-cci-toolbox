@@ -28,7 +28,7 @@ import ucar.nc2.Variable;
  */
 final class VariableSampleSource implements SampleSource {
 
-    private final Array data;
+    private Array data;
     private final int width;
     private final int height;
     private final double addOffset;
@@ -64,6 +64,11 @@ final class VariableSampleSource implements SampleSource {
     public boolean isFillValue(int x, int y) {
         final double sample = data.getDouble(x + y * width);
         return sample == fillValue || Double.isNaN(sample);
+    }
+
+    @Override
+    public void dispose() {
+        data = null;
     }
 
     // @todo 3 tb/** duplicated code? I'm sure this functionality already exists in the project tb 2015-05-19

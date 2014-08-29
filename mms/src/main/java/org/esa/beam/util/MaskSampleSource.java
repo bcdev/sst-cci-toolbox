@@ -8,12 +8,12 @@ import java.awt.image.Raster;
 */
 final class MaskSampleSource implements SampleSource {
 
-    private final Raster maskData;
+    private Raster data;
     private final int width;
     private final int height;
 
     public MaskSampleSource(PlanarImage maskImage) {
-        maskData = maskImage.getData();
+        data = maskImage.getData();
         width = maskImage.getWidth();
         height = maskImage.getHeight();
     }
@@ -30,11 +30,16 @@ final class MaskSampleSource implements SampleSource {
 
     @Override
     public double getSample(int x, int y) {
-        return maskData.getSample(x, y, 0);
+        return data.getSample(x, y, 0);
     }
 
     @Override
     public boolean isFillValue(int x, int y) {
         return false;
+    }
+
+    @Override
+    public void dispose() {
+        data = null;
     }
 }

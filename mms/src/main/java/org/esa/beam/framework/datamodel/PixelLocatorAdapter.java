@@ -28,7 +28,7 @@ import java.awt.geom.Point2D;
  */
 public final class PixelLocatorAdapter extends AbstractGeoCoding {
 
-    private final PixelLocator pixelLocator;
+    private PixelLocator pixelLocator;
 
     public PixelLocatorAdapter(PixelLocator pixelLocator) {
         this.pixelLocator = pixelLocator;
@@ -52,6 +52,8 @@ public final class PixelLocatorAdapter extends AbstractGeoCoding {
 
     @Override
     public void dispose() {
+        pixelLocator.dispose();
+        pixelLocator = null;
     }
 
     @Override

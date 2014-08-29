@@ -25,6 +25,12 @@ abstract class AbstractPixelLocator implements PixelLocator {
     }
 
     @Override
+    public final void dispose() {
+        latSource.dispose();
+        lonSource.dispose();
+    }
+
+    @Override
     public final boolean getGeoLocation(double x, double y, Point2D g) {
         final int w = lonSource.getWidth();
         final int h = lonSource.getHeight();

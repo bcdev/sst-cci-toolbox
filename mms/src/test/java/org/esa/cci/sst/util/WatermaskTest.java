@@ -39,7 +39,7 @@ public class WatermaskTest {
     public void testGetWaterFraction() throws Exception {
         final Watermask watermask = new Watermask();
 
-        final PixelLocator equirectangularGeographic = new PixelLocator() {
+        final PixelLocator geographic = new PixelLocator() {
             @Override
             public boolean getGeoLocation(double x, double y, Point2D g) {
                 g.setLocation(x, y);
@@ -50,10 +50,15 @@ public class WatermaskTest {
             public boolean getPixelLocation(double lon, double lat, Point2D p) {
                 return false;
             }
+
+            @Override
+            public void dispose() {
+
+            }
         };
 
-        assertEquals(100, watermask.getWaterFraction(0, 0, equirectangularGeographic));
-        assertEquals(0, watermask.getWaterFraction(20, 0, equirectangularGeographic));
+        assertEquals(100, watermask.getWaterFraction(0, 0, geographic));
+        assertEquals(0, watermask.getWaterFraction(20, 0, geographic));
     }
 
     // for testing performance only - rq-20140212
