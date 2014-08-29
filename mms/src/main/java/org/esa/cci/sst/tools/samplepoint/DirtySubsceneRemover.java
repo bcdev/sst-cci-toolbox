@@ -150,15 +150,21 @@ public class DirtySubsceneRemover {
                         final Array maskArray = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
                         final int dirtyPixelCount = pixelCounter.count(maskArray);
                         if (logger != null && logger.isLoggable(Level.FINE)) {
-                            logger.info(MessageFormat.format("Found {0} dirty pixels in sub-scene at ({1}, {2}).",
-                                                             dirtyPixelCount, lon, lat));
+                            final String message = MessageFormat.format(
+                                    "Found {0} dirty pixels in sub-scene at ({1}, {2}).",
+                                    dirtyPixelCount, lon, lat);
+                            logger.fine(message);
                         }
                         if (dirtyPixelCount <= (subSceneWidth * subSceneHeight) * dirtyPixelFraction) {
                             validSamples.add(point);
                         }
                     } else {
-                        logInfo(MessageFormat.format("Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
-                                                     datafile.getPath()));
+                        if (logger != null && logger.isLoggable(Level.WARNING)) {
+                            final String message = MessageFormat.format(
+                                    "Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
+                                    datafile.getPath());
+                            logger.warning(message);
+                        }
                     }
                 }
                 logInfo(MessageFormat.format(
