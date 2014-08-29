@@ -32,7 +32,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <beam.version>5.0</beam.version>
         <openjpaversion>2.3.0</openjpaversion>
     </properties>
 
@@ -81,17 +80,17 @@
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-gpf</artifactId>
-            <version>${beam.version}</version>
+            <version>5.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-envisat-reader</artifactId>
-            <version>${beam.version}</version>
+            <version>5.0</version>
         </dependency>
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-netcdf</artifactId>
-            <version>${beam.version}</version>
+            <version>5.0.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>edu.ucar</groupId>
