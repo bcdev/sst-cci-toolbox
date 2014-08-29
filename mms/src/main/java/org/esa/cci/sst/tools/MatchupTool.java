@@ -550,8 +550,8 @@ public class MatchupTool extends BasicTool {
                 getPersistenceManager().persist(m);
             }
             getLogger().info(MessageFormat.format("{0} matchups stored in {1} ms.",
-                    matchupAccu.size(),
-                    System.currentTimeMillis() - time));
+                                                  matchupAccu.size(),
+                                                  System.currentTimeMillis() - time));
             matchupAccu.clear();
 
             getPersistenceManager().commit();
@@ -693,21 +693,22 @@ public class MatchupTool extends BasicTool {
 
     private void addCoincidence(Matchup matchup, String sensorName, String queryString,
                                 long pattern, Class<? extends Observation> observationClass) {
+        if (coincidenceAlreadyExists(matchup, sensorName)) {
+            return;
+        }
         final ReferenceObservation refObs = matchup.getRefObs();
         final Observation sensorObs = findCoincidingObservation(refObs, queryString, observationClass, sensorName);
         if (sensorObs != null) {
-            if (!coincidenceAlreadyExists(matchup, sensorObs)) {
-                final Coincidence coincidence = createCoincidence(matchup, sensorObs);
-                coincidenceAccu.add(coincidence);
-                matchup.setPattern(matchup.getPattern() | pattern);
-            }
+            final Coincidence coincidence = createCoincidence(matchup, sensorObs);
+            coincidenceAccu.add(coincidence);
+            matchup.setPattern(matchup.getPattern() | pattern);
         }
     }
 
-    static boolean coincidenceAlreadyExists(Matchup matchup, Observation observation) {
+    static boolean coincidenceAlreadyExists(Matchup matchup, String sensorName) {
         final List<Coincidence> coincidences = matchup.getCoincidences();
         for (Coincidence coincidence : coincidences) {
-            if (coincidence.getObservation().getId() == observation.getId()) {
+            if (coincidence.getObservation().getSensor().equals(sensorName)) {
                 return true;
             }
         }
