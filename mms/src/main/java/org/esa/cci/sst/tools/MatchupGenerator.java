@@ -199,6 +199,7 @@ public class MatchupGenerator extends BasicTool {
             logInfo(logger, "Finished persisting matchups and coincidences...");
         } catch (Exception e) {
             while (!rollbackStack.isEmpty()) {
+                logInfo(logger, "Rolling back transaction ...");
                 rollbackStack.pop().rollback();
             }
             throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
