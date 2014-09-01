@@ -123,8 +123,8 @@ public class DirtySubsceneRemover {
 
                 final int numCols = reader.getElementCount();
                 final int numRows = reader.getScanLineCount();
-
                 final GeoCoding geoCoding = reader.getGeoCoding(0);
+
                 for (final SamplingPoint point : points) {
                     final double lat = point.getLat();
                     final double lon = point.getLon();
