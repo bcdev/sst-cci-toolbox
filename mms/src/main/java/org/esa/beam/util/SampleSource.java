@@ -52,6 +52,4 @@ public interface SampleSource {
     double getSample(int x, int y);
 
     boolean isFillValue(int x, int y);
-
-    void dispose();
 }
