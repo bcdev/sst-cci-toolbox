@@ -84,6 +84,8 @@ public class Configuration {
     public static final String KEY_MMS_REINGESTION_PATTERN = "mms.reingestion.pattern";
     public static final String KEY_MMS_REINGESTION_SENSOR = "mms.reingestion.sensor";
     public static final String KEY_MMS_REINGESTION_SOURCE = "mms.reingestion.source";
+    public static final String KEY_MMS_SELECTION_MMD_SOURCE = "mms.selection.source";
+    public static final String KEY_MMS_SELECTION_MMD_TARGET = "mms.selection.target";
 
     private final Properties properties;
 
