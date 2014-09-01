@@ -37,9 +37,4 @@ final class MaskSampleSource implements SampleSource {
     public boolean isFillValue(int x, int y) {
         return false;
     }
-
-    @Override
-    public void dispose() {
-        data = null;
-    }
 }

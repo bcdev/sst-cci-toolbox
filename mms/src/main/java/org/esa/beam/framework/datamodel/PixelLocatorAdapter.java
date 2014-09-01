@@ -52,7 +52,6 @@ public final class PixelLocatorAdapter extends AbstractGeoCoding {
 
     @Override
     public void dispose() {
-        pixelLocator.dispose();
         pixelLocator = null;
     }
 

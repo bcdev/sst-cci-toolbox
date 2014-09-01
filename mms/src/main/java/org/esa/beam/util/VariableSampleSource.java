@@ -66,11 +66,6 @@ final class VariableSampleSource implements SampleSource {
         return sample == fillValue || Double.isNaN(sample);
     }
 
-    @Override
-    public void dispose() {
-        data = null;
-    }
-
     // @todo 3 tb/** duplicated code? I'm sure this functionality already exists in the project tb 2015-05-19
     private static double getAttribute(Variable v, String name, double defaultValue) {
         final Attribute attribute = v.findAttribute(name);

@@ -50,11 +50,6 @@ public class WatermaskTest {
             public boolean getPixelLocation(double lon, double lat, Point2D p) {
                 return false;
             }
-
-            @Override
-            public void dispose() {
-
-            }
         };
 
         assertEquals(100, watermask.getWaterFraction(0, 0, geographic));

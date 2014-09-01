@@ -86,12 +86,6 @@ final class RasterDataNodeSampleSource implements SampleSource {
         return sample == fillValue || Double.isNaN(sample);
     }
 
-    @Override
-    public void dispose() {
-        node = null;
-        data = null;
-    }
-
     public RasterDataNode getNode() {
         return node;
     }

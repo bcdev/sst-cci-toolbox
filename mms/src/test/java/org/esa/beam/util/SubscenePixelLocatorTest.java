@@ -173,9 +173,5 @@ public class SubscenePixelLocatorTest {
         public boolean isFillValue(int x, int y) {
             return false;
         }
-
-        @Override
-        public void dispose() {
-        }
     }
 }
