@@ -1,7 +1,6 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.openjpa.persistence.PersistenceException;
 import org.esa.beam.util.StringUtils;
 import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.Column;
@@ -17,6 +16,7 @@ import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceException;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -210,22 +210,20 @@ public class InsituSamplePointGenerator {
     }
 
     private int persist(File insituFile) {
-        EntityTransaction transaction = persistenceManager.transaction();
         DataFile datafile = storage.getDatafile(insituFile.getPath());
 
-        if (datafile != null) {
-            transaction.commit();
-        } else {
+        if (datafile == null) {
             datafile = createDataFile(insituFile, sensor);
+            persistenceManager.transaction();
             try {
                 storage.store(datafile);
-                transaction.commit();
+                persistenceManager.commit();
             } catch (PersistenceException e) {
-                transaction = persistenceManager.transaction();
-                datafile = storage.getDatafile(insituFile.getPath());
-                transaction.commit();
+                persistenceManager.rollback();
             }
+            datafile = storage.getDatafile(insituFile.getPath());
         }
+
         return datafile.getId();
     }
 }

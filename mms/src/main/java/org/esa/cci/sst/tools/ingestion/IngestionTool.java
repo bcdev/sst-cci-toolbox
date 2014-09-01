@@ -123,6 +123,7 @@ public class IngestionTool extends BasicTool {
             Sensor sensor = getStorage().getSensor(sensorName);
             if (sensor == null) {
                 sensor = ingester.createSensor(sensorName, observationType, pattern);
+                persistenceManager.persist(sensor);
             }
             final DataFile dataFile = new DataFile(path, sensor);
             reader.open(dataFile, archiveRoot);

@@ -79,9 +79,8 @@ class Ingester {
         builder.name(sensorName);
         builder.observationType(observationType);
         builder.pattern(pattern);
-        final Sensor sensor = builder.build();
-        tool.getPersistenceManager().persist(sensor);
-        return sensor;
+
+        return builder.build();
     }
 
     private boolean checkTime(Observation observation) {
