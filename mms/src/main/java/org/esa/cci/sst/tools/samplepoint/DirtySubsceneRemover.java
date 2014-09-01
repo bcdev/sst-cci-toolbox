@@ -159,11 +159,11 @@ public class DirtySubsceneRemover {
                             validSamples.add(point);
                         }
                     } else {
-                        if (logger != null && logger.isLoggable(Level.WARNING)) {
+                        if (logger != null && logger.isLoggable(Level.FINE)) {
                             final String message = MessageFormat.format(
-                                    "Cannot find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
+                                    "Could not find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
                                     datafile.getPath());
-                            logger.warning(message);
+                            logger.fine(message);
                         }
                     }
                 }
