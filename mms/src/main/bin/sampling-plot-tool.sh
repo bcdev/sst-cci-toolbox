@@ -7,7 +7,7 @@ fi
 
 java \
     -Dmms.home="${mms.home}" \
-    -Xmx1G ${MMS_OPTIONS} \
+    -Xms1G -Xmx1G ${MMS_OPTIONS} \
     -Djava.io.tmpdir=${mms.tmpdir} \
     -classpath "${mms.home}/lib/*" \
     org.esa.cci.sst.tools.PlotSamplingPointFileTool "$@"
