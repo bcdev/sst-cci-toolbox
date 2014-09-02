@@ -397,8 +397,8 @@ class NwpTool extends BasicTool {
             copyVariableData("matchup.latitude", sourceMmd, targetMmd);
             copyVariableData("matchup.insitu.callsign", sourceMmd, targetMmd);
             copyVariableData("matchup.insitu.dataset", sourceMmd, targetMmd);
-            copyVariableData("matchup.insitu.reference_flag", sourceMmd, targetMmd);
-            copyVariableData("matchup.insitu.sensor_list", sourceMmd, targetMmd);
+            copyVariableData("matchup.reference_flag", sourceMmd, targetMmd);
+            copyVariableData("matchup.sensor_list", sourceMmd, targetMmd);
 
             // write forecast data
             final Array fcTargetTimes = mmdTime.read();
