@@ -577,7 +577,9 @@ class Workflow:
                 raise exceptions.ValueError, "Periods of sensor '" + name + "' must not intersect."
         self.secondary_sensors.add(Sensor(name, period))
 
-    def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace', with_history=False,
+    def run(self, mmdtype, hosts=list([('localhost', 60)]), calls=list(), log_dir='trace',
+            with_history=False,
+            with_selection=False,
             simulation=False):
         """
 
@@ -586,6 +588,7 @@ class Workflow:
         :type calls: list
         :type log_dir: str
         :type with_history: bool
+        :type with_selection: bool
         :type simulation: bool
         """
         if with_history:
@@ -607,6 +610,8 @@ class Workflow:
         self._execute_ingest_matchup_nwp_mmd_files(m)
         self._execute_ingest_arc_mmd_files(m)
         self._execute_create_final_mmd_files(m, mmdtype)
+        if with_selection:
+            self._execute_selection(m, mmdtype)
         m.wait_for_completion_and_terminate()
 
     def _get_primary_sensors(self):
@@ -817,7 +822,7 @@ class Workflow:
             date = _next_month(date)
 
     @staticmethod
-    def __compute_samples_index(sensor_pair, date, m):
+    def __compute_samples_skip(sensor_pair, date, m):
         """
 
 
@@ -843,7 +848,7 @@ class Workflow:
             end_date = period.get_end_date()
             while date < end_date:
                 (year, month) = _year_month(date)
-                n = self.__compute_samples_index(sensor_pair, date, m)
+                n = self.__compute_samples_skip(sensor_pair, date, m)
                 job = Job('sampling-start' + '-' + year + '-' + month + '-' + name,
                           'sampling-start.sh',
                           ['/obs/' + _pathformat(_prev_month(date)),
@@ -1126,6 +1131,26 @@ class Workflow:
                 monitor.execute(job)
                 date = _next_month(date)
 
+    def _execute_selection(self, monitor, mmdtype):
+        """
+
+        :type monitor: Monitor
+        :type mmdtype: str
+        """
+        for sensor_pair in self._get_sensor_pairs():
+            name = sensor_pair.get_name()
+            period = sensor_pair.get_period()
+            date = period.get_start_date()
+            end_date = period.get_end_date()
+            while date < end_date:
+                (year, month) = _year_month(date)
+                job = Job('selection-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
+                          'selection-start.sh',
+                          ['/mmd/' + name + '/' + _pathformat(date)],
+                          ['/sel/' + name + '/' + _pathformat(date)],
+                          [year, month, name, mmdtype, self.get_usecase()])
+                monitor.execute(job)
+                date = _next_month(date)
 
 def _pathformat(date):
     """
