@@ -33,6 +33,7 @@ public class MatchupGeneratorTest {
             MatchupGenerator.createSensorShortName("history", "avhrr.full_resolution");
             fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException expected) {
+            //
         }
     }
 
@@ -40,6 +41,7 @@ public class MatchupGeneratorTest {
     public void testCreateReferenceObservation_sobolPoint() {
         final SamplingPoint samplingPoint = new SamplingPoint();
         samplingPoint.setIndex(77845);
+        samplingPoint.setDatasetName("77845");
         samplingPoint.setReferenceLon(22.2);
         samplingPoint.setReferenceLat(33.3);
         samplingPoint.setReferenceTime(776636483L);
@@ -71,6 +73,7 @@ public class MatchupGeneratorTest {
     public void testCreateReferenceObservation_insituPoint() {
         final SamplingPoint samplingPoint = new SamplingPoint(1, 2, 76636483L, Double.NaN);
         samplingPoint.setIndex(87845);
+        samplingPoint.setDatasetName("87845");
         samplingPoint.setReferenceLon(32.2);
         samplingPoint.setReferenceLat(43.3);
         samplingPoint.setReferenceTime(876636483L);

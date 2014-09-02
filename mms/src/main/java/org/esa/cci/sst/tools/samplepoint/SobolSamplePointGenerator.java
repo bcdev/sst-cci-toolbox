@@ -29,6 +29,7 @@ public class SobolSamplePointGenerator {
             final SamplingPoint p = new SamplingPoint(lon, lat, time, random);
             p.setIndex(index);
             p.setInsituDatasetId(InsituDatasetId.dummy_bc);
+            p.setDatasetName(String.valueOf(index));
 
             sampleList.add(p);
         }

@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools;
 
+import org.esa.cci.sst.common.InsituDatasetId;
 import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.InsituObservation;
@@ -283,8 +284,7 @@ public class MatchupGenerator extends BasicTool {
     static ReferenceObservation createReferenceObservation(String referenceSensorName, SamplingPoint samplingPoint,
                                                            DataFile datafile) {
         final ReferenceObservation r = new ReferenceObservation();
-        // TODO - use samplingPoint.getDatasetName() here for in-situ points
-        r.setName(String.valueOf(samplingPoint.getIndex()));
+        r.setName(samplingPoint.getDatasetName());
         r.setSensor(referenceSensorName);
 
         final PGgeometry location = GeometryUtil.createPointGeometry(samplingPoint.getReferenceLon(),
