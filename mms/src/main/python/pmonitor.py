@@ -117,10 +117,11 @@ class PMonitor:
             self._created += 1
             request = threadpool.WorkRequest(None, [call, self._created, parameters, None, outputs, None, log_prefix],
                                              priority=priority, requestID=self._created)
-            if outputs[0] in self._counts:
-                self._counts[outputs[0]] += 1
-            else:
-                self._counts[outputs[0]] = 1
+            for o in outputs:
+                if o in self._counts:
+                    self._counts[o] += 1
+                else:
+                    self._counts[o] = 1
 
             if self._all_inputs_available(inputs) and self._constraints_fulfilled(request):
                 input_paths = self._paths_of(inputs)
@@ -141,7 +142,8 @@ class PMonitor:
                                                              [call, self._created, parameters, input_paths[i:i + 1],
                                                               outputs, None, log_prefix],
                                                              priority=priority, requestID=self._created)
-                            self._counts[outputs[0]] += 1
+                            for o in outputs:
+                                self._counts[o] += 1
                         if i == 0 or self._constraints_fulfilled(request):
                             self._pool.putRequest(request)
                             if self._delay is not None:
