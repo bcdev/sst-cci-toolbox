@@ -375,8 +375,8 @@ class NwpTool extends BasicTool {
             addVariable("matchup.latitude", sourceMmd, targetMmd);
             addVariable("matchup.insitu.callsign", sourceMmd, targetMmd);
             addVariable("matchup.insitu.dataset", sourceMmd, targetMmd);
-            addVariable("matchup.insitu.reference_flag", sourceMmd, targetMmd);
-            addVariable("matchup.insitu.sensor_list", sourceMmd, targetMmd);
+            addVariable("matchup.reference_flag", sourceMmd, targetMmd);
+            addVariable("matchup.sensor_list", sourceMmd, targetMmd);
 
             // create forecast variables
             final Map<Variable, Variable> fcMap = new HashMap<>();
