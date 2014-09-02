@@ -343,8 +343,7 @@ class NwpTool extends BasicTool {
                                             String targetMmdLocation,
                                             int targetFcTimeStepCount,
                                             int targetAnTimeStepCount) throws IOException {
-        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic,
-                                                                      targetMmdLocation);
+        final NetcdfFileWriter targetMmd = createNew(targetMmdLocation);
         NetcdfFile sourceMmd = null;
         NetcdfFile forecastFile = null;
         NetcdfFile analysisFile = null;
@@ -355,6 +354,7 @@ class NwpTool extends BasicTool {
             analysisFile = NetcdfFile.open(analysisFileLocation);
 
             final Dimension matchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");
+            final Dimension callsignDimension = NwpUtil.findDimension(sourceMmd, "callsign_length");
             final Dimension yDimension = NwpUtil.findDimension(forecastFile, "y");
             final Dimension xDimension = NwpUtil.findDimension(forecastFile, "x");
 
@@ -363,6 +363,7 @@ class NwpTool extends BasicTool {
             final int gx = xDimension.getLength();
 
             targetMmd.addDimension(null, matchupDimension.getShortName(), matchupCount);
+            targetMmd.addDimension(null, callsignDimension.getShortName(), callsignDimension.getLength());
             targetMmd.addDimension(null, "matchup.nwp.fc.time", targetFcTimeStepCount);
             targetMmd.addDimension(null, "matchup.nwp.an.time", targetAnTimeStepCount);
             targetMmd.addDimension(null, "matchup.nwp.ny", gy);
@@ -458,9 +459,17 @@ class NwpTool extends BasicTool {
             }
             try {
                 targetMmd.close();
-            } catch (IOException ignored) {
+            } catch (Throwable ignored) {
             }
         }
+    }
+
+    private static NetcdfFileWriter createNew(String path) throws IOException {
+        final File file = new File(path);
+        if (file.exists()) {
+            file.delete();
+        }
+        return NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, path);
     }
 
     private static void copyVariableData(String name, NetcdfFile sourceMmd, NetcdfFileWriter targetMmd) throws
@@ -490,8 +499,7 @@ class NwpTool extends BasicTool {
 
     private static void merge(NetcdfFile sourceMmd, NetcdfFile sourceNwp, String sensorName,
                               String targetPath) throws IOException {
-        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic,
-                                                                      targetPath);
+        final NetcdfFileWriter targetMmd = createNew(targetPath);
         try {
             // copy MMD structure
             final Dimension sourceMatchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");

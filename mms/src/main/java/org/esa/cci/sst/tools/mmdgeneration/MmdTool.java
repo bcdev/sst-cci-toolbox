@@ -469,7 +469,6 @@ public class MmdTool extends BasicTool {
         if (mmdFile.exists()) {
             mmdFile.delete();
         }
-
         return NetcdfFileWriter.createNew(Version.netcdf4_classic, mmdFile.getPath());
     }
 
