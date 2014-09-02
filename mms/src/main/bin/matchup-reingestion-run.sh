@@ -14,8 +14,8 @@ echo "`date -u +%Y%m%d-%H%M%S` matchup-reingestion ${year}/${month} sensor ${sen
 
 ${mms.home}/bin/reingestion-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.db.useindex=true \
--Dmms.reingestion.source=${mms.archive.root}/${usecase}/nwp/${sensor}/${year}/${sensor}-ecmwf-${year}-${month}.nc \
--Dmms.reingestion.sensor=ecmwf \
+-Dmms.reingestion.source=${mms.archive.root}/${usecase}/matchup/${sensor}/${year}/${sensor}-matchup-${year}-${month}.nc \
+-Dmms.reingestion.sensor=matchup \
 -Dmms.reingestion.pattern=0 \
 -Dmms.reingestion.located=false \
 -Dmms.reingestion.overwrite=true
