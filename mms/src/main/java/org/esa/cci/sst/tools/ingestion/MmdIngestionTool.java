@@ -25,7 +25,6 @@ import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.ToolException;
 
-import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.io.File;
@@ -103,38 +102,38 @@ public class MmdIngestionTool extends BasicTool {
         final String mmdFileRelativePath = mmdFileLocation.substring(archiveRootPath.length() + 1);
         final Storage storage = getStorage();
 
-        try {
-            DataFile datafile = storage.getDatafile(mmdFileRelativePath);
-            final boolean datafilePersisted = datafile != null;
-            if (!datafilePersisted) {
-                Sensor sensor = storage.getSensor(sensorName);
-                if (sensor == null) {
-                    sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
-                    getPersistenceManager().transaction();
-                    try {
-                        getPersistenceManager().persist(sensor);
-                        getPersistenceManager().commit();
-                    } catch (PersistenceException e) {
-                        getPersistenceManager().rollback();
-                    }
-                    sensor = storage.getSensor(sensorName);
-                }
-                datafile = createDataFile(sensor, mmdFileRelativePath);
-            } else {
-                if (overwrite) {
-                    getPersistenceManager().transaction();
-                    deleteObservationsAndCoincidences(datafile);
-                    getPersistenceManager().commit();
-                }
-            }
-            initReader(datafile, archiveRoot);
-            try {
+        DataFile datafile = storage.getDatafile(mmdFileRelativePath);
+        final boolean datafilePersisted = datafile != null;
+        if (!datafilePersisted) {
+            Sensor sensor = storage.getSensor(sensorName);
+            if (sensor == null) {
+                sensor = ingester.createSensor(sensorName, located ? "RelatedObservation" : "Observation", pattern);
                 getPersistenceManager().transaction();
-                persistColumns(sensorName);
-                getPersistenceManager().commit();
-            } catch (PersistenceException ignored) {
-                getPersistenceManager().rollback();
+                try {
+                    getPersistenceManager().persist(sensor);
+                    getPersistenceManager().commit();
+                } catch (PersistenceException e) {
+                    getPersistenceManager().rollback();
+                }
+                sensor = storage.getSensor(sensorName);
             }
+            datafile = createDataFile(sensor, mmdFileRelativePath);
+        } else {
+            if (overwrite) {
+                getPersistenceManager().transaction();
+                deleteObservationsAndCoincidences(datafile);
+                getPersistenceManager().commit();
+            }
+        }
+        initReader(datafile, archiveRoot);
+        try {
+            getPersistenceManager().transaction();
+            persistColumns(sensorName);
+            getPersistenceManager().commit();
+        } catch (PersistenceException ignored) {
+            getPersistenceManager().rollback();
+        }
+        try {
             getPersistenceManager().transaction();
             if (!datafilePersisted) {
                 storeDataFile(datafile, storage);
