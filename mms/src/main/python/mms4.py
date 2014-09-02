@@ -16,4 +16,5 @@ w.add_primary_sensor('avhrr.n18', '2005-05-20', '2014-01-01')
 w.add_primary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.set_samples_per_month(0)
 
-w.run(mmdtype, with_history=True)
+# todo - the sampling tool fails when sampling from in-situ data with higher concurrency
+w.run(mmdtype, calls=[('sampling-start.sh', 1)], with_history=True)
