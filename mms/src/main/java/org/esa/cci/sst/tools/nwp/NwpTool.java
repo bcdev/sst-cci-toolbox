@@ -368,9 +368,14 @@ class NwpTool extends BasicTool {
             targetMmd.addDimension(null, "matchup.nwp.ny", gy);
             targetMmd.addDimension(null, "matchup.nwp.nx", gx);
 
-            final Variable matchupId = NwpUtil.findVariable(sourceMmd, "matchup.id");
-            targetMmd.addVariable(null, matchupId.getShortName(), matchupId.getDataType(),
-                                  matchupId.getDimensionsString());
+            addVariable("matchup.id", sourceMmd, targetMmd);
+            addVariable("matchup.time", sourceMmd, targetMmd);
+            addVariable("matchup.longitude", sourceMmd, targetMmd);
+            addVariable("matchup.latitude", sourceMmd, targetMmd);
+            addVariable("matchup.insitu.callsign", sourceMmd, targetMmd);
+            addVariable("matchup.insitu.dataset", sourceMmd, targetMmd);
+            addVariable("matchup.insitu.reference_flag", sourceMmd, targetMmd);
+            addVariable("matchup.insitu.sensor_list", sourceMmd, targetMmd);
 
             // create forecast variables
             final Map<Variable, Variable> fcMap = new HashMap<>();
@@ -385,8 +390,14 @@ class NwpTool extends BasicTool {
 
             targetMmd.create();
 
-            final Array matchupIds = NwpUtil.findVariable(sourceMmd, "matchup.id").read();
-            targetMmd.write(targetMmd.findVariable(NetcdfFile.makeValidPathName("matchup.id")), matchupIds);
+            copyVariableData("matchup.id", sourceMmd, targetMmd);
+            copyVariableData("matchup.time", sourceMmd, targetMmd);
+            copyVariableData("matchup.longitude", sourceMmd, targetMmd);
+            copyVariableData("matchup.latitude", sourceMmd, targetMmd);
+            copyVariableData("matchup.insitu.callsign", sourceMmd, targetMmd);
+            copyVariableData("matchup.insitu.dataset", sourceMmd, targetMmd);
+            copyVariableData("matchup.insitu.reference_flag", sourceMmd, targetMmd);
+            copyVariableData("matchup.insitu.sensor_list", sourceMmd, targetMmd);
 
             // write forecast data
             final Array fcTargetTimes = mmdTime.read();
@@ -452,6 +463,21 @@ class NwpTool extends BasicTool {
         }
     }
 
+    private static void copyVariableData(String name, NetcdfFile sourceMmd, NetcdfFileWriter targetMmd) throws
+                                                                                                        IOException,
+                                                                                                        InvalidRangeException {
+        final Array data = NwpUtil.findVariable(sourceMmd, name).read();
+        targetMmd.write(targetMmd.findVariable(NetcdfFile.makeValidPathName(name)), data);
+    }
+
+    private static void addVariable(String name, NetcdfFile source, NetcdfFileWriter target) throws IOException {
+        final Variable s = NwpUtil.findVariable(source, name);
+        final Variable t = target.addVariable(null, s.getShortName(), s.getDataType(), s.getDimensionsString());
+        for (final Attribute a : s.getAttributes()) {
+            t.addAttribute(a);
+        }
+    }
+
     private static Variable addCenterTimeVariable(NetcdfFileWriter targetMmd, Variable mmdTime, String id) {
         final Variable anT0 = targetMmd.addVariable(null, "matchup.nwp." + id + ".t0",
                                                     mmdTime.getDataType(),
@@ -464,7 +490,8 @@ class NwpTool extends BasicTool {
 
     private static void merge(NetcdfFile sourceMmd, NetcdfFile sourceNwp, String sensorName,
                               String targetPath) throws IOException {
-        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, targetPath);
+        final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic,
+                                                                      targetPath);
         try {
             // copy MMD structure
             final Dimension sourceMatchupDimension = NwpUtil.findDimension(sourceMmd, "matchup");
