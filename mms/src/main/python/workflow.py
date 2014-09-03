@@ -855,8 +855,7 @@ class Workflow:
                            '/obs/' + _pathformat(date),
                            '/obs/' + _pathformat(_next_month(date)),
                            '/obs'],
-                          ['/smp/' + name + '/' + _pathformat(date),
-                           '/smp'],
+                          ['/smp/' + name + '/' + _pathformat(date)],
                           [year, month, name, m, n, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
@@ -879,12 +878,10 @@ class Workflow:
                           'clearsky-start.sh',
                           ['/smp/' + name + '/' + _pathformat(_prev_month(date)),
                            '/smp/' + name + '/' + _pathformat(date),
-                           '/smp/' + name + '/' + _pathformat(_next_month(date)),
-                           '/smp'],
+                           '/smp/' + name + '/' + _pathformat(_next_month(date))],
                           ['/clr/' + name + '/' + _pathformat(date),
                            '/clr/' + sensor_1 + '/' + _pathformat(date),
-                           '/clr/' + sensor_2 + '/' + _pathformat(date),
-                           '/clr'],
+                           '/clr/' + sensor_2 + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
@@ -925,8 +922,7 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('coincidence-start' + '-' + year + '-' + month + '-' + name,
                           'coincidence-start.sh',
-                          ['/clr/' + name + '/' + _pathformat(date),
-                           '/clr'],
+                          ['/clr/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
                           [year, month, sampling_prefix + '_' + name, self.get_usecase()])
                 monitor.execute(job)
@@ -946,10 +942,8 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('sub-start' + '-' + year + '-' + month + '-' + name,
                           'sub-start.sh',
-                          ['/clr/' + name + '/' + _pathformat(date),
-                           '/clr'],
-                          ['/sub/' + name + '/' + _pathformat(date),
-                           '/sub'],
+                          ['/clr/' + name + '/' + _pathformat(date)],
+                          ['/sub/' + name + '/' + _pathformat(date)],
                           [year, month, name, 'sub', self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
@@ -968,10 +962,8 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('nwp-start' + '-' + year + '-' + month + '-' + name,
                           'nwp-start.sh',
-                          ['/sub/' + name + '/' + _pathformat(date),
-                           '/sub'],
-                          ['/nwp/' + name + '/' + _pathformat(date),
-                           '/nwp'],
+                          ['/sub/' + name + '/' + _pathformat(date)],
+                          ['/nwp/' + name + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
@@ -990,10 +982,8 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('matchup_nwp-start' + '-' + year + '-' + month + '-' + name,
                           'matchup-nwp-start.sh',
-                          ['/sub/' + name + '/' + _pathformat(date),
-                           '/sub'],
-                          ['/nwp/' + name + '/' + _pathformat(date),
-                           '/nwp'],
+                          ['/sub/' + name + '/' + _pathformat(date)],
+                          ['/nwp/' + name + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
@@ -1012,10 +1002,8 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('gbcs-start' + '-' + year + '-' + month + '-' + name,
                           'gbcs-start.sh',
-                          ['/nwp/' + name + '/' + _pathformat(date),
-                           '/nwp'],
-                          ['/arc/' + name + '/' + _pathformat(date),
-                           '/arc'],
+                          ['/nwp/' + name + '/' + _pathformat(date)],
+                          ['/arc/' + name + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
                 monitor.execute(job)
                 date = _next_month(date)
@@ -1035,8 +1023,7 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
                           'reingestion-start.sh',
-                          ['/sub/' + name + '/' + _pathformat(date),
-                           '/sub'],
+                          ['/sub/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
                           [year, month, name, mmdtype, self.get_usecase()])
                 monitor.execute(job)
@@ -1057,8 +1044,7 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
                           'reingestion-start.sh',
-                          ['/nwp/' + name + '/' + _pathformat(date),
-                           '/nwp'],
+                          ['/nwp/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
                           [year, month, name, mmdtype, self.get_usecase()])
                 monitor.execute(job)
@@ -1078,8 +1064,7 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('matchup-reingestion-start' + '-' + year + '-' + month + '-' + name,
                           'matchup-reingestion-start.sh',
-                          ['/nwp/' + name + '/' + _pathformat(date),
-                           '/nwp'],
+                          ['/nwp/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
                           [year, month, name, self.get_usecase()])
                 monitor.execute(job)
@@ -1100,8 +1085,7 @@ class Workflow:
                 (year, month) = _year_month(date)
                 job = Job('reingestion-start' + '-' + year + '-' + month + '-' + name + '-' + mmdtype,
                           'reingestion-start.sh',
-                          ['/arc/' + name + '/' + _pathformat(date),
-                           '/arc'],
+                          ['/arc/' + name + '/' + _pathformat(date)],
                           ['/con/' + name + '/' + _pathformat(date)],
                           [year, month, name, mmdtype, self.get_usecase()])
                 monitor.execute(job)
