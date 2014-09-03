@@ -126,15 +126,15 @@ public class MmdIngestionTool extends BasicTool {
             }
         }
         initReader(datafile, archiveRoot);
+        getPersistenceManager().transaction();
         try {
-            getPersistenceManager().transaction();
             persistColumns(sensorName);
             getPersistenceManager().commit();
         } catch (PersistenceException ignored) {
             getPersistenceManager().rollback();
         }
+        getPersistenceManager().transaction();
         try {
-            getPersistenceManager().transaction();
             if (!datafilePersisted) {
                 storeDataFile(datafile, storage);
             }
