@@ -7,7 +7,7 @@ month=$2
 sensor=$3
 usecase=$4
 
-mkdir -p ${mms.archive.root}/${usecase}/nwp/${sensor}/${year}
+mkdir -p ${mms.archive.root}/${usecase}/matchup/${sensor}/${year}
 
 echo "`date -u +%Y%m%d-%H%M%S` matchup-nwp ${year}/${month} sensor ${sensor}..."
 

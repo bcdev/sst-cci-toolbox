@@ -210,11 +210,11 @@ public class InsituSamplePointGenerator {
     }
 
     private int persist(File insituFile) {
+        persistenceManager.transaction();
         DataFile datafile = storage.getDatafile(insituFile.getPath());
 
         if (datafile == null) {
             datafile = createDataFile(insituFile, sensor);
-            persistenceManager.transaction();
             try {
                 storage.store(datafile);
                 persistenceManager.commit();
@@ -222,6 +222,8 @@ public class InsituSamplePointGenerator {
                 persistenceManager.rollback();
             }
             datafile = storage.getDatafile(insituFile.getPath());
+        } else {
+            persistenceManager.commit();
         }
 
         return datafile.getId();
