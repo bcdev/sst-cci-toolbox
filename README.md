@@ -81,12 +81,65 @@ To be completed.
   </activeProfiles>
 </settings>
 
-## How to build an assembly
 
-1. Change to the project root directory
-2. Type 'mvn clean package install'
-3. Type 'mvn -DskipTests=true -f mms/pom.xml assembly:assembly'
-4. Type 'mvn -DskipTests=true -f tools/pom.xml assembly:assembly'
+## How to install the SST-CCI software?
+
+1. Login to mms1 virtual machine
+2. Change your working directory
+>
+   cd /group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox
+ 
+3. Build the software. Type 
+>
+   git pull
+   mvn clean package install
+   
+4. Make assemblies
+>
+   mvn -f mms/pom.xml assembly:assembly
+   mvn -f tools/pom.xml assembly:assembly
+   
+5. Move the assembly to the installation location. Type
+>
+   mv mms/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} /group_workspaces/cems2/esacci_sst/mms/software
+   
+6. Change file modes. Type
+>
+   chmod -R ug+X /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}
+
+
+## How to update the SST-CCI software?
+
+1. Login to mms1 virtual machine
+2. Execute the 'mymmsinstall' script in
+>
+  /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}/bin
+  
+
+## How to produce a set of MMD files?
+
+1. Login to lotus frontend
+2. Change your working directory
+>
+   cd /group_workspaces/cems2/esacci_sst/mms/inst
+3. Create a new directory for your usecase and change to the new directory
+>
+   mkdir mms11a
+   cd mms11a
+4. Source the 'mymms' settings
+>
+    . ../../software/sst-cci-mms-2.0-SNAPSHOT/bin/mymms
+5. Prepare or clean the directory structure 
+>
+   pmclean mms11a
+6. Start the Python script for your usecase
+>
+    pmstartup mms11a.py # start jobs
+    bjobs -w            # inspect lotus job list
+    watch cat mms11a.status # watch pmonitor status
+7. For inspecting job message files inspect the '*.out' files in the 'log' directory
+8. For inspecting job log files inspect the '*.err' files in the 'log' directory
+9. For inspecting output of shell scripts inspect the '*.out' files in the 'trace' directory
 
 ## Contact information
 
