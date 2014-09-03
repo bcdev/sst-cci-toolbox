@@ -43,7 +43,10 @@ public class PolarOrbitingPolygonTest {
         final List<PolarOrbitingPolygon.Point> points = polygon.getRings().get(0);
         assertFalse("lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getX(), polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getY(), PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getX(), points));
         assertFalse("lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getX(), polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getY(), PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getX(), points));
-        assertTrue("lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getX(), polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getY(), PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getX(), points));
+        assertTrue(
+                "lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getX(),
+                polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getY(),
+                                      PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getX(), points));
     }
 
     @Test
@@ -298,5 +301,33 @@ public class PolarOrbitingPolygonTest {
         assertFalse(polygon.isPointInPolygon(-9.2, 123.8));
         assertFalse(polygon.isPointInPolygon(8.67, 101.22));
         assertFalse(polygon.isPointInPolygon(-25.2, -61.19));
+    }
+
+    @Test
+    public void testAvhrrPolygon2() throws SQLException {
+        final Geometry geometry = new Polygon("POLYGON((-9.28800010681152 16,-11.2559995651245 5.64400005340576,-13.6809997558594 -4.625,-16.5690002441406 -14.793999671936,-20.1690006256104 -24.806001663208,-24.75 -34.5880012512207,-30.9309997558594 -43.9879989624023,-39.6559982299805 -52.8250007629395,-52.7880020141602 -6" +
+                                              "0.5060043334961,-72.7750015258789 -66.0439987182617,-99.4619979858398 -67.7440032958984,-124.813003540039 -64.8130035400391,-142.781005859375 -58.5750045776367,-154.468994140625 -50.4440002441406,-162.369003295898 -41.4440002441406,-168.024993896484 -31.8689994812012,-172.25601" +
+                                              "1962891 -21.9370002746582,-175.619003295898 -11.8190002441406,-178.388000488281 -1.57500004768372,179.305999755859 8.77499961853027,177.44401550293 19.1500015258789,175.988006591797 29.5809993743896,174.880996704102 40.0250015258789,174.350006103516 50.3940010070801,174.8250122" +
+                                              "07031 60.7810020446777,177.856002807617 71.0059967041016,178.106002807617 71.5690002441406,149.986999511719 71.2940063476562,138.963012695312 69.9370040893555,129.805999755859 68.0440063476562,115.812004089355 63.0750045776367,113.869003295898 62.1000022888184,127.831001281738 " +
+                                              "54.3380012512207,136.830993652344 45.3499984741211,143.080993652344 35.8129997253418,147.669006347656 25.8940010070801,151.225006103516 15.7810001373291,154.074996948242 5.51300001144409,156.406005859375 -4.84999990463257,158.287002563477 -15.206000328064,159.888000488281 -25.6" +
+                                              "380004882812,161.069000244141 -36.0250015258789,161.688003540039 -46.3689994812012,161.537002563477 -56.6560020446777,159.731002807617 -66.8690032958984,152.444000244141 -76.8059997558594,108.237998962402 -85.0189971923828,24.6370010375977 -80.5620040893555,11.1879997253418 -70" +
+                                              ".8499984741211,8.05000019073486 -60.7750015258789,7.39400005340576 -50.5060005187988,7.79400014877319 -40.1750030517578,8.78800010681152 -29.8560009002686,10.1560001373291 -19.5060005187988,11.9130001068115 -9.125,14.0310010910034 1.18700003623962,16.6499996185303 11.4750003814" +
+                                              "697,16.8190002441406 12.0190000534058,8.125 13.6810007095337,4.16900014877319 14.331000328064,0.263000011444092 14.9000005722046,-7.83100032806396 15.8620004653931,-9.28800010681152 16))");
+        final PolarOrbitingPolygon polygon = new PolarOrbitingPolygon(1, System.currentTimeMillis(), geometry);
+
+        assertTrue(polygon.isPointInPolygon(11.5, 2.5));
+        assertTrue(polygon.isPointInPolygon(-20.5, -3.5));
+        assertTrue(polygon.isPointInPolygon(-58.5, -18.5));
+        assertTrue(polygon.isPointInPolygon(-78.5, -52.4));
+        assertTrue(polygon.isPointInPolygon(-567.5, -174.5));
+        assertTrue(polygon.isPointInPolygon(61.5, 147.5));
+        assertTrue(polygon.isPointInPolygon(2.5, 167.5));
+
+        //assertFalse(polygon.isPointInPolygon(-70.5, 17.5));
+        assertFalse(polygon.isPointInPolygon(-7.7, 115.5));
+        assertFalse(polygon.isPointInPolygon(-33.5, -43.5));
+        assertFalse(polygon.isPointInPolygon(-32.5, -158.5));
+        assertFalse(polygon.isPointInPolygon(-22.5, -94.5));
+        assertFalse(polygon.isPointInPolygon(75.5, -61.5));
     }
 }
