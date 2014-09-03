@@ -86,7 +86,7 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     protected void addGeoCoding(Product product) throws IOException {
         final Band latBand = product.getBand("lat");
         final Band lonBand = product.getBand("lon");
-        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, 0.025);
+        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, 0.05);
         final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
 
         product.setGeoCoding(geoCoding);
