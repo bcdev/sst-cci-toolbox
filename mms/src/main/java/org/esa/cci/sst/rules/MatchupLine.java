@@ -19,6 +19,7 @@ package org.esa.cci.sst.rules;
 import org.esa.beam.framework.datamodel.GeoCoding;
 import org.esa.beam.framework.datamodel.GeoPos;
 import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.cci.sst.common.ExtractDefinitionBuilder;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.ReferenceObservation;
@@ -57,14 +58,14 @@ final class MatchupLine extends Rule {
 
     private int getValue() throws RuleException {
         final Context context = getContext();
-        final ReferenceObservation refObs = context.getMatchup().getRefObs();
-        final Point point = refObs.getPoint().getGeometry().getFirstPoint();
-        final double lon = point.getX();
-        final double lat = point.getY();
         final Reader observationReader = context.getObservationReader();
         if (observationReader == null) {
             return FILL_VALUE;
         }
+        final ReferenceObservation refObs = context.getMatchup().getRefObs();
+        final Point point = refObs.getPoint().getGeometry().getFirstPoint();
+        final double lon = point.getX();
+        final double lat = point.getY();
         final GeoCoding geoCoding;
         try {
             geoCoding = observationReader.getGeoCoding(refObs.getRecordNo());
@@ -72,7 +73,12 @@ final class MatchupLine extends Rule {
             throw new RuleException("Unable to obtain geo-coding.", e);
         }
         final PixelPos pixelPos = geoCoding.getPixelPos(new GeoPos((float) lat, (float) lon), null);
-
+        // TODO - for new matchup-line rule:
+        // try {
+        //    observationReader.read("matchup_elem", new ExtractDefinitionBuilder().lat(lat).lon(lon).shape(new int[]{1, 1, 1}).build());
+        //} catch (IOException e) {
+        //    throw new RuleException(e);
+        //}
         return (int) (pixelPos.getY() + observationReader.getLineSkip());
     }
 }
