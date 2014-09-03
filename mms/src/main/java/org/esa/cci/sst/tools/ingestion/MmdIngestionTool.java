@@ -140,12 +140,12 @@ public class MmdIngestionTool extends BasicTool {
             }
             ingestObservations(pattern);
             getPersistenceManager().commit();
-        } catch (Throwable t) {
+        } catch (PersistenceException e) {
             try {
                 getPersistenceManager().rollback();
             } catch (PersistenceException ignored) {
             }
-            throw new ToolException(t.getMessage(), t, ToolException.TOOL_ERROR);
+            throw new ToolException(e.getMessage(), e, ToolException.TOOL_ERROR);
         }
     }
 
