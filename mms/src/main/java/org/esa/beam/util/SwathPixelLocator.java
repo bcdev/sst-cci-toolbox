@@ -126,7 +126,6 @@ class SwathPixelLocator extends AbstractPixelLocator {
     private static class PixelLocationSearcher {
 
         private static final int R = 128;
-        private static final boolean ROUGH = false;
 
         private final SampleSource lonSource;
         private final SampleSource latSource;
@@ -190,7 +189,7 @@ class SwathPixelLocator extends AbstractPixelLocator {
                 result.invoke(outerMaxX, outerMinY);
 
                 //noinspection ConstantConditions,ConstantIfStatement
-                if (ROUGH) {
+                if (true) {
                     // consider inner points in the NW, SW, SE, and NE
                     final int innerMinX = max(outerMinX, midX - (r >> 1));
                     final int innerMaxX = min(outerMaxX, midX + (r >> 1));
