@@ -9,77 +9,92 @@ To be completed.
 1. Append the following snippet to your '.bash_profile'
 
 >
-  export JAVA_HOME='/usr/java/jdk1.7.0_51'
-  export PATH=$HOME/bin:$JAVA_HOME/bin:$PATH
-  # To Access HTTP or HTTPS you need to go through the RAL site web
-  # proxies. How this is configured varies with the application you
-  # are using to access the web but commonly you need to set
-  export http_proxy=wwwcache.rl.ac.uk:8080
-  export https_proxy=wwwcache.rl.ac.uk:8080
+   export JAVA_HOME='/usr/java/jdk1.7.0_51'
+   export PATH=$HOME/bin:$JAVA_HOME/bin:$PATH
+   # To Access HTTP or HTTPS you need to go through the RAL site web
+   # proxies. How this is configured varies with the application you
+   # are using to access the web but commonly you need to set
+   export http_proxy=wwwcache.rl.ac.uk:8080
+   export https_proxy=wwwcache.rl.ac.uk:8080
 
 2. Include the following snippet in your '.m2/settings.xml' file and adapt the username
 
 >
-<settings>
-  <localRepository>/data/mboettcher/mms/m2/repository/</localRepository>
-  <servers>
-    <server>
-      <id>bc-mvn-repo-public</id>
-      <username>maven</username>
-      <!-- the BC maven private key is only needed for deployment -->
-      <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
-      <passphrase><ADAPT PASSPHRASE></passphrase>
-      -->
-      <filePermissions>664</filePermissions>
-      <directoryPermissions>775</directoryPermissions>
-    </server>
-    <server>
-      <id>bc-mvn-repo-closed</id>
-      <username>maven-cs</username>
-      <!-- the BC maven private key -->
-      <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
-      <passphrase><ADAPT PASSPHRASE></passphrase>
-      -->
-      <filePermissions>664</filePermissions>
-      <directoryPermissions>775</directoryPermissions>
-    </server>
-  </servers>
-  <proxies>
-    <proxy>
-      <active>true</active>
-      <protocol>http</protocol>
-      <host>wwwcache.rl.ac.uk</host>
-      <port>8080</port>
-      <!--
-      <username>proxyuser</username>
-      <password>somepassword</password>
-      <nonProxyHosts>www.google.com|*.somewhere.com</nonProxyHosts>
-      -->
-    </proxy>
-    <proxy>
-      <active>true</active>
-      <protocol>https</protocol>
-      <host>wwwcache.rl.ac.uk</host>
-      <port>8080</port>
-      <!--
-      <username>proxyuser</username>
-      <password>somepassword</password>
-      <nonProxyHosts>www.google.com|*.somewhere.com</nonProxyHosts>
-      -->
-    </proxy>
-  </proxies>
-  <profiles>
-    <profile>
-      <id>compiler</id>
-        <properties>
-          <java.home>/usr/java/jdk1.7.0_51</java.home>
-        </properties>
-    </profile>
-  </profiles>
-  <activeProfiles>
-    <activeProfile>compiler</activeProfile>
-  </activeProfiles>
-</settings>
+   <settings>
+     <localRepository>/data/mboettcher/mms/m2/repository/</localRepository>
+     <servers>
+       <server>
+         <id>bc-mvn-repo-public</id>
+         <username>maven</username>
+         <!-- the BC maven private key is only needed for deployment -->
+         <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
+         <passphrase><ADAPT PASSPHRASE></passphrase>
+         -->
+         <filePermissions>664</filePermissions>
+         <directoryPermissions>775</directoryPermissions>
+       </server>
+       <server>
+         <id>bc-mvn-repo-closed</id>
+         <username>maven-cs</username>
+         <!-- the BC maven private key -->
+         <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
+         <passphrase><ADAPT PASSPHRASE></passphrase>
+         -->
+         <filePermissions>664</filePermissions>
+         <directoryPermissions>775</directoryPermissions>
+       </server>
+     </servers>
+     <proxies>
+       <proxy>
+         <active>true</active>
+         <protocol>http</protocol>
+         <host>wwwcache.rl.ac.uk</host>
+         <port>8080</port>
+         <!--
+         <username>proxyuser</username>
+         <password>somepassword</password>
+         <nonProxyHosts>www.google.com|*.somewhere.com</nonProxyHosts>
+         -->
+       </proxy>
+       <proxy>
+         <active>true</active>
+         <protocol>https</protocol>
+         <host>wwwcache.rl.ac.uk</host>
+         <port>8080</port>
+         <!--
+         <username>proxyuser</username>
+         <password>somepassword</password>
+         <nonProxyHosts>www.google.com|*.somewhere.com</nonProxyHosts>
+         -->
+       </proxy>
+     </proxies>
+     <profiles>
+       <profile>
+         <id>compiler</id>
+           <properties>
+             <java.home>/usr/java/jdk1.7.0_51</java.home>
+           </properties>
+       </profile>
+     </profiles>
+     <activeProfiles>
+       <activeProfile>compiler</activeProfile>
+     </activeProfiles>
+   </settings>
+   
+
+## How to copy data to CEMS?
+
+Edit your .ssh/configuration file
+>
+    Host            cems-login
+    HostName        comm-login1.cems.rl.ac.uk
+    User            <your user name>
+    ForwardX11      no
+    ForwardAgent    yes
+
+Then use e.g. rsync to copy directories of data
+
+    rsync -av -e 'ssh cems-login ssh' <sourceDir> mms1:<targetDir>
 
 
 ## How to install the SST-CCI software?
@@ -120,21 +135,6 @@ To be completed.
    /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}/bin/mymmsinstall
 
 
-## How to copy data to CEMS?
-
-Edit your .ssh/configuration file
->
-    Host            cems-login
-    HostName        comm-login1.cems.rl.ac.uk
-    User            <your user name>
-    ForwardX11      no
-    ForwardAgent    yes
-
-Then use e.g. rsync to copy directories of data
-
-    rsync -av -e 'ssh cems-login ssh' <sourceDir> mms1:<targetDir>
-
-
 ## How to produce a set of MMD files?
 
 1. Login to lotus frontend
@@ -166,14 +166,22 @@ Then use e.g. rsync to copy directories of data
     watch cat mms11a.status # watch pmonitor status
 
 7. For inspecting job message files inspect the '*.out' files in the 'log' directory
+
 8. For inspecting job log files inspect the '*.err' files in the 'log' directory
+
 9. For inspecting output of shell scripts inspect the '*.out' files in the 'trace' directory
+
 10. For stopping MMD production
 >
     pmshutdown mms11a.py # shuts down pmonitor
     bkill 0              # kills all jobs on CEMS lotus
     ps aux | grep rquast # displays all jobs running on the lotus front end
     killall /bin/bash    # kills all shell scripts running on the lotus front end
+
+11. For clearing all tables in a database
+>
+    psql mms11b
+    delete from mm_observation; delete from mm_datafile; delete from mm_sensor; delete from mm_variable; delete from mm_matchup; delete from mm_coincidence;
     
 
 
