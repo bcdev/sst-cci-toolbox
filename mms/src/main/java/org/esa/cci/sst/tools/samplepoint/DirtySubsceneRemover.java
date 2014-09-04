@@ -147,28 +147,28 @@ public class DirtySubsceneRemover {
                         }
 
                         final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
-                        final Array maskArray = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
-                        final int dirtyPixelCount = pixelCounter.count(maskArray);
-                        if (logger != null && logger.isLoggable(Level.FINE)) {
+                        final Array maskData = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
+                        final int dirtyPixelCount = pixelCounter.count(maskData);
+                        if (logger != null && logger.isLoggable(Level.INFO)) {
                             final String message = MessageFormat.format(
                                     "Found {0} dirty pixels in sub-scene at ({1}, {2}).",
                                     dirtyPixelCount, lon, lat);
-                            logger.fine(message);
+                            logger.info(message);
                         }
                         if (dirtyPixelCount <= (subSceneWidth * subSceneHeight) * dirtyPixelFraction) {
                             validSamples.add(point);
                         }
                     } else {
-                        if (logger != null && logger.isLoggable(Level.FINE)) {
+                        if (logger != null && logger.isLoggable(Level.INFO)) {
                             final String message = MessageFormat.format(
                                     "Could not find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
                                     datafile.getPath());
-                            logger.fine(message);
+                            logger.info(message);
                         }
                     }
                 }
                 logInfo(MessageFormat.format(
-                        "Finished removing dirty samples: data file ''{0}'' ({1} clear-sky samples)",
+                        "Finished removing dirty samples: data file ''{0}'' ({1} clean samples)",
                         datafile.getPath(), validSamples.size()));
             } catch (IOException e) {
                 throw new ToolException(
@@ -179,7 +179,7 @@ public class DirtySubsceneRemover {
         samples.clear();
         samples.addAll(validSamples);
 
-        logInfo(MessageFormat.format("Finished removing dirty samples: {0} clear-sky samples found in total",
+        logInfo(MessageFormat.format("Finished removing dirty samples: {0} clean samples found in total",
                                      samples.size()));
     }
 
