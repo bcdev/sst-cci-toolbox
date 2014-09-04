@@ -17,25 +17,21 @@ To be completed.
 2. Include the following snippet in your '.m2/settings.xml' file and adapt the username
 >
    <settings>
-     <localRepository>/data/mboettcher/mms/m2/repository/</localRepository>
+     <localRepository>/group_workspaces/cems2/esacci_sst/mms/m2/repository/</localRepository>
      <servers>
        <server>
          <id>bc-mvn-repo-public</id>
          <username>maven</username>
-         <!-- the BC maven private key is only needed for deployment -->
          <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
          <passphrase><ADAPT PASSPHRASE></passphrase>
-         -->
          <filePermissions>664</filePermissions>
          <directoryPermissions>775</directoryPermissions>
        </server>
        <server>
          <id>bc-mvn-repo-closed</id>
          <username>maven-cs</username>
-         <!-- the BC maven private key -->
          <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
          <passphrase><ADAPT PASSPHRASE></passphrase>
-         -->
          <filePermissions>664</filePermissions>
          <directoryPermissions>775</directoryPermissions>
        </server>
@@ -46,29 +42,19 @@ To be completed.
          <protocol>http</protocol>
          <host>wwwcache.rl.ac.uk</host>
          <port>8080</port>
-         <!--
-         <username>proxyuser</username>
-         <password>somepassword</password>
-         <nonProxyHosts>www.google.com|*.somewhere.com</nonProxyHosts>
-         -->
        </proxy>
        <proxy>
          <active>true</active>
          <protocol>https</protocol>
          <host>wwwcache.rl.ac.uk</host>
          <port>8080</port>
-         <!--
-         <username>proxyuser</username>
-         <password>somepassword</password>
-         <nonProxyHosts>www.google.com|*.somewhere.com</nonProxyHosts>
-         -->
        </proxy>
      </proxies>
      <profiles>
        <profile>
          <id>compiler</id>
            <properties>
-             <java.home>/usr/java/jdk1.7.0_51</java.home>
+             <java.home>/group_workspaces/cems2/esacci_sst/mms/software/java/jdk1.7.0_51</java.home>
            </properties>
        </profile>
      </profiles>
