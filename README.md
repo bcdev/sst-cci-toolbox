@@ -162,19 +162,19 @@ Then use e.g. rsync to copy directories of data
 
 11. For inspecting output of shell scripts inspect the '*.out' files in the 'trace' directory
 
-12. For stopping MMD production
+12. For stopping MMD production first
 
         pmshutdown mms11a.py
     
-13. For killing all jobs on CEMS lotus
+    Then kill all jobs on CEMS lotus
    
         bkill 0
     
-14. For displaying all jobs running on the lotus front end
+    Then display all jobs running on the lotus front end
 
-        ps aux | grep <username>
+        ps aux | grep <your user name>
     
-15. For killing all shell scripts running on the lotus front end
+    Then kill all shell scripts running on the lotus front end
 
         killall /bin/bash
 
@@ -183,6 +183,17 @@ Then use e.g. rsync to copy directories of data
         psql mms11b
         delete from mm_observation; delete from mm_datafile; delete from mm_sensor; delete from mm_variable; delete from mm_matchup; delete from mm_coincidence;
     
+17. All work flows are configured so that the ingestion step has to be completed successfully before the subsequent steps can be executed
+
+18. For work flows using in-situ data, the sampling step must not be run concurrently, due to a bug in the sampling tool.
+
+19. Errors in the MMD steps that produce MMD files (sub-, nwp-, matchup-nwp, gbcs-, mmd-, selection-) cannot corrupt the database. It is safe to restart them.
+
+20. Errors in the reingestion steps might corrupt the database. But usually it is safe to restart them.
+
+21. Errors in the sampling step might corrupt the database, if and only if insitu data are used.
+
+22. Errors in the clearsky step might corrupt the database. But usually it is safe to restart them.
 
 
 ## Contact information
