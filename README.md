@@ -8,60 +8,60 @@ To be completed.
 
 1. Append the following snippet to your '.bash_profile'
 
-    export JAVA_HOME='/usr/java/jdk1.7.0_51'
-    export PATH=$HOME/bin:$JAVA_HOME/bin:$PATH
-    export http_proxy=wwwcache.rl.ac.uk:8080
-    export https_proxy=wwwcache.rl.ac.uk:8080
+        export JAVA_HOME='/usr/java/jdk1.7.0_51'
+        export PATH=$HOME/bin:$JAVA_HOME/bin:$PATH
+        export http_proxy=wwwcache.rl.ac.uk:8080
+        export https_proxy=wwwcache.rl.ac.uk:8080
 
 2. Include the following snippet in your '.m2/settings.xml' file and adapt the username
 
-    <settings>
-      <localRepository>/group_workspaces/cems2/esacci_sst/mms/m2/repository/</localRepository>
-      <servers>
-        <server>
-          <id>bc-mvn-repo-public</id>
-          <username>maven</username>
-          <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
-          <passphrase><ADAPT PASSPHRASE></passphrase>
-          <filePermissions>664</filePermissions>
-          <directoryPermissions>775</directoryPermissions>
-        </server>
-        <server>
-          <id>bc-mvn-repo-closed</id>
-          <username>maven-cs</username>
-          <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
-          <passphrase><ADAPT PASSPHRASE></passphrase>
-          <filePermissions>664</filePermissions>
-          <directoryPermissions>775</directoryPermissions>
-        </server>
-      </servers>
-      <proxies>
-        <proxy>
-          <active>true</active>
-          <protocol>http</protocol>
-          <host>wwwcache.rl.ac.uk</host>
-          <port>8080</port>
-        </proxy>
-        <proxy>
-          <active>true</active>
-          <protocol>https</protocol>
-          <host>wwwcache.rl.ac.uk</host>
-          <port>8080</port>
-        </proxy>
-      </proxies>
-      <profiles>
-        <profile>
-          <id>compiler</id>
-            <properties>
-              <java.home>/group_workspaces/cems2/esacci_sst/mms/software/java/jdk1.7.0_51</java.home>
-            </properties>
-        </profile>
-      </profiles>
-      <activeProfiles>
-        <activeProfile>compiler</activeProfile>
-      </activeProfiles>
-    </settings>
- 
+        <settings>
+          <localRepository>/group_workspaces/cems2/esacci_sst/mms/m2/repository/</localRepository>
+          <servers>
+            <server>
+              <id>bc-mvn-repo-public</id>
+              <username>maven</username>
+              <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
+              <passphrase><ADAPT PASSPHRASE></passphrase>
+              <filePermissions>664</filePermissions>
+              <directoryPermissions>775</directoryPermissions>
+            </server>
+            <server>
+              <id>bc-mvn-repo-closed</id>
+              <username>maven-cs</username>
+              <privateKey>/home/<ADAPT USERNAME>/.m2/id_rsa</privateKey>
+              <passphrase><ADAPT PASSPHRASE></passphrase>
+              <filePermissions>664</filePermissions>
+              <directoryPermissions>775</directoryPermissions>
+            </server>
+          </servers>
+          <proxies>
+            <proxy>
+              <active>true</active>
+              <protocol>http</protocol>
+              <host>wwwcache.rl.ac.uk</host>
+              <port>8080</port>
+            </proxy>
+            <proxy>
+              <active>true</active>
+              <protocol>https</protocol>
+              <host>wwwcache.rl.ac.uk</host>
+              <port>8080</port>
+            </proxy>
+          </proxies>
+          <profiles>
+            <profile>
+              <id>compiler</id>
+                <properties>
+                  <java.home>/group_workspaces/cems2/esacci_sst/mms/software/java/jdk1.7.0_51</java.home>
+                </properties>
+            </profile>
+          </profiles>
+          <activeProfiles>
+            <activeProfile>compiler</activeProfile>
+          </activeProfiles>
+        </settings>
+        
 
 ## How to copy data to CEMS?
 
