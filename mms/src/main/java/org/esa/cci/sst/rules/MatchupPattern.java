@@ -56,11 +56,20 @@ final class MatchupPattern extends AbstractImplicitRule {
             1 << 19,
             1 << 20,
             1 << 21,
+            1 << 22,
+            1 << 23,
+            1 << 24,
+            1 << 25,
+            1 << 26,
+            1 << 27,
+            1 << 28,
+            1 << 29,
+            1 << 30,
     };
     private static final String FLAG_MEANINGS =
-            "amsre " +
-            "amsr2 " +
-            "tmi " +
+            "atsr_md " +
+            "metop_md " +
+            "seviri_md " +
             "atsr_1 " +
             "atsr_2 " +
             "atsr_3 " +
@@ -79,7 +88,16 @@ final class MatchupPattern extends AbstractImplicitRule {
             "avhrr_noaa_17 " +
             "avhrr_noaa_18 " +
             "avhrr_noaa_19 " +
-            "avhrr_metop_02";
+            "avhrr_metop_02" +
+            "amsre" +
+            "tmi" +
+            "avhrr_md" +
+            "amsr_2" +
+            "avhrr_metop_01" +
+            "avhrr_f_metop_02" +
+            "avhrr_f_metop_01" +
+            "iasi_metop_02" +
+            "iasi_metop_01";
 
     @Override
     protected void configureTargetColumn(ColumnBuilder targetColumnBuilder, Item sourceColumn) {
