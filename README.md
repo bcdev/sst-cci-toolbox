@@ -7,18 +7,13 @@ To be completed.
 ## Setting up the developer environment on CEMS
 
 1. Append the following snippet to your '.bash_profile'
-
 >
    export JAVA_HOME='/usr/java/jdk1.7.0_51'
    export PATH=$HOME/bin:$JAVA_HOME/bin:$PATH
-   # To Access HTTP or HTTPS you need to go through the RAL site web
-   # proxies. How this is configured varies with the application you
-   # are using to access the web but commonly you need to set
    export http_proxy=wwwcache.rl.ac.uk:8080
    export https_proxy=wwwcache.rl.ac.uk:8080
 
 2. Include the following snippet in your '.m2/settings.xml' file and adapt the username
-
 >
    <settings>
      <localRepository>/data/mboettcher/mms/m2/repository/</localRepository>
@@ -100,6 +95,10 @@ Then use e.g. rsync to copy directories of data
 ## How to install the SST-CCI software?
 
 1. Login to mms1 virtual machine
+>
+   ssh cems-login
+   ssh mms1
+   
 2. Change your working directory
 >
    cd /group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox
@@ -161,24 +160,39 @@ Then use e.g. rsync to copy directories of data
 
 6. Start the Python script for your usecase
 >
-    pmstartup mms11a.py # start jobs
-    bjobs -w            # inspect lotus job list
-    watch cat mms11a.status # watch pmonitor status
+   pmstartup mms11a.py
 
-7. For inspecting job message files inspect the '*.out' files in the 'log' directory
-
-8. For inspecting job log files inspect the '*.err' files in the 'log' directory
-
-9. For inspecting output of shell scripts inspect the '*.out' files in the 'trace' directory
-
-10. For stopping MMD production
+7. Inspect lotus job list 
 >
-    pmshutdown mms11a.py # shuts down pmonitor
-    bkill 0              # kills all jobs on CEMS lotus
-    ps aux | grep rquast # displays all jobs running on the lotus front end
-    killall /bin/bash    # kills all shell scripts running on the lotus front end
+   bjobs -w
+               
+8. Watch pmonitor status
+>
+   watch cat mms11a.status 
 
-11. For clearing all tables in a database
+9. For inspecting job message files inspect the '*.out' files in the 'log' directory
+
+10. For inspecting job log files inspect the '*.err' files in the 'log' directory
+
+11. For inspecting output of shell scripts inspect the '*.out' files in the 'trace' directory
+
+12. For stopping MMD production
+>
+    pmshutdown mms11a.py
+    
+13. For killing all jobs on CEMS lotus
+>   
+    bkill 0
+    
+14. For displaying all jobs running on the lotus front end
+>
+    ps aux | grep <username>
+    
+15. For killing all shell scripts running on the lotus front end
+>
+    killall /bin/bash
+
+16. For clearing all tables in a database
 >
     psql mms11b
     delete from mm_observation; delete from mm_datafile; delete from mm_sensor; delete from mm_variable; delete from mm_matchup; delete from mm_coincidence;
