@@ -195,6 +195,36 @@ Then use e.g. rsync to copy directories of data
 
 22. Errors in the clearsky step might corrupt the database. But usually it is safe to restart them.
 
+23. Running several use cases in parallel is feasible, but doing so complicates things in step 12!
+  
+24. Errors like that below can be ignored. Don't know what happens there, but wait until the pmonitor job is completed and restart again to resolve the error.
+
+        [rquast@lotus mms2]$ cat log/reingestion-1991-09-atsr.1-sub.err
+        2014-09-04T09:32:17.795Z INFO: connecting to database jdbc:postgresql://130.246.142.93:5423/mms2
+        29  matchupdb  INFO   [main] openjpa.Runtime - Starting OpenJPA 2.3.0
+        99  matchupdb  INFO   [main] openjpa.jdbc.JDBC - Using dictionary class "org.apache.openjpa.jdbc.sql.PostgresDictionary".
+        1177  matchupdb  INFO   [main] openjpa.jdbc.JDBC - Connected to PostgreSQL version 9.9 using JDBC driver PostgreSQL Native Driver version PostgreSQL 9.0 JDBC4 (build 801). 
+        2286  matchupdb  WARN   [main] openjpa.Runtime - Found no persistent property in "org.esa.cci.sst.data.InsituObservation"
+        2014-09-04T09:32:20.610Z SEVERE: Can only perform operation while a transaction is active.
+        org.esa.cci.sst.tools.ToolException: Can only perform operation while a transaction is active.
+            at org.esa.cci.sst.tools.ingestion.MmdIngestionTool.main(MmdIngestionTool.java:54)
+        Caused by: <openjpa-2.3.0-r422266:1540826 nonfatal user error> org.apache.openjpa.persistence.InvalidStateException: Can only perform operation while a transaction is active.
+            at org.apache.openjpa.kernel.BrokerImpl.assertTransactionOperation(BrokerImpl.java:4735)
+            at org.apache.openjpa.kernel.BrokerImpl.rollback(BrokerImpl.java:1545)
+            at org.apache.openjpa.kernel.DelegatingBroker.rollback(DelegatingBroker.java:941)
+            at org.apache.openjpa.persistence.EntityManagerImpl.rollback(EntityManagerImpl.java:599)
+            at org.esa.cci.sst.orm.PersistenceManager.rollback(PersistenceManager.java:80)
+            at org.esa.cci.sst.tools.ingestion.MmdIngestionTool.ingest(MmdIngestionTool.java:116)
+            at org.esa.cci.sst.tools.ingestion.MmdIngestionTool.main(MmdIngestionTool.java:50)
+        <openjpa-2.3.0-r422266:1540826 nonfatal user error> org.apache.openjpa.persistence.InvalidStateException: Can only perform operation while a transaction is active.
+            at org.apache.openjpa.kernel.BrokerImpl.assertTransactionOperation(BrokerImpl.java:4735)
+            at org.apache.openjpa.kernel.BrokerImpl.rollback(BrokerImpl.java:1545)
+            at org.apache.openjpa.kernel.DelegatingBroker.rollback(DelegatingBroker.java:941)
+            at org.apache.openjpa.persistence.EntityManagerImpl.rollback(EntityManagerImpl.java:599)
+            at org.esa.cci.sst.orm.PersistenceManager.rollback(PersistenceManager.java:80)
+            at org.esa.cci.sst.tools.ingestion.MmdIngestionTool.ingest(MmdIngestionTool.java:116)
+            at org.esa.cci.sst.tools.ingestion.MmdIngestionTool.main(MmdIngestionTool.java:50)
+
 
 ## Contact information
 
