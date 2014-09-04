@@ -31,8 +31,8 @@ public class OverlapRemover {
 
     public void removeSamples(List<SamplingPoint> samples) {
         final RegionOverlapFilter regionOverlapFilter = new RegionOverlapFilter(subSceneWidth, subSceneHeight);
-        final List<SamplingPoint> disjunctSamples = regionOverlapFilter.filterOverlaps(samples);
+        final List<SamplingPoint> remainingSamples = regionOverlapFilter.filterOverlaps(samples);
         samples.clear();
-        samples.addAll(disjunctSamples);
+        samples.addAll(remainingSamples);
     }
 }
