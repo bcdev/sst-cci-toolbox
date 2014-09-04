@@ -152,7 +152,7 @@ public class DirtySubsceneRemover {
                         if (dirtyPixelCount <= (subSceneWidth * subSceneHeight) * dirtyPixelFraction) {
                             if (logger != null && logger.isLoggable(Level.INFO)) {
                                 final String message = MessageFormat.format(
-                                        "Found {0} dirty pixels in sub-scene at ({1}, {2}).",
+                                        "Adding sample: found {0} dirty pixels in sub-scene at ({1}, {2}).",
                                         dirtyPixelCount, lon, lat);
                                 logger.info(message);
                             }
