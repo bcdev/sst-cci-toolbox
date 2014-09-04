@@ -23,11 +23,11 @@ import ucar.ma2.Array;
  */
 public class PixelCounter {
 
-    public int count(Array maskArray) {
+    public int count(Array maskData) {
         int count = 0;
-        if (maskArray != null) {
-            for (int i = 0; i < maskArray.getSize(); i++) {
-                final byte value = maskArray.getByte(i);
+        if (maskData != null) {
+            for (int i = 0; i < maskData.getSize(); i++) {
+                final byte value = maskData.getByte(i);
                 if (value != 0) {
                     count++;
                 }
