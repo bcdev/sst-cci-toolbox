@@ -15,19 +15,19 @@ class IntersectionCalculator {
         this.height = height;
     }
 
-    boolean intersect(SamplingPoint p1, SamplingPoint p2) {
+    boolean are_intersecting(SamplingPoint p1, SamplingPoint p2) {
         return Math.abs(p1.getX() - p2.getX()) < width && Math.abs(p1.getY() - p2.getY()) < height;
     }
 
-    ArrayList<SamplingPoint> getAllThatIntersect(SamplingPoint p0, List<SamplingPoint> intermediateList) {
-        final ArrayList<SamplingPoint> intersections = new ArrayList<>(8);
+    ArrayList<SamplingPoint> getAllIntersectingPoints(SamplingPoint p0, List<SamplingPoint> samplingPoints) {
+        final ArrayList<SamplingPoint> intersectingPoints = new ArrayList<>(8);
 
-        for (SamplingPoint p1 : intermediateList) {
-            if (intersect(p0, p1)) {
-                intersections.add(p1);
+        for (SamplingPoint p1 : samplingPoints) {
+            if (are_intersecting(p0, p1)) {
+                intersectingPoints.add(p1);
             }
         }
 
-        return intersections;
+        return intersectingPoints;
     }
 }
