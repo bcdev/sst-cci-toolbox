@@ -104,6 +104,7 @@ public class DirtySubsceneRemover {
 
         final Map<Integer, List<SamplingPoint>> samplesByDatafile = splitByFileId(samples, primary);
         final PixelCounter pixelCounter = new PixelCounter();
+        final int maxDirtyPixelCount = (int) Math.floor((subSceneWidth * subSceneHeight) * dirtyPixelFraction);
 
         final int[] shape = new int[]{1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape);
@@ -149,11 +150,11 @@ public class DirtySubsceneRemover {
                         final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                         final Array maskData = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
                         final int dirtyPixelCount = pixelCounter.count(maskData);
-                        if (dirtyPixelCount <= (subSceneWidth * subSceneHeight) * dirtyPixelFraction) {
+                        if (dirtyPixelCount <= maxDirtyPixelCount) {
                             if (logger != null && logger.isLoggable(Level.INFO)) {
                                 final String message = MessageFormat.format(
-                                        "Adding sample: found {0} dirty pixels in sub-scene at ({1}, {2}).",
-                                        dirtyPixelCount, lon, lat);
+                                        "Adding sample: found {0}/{1} dirty pixels at ({2}, {3}; {4},{5}).",
+                                        dirtyPixelCount, maxDirtyPixelCount, lon, lat, pixelX, pixelY);
                                 logger.info(message);
                             }
                             cleanSamples.add(point);
