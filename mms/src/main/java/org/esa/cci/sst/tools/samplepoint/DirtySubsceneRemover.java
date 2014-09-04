@@ -107,7 +107,7 @@ public class DirtySubsceneRemover {
 
         final int[] shape = new int[]{1, subSceneHeight, subSceneWidth};
         final ExtractDefinitionBuilder builder = new ExtractDefinitionBuilder().shape(shape);
-        final List<SamplingPoint> validSamples = new ArrayList<>(samples.size());
+        final List<SamplingPoint> cleanSamples = new ArrayList<>(samples.size());
 
         for (final int id : samplesByDatafile.keySet()) {
             final List<SamplingPoint> points = samplesByDatafile.get(id);
@@ -149,14 +149,14 @@ public class DirtySubsceneRemover {
                         final ExtractDefinition extractDefinition = builder.lat(lat).lon(lon).build();
                         final Array maskData = reader.read(Constants.MASK_NAME_MMS_DIRTY, extractDefinition);
                         final int dirtyPixelCount = pixelCounter.count(maskData);
-                        if (logger != null && logger.isLoggable(Level.INFO)) {
-                            final String message = MessageFormat.format(
-                                    "Found {0} dirty pixels in sub-scene at ({1}, {2}).",
-                                    dirtyPixelCount, lon, lat);
-                            logger.info(message);
-                        }
                         if (dirtyPixelCount <= (subSceneWidth * subSceneHeight) * dirtyPixelFraction) {
-                            validSamples.add(point);
+                            if (logger != null && logger.isLoggable(Level.INFO)) {
+                                final String message = MessageFormat.format(
+                                        "Found {0} dirty pixels in sub-scene at ({1}, {2}).",
+                                        dirtyPixelCount, lon, lat);
+                                logger.info(message);
+                            }
+                            cleanSamples.add(point);
                         }
                     } else {
                         if (logger != null && logger.isLoggable(Level.INFO)) {
@@ -169,7 +169,7 @@ public class DirtySubsceneRemover {
                 }
                 logInfo(MessageFormat.format(
                         "Finished removing dirty samples: data file ''{0}'' ({1} clean samples)",
-                        datafile.getPath(), validSamples.size()));
+                        datafile.getPath(), cleanSamples.size()));
             } catch (IOException e) {
                 throw new ToolException(
                         MessageFormat.format("Cannot read data file ''{0}''.", datafile.getPath()), e,
@@ -177,7 +177,7 @@ public class DirtySubsceneRemover {
             }
         }
         samples.clear();
-        samples.addAll(validSamples);
+        samples.addAll(cleanSamples);
 
         logInfo(MessageFormat.format("Finished removing dirty samples: {0} clean samples found in total",
                                      samples.size()));
