@@ -53,7 +53,7 @@ public class RegionOverlapFilter {
                 filteredList.addAll(nonIntersecionList);
 
                 // 4) remove all points used in this operation from the intermediateList
-                intermediateList.remove(clusterList);
+                intermediateList.removeAll(clusterList);
             } else {
                 filteredList.add(p0);
             }
