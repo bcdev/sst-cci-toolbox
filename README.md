@@ -111,35 +111,71 @@ To be completed.
 ## How to update the SST-CCI software?
 
 1. Login to mms1 virtual machine
-2. Execute the 'mymmsinstall' script in
 >
-  /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}/bin
-  
+   ssh cems-login
+   ssh mms1
+   
+2. Execute the build and install script
+>
+   /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}/bin/mymmsinstall
+
+
+## How to copy data to CEMS?
+
+Edit your .ssh/configuration file
+>
+    Host            cems-login
+    HostName        comm-login1.cems.rl.ac.uk
+    User            <your user name>
+    ForwardX11      no
+    ForwardAgent    yes
+
+Then use e.g. rsync to copy directories of data
+
+    rsync -av -e 'ssh cems-login ssh' <sourceDir> mms1:<targetDir>
+
 
 ## How to produce a set of MMD files?
 
 1. Login to lotus frontend
+>
+   ssh cems-login
+   ssh lotus
+   
 2. Change your working directory
 >
    cd /group_workspaces/cems2/esacci_sst/mms/inst
+   
 3. Create a new directory for your usecase and change to the new directory
 >
    mkdir mms11a
    cd mms11a
+   
 4. Source the 'mymms' settings
 >
     . ../../software/sst-cci-mms-2.0-SNAPSHOT/bin/mymms
+
 5. Prepare or clean the directory structure 
 >
    pmclean mms11a
+
 6. Start the Python script for your usecase
 >
     pmstartup mms11a.py # start jobs
     bjobs -w            # inspect lotus job list
     watch cat mms11a.status # watch pmonitor status
+
 7. For inspecting job message files inspect the '*.out' files in the 'log' directory
 8. For inspecting job log files inspect the '*.err' files in the 'log' directory
 9. For inspecting output of shell scripts inspect the '*.out' files in the 'trace' directory
+10. For stopping MMD production
+>
+    pmshutdown mms11a.py # shuts down pmonitor
+    bkill 0              # kills all jobs on CEMS lotus
+    ps aux | grep rquast # displays all jobs running on the lotus front end
+    killall /bin/bash    # kills all shell scripts running on the lotus front end
+    
+
 
 ## Contact information
 

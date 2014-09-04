@@ -66,22 +66,6 @@ In order to automatically start your database on log-in, type
 
 Then open `~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist` and in the entry following `-D` replace the existing path with the actual path to `/any/path/postgres/mmdb`.
 
-
-## How to copy data to CEMS?
-
-Edit your .ssh/configuration file
-
-    Host            cems-login
-    HostName        comm-login1.cems.rl.ac.uk
-    User            <your user name>
-    ForwardX11      no
-    ForwardAgent    yes
-
-Then use e.g. rsync to copy directories of data
-
-    rsync -av -e 'ssh cems-login ssh' <sourceDir> mms1:<targetDir>
-
-
 ## Usage
 
 To be completed.
