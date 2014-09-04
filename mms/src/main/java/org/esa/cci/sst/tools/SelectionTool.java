@@ -125,10 +125,11 @@ public class SelectionTool extends BasicTool {
                         targetMmd.write(t, createSingleRecordOrigin(i, t.getRank()), sourceData);
                     }
                 }
+                mapping.clear();
             } finally {
                 try {
                     targetMmd.close();
-                } catch (IOException ignored) {
+                } catch (Throwable ignored) {
                 }
             }
         } catch (IOException | InvalidRangeException e) {
