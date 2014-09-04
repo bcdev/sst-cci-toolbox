@@ -328,8 +328,8 @@ public class RegionOverlapFilterTest {
     public void testTheBigList() {
         final int width = 512;
         final int height = 40000;
-        final int maxOrbit = 1050;
-        final int count = 1000000;
+        final int maxOrbit = 1;
+        final int count = 150000;
         final LinkedList<SamplingPoint> samplingPoints = new LinkedList<>();
         final SobolSequenceGenerator sequenceGenerator = new SobolSequenceGenerator(3);
 

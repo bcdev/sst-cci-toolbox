@@ -47,10 +47,10 @@ public class RegionOverlapFilter {
                 // 2) thin out intersecting points until no intersections left.
                 // 2a) calculate sum of intersecting regions for all points,
                 // 2b) remove point with highest number of intersections and repeat this until no intersections left
-                final List<SamplingPoint> nonIntersecionList = removeIntersecting(clusterList);
+                final List<SamplingPoint> nonIntersectionList = removeIntersecting(clusterList);
 
                 // 3) add the remaining points (including p0) to the filtered list
-                filteredList.addAll(nonIntersecionList);
+                filteredList.addAll(nonIntersectionList);
 
                 // 4) remove all points used in this operation from the intermediateList
                 intermediateList.removeAll(clusterList);
@@ -77,7 +77,7 @@ public class RegionOverlapFilter {
             while (sumIntersections > 0) {
                 sumIntersections = 0;
                 for (IntersectionWrapper wrapper : intersectionWrappers) {
-                    final int intersections = ic.getAllThatIntersect(wrapper.getPoint(), clusterList).size() - 1;   // remove self intersection
+                    final int intersections = ic.getAllIntersectingPoints(wrapper.getPoint(), clusterList).size() - 1;   // remove self intersection
                     wrapper.setNumIntersections(intersections);
                     sumIntersections += intersections;
                 }
@@ -95,7 +95,6 @@ public class RegionOverlapFilter {
     List<List<SamplingPoint>> splitByOrbit(List<SamplingPoint> pointList) {
         final List<List<SamplingPoint>> orbitLists = new ArrayList<>();
         if (pointList.size() > 0) {
-
             while (pointList.size() > 0) {
                 final SamplingPoint samplingPoint = pointList.get(0);
                 final List<SamplingPoint> allFromOrbit = extractAllFromOrbit(samplingPoint.getReference(), pointList);
@@ -108,25 +107,25 @@ public class RegionOverlapFilter {
     }
 
     // package access for testing only tb 2014-01-15
-    List<SamplingPoint> extractClusterContaining(SamplingPoint samplingPoint, List<SamplingPoint> sampleList) {
-        final List<SamplingPoint> clusterList = new LinkedList<>();
+    List<SamplingPoint> extractClusterContaining(SamplingPoint samplingPoint, List<SamplingPoint> samples) {
+        final List<SamplingPoint> clusterPoints = new LinkedList<>();
 
-        final List<SamplingPoint> intersecting = ic.getAllThatIntersect(samplingPoint, sampleList);
-        if (intersecting.size() == 0) {
-            return clusterList;
+        final List<SamplingPoint> intersectingPoints = ic.getAllIntersectingPoints(samplingPoint, samples);
+        if (intersectingPoints.size() == 0) {
+            return clusterPoints;
         }
 
-        sampleList.removeAll(intersecting);
-        while (intersecting.size() > 0) {
-            final SamplingPoint intersectPoint = intersecting.remove(0);
-            clusterList.add(intersectPoint);
-            sampleList.remove(intersectPoint);
+        samples.removeAll(intersectingPoints);
+        while (intersectingPoints.size() > 0) {
+            final SamplingPoint intersectPoint = intersectingPoints.remove(0);
+            clusterPoints.add(intersectPoint);
+            samples.remove(intersectPoint);
 
-            final List<SamplingPoint> subIntersecting = ic.getAllThatIntersect(intersectPoint, sampleList);
-            intersecting.addAll(subIntersecting);
-            sampleList.removeAll(subIntersecting);
+            final List<SamplingPoint> subIntersecting = ic.getAllIntersectingPoints(intersectPoint, samples);
+            intersectingPoints.addAll(subIntersecting);
+            samples.removeAll(subIntersecting);
         }
-        return clusterList;
+        return clusterPoints;
     }
 
     private List<SamplingPoint> extractAllFromOrbit(int orbitNo, List<SamplingPoint> pointList) {
@@ -146,9 +145,9 @@ public class RegionOverlapFilter {
 
     private ArrayList<IntersectionWrapper> wrapList(List<SamplingPoint> clusterList) {
         final ArrayList<IntersectionWrapper> intersectionWrappers = new ArrayList<>(clusterList.size());
-        for (SamplingPoint aClusterList : clusterList) {
+        for (SamplingPoint samplingPoint : clusterList) {
             final IntersectionWrapper wrapper = new IntersectionWrapper();
-            wrapper.setPoint(aClusterList);
+            wrapper.setPoint(samplingPoint);
             intersectionWrappers.add(wrapper);
         }
         return intersectionWrappers;
