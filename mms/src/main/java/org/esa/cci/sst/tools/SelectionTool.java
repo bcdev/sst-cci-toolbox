@@ -1,15 +1,15 @@
 package org.esa.cci.sst.tools;
 
 import ucar.ma2.Array;
+import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
-import ucar.nc2.dataset.NetcdfDataset;
-import ucar.nc2.dataset.VariableDS;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class SelectionTool extends BasicTool {
     }
 
     private void run() throws IOException {
-        final NetcdfDataset sourceMmd = NetcdfDataset.openDataset(sourceMmdLocation);
+        final NetcdfFile sourceMmd = NetcdfFile.open(sourceMmdLocation);
         try {
             final Dimension matchupDimension = findDimension(sourceMmd, "matchup");
             final int sourceMatchupCount = matchupDimension.getLength();
@@ -91,13 +91,16 @@ public class SelectionTool extends BasicTool {
             }
 
             final int targetMatchupCount = sourceMatchupIndexes.size();
-            final NetcdfFileWriter targetMmd = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic,
-                                                                          targetMmdLocation);
+            final NetcdfFileWriter targetMmd = createNew(targetMmdLocation);
             try {
                 // copy MMD structure
                 for (final Dimension d : sourceMmd.getDimensions()) {
                     if (d.getShortName().equals("matchup")) {
-                        targetMmd.addDimension(null, d.getShortName(), targetMatchupCount);
+                        if (targetMatchupCount > 0) {
+                            targetMmd.addDimension(null, d.getShortName(), targetMatchupCount);
+                        } else {
+                            targetMmd.addUnlimitedDimension(d.getShortName());
+                        }
                     } else {
                         targetMmd.addDimension(null, d.getShortName(), d.getLength());
                     }
@@ -144,6 +147,14 @@ public class SelectionTool extends BasicTool {
         }
     }
 
+    static NetcdfFileWriter createNew(String path) throws IOException {
+        final File file = new File(path);
+        if (file.exists()) {
+            file.delete();
+        }
+        return NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, file.getPath());
+    }
+
     static boolean acceptBrightnessTemperatures(Array bt) {
         return variance(bt) < 2.0;
     }
@@ -177,10 +188,38 @@ public class SelectionTool extends BasicTool {
 
     static Array readRecord(int i, Variable v, boolean enhance) throws IOException, InvalidRangeException {
         Array data = v.read(createSingleRecordOrigin(i, v.getRank()), createSingleRecordShape(v));
-        if (enhance && v instanceof VariableDS) {
-            data = ((VariableDS) v).convertScaleOffsetMissing(data);
+        if (enhance) {
+            final Array enhancedData = Array.factory(DataType.DOUBLE, data.getShape());
+            final double addOffset = getAttribute(v, "add_offset", 0.0);
+            final double scaleFactor = getAttribute(v, "scale_factor", 0.0);
+            final Number fillValue = getAttribute(v, "_FillValue");
+            for (int k = 0; k < data.getSize(); ++k) {
+                final double value = data.getDouble(k);
+                if (fillValue == null || value != fillValue.doubleValue()) {
+                    enhancedData.setDouble(k, scaleFactor * value + addOffset);
+                } else {
+                    enhancedData.setDouble(k, Double.NaN);
+                }
+            }
+            data = enhancedData;
         }
         return data;
+    }
+
+    private static Number getAttribute(Variable v, String name) {
+        final Attribute attribute = v.findAttribute(name);
+        if (attribute == null) {
+            return null;
+        }
+        return attribute.getNumericValue();
+    }
+
+    private static double getAttribute(Variable v, String name, double defaultValue) {
+        final Attribute attribute = v.findAttribute(name);
+        if (attribute == null) {
+            return defaultValue;
+        }
+        return attribute.getNumericValue().doubleValue();
     }
 
     static int[] createSingleRecordOrigin(int i, int rank) {
