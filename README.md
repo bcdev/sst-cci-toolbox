@@ -12,6 +12,7 @@ To be completed.
    export PATH=$HOME/bin:$JAVA_HOME/bin:$PATH
    export http_proxy=wwwcache.rl.ac.uk:8080
    export https_proxy=wwwcache.rl.ac.uk:8080
+>
 
 2. Include the following snippet in your '.m2/settings.xml' file and adapt the username
 >
@@ -75,7 +76,7 @@ To be completed.
        <activeProfile>compiler</activeProfile>
      </activeProfiles>
    </settings>
-   
+>   
 
 ## How to copy data to CEMS?
 
