@@ -66,95 +66,95 @@ To be completed.
 ## How to copy data to CEMS?
 
 Edit your .ssh/configuration file
->
-    Host            cems-login
-    HostName        comm-login1.cems.rl.ac.uk
-    User            <your user name>
-    ForwardX11      no
-    ForwardAgent    yes
+
+        Host            cems-login
+        HostName        comm-login1.cems.rl.ac.uk
+        User            <your user name>
+        ForwardX11      no
+        ForwardAgent    yes
 
 Then use e.g. rsync to copy directories of data
 
-    rsync -av -e 'ssh cems-login ssh' <sourceDir> mms1:<targetDir>
+        rsync -av -e 'ssh cems-login ssh' <sourceDir> mms1:<targetDir>
 
 
 ## How to install the SST-CCI software?
 
 1. Login to mms1 virtual machine
->
-   ssh cems-login
-   ssh mms1
+
+        ssh cems-login
+        ssh mms1
    
 2. Change your working directory
->
-   cd /group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox
+
+        cd /group_workspaces/cems2/esacci_sst/mms/github/sst-cci-toolbox
  
 3. Build the software. Type 
->
-   git pull
-   mvn clean package install
+
+        git pull
+        mvn clean package install
    
 4. Make assemblies
->
-   mvn -f mms/pom.xml assembly:assembly
-   mvn -f tools/pom.xml assembly:assembly
+
+        mvn -f mms/pom.xml assembly:assembly
+        mvn -f tools/pom.xml assembly:assembly
    
 5. Move the assembly to the installation location. Type
->
-   mv mms/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} /group_workspaces/cems2/esacci_sst/mms/software
+
+        mv mms/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} /group_workspaces/cems2/esacci_sst/mms/software
    
 6. Change file modes. Type
->
-   chmod -R ug+X /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}
+
+        chmod -R ug+X /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}
 
 
 ## How to update the SST-CCI software?
 
 1. Login to mms1 virtual machine
->
-   ssh cems-login
-   ssh mms1
+
+        ssh cems-login
+        ssh mms1
    
 2. Execute the build and install script
->
-   /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}/bin/mymmsinstall
+
+        /group_workspaces/cems2/esacci_sst/mms/software/sst-cci-mms-${project.version}/bin/mymmsinstall
 
 
 ## How to produce a set of MMD files?
 
 1. Login to lotus frontend
->
-   ssh cems-login
-   ssh lotus
+
+        ssh cems-login
+        ssh lotus
    
 2. Change your working directory
->
-   cd /group_workspaces/cems2/esacci_sst/mms/inst
+
+        cd /group_workspaces/cems2/esacci_sst/mms/inst
    
 3. Create a new directory for your usecase and change to the new directory
->
-   mkdir mms11a
-   cd mms11a
+
+        mkdir mms11a
+        cd mms11a
    
 4. Source the 'mymms' settings
->
-    . ../../software/sst-cci-mms-2.0-SNAPSHOT/bin/mymms
+
+        . ../../software/sst-cci-mms-${project.version}/bin/mymms
 
 5. Prepare or clean the directory structure 
->
-   pmclean mms11a
+
+        pmclean mms11a
 
 6. Start the Python script for your usecase
->
-   pmstartup mms11a.py
+
+        pmstartup mms11a.py
 
 7. Inspect lotus job list 
->
-   bjobs -w
+
+        bjobs -w
                
 8. Watch pmonitor status
->
-   watch cat mms11a.status 
+
+        watch cat mms11a.status 
 
 9. For inspecting job message files inspect the '*.out' files in the 'log' directory
 
@@ -163,25 +163,25 @@ Then use e.g. rsync to copy directories of data
 11. For inspecting output of shell scripts inspect the '*.out' files in the 'trace' directory
 
 12. For stopping MMD production
->
-    pmshutdown mms11a.py
+
+        pmshutdown mms11a.py
     
 13. For killing all jobs on CEMS lotus
->   
-    bkill 0
+   
+        bkill 0
     
 14. For displaying all jobs running on the lotus front end
->
-    ps aux | grep <username>
+
+        ps aux | grep <username>
     
 15. For killing all shell scripts running on the lotus front end
->
-    killall /bin/bash
+
+        killall /bin/bash
 
 16. For clearing all tables in a database
->
-    psql mms11b
-    delete from mm_observation; delete from mm_datafile; delete from mm_sensor; delete from mm_variable; delete from mm_matchup; delete from mm_coincidence;
+
+        psql mms11b
+        delete from mm_observation; delete from mm_datafile; delete from mm_sensor; delete from mm_variable; delete from mm_matchup; delete from mm_coincidence;
     
 
 
