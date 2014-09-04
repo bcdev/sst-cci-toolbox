@@ -74,7 +74,7 @@ class SwathPixelLocator extends AbstractPixelLocator {
         }
 
         public boolean estimatePixelLocation(double lon, double lat, Point2D p) {
-            GeoApproximation approximation = null;
+            GeoApproximation approximation;
             if (approximations != null) {
                 approximation = findMostSuitable(approximations, lat, lon);
                 if (approximation != null) {
