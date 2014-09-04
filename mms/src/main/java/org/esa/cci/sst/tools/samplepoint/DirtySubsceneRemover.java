@@ -135,7 +135,7 @@ public class DirtySubsceneRemover {
                     final int pixelX = (int) Math.floor(pixelPos.getX());
                     final int pixelY = (int) Math.floor(pixelPos.getY());
 
-                    if (pixelPos.isValid() && pixelX >= 0 && pixelY >= 0 && pixelX < numCols && pixelY < numRows) {
+                    if (pixelPos.isValid() && pixelX > 0 && pixelY > 0 && pixelX < numCols - 1 && pixelY < numRows - 1) {
                         if (primary) {
                             point.setX(pixelX);
                             point.setY(pixelY);
@@ -153,7 +153,7 @@ public class DirtySubsceneRemover {
                         if (dirtyPixelCount <= maxDirtyPixelCount) {
                             if (logger != null && logger.isLoggable(Level.INFO)) {
                                 final String message = MessageFormat.format(
-                                        "Adding sample: found {0}/{1} dirty pixels at ({2}, {3}; {4},{5}).",
+                                        "Adding sample: found {0}/{1} dirty pixels at ({2}, {3}; {4}, {5}).",
                                         dirtyPixelCount, maxDirtyPixelCount, lon, lat, pixelX, pixelY);
                                 logger.info(message);
                             }
