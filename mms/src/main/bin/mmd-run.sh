@@ -24,4 +24,4 @@ ${mms.home}/bin/mmd-tool.sh -c ${mms.home}/config/${usecase}-config.properties \
 -Dmms.db.useindex=false \
 -Dmms.target.variables=${mms.home}/config/${mmdtype}-variables.config \
 -Dmms.target.dir=${mms.archive.root}/${usecase}/${mmdtype}/${sensors}/${year} \
--Dmms.target.filename=${sensors}-${mmdtype}-${year}-${month}-all.nc
+-Dmms.target.filename=${sensors}-${mmdtype}-${year}-${month}.nc
