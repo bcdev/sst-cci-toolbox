@@ -15,5 +15,13 @@ ${mms.home}/bin/ingestion-tool.sh -c ${mms.home}/config/${usecase}-config.proper
 -Dmms.source.22.inputDirectory=avhrr.n10/v01/${year}/${month} \
 -Dmms.source.23.inputDirectory=avhrr.n11/v01/${year}/${month} \
 -Dmms.source.24.inputDirectory=avhrr.n12/v01/${year}/${month} \
+-Dmms.source.25.inputDirectory=avhrr.n13/v01/${year}/${month} \
+-Dmms.source.26.inputDirectory=avhrr.n14/v01/${year}/${month} \
+-Dmms.source.27.inputDirectory=avhrr.n15/v01/${year}/${month} \
+-Dmms.source.28.inputDirectory=avhrr.n16/v01/${year}/${month} \
+-Dmms.source.29.inputDirectory=avhrr.n17/v01/${year}/${month} \
+-Dmms.source.30.inputDirectory=avhrr.n18/v01/${year}/${month} \
+-Dmms.source.31.inputDirectory=avhrr.n19/v01/${year}/${month} \
+-Dmms.source.32.inputDirectory=avhrr.m02/v01/${year}/${month} \
 -Dmms.source.43.inputDirectory=aerosol-aai/v01/${year}/${month} \
 -Dmms.source.44.inputDirectory=sea-ice/v01/${year}/${month}
