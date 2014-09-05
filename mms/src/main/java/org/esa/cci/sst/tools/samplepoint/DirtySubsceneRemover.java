@@ -164,7 +164,7 @@ public class DirtySubsceneRemover {
                             final String message = MessageFormat.format(
                                     "Could not find pixel at ({0}, {1}) in datafile ''{2}''.", lon, lat,
                                     datafile.getPath());
-                            logger.FINE(message);
+                            logger.fine(message);
                         }
                     }
                 }
