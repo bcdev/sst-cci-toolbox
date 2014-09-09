@@ -63,8 +63,10 @@ public class PolarOrbitingPolygon {
     public PolarOrbitingPolygon(int id, long time, Geometry geometry) {
         this.id = id;
         this.time = time;
-        final int middle1 = (geometry.numPoints() - 12) / 4 + 6;   // TODO move splitting to boundary calculator
-        final int middle2 = findCorrespondingPoint(geometry, middle1, (geometry.numPoints() - 12) * 3 / 4 + 12);
+        // select a point more or less in the middle of a long side, assuming that the short side has about 6 points
+        final int middle1 = (geometry.numPoints() - 12) / 4 + 3;   // TODO move splitting to boundary calculator
+        // select a start point more or less in the middel of the other long side
+        final int middle2 = findCorrespondingPoint(geometry, middle1, (geometry.numPoints() - 12) * 3 / 4 + 9);
         if (geometry.numPoints() > 11 && middle2 > middle1 + 3) {
             rings.add(collectFirstRing(geometry, middle1, middle2));
             rings.add(collectSecondRing(geometry, middle1, middle2));
@@ -155,6 +157,8 @@ public class PolarOrbitingPolygon {
                                                                                   middle1Point.getY());
         org.postgis.Point point2 = geometry.getPoint(middle2);
         double distance = middle1DistanceCalculator.distance(point2.getX(), point2.getY());
+
+        /*
         while (middle2 + 2 < geometry.numPoints()) {
             point2 = geometry.getPoint(middle2 + 1);
             final double distance2 = middle1DistanceCalculator.distance(point2.getX(), point2.getY());
@@ -172,6 +176,16 @@ public class PolarOrbitingPolygon {
             }
             --middle2;
             distance = distance2;
+        }
+        */
+        // find nearest point on opposite product border
+        for (int m = geometry.numPoints() / 2; m + 1 < geometry.numPoints(); ++m) {
+            point2 = geometry.getPoint(m + 1);
+            final double distance2 = middle1DistanceCalculator.distance(point2.getX(), point2.getY());
+            if (distance2 < distance) {
+                middle2 = m;
+                distance = distance2;
+            }
         }
         return middle2;
     }
