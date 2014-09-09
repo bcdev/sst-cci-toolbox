@@ -19,9 +19,9 @@ public class PolarOrbitingPolygonTest {
         final Geometry geometry = new Polygon(new LinearRing[]{new LinearRing(PolarOrbitingPolygonTestData.TEST_POLYGON)});
         final PolarOrbitingPolygon polygon = new PolarOrbitingPolygon(1, System.currentTimeMillis(), geometry);
         assertEquals("number of rings", 2, polygon.getRings().size());
-        assertEquals("number of points in first ring", 12, polygon.getRings().get(0).size());
-        assertEquals("number of points in second ring", 12, polygon.getRings().get(1).size());
-        assertEquals("lat of first point of first ring", 58.0, polygon.getRings().get(0).get(0).getLat(), 1.0e-8);
+        assertEquals("number of points in first ring", 16, polygon.getRings().get(0).size());
+        assertEquals("number of points in second ring", 8, polygon.getRings().get(1).size());
+        assertEquals("lat of first point of first ring", 38.4, polygon.getRings().get(0).get(0).getLat(), 1.0e-8);
     }
 
     @Test
