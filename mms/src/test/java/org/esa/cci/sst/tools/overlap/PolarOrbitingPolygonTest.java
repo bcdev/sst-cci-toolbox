@@ -42,7 +42,7 @@ public class PolarOrbitingPolygonTest {
         final PolarOrbitingPolygon polygon = new PolarOrbitingPolygon(1, System.currentTimeMillis(), geometry);
         final List<PolarOrbitingPolygon.Point> points = polygon.getRings().get(0);
         assertFalse("lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getX(), polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getY(), PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[0].getX(), points));
-        assertFalse("lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getX(), polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getY(), PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getX(), points));
+        assertTrue("lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getX(), polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getY(), PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[1].getX(), points));
         assertTrue(
                 "lat=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getY() + " lon=" + PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getX(),
                 polygon.isPointInRing(PolarOrbitingPolygonTestData.TEST_POINTS_INSIDE[2].getY(),
