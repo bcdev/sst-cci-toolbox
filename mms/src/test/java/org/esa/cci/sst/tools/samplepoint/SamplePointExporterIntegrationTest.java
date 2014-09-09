@@ -54,13 +54,13 @@ public class SamplePointExporterIntegrationTest {
         assertTrue(targetDir.isDirectory());
 
         final File mayFile = new File(targetDir, "schnickschnack.4-smp-2011-05-a.json");
-        assertIsFileWithLength(mayFile, 17740);
+        assertIsFileWithLength(mayFile, 17858);
 
         final File juneFile = new File(targetDir, "schnickschnack.4-smp-2011-06-b.json");
-        assertIsFileWithLength(juneFile, 27641);
+        assertIsFileWithLength(juneFile, 27825);
 
         final File julyFile = new File(targetDir, "schnickschnack.4-smp-2011-07-c.json");
-        assertIsFileWithLength(julyFile, 14736);
+        assertIsFileWithLength(julyFile, 14834);
     }
 
     @Test
@@ -81,13 +81,13 @@ public class SamplePointExporterIntegrationTest {
         assertTrue(targetDir2011.isDirectory());
 
         final File decemberFile = new File(targetDir2010, "schnickschnack.4-smp-2010-12-a.json");
-        assertIsFileWithLength(decemberFile, 17441);
+        assertIsFileWithLength(decemberFile, 17557);
 
         final File januaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-01-b.json");
-        assertIsFileWithLength(januaryFile, 28238);
+        assertIsFileWithLength(januaryFile, 28426);
 
         final File februaryFile = new File(targetDir2011, "schnickschnack.4-smp-2011-02-c.json");
-        assertIsFileWithLength(februaryFile, 14438);
+        assertIsFileWithLength(februaryFile, 14534);
     }
 
     @Test
