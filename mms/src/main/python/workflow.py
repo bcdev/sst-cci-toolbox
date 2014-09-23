@@ -609,7 +609,9 @@ class Workflow:
         self._execute_ingest_nwp_mmd_files(m)
         self._execute_ingest_matchup_nwp_mmd_files(m)
         self._execute_ingest_arc_mmd_files(m)
+        m.wait_for_completion()
         self._execute_create_final_mmd_files(m, mmdtype)
+        m.wait_for_completion()
         if with_selection:
             self._execute_selection(m, mmdtype)
         m.wait_for_completion_and_terminate()
