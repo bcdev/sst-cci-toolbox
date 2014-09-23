@@ -156,7 +156,7 @@ public class SelectionTool extends BasicTool {
     }
 
     static boolean acceptBrightnessTemperatures(Array bt) {
-        return variance(bt) < 2.0;
+        return true; //variance(bt) < 2.0;
     }
 
     static double variance(Array a) {
