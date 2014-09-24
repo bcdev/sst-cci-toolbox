@@ -80,6 +80,7 @@ public class SelectionTool extends BasicTool {
                 accepted = acceptZenithAngles(vza1, vza2);
                 if (accepted) {
                     for (final Variable brightnessTemperature : brightnessTemperatures) {
+                        getLogger().info("variable = " + brightnessTemperature.getShortName());
                         final double[] data = readRecordEnhanced(i, brightnessTemperature);
                         accepted = acceptBrightnessTemperatures(data);
                         if (!accepted) {
