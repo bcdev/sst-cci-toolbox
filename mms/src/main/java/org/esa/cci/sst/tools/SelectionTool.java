@@ -187,11 +187,13 @@ public class SelectionTool extends BasicTool {
         double mean = 0.0;
         double m2 = 0.0;
 
-        for (final double x : data) {
-            final double delta = x - mean;
-            n++;
-            mean = mean + delta / n;
-            m2 = m2 + delta * (x - mean);
+        for (final double value : data) {
+            if (!Double.isNaN(value)) {
+                final double delta = value - mean;
+                n++;
+                mean = mean + delta / n;
+                m2 = m2 + delta * (value - mean);
+            }
         }
         if (n < 2) {
             return 0.0;

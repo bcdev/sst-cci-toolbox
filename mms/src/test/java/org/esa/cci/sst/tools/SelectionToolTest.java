@@ -37,4 +37,11 @@ public class SelectionToolTest {
         assertEquals(7.5, SelectionTool.variance(data), 0.0);
     }
 
+    @Test
+    public void testVariance_withNaN() throws Exception {
+        final double[] data = {Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN};
+
+        assertEquals(0.0, SelectionTool.variance(data), 0.0);
+    }
+
 }
