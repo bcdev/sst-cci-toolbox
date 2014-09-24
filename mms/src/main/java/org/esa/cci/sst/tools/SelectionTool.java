@@ -68,20 +68,40 @@ public class SelectionTool extends BasicTool {
 
             final Variable[] zenithAngles = findViewZenithAngles(sourceMmd);
             final Variable[] brightnessTemperatures = findBrightnessTemperatures(sourceMmd);
+            final Variable[] nadirBrightnessTemperatures = findNadirBrightnessTemperatures(sourceMmd);
+            final Variable[] forwardBrightnessTemperatures = findForwardBrightnessTemperatures(sourceMmd);
 
             final ArrayList<Integer> sourceMatchupIndexes = new ArrayList<>(sourceMatchupCount);
             for (int i = 0; i < sourceMatchupCount; i++) {
                 boolean accepted;
 
-                final Array vza1 = readRecord(i, zenithAngles[0], true);
-                final Array vza2 = readRecord(i, zenithAngles[1], true);
+                final double[] vza1 = readRecordEnhanced(i, zenithAngles[0]);
+                final double[] vza2 = readRecordEnhanced(i, zenithAngles[1]);
                 accepted = acceptZenithAngles(vza1, vza2);
                 if (accepted) {
                     for (final Variable brightnessTemperature : brightnessTemperatures) {
-                        final Array bt = readRecord(i, brightnessTemperature, true);
-                        accepted = acceptBrightnessTemperatures(bt);
+                        final double[] data = readRecordEnhanced(i, brightnessTemperature);
+                        accepted = acceptBrightnessTemperatures(data);
                         if (!accepted) {
                             break;
+                        }
+                    }
+                }
+                if (accepted) {
+                    for (final Variable brightnessTemperature : nadirBrightnessTemperatures) {
+                        final double[] data = readRecordEnhanced(i, brightnessTemperature);
+                        accepted = acceptBrightnessTemperatures(data);
+                        if (!accepted) {
+                            break;
+                        }
+                    }
+                    if (!accepted) {
+                        for (final Variable brightnessTemperature : forwardBrightnessTemperatures) {
+                            final double[] data = readRecordEnhanced(i, brightnessTemperature);
+                            accepted = acceptBrightnessTemperatures(data);
+                            if (!accepted) {
+                                break;
+                            }
                         }
                     }
                 }
@@ -124,7 +144,7 @@ public class SelectionTool extends BasicTool {
                 for (int i = 0; i < targetMatchupCount; i++) {
                     for (final Variable t : mapping.keySet()) {
                         final Variable s = mapping.get(t);
-                        final Array sourceData = readRecord(sourceMatchupIndexes.get(i), s, false);
+                        final Array sourceData = readRecord(sourceMatchupIndexes.get(i), s);
                         targetMmd.write(t, createSingleRecordOrigin(i, t.getRank()), sourceData);
                     }
                 }
@@ -155,19 +175,18 @@ public class SelectionTool extends BasicTool {
         return NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, file.getPath());
     }
 
-    static boolean acceptBrightnessTemperatures(Array bt) {
-        return true; //variance(bt) < 2.0;
+    static boolean acceptBrightnessTemperatures(double[] data) {
+        return variance(data) < 4.0;
     }
 
-    static double variance(Array a) {
+    static double variance(double[] data) {
         int n = 0;
         double mean = 0.0;
         double m2 = 0.0;
 
-        for (int i = 0; i < a.getSize(); i++) {
-            n = n + 1;
-            final double x = a.getDouble(i);
+        for (final double x : data) {
             final double delta = x - mean;
+            n++;
             mean = mean + delta / n;
             m2 = m2 + delta * (x - mean);
         }
@@ -178,33 +197,35 @@ public class SelectionTool extends BasicTool {
         return m2 / (n - 1);
     }
 
-    static boolean acceptZenithAngles(Array vza1, Array vza2) {
-        final int i1 = (int) (vza1.getSize() / 2);
-        final int i2 = (int) (vza2.getSize() / 2);
+    static boolean acceptZenithAngles(double[] vza1, double[] vza2) {
+        final int i1 = vza1.length / 2;
+        final int i2 = vza2.length / 2;
 
-        return Math.abs(vza1.getDouble(i1) - vza2.getDouble(i2)) < 10.0;
+        return Math.abs(vza1[i1] - vza2[i2]) < 10.0;
     }
 
 
-    static Array readRecord(int i, Variable v, boolean enhance) throws IOException, InvalidRangeException {
-        Array data = v.read(createSingleRecordOrigin(i, v.getRank()), createSingleRecordShape(v));
-        if (enhance) {
-            final Array enhancedData = Array.factory(DataType.DOUBLE, data.getShape());
-            final double addOffset = getAttribute(v, "add_offset", 0.0);
-            final double scaleFactor = getAttribute(v, "scale_factor", 0.0);
-            final Number fillValue = getAttribute(v, "_FillValue");
-            for (int k = 0; k < data.getSize(); ++k) {
-                final double value = data.getDouble(k);
-                if (fillValue == null || value != fillValue.doubleValue()) {
-                    enhancedData.setDouble(k, scaleFactor * value + addOffset);
-                } else {
-                    enhancedData.setDouble(k, Double.NaN);
-                }
+    static Array readRecord(int i, Variable v) throws IOException, InvalidRangeException {
+        return v.read(createSingleRecordOrigin(i, v.getRank()), createSingleRecordShape(v));
+    }
+
+    private double[] readRecordEnhanced(int i, Variable v) throws IOException, InvalidRangeException {
+        final Array data = readRecord(i, v);
+        final Array enhancedData = Array.factory(DataType.DOUBLE, data.getShape());
+        final double addOffset = getAttribute(v, "add_offset", 0.0);
+        final double scaleFactor = getAttribute(v, "scale_factor", 0.0);
+        final Number fillValue = getAttribute(v, "_FillValue");
+        for (int k = 0; k < data.getSize(); ++k) {
+            final double value = data.getDouble(k);
+            if (fillValue == null || value != fillValue.doubleValue()) {
+                enhancedData.setDouble(k, scaleFactor * value + addOffset);
+            } else {
+                enhancedData.setDouble(k, Double.NaN);
             }
-            data = enhancedData;
         }
-        return data;
+        return (double[]) enhancedData.getStorage();
     }
+
 
     private static Number getAttribute(Variable v, String name) {
         final Attribute attribute = v.findAttribute(name);
@@ -239,12 +260,36 @@ public class SelectionTool extends BasicTool {
         final String part = "brightness_temperature";
         for (final Variable v : file.getVariables()) {
             final String name = v.getShortName();
-            if (name.contains(part) && !name.contains("forward") && !name.contains("ffm")) {
+            if (name.contains(part) && !name.contains("nadir") && !name.contains("forward") && !name.contains("ffm")) {
                 variables.add(v);
             }
         }
         if (variables.size() == 0) {
             throw new IOException(MessageFormat.format("Could not find variables with name like ''{0}''.", part));
+        }
+        return variables.toArray(new Variable[variables.size()]);
+    }
+
+    static Variable[] findNadirBrightnessTemperatures(NetcdfFile file) throws IOException {
+        final ArrayList<Variable> variables = new ArrayList<>(2);
+        final String part = "brightness_temperature";
+        for (final Variable v : file.getVariables()) {
+            final String name = v.getShortName();
+            if (name.contains(part) && name.contains("nadir") && !name.contains("ffm")) {
+                variables.add(v);
+            }
+        }
+        return variables.toArray(new Variable[variables.size()]);
+    }
+
+    static Variable[] findForwardBrightnessTemperatures(NetcdfFile file) throws IOException {
+        final ArrayList<Variable> variables = new ArrayList<>(2);
+        final String part = "brightness_temperature";
+        for (final Variable v : file.getVariables()) {
+            final String name = v.getShortName();
+            if (name.contains(part) && name.contains("forward") && !name.contains("ffm")) {
+                variables.add(v);
+            }
         }
         return variables.toArray(new Variable[variables.size()]);
     }
