@@ -175,8 +175,10 @@ public class SelectionTool extends BasicTool {
         return NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf4_classic, file.getPath());
     }
 
-    static boolean acceptBrightnessTemperatures(double[] data) {
-        return variance(data) < 4.0;
+    boolean acceptBrightnessTemperatures(double[] data) {
+        final double variance = variance(data);
+        getLogger().info("variance = " + variance);
+        return variance < 4.0;
     }
 
     static double variance(double[] data) {
@@ -225,7 +227,6 @@ public class SelectionTool extends BasicTool {
         }
         return (double[]) enhancedData.getStorage();
     }
-
 
     private static Number getAttribute(Variable v, String name) {
         final Attribute attribute = v.findAttribute(name);
