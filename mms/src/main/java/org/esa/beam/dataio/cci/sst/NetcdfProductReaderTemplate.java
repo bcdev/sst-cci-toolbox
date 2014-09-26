@@ -71,10 +71,14 @@ abstract class NetcdfProductReaderTemplate extends AbstractProductReader impleme
             }
             band.setSourceImage(createSourceImage(band));
         }
+        addExtraBands(product);
         addGeoCoding(product);
         setTime(product);
 
         return product;
+    }
+
+    protected void addExtraBands(Product product) {
     }
 
     @Override

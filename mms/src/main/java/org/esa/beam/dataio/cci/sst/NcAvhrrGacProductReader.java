@@ -83,6 +83,52 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     }
 
     @Override
+    protected void addExtraBands(Product product) {
+        if (!product.containsBand("ch3a")) {
+            final Band ch3a = product.addBand("ch3a", "-32768", ProductData.TYPE_INT16);
+            /*
+                ch3a:_FillValue = -32768s ;
+                ch3a:units = "reflectance" ;
+                ch3a:add_offset = 0.f ;
+                ch3a:scale_factor = 0.0001f ;
+             */
+            ch3a.setNoDataValue(-32768.0);
+            ch3a.setNoDataValueUsed(true);
+            ch3a.setUnit("reflectance");
+            ch3a.setScalingOffset(0.0);
+            ch3a.setScalingFactor(0.0001);
+        }
+        if (!product.containsBand("ch3b")) {
+            final Band ch3b = product.addBand("ch3b", "-32768", ProductData.TYPE_INT16);
+            /*
+                ch3b:_FillValue = -32768s ;
+                ch3b:units = "kelvin" ;
+                ch3b:add_offset = 273.15f ;
+                ch3b:scale_factor = 0.01f ;
+             */
+            ch3b.setNoDataValue(-32768.0);
+            ch3b.setNoDataValueUsed(true);
+            ch3b.setUnit("kelvin");
+            ch3b.setScalingOffset(273.15);
+            ch3b.setScalingFactor(0.01);
+        }
+        if (!product.containsBand("ch5")) {
+            final Band ch5 = product.addBand("ch5", "-32768", ProductData.TYPE_INT16);
+            /*
+                ch3b:_FillValue = -32768s ;
+                ch3b:units = "kelvin" ;
+                ch3b:add_offset = 273.15f ;
+                ch3b:scale_factor = 0.01f ;
+             */
+            ch5.setNoDataValue(-32768.0);
+            ch5.setNoDataValueUsed(true);
+            ch5.setUnit("kelvin");
+            ch5.setScalingOffset(273.15);
+            ch5.setScalingFactor(0.01);
+        }
+    }
+
+    @Override
     protected void addGeoCoding(Product product) throws IOException {
         final Band latBand = product.getBand("lat");
         final Band lonBand = product.getBand("lon");
