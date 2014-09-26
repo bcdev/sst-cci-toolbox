@@ -76,7 +76,7 @@ public class GbcsTool extends BasicTool {
         nwpSource = config.getStringValue(Configuration.KEY_MMS_GBCS_NWP_SOURCE);
         mmdTarget = config.getStringValue(Configuration.KEY_MMS_GBCS_MMD_TARGET);
         sensorName = config.getStringValue(Configuration.KEY_MMS_GBCS_SENSOR);
-        deleteOnExit = false; //config.getBooleanValue(Configuration.KEY_MMS_IO_TMPDELETEONEXIT, true);
+        deleteOnExit = config.getBooleanValue(Configuration.KEY_MMS_IO_TMPDELETEONEXIT, true);
 
         properties = new Properties();
         properties.put(Configuration.KEY_MMS_GBCS_INTELVERSION,
