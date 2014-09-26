@@ -23,4 +23,4 @@ mv ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project
 chmod -R ug+X ${mms.home}
 
 cp -f ${mms.home}/bin/mymms ${HOME}/bin
-cp -f ${mms.home}/bin/mymmsinstall ${HOME}/bin
+mv -f ${mms.home}/bin/mymmsinstall ${HOME}/bin
