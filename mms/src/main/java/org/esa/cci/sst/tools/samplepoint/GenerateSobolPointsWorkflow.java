@@ -36,13 +36,17 @@ public class GenerateSobolPointsWorkflow extends Workflow {
         final List<SamplingPoint> samples = generator.createSamples(sampleCount, sampleSkip, startTime, stopTime);
         logInfo(MessageFormat.format("Finished creating {0} samples", samples.size()));
 
-        logInfo("Starting removing land samples...");
-        landPointRemover.removeSamples(samples);
-        logInfo(MessageFormat.format("Finished removing land samples ({0} samples left)", samples.size()));
+        if (!workflowContext.isLandWanted()) {
+            logInfo("Starting removing land samples...");
+            landPointRemover.removeSamples(samples);
+            logInfo(MessageFormat.format("Finished removing land samples ({0} samples left)", samples.size()));
+        }
 
-        logInfo("Starting removing prior clear-sky samples...");
-        clearSkyPointRemover.removeSamples(samples);
-        logInfo(MessageFormat.format("Finished removing prior clear-sky samples ({0} samples left)", samples.size()));
+        if (!workflowContext.isCloudsWanted()) {
+            logInfo("Starting removing prior clear-sky samples...");
+            clearSkyPointRemover.removeSamples(samples);
+            logInfo(MessageFormat.format("Finished removing prior clear-sky samples ({0} samples left)", samples.size()));
+        }
 
         return samples;
     }

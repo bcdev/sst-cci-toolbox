@@ -26,6 +26,8 @@ public class WorkflowContext {
     private String sensorName2;
     private int searchTimePast2;
     private int searchTimeFuture2;
+    private boolean landWanted;
+    private boolean cloudsWanted;
 
     public void setStartTime(long startTime) {
         this.startTime = startTime;
@@ -171,5 +173,21 @@ public class WorkflowContext {
 
     public int getSearchTimeFuture2() {
         return searchTimeFuture2;
+    }
+
+    public boolean isLandWanted() {
+        return landWanted;
+    }
+
+    public void setLandWanted(boolean landWanted) {
+        this.landWanted = landWanted;
+    }
+
+    public boolean isCloudsWanted() {
+        return cloudsWanted;
+    }
+
+    public void setCloudsWanted(boolean cloudsWanted) {
+        this.cloudsWanted = cloudsWanted;
     }
 }

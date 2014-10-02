@@ -8,7 +8,9 @@ import java.io.File;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public class WorkflowContextTest {
 
@@ -17,6 +19,28 @@ public class WorkflowContextTest {
     @Before
     public void setUp() {
         workflowContext = new WorkflowContext();
+    }
+
+    @Test
+    public void testSetGetLandWanted() throws Exception {
+        assertFalse(workflowContext.isLandWanted());
+
+        workflowContext.setLandWanted(true);
+        assertTrue(workflowContext.isLandWanted());
+
+        workflowContext.setLandWanted(false);
+        assertFalse(workflowContext.isLandWanted());
+    }
+
+    @Test
+    public void testSetGetCloudsWanted() throws Exception {
+        assertFalse(workflowContext.isCloudsWanted());
+
+        workflowContext.setCloudsWanted(true);
+        assertTrue(workflowContext.isCloudsWanted());
+
+        workflowContext.setCloudsWanted(false);
+        assertFalse(workflowContext.isCloudsWanted());
     }
 
     @Test

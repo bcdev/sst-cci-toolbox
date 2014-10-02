@@ -54,6 +54,8 @@ public class Configuration {
     public static final String KEY_MMS_SAMPLING_EXTRACTION_TIME = "mms.sampling.time.insituextraction";
     public static final String KEY_MMS_SAMPLING_INSITU_SENSOR = "mms.sampling.insitu.sensor";
     public static final String KEY_MMS_SAMPLING_INSITU_SOURCE_DIR = "mms.sampling.insitu.inputdirectory";
+    public static final String KEY_MMS_SAMPLING_LAND_WANTED = "mms.sampling.landwanted";
+    public static final String KEY_MMS_SAMPLING_CLOUDS_WANTED = "mms.sampling.cloudswanted";
 
     public static final String KEY_MMS_MAPPLOT_STATEGY = "mms.mapplot.strategy";
     public static final String KEY_MMS_MAPPLOT_TARGET_DIR = "mms.mapplot.target.dir";

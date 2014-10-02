@@ -106,6 +106,12 @@ public class SamplingPointGenerationTool extends BasicTool {
         int sampleCount = config.getIntValue(Configuration.KEY_MMS_SAMPLING_COUNT);
         workflowContext.setSampleCount(sampleCount);
 
+        final boolean landWanted = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_LAND_WANTED, false);
+        workflowContext.setLandWanted(landWanted);
+
+        final boolean cloudsWanted = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_CLOUDS_WANTED, false);
+        workflowContext.setCloudsWanted(cloudsWanted);
+
         final String archiveRootPath = config.getStringValue(Configuration.KEY_MMS_ARCHIVE_ROOT);
         workflowContext.setArchiveRootDir(new File(archiveRootPath));
 
