@@ -7,7 +7,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;

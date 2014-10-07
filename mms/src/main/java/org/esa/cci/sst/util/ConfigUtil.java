@@ -2,7 +2,7 @@ package org.esa.cci.sst.util;
 
 
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 
 import java.io.File;

@@ -261,7 +261,7 @@ public class TimeUtilTest {
     }
 
     @Test
-    public void testFormatCompactUtcFormat()      {
+    public void testFormatCompactUtcFormat() {
         final Calendar calendar = createCalendar(2011, 9, 22, 19, 45, 12);
 
         final String utcFormat = TimeUtil.formatCompactUtcFormat(calendar.getTime());
@@ -269,13 +269,13 @@ public class TimeUtilTest {
     }
 
     @Test
-    public void testFormatCompactUtcFormat_nullInput()      {
+    public void testFormatCompactUtcFormat_nullInput() {
         final String utcFormat = TimeUtil.formatCompactUtcFormat(null);
         assertEquals("", utcFormat);
     }
 
     @Test
-    public void testFormatCcsdsUtcFormat()      {
+    public void testFormatCcsdsUtcFormat() {
         final Calendar calendar = createCalendar(2012, 10, 23, 20, 46, 13);
 
         final String ccsdsUtcFormat = TimeUtil.formatCcsdsUtcFormat(calendar.getTime());
@@ -283,9 +283,42 @@ public class TimeUtilTest {
     }
 
     @Test
-    public void testFormatCcsdsUtcFormat_nullInput()      {
+    public void testFormatCcsdsUtcFormat_nullInput() {
         final String ccsdsUtcFormat = TimeUtil.formatCcsdsUtcFormat(null);
         assertEquals("", ccsdsUtcFormat);
+    }
+
+    @Test
+    public void testFormatUtcIsoFormat() {
+        final Calendar calendar = createCalendar(2013, 9, 22, 20, 46, 13);
+
+        final String ccsdsUtcFormat = TimeUtil.formatIsoUtcFormat(calendar.getTime());
+        assertEquals("2013-10-22T20:46:13", ccsdsUtcFormat);
+    }
+
+    @Test
+    public void testSecondsSince1981ToDate() {
+        Date date = TimeUtil.secondsSince1981ToDate(667849283);
+
+        final GregorianCalendar utcCalendar = createUtcCalendar();
+        utcCalendar.setTime(date);
+
+        assertEquals(2002, utcCalendar.get(Calendar.YEAR));
+        assertEquals(2, utcCalendar.get(Calendar.MONTH));
+        assertEquals(1, utcCalendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(17, utcCalendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(41, utcCalendar.get(Calendar.MINUTE));
+        assertEquals(23, utcCalendar.get(Calendar.SECOND));
+
+        date = TimeUtil.secondsSince1981ToDate(0);
+        utcCalendar.setTime(date);
+
+        assertEquals(1981, utcCalendar.get(Calendar.YEAR));
+        assertEquals(0, utcCalendar.get(Calendar.MONTH));
+        assertEquals(1, utcCalendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(0, utcCalendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(0, utcCalendar.get(Calendar.MINUTE));
+        assertEquals(0, utcCalendar.get(Calendar.SECOND));
     }
 
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {

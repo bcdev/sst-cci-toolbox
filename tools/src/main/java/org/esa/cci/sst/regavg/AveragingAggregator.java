@@ -24,6 +24,7 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
+import org.esa.cci.sst.util.TimeUtil;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -164,7 +165,7 @@ public class AveragingAggregator extends AbstractAggregator {
         final List<FileList> allFiles = getFileStore().getFiles(date1, date2);
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                                  UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2),
+                                  TimeUtil.formatIsoUtcFormat(date1), TimeUtil.formatIsoUtcFormat(date2),
                                   allFiles.size()));
 
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);

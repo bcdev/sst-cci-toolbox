@@ -27,15 +27,27 @@
     <version>1</version>
     <packaging>pom</packaging>
 
-    <modules>
-        <module>mms</module>
-        <module>tools</module>
-    </modules>
-
     <organization>
         <name>Brockmann Consult GmbH</name>
         <url>http://www.brockmann-consult.de</url>
     </organization>
+
+    <modules>
+        <module>mms</module>
+        <module>tools</module>
+        <module>core</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>

@@ -24,7 +24,7 @@ import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
 

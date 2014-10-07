@@ -18,7 +18,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import ucar.ma2.Array;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;

@@ -14,6 +14,7 @@ package org.esa.cci.sst.tools;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.ProcessRunner;
 
 import java.io.File;

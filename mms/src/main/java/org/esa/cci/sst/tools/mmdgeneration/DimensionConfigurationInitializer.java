@@ -4,7 +4,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 import org.apache.commons.lang.StringUtils;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

@@ -19,19 +19,14 @@
 
 package org.esa.cci.sst.common.auxiliary;
 
-import org.esa.cci.sst.common.cellgrid.Downscaling;
-import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.common.cellgrid.Mask;
-import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.common.cellgrid.*;
 import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tool.OldToolException;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
@@ -73,9 +68,9 @@ public class Climatology {
         this.targetGridDef = targetGridDef;
     }
 
-    public static Climatology create(File dir, GridDef targetGridDef) throws ToolException {
+    public static Climatology create(File dir, GridDef targetGridDef) throws OldToolException {
         if (!dir.isDirectory()) {
-            throw new ToolException("Not a directory or directory not found: " + dir, ExitCode.USAGE_ERROR);
+            throw new OldToolException("Not a directory or directory not found: " + dir, ExitCode.USAGE_ERROR);
         }
         final File[] files = dir.listFiles(new FilenameFilter() {
             @Override
@@ -84,7 +79,7 @@ public class Climatology {
             }
         });
         if (files == null) {
-            throw new ToolException(String.format("Climatology directory is empty: %s", dir), ExitCode.USAGE_ERROR);
+            throw new OldToolException(String.format("Climatology directory is empty: %s", dir), ExitCode.USAGE_ERROR);
         }
         if (files.length == 365 || files.length == 366) {
             final File[] dailyClimatologyFiles = new File[files.length];
@@ -95,7 +90,7 @@ public class Climatology {
                     final int day = Integer.parseInt(file.getName().substring(matcher.start(), matcher.end()));
                     dailyClimatologyFiles[day - 1] = file;
                 } else {
-                    throw new ToolException("An internal error occurred.", ExitCode.INTERNAL_ERROR);
+                    throw new OldToolException("An internal error occurred.", ExitCode.INTERNAL_ERROR);
                 }
             }
             return new Climatology(dailyClimatologyFiles, targetGridDef);
@@ -104,7 +99,7 @@ public class Climatology {
             return new Climatology(dailyClimatologyFiles, targetGridDef);
         } else {
             final String[] missingDays = getMissingDays(files);
-            throw new ToolException(
+            throw new OldToolException(
                     String.format(
                             "Climatology directory is expected to contain 365 or 366 files, but found %d. Missing %s.",
                             files.length, Arrays.toString(missingDays)), ExitCode.USAGE_ERROR);
@@ -207,7 +202,7 @@ public class Climatology {
     // for debugging only (don't delete)
     private void writeMaskImage() throws IOException {
         final IndexColorModel colorModel = new IndexColorModel(8, 2, new byte[]{0, (byte) 255},
-                                                               new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255});
+                new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255});
         final int w = seaCoverageGrid.getGridDef().getWidth();
         final int h = seaCoverageGrid.getGridDef().getHeight();
         final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_INDEXED, colorModel);

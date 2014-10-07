@@ -27,11 +27,7 @@ import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
-import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tool.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -128,7 +124,7 @@ public class RegriddingTool extends Tool {
     }
 
     @Override
-    protected void run(Configuration configuration, String[] arguments) throws ToolException {
+    protected void run(Configuration configuration, String[] arguments) throws OldToolException {
         final String resolutionString = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
         final SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(resolutionString);
         productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
@@ -183,7 +179,7 @@ public class RegriddingTool extends Tool {
         try {
             aggregator.aggregate(startDate, endDate, temporalResolution, writer);
         } catch (IOException e) {
-            throw new ToolException("Re-gridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+            throw new OldToolException("Re-gridding failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
     }
 
@@ -242,36 +238,36 @@ public class RegriddingTool extends Tool {
         return paramList.toArray(new Parameter[paramList.size()]);
     }
 
-    private RegionMaskList getRegionMaskList(Configuration configuration) throws ToolException {
+    private RegionMaskList getRegionMaskList(Configuration configuration) throws OldToolException {
         try {
             final String region = configuration.getString(PARAM_REGION, false);
             RegionMaskList.setSpatialResolution(
                     SpatialResolution.getSpatialResolution(configuration.getString(PARAM_SPATIAL_RESOLUTION, true)));
             return RegionMaskList.parse(region);
         } catch (Exception e) {
-            throw new ToolException(e, ExitCode.USAGE_ERROR);
+            throw new OldToolException(e, ExitCode.USAGE_ERROR);
         }
     }
 
-    private LUT createLutForStdDeviation(File file) throws ToolException {
+    private LUT createLutForStdDeviation(File file) throws OldToolException {
         LUT lut;
         try {
             lut = RegriddingLUT1.create(file, productType.getGridDef());
             LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
-            throw new ToolException(e, ExitCode.IO_ERROR);
+            throw new OldToolException(e, ExitCode.IO_ERROR);
         }
         return lut;
     }
 
     private LUT getLutCoverageUncertainty(File file, SpatialResolution spatialResolution,
-                                                     double fillValue) throws ToolException {
+                                                     double fillValue) throws OldToolException {
         LUT lut;
         try {
             lut = RegriddingLUT2.create(file, spatialResolution, fillValue);
             LOGGER.info(String.format("LUT read from '%s'", file));
         } catch (IOException e) {
-            throw new ToolException(e, ExitCode.IO_ERROR);
+            throw new OldToolException(e, ExitCode.IO_ERROR);
         }
         return lut;
     }

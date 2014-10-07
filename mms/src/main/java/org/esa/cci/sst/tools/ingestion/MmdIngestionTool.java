@@ -23,7 +23,7 @@ import org.esa.cci.sst.reader.GunzipDecorator;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;

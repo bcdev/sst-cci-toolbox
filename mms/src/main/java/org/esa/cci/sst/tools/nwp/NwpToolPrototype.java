@@ -17,7 +17,7 @@
 package org.esa.cci.sst.tools.nwp;
 
 import org.esa.beam.util.math.FracIndex;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.ProcessRunner;
 import org.esa.cci.sst.util.TemplateResolver;
 import ucar.ma2.Array;

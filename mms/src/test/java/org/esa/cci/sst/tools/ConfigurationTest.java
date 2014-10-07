@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools;
 
+import org.esa.cci.sst.tool.ToolException;
 import org.junit.Before;
 import org.junit.Test;
 

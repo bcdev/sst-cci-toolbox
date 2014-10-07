@@ -17,7 +17,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.beam.util.io.CsvReader;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.BufferedReader;

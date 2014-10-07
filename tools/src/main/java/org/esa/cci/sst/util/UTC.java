@@ -37,11 +37,6 @@ public final class UTC {
 
     private static final TimeZone TIME_ZONE = TimeZone.getTimeZone("UTC");
     private static final Locale LOCALE = Locale.ENGLISH;
-    private static final DateFormat ISO_FORMAT = getDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
-    public static DateFormat getIsoFormat() {
-        return ISO_FORMAT;
-    }
 
     /**
      * Creates a date format using the given pattern. The date format returned, will use the

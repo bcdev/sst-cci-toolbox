@@ -24,24 +24,25 @@ package org.esa.cci.sst.tool;
  *
  * @author Norman Fomferra
  */
-public class ToolException extends Exception {
+// @todo 1 tb/tb duplicated class - replace this one with the class in core module
+public class OldToolException extends Exception {
     private final ExitCode exitCode;
 
-    public ToolException(ExitCode exitCode) {
+    public OldToolException(ExitCode exitCode) {
         this.exitCode = exitCode;
     }
 
-    public ToolException(Throwable cause, ExitCode exitCode) {
+    public OldToolException(Throwable cause, ExitCode exitCode) {
         super(cause);
         this.exitCode = exitCode;
     }
 
-    public ToolException(String message, ExitCode exitCode) {
+    public OldToolException(String message, ExitCode exitCode) {
         super(message);
         this.exitCode = exitCode;
     }
 
-    public ToolException(String message, Throwable cause, ExitCode exitCode) {
+    public OldToolException(String message, Throwable cause, ExitCode exitCode) {
         super(message, cause);
         this.exitCode = exitCode;
     }

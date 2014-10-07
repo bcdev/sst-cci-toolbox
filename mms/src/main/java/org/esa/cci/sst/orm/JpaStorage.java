@@ -1,7 +1,7 @@
 package org.esa.cci.sst.orm;
 
 import org.esa.cci.sst.data.*;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
 import javax.persistence.Query;

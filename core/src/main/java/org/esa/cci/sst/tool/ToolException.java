@@ -14,7 +14,7 @@
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tool;
 
 /**
  * This runtime exception shall thrown by MMS tools when an error has

@@ -29,11 +29,8 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.tool.Configuration;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.util.TimeUtil;
 import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -187,7 +184,7 @@ public final class AveragingTool extends Tool {
     }
 
     @Override
-    protected void run(Configuration configuration, String[] arguments) throws ToolException {
+    protected void run(Configuration configuration, String[] arguments) throws OldToolException {
         File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
@@ -214,34 +211,34 @@ public final class AveragingTool extends Tool {
         try {
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
-            throw new ToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+            throw new OldToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
         try {
             writeOutputs(outputDir, writeText, productType, filenameRegex,
                          sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);
         } catch (IOException e) {
-            throw new ToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+            throw new OldToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
         }
     }
 
-    private static LUT1 getLUT1(File lut1File) throws ToolException {
+    private static LUT1 getLUT1(File lut1File) throws OldToolException {
         final LUT1 lut1;
         try {
             lut1 = LUT1.read(lut1File);
             LOGGER.info(String.format("LUT-1 read from '%s'", lut1File));
         } catch (IOException e) {
-            throw new ToolException(e, ExitCode.IO_ERROR);
+            throw new OldToolException(e, ExitCode.IO_ERROR);
         }
         return lut1;
     }
 
-    private static LUT2 getLUT2(File lut2File) throws ToolException {
+    private static LUT2 getLUT2(File lut2File) throws OldToolException {
         final LUT2 lut2;
         try {
             lut2 = LUT2.read(lut2File);
             LOGGER.info(String.format("LUT-2 read from '%s'", lut2File));
         } catch (IOException e) {
-            throw new ToolException(e, ExitCode.IO_ERROR);
+            throw new OldToolException(e, ExitCode.IO_ERROR);
         }
         return lut2;
     }
@@ -308,11 +305,11 @@ public final class AveragingTool extends Tool {
             netcdfFile.addGlobalAttribute("file_format_version", FILE_FORMAT_VERSION);
             netcdfFile.addGlobalAttribute("tool_name", TOOL_NAME);
             netcdfFile.addGlobalAttribute("tool_version", TOOL_VERSION);
-            netcdfFile.addGlobalAttribute("generated_at", UTC.getIsoFormat().format(new Date()));
+            netcdfFile.addGlobalAttribute("generated_at", TimeUtil.formatIsoUtcFormat(new Date()));
             netcdfFile.addGlobalAttribute("product_type", productType.toString());
             netcdfFile.addGlobalAttribute("sst_depth", sstDepth.toString());
-            netcdfFile.addGlobalAttribute("start_date", UTC.getIsoFormat().format(startDate));
-            netcdfFile.addGlobalAttribute("end_date", UTC.getIsoFormat().format(endDate));
+            netcdfFile.addGlobalAttribute("start_date", TimeUtil.formatIsoUtcFormat(startDate));
+            netcdfFile.addGlobalAttribute("end_date", TimeUtil.formatIsoUtcFormat(endDate));
             netcdfFile.addGlobalAttribute("temporal_resolution", temporalResolution.toString());
             netcdfFile.addGlobalAttribute("region_name", regionMask.getName());
             netcdfFile.addGlobalAttribute("filename_regex", filenameRegex);
@@ -413,11 +410,11 @@ public final class AveragingTool extends Tool {
         return sb.toString();
     }
 
-    private static RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
+    private static RegionMaskList parseRegionList(Configuration configuration) throws OldToolException {
         try {
             return RegionMaskList.parse(configuration.getString(PARAM_REGION_LIST, false));
         } catch (Exception e) {
-            throw new ToolException(e, ExitCode.USAGE_ERROR);
+            throw new OldToolException(e, ExitCode.USAGE_ERROR);
         }
     }
 

@@ -20,17 +20,14 @@ import org.esa.cci.sst.data.Coincidence;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.data.Timeable;
-import org.esa.cci.sst.orm.MatchupQueryParameter;
 import org.esa.cci.sst.reader.MmdReader;
 import org.esa.cci.sst.tools.BasicTool;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
-import javax.persistence.Query;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Responsible for re-ingesting observations and coincidences from an mmd file into the database.

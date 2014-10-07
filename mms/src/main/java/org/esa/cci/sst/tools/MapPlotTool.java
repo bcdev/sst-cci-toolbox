@@ -16,6 +16,7 @@ package org.esa.cci.sst.tools;/*
 
 import org.esa.cci.sst.data.ReferenceObservation;
 import org.esa.cci.sst.orm.PersistenceManager;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.SamplingPoint;

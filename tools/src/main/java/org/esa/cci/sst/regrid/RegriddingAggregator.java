@@ -38,6 +38,7 @@ import org.esa.cci.sst.common.file.FileList;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.common.file.ProductType;
+import org.esa.cci.sst.util.TimeUtil;
 import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
@@ -181,7 +182,7 @@ class RegriddingAggregator extends AbstractAggregator {
             return null;
         }
         LOGGER.info(String.format("Aggregating output time step from %s to %s.",
-                                  UTC.getIsoFormat().format(date1), UTC.getIsoFormat().format(date2)));
+                TimeUtil.formatIsoUtcFormat(date1), TimeUtil.formatIsoUtcFormat(date2)));
 
         final Climatology climatology = getClimatology();
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1, date2);

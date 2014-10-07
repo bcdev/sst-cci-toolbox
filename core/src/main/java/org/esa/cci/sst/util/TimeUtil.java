@@ -16,9 +16,6 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.tools.ToolException;
-
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -49,15 +46,19 @@ public final class TimeUtil {
     private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat COMPACT_UTC_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+    private static final SimpleDateFormat ISO_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private static final SimpleDateFormat DAY_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat INSITU_FILE_NAME_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
     static {
-        CCSDS_UTC_MILLIS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        CCSDS_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        COMPACT_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        DAY_UTC_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        INSITU_FILE_NAME_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
+
+        CCSDS_UTC_MILLIS_FORMAT.setTimeZone(utcTimeZone);
+        CCSDS_UTC_FORMAT.setTimeZone(utcTimeZone);
+        COMPACT_UTC_FORMAT.setTimeZone(utcTimeZone);
+        ISO_UTC_FORMAT.setTimeZone(utcTimeZone);
+        DAY_UTC_FORMAT.setTimeZone(utcTimeZone);
+        INSITU_FILE_NAME_DATE_FORMAT.setTimeZone(utcTimeZone);
     }
 
     public static String formatCompactUtcFormat(Date time) {
@@ -86,6 +87,10 @@ public final class TimeUtil {
             return CCSDS_UTC_FORMAT.parse(timeString);
         }
         return CCSDS_UTC_MILLIS_FORMAT.parse(timeString);
+    }
+
+    public static String formatIsoUtcFormat(Date time) {
+        return ISO_UTC_FORMAT.format(time);
     }
 
     public static Date parseInsituFileNameDateFormat(String timeString) throws ParseException {
@@ -166,17 +171,6 @@ public final class TimeUtil {
         c.clear();
         c.set(year, month, date, hour, minute, second);
         return c;
-    }
-
-    public static Date getConfiguredTimeOf(String time) {
-        final Date date;
-        try {
-            date = parseCcsdsUtcFormat(time);
-        } catch (ParseException e) {
-            final String message = MessageFormat.format("Unable to parse time string ''{0}''.", time);
-            throw new ToolException(message, e, ToolException.CONFIGURATION_FILE_IO_ERROR);
-        }
-        return date;
     }
 
     public static GregorianCalendar calendarDayOf(Date time) {

@@ -17,7 +17,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.tools.BasicTool;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;

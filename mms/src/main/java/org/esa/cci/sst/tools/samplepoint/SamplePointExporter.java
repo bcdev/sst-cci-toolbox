@@ -2,7 +2,7 @@ package org.esa.cci.sst.tools.samplepoint;
 
 
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;

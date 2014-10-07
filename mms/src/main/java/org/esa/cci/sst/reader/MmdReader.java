@@ -29,7 +29,7 @@ import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;

@@ -18,7 +18,7 @@ package org.esa.cci.sst.tools.ingestion;
 
 import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.tools.BasicTool;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.junit.Test;
 
 import java.io.File;

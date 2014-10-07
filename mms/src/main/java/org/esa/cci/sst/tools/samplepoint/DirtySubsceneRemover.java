@@ -28,7 +28,7 @@ import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
 import org.esa.cci.sst.tools.Configuration;
 import org.esa.cci.sst.tools.Constants;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.PixelCounter;
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;

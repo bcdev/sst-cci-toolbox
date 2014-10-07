@@ -38,6 +38,12 @@
     <dependencies>
 
         <dependency>
+            <groupId>org.esa-sst-cci</groupId>
+            <artifactId>core</artifactId>
+            <version>1</version>
+        </dependency>
+
+        <dependency>
             <groupId>edu.ucar</groupId>
             <artifactId>netcdf</artifactId>
             <version>4.3.22</version>
@@ -146,8 +152,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>

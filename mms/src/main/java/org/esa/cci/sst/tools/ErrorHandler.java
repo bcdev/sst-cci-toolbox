@@ -16,13 +16,15 @@
 
 package org.esa.cci.sst.tools;
 
+import org.esa.cci.sst.tool.ToolException;
+
 /**
  * Error handler interface.
  */
 public interface ErrorHandler {
 
     /**
-     * Handles the occurrence of a {@link ToolException}, which eventually shall
+     * Handles the occurrence of a {@link org.esa.cci.sst.tool.ToolException}, which eventually shall
      * always terminate the executable.
      *
      * @param e The tool exception.

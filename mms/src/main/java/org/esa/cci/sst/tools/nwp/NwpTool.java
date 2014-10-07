@@ -19,7 +19,7 @@ package org.esa.cci.sst.tools.nwp;
 import org.esa.beam.util.math.FracIndex;
 import org.esa.cci.sst.tools.BasicTool;
 import org.esa.cci.sst.tools.Configuration;
-import org.esa.cci.sst.tools.ToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.ProcessRunner;
 import org.esa.cci.sst.util.SensorNames;
 import ucar.ma2.Array;

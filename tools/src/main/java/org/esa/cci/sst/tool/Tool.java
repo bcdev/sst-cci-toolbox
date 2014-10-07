@@ -68,22 +68,22 @@ public abstract class Tool {
         options = createOptions();
         try {
             run0(arguments);
-        } catch (ToolException e) {
+        } catch (OldToolException e) {
             error(e, e.getExitCode());
         } catch (Throwable e) {
             error(e, ExitCode.INTERNAL_ERROR);
         }
     }
 
-    private void run0(String[] arguments) throws ToolException {
+    private void run0(String[] arguments) throws OldToolException {
         try {
             commandLine = parseCommandLine(arguments);
         } catch (ParseException e) {
-            throw new ToolException(e.getMessage(), ExitCode.USAGE_ERROR);
+            throw new OldToolException(e.getMessage(), ExitCode.USAGE_ERROR);
         }
 
         if (commandLine.getArgs().length == 0 && commandLine.getOptions().length == 0) {
-            throw new ToolException("", ExitCode.USAGE_ERROR);
+            throw new OldToolException("", ExitCode.USAGE_ERROR);
         }
 
         dumpStackTrace = commandLine.hasOption("errors");
@@ -128,9 +128,9 @@ public abstract class Tool {
 
     protected abstract Parameter[] getParameters();
 
-    protected abstract void run(Configuration configuration, String[] arguments) throws ToolException;
+    protected abstract void run(Configuration configuration, String[] arguments) throws OldToolException;
 
-    private Configuration getConfiguration() throws ToolException {
+    private Configuration getConfiguration() throws OldToolException {
         Properties properties = new Properties();
 
         Parameter[] parameters = getParameters();
@@ -175,7 +175,7 @@ public abstract class Tool {
         return new File(getName() + ".properties");
     }
 
-    private void loadConfig(String configPath, Properties properties) throws ToolException {
+    private void loadConfig(String configPath, Properties properties) throws OldToolException {
         try {
             FileReader reader = new FileReader(configPath);
             try {
@@ -185,7 +185,7 @@ public abstract class Tool {
                 reader.close();
             }
         } catch (IOException e) {
-            throw new ToolException(
+            throw new OldToolException(
                     MessageFormat.format("Failed to load configuration from ''{0}'': {1}", configPath, e.getMessage()),
                     ExitCode.IO_ERROR);
         }
