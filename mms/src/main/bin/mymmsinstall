@@ -1,15 +1,17 @@
 #!/bin/bash
 
-# fetch changes from github
+# fetch changes from github and install
 currentdir=`pwd`
-cd ${mms.github} && git pull
+cd $(dirname ${mms.github})
+git pull
+mvn clean package install
 cd ${currentdir}
 
 #commithash=`git log --abbrev-commit -1 --pretty=%H`
 #commithash=`git log --abbrev-commit -1 --pretty=%h`
 
 # build new software version
-mvn -f ${mms.github}/pom.xml clean package assembly:assembly
+mvn -f ${mms.github}/pom.xml package assembly:assembly
 
 # remove old software version
 echo removing ${mms.home}
