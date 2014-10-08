@@ -19,7 +19,7 @@
 
 package org.esa.cci.sst.tool;
 
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.text.ParseException;
@@ -104,7 +104,7 @@ public class Configuration {
             return null;
         }
         try {
-            return UTC.getDateFormat("yyyy-MM-dd").parse(string);
+            return TimeUtil.parseShortUtcFormat(string);
         } catch (ParseException e) {
             final String message = String.format("Parameter '%s': Value is not a valid date: '%s'", parameter.getName(), string);
             throw new ToolException(message, ToolException.TOOL_USAGE_ERROR);

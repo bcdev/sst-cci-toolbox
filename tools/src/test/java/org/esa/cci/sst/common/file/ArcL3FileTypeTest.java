@@ -1,10 +1,6 @@
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.Aggregation;
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.RegionalAggregation;
-import org.esa.cci.sst.common.ScalarGrid;
+import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
@@ -12,19 +8,16 @@ import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.TimeUtil;
 import org.junit.Test;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.io.File;
-import java.text.DateFormat;
 import java.text.ParseException;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Tests for ARC-L3 file type.
@@ -39,15 +32,14 @@ public class ArcL3FileTypeTest {
     @Test
     public void testParseDate() throws Exception {
 
-        final DateFormat format = UTC.getDateFormat("yyyy-MM-dd");
         final File file = new File("AT2_AVG_3PAARC20020112_D_dN2b.nc.gz");
-        assertEquals(format.parse("2002-01-12"), FILE_TYPE.parseDate(file.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("2002-01-12"), FILE_TYPE.parseDate(file.getName()));
         final File file1 = new File("AT1_AVG_3PAARC20020416_D_dN2b.nc.gz");
-        assertEquals(format.parse("2002-04-16"), FILE_TYPE.parseDate(file1.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("2002-04-16"), FILE_TYPE.parseDate(file1.getName()));
         final File file2 = new File("AT2_AVG_3PAARC20020120_D_nN2b.nc.gz");
-        assertEquals(format.parse("2002-01-20"), FILE_TYPE.parseDate(file2.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("2002-01-20"), FILE_TYPE.parseDate(file2.getName()));
         final File file3 = new File("ATS_AVG_3PAARC20020915_D_nD3b.nc.gz");
-        assertEquals(format.parse("2002-09-15"), FILE_TYPE.parseDate(file3.getName()));
+        assertEquals(TimeUtil.parseShortUtcFormat("2002-09-15"), FILE_TYPE.parseDate(file3.getName()));
 
         try {
             final File file4 = new File("ATS_AVG_3PAARC_20020915_D_nD3b.nc.gz");
@@ -100,9 +92,9 @@ public class ArcL3FileTypeTest {
         assertEquals(292.0, results[Aggregation.SST].doubleValue(), 1e-6);
         assertEquals(0.5, results[Aggregation.SST_ANOMALY].doubleValue(), 1e-6);
         assertEquals(sqrt(300 * sqr(0.1 * 0.8) / sqr(300 * 0.8)), results[Aggregation.RANDOM_UNCERTAINTY].doubleValue(),
-                     1e-6);
+                1e-6);
         assertEquals(1.2 * (1.0 - pow(expectedN / 77500.0, 0.5)),
-                     results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
+                results[Aggregation.COVERAGE_UNCERTAINTY].doubleValue(), 1e-6);
     }
 
     @Test

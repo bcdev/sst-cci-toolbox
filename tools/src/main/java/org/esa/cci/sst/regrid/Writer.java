@@ -32,7 +32,6 @@ import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.util.TimeUtil;
-import org.esa.cci.sst.util.UTC;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -43,7 +42,6 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
@@ -106,7 +104,6 @@ final class Writer {
         final GridDef targetGridDef = targetCellGrid.getGridDef();
         final Date startDate = timeStep.getStartDate();
         final Date endDate = timeStep.getEndDate();
-        final DateFormat filenameDateFormat = UTC.getDateFormat("yyyyMMdd");
         final ProcessingLevel processingLevel = productType.getProcessingLevel();
         final String sstType;
         if (processingLevel != ProcessingLevel.L4) {
@@ -114,14 +111,14 @@ final class Writer {
         } else {
             sstType = "SSTxxx";
         }
-        final String targetFilename = getTargetFilename(filenameDateFormat.format(startDate),
-                                                        filenameDateFormat.format(endDate),
-                                                        processingLevel,
-                                                        sstType,
-                                                        "ppp",
-                                                        "ss",
-                                                        regionMask.getName().toUpperCase(),
-                                                        "REGRIDDED_" + targetGridDef.getResolution());
+        final String targetFilename = getTargetFilename(TimeUtil.formatInsituFilenameFormat(startDate),
+                TimeUtil.formatInsituFilenameFormat(endDate),
+                processingLevel,
+                sstType,
+                "ppp",
+                "ss",
+                regionMask.getName().toUpperCase(),
+                "REGRIDDED_" + targetGridDef.getResolution());
         final File targetFile = new File(targetDir, targetFilename);
         LOGGER.info("Writing target file '" + targetFile + "'...");
 
@@ -165,11 +162,11 @@ final class Writer {
             lon.addAttribute(new Attribute("long_name", "longitude"));
             lon.addAttribute(new Attribute("bounds", "lon_bnds"));
             final Variable latBounds = dataFile.addVariable("lat_bnds", DataType.FLOAT,
-                                                            new Dimension[]{latDim, boundsDim});
+                    new Dimension[]{latDim, boundsDim});
             latBounds.addAttribute(new Attribute("units", "degrees_north"));
             latBounds.addAttribute(new Attribute("long_name", "latitude cell boundaries"));
             final Variable lonBounds = dataFile.addVariable("lon_bnds", DataType.FLOAT,
-                                                            new Dimension[]{lonDim, boundsDim});
+                    new Dimension[]{lonDim, boundsDim});
             lonBounds.addAttribute(new Attribute("units", "degrees_east"));
             lonBounds.addAttribute(new Attribute("long_name", "longitude cell boundaries"));
             final Variable[] resultVariables = addResultVariables(dataFile, sstDepth, dims);
@@ -194,8 +191,8 @@ final class Writer {
             }
         } catch (IOException e) {
             throw new IOException(MessageFormat.format("An exception occurred while writing target file ''{0}'':{1}",
-                                                       dataFile.getLocation(),
-                                                       e.getMessage()), e);
+                    dataFile.getLocation(),
+                    e.getMessage()), e);
         } finally {
             try {
                 dataFile.close();
@@ -309,14 +306,13 @@ final class Writer {
      * <i>startOfPeriod</i><b>-</b><i>endOfPeriod</i><b>-</b><i>regionName</i><b>_regridding-ESACCI-</b><i>processingLevel</i><b>_GHRSST-</b><i>sstType</i><b>-</b><i>productString</i><b>-</b><i>additionalSegregator</i><b>-v02.0-fv</b><i>fileVersion</i><b>.nc</b>
      * </code>
      *
-     *
      * @param startOfPeriod        Start of period = YYYYMMDD
      * @param endOfPeriod          End of period = YYYYMMDD
      * @param processingLevel      Processing level = L3C, L3U or L4
      * @param sstType              SST type
      * @param productString        Product string (see Table 5 in PSD, e.g. AATSR, OSTIA)
      * @param additionalSegregator Additional segregator = LT or DM
-*    @return The filename.
+     * @return The filename.
      */
     String getTargetFilename(String startOfPeriod,
                              String endOfPeriod,
@@ -329,16 +325,16 @@ final class Writer {
 
         final String rdac = productType.getFileType().getRdac();
         return String.format("%s-%s-%s-%s_GHRSST-%s-%s-%s-v%s-fv%s-%s-%s.nc",
-                             startOfPeriod,
-                             endOfPeriod,
-                             rdac,
-                             processingLevel,
-                             sstType,
-                             productString,
-                             additionalSegregator,
-                             toolVersion,
-                             fileFormatVersion,
-                             region,
-                             resolution);
+                startOfPeriod,
+                endOfPeriod,
+                rdac,
+                processingLevel,
+                sstType,
+                productString,
+                additionalSegregator,
+                toolVersion,
+                fileFormatVersion,
+                region,
+                resolution);
     }
 }

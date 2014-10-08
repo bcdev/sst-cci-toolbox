@@ -45,9 +45,8 @@ public final class TimeUtil {
 
     private static final SimpleDateFormat CCSDS_UTC_MILLIS_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final SimpleDateFormat CCSDS_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    private static final SimpleDateFormat COMPACT_UTC_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
     private static final SimpleDateFormat ISO_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    private static final SimpleDateFormat DAY_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat SHORT_UTC_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat INSITU_FILE_NAME_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
     static {
@@ -55,17 +54,9 @@ public final class TimeUtil {
 
         CCSDS_UTC_MILLIS_FORMAT.setTimeZone(utcTimeZone);
         CCSDS_UTC_FORMAT.setTimeZone(utcTimeZone);
-        COMPACT_UTC_FORMAT.setTimeZone(utcTimeZone);
         ISO_UTC_FORMAT.setTimeZone(utcTimeZone);
-        DAY_UTC_FORMAT.setTimeZone(utcTimeZone);
+        SHORT_UTC_FORMAT.setTimeZone(utcTimeZone);
         INSITU_FILE_NAME_DATE_FORMAT.setTimeZone(utcTimeZone);
-    }
-
-    public static String formatCompactUtcFormat(Date time) {
-        if (time == null) {
-            return "";
-        }
-        return COMPACT_UTC_FORMAT.format(time);
     }
 
     public static String formatCcsdsUtcFormat(Date time) {
@@ -95,6 +86,18 @@ public final class TimeUtil {
 
     public static Date parseInsituFileNameDateFormat(String timeString) throws ParseException {
         return INSITU_FILE_NAME_DATE_FORMAT.parse(timeString);
+    }
+
+    public static String formatInsituFilenameFormat(Date time) {
+        return INSITU_FILE_NAME_DATE_FORMAT.format(time);
+    }
+
+    public static Date parseShortUtcFormat(String timeString) throws ParseException {
+        return SHORT_UTC_FORMAT.parse(timeString);
+    }
+
+    public static String formatShortUtcFormat(Date time) {
+        return SHORT_UTC_FORMAT.format(time);
     }
 
     public static Date julianDateToDate(double julianDate) {
@@ -173,13 +176,17 @@ public final class TimeUtil {
         return c;
     }
 
-    public static GregorianCalendar calendarDayOf(Date time) {
+    public static Calendar createCalendarAtBeginningOfYear(int year) {
         final GregorianCalendar calendar = createUtcCalendar();
-        calendar.setTime(time);
-        calendar.set(Calendar.MILLISECOND, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MINUTE, 0);
+
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, 0);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
         return calendar;
     }
 
@@ -188,8 +195,7 @@ public final class TimeUtil {
     }
 
     public static Date getEndOfDay(Date day) {
-        final GregorianCalendar calendar = createUtcCalendar();
-        calendar.setTime(day);
+        final GregorianCalendar calendar = createUtcCalendar(day);
         calendar.set(Calendar.MILLISECOND, 0);
         calendar.set(Calendar.SECOND, 59);
         calendar.set(Calendar.MINUTE, 59);
@@ -198,31 +204,33 @@ public final class TimeUtil {
     }
 
     public static GregorianCalendar createUtcCalendar() {
-        return new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        return new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+    }
+
+    public static GregorianCalendar createUtcCalendar(Date date) {
+        final GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+        calendar.setTime(date);
+        return calendar;
     }
 
     public static int getYear(Date date) {
-        final GregorianCalendar utcCalendar = createUtcCalendar();
-        utcCalendar.setTime(date);
+        final GregorianCalendar utcCalendar = createUtcCalendar(date);
         return utcCalendar.get(Calendar.YEAR);
     }
 
     public static int getMonth(Date date) {
-        final GregorianCalendar utcCalendar = createUtcCalendar();
-        utcCalendar.setTime(date);
+        final GregorianCalendar utcCalendar = createUtcCalendar(date);
         return utcCalendar.get(Calendar.MONTH) + 1;
     }
 
     public static Date getBeginOfMonth(Date date) {
-        final GregorianCalendar utcCalendar = createUtcCalendar();
-        utcCalendar.setTime(date);
+        final GregorianCalendar utcCalendar = createUtcCalendar(date);
         utcCalendar.set(Calendar.DAY_OF_MONTH, 1);
         return getBeginningOfDay(utcCalendar.getTime());
     }
 
     public static Date getEndOfMonth(Date date) {
-        final GregorianCalendar utcCalendar = createUtcCalendar();
-        utcCalendar.setTime(date);
+        final GregorianCalendar utcCalendar = createUtcCalendar(date);
         final int maxDay = utcCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         utcCalendar.set(Calendar.DAY_OF_MONTH, maxDay);
         return getEndOfDay(utcCalendar.getTime());
@@ -230,5 +238,15 @@ public final class TimeUtil {
 
     private TimeUtil() {
         // prevent instantiation
+    }
+
+    private static GregorianCalendar calendarDayOf(Date time) {
+        final GregorianCalendar calendar = createUtcCalendar();
+        calendar.setTime(time);
+        calendar.set(Calendar.MILLISECOND, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        return calendar;
     }
 }

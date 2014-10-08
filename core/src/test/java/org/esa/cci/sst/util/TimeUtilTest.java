@@ -115,6 +115,40 @@ public class TimeUtilTest {
     }
 
     @Test
+    public void testFormatInsituFileNameFormat() {
+        final Calendar calendar = createCalendar(2007, 8, 5, 10, 4, 33);
+        final Date time = calendar.getTime();
+
+        final String formatted = TimeUtil.formatInsituFilenameFormat(time);
+        assertEquals("20070905", formatted);
+    }
+
+    @Test
+    public void testParseShortUtcFormat() throws ParseException {
+         Date date = TimeUtil.parseShortUtcFormat("2012-11-01");
+
+        final GregorianCalendar calendar = createUtcCalendar();
+        calendar.setTime(date);
+
+        assertEquals(2012, calendar.get(Calendar.YEAR));
+        assertEquals(11 - 1, calendar.get(Calendar.MONTH));
+        assertEquals(1, calendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(0, calendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(0, calendar.get(Calendar.MINUTE));
+        assertEquals(0, calendar.get(Calendar.SECOND));
+        assertEquals(0, calendar.get(Calendar.MILLISECOND));
+    }
+
+    @Test
+    public void testFormatShortUtcFormat() {
+        final Calendar calendar = createCalendar(2006, 7, 4, 9, 3, 31);
+        final Date time = calendar.getTime();
+
+        final String formatted = TimeUtil.formatShortUtcFormat(time);
+        assertEquals("2006-08-04", formatted);
+    }
+
+    @Test
     public void testToBeginningOfDay() {
         final Calendar calendar = createCalendar(2001, 5, 3, 6, 11, 22);
         final Date time = calendar.getTime();
@@ -261,20 +295,6 @@ public class TimeUtilTest {
     }
 
     @Test
-    public void testFormatCompactUtcFormat() {
-        final Calendar calendar = createCalendar(2011, 9, 22, 19, 45, 12);
-
-        final String utcFormat = TimeUtil.formatCompactUtcFormat(calendar.getTime());
-        assertEquals("20111022194512", utcFormat);
-    }
-
-    @Test
-    public void testFormatCompactUtcFormat_nullInput() {
-        final String utcFormat = TimeUtil.formatCompactUtcFormat(null);
-        assertEquals("", utcFormat);
-    }
-
-    @Test
     public void testFormatCcsdsUtcFormat() {
         final Calendar calendar = createCalendar(2012, 10, 23, 20, 46, 13);
 
@@ -319,6 +339,34 @@ public class TimeUtilTest {
         assertEquals(0, utcCalendar.get(Calendar.HOUR_OF_DAY));
         assertEquals(0, utcCalendar.get(Calendar.MINUTE));
         assertEquals(0, utcCalendar.get(Calendar.SECOND));
+    }
+
+    @Test
+    public void testCreateCalendarAtBeginningOfYear() {
+        final Calendar calendar = TimeUtil.createCalendarAtBeginningOfYear(2005);
+        assertNotNull(calendar);
+
+        assertEquals(2005, calendar.get(Calendar.YEAR));
+        assertEquals(0, calendar.get(Calendar.MONTH));
+        assertEquals(1, calendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(0, calendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(0, calendar.get(Calendar.MINUTE));
+        assertEquals(0, calendar.get(Calendar.SECOND));
+    }
+
+    @Test
+    public void testCreateUtcCalendarWithDate() {
+        final Date date = new Date(69787284542L);
+
+        final Calendar calendar = TimeUtil.createUtcCalendar(date);
+        assertNotNull(calendar);
+
+        assertEquals(1972, calendar.get(Calendar.YEAR));
+        assertEquals(2, calendar.get(Calendar.MONTH));
+        assertEquals(18, calendar.get(Calendar.DAY_OF_MONTH));
+        assertEquals(17, calendar.get(Calendar.HOUR_OF_DAY));
+        assertEquals(21, calendar.get(Calendar.MINUTE));
+        assertEquals(24, calendar.get(Calendar.SECOND));
     }
 
     private static Calendar createCalendar(int year, int month, int date, int hour, int minute, int second) {

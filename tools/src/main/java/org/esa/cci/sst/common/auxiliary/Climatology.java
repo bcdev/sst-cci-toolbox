@@ -24,10 +24,6 @@ import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -61,11 +57,6 @@ public class Climatology {
     private Grid seaCoverageGrid; // 0.1° or 0.05° same as input files
     private Grid seaCoverageCell5Grid;
     private Grid seaCoverageCell90Grid;
-
-    private Climatology(File[] dailyClimatologyFiles, GridDef targetGridDef) {
-        this.dailyClimatologyFiles = dailyClimatologyFiles;
-        this.targetGridDef = targetGridDef;
-    }
 
     public static Climatology create(File dir, GridDef targetGridDef) throws ToolException {
         if (!dir.isDirectory()) {
@@ -199,18 +190,23 @@ public class Climatology {
     }
 
     // for debugging only (don't delete)
-    private void writeMaskImage() throws IOException {
-        final IndexColorModel colorModel = new IndexColorModel(8, 2, new byte[]{0, (byte) 255},
-                new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255});
-        final int w = seaCoverageGrid.getGridDef().getWidth();
-        final int h = seaCoverageGrid.getGridDef().getHeight();
-        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_INDEXED, colorModel);
-        final WritableRaster imageRaster = image.getRaster();
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                imageRaster.setSample(x, y, 0, seaCoverageGrid.getSampleInt(x, y));
-            }
-        }
-        ImageIO.write(image, "PNG", new File("sea-coverage-grid.png"));
+//    private void writeMaskImage() throws IOException {
+//        final IndexColorModel colorModel = new IndexColorModel(8, 2, new byte[]{0, (byte) 255},
+//                new byte[]{0, (byte) 255}, new byte[]{0, (byte) 255});
+//        final int w = seaCoverageGrid.getGridDef().getWidth();
+//        final int h = seaCoverageGrid.getGridDef().getHeight();
+//        final BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_INDEXED, colorModel);
+//        final WritableRaster imageRaster = image.getRaster();
+//        for (int y = 0; y < h; y++) {
+//            for (int x = 0; x < w; x++) {
+//                imageRaster.setSample(x, y, 0, seaCoverageGrid.getSampleInt(x, y));
+//            }
+//        }
+//        ImageIO.write(image, "PNG", new File("sea-coverage-grid.png"));
+//    }
+
+    private Climatology(File[] dailyClimatologyFiles, GridDef targetGridDef) {
+        this.dailyClimatologyFiles = dailyClimatologyFiles;
+        this.targetGridDef = targetGridDef;
     }
 }

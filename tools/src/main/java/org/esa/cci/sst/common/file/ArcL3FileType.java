@@ -19,12 +19,7 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.AbstractAggregation;
-import org.esa.cci.sst.common.Aggregation;
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.RegionalAggregation;
-import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
@@ -38,16 +33,11 @@ import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.NcUtils;
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.DataType;
-import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
-import ucar.nc2.Variable;
+import ucar.nc2.*;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Calendar;
@@ -65,14 +55,13 @@ class ArcL3FileType implements FileType {
 
     static final FileType INSTANCE = new ArcL3FileType();
 
-    private static final DateFormat DATE_FORMAT = UTC.getDateFormat("yyyyMMdd");
     private static final int FILENAME_DATE_OFFSET = "ATS_AVG_3PAARC".length();
     private static final GridDef GRID_DEF = GridDef.createGlobal(3600, 1800); // 0.01°
 
     @Override
     public Date parseDate(String filename) throws ParseException {
         final String dateString = filename.substring(FILENAME_DATE_OFFSET, FILENAME_DATE_OFFSET + 8);
-        return DATE_FORMAT.parse(dateString);
+        return TimeUtil.parseInsituFileNameDateFormat(dateString);
     }
 
     @Override
@@ -116,7 +105,7 @@ class ArcL3FileType implements FileType {
         } catch (Exception e) {
             throw new IOException("Invalid variable 'time' in file '" + datafile.getLocation() + "'");
         }
-        final Calendar calendar = UTC.createCalendar(1981);
+        final Calendar calendar = TimeUtil.createCalendarAtBeginningOfYear(1981);
         calendar.add(Calendar.SECOND, secondsSince1981);
 
         return calendar.getTime();
@@ -124,7 +113,7 @@ class ArcL3FileType implements FileType {
 
     @Override
     public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth,
-                                              AggregationContext context) throws  IOException {
+                                              AggregationContext context) throws IOException {
         switch (sstDepth) {
             case skin:
                 context.setSstGrid(readGrid(datafile, "sst_skin", 0));
@@ -156,7 +145,7 @@ class ArcL3FileType implements FileType {
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
-                                                            dims);
+                dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(new Attribute("long_name", String.format("SST %s anomaly", sstDepth)));
         sstAnomalyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
@@ -236,8 +225,8 @@ class ArcL3FileType implements FileType {
     }
 
     private static final class MultiPurposeAggregation extends AbstractAggregation implements RegionalAggregation,
-                                                                                              SameMonthAggregation<AggregationCell>,
-                                                                                              MultiMonthAggregation<RegionalAggregation> {
+            SameMonthAggregation<AggregationCell>,
+            MultiMonthAggregation<RegionalAggregation> {
 
         private final NumberAccumulator sstAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator sstAnomalyAccumulator = new ArithmeticMeanAccumulator();

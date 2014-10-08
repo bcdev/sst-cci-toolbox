@@ -20,7 +20,7 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -66,13 +66,12 @@ public class FileStore {
     /**
      * Returns a partitioned list of files starting with date1 and ending 1 day before date2.
      *
-     *
      * @param date1 inclusive
      * @param date2 exclusive
      * @return a partitioned list of files starting with date1 and ending 1 day before date2
      */
     public List<FileList> getFiles(Date date1, Date date2) {
-        final Calendar calendar = UTC.createCalendar(date1);
+        final Calendar calendar = TimeUtil.createUtcCalendar(date1);
         final List<FileList> files = new ArrayList<FileList>();
 
         while (calendar.getTime().before(date2)) {

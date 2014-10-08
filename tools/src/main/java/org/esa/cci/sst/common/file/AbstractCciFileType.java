@@ -25,12 +25,11 @@ import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.GridDef;
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.TimeUtil;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -45,11 +44,9 @@ public abstract class AbstractCciFileType implements FileType {
 
     @Override
     public final Date parseDate(String filename) throws ParseException {
-        final String dateFormatString = "yyyyMMdd";
-        final DateFormat dateFormat = UTC.getDateFormat(dateFormatString);
-        final String dateString = filename.substring(0, dateFormatString.length());
+        final String dateString = filename.substring(0, 8);
 
-        return dateFormat.parse(dateString);
+        return TimeUtil.parseInsituFileNameDateFormat(dateString);
     }
 
     @Override
@@ -65,7 +62,7 @@ public abstract class AbstractCciFileType implements FileType {
         } catch (Exception e) {
             throw new IOException("Invalid variable 'time' in file '" + datafile.getLocation() + "'");
         }
-        final Calendar calendar = UTC.createCalendar(1981);
+        final Calendar calendar = TimeUtil.createCalendarAtBeginningOfYear(1981);
         calendar.add(Calendar.SECOND, secondsSince1981);
 
         return calendar.getTime();

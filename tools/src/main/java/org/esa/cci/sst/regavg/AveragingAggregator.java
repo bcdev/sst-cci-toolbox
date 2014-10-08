@@ -1,13 +1,6 @@
 package org.esa.cci.sst.regavg;
 
-import org.esa.cci.sst.common.AbstractAggregator;
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.RegionMaskList;
-import org.esa.cci.sst.common.RegionalAggregation;
-import org.esa.cci.sst.common.SpatialResolution;
-import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.TemporalResolution;
+import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
@@ -25,7 +18,6 @@ import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
 import org.esa.cci.sst.util.TimeUtil;
-import org.esa.cci.sst.util.UTC;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -97,7 +89,7 @@ public class AveragingAggregator extends AbstractAggregator {
         context.setSynopticUncertaintyProvider(synopticUncertaintyProvider);
 
         final List<AveragingTimeStep> results = new ArrayList<AveragingTimeStep>();
-        final Calendar calendar = UTC.createCalendar(startDate);
+        final Calendar calendar = TimeUtil.createUtcCalendar(startDate);
 
         while (calendar.getTime().before(endDate) || calendar.getTime().equals(endDate)) {
             final Date date1 = calendar.getTime();
@@ -120,7 +112,7 @@ public class AveragingAggregator extends AbstractAggregator {
                     calendar.add(Calendar.MONTH, 3);
                     final Date date2 = calendar.getTime();
                     final List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
-                                                                               TemporalResolution.monthly);
+                            TemporalResolution.monthly);
                     result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
                     break;
                 }
@@ -128,7 +120,7 @@ public class AveragingAggregator extends AbstractAggregator {
                     calendar.add(Calendar.YEAR, 1);
                     final Date date2 = calendar.getTime();
                     final List<AveragingTimeStep> monthlyTimeSteps = aggregate(date1, date2,
-                                                                               TemporalResolution.monthly);
+                            TemporalResolution.monthly);
                     result = aggregateMonthlyTimeSteps(monthlyTimeSteps);
                     break;
                 }
@@ -151,11 +143,11 @@ public class AveragingAggregator extends AbstractAggregator {
         context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
 
         return aggregateRegions(cellGrid5,
-                                getClimatology().getSeaCoverageGrid5(),
-                                getClimatology().getSeaCoverageGrid90(),
-                                regionMaskList,
-                                getFileType().getCellFactory90(context),
-                                getFileType().getSameMonthAggregationFactory()
+                getClimatology().getSeaCoverageGrid5(),
+                getClimatology().getSeaCoverageGrid90(),
+                regionMaskList,
+                getFileType().getCellFactory90(context),
+                getFileType().getSameMonthAggregationFactory()
         );
     }
 
@@ -165,8 +157,8 @@ public class AveragingAggregator extends AbstractAggregator {
         final List<FileList> allFiles = getFileStore().getFiles(date1, date2);
 
         LOGGER.info(String.format("Computing output time step from %s to %s, %d file(s) found.",
-                                  TimeUtil.formatIsoUtcFormat(date1), TimeUtil.formatIsoUtcFormat(date2),
-                                  allFiles.size()));
+                TimeUtil.formatIsoUtcFormat(date1), TimeUtil.formatIsoUtcFormat(date2),
+                allFiles.size()));
 
         final CoverageUncertaintyProvider coverageUncertaintyProvider = createCoverageUncertaintyProvider(date1);
         context.setCoverageUncertaintyProvider(coverageUncertaintyProvider);
@@ -183,7 +175,7 @@ public class AveragingAggregator extends AbstractAggregator {
 
                 try {
                     final Date date = fileType.readDate(dataFile);
-                    final int dayOfYear = UTC.getDayOfYear(date);
+                    final int dayOfYear = TimeUtil.getYear(date);
                     LOGGER.fine("Day of year is " + dayOfYear);
                     context.setClimatologySstGrid(climatology.getSstGrid(dayOfYear));
                     context.setSeaCoverageGrid(climatology.getSeaCoverageGrid());
@@ -200,7 +192,7 @@ public class AveragingAggregator extends AbstractAggregator {
                     dataFile.close();
                 }
                 LOGGER.fine(String.format("Processing input %s file took %d ms", getFileStore().getProductType(),
-                                          System.currentTimeMillis() - t0));
+                        System.currentTimeMillis() - t0));
             }
         }
 
@@ -219,7 +211,7 @@ public class AveragingAggregator extends AbstractAggregator {
 
         for (final RegionMask regionMask : regionMaskList) {
             final CellGrid<? extends AggregationCell> regionCellGrid5 = getCellGridForRegion(sourceCellGrid5,
-                                                                                             regionMask);
+                    regionMask);
             // Check if region is Globe or Hemisphere, if so apply special averaging for all 90 deg grid boxes.
             final boolean mustAggregateTo90 = mustAggregateTo90(regionMask);
             final SameMonthAggregation aggregation = aggregationFactory.createAggregation();
@@ -243,8 +235,8 @@ public class AveragingAggregator extends AbstractAggregator {
 
     private static boolean mustAggregateTo90(RegionMask regionMask) {
         return regionMask.getCoverage() == RegionMask.Coverage.GLOBE
-               || regionMask.getCoverage() == RegionMask.Coverage.N_HEMISPHERE
-               || regionMask.getCoverage() == RegionMask.Coverage.S_HEMISPHERE;
+                || regionMask.getCoverage() == RegionMask.Coverage.N_HEMISPHERE
+                || regionMask.getCoverage() == RegionMask.Coverage.S_HEMISPHERE;
     }
 
     private static <C extends AggregationCell> void aggregateCellGrid(CellGrid<C> cellGrid,
@@ -283,7 +275,7 @@ public class AveragingAggregator extends AbstractAggregator {
 
     private List<RegionalAggregation> aggregateMonthlyTimeSteps(List<AveragingTimeStep> monthlyTimeSteps) {
         return aggregateMonthlyTimeSteps(monthlyTimeSteps, regionMaskList.size(),
-                                         getFileType().getMultiMonthAggregationFactory());
+                getFileType().getMultiMonthAggregationFactory());
     }
 
     private static List<RegionalAggregation> aggregateMonthlyTimeSteps(List<AveragingTimeStep> monthlyTimeSteps,
@@ -304,7 +296,7 @@ public class AveragingAggregator extends AbstractAggregator {
     }
 
     private CoverageUncertaintyProvider createCoverageUncertaintyProvider(Date date) {
-        final int month = UTC.createCalendar(date).get(Calendar.MONTH);
+        final int month = TimeUtil.getMonth(date);
 
         return new AveragingCoverageUncertaintyProvider(month) {
             @Override

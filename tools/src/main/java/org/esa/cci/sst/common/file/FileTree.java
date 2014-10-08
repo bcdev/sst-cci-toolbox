@@ -19,16 +19,10 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.util.UTC;
+import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A yyyy/MM/dd organized file tree.
@@ -44,7 +38,7 @@ public class FileTree {
     }
 
     public void add(Date date, File file) {
-        Calendar calendar = UTC.createCalendar(date);
+        Calendar calendar = TimeUtil.createUtcCalendar(date);
 
         int year = calendar.get(Calendar.YEAR);
         Map<Integer, Map<Integer, List<File>>> monthMaps = yearMaps.get(year);
@@ -71,7 +65,7 @@ public class FileTree {
     }
 
     public List<File> get(Date date) {
-        Calendar calendar = UTC.createCalendar(date);
+        Calendar calendar = TimeUtil.createUtcCalendar(date);
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DATE);
