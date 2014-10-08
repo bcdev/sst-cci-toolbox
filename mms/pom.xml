@@ -39,7 +39,7 @@
 
         <dependency>
             <groupId>org.esa-sst-cci</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>sst-cci-core</artifactId>
             <version>1</version>
         </dependency>
 
