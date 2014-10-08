@@ -68,22 +68,22 @@ public abstract class Tool {
         options = createOptions();
         try {
             run0(arguments);
-        } catch (OldToolException e) {
+        } catch (ToolException e) {
             error(e, e.getExitCode());
         } catch (Throwable e) {
-            error(e, ExitCode.INTERNAL_ERROR);
+            error(e, ToolException.TOOL_INTERNAL_ERROR);
         }
     }
 
-    private void run0(String[] arguments) throws OldToolException {
+    private void run0(String[] arguments) throws ToolException {
         try {
             commandLine = parseCommandLine(arguments);
         } catch (ParseException e) {
-            throw new OldToolException(e.getMessage(), ExitCode.USAGE_ERROR);
+            throw new ToolException(e.getMessage(), ToolException.TOOL_USAGE_ERROR);
         }
 
         if (commandLine.getArgs().length == 0 && commandLine.getOptions().length == 0) {
-            throw new OldToolException("", ExitCode.USAGE_ERROR);
+            throw new ToolException("", ToolException.TOOL_USAGE_ERROR);
         }
 
         dumpStackTrace = commandLine.hasOption("errors");
@@ -128,9 +128,9 @@ public abstract class Tool {
 
     protected abstract Parameter[] getParameters();
 
-    protected abstract void run(Configuration configuration, String[] arguments) throws OldToolException;
+    protected abstract void run(Configuration configuration, String[] arguments) throws ToolException;
 
-    private Configuration getConfiguration() throws OldToolException {
+    private Configuration getConfiguration() throws ToolException {
         Properties properties = new Properties();
 
         Parameter[] parameters = getParameters();
@@ -175,7 +175,7 @@ public abstract class Tool {
         return new File(getName() + ".properties");
     }
 
-    private void loadConfig(String configPath, Properties properties) throws OldToolException {
+    private void loadConfig(String configPath, Properties properties) throws ToolException {
         try {
             FileReader reader = new FileReader(configPath);
             try {
@@ -185,9 +185,8 @@ public abstract class Tool {
                 reader.close();
             }
         } catch (IOException e) {
-            throw new OldToolException(
-                    MessageFormat.format("Failed to load configuration from ''{0}'': {1}", configPath, e.getMessage()),
-                    ExitCode.IO_ERROR);
+            final String message = MessageFormat.format("Failed to load configuration from ''{0}'': {1}", configPath, e.getMessage());
+            throw new ToolException(message, ToolException.TOOL_IO_ERROR);
         }
     }
 
@@ -195,14 +194,10 @@ public abstract class Tool {
         LOGGER.info(message);
     }
 
-    protected void warn(String message) {
-        LOGGER.warning(message);
-    }
-
-    private void error(Throwable error, ExitCode exitCode) {
+    private void error(Throwable error, int exitCode) {
         if (ToolException.class.equals(error.getClass())) {
             LOGGER.severe("Error: " + error.getMessage());
-            if (exitCode == ExitCode.USAGE_ERROR) {
+            if (exitCode == ToolException.TOOL_USAGE_ERROR) {
                 LOGGER.severe("Consider using option -h to display the usage help");
             }
         } else {
@@ -214,7 +209,7 @@ public abstract class Tool {
         if (dumpStackTrace) {
             error.printStackTrace(System.err);
         }
-        System.exit(exitCode.ordinal());
+        System.exit(exitCode);
     }
 
     private void printHelp() {

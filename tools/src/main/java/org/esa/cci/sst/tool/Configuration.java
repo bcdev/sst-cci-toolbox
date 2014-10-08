@@ -41,19 +41,19 @@ public class Configuration {
         this.properties = properties;
     }
 
-    public String getString(Parameter parameter, boolean mandatory) throws OldToolException {
+    public String getString(Parameter parameter, boolean mandatory) throws ToolException {
         return getString(parameter.getName(), parameter.getDefaultValue(), mandatory);
     }
 
-    public String getString(String name, String defaultValue, boolean mandatory) throws OldToolException {
+    public String getString(String name, String defaultValue, boolean mandatory) throws ToolException {
         String property = properties.getProperty(name, defaultValue);
         if (property == null && mandatory) {
-            throw new OldToolException("Missing value for mandatory parameter '" + name + "'", ExitCode.USAGE_ERROR);
+            throw new ToolException("Missing value for mandatory parameter '" + name + "'", ToolException.TOOL_USAGE_ERROR);
         }
         return property == null ? property : property.trim();
     }
 
-    public File getFile(Parameter parameter, boolean mandatory) throws OldToolException {
+    public File getFile(Parameter parameter, boolean mandatory) throws ToolException {
         String path = getString(parameter, mandatory);
         if (path == null) {
             return null;
@@ -64,36 +64,41 @@ public class Configuration {
         return new File(path);
     }
 
-    public File getExistingFile(Parameter parameter, boolean mandatory) throws OldToolException {
+    public File getExistingFile(Parameter parameter, boolean mandatory) throws ToolException {
         File file = getFile(parameter, mandatory);
         if (file != null) {
             if (!file.exists()) {
-                throw new OldToolException(String.format("Parameter '%s': File not found: %s", parameter.getName(), file), ExitCode.IO_ERROR);
+                final String message = String.format("Parameter '%s': File not found: %s", parameter.getName(), file);
+                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
             }
             if (!file.isFile()) {
-                throw new OldToolException(String.format("Parameter '%s': Value is not a file: '%s'", parameter.getName(), file), ExitCode.IO_ERROR);
+                final String message = String.format("Parameter '%s': Value is not a file: '%s'", parameter.getName(), file);
+                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
             }
         }
         return file;
     }
 
-    public File getExistingDirectory(Parameter parameter, boolean mandatory) throws OldToolException {
+    public File getExistingDirectory(Parameter parameter, boolean mandatory) throws ToolException {
         File dir = getFile(parameter, mandatory);
         if (dir != null) {
             if (!dir.exists()) {
-                throw new OldToolException(String.format("Parameter '%s': Directory not found: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);
+                final String message = String.format("Parameter '%s': Directory not found: '%s'", parameter.getName(), dir);
+                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
             }
             if (!dir.isDirectory()) {
-                throw new OldToolException(String.format("Parameter '%s': Value is not a directory: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);
+                final String message = String.format("Parameter '%s': Value is not a directory: '%s'", parameter.getName(), dir);
+                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
             }
             if (!dir.canWrite()) {
-                throw new OldToolException(String.format("Parameter '%s': Directory is not writable: '%s'", parameter.getName(), dir), ExitCode.IO_ERROR);
+                final String message = String.format("Parameter '%s': Directory is not writable: '%s'", parameter.getName(), dir);
+                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
             }
         }
         return dir;
     }
 
-    public Date getDate(Parameter parameter, boolean mandatory) throws OldToolException {
+    public Date getDate(Parameter parameter, boolean mandatory) throws ToolException {
         String string = getString(parameter, mandatory);
         if (string == null) {
             return null;
@@ -101,12 +106,13 @@ public class Configuration {
         try {
             return UTC.getDateFormat("yyyy-MM-dd").parse(string);
         } catch (ParseException e) {
-            throw new OldToolException(String.format("Parameter '%s': Value is not a valid date: '%s'", parameter.getName(), string), ExitCode.USAGE_ERROR);
+            final String message = String.format("Parameter '%s': Value is not a valid date: '%s'", parameter.getName(), string);
+            throw new ToolException(message, ToolException.TOOL_USAGE_ERROR);
         }
     }
 
 
-    public boolean getBoolean(Parameter parameter, boolean defaultValue) throws OldToolException {
+    public boolean getBoolean(Parameter parameter, boolean defaultValue) throws ToolException {
         String string = getString(parameter, false);
         if (string == null) {
             return defaultValue;
@@ -116,7 +122,8 @@ public class Configuration {
         } else if (string.equalsIgnoreCase("false")) {
             return false;
         } else {
-            throw new OldToolException(String.format("Parameter '%s': Value is not a valid Boolean: '%s'", parameter.getName(), string), ExitCode.USAGE_ERROR);
+            final String message = String.format("Parameter '%s': Value is not a valid Boolean: '%s'", parameter.getName(), string);
+            throw new ToolException(message, ToolException.TOOL_USAGE_ERROR);
         }
     }
 }

@@ -29,9 +29,11 @@ public class ToolException extends RuntimeException {
     public static final int CONFIGURATION_FILE_IO_ERROR = 3;
     public static final int COMMAND_LINE_ARGUMENTS_PARSE_ERROR = 4;
     public static final int TOOL_CONFIGURATION_ERROR = 11;
+    public static final int TOOL_USAGE_ERROR = 12;
     public static final int TOOL_ERROR = 21;
     public static final int TOOL_IO_ERROR = 22;
     public static final int TOOL_DB_ERROR = 31;
+    public static final int TOOL_INTERNAL_ERROR = 41;
 
     private final int exitCode;
 
@@ -55,6 +57,11 @@ public class ToolException extends RuntimeException {
      */
     public ToolException(String message, Throwable cause, int exitCode) {
         super(message, cause);
+        this.exitCode = exitCode;
+    }
+
+    public ToolException(Throwable cause, int exitCode) {
+        super(cause);
         this.exitCode = exitCode;
     }
 

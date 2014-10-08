@@ -20,8 +20,7 @@
 package org.esa.cci.sst.common.auxiliary;
 
 import org.esa.cci.sst.common.cellgrid.*;
-import org.esa.cci.sst.tool.ExitCode;
-import org.esa.cci.sst.tool.OldToolException;
+import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
@@ -68,9 +67,9 @@ public class Climatology {
         this.targetGridDef = targetGridDef;
     }
 
-    public static Climatology create(File dir, GridDef targetGridDef) throws OldToolException {
+    public static Climatology create(File dir, GridDef targetGridDef) throws ToolException {
         if (!dir.isDirectory()) {
-            throw new OldToolException("Not a directory or directory not found: " + dir, ExitCode.USAGE_ERROR);
+            throw new ToolException("Not a directory or directory not found: " + dir, ToolException.TOOL_USAGE_ERROR);
         }
         final File[] files = dir.listFiles(new FilenameFilter() {
             @Override
@@ -79,7 +78,7 @@ public class Climatology {
             }
         });
         if (files == null) {
-            throw new OldToolException(String.format("Climatology directory is empty: %s", dir), ExitCode.USAGE_ERROR);
+            throw new ToolException(String.format("Climatology directory is empty: %s", dir), ToolException.TOOL_USAGE_ERROR);
         }
         if (files.length == 365 || files.length == 366) {
             final File[] dailyClimatologyFiles = new File[files.length];
@@ -90,7 +89,7 @@ public class Climatology {
                     final int day = Integer.parseInt(file.getName().substring(matcher.start(), matcher.end()));
                     dailyClimatologyFiles[day - 1] = file;
                 } else {
-                    throw new OldToolException("An internal error occurred.", ExitCode.INTERNAL_ERROR);
+                    throw new ToolException("An internal error occurred.", ToolException.TOOL_INTERNAL_ERROR);
                 }
             }
             return new Climatology(dailyClimatologyFiles, targetGridDef);
@@ -99,10 +98,10 @@ public class Climatology {
             return new Climatology(dailyClimatologyFiles, targetGridDef);
         } else {
             final String[] missingDays = getMissingDays(files);
-            throw new OldToolException(
-                    String.format(
-                            "Climatology directory is expected to contain 365 or 366 files, but found %d. Missing %s.",
-                            files.length, Arrays.toString(missingDays)), ExitCode.USAGE_ERROR);
+            final String message = String.format("Climatology directory is expected to contain 365 or 366 files, but found %d. Missing %s.",
+                    files.length,
+                    Arrays.toString(missingDays));
+            throw new ToolException(message, ToolException.TOOL_USAGE_ERROR);
         }
     }
 

@@ -184,7 +184,7 @@ public final class AveragingTool extends Tool {
     }
 
     @Override
-    protected void run(Configuration configuration, String[] arguments) throws OldToolException {
+    protected void run(Configuration configuration, String[] arguments) throws ToolException {
         File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
         String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
@@ -211,34 +211,34 @@ public final class AveragingTool extends Tool {
         try {
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
         } catch (IOException e) {
-            throw new OldToolException("Averaging failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+            throw new ToolException("Averaging failed: " + e.getMessage(), e, ToolException.TOOL_IO_ERROR);
         }
         try {
             writeOutputs(outputDir, writeText, productType, filenameRegex,
                          sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);
         } catch (IOException e) {
-            throw new OldToolException("Writing of output failed: " + e.getMessage(), e, ExitCode.IO_ERROR);
+            throw new ToolException("Writing of output failed: " + e.getMessage(), e, ToolException.TOOL_IO_ERROR);
         }
     }
 
-    private static LUT1 getLUT1(File lut1File) throws OldToolException {
+    private static LUT1 getLUT1(File lut1File) throws ToolException {
         final LUT1 lut1;
         try {
             lut1 = LUT1.read(lut1File);
             LOGGER.info(String.format("LUT-1 read from '%s'", lut1File));
         } catch (IOException e) {
-            throw new OldToolException(e, ExitCode.IO_ERROR);
+            throw new ToolException(e, ToolException.TOOL_IO_ERROR);
         }
         return lut1;
     }
 
-    private static LUT2 getLUT2(File lut2File) throws OldToolException {
+    private static LUT2 getLUT2(File lut2File) throws ToolException {
         final LUT2 lut2;
         try {
             lut2 = LUT2.read(lut2File);
             LOGGER.info(String.format("LUT-2 read from '%s'", lut2File));
         } catch (IOException e) {
-            throw new OldToolException(e, ExitCode.IO_ERROR);
+            throw new ToolException(e, ToolException.TOOL_IO_ERROR);
         }
         return lut2;
     }
@@ -410,11 +410,11 @@ public final class AveragingTool extends Tool {
         return sb.toString();
     }
 
-    private static RegionMaskList parseRegionList(Configuration configuration) throws OldToolException {
+    private static RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
         try {
             return RegionMaskList.parse(configuration.getString(PARAM_REGION_LIST, false));
         } catch (Exception e) {
-            throw new OldToolException(e, ExitCode.USAGE_ERROR);
+            throw new ToolException(e, ToolException.TOOL_USAGE_ERROR);
         }
     }
 
