@@ -46,6 +46,7 @@ public class MatchupGenerator extends BasicTool {
     private int subSceneHeight1;
     private int subSceneHeight2;
     private double dirtyPixelFraction;
+    private boolean overlappingWanted;
     private long referenceSensorPattern;
     private String referenceSensorName;
 
@@ -84,6 +85,7 @@ public class MatchupGenerator extends BasicTool {
             sensorName2 = sensorNames[1];
         }
         dirtyPixelFraction = config.getDoubleValue(Configuration.KEY_MMS_SAMPLING_DIRTY_PIXEL_FRACTION, 0.0);
+        overlappingWanted = config.getBooleanValue(Configuration.KEY_MMS_SAMPLING_OVERLAPPING_WANTED, false);
         referenceSensorName = config.getStringValue(Configuration.KEY_MMS_SAMPLING_REFERENCE_SENSOR);
         referenceSensorPattern = config.getPattern(referenceSensorName, 0);
 
@@ -109,10 +111,10 @@ public class MatchupGenerator extends BasicTool {
         final Logger logger = getLogger();
 
         final List<SamplingPoint> samples = loadSamplePoints(logger);
-        removeCloudySamples(logger, samples, true);
+        removeDirtySamples(logger, samples, true);
 
         if (sensorName2 != null) {
-            removeCloudySamples(logger, samples, false);
+            removeDirtySamples(logger, samples, false);
         }
 
         removeOverlappingSamples(logger, samples);
@@ -338,6 +340,9 @@ public class MatchupGenerator extends BasicTool {
     }
 
     private OverlapRemover createOverlapRemover() {
+        if (overlappingWanted) {
+            return new OverlapRemover(1, 1); // only remove samples, which belong to the same pixel
+        }
         return new OverlapRemover(subSceneWidth1, subSceneHeight1);
     }
 
@@ -411,7 +416,7 @@ public class MatchupGenerator extends BasicTool {
         logInfo(logger, "Finished removing overlapping samples (" + samples.size() + " samples left)");
     }
 
-    private void removeCloudySamples(Logger logger, List<SamplingPoint> samples, boolean primary) {
+    private void removeDirtySamples(Logger logger, List<SamplingPoint> samples, boolean primary) {
         final DirtySubsceneRemover subsceneRemover = new DirtySubsceneRemover();
         if (primary) {
             subsceneRemover.primary(true)

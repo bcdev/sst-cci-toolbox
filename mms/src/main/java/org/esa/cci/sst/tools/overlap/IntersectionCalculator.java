@@ -19,8 +19,8 @@ class IntersectionCalculator {
         return Math.abs(p1.getX() - p2.getX()) < width && Math.abs(p1.getY() - p2.getY()) < height;
     }
 
-    ArrayList<SamplingPoint> getAllIntersectingPoints(SamplingPoint p0, List<SamplingPoint> samplingPoints) {
-        final ArrayList<SamplingPoint> intersectingPoints = new ArrayList<>(8);
+    List<SamplingPoint> getAllIntersectingPoints(SamplingPoint p0, List<SamplingPoint> samplingPoints) {
+        final List<SamplingPoint> intersectingPoints = new ArrayList<>(samplingPoints.size());
 
         for (SamplingPoint p1 : samplingPoints) {
             if (are_intersecting(p0, p1)) {
