@@ -21,15 +21,14 @@ class SwathPixelLocator extends AbstractPixelLocator {
     private final PixelLocationSearcher searcher;
 
     static PixelLocator create(RasterDataNodeSampleSource lonSource,
-                               RasterDataNodeSampleSource latSource,
-                               double angularTolerance) {
+                               RasterDataNodeSampleSource latSource) {
         final PlanarImage lonImage = lonSource.getNode().getGeophysicalImage();
         final PlanarImage latImage = latSource.getNode().getGeophysicalImage();
         final PlanarImage maskImage = lonSource.getNode().getValidMaskImage();
 
         final GeoApproximation[] approximations = createApproximations(lonImage, latImage, maskImage);
         final Rectangle bounds = new Rectangle(0, 0, lonImage.getWidth(), latImage.getHeight());
-        final PixelLocationEstimator estimator = new PixelLocationEstimator(approximations, bounds);
+        final PixelLocationEstimator estimator = new PixelLocationEstimator(approximations);
 
         final SampleSource maskSource;
         if (maskImage != null) {
@@ -39,8 +38,8 @@ class SwathPixelLocator extends AbstractPixelLocator {
         }
         final PixelLocationSearcher searcher = new PixelLocationSearcher(lonSource,
                                                                          latSource,
-                                                                         maskSource,
-                                                                         angularTolerance);
+                                                                         maskSource
+        );
 
         return new SwathPixelLocator(lonSource, latSource, estimator, searcher);
     }
@@ -63,14 +62,12 @@ class SwathPixelLocator extends AbstractPixelLocator {
         return GeoApproximation.createApproximations(lonImage, latImage, maskImage, 0.5);
     }
 
-    private static class PixelLocationEstimator {
+    private static final class PixelLocationEstimator {
 
         private final GeoApproximation[] approximations;
-        private final Rectangle bounds;
 
-        public PixelLocationEstimator(GeoApproximation[] approximations, Rectangle bounds) {
+        public PixelLocationEstimator(GeoApproximation[] approximations) {
             this.approximations = approximations;
-            this.bounds = bounds;
         }
 
         public boolean estimatePixelLocation(double lon, double lat, Point2D p) {
@@ -80,11 +77,6 @@ class SwathPixelLocator extends AbstractPixelLocator {
                 if (approximation != null) {
                     p.setLocation(lon, lat);
                     g2p(approximation, p);
-                    final double x = p.getX();
-                    final double y = p.getY();
-                    if (x < bounds.getMinX() || x > bounds.getMaxX() || y < bounds.getMinY() || y > bounds.getMaxY()) {
-                        return false;
-                    }
                 } else {
                     return false;
                 }
@@ -123,7 +115,7 @@ class SwathPixelLocator extends AbstractPixelLocator {
         }
     }
 
-    private static class PixelLocationSearcher {
+    private static final class PixelLocationSearcher {
 
         private static final int R = 128;
 
@@ -132,15 +124,12 @@ class SwathPixelLocator extends AbstractPixelLocator {
         private final SampleSource maskSource;
         private final int sourceW;
         private final int sourceH;
-        private final double tolerance;
 
-        public PixelLocationSearcher(SampleSource lonSource, SampleSource latSource, SampleSource maskSource,
-                                     double angularTolerance) {
+        public PixelLocationSearcher(SampleSource lonSource, SampleSource latSource, SampleSource maskSource) {
             this.lonSource = lonSource;
             this.latSource = latSource;
             this.maskSource = maskSource;
 
-            tolerance = 1.0 - Math.cos(Math.toRadians(angularTolerance));
             sourceW = lonSource.getWidth();
             sourceH = lonSource.getHeight();
         }
@@ -166,7 +155,7 @@ class SwathPixelLocator extends AbstractPixelLocator {
             final int maxY = min(y + R, sourceH - 1);
 
             final DistanceMeasure d = new CosineDistance(lon, lat);
-            final Result result = new Result(d, x, y, 2.0, false).invoke(x, y);
+            final Result result = new Result(d, x, y, 2.0).invoke(x, y);
 
             for (int r = R; r > 0; r >>= 1) {
                 final int midX = result.getX();
@@ -202,11 +191,12 @@ class SwathPixelLocator extends AbstractPixelLocator {
                     result.invoke(innerMaxX, innerMinY);
                 }
             }
-            if (result.isFound()) {
+            final boolean found = result.getX() > minX && result.getX() < maxX && result.getY() > minY && result.getY() < maxY;
+            if (found) {
                 p.setLocation(result.getX() + 0.5, result.getY() + 0.5);
             }
 
-            return result.isFound();
+            return found;
         }
 
         private final class Result {
@@ -216,14 +206,12 @@ class SwathPixelLocator extends AbstractPixelLocator {
             private int x;
             private int y;
             private double distance;
-            private boolean found;
 
-            public Result(DistanceMeasure distanceMeasure, int x, int y, double distance, boolean found) {
+            public Result(DistanceMeasure distanceMeasure, int x, int y, double distance) {
                 this.distanceMeasure = distanceMeasure;
                 this.x = x;
                 this.y = y;
                 this.distance = distance;
-                this.found = found;
             }
 
             public int getX() {
@@ -232,10 +220,6 @@ class SwathPixelLocator extends AbstractPixelLocator {
 
             public int getY() {
                 return y;
-            }
-
-            public boolean isFound() {
-                return found;
             }
 
             public Result invoke(int otherX, int otherY) {
@@ -248,7 +232,6 @@ class SwathPixelLocator extends AbstractPixelLocator {
                         x = otherX;
                         y = otherY;
                         distance = d;
-                        found = found || d < tolerance;
                     }
                 }
                 return this;

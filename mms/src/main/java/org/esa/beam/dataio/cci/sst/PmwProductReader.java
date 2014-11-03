@@ -102,7 +102,7 @@ public class PmwProductReader extends NetcdfProductReaderTemplate {
         final Band lonBand = product.getBand("lon");
         final Band latBand = product.getBand("lat");
         if (latBand != null && lonBand != null) {
-            final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, 0.05);
+            final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand);
             final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
 
             product.setGeoCoding(geoCoding);

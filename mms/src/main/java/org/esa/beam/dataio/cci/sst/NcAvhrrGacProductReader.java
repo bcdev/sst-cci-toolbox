@@ -2,7 +2,6 @@ package org.esa.beam.dataio.cci.sst;
 
 import org.esa.beam.dataio.netcdf.metadata.ProfilePartReader;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfBandPart;
-import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfFlagCodingPart;
 import org.esa.beam.dataio.netcdf.metadata.profiles.cf.CfIndexCodingPart;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
 import org.esa.beam.dataio.netcdf.util.MetadataUtils;
@@ -132,7 +131,7 @@ public class NcAvhrrGacProductReader extends NetcdfProductReaderTemplate {
     protected void addGeoCoding(Product product) throws IOException {
         final Band latBand = product.getBand("lat");
         final Band lonBand = product.getBand("lon");
-        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand, 0.05);
+        final PixelLocator pixelLocator = PixelLocatorFactory.forSwath(lonBand, latBand);
         final GeoCoding geoCoding = new PixelLocatorAdapter(pixelLocator);
 
         product.setGeoCoding(geoCoding);
