@@ -23,6 +23,3 @@ mv ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project
 
 # change file permissions manually because maven assembly does not do this
 chmod -R ug+X ${mms.home}
-
-cp -f ${mms.home}/bin/mymms ${HOME}/bin
-mv -f ${mms.home}/bin/mymmsinstall ${HOME}/bin
