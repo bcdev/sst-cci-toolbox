@@ -13,13 +13,14 @@ cd ${currentdir}
 # build new software version
 mvn -f ${mms.github}/pom.xml package assembly:assembly
 
-# remove old software version
+# remove previous software version
 echo removing ${mms.home}
 rm -rf ${mms.home}
 
-# move assembly to target directory
+# copy assembly to target directory
 echo copying data to $(dirname ${mms.home})
-mv ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} $(dirname ${mms.home})
+cp -R ${mms.github}/target/sst-cci-mms-${project.version}-bin/sst-cci-mms-${project.version} $(dirname ${mms.home})
 
 # change file permissions manually because maven assembly does not do this
+echo changing file permissions
 chmod -R ug+X ${mms.home}
