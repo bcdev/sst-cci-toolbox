@@ -252,6 +252,8 @@ class PMonitor:
             if not self._simulation:
                 code = self._run_step(task_id, host, command, output_paths, log_prefix)
             else:
+                # for debugging only
+                # self._run_step(task_id, host, 'sleep 2', output_paths, log_prefix)
                 code = 0
             self._finalise_step(call, code, command, host, output_paths, outputs)
 
@@ -393,11 +395,15 @@ class PMonitor:
                         if len(new_tasks) > 0:
                             for newTask in new_tasks:
                                 self._backlog.insert(pos + 1, newTask)
+                            # be unfair!
+                            pass
                             # be fair!
-                            break
+                            # break
                 else:
+                    # be unfair!
+                    pass
                     # be fair!
-                    break
+                    # break
         for task in mature_tasks:
             self._backlog.remove(task)
 
