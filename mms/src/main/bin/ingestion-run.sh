@@ -22,6 +22,6 @@ ${mms.home}/bin/ingestion-tool.sh -c ${mms.home}/config/${usecase}-config.proper
 -Dmms.source.30.inputDirectory=avhrr.n18/v01/${year}/${month} \
 -Dmms.source.31.inputDirectory=avhrr.n19/v01/${year}/${month} \
 -Dmms.source.32.inputDirectory=avhrr.m02/v01/${year}/${month} \
--Dmms.source.32.inputDirectory=avhrr.m01/v01/${year}/${month} \
+-Dmms.source.33.inputDirectory=avhrr.m01/v01/${year}/${month} \
 -Dmms.source.43.inputDirectory=aerosol-aai/v01/${year}/${month} \
 -Dmms.source.44.inputDirectory=sea-ice/v01/${year}/${month}
