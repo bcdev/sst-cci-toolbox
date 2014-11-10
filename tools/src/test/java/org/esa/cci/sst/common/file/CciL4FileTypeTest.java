@@ -5,7 +5,7 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.util.TestL3ProductMaker;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;

@@ -14,8 +14,6 @@ package org.esa.cci.sst.common;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.cellgrid.Grid;
-
 /**
  * A look-up table.
  *

@@ -21,9 +21,9 @@ package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.LUT;
 import org.esa.cci.sst.common.SpatialResolution;
-import org.esa.cci.sst.common.cellgrid.ArrayGrid;
+import org.esa.cci.sst.common.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.Interpolation;
 import org.esa.cci.sst.common.cellgrid.YFlip;

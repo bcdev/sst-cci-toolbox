@@ -15,6 +15,7 @@ package org.esa.cci.sst.common.cellgrid;/*
  */
 
 
+import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 
 /**

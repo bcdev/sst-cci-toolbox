@@ -20,10 +20,8 @@ import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
 import org.esa.cci.sst.common.calculator.UncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AbstractAggregationCell;
-import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.Grid;
 
 import java.awt.Rectangle;
 

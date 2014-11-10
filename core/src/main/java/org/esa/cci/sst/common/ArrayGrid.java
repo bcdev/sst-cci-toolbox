@@ -17,9 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.cellgrid;
+package org.esa.cci.sst.common;
 
-import org.esa.cci.sst.common.GridDef;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 
@@ -41,14 +40,14 @@ public class ArrayGrid implements Grid {
 
     public static Grid create(GridDef gridDef, float[] data) {
         return new ArrayGrid(gridDef,
-                             Array.factory(DataType.FLOAT, new int[]{gridDef.getHeight(), gridDef.getWidth()}, data),
-                             Float.NaN, 1.0, 0.0);
+                Array.factory(DataType.FLOAT, new int[]{gridDef.getHeight(), gridDef.getWidth()}, data),
+                Float.NaN, 1.0, 0.0);
     }
 
     public static ArrayGrid create(GridDef gridDef, double[] data) {
         return new ArrayGrid(gridDef,
-                             Array.factory(DataType.DOUBLE, new int[]{gridDef.getHeight(), gridDef.getWidth()}, data),
-                             Double.NaN, 1.0, 0.0);
+                Array.factory(DataType.DOUBLE, new int[]{gridDef.getHeight(), gridDef.getWidth()}, data),
+                Double.NaN, 1.0, 0.0);
     }
 
     public ArrayGrid(GridDef gridDef, Array array, final Number fillValue, double scaling, double offset) {
@@ -84,30 +83,21 @@ public class ArrayGrid implements Grid {
 
     @Override
     public boolean getSampleBoolean(int x, int y) {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
-            throw new ArrayIndexOutOfBoundsException(
-                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
-        }
+        checkBounds(x, y);
         final int index = y * width + x;
         return array.getBoolean(index);
     }
 
     @Override
     public int getSampleInt(int x, int y) {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
-            throw new ArrayIndexOutOfBoundsException(
-                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
-        }
+        checkBounds(x, y);
         final int index = y * width + x;
         return array.getInt(index);
     }
 
     @Override
     public double getSampleDouble(int x, int y) {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
-            throw new ArrayIndexOutOfBoundsException(
-                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
-        }
+        checkBounds(x, y);
 
         final int index = y * width + x;
         final double sample = array.getDouble(index);
@@ -118,12 +108,15 @@ public class ArrayGrid implements Grid {
     }
 
     public void setSample(int x, int y, double sample) {
-        if (x < 0 || x >= width || y < 0 || y >= height) {
-            throw new ArrayIndexOutOfBoundsException(
-                    "width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
-        }
+        checkBounds(x, y);
         final int index = y * width + x;
         array.setDouble(index, sample);
+    }
+
+    private void checkBounds(int x, int y) {
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            throw new ArrayIndexOutOfBoundsException("width: " + width + "; height: " + height + "; x = " + x + "; y = " + y);
+        }
     }
 
     private interface FillTest {

@@ -1,6 +1,5 @@
 package org.esa.cci.sst.common;
 
-import org.esa.cci.sst.common.cellgrid.Grid;
 import org.junit.Ignore;
 
 /**

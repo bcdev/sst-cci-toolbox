@@ -1,7 +1,7 @@
 package org.esa.cci.sst.regrid;
 
 import org.esa.cci.sst.common.LUT;
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 import org.junit.Test;
 

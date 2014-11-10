@@ -1,6 +1,6 @@
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.Grid;
 import org.junit.Test;
 
 import java.io.File;

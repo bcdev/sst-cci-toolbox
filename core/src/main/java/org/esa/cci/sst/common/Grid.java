@@ -17,9 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.cellgrid;
-
-import org.esa.cci.sst.common.GridDef;
+package org.esa.cci.sst.common;
 
 /**
  * A grid.

@@ -19,8 +19,8 @@
 
 package org.esa.cci.sst.util;
 
-import org.esa.cci.sst.common.cellgrid.ArrayGrid;
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.ArrayGrid;
+import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;

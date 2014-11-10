@@ -14,7 +14,7 @@ package org.esa.cci.sst.tools.samplepoint;/*
  * with this program; if not, see http://www.gnu.org/licenses/
  */
 
-import org.esa.cci.sst.common.cellgrid.Grid;
+import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.util.NcUtils;
