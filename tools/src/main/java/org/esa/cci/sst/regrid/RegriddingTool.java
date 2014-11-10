@@ -93,8 +93,7 @@ public class RegriddingTool extends Tool {
                     "(fraction of valid values in input per grid box in output) ");
 
     private static final Parameter PARAM_MAX_TOTAL_UNCERTAINTY = new Parameter("maxTotalUncertainty", "NUM", "0.0",
-            "The maximum relative total uncertainty allowed for non-missing output, if greater than zero.",
-            true);
+            "The maximum relative total uncertainty allowed for non-missing output, if greater than zero.");
 
     public static final Parameter PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV = new Parameter("coverageUncertainty.StdDev",
             "FILE",
