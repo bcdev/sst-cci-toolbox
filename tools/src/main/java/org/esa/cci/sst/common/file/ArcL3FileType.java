@@ -27,12 +27,10 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.Grid;
-import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.netcdf.NcTools;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
-import org.esa.cci.sst.util.NcUtils;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.DataType;
 import ucar.nc2.*;
@@ -134,7 +132,7 @@ class ArcL3FileType implements FileType {
 
     private Grid readGrid(NetcdfFile datafile, String variableName, int z) throws IOException {
         // TODO - check if these need to be flipped
-        return YFlip.create(NcUtils.readGrid(datafile, variableName, getGridDef(), z));
+        return YFlip.create(NcTools.readGrid(datafile, variableName, getGridDef(), z));
     }
 
     @Override

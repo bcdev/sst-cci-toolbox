@@ -19,12 +19,7 @@
 
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.AbstractAggregation;
-import org.esa.cci.sst.common.Aggregation;
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.AggregationFactory;
-import org.esa.cci.sst.common.RegionalAggregation;
-import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.calculator.ArithmeticMeanAccumulator;
 import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.WeightedUncertaintyAccumulator;
@@ -32,17 +27,12 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.netcdf.NcTools;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
-import org.esa.cci.sst.util.NcUtils;
 import ucar.ma2.DataType;
-import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.NetcdfFileWriteable;
-import ucar.nc2.Variable;
+import ucar.nc2.*;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -77,7 +67,7 @@ class CciL3FileType extends AbstractCciFileType {
         context.setRandomUncertaintyGrid(readGrid(datafile, "uncorrelated_uncertainty", 0));
         context.setLargeScaleUncertaintyGrid(readGrid(datafile, "large_scale_correlated_uncertainty", 0));
         context.setSynopticUncertaintyGrid(readGrid(datafile, "synoptically_correlated_uncertainty", 0));
-        if (NcUtils.hasVariable(datafile, "adjustment_uncertainty")) {
+        if (NcTools.hasVariable(datafile, "adjustment_uncertainty")) {
             context.setAdjustmentUncertaintyGrid(readGrid(datafile, "adjustment_uncertainty", 0));
         }
 
@@ -85,7 +75,7 @@ class CciL3FileType extends AbstractCciFileType {
     }
 
     private Grid readGrid(NetcdfFile datafile, String variableName, int z) throws IOException {
-        return YFlip.create(NcUtils.readGrid(datafile, variableName, getGridDef(), z));
+        return YFlip.create(NcTools.readGrid(datafile, variableName, getGridDef(), z));
     }
 
     @Override
@@ -98,7 +88,7 @@ class CciL3FileType extends AbstractCciFileType {
         sstVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable sstAnomalyVar = datafile.addVariable(String.format("sst_%s_anomaly", sstDepth), DataType.FLOAT,
-                                                            dims);
+                dims);
         sstAnomalyVar.addAttribute(new Attribute("units", "kelvin"));
         sstAnomalyVar.addAttribute(
                 new Attribute("long_name", String.format("SST %s anomaly", sstDepth)));
@@ -110,21 +100,21 @@ class CciL3FileType extends AbstractCciFileType {
         coverageUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable uncorrelatedUncertaintyVar = datafile.addVariable("uncorrelated_uncertainty", DataType.FLOAT,
-                                                                         dims);
+                dims);
         uncorrelatedUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         uncorrelatedUncertaintyVar.addAttribute(
                 new Attribute("long_name", "uncorrelated uncertainty"));
         uncorrelatedUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable largeScaleUncertaintyVar = datafile.addVariable("large_scale_correlated_uncertainty",
-                                                                       DataType.FLOAT, dims);
+                DataType.FLOAT, dims);
         largeScaleUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         largeScaleUncertaintyVar.addAttribute(
                 new Attribute("long_name", "large scale correlated uncertainty"));
         largeScaleUncertaintyVar.addAttribute(new Attribute("_FillValue", Float.NaN));
 
         final Variable synopticUncertaintyVar = datafile.addVariable("synoptically_correlated_uncertainty",
-                                                                     DataType.FLOAT, dims);
+                DataType.FLOAT, dims);
         synopticUncertaintyVar.addAttribute(new Attribute("units", "kelvin"));
         synopticUncertaintyVar.addAttribute(
                 new Attribute("long_name", "synoptically correlated uncertainty"));
@@ -193,8 +183,8 @@ class CciL3FileType extends AbstractCciFileType {
     }
 
     private static final class MultiPurposeAggregation extends AbstractAggregation implements RegionalAggregation,
-                                                                                              SameMonthAggregation<AggregationCell>,
-                                                                                              MultiMonthAggregation<RegionalAggregation> {
+            SameMonthAggregation<AggregationCell>,
+            MultiMonthAggregation<RegionalAggregation> {
 
         private final NumberAccumulator sstAccumulator = new ArithmeticMeanAccumulator();
         private final NumberAccumulator sstAnomalyAccumulator = new ArithmeticMeanAccumulator();

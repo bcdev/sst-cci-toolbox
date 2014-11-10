@@ -17,7 +17,7 @@ package org.esa.cci.sst.tools.samplepoint;/*
 import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
-import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.netcdf.NcTools;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ final class ClearSkyProbability {
 
         gridDef = GridDef.createGlobal(1.0);
         try {
-            grid = YFlip.create(NcUtils.readGrid(file, "clr_prior", gridDef));
+            grid = YFlip.create(NcTools.readGrid(file, "clr_prior", gridDef));
         } catch (IOException e) {
             throw new IllegalStateException(MessageFormat.format(
                     "Cannot read resource data for clear-sky probabilities ''{0}''..", RESOURCE_NAME), e);

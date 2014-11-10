@@ -21,9 +21,11 @@ package org.esa.cci.sst.common.auxiliary;
 
 import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
-import org.esa.cci.sst.common.cellgrid.*;
+import org.esa.cci.sst.common.cellgrid.Downscaling;
+import org.esa.cci.sst.common.cellgrid.Mask;
+import org.esa.cci.sst.common.cellgrid.YFlip;
+import org.esa.cci.sst.netcdf.NcTools;
 import org.esa.cci.sst.tool.ToolException;
-import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -152,7 +154,7 @@ public class Climatology {
     private void readAnalysedSstGrid(NetcdfFile netcdfFile, int dayOfYear) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'analysed_sst'...");
-        Grid sstGrid = NcUtils.readGrid(netcdfFile, "analysed_sst", SOURCE_GRID_DEF, 0);
+        Grid sstGrid = NcTools.readGrid(netcdfFile, "analysed_sst", SOURCE_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'analysed_sst' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         if (!SOURCE_GRID_DEF.equals(targetGridDef)) {
@@ -166,7 +168,7 @@ public class Climatology {
     private void readSeaCoverageGrids(NetcdfFile netcdfFile) throws IOException {
         long t0 = System.currentTimeMillis();
         LOGGER.fine("Reading 'mask'...");
-        final Grid maskGrid = NcUtils.readGrid(netcdfFile, "mask", SOURCE_GRID_DEF, 0);
+        final Grid maskGrid = NcTools.readGrid(netcdfFile, "mask", SOURCE_GRID_DEF, 0);
         LOGGER.fine(String.format("Reading 'mask' took %d ms", System.currentTimeMillis() - t0));
         t0 = System.currentTimeMillis();
         seaCoverageGrid = YFlip.create(Mask.create(maskGrid, 0x01));

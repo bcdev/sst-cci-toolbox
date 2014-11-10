@@ -24,31 +24,20 @@ import org.esa.beam.util.math.MathUtils;
 import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.netcdf.NcTools;
-import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.lang.Math.asin;
-import static java.lang.Math.atan2;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-import static java.lang.Math.toDegrees;
-import static java.lang.Math.toRadians;
+import static java.lang.Math.*;
 
 
 /**
@@ -74,14 +63,14 @@ class Projector {
 
         final int rank = lat.getRank();
         final GridDef sourceRaster = GridDef.createRaster(lat.getShape(rank - 1), lat.getShape(rank - 2));
-        final Grid lonGrid = NcUtils.readGrid(datafile, lon, sourceRaster, 0);
-        final Grid latGrid = NcUtils.readGrid(datafile, lat, sourceRaster, 0);
+        final Grid lonGrid = NcTools.readGrid(datafile, lon, sourceRaster, 0);
+        final Grid latGrid = NcTools.readGrid(datafile, lat, sourceRaster, 0);
         final PixelLocator sourcePixelLocator = new PixelLocator(lonGrid, latGrid);
 
         final int variableCount = variableNames.size();
         final Grid[] sourceGrids = new Grid[variableCount];
         for (int i = 0; i < variableCount; ++i) {
-            sourceGrids[i] = NcUtils.readGrid(datafile, variableNames.get(i), sourceRaster);
+            sourceGrids[i] = NcTools.readGrid(datafile, variableNames.get(i), sourceRaster);
         }
 
         final int w = gridDef.getWidth();
@@ -101,7 +90,7 @@ class Projector {
             if (!completed) {
                 if (logger != null && logger.isLoggable(Level.WARNING)) {
                     logger.warning(MessageFormat.format("Projecting file ''{0}'' was not completed in time.",
-                                                        datafile.getLocation()));
+                            datafile.getLocation()));
                 }
             }
         } catch (InterruptedException ignored) {
@@ -120,7 +109,7 @@ class Projector {
                 if (logger != null && logger.isLoggable(Level.WARNING)) {
                     logger.warning(
                             MessageFormat.format("An error has occurred while projecting file ''{0}''.",
-                                                 datafile.getLocation())
+                                    datafile.getLocation())
                     );
                 }
             }
@@ -412,7 +401,6 @@ class Projector {
          *
          * @param lon The longitude.
          * @param lat The latitude.
-         *
          * @return the distance.
          */
         double distance(double lon, double lat);
@@ -447,7 +435,6 @@ class Projector {
          *
          * @param lon The longitude.
          * @param lat The latitude.
-         *
          * @return the spherical distance (in Radian) of the given (lon, lat) point
          * to the reference (lon, lat) point.
          */
@@ -491,7 +478,6 @@ class Projector {
          *
          * @param lon The longitude.
          * @param lat The latitude.
-         *
          * @return the distance of the given (lon, lat) point to the
          * reference (lon, lat) point.
          */
@@ -643,7 +629,6 @@ class Projector {
          * @param maskSamples The mask samples.
          * @param accuracy    The accuracy goal.
          * @param rectangles  The (x, y) rectangles.
-         *
          * @return a new approximation or {@code null} if the accuracy goal cannot not be met.
          */
         private static Approximation[] createApproximations(SampleSource lonSamples,
@@ -652,7 +637,7 @@ class Projector {
                                                             double accuracy,
                                                             Rectangle[] rectangles) {
             return createApproximations(lonSamples, latSamples, maskSamples, accuracy, rectangles,
-                                        new PixelSteppingFactory());
+                    new PixelSteppingFactory());
         }
 
         /**
@@ -664,7 +649,6 @@ class Projector {
          * @param accuracy        The accuracy goal.
          * @param range           The range of the x(lat, lon) and y(lat, lon) functions.
          * @param steppingFactory The stepping factory.
-         *
          * @return a new approximation or {@code null} if the accuracy goal cannot not be met.
          */
         private static Approximation create(SampleSource lonSamples,
@@ -686,7 +670,6 @@ class Projector {
          *                 by this method.
          * @param accuracy The accuracy goal.
          * @param range    The range of the x(lat, lon) and y(lat, lon) functions.
-         *
          * @return a new approximation or {@code null} if the accuracy goal cannot not be met.
          */
         private static Approximation create(double[][] data, double accuracy, Rectangle range) {
@@ -717,7 +700,6 @@ class Projector {
          * @param approximations The approximations.
          * @param lat            The latitude.
          * @param lon            The longitude.
-         *
          * @return the approximation that is most suitable for the given (lat, lon) point,
          * or {@code null}, if none is suitable.
          */
@@ -751,7 +733,7 @@ class Projector {
             final ArrayList<Approximation> approximations = new ArrayList<>(rectangles.length);
             for (final Rectangle rectangle : rectangles) {
                 final Approximation approximation = create(lonSamples, latSamples, maskSamples, accuracy,
-                                                           rectangle, steppingFactory);
+                        rectangle, steppingFactory);
                 if (approximation == null) {
                     return null;
                 }
@@ -793,7 +775,6 @@ class Projector {
          *
          * @param lat The latitude.
          * @param lon The longitude.
-         *
          * @return the distance (in radian).
          */
         private double getDistance(double lat, double lon) {

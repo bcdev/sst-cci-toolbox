@@ -23,8 +23,6 @@ import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 
-import java.util.List;
-
 /**
  * Provides the input grids for a {@link org.esa.cci.sst.common.cell.SpatialAggregationCell}.
  *
@@ -50,7 +48,6 @@ public final class AggregationContext {
 
     private double minCoverage;
 
-    private List<RegionMask> targetRegionMaskList;
     private RegionMask targetRegionMask;
     private Grid seaIceFractionGrid;
 
@@ -121,7 +118,6 @@ public final class AggregationContext {
     }
 
     public void setTargetRegionMaskList(RegionMaskList targetRegionMaskList) {
-        this.targetRegionMaskList = targetRegionMaskList;
         this.targetRegionMask = RegionMask.combine(targetRegionMaskList);
     }
 
@@ -175,10 +171,6 @@ public final class AggregationContext {
 
     public void setQualityGrid(Grid qualityGrid) {
         this.qualityGrid = qualityGrid;
-    }
-
-    public List<RegionMask> getTargetRegionMaskList() {
-        return targetRegionMaskList;
     }
 
     public void setSeaIceFractionGrid(Grid seaIceFractionGrid) {

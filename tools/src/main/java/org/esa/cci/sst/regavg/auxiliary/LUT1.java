@@ -23,7 +23,7 @@ import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.XSwap;
 import org.esa.cci.sst.common.cellgrid.YFlip;
-import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.netcdf.NcTools;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -31,7 +31,7 @@ import java.io.IOException;
 
 /**
  * Represents LUT1.
- *
+ * <p/>
  * Enables calculation of coverage/sampling uncertainty for an average via the number of values comprising that average.
  * LUT1 contains values of two parameters (magnitude and exponent) for each 5° monthly grid box.
  *
@@ -47,8 +47,8 @@ public class LUT1 {
         final NetcdfFile netcdfFile = NetcdfFile.open("file:" + file.getPath().replace("\\", "/"));
         try {
             final GridDef gridDef = GridDef.createGlobal(5.0);
-            final Grid magnitudeGrid = NcUtils.readGrid(netcdfFile, "MAGNITUDE", gridDef);
-            final Grid exponentGrid = NcUtils.readGrid(netcdfFile, "EXPONENT", gridDef);
+            final Grid magnitudeGrid = NcTools.readGrid(netcdfFile, "MAGNITUDE", gridDef);
+            final Grid exponentGrid = NcTools.readGrid(netcdfFile, "EXPONENT", gridDef);
             return new LUT1(XSwap.create(YFlip.create(magnitudeGrid)), XSwap.create(YFlip.create(exponentGrid)));
         } finally {
             netcdfFile.close();

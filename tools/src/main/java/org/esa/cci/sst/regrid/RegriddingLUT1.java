@@ -19,12 +19,12 @@
 
 package org.esa.cci.sst.regrid;
 
-import org.esa.cci.sst.common.LUT;
-import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.Grid;
 import org.esa.cci.sst.common.GridDef;
+import org.esa.cci.sst.common.LUT;
+import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.YFlip;
-import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.netcdf.NcTools;
 import ucar.nc2.NetcdfFile;
 
 import java.io.File;
@@ -72,7 +72,7 @@ final class RegriddingLUT1 implements LUT {
             long t0 = System.currentTimeMillis();
             LOGGER.fine("Reading 'analysed_sst_anomaly'...");
 
-            final Grid grid = NcUtils.readGrid(gridFile, "analysed_sst_anomaly", SOURCE_GRID_DEF, 0);
+            final Grid grid = NcTools.readGrid(gridFile, "analysed_sst_anomaly", SOURCE_GRID_DEF, 0);
             LOGGER.fine(String.format("Reading 'analysed_sst_anomaly' took %d ms", System.currentTimeMillis() - t0));
             return grid;
         } finally {

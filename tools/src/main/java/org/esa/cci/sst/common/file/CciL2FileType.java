@@ -20,10 +20,10 @@
 package org.esa.cci.sst.common.file;
 
 import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.ArrayGrid;
 import org.esa.cci.sst.common.GridDef;
-import org.esa.cci.sst.util.NcUtils;
+import org.esa.cci.sst.common.SstDepth;
+import org.esa.cci.sst.netcdf.NcTools;
 import ucar.nc2.NetcdfFile;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ class CciL2FileType extends CciL3FileType {
 
     @Override
     public AggregationContext readSourceGrids(NetcdfFile datafile, SstDepth sstDepth, AggregationContext context) throws
-                                                                                                                  IOException {
+            IOException {
         final List<String> variableNames = new ArrayList<String>(8);
         if (sstDepth == SstDepth.skin) {
             variableNames.add("sea_surface_temperature");
@@ -62,7 +62,7 @@ class CciL2FileType extends CciL3FileType {
         variableNames.add(UNCORRELATED_UNCERTAINTY);
         variableNames.add(LARGE_SCALE_CORRELATED_UNCERTAINTY);
         variableNames.add(SYNOPTIC_UNCERTAINTY);
-        if (NcUtils.hasVariable(datafile, ADJUSTMENT_UNCERTAINTY)) {
+        if (NcTools.hasVariable(datafile, ADJUSTMENT_UNCERTAINTY)) {
             variableNames.add(ADJUSTMENT_UNCERTAINTY);
         }
         final GridDef gridDef = getGridDef();
