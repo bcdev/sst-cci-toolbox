@@ -2,7 +2,7 @@ package org.esa.cci.sst.common.calculator;
 
 import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.TemporalResolution;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;

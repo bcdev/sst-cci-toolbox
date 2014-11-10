@@ -1,5 +1,6 @@
 package org.esa.cci.sst.common.cellgrid;
 
+import org.esa.cci.sst.common.GridDef;
 import org.junit.Before;
 import org.junit.Test;
 import ucar.ma2.Array;

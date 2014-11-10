@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.common.cellgrid;
 
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cell.Cell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.CellFilter;

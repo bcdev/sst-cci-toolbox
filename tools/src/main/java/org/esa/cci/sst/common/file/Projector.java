@@ -22,7 +22,7 @@ package org.esa.cci.sst.common.file;
 import org.esa.beam.framework.datamodel.RationalFunctionModel;
 import org.esa.beam.util.math.MathUtils;
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.netcdf.NcTools;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;

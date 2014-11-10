@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.common.auxiliary;
 
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.*;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.NcUtils;

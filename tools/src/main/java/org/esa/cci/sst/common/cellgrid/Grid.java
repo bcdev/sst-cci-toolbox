@@ -19,6 +19,8 @@
 
 package org.esa.cci.sst.common.cellgrid;
 
+import org.esa.cci.sst.common.GridDef;
+
 /**
  * A grid.
  *

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.esa.cci.sst.common.cellgrid;
+package org.esa.cci.sst.common;
 
 import org.esa.beam.util.math.MathUtils;
 
@@ -25,7 +25,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
 /**
- * The layout and geo-coding of a {@link CellGrid}.
+ * The layout and geo-coding of a CellGrid
  *
  * @author Norman Fomferra
  * @author Ralf Quast
@@ -52,15 +52,6 @@ public final class GridDef {
 
     public static GridDef createRaster(int width, int height) {
         return new GridDef(width, height, 0.0, 0.0, 0.0, 0.0);
-    }
-
-    private GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
-        this.width = width;
-        this.height = height;
-        this.northing = northing;
-        this.easting = easting;
-        this.resolutionX = resolutionX;
-        this.resolutionY = resolutionY;
     }
 
     public int getTime() {
@@ -197,7 +188,7 @@ public final class GridDef {
      *
      * @return The result rectangle.
      */
-    Rectangle getGridRectangle(double minLon, double minLat, double maxLon, double maxLat) {
+    public Rectangle getGridRectangle(double minLon, double minLat, double maxLon, double maxLat) {
         final int w = (int) Math.round((maxLon - minLon) / resolutionX);
         final int h = (int) Math.round((maxLat - minLat) / resolutionY);
         final int minX = getGridX(minLon, true);
@@ -280,5 +271,14 @@ public final class GridDef {
         temp = resolutionY != 0.0 ? Double.doubleToLongBits(resolutionY) : 0L;
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         return result;
+    }
+
+    private GridDef(int width, int height, double easting, double northing, double resolutionX, double resolutionY) {
+        this.width = width;
+        this.height = height;
+        this.northing = northing;
+        this.easting = easting;
+        this.resolutionX = resolutionX;
+        this.resolutionY = resolutionY;
     }
 }

@@ -5,7 +5,7 @@ import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.regavg.MultiMonthAggregation;
 import org.esa.cci.sst.regavg.SameMonthAggregation;
 import org.esa.cci.sst.util.TimeUtil;

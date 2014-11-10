@@ -24,7 +24,7 @@ import org.esa.cci.sst.common.SpatialResolution;
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Downscaling;
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.Interpolation;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 

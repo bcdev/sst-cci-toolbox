@@ -1,16 +1,11 @@
 package org.esa.cci.sst.common.file;
 
-import org.esa.cci.sst.common.Aggregation;
-import org.esa.cci.sst.common.ScalarGrid;
-import org.esa.cci.sst.common.AggregationContext;
-import org.esa.cci.sst.common.SstDepth;
-import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
+import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cell.CellAggregationCell;
 import org.esa.cci.sst.common.cell.CellFactory;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.util.TestL3ProductMaker;
 import org.junit.Test;
 import ucar.nc2.NetcdfFile;
@@ -19,8 +14,7 @@ import java.awt.*;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static junit.framework.Assert.*;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * {@author Bettina Scholze}
@@ -125,21 +119,23 @@ public class CciL4FileTypeTest {
         // analysed_sst
         final Grid sstGrid = context.getSstGrid();
         assertEquals(2000, sstGrid.getSampleInt(0, 3599));
-        assertEquals(293.14999344944954, sstGrid.getSampleDouble(0, 3599));
+        assertEquals(293.14999344944954, sstGrid.getSampleDouble(0, 3599), 1e-8);
         assertEquals(2000, sstGrid.getSampleInt(1, 3599));
-        assertEquals(293.14999344944954, sstGrid.getSampleDouble(1, 3599));
+        assertEquals(293.14999344944954, sstGrid.getSampleDouble(1, 3599), 1e-8);
+
         // analysis_error
         final Grid randomUncertaintyGrid = context.getRandomUncertaintyGrid();
         assertEquals(-32768, randomUncertaintyGrid.getSampleInt(0, 3599));
-        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(0, 3599));
+        assertTrue(Double.isNaN(randomUncertaintyGrid.getSampleDouble(0, 3599)));
         assertEquals(-32768, randomUncertaintyGrid.getSampleInt(1, 3599));
-        assertEquals(Double.NaN, randomUncertaintyGrid.getSampleDouble(1, 3599));
+        assertTrue(Double.isNaN(randomUncertaintyGrid.getSampleDouble(1, 3599)));
+
         // sea_ice_fraction
         final Grid seaIceFractionGrid = context.getSeaIceFractionGrid();
         assertEquals(-128, seaIceFractionGrid.getSampleInt(0, 3599));
-        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(0, 3599));
+        assertTrue(Double.isNaN(seaIceFractionGrid.getSampleDouble(0, 3599)));
         assertEquals(-128, seaIceFractionGrid.getSampleInt(1, 0));
-        assertEquals(Double.NaN, seaIceFractionGrid.getSampleDouble(1, 3599));
+        assertTrue(Double.isNaN(seaIceFractionGrid.getSampleDouble(1, 3599)));
     }
 
     @Test

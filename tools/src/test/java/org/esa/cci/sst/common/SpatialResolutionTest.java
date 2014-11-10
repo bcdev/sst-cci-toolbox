@@ -1,6 +1,5 @@
 package org.esa.cci.sst.common;
 
-import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

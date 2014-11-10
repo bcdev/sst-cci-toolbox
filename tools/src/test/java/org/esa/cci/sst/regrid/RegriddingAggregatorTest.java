@@ -6,7 +6,7 @@ import org.esa.cci.sst.common.SstDepth;
 import org.esa.cci.sst.common.TemporalResolution;
 import org.esa.cci.sst.common.cell.SpatialAggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.util.TimeUtil;

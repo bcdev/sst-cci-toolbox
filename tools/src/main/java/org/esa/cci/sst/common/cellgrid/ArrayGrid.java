@@ -19,6 +19,7 @@
 
 package org.esa.cci.sst.common.cellgrid;
 
+import org.esa.cci.sst.common.GridDef;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 

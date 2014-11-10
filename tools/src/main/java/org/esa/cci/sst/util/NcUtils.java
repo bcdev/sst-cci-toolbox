@@ -21,21 +21,16 @@ package org.esa.cci.sst.util;
 
 import org.esa.cci.sst.common.cellgrid.ArrayGrid;
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
-import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * NetCDF utility functions.

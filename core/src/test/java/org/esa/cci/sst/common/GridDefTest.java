@@ -1,4 +1,4 @@
-package org.esa.cci.sst.common.cellgrid;
+package org.esa.cci.sst.common;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -182,6 +182,15 @@ public class GridDefTest {
     }
 
     @Test
+    public void testGetGridRectangle_resolutionTooCoarse(){
+        try {
+            gridDef5.getGridRectangle(0, 0, gridDef05);
+            fail("IllegalArgumentException expected");
+        } catch(IllegalArgumentException expected) {
+        }
+    }
+
+    @Test
     public void testGetLonLatRectangle() throws Exception {
         assertEquals(new Rectangle2D.Double(-180.0, 89.95, 0.05, 0.05),
                 gridDef05.getLonLatRectangle(0, 0));
@@ -192,16 +201,53 @@ public class GridDefTest {
 
     @Test
     public void testEquals() throws Exception {
-        assertTrue(GridDef.createGlobal(0.05).equals(
-                GridDef.createGlobal(0.05)));
+        assertTrue(GridDef.createGlobal(0.05).equals(GridDef.createGlobal(0.05)));
+        assertFalse(GridDef.createGlobal(0.04).equals(GridDef.createGlobal(0.05)));
 
-        assertFalse(GridDef.createGlobal(0.04).equals(
-                GridDef.createGlobal(0.05)));
+        assertTrue(GridDef.createGlobal(3600, 1800).equals(GridDef.createGlobal(3600, 1800)));
+        assertFalse(GridDef.createGlobal(3600, 1800).equals(GridDef.createGlobal(3600, 1801)));
+    }
 
-        assertTrue(GridDef.createGlobal(3600, 1800).equals(
-                GridDef.createGlobal(3600, 1800)));
+    @Test
+    public void testCreateRaster() {
+        final GridDef raster = GridDef.createRaster(100, 50);
+        assertNotNull(raster);
 
-        assertFalse(GridDef.createGlobal(3600, 1800).equals(
-                GridDef.createGlobal(3600, 1801)));
+        assertEquals(100, raster.getWidth());
+        assertEquals(50, raster.getHeight());
+
+        assertEquals(0.0, raster.getEasting(), 1e-8);
+        assertEquals(0.0, raster.getNorthing(), 1e-8);
+        assertEquals(0.0, raster.getResolutionX(), 1e-8);
+        assertEquals(0.0, raster.getResolutionY(), 1e-8);
+    }
+
+    @Test
+    public void testGetResolution() {
+        final GridDef gridDef = GridDef.createGlobal(60, 30);
+
+        assertEquals(6.0, gridDef.getResolution(), 1e-8);
+    }
+
+    @Test
+    public void testGetResolution_throwsIfResolutionDiffersInAxes() {
+        final GridDef gridDef = GridDef.createGlobal(60, 19);
+
+        try {
+            gridDef.getResolution();
+            fail("IllegalStateException expected");
+        } catch (IllegalStateException expected) {
+        }
+    }
+
+    @Test
+    public void testGetDiagonal() {
+        assertEquals(10007.543398010286, gridDef90.getDiagonal(0, 0), 1e-8);
+        assertEquals(10007.543398010286, gridDef90.getDiagonal(2, 0), 1e-8);
+        assertEquals(10007.543398010286, gridDef90.getDiagonal(0, 2), 1e-8);
+
+        assertEquals(555.9746332227928, gridDef5.getDiagonal(0, 0), 1e-8);
+        assertEquals(555.9746332227928, gridDef5.getDiagonal(10, 0), 1e-8);
+        assertEquals(742.9651956574585, gridDef5.getDiagonal(0, 12), 1e-8);
     }
 }

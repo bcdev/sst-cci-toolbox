@@ -22,7 +22,6 @@ package org.esa.cci.sst.common;
 import org.esa.cci.sst.common.calculator.CoverageUncertaintyProvider;
 import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 
 import java.util.List;

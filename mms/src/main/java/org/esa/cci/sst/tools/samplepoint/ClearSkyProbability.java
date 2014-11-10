@@ -15,7 +15,7 @@ package org.esa.cci.sst.tools.samplepoint;/*
  */
 
 import org.esa.cci.sst.common.cellgrid.Grid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.YFlip;
 import org.esa.cci.sst.util.NcUtils;
 import ucar.nc2.NetcdfFile;

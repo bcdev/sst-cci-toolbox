@@ -15,6 +15,8 @@ package org.esa.cci.sst.common.cellgrid;/*
  */
 
 
+import org.esa.cci.sst.common.GridDef;
+
 /**
  * Grid decorator for permuting sample values. Can be for, e.g., flipping sample
  * values in y-direction or transposing the sample values for the left and right

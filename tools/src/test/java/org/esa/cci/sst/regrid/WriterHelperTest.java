@@ -15,7 +15,7 @@ package org.esa.cci.sst.regrid;/*
  */
 
 import org.esa.cci.sst.common.SpatialResolution;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.junit.Test;
 
 import java.util.Arrays;

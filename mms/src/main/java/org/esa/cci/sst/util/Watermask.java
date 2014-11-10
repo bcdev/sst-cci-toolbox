@@ -15,7 +15,7 @@ package org.esa.cci.sst.util;/*
  */
 
 import org.esa.beam.framework.datamodel.PixelLocator;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 
 import javax.imageio.ImageIO;
 import java.awt.geom.Point2D;

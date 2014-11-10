@@ -19,7 +19,7 @@ package org.esa.cci.sst.regrid;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.tool.*;

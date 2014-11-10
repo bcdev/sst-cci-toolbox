@@ -27,7 +27,7 @@ import org.esa.cci.sst.common.calculator.NumberAccumulator;
 import org.esa.cci.sst.common.calculator.UncertaintyAccumulator;
 import org.esa.cci.sst.common.cell.AggregationCell;
 import org.esa.cci.sst.common.cellgrid.CellGrid;
-import org.esa.cci.sst.common.cellgrid.GridDef;
+import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.cellgrid.RegionMask;
 import org.esa.cci.sst.common.file.FileType;
 import org.esa.cci.sst.common.file.ProductType;
