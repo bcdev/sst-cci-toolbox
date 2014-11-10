@@ -42,11 +42,12 @@
             <artifactId>commons-cli</artifactId>
             <version>1.2</version>
         </dependency>
+
         <dependency>
             <groupId>edu.ucar</groupId>
             <artifactId>netcdf</artifactId>
-            <version>4.3.22</version>
         </dependency>
+
         <dependency>
             <groupId>org.esa.beam</groupId>
             <artifactId>beam-core</artifactId>
