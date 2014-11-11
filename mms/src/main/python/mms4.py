@@ -19,8 +19,8 @@ w.set_samples_per_month(0)
 w.run(mmdtype,
       calls=[
           ('sampling-start.sh', 1),
-          ('coincidence-start', 6),
-          ('reingestion-start', 6),
-          ('matchup-reingestion-start', 6)
+          ('coincidence-start.sh', 6),
+          ('reingestion-start.sh', 6),
+          ('matchup-reingestion-start.sh', 6)
       ],
       with_history=True)
