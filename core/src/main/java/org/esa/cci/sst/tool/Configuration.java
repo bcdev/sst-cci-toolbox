@@ -136,6 +136,15 @@ public class Configuration {
         return parseDateString(dateString);
     }
 
+    public Date getMandatoryShortUtcDateValue(String key, String defaultValue) {
+        final String dateString = properties.getProperty(key, defaultValue);
+        if (StringUtils.isEmpty(dateString)) {
+            throw new ToolException("No date value for: " + key, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+
+        return parseShortUtcDateString(dateString);
+    }
+
     public boolean getBooleanValue(String key) {
         final String boolString = (String) properties.get(key);
         if (StringUtils.isEmpty(boolString)) {
@@ -298,6 +307,14 @@ public class Configuration {
     private Date parseDateString(String dateString) {
         try {
             return TimeUtil.parseCcsdsUtcFormat(dateString);
+        } catch (ParseException e) {
+            throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
+        }
+    }
+
+    private Date parseShortUtcDateString(String dateString) {
+        try {
+            return TimeUtil.parseShortUtcFormat(dateString);
         } catch (ParseException e) {
             throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
         }

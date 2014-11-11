@@ -96,6 +96,31 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testPutAndGetMandatoryShortUtcDateValue() {
+        configuration.put("date.key", "1979-02-02");
+
+        final Date dateValue = configuration.getMandatoryShortUtcDateValue("date.key", "1981-02-02");
+        assertNotNull(dateValue);
+        assertEquals(286761600000L, dateValue.getTime());
+    }
+
+    @Test
+    public void testPutAndGetMandatoryShortUtcDateValue_returnDefault() {
+        final Date dateValue = configuration.getMandatoryShortUtcDateValue("date.key", "1981-02-02");
+        assertNotNull(dateValue);
+        assertEquals(349920000000L, dateValue.getTime());
+    }
+
+    @Test
+    public void testPutAndGetMandatoryShortUtcDateValue_throwsOnFailure() {
+        try {
+            configuration.getMandatoryShortUtcDateValue("date.key", null);
+            fail("ToolException expected");
+        } catch (ToolException expected) {
+        }
+    }
+
+    @Test
     public void testPutAndGetDateValue_unparseableDate() {
         configuration.put("date.key", "Christmas");
 

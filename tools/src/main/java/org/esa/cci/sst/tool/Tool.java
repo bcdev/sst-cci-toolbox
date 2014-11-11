@@ -19,13 +19,7 @@
 
 package org.esa.cci.sst.tool;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.esa.beam.util.logging.BeamLogManager;
 
 import java.io.File;
@@ -36,11 +30,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 /**
  * Abstract base class for all SST-CCI tools.
@@ -104,7 +94,7 @@ public abstract class Tool {
         }
         initLogger(logLevel);
 
-        run(getOldConfiguration(), getConfiguration(), commandLine.getArgs());
+        run(getConfiguration(), commandLine.getArgs());
     }
 
     protected abstract String getName();
@@ -117,18 +107,18 @@ public abstract class Tool {
 
     protected String getFooter() {
         return "\n" +
-               "All parameter options may also be read from a key-value-pair file. The tool will always try " +
-               "to read settings in the default configuration file './" + getDefaultConfigFile() + "'. Optionally, a " +
-               "configuration file may be provided using the -c <FILE> option (see above)." +
-               "Command-line options overwrite the settings given by -c, which again overwrite settings in " +
-               "default configuration file.\n";
+                "All parameter options may also be read from a key-value-pair file. The tool will always try " +
+                "to read settings in the default configuration file './" + getDefaultConfigFile() + "'. Optionally, a " +
+                "configuration file may be provided using the -c <FILE> option (see above)." +
+                "Command-line options overwrite the settings given by -c, which again overwrite settings in " +
+                "default configuration file.\n";
     }
 
     protected abstract String getToolHome();
 
     protected abstract Parameter[] getParameters();
 
-    protected abstract void run(OldConfiguration oldConfiguration, Configuration configurations, String[] arguments) throws ToolException;
+    protected abstract void run(Configuration configurations, String[] arguments) throws ToolException;
 
     private Configuration getConfiguration() {
         final Configuration configuration = new Configuration();
@@ -178,47 +168,6 @@ public abstract class Tool {
         return configuration;
     }
 
-    private OldConfiguration getOldConfiguration() throws ToolException {
-        final Properties properties = new Properties();
-
-        Parameter[] parameters = getParameters();
-
-        // 1. Set default values
-        for (Parameter param : parameters) {
-            if (param.getDefaultValue() != null) {
-                properties.setProperty(param.getName(), param.getDefaultValue());
-            }
-        }
-
-        // 2. Overwrite from default config file
-        File defaultConfigFile = getDefaultConfigFile();
-        if (defaultConfigFile.exists()) {
-            loadConfig(defaultConfigFile.getPath(), properties);
-        } else {
-            info("Default configuration file '" + defaultConfigFile + "' does not exist.");
-        }
-
-        // 3. Overwrite from user config file
-        String configPath = commandLine.getOptionValue("config", null);
-        if (configPath != null) {
-            loadConfig(configPath, properties);
-        }
-
-        // 4. Overwrite from command-line
-        for (Parameter param : parameters) {
-            if (commandLine.hasOption(param.getName())) {
-                String optionValue = commandLine.getOptionValue(param.getName());
-                if (optionValue == null) {
-                    // option without arg means, an option has been set (to "true")
-                    optionValue = "true";
-                }
-                properties.setProperty(param.getName(), optionValue);
-            }
-        }
-
-        return new OldConfiguration(properties);
-    }
-
     protected File getDefaultConfigFile() {
         return new File(getName() + ".properties");
     }
@@ -264,9 +213,9 @@ public abstract class Tool {
         HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.setWidth(120);
         helpFormatter.printHelp(getSyntax(),
-                                getHeader(),
-                                options,
-                                getFooter(), false);
+                getHeader(),
+                options,
+                getFooter(), false);
     }
 
     private void printVersion() {
@@ -292,17 +241,17 @@ public abstract class Tool {
         }
 
         options.addOption(createOption("h", "help", null,
-                                       "Displays this help."));
+                "Displays this help."));
         options.addOption(createOption("v", "version", null,
-                                       "Displays the version of this program and exits."));
+                "Displays the version of this program and exits."));
         options.addOption(createOption("c", "config", "FILE",
-                                       "Reads a configuration (key-value pairs) from given FILE."));
+                "Reads a configuration (key-value pairs) from given FILE."));
         options.addOption(createOption("e", "errors", null,
-                                       "Dumps a full error stack trace."));
+                "Dumps a full error stack trace."));
         options.addOption(createOption("l", "logLevel", "LEVEL",
-                                       String.format(
-                                               "sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
-                                               Arrays.toString(LogLevel.values()), LogLevel.ALL, DEFAULT_LOG_LEVEL)));
+                String.format(
+                        "sets the logging level. Must be one of %s. Use level '%s' to also output diagnostics. The default value is '%s'.",
+                        Arrays.toString(LogLevel.values()), LogLevel.ALL, DEFAULT_LOG_LEVEL)));
         return options;
     }
 

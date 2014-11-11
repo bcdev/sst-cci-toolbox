@@ -183,22 +183,12 @@ public final class AveragingTool extends Tool {
     }
 
     @Override
-    protected void run(OldConfiguration oldConfiguration, Configuration configuration, String[] arguments) throws ToolException {
-        productType = ProductType.valueOf(oldConfiguration.getString(PARAM_PRODUCT_TYPE, true));
-        String filenameRegex = oldConfiguration.getString(PARAM_FILENAME_REGEX.getName(),
-                productType.getDefaultFilenameRegex(), false);
-        SstDepth sstDepth = SstDepth.valueOf(oldConfiguration.getString(PARAM_SST_DEPTH, true));
-        String productDir = oldConfiguration.getString(productType + ".dir", null, true);
-        Date startDate = oldConfiguration.getDate(PARAM_START_DATE, true);
-        Date endDate = oldConfiguration.getDate(PARAM_END_DATE, true);
-        TemporalResolution temporalResolution = TemporalResolution.valueOf(
-                oldConfiguration.getString(PARAM_TEMPORAL_RES, true));
+    protected void run(Configuration configuration, String[] arguments) throws ToolException {
+        final String productTypeValue = configuration.getMandatoryStringValue(PARAM_PRODUCT_TYPE.getName(), PARAM_PRODUCT_TYPE.getDefaultValue());
+        productType = ProductType.valueOf(productTypeValue);
 
-        RegionMaskList regionMaskList = parseRegionList(oldConfiguration);
-
-
-        boolean writeText = oldConfiguration.getBoolean(PARAM_WRITE_TEXT, false);
-
+        RegionMaskList regionMaskList = parseRegionList(configuration);
+        boolean writeText = configuration.getBooleanValue(PARAM_WRITE_TEXT.getName());
 
         final String climatologyDirValue = configuration.getMandatoryStringValue(PARAM_CLIMATOLOGY_DIR.getName(), PARAM_CLIMATOLOGY_DIR.getDefaultValue());
         final String toolHome = configuration.getToolHome();
@@ -212,9 +202,20 @@ public final class AveragingTool extends Tool {
         final String lut_2_path = configuration.getMandatoryStringValue(PARAM_LUT2_FILE.getName(), PARAM_LUT2_FILE.getDefaultValue());
         final File lut2File = FileUtil.getExistingFile(lut_2_path, toolHome);
         final LUT2 lut2 = getLUT2(lut2File);
+
+        final String productDir = configuration.getMandatoryStringValue(productType + ".dir", null);
+        final String filenameRegex = configuration.getStringValue(PARAM_FILENAME_REGEX.getName(), productType.getDefaultFilenameRegex());
         final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
-        final AveragingAggregator aggregator = new AveragingAggregator(regionMaskList, fileStore, climatology, lut1,
-                lut2, sstDepth);
+
+        final String sstDepthValue = configuration.getMandatoryStringValue(PARAM_SST_DEPTH.getName(), PARAM_SST_DEPTH.getDefaultValue());
+        final SstDepth sstDepth = SstDepth.valueOf(sstDepthValue);
+
+        final String temporalResValue = configuration.getMandatoryStringValue(PARAM_TEMPORAL_RES.getName(), PARAM_TEMPORAL_RES.getDefaultValue());
+        final TemporalResolution temporalResolution = TemporalResolution.valueOf(temporalResValue);
+
+        final Date startDate = configuration.getMandatoryShortUtcDateValue(PARAM_START_DATE.getName(), PARAM_START_DATE.getDefaultValue());
+        final Date endDate = configuration.getMandatoryShortUtcDateValue(PARAM_END_DATE.getName(), PARAM_END_DATE.getDefaultValue());
+        final AveragingAggregator aggregator = new AveragingAggregator(regionMaskList, fileStore, climatology, lut1, lut2, sstDepth);
         final List<AveragingTimeStep> timeSteps;
         try {
             timeSteps = aggregator.aggregate(startDate, endDate, temporalResolution);
@@ -419,9 +420,10 @@ public final class AveragingTool extends Tool {
         return sb.toString();
     }
 
-    private static RegionMaskList parseRegionList(OldConfiguration oldConfiguration) throws ToolException {
+    private static RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
         try {
-            return RegionMaskList.parse(oldConfiguration.getString(PARAM_REGION_LIST, false));
+            final String regionListValue = configuration.getStringValue(PARAM_REGION_LIST.getName(), PARAM_REGION_LIST.getDefaultValue());
+            return RegionMaskList.parse(regionListValue);
         } catch (Exception e) {
             throw new ToolException(e, ToolException.TOOL_USAGE_ERROR);
         }
