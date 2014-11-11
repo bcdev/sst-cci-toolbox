@@ -1,4 +1,3 @@
-from workflow import Period
 from workflow import Workflow
 
 usecase = 'mms4'
@@ -17,5 +16,11 @@ w.add_primary_sensor('avhrr.n19', '2009-02-06', '2014-01-01')
 w.add_primary_sensor('avhrr.m02', '2006-10-30', '2014-01-01')
 w.set_samples_per_month(0)
 
-# todo - the sampling tool fails when sampling from in-situ data with higher concurrency
-w.run(mmdtype, calls=[('sampling-start.sh', 1)], with_history=True)
+w.run(mmdtype,
+      calls=[
+          ('sampling-start.sh', 1),
+          ('coincidence-start', 6),
+          ('reingestion-start', 6),
+          ('matchup-reingestion-start', 6)
+      ],
+      with_history=True)
