@@ -62,9 +62,9 @@ class ProductReader extends AbstractProductReader {
     ProductReader(String sensorName, String dirtyMaskExpression) {
         super(sensorName,
               EnvisatConstants.ENVISAT_FORMAT_NAME,
+              NcAvhrrGacProductReaderPlugIn.FORMAT_NAME,
               NcOsiProductReaderPlugIn.FORMAT_NAME,
-              PmwProductReaderPlugIn.FORMAT_NAME,
-              NcAvhrrGacProductReaderPlugIn.FORMAT_NAME);
+              PmwProductReaderPlugIn.FORMAT_NAME);
         this.dirtyMaskExpression = dirtyMaskExpression;
         this.bc = new BoundaryCalculator();
     }

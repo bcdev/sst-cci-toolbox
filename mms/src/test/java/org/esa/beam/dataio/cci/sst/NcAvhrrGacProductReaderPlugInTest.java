@@ -31,6 +31,7 @@ public class NcAvhrrGacProductReaderPlugInTest {
     @Test
     public void testMatches() throws Exception {
         assertTrue(NcAvhrrGacProductReaderPlugIn.matches("19910101000100-ESACCI-L1C-AVHRR11_G-fv01.0.nc"));
+        assertTrue(NcAvhrrGacProductReaderPlugIn.matches("20061031223900-ESACCI-L1C-AVHRRMTA_G-fv01.0.nc"));
     }
 
 }

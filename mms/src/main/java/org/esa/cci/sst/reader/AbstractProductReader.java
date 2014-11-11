@@ -18,8 +18,18 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.beam.dataio.netcdf.util.DataTypeUtils;
-import org.esa.beam.framework.dataio.ProductIO;
-import org.esa.beam.framework.datamodel.*;
+import org.esa.beam.framework.dataio.DecodeQualification;
+import org.esa.beam.framework.dataio.ProductIOPlugInManager;
+import org.esa.beam.framework.dataio.ProductReaderPlugIn;
+import org.esa.beam.framework.datamodel.Band;
+import org.esa.beam.framework.datamodel.FlagCoding;
+import org.esa.beam.framework.datamodel.GeoCoding;
+import org.esa.beam.framework.datamodel.GeoPos;
+import org.esa.beam.framework.datamodel.PixelPos;
+import org.esa.beam.framework.datamodel.Product;
+import org.esa.beam.framework.datamodel.ProductData;
+import org.esa.beam.framework.datamodel.RasterDataNode;
+import org.esa.beam.framework.datamodel.SampleCoding;
 import org.esa.beam.util.ProductUtils;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.ColumnBuilder;
@@ -30,7 +40,7 @@ import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import ucar.ma2.Array;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
@@ -40,6 +50,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -203,18 +214,28 @@ abstract class AbstractProductReader implements Reader {
     }
 
     protected Product readProduct(DataFile dataFile) throws IOException {
+        final String path = dataFile.getPath();
         final File file;
-        if (archiveRoot == null || dataFile.getPath().startsWith(File.separator)) {
+        if (archiveRoot == null || path.startsWith(File.separator)) {
             file = new File(datafile.getPath());
         } else {
             file = new File(archiveRoot, datafile.getPath());
         }
-        Product product = ProductIO.readProduct(file, formatNames);
-        if (product == null) {
-            throw new IOException(
-                    MessageFormat.format("Cannot read product file ''{0}''.", dataFile.getPath()));
+        final ProductIOPlugInManager manager = ProductIOPlugInManager.getInstance();
+        for (String formatName : formatNames) {
+            final Iterator<ProductReaderPlugIn> readerPlugIns = manager.getReaderPlugIns(formatName);
+            while (readerPlugIns.hasNext()) {
+                final ProductReaderPlugIn readerPlugIn = readerPlugIns.next();
+                if (readerPlugIn.getDecodeQualification(file) == DecodeQualification.INTENDED) {
+                    final Product product = readerPlugIn.createReaderInstance().readProductNodes(file, null);
+                    if (product == null) {
+                        throw new IOException(MessageFormat.format("Cannot read product file ''{0}''.", path));
+                    }
+                    return product;
+                }
+            }
         }
-        return product;
+        throw new IOException(MessageFormat.format("Cannot read product file ''{0}''.", path));
     }
 
     protected final Date getCenterTimeAsDate() throws IOException {
@@ -228,7 +249,7 @@ abstract class AbstractProductReader implements Reader {
         }
         final long startTime = startUtc.getAsDate().getTime();
         final long endTime = endUtc.getAsDate().getTime();
-        return new Date((startTime + endTime) /  2);
+        return new Date((startTime + endTime) / 2);
     }
 
     private Item createColumn(final RasterDataNode node) {
@@ -290,9 +311,9 @@ abstract class AbstractProductReader implements Reader {
         if (!pixelPos.isValid()) {
             final Logger logger = Logger.getLogger("org.esa.cci.sst");
             final String message = MessageFormat.format("Unable to find pixel at ({0}, {1}) in product ''{2}''.",
-                    geoPos.getLon(),
-                    geoPos.getLat(),
-                    product.getName());
+                                                        geoPos.getLon(),
+                                                        geoPos.getLat(),
+                                                        product.getName());
             logger.fine(message);
         }
         return pixelPos;
@@ -325,7 +346,7 @@ abstract class AbstractProductReader implements Reader {
             final Raster raster = sourceImage.getData(validRectangle);
             if (validRectangle.equals(rectangle)) {
                 raster.getDataElements(rectangle.x, rectangle.y, rectangle.width, rectangle.height,
-                        targetArray.getStorage());
+                                       targetArray.getStorage());
             } else {
                 final int maxX = minX + sourceImage.getWidth() - 1;
                 final int maxY = minY + sourceImage.getHeight() - 1;
