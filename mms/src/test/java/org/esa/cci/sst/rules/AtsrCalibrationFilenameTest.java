@@ -27,7 +27,7 @@ import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.reader.InsituSource;
 import org.esa.cci.sst.reader.Reader;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.junit.Ignore;
 import org.junit.Test;

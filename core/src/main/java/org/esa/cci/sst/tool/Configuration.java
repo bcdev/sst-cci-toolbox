@@ -1,7 +1,6 @@
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tool;
 
 import org.apache.commons.lang.StringUtils;
-import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 
 import java.io.IOException;
@@ -157,7 +156,7 @@ public class Configuration {
             return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
+                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -170,7 +169,7 @@ public class Configuration {
             return Double.parseDouble(doubleString);
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse double value: " + key + ": " + doubleString, e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
+                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -183,7 +182,7 @@ public class Configuration {
             return Integer.parseInt(intString);
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
+                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -196,7 +195,7 @@ public class Configuration {
             return Integer.parseInt(intString);
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse integer value: " + key + ": " + intString, e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
+                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 
@@ -258,7 +257,7 @@ public class Configuration {
             return new BigInteger(intString);
         } catch (NumberFormatException e) {
             throw new ToolException("Cannot parse big integer value: " + key + ": " + intString, e,
-                                    ToolException.TOOL_CONFIGURATION_ERROR);
+                    ToolException.TOOL_CONFIGURATION_ERROR);
         }
     }
 

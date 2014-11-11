@@ -1,6 +1,6 @@
 package org.esa.cci.sst.tools.samplepoint;
 
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 

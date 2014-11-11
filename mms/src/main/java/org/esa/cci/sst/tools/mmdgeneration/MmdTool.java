@@ -39,7 +39,7 @@ import org.esa.cci.sst.rules.Context;
 import org.esa.cci.sst.rules.Converter;
 import org.esa.cci.sst.rules.RuleException;
 import org.esa.cci.sst.tools.BasicTool;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.ReaderCache;

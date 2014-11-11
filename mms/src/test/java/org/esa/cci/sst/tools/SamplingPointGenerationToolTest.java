@@ -2,6 +2,7 @@ package org.esa.cci.sst.tools;
 
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tools.samplepoint.GenerateInsituPointsWorkflow;
 import org.esa.cci.sst.tools.samplepoint.GenerateSobolPointsWorkflow;
 import org.esa.cci.sst.tools.samplepoint.Workflow;

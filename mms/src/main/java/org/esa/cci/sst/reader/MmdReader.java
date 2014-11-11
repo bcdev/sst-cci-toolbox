@@ -27,7 +27,7 @@ import org.esa.cci.sst.common.ExtractDefinition;
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.data.Observation;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;

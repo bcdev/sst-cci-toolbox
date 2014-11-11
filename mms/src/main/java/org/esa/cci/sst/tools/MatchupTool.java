@@ -19,6 +19,7 @@ package org.esa.cci.sst.tools;
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.*;
 import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;

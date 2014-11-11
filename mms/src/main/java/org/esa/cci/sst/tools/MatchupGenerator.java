@@ -10,6 +10,7 @@ import org.esa.cci.sst.data.RelatedObservation;
 import org.esa.cci.sst.data.Sensor;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.tools.mmdgeneration.DimensionConfigurationInitializer;
 import org.esa.cci.sst.tools.samplepoint.DirtySubsceneRemover;

@@ -17,7 +17,7 @@
 package org.esa.cci.sst.tools.mmdgeneration;
 
 import org.esa.cci.sst.TestHelper;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

@@ -21,7 +21,7 @@ import org.esa.cci.sst.orm.ColumnStorage;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.tools.BasicTool;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tools.samplepoint.TimeRange;
 import org.esa.cci.sst.util.ConfigUtil;
 import org.esa.cci.sst.util.TimeUtil;

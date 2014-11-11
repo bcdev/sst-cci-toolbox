@@ -2,7 +2,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 
 
 import org.esa.cci.sst.TestHelper;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tool.ToolException;
 import org.junit.Test;

@@ -1,6 +1,7 @@
 package org.esa.cci.sst.tools;
 
 import org.apache.commons.lang.StringUtils;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.SamplingPointIO;

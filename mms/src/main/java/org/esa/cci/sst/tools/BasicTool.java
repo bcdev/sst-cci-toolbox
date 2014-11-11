@@ -27,6 +27,7 @@ import org.esa.beam.framework.gpf.GPF;
 import org.esa.beam.util.logging.BeamLogManager;
 import org.esa.cci.sst.orm.PersistenceManager;
 import org.esa.cci.sst.orm.Storage;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;
 

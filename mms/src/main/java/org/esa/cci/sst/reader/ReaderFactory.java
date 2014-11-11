@@ -18,7 +18,7 @@ package org.esa.cci.sst.reader;
 
 import com.bc.ceres.core.Assert;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,6 @@ import java.lang.reflect.InvocationTargetException;
 public class ReaderFactory {
 
     public static final String DEFAULT_READER_SPEC = "GunzipDecorator,ProductReader";
-    public static final String DEFAULT_MASK_SPEC = "";
 
     private static final String READER_PACKAGE_NAME = ReaderFactory.class.getPackage().getName();
 

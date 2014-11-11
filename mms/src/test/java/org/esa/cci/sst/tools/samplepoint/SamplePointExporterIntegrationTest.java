@@ -2,7 +2,7 @@ package org.esa.cci.sst.tools.samplepoint;
 
 
 import org.esa.beam.util.io.FileUtils;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.util.SamplingPoint;
 import org.esa.cci.sst.util.TimeUtil;
 import org.junit.After;

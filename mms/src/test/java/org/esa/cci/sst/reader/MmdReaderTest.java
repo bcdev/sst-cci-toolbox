@@ -18,7 +18,7 @@ package org.esa.cci.sst.reader;
 
 import org.esa.cci.sst.TestHelper;
 import org.esa.cci.sst.data.DataFile;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

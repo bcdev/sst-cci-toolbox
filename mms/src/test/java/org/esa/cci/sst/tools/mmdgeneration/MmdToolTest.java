@@ -5,7 +5,7 @@ import org.esa.cci.sst.ColumnRegistry;
 import org.esa.cci.sst.data.ColumnBuilder;
 import org.esa.cci.sst.data.Item;
 import org.esa.cci.sst.orm.MatchupQueryParameter;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tools.Constants;
 import org.esa.cci.sst.tool.ToolException;
 import org.esa.cci.sst.util.TimeUtil;

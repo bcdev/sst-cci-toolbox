@@ -17,7 +17,7 @@ package org.esa.cci.sst.util;/*
 import org.esa.cci.sst.data.DataFile;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.reader.ReaderFactory;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 
 import java.io.IOException;
 import java.text.MessageFormat;

@@ -20,7 +20,7 @@ import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.reader.Reader;
 import org.esa.cci.sst.rules.Context;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.util.ReaderCache;
 import ucar.nc2.Variable;
 

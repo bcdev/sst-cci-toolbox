@@ -1,5 +1,6 @@
 package org.esa.cci.sst.tools;
 
+import org.esa.cci.sst.tool.Configuration;
 import org.esa.cci.sst.tool.ToolException;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;

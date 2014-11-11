@@ -1,6 +1,5 @@
-package org.esa.cci.sst.tools;
+package org.esa.cci.sst.tool;
 
-import org.esa.cci.sst.tool.ToolException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -11,11 +10,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class ConfigurationTest {
 
@@ -238,8 +233,8 @@ public class ConfigurationTest {
     @Test
     public void testLoad() throws IOException {
         final String configFileContent = "key.1 = value.1\n" +
-                                         "date.key = 1979-01-01T00:00:00Z\n" +
-                                         "key.2 = value.2";
+                "date.key = 1979-01-01T00:00:00Z\n" +
+                "key.2 = value.2";
 
         final ByteArrayInputStream inputStream = new ByteArrayInputStream(configFileContent.getBytes());
         final InputStreamReader reader = new InputStreamReader(inputStream);

@@ -1,7 +1,7 @@
 package org.esa.cci.sst.tools.samplepoint;
 
 import org.esa.cci.sst.orm.PersistenceManager;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 
 import java.io.File;
 import java.util.logging.Logger;

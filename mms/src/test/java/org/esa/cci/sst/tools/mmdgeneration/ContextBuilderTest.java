@@ -3,7 +3,7 @@ package org.esa.cci.sst.tools.mmdgeneration;
 import org.esa.cci.sst.data.Matchup;
 import org.esa.cci.sst.data.Observation;
 import org.esa.cci.sst.rules.Context;
-import org.esa.cci.sst.tools.Configuration;
+import org.esa.cci.sst.tool.Configuration;
 import org.junit.Test;
 import ucar.nc2.Variable;
 
