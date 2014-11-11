@@ -104,7 +104,7 @@ public abstract class Tool {
         }
         initLogger(logLevel);
 
-        run(getConfiguration(), commandLine.getArgs());
+        run(getOldConfiguration(), getConfiguration(), commandLine.getArgs());
     }
 
     protected abstract String getName();
@@ -128,10 +128,58 @@ public abstract class Tool {
 
     protected abstract Parameter[] getParameters();
 
-    protected abstract void run(OldConfiguration oldConfiguration, String[] arguments) throws ToolException;
+    protected abstract void run(OldConfiguration oldConfiguration, Configuration configurations, String[] arguments) throws ToolException;
 
-    private OldConfiguration getConfiguration() throws ToolException {
-        Properties properties = new Properties();
+    private Configuration getConfiguration() {
+        final Configuration configuration = new Configuration();
+
+        final String toolHome = getToolHome();
+        configuration.setToolHome(toolHome);
+
+        Parameter[] parameters = getParameters();
+
+        final Properties properties = new Properties();
+
+        // 1. Set default values
+        for (Parameter param : parameters) {
+            if (param.getDefaultValue() != null) {
+                properties.setProperty(param.getName(), param.getDefaultValue());
+            }
+        }
+
+        // 2. Overwrite from default config file
+        File defaultConfigFile = getDefaultConfigFile();
+        if (defaultConfigFile.exists()) {
+            loadConfig(defaultConfigFile.getPath(), properties);
+        } else {
+            info("Default configuration file '" + defaultConfigFile + "' does not exist.");
+        }
+
+        // 3. Overwrite from user config file
+        String configPath = commandLine.getOptionValue("config", null);
+        if (configPath != null) {
+            loadConfig(configPath, properties);
+        }
+
+        // 4. Overwrite from command-line
+        for (Parameter param : parameters) {
+            if (commandLine.hasOption(param.getName())) {
+                String optionValue = commandLine.getOptionValue(param.getName());
+                if (optionValue == null) {
+                    // option without arg means, an option has been set (to "true")
+                    optionValue = "true";
+                }
+                properties.setProperty(param.getName(), optionValue);
+            }
+        }
+
+        configuration.add(properties);
+
+        return configuration;
+    }
+
+    private OldConfiguration getOldConfiguration() throws ToolException {
+        final Properties properties = new Properties();
 
         Parameter[] parameters = getParameters();
 
@@ -168,7 +216,7 @@ public abstract class Tool {
             }
         }
 
-        return new OldConfiguration(getToolHome(), properties);
+        return new OldConfiguration(properties);
     }
 
     protected File getDefaultConfigFile() {

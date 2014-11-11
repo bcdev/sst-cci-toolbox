@@ -21,7 +21,6 @@ package org.esa.cci.sst.tool;
 
 import org.esa.cci.sst.util.TimeUtil;
 
-import java.io.File;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Properties;
@@ -33,11 +32,9 @@ import java.util.Properties;
  */
 public class OldConfiguration {
 
-    private final String toolHome;
     private final Properties properties;
 
-    public OldConfiguration(String toolHome, Properties properties) {
-        this.toolHome = toolHome;
+    public OldConfiguration(Properties properties) {
         this.properties = properties;
     }
 
@@ -51,51 +48,6 @@ public class OldConfiguration {
             throw new ToolException("Missing value for mandatory parameter '" + name + "'", ToolException.TOOL_USAGE_ERROR);
         }
         return property == null ? property : property.trim();
-    }
-
-    public File getFile(Parameter parameter, boolean mandatory) throws ToolException {
-        String path = getString(parameter, mandatory);
-        if (path == null) {
-            return null;
-        }
-        if (!path.startsWith(".") && !new File(path).isAbsolute()) {
-            return new File(toolHome, path);
-        }
-        return new File(path);
-    }
-
-    public File getExistingFile(Parameter parameter, boolean mandatory) throws ToolException {
-        File file = getFile(parameter, mandatory);
-        if (file != null) {
-            if (!file.exists()) {
-                final String message = String.format("Parameter '%s': File not found: %s", parameter.getName(), file);
-                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
-            }
-            if (!file.isFile()) {
-                final String message = String.format("Parameter '%s': Value is not a file: '%s'", parameter.getName(), file);
-                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
-            }
-        }
-        return file;
-    }
-
-    public File getExistingDirectory(Parameter parameter, boolean mandatory) throws ToolException {
-        File dir = getFile(parameter, mandatory);
-        if (dir != null) {
-            if (!dir.exists()) {
-                final String message = String.format("Parameter '%s': Directory not found: '%s'", parameter.getName(), dir);
-                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
-            }
-            if (!dir.isDirectory()) {
-                final String message = String.format("Parameter '%s': Value is not a directory: '%s'", parameter.getName(), dir);
-                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
-            }
-            if (!dir.canWrite()) {
-                final String message = String.format("Parameter '%s': Directory is not writable: '%s'", parameter.getName(), dir);
-                throw new ToolException(message, ToolException.TOOL_IO_ERROR);
-            }
-        }
-        return dir;
     }
 
     public Date getDate(Parameter parameter, boolean mandatory) throws ToolException {

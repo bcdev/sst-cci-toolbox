@@ -19,10 +19,10 @@ package org.esa.cci.sst.regrid;
 import org.esa.cci.sst.common.*;
 import org.esa.cci.sst.common.auxiliary.Climatology;
 import org.esa.cci.sst.common.calculator.SynopticUncertaintyProvider;
-import org.esa.cci.sst.common.GridDef;
 import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,7 +118,7 @@ public class RegriddingTool extends Tool {
     }
 
     @Override
-    protected void run(OldConfiguration oldConfiguration, String[] arguments) throws ToolException {
+    protected void run(OldConfiguration oldConfiguration, Configuration configuration, String[] arguments) throws ToolException {
         final String resolutionString = oldConfiguration.getString(PARAM_SPATIAL_RESOLUTION, true);
         final SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(resolutionString);
         productType = ProductType.valueOf(oldConfiguration.getString(PARAM_PRODUCT_TYPE, true));
@@ -132,24 +132,33 @@ public class RegriddingTool extends Tool {
         final Date endDate = oldConfiguration.getDate(PARAM_END_DATE, true);
         final TemporalResolution temporalResolution = TemporalResolution.valueOf(
                 oldConfiguration.getString(PARAM_TEMPORAL_RES, true));
-        final File targetDir = oldConfiguration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
         final RegionMaskList regionMaskList = getRegionMaskList(oldConfiguration);
         final double minCoverage = Double.parseDouble(oldConfiguration.getString(PARAM_MIN_COVERAGE, false));
-        final File cuStdDevFile = oldConfiguration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
-        final File cuTimeFile = oldConfiguration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME, true);
-        final File cuSpaceFile = oldConfiguration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
+
 
         final boolean totalUncertainty = oldConfiguration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true);
         final double maxTotalUncertainty = Double.parseDouble(
                 oldConfiguration.getString(PARAM_MAX_TOTAL_UNCERTAINTY, false));
 
-        final File climatologyDir = oldConfiguration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
+        final String toolHome = configuration.getToolHome();
+        final String climatologyDirPath = configuration.getMandatoryStringValue(PARAM_CLIMATOLOGY_DIR.getName(), PARAM_CLIMATOLOGY_DIR.getDefaultValue());
+        final File climatologyDir = FileUtil.getExistingFile(climatologyDirPath, toolHome);
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
 
         final FileStore fileStore = FileStore.create(productType, sourceFilenameRegex, productDir);
+
+        final String stdefFilePath = configuration.getMandatoryStringValue(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV.getName(), PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV.getDefaultValue());
+        final File cuStdDevFile = FileUtil.getExistingFile(stdefFilePath, toolHome);
         final LUT stdDevLut = createLutForStdDeviation(cuStdDevFile);
+
+        final String x0TimeFilePath = configuration.getMandatoryStringValue(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME.getName(), PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME.getDefaultValue());
+        final File cuTimeFile = FileUtil.getExistingFile(x0TimeFilePath, toolHome);
         final LUT cuTimeLut = getLutCoverageUncertainty(cuTimeFile, spatialResolution, -32768.0);
+
+        final String x0SpaceFilePath = configuration.getMandatoryStringValue(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE.getName(), PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE.getDefaultValue());
+        final File cuSpaceFile = FileUtil.getExistingFile(x0SpaceFilePath, toolHome);
         final LUT cuSpaceLut = getLutCoverageUncertainty(cuSpaceFile, spatialResolution, 0.0);
+
         final SynopticUncertaintyProvider synopticUncertaintyProvider = new SynopticUncertaintyProvider(
                 spatialResolution, temporalResolution);
 
@@ -161,6 +170,8 @@ public class RegriddingTool extends Tool {
         aggregationContext.setMinCoverage(minCoverage);
         aggregationContext.setTargetRegionMaskList(regionMaskList);
 
+        final String outputDirPath = configuration.getMandatoryStringValue(PARAM_OUTPUT_DIR.getName(), PARAM_OUTPUT_DIR.getDefaultValue());
+        final File targetDir = FileUtil.getExistingDirectory(outputDirPath, toolHome);
         final Writer writer = new Writer(
                 productType, TOOL_NAME, TOOL_VERSION, FILE_FORMAT_VERSION, totalUncertainty, maxTotalUncertainty,
                 targetDir, sourceFilenameRegex, sstDepth, temporalResolution, regionMaskList.get(0));

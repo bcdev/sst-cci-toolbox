@@ -29,10 +29,8 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.tool.OldConfiguration;
-import org.esa.cci.sst.tool.Parameter;
-import org.esa.cci.sst.tool.Tool;
-import org.esa.cci.sst.tool.ToolException;
+import org.esa.cci.sst.tool.*;
+import org.esa.cci.sst.util.FileUtil;
 import org.esa.cci.sst.util.TimeUtil;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -185,8 +183,7 @@ public final class AveragingTool extends Tool {
     }
 
     @Override
-    protected void run(OldConfiguration oldConfiguration, String[] arguments) throws ToolException {
-        File climatologyDir = oldConfiguration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
+    protected void run(OldConfiguration oldConfiguration, Configuration configuration, String[] arguments) throws ToolException {
         productType = ProductType.valueOf(oldConfiguration.getString(PARAM_PRODUCT_TYPE, true));
         String filenameRegex = oldConfiguration.getString(PARAM_FILENAME_REGEX.getName(),
                 productType.getDefaultFilenameRegex(), false);
@@ -196,16 +193,26 @@ public final class AveragingTool extends Tool {
         Date endDate = oldConfiguration.getDate(PARAM_END_DATE, true);
         TemporalResolution temporalResolution = TemporalResolution.valueOf(
                 oldConfiguration.getString(PARAM_TEMPORAL_RES, true));
-        File outputDir = oldConfiguration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+
         RegionMaskList regionMaskList = parseRegionList(oldConfiguration);
-        File lut1File = oldConfiguration.getExistingFile(PARAM_LUT1_FILE, true);
-        File lut2File = oldConfiguration.getExistingFile(PARAM_LUT2_FILE, true);
+
+
         boolean writeText = oldConfiguration.getBoolean(PARAM_WRITE_TEXT, false);
 
-        final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
+
+        final String climatologyDirValue = configuration.getMandatoryStringValue(PARAM_CLIMATOLOGY_DIR.getName(), PARAM_CLIMATOLOGY_DIR.getDefaultValue());
+        final String toolHome = configuration.getToolHome();
+        final File climatologyDir = FileUtil.getExistingDirectory(climatologyDirValue, toolHome);
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
+
+        final String lut_1_path = configuration.getMandatoryStringValue(PARAM_LUT1_FILE.getName(), PARAM_LUT1_FILE.getDefaultValue());
+        final File lut1File = FileUtil.getExistingFile(lut_1_path, toolHome);
         final LUT1 lut1 = getLUT1(lut1File);
+
+        final String lut_2_path = configuration.getMandatoryStringValue(PARAM_LUT2_FILE.getName(), PARAM_LUT2_FILE.getDefaultValue());
+        final File lut2File = FileUtil.getExistingFile(lut_2_path, toolHome);
         final LUT2 lut2 = getLUT2(lut2File);
+        final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
         final AveragingAggregator aggregator = new AveragingAggregator(regionMaskList, fileStore, climatology, lut1,
                 lut2, sstDepth);
         final List<AveragingTimeStep> timeSteps;
@@ -214,6 +221,9 @@ public final class AveragingTool extends Tool {
         } catch (IOException e) {
             throw new ToolException("Averaging failed: " + e.getMessage(), e, ToolException.TOOL_IO_ERROR);
         }
+
+        final String outputDirString = configuration.getMandatoryStringValue(PARAM_OUTPUT_DIR.getName(), PARAM_OUTPUT_DIR.getDefaultValue());
+        final File outputDir = FileUtil.getExistingDirectory(outputDirString, toolHome);
         try {
             writeOutputs(outputDir, writeText, productType, filenameRegex,
                     sstDepth, startDate, endDate, temporalResolution, regionMaskList, timeSteps);

@@ -43,6 +43,31 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void testGetOptionalStringValue() {
+        assertNull(configuration.getOptionalStringValue("optional.key"));
+
+        configuration.put("optional.key", "optional.value");
+        assertEquals("optional.value", configuration.getOptionalStringValue("optional.key"));
+    }
+
+    @Test
+    public void testGetMandatoryStringValue() {
+        configuration.put("the.key", "the.value");
+        assertEquals("the.value", configuration.getMandatoryStringValue("the.key", "the.default"));
+
+        assertEquals("the.default", configuration.getMandatoryStringValue("no.key", "the.default"));
+    }
+
+    @Test
+    public void testGetMandatoryStringValue_throwsWhenEverythingFails() {
+        try {
+            configuration.getMandatoryStringValue("the.key", null);
+            fail("ToolException expected");
+        } catch(ToolException expected) {
+        }
+    }
+
+    @Test
     public void testPutAndGetDateValue() {
         configuration.put("date.key", "1978-01-01T00:00:00Z");
 
@@ -384,14 +409,23 @@ public class ConfigurationTest {
         assertTrue(configuration.containsValue("mms.dirty.atsr.2"));
         assertTrue(configuration.containsValue("mms.dirty.atsr.3"));
 
-        assertEquals(
-                "(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
+        assertEquals("(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
                 configuration.getDirtyMaskExpression("atsr.1"));
-        assertEquals(
-                "(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
+        assertEquals("(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
                 configuration.getDirtyMaskExpression("atsr.2"));
-        assertEquals(
-                "(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
+        assertEquals("(cloud_flags_nadir & 3 != 0) || (cloud_flags_fward & 3 != 0) || nan(btemp_nadir_1100) || nan(btemp_fward_1100)",
                 configuration.getDirtyMaskExpression("atsr.3"));
+    }
+
+    @Test
+    public void testSetGetToolHome() {
+        final String home_1 = "here";
+        final String home_2 = "at Home";
+
+        configuration.setToolHome(home_1);
+        assertEquals(home_1, configuration.getToolHome());
+
+        configuration.setToolHome(home_2);
+        assertEquals(home_2, configuration.getToolHome());
     }
 }

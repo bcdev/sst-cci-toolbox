@@ -18,7 +18,7 @@ public class OldConfigurationTest {
         Properties props = new Properties();
         String key = "myParam";
         props.setProperty(key, "C:\\Users\\bettina\\output\\regav\\2012-09-26     ");
-        OldConfiguration oldConfiguration = new OldConfiguration(null, props);
+        OldConfiguration oldConfiguration = new OldConfiguration(props);
 
         Parameter parameter = new Parameter(key, "TYPE", "/root/", "desc");
         assertEquals("C:\\Users\\bettina\\output\\regav\\2012-09-26", oldConfiguration.getString(parameter, false));
@@ -28,7 +28,7 @@ public class OldConfigurationTest {
     public void testGetString_null() throws Exception {
         Properties props = new Properties();
         String key = "myParam";
-        OldConfiguration oldConfiguration = new OldConfiguration(null, props);
+        OldConfiguration oldConfiguration = new OldConfiguration(props);
         //execution with default
         Parameter parameter = new Parameter(key, "TYPE", "/root/", "desc");
         assertEquals("/root/", oldConfiguration.getString(parameter, false));

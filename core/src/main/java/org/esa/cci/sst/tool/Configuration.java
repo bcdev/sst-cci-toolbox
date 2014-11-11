@@ -91,6 +91,7 @@ public class Configuration {
     public static final String KEY_MMS_SELECTION_MMD_TARGET = "mms.selection.target";
 
     private final Properties properties;
+    private String toolHome;
 
     public Configuration() {
         properties = new Properties();
@@ -114,6 +115,10 @@ public class Configuration {
 
     public String getStringValue(String key, String defaultValue) {
         return properties.getProperty(key, defaultValue);
+    }
+
+    public String getOptionalStringValue(String key) {
+        return properties.getProperty(key);
     }
 
     public Date getDateValue(String key) {
@@ -265,6 +270,14 @@ public class Configuration {
         return properties.containsKey(key);
     }
 
+    public void setToolHome(String toolHome) {
+        this.toolHome = toolHome;
+    }
+
+    public String getToolHome() {
+        return toolHome;
+    }
+
     private long parsePattern(String key, String value) {
         final long pattern;
         try {
@@ -288,5 +301,13 @@ public class Configuration {
         } catch (ParseException e) {
             throw new ToolException("Cannot parse start or stop date.", e, ToolException.TOOL_CONFIGURATION_ERROR);
         }
+    }
+
+    public String getMandatoryStringValue(String key, String defaultValue) {
+        final String stringValue = getStringValue(key, defaultValue);
+        if (StringUtils.isBlank(stringValue)) {
+            throw new ToolException("Missing value for mandatory parameter '" + key + "'", ToolException.TOOL_USAGE_ERROR);
+        }
+        return stringValue;
     }
 }
