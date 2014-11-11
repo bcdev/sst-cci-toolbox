@@ -128,9 +128,9 @@ public abstract class Tool {
 
     protected abstract Parameter[] getParameters();
 
-    protected abstract void run(Configuration configuration, String[] arguments) throws ToolException;
+    protected abstract void run(OldConfiguration oldConfiguration, String[] arguments) throws ToolException;
 
-    private Configuration getConfiguration() throws ToolException {
+    private OldConfiguration getConfiguration() throws ToolException {
         Properties properties = new Properties();
 
         Parameter[] parameters = getParameters();
@@ -168,7 +168,7 @@ public abstract class Tool {
             }
         }
 
-        return new Configuration(getToolHome(), properties);
+        return new OldConfiguration(getToolHome(), properties);
     }
 
     protected File getDefaultConfigFile() {

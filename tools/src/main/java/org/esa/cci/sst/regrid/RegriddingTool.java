@@ -118,32 +118,32 @@ public class RegriddingTool extends Tool {
     }
 
     @Override
-    protected void run(Configuration configuration, String[] arguments) throws ToolException {
-        final String resolutionString = configuration.getString(PARAM_SPATIAL_RESOLUTION, true);
+    protected void run(OldConfiguration oldConfiguration, String[] arguments) throws ToolException {
+        final String resolutionString = oldConfiguration.getString(PARAM_SPATIAL_RESOLUTION, true);
         final SpatialResolution spatialResolution = SpatialResolution.getSpatialResolution(resolutionString);
-        productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
+        productType = ProductType.valueOf(oldConfiguration.getString(PARAM_PRODUCT_TYPE, true));
 
-        final String sourceFilenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
+        final String sourceFilenameRegex = oldConfiguration.getString(PARAM_FILENAME_REGEX.getName(),
                 productType.getDefaultFilenameRegex(), false);
 
-        final SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
-        final String productDir = configuration.getString(productType + ".dir", ".", true);
-        final Date startDate = configuration.getDate(PARAM_START_DATE, true);
-        final Date endDate = configuration.getDate(PARAM_END_DATE, true);
+        final SstDepth sstDepth = SstDepth.valueOf(oldConfiguration.getString(PARAM_SST_DEPTH, true));
+        final String productDir = oldConfiguration.getString(productType + ".dir", ".", true);
+        final Date startDate = oldConfiguration.getDate(PARAM_START_DATE, true);
+        final Date endDate = oldConfiguration.getDate(PARAM_END_DATE, true);
         final TemporalResolution temporalResolution = TemporalResolution.valueOf(
-                configuration.getString(PARAM_TEMPORAL_RES, true));
-        final File targetDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        final RegionMaskList regionMaskList = getRegionMaskList(configuration);
-        final double minCoverage = Double.parseDouble(configuration.getString(PARAM_MIN_COVERAGE, false));
-        final File cuStdDevFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
-        final File cuTimeFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME, true);
-        final File cuSpaceFile = configuration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
+                oldConfiguration.getString(PARAM_TEMPORAL_RES, true));
+        final File targetDir = oldConfiguration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+        final RegionMaskList regionMaskList = getRegionMaskList(oldConfiguration);
+        final double minCoverage = Double.parseDouble(oldConfiguration.getString(PARAM_MIN_COVERAGE, false));
+        final File cuStdDevFile = oldConfiguration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_STDDEV, true);
+        final File cuTimeFile = oldConfiguration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0TIME, true);
+        final File cuSpaceFile = oldConfiguration.getExistingFile(PARAM_COVERAGE_UNCERTAINTY_FILE_X0SPACE, true);
 
-        final boolean totalUncertainty = configuration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true);
+        final boolean totalUncertainty = oldConfiguration.getBoolean(PARAM_TOTAL_UNCERTAINTY, true);
         final double maxTotalUncertainty = Double.parseDouble(
-                configuration.getString(PARAM_MAX_TOTAL_UNCERTAINTY, false));
+                oldConfiguration.getString(PARAM_MAX_TOTAL_UNCERTAINTY, false));
 
-        final File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
+        final File climatologyDir = oldConfiguration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
 
         final FileStore fileStore = FileStore.create(productType, sourceFilenameRegex, productDir);
@@ -232,11 +232,11 @@ public class RegriddingTool extends Tool {
         return paramList.toArray(new Parameter[paramList.size()]);
     }
 
-    private RegionMaskList getRegionMaskList(Configuration configuration) throws ToolException {
+    private RegionMaskList getRegionMaskList(OldConfiguration oldConfiguration) throws ToolException {
         try {
-            final String region = configuration.getString(PARAM_REGION, false);
+            final String region = oldConfiguration.getString(PARAM_REGION, false);
             RegionMaskList.setSpatialResolution(
-                    SpatialResolution.getSpatialResolution(configuration.getString(PARAM_SPATIAL_RESOLUTION, true)));
+                    SpatialResolution.getSpatialResolution(oldConfiguration.getString(PARAM_SPATIAL_RESOLUTION, true)));
             return RegionMaskList.parse(region);
         } catch (Exception e) {
             throw new ToolException(e, ToolException.TOOL_USAGE_ERROR);

@@ -31,12 +31,12 @@ import java.util.Properties;
  *
  * @author Norman Fomferra
  */
-public class Configuration {
+public class OldConfiguration {
 
     private final String toolHome;
     private final Properties properties;
 
-    public Configuration(String toolHome, Properties properties) {
+    public OldConfiguration(String toolHome, Properties properties) {
         this.toolHome = toolHome;
         this.properties = properties;
     }

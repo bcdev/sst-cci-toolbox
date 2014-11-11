@@ -29,7 +29,7 @@ import org.esa.cci.sst.common.file.FileStore;
 import org.esa.cci.sst.common.file.ProductType;
 import org.esa.cci.sst.regavg.auxiliary.LUT1;
 import org.esa.cci.sst.regavg.auxiliary.LUT2;
-import org.esa.cci.sst.tool.Configuration;
+import org.esa.cci.sst.tool.OldConfiguration;
 import org.esa.cci.sst.tool.Parameter;
 import org.esa.cci.sst.tool.Tool;
 import org.esa.cci.sst.tool.ToolException;
@@ -185,22 +185,22 @@ public final class AveragingTool extends Tool {
     }
 
     @Override
-    protected void run(Configuration configuration, String[] arguments) throws ToolException {
-        File climatologyDir = configuration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
-        productType = ProductType.valueOf(configuration.getString(PARAM_PRODUCT_TYPE, true));
-        String filenameRegex = configuration.getString(PARAM_FILENAME_REGEX.getName(),
+    protected void run(OldConfiguration oldConfiguration, String[] arguments) throws ToolException {
+        File climatologyDir = oldConfiguration.getExistingDirectory(PARAM_CLIMATOLOGY_DIR, true);
+        productType = ProductType.valueOf(oldConfiguration.getString(PARAM_PRODUCT_TYPE, true));
+        String filenameRegex = oldConfiguration.getString(PARAM_FILENAME_REGEX.getName(),
                 productType.getDefaultFilenameRegex(), false);
-        SstDepth sstDepth = SstDepth.valueOf(configuration.getString(PARAM_SST_DEPTH, true));
-        String productDir = configuration.getString(productType + ".dir", null, true);
-        Date startDate = configuration.getDate(PARAM_START_DATE, true);
-        Date endDate = configuration.getDate(PARAM_END_DATE, true);
+        SstDepth sstDepth = SstDepth.valueOf(oldConfiguration.getString(PARAM_SST_DEPTH, true));
+        String productDir = oldConfiguration.getString(productType + ".dir", null, true);
+        Date startDate = oldConfiguration.getDate(PARAM_START_DATE, true);
+        Date endDate = oldConfiguration.getDate(PARAM_END_DATE, true);
         TemporalResolution temporalResolution = TemporalResolution.valueOf(
-                configuration.getString(PARAM_TEMPORAL_RES, true));
-        File outputDir = configuration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
-        RegionMaskList regionMaskList = parseRegionList(configuration);
-        File lut1File = configuration.getExistingFile(PARAM_LUT1_FILE, true);
-        File lut2File = configuration.getExistingFile(PARAM_LUT2_FILE, true);
-        boolean writeText = configuration.getBoolean(PARAM_WRITE_TEXT, false);
+                oldConfiguration.getString(PARAM_TEMPORAL_RES, true));
+        File outputDir = oldConfiguration.getExistingDirectory(PARAM_OUTPUT_DIR, true);
+        RegionMaskList regionMaskList = parseRegionList(oldConfiguration);
+        File lut1File = oldConfiguration.getExistingFile(PARAM_LUT1_FILE, true);
+        File lut2File = oldConfiguration.getExistingFile(PARAM_LUT2_FILE, true);
+        boolean writeText = oldConfiguration.getBoolean(PARAM_WRITE_TEXT, false);
 
         final FileStore fileStore = FileStore.create(productType, filenameRegex, productDir);
         final Climatology climatology = Climatology.create(climatologyDir, productType.getGridDef());
@@ -409,9 +409,9 @@ public final class AveragingTool extends Tool {
         return sb.toString();
     }
 
-    private static RegionMaskList parseRegionList(Configuration configuration) throws ToolException {
+    private static RegionMaskList parseRegionList(OldConfiguration oldConfiguration) throws ToolException {
         try {
-            return RegionMaskList.parse(configuration.getString(PARAM_REGION_LIST, false));
+            return RegionMaskList.parse(oldConfiguration.getString(PARAM_REGION_LIST, false));
         } catch (Exception e) {
             throw new ToolException(e, ToolException.TOOL_USAGE_ERROR);
         }
